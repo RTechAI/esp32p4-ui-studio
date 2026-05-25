@@ -132,10 +132,28 @@ const exportToForgeUIOne = async () => {
   })
 
   await fetch('http://localhost:3030/flash', {
-  method: 'POST',
-})
+    method: 'POST',
+  })
 
-alert('Export + Flash started')
+  alert('Build + Flash started')
+}
+
+const cleanBuildFlashForgeUIOne = async () => {
+  const code = generateForgeUILvglCode(components)
+
+  await fetch('http://localhost:3030/export', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ code }),
+  })
+
+  await fetch('http://localhost:3030/clean-flash', {
+    method: 'POST',
+  })
+
+  alert('Clean Build + Flash started')
 }
 
   return (
@@ -226,14 +244,39 @@ alert('Export + Flash started')
           <Stack direction="row">
   <CodeSandboxButton />
 
-      <Button
-       size="xs"
-       variant="ghost"
-        colorScheme="teal"
-         onClick={exportToForgeUIOne}
+      <HStack spacing={2}>
+        <Box
+         fontSize="10px"
+         color="gray.300"
+          px={2}
+          py={1}
+         borderWidth="1px"
+         borderColor="gray.600"
+         borderRadius="md"
+         bg="#202938"
+         whiteSpace="nowrap"
   >
-    P4 Export
-  </Button>
+        ESP32-P4-WIFI6-Touch-LCD-7B
+    </Box>
+
+  <Button
+  size="xs"
+  variant="solid"
+  colorScheme="teal"
+  onClick={exportToForgeUIOne}
+>
+  Build & Flash
+</Button>
+
+<Button
+  size="xs"
+  variant="outline"
+  colorScheme="orange"
+  onClick={cleanBuildFlashForgeUIOne}
+>
+  Clean Build & Flash
+</Button>
+</HStack>
 
             <Popover>
               {({ onClose }) => (
