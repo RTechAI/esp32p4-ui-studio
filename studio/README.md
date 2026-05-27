@@ -107,7 +107,7 @@ To maintain high stability and maintainability, the project strictly enforces th
 
 ## 📜 Upstream Attribution & Open Source Licensing
 
-**ESP32-P4 UI Studio** is built on top of the excellent [OpenChakra](https://github.com) editor engine originally developed by Premier Octet. This fork heavily expands, refactors, and pivots the upstream web framework specifically toward low-level embedded software workflows, coordinate-based screen mapping, and ESP32 execution toolchains. 
+**ESP32-P4 UI Studio** builds on an upstream MIT-licensed editor engine originally developed by Premier Octet. This fork expands, refactors, and pivots that engine specifically toward low-level embedded software workflows, coordinate-based screen mapping, and ESP32 execution toolchains. 
 
 The original MIT open-source license and author attributions remain fully preserved inside this repository. For explicit dependency details, please review `LICENSE` and `THIRD_PARTY_LICENSES.md`.
 

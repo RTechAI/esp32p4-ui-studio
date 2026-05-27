@@ -54,7 +54,7 @@ esp32p4-ui-studio/
 
 ### Studio Stack
 * **Framework:** React, Next.js, and Chakra UI.
-* **Upstream Core:** OpenChakra (Created by Premier Octet, MIT License).
+* **Upstream Core:** heritage from an upstream MIT-licensed editor engine originally developed by Premier Octet.
 * **Development Rule:** Build custom functionality isolated within `studio/src/forgeui/`.
 
 ### Hardware Target
@@ -110,7 +110,7 @@ themes, icon sets, or app UI layout.
 
 * **Rule 1 (No React in Firmware):** Studio generates static code; the firmware only executes raw C/LVGL.
 * **Rule 2 (Strict Code Separation):** Keep Studio, Runtime, and Tooling layers completely distinct.
-* **Rule 3 (Licensing Preservation):** Retain all upstream OpenChakra attribution and MIT license headers.
+* **Rule 3 (Licensing Preservation):** Retain all upstream attribution and MIT license headers.
 * **Rule 4 (No Engine Rewrites):** Avoid massive structural modifications to the core editor.
 * **Rule 5 (Device Config Single Source):** Use `studio/src/forgeui/ForgeUIDeviceConfig.ts` for all viewport, grid, and hardware definitions.
 
@@ -120,7 +120,7 @@ themes, icon sets, or app UI layout.
 
 ### Known Limitations
 * Early-stage export engine with incomplete LVGL component coverage.
-* Ongoing inspector code cleanup and legacy OpenChakra visual remnants.
+* Ongoing inspector code cleanup and legacy upstream visual remnants.
 * Imperfect ESP-IDF extension integration inside monorepo mode.
 
 ### Near-Term Roadmap
