@@ -13,11 +13,13 @@
 * **Definition:** Visual embedded UI designer and deployment toolchain.
 * **Target Hardware:** ESP32-P4 chips and Waveshare displays.
 * **Core Stack:** LVGL code generation and ESP-IDF firmware runtime templates.
+* **Runtime Target:** ForgeUI-One remains the firmware runtime target.
 * **End-User Vision:** Launch Studio -> Design UI -> Press Flash -> Hardware Updates.
 
 ### Project Boundaries
 * **What It IS:** Fixed-device interfaces, industrial touchscreens, HMIs, and kiosk dashboards.
-* **What It IS NOT:** Generic website builders, responsive web editors, or React on embedded hardware.
+* **What It IS NOT:** Generic website builders, responsive web editors, React on embedded hardware, or a packaged desktop application.
+* **Current Delivery Model:** Browser-based local dev server; Wails/Tauri/Electron desktop wrapper is deferred.
 
 ---
 
@@ -74,8 +76,8 @@ esp32p4-ui-studio/
 ## 4. Pipeline & Runtime Contracts
 
 ### Proven Hardware Pipeline
-1. Run `START_FORGEUI_STUDIO.bat` to launch the local stack.
-2. Studio and Export bridge spin up; user opens `localhost:3000`.
+1. Run `START_FORGEUI_STUDIO_HIDDEN.vbs` to launch the local dev environment.
+2. Studio and export bridge spin up; the browser UI is available at `localhost:3000` while the export bridge runs in the background.
 3. User triggers **Export UI to Device** inside the web interface.
 4. Studio generates native LVGL C code and writes it directly to the firmware directory.
 5. ESP-IDF build system compiles the project and flashes the ESP32-P4 hardware automatically.
