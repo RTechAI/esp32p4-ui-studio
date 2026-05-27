@@ -381,9 +381,9 @@ const Header = () => {
           </Link>
           <Box lineHeight="shorter" color="white" fontSize="xs">
             by{' '}
-            <Link isExternal href="https://premieroctet.com" color="teal.100">
-              Premier Octet
-            </Link>
+              <Link isExternal href="https://github.com/RTechAI" color="teal.100">
+               RTechAI
+              </Link>
           </Box>
         </Stack>
       </Flex>
