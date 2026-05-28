@@ -224,7 +224,7 @@ useEffect(() => {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     code,
-    projectName: 'ForgeUI_Export_001',
+    projectName: 'ForgeUI_Export',
   }),
 })
 

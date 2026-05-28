@@ -112,7 +112,36 @@ void fg_studio_export_create(lv_obj_t *parent);
 app.post('/export-idf-project', (req, res) => {
   try {
     const code = req.body.code || ''
-    const projectName = req.body.projectName || 'ForgeUI_Export'
+    function safeProjectName(name) {
+  return String(name || 'ForgeUI_Export')
+    .trim()
+    .replace(/[^a-zA-Z0-9_-]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_+|_+$/g, '') || 'ForgeUI_Export'
+}
+
+function getUniqueExportDir(exportsRoot, baseName) {
+  let exportDir = path.join(exportsRoot, baseName)
+
+  if (!fs.existsSync(exportDir)) {
+    return exportDir
+  }
+
+  let index = 1
+
+  while (true) {
+    const nextName = `${baseName}_${String(index).padStart(3, '0')}`
+    exportDir = path.join(exportsRoot, nextName)
+
+    if (!fs.existsSync(exportDir)) {
+      return exportDir
+    }
+
+    index++
+  }
+}
+
+const projectName = safeProjectName(req.body.projectName)
 
     const sourceDir = path.resolve(
       __dirname,
@@ -124,13 +153,14 @@ app.post('/export-idf-project', (req, res) => {
       '../exports'
     )
 
-    const exportDir = path.join(exportsRoot, projectName)
+    const exportDir = getUniqueExportDir(exportsRoot, projectName)
 
     fs.mkdirSync(exportsRoot, { recursive: true })
 
     fs.cpSync(sourceDir, exportDir, {
   recursive: true,
-  force: true,
+  force: false,
+  errorOnExist: true,
 
   filter: (src) => {
     const name = path.basename(src).toLowerCase()

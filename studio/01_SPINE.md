@@ -2,6 +2,8 @@
 
 ## 1. Project Overview & Product Core
 
+
+
 ### Core System Identity
 * **Project Official Name:** ESP32-P4 UI Studio
 * **Internal Framework Branding:** ForgeUI Studio
@@ -16,6 +18,18 @@
 * **Core Technical Stack:** Dynamic React visual layout canvas ➔ Static LVGL v9 C code exporter ➔ Local ESP-IDF compilation scripts.
 * **Embedded Runtime Target:** `ForgeUI-One` standalone ESP-IDF firmware application framework shell.
 * **Developer User Story:** Launch Local Studio ➔ Visually Compose HMI UI ➔ Export Standalone ESP-IDF Project ➔ Build & Flash ➔ View Live Graphics Rendering on Target LCD.
+
+## Current Product Maturity State
+* ForgeUI Studio has transitioned beyond experimental proof-of-concept status.
+* Core standalone ESP-IDF export architecture is now physically validated on real ESP32-P4 hardware.
+* Browser Preview, LVGL export generation, standalone export packaging, and hardware flash workflows are operational end-to-end.
+* Current development focus has shifted from “can it export?” toward:
+  - export fidelity
+  - widget coverage expansion
+  - layout parity
+  - asset pipeline maturity
+  - export UX polish
+  - runtime stabilization
 
 ### System Boundaries & Constraints
 * **What It IS:** Fixed-viewport screen editors, industrial display HMIs, automation dashboards, smart kiosk interfaces, and tactile control panels.
@@ -106,6 +120,28 @@ esp32p4-ui-studio/
 * **Toolbar Action:** `Export ESP-IDF`
 * **Backend Route:** `POST /export-idf-project`
 * **Export Status:** VALIDATED THROUGH CLEAN BUILD + FLASH + BOOT.
+* **Export Folder Protection:** AUTO-INCREMENT EXPORT GUARD ACTIVE.
+* **Overwrite Protection:** ENABLED.
+* **Export Naming Ownership:** Backend-managed numbering and collision handling only.
+
+### Export Folder Collision Protection
+The export system automatically prevents overwriting previous standalone ESP-IDF project exports.
+
+Example generated export folders:
+
+```text
+ForgeUI_Export
+ForgeUI_Export_001
+ForgeUI_Export_002
+ForgeUI_Export_003
+```
+
+### Export Pipeline Guarantees
+* Exported projects are treated as immutable generated snapshots.
+* Existing export folders are never overwritten.
+* Frontend intentionally does not manage numbering logic.
+* Backend export system owns all collision detection and auto-increment folder generation.
+* Exported projects are intended to build independently from ForgeUI Studio after generation.
 
 ### Proven Runtime Flow
 
@@ -115,6 +151,8 @@ ForgeUI Studio
 Generate LVGL Runtime
   ↓
 Export Standalone ESP-IDF Project
+  ↓
+Auto-Protected Export Folder Creation
   ↓
 Move Export Outside Studio Workspace
   ↓
@@ -135,6 +173,14 @@ Boot Successfully On ESP32-P4 Hardware
 * **Generated Artifacts Only:**
   - `90_Studio_Export.c`
   - `90_Studio_Export.h`
+
+  ## Backend Ownership Rules
+* The backend export system owns:
+  - export folder numbering
+  - collision detection
+  - overwrite prevention
+  - standalone export directory generation
+* Frontend UI must never attempt to manually manage export numbering state.
 
 ## Export Cleanliness Rules
 The export pipeline intentionally excludes:
