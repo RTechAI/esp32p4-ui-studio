@@ -143,21 +143,18 @@ function getUniqueExportDir(exportsRoot, baseName) {
 
 const projectName = safeProjectName(req.body.projectName)
 
-    const sourceDir = path.resolve(
-      __dirname,
-      '../firmware/ForgeUI-One'
-    )
+const sourceDir = path.resolve(
+  __dirname,
+  '../firmware/ForgeUI-One'
+)
 
-    const exportsRoot = path.resolve(
-      __dirname,
-      '../exports'
-    )
+const exportsRoot = 'C:\\ForgeUI-Exports'
 
-    const exportDir = getUniqueExportDir(exportsRoot, projectName)
+const exportDir = getUniqueExportDir(exportsRoot, projectName)
 
-    fs.mkdirSync(exportsRoot, { recursive: true })
+fs.mkdirSync(exportsRoot, { recursive: true })
 
-    fs.cpSync(sourceDir, exportDir, {
+fs.cpSync(sourceDir, exportDir, {
   recursive: true,
   force: false,
   errorOnExist: true,
@@ -204,6 +201,26 @@ void fg_studio_export_create(lv_obj_t *parent);
       ok: true,
       exportDir,
     })
+  } catch (err) {
+    console.error(err)
+
+    res.status(500).json({
+      ok: false,
+      error: String(err),
+    })
+  }
+})
+
+app.post('/open-exports', (req, res) => {
+  try {
+    const exportsRoot = 'C:\\ForgeUI-Exports'
+
+    spawn('explorer.exe', [exportsRoot], {
+      detached: true,
+      windowsHide: true,
+    })
+
+    res.json({ ok: true })
   } catch (err) {
     console.error(err)
 

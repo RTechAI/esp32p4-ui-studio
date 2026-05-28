@@ -74,56 +74,77 @@ const CodeSandboxButton = ({
           </PopoverTrigger>
 
           <LightMode>
-            <PopoverContent zIndex={100} bg="white">
-              <PopoverArrow />
-              <PopoverCloseButton />
-              <PopoverHeader>Export format</PopoverHeader>
-              <PopoverBody fontSize="sm">
-                Export the code in CodeSandbox in which format ?
-              </PopoverBody>
-              <PopoverFooter display="flex" justifyContent="flex-end">
-                <Button
-                  size="sm"
-                  mr={2}
-                  variant="ghost"
-                  colorScheme="orange"
-                  rightIcon={<FaReact />}
-                  onClick={async () => {
-                    await exportToCodeSandbox(false)
-                    if (onClose) onClose()
-                  }}
-                >
-                  JSX
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  colorScheme="blue"
-                  rightIcon={<SiTypescript />}
-                  onClick={async () => {
-                    await exportToCodeSandbox(true)
-                    if (onClose) onClose()
-                  }}
-                >
-                  TSX
-                </Button>
+  <PopoverContent zIndex={100} bg="white">
+    <PopoverArrow />
+    <PopoverCloseButton />
+    <PopoverHeader>Export format</PopoverHeader>
 
-                <Button
-  size="sm"
-  ml={2}
-  variant="ghost"
-  colorScheme="purple"
-  onClick={async () => {
-    await exportEspIdfProject()
-    if (onClose) onClose()
-  }}
->
-  ESP-IDF
-</Button>
+    <PopoverBody fontSize="sm">
+      Export the code in CodeSandbox in which format ?
+    </PopoverBody>
 
-              </PopoverFooter>
-            </PopoverContent>
-          </LightMode>
+    <PopoverFooter
+      display="flex"
+      justifyContent="flex-end"
+      alignItems="center"
+      flexWrap="wrap"
+      gap={2}
+    >
+      <Button
+        size="sm"
+        variant="ghost"
+        colorScheme="orange"
+        rightIcon={<FaReact />}
+        onClick={async () => {
+          await exportToCodeSandbox(false)
+          if (onClose) onClose()
+        }}
+      >
+        JSX
+      </Button>
+
+      <Button
+        size="sm"
+        variant="ghost"
+        colorScheme="blue"
+        rightIcon={<SiTypescript />}
+        onClick={async () => {
+          await exportToCodeSandbox(true)
+          if (onClose) onClose()
+        }}
+      >
+        TSX
+      </Button>
+
+      <Button
+        size="sm"
+        variant="ghost"
+        colorScheme="purple"
+        onClick={async () => {
+          await exportEspIdfProject()
+          if (onClose) onClose()
+        }}
+      >
+        ESP-IDF
+      </Button>
+
+      <Button
+        size="sm"
+        variant="ghost"
+        colorScheme="teal"
+        onClick={async () => {
+          await fetch('http://localhost:3030/open-exports', {
+            method: 'POST',
+          })
+
+          if (onClose) onClose()
+        }}
+      >
+        Open Exports Folder
+      </Button>
+    </PopoverFooter>
+  </PopoverContent>
+</LightMode>
         </>
       )}
     </Popover>
@@ -215,7 +236,8 @@ useEffect(() => {
   setFlashPanelOpen(false)
   setFlashLog(
   'Standalone ESP-IDF project exported successfully.\n' +
-  'Move the exported project to a clean workspace.\n' +
+  'Export location: C:\\ForgeUI-Exports\n' +
+  'Open the exported project in ESP-IDF.\n' +
   'Close this window when finished.\n'
 )
 
@@ -232,7 +254,7 @@ useEffect(() => {
   toast({
   title: 'Standalone ESP-IDF Project Exported',
   description:
-    'Move the exported folder to a clean workspace before opening in ESP-IDF. Do not build it inside the ForgeUI Studio project tree.',
+    'Project exported to C:\\ForgeUI-Exports',
   status: 'success',
   duration: 7000,
   isClosable: true,
@@ -418,7 +440,13 @@ useEffect(() => {
                         Do you really want to remove all components on the
                         editor?
                       </PopoverBody>
-                      <PopoverFooter display="flex" justifyContent="flex-end">
+                      <PopoverFooter
+                        display="flex"
+                          justifyContent="flex-end"
+                            alignItems="center"
+                             flexWrap="wrap"
+                               gap={2}
+>
                         <Button
                           size="sm"
                           variant="ghost"
