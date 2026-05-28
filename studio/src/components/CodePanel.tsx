@@ -14,8 +14,8 @@ const CodePanel = () => {
 
   useEffect(() => {
     const getCode = async () => {
-      const code = generateForgeUILvglCode(components, themeId)
-      setCode(code)
+     const result = generateForgeUILvglCode(components, themeId)
+    setCode(result.code)
     }
 
     getCode()

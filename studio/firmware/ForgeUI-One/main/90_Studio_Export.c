@@ -13,7 +13,7 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_bg_opa(parent, LV_OPA_COVER, 0);
 
     lv_obj_t * obj1 = lv_button_create(parent);
-    lv_obj_set_pos(obj1, 45, 23);
+    lv_obj_set_pos(obj1, 164, 47);
     lv_obj_set_size(obj1, 240, 120);
     lv_obj_set_style_radius(obj1, 12, 0);
     lv_obj_set_style_bg_color(obj1, lv_color_hex(0x1E2328), 0);
@@ -28,7 +28,7 @@ void fg_studio_export_create(lv_obj_t *parent)
     LV_IMAGE_DECLARE(fg_icon_about_48px);
     lv_obj_t * obj2 = lv_image_create(parent);
     lv_image_set_src(obj2, &fg_icon_about_48px);
-    lv_obj_set_pos(obj2, 59, 187);
-    lv_obj_set_size(obj2, 299, 208);
+    lv_obj_set_pos(obj2, 572, 151);
+    lv_obj_set_size(obj2, 240, 120);
 
 }

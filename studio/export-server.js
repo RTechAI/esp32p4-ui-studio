@@ -68,6 +68,41 @@ app.use((req, res, next) => {
 app.post('/export', (req, res) => {
   try {
     const code = req.body.code || ''
+    const assetSources = req.body.assetSources || []
+
+    const iconSourceDir = path.resolve(
+  __dirname,
+  './public/assets/icons/48x48 ForgeUI Reactor Set'
+)
+
+const iconTargetDir = path.resolve(
+  __dirname,
+  '../firmware/ForgeUI-One/main/assets/icons'
+)
+
+fs.mkdirSync(iconTargetDir, { recursive: true })
+
+assetSources.forEach((src) => {
+  const fileName = path.basename(src)
+
+  const sourceFile = path.join(
+    iconSourceDir,
+    fileName
+  )
+
+  const targetFile = path.join(
+    iconTargetDir,
+    fileName
+  )
+
+  if (fs.existsSync(sourceFile)) {
+    fs.copyFileSync(sourceFile, targetFile)
+    console.log('Copied asset:', fileName)
+  } else {
+    console.log('Missing asset:', sourceFile)
+  }
+})
+
     const header =
 `#pragma once
 
@@ -83,17 +118,57 @@ void fg_studio_export_create(lv_obj_t *parent);
 }
 #endif
 `
-
-    const mainDir = path.resolve(
-      __dirname,
-      '../firmware/ForgeUI-One/main'
-    )
-
+   
+const mainDir = path.resolve(
+  __dirname,
+  '../firmware/ForgeUI-One/main'
+)
     const cTarget = path.join(mainDir, '90_Studio_Export.c')
     const hTarget = path.join(mainDir, '90_Studio_Export.h')
 
+    const cmakeSources = [
+  '"main.c"',
+  '"01_FG_Runtime.c"',
+  '"20_RTC.c"',
+  '"30_Audio.c"',
+  '"30_WIFI.c"',
+  '"40_SD.c"',
+  '"90_Studio_Export.c"',
+]
+
+assetSources.forEach((src) => {
+  cmakeSources.push(`"${src}"`)
+})
+
+const generatedCMake =
+`idf_component_register(
+    SRCS
+        ${cmakeSources.join('\n        ')}
+
+    INCLUDE_DIRS
+        "."
+
+    REQUIRES
+        nvs_flash
+        driver
+        esp_event
+        esp_netif
+        esp_wifi
+        esp_wifi_remote
+        esp_hosted
+        fatfs
+        sdmmc
+        waveshare__esp32_p4_wifi6_touch_lcd_7b
+
+    PRIV_REQUIRES
+        bsp_extra
+)`
+
     fs.writeFileSync(cTarget, code, 'utf8')
     fs.writeFileSync(hTarget, header, 'utf8')
+    const cmakeTarget = path.join(mainDir, 'CMakeLists.txt')
+fs.writeFileSync(cmakeTarget, generatedCMake, 'utf8')
+console.log('Generated LIVE CMake:', cmakeTarget)
 
     console.log('Exported C to:', cTarget)
     console.log('Exported H to:', hTarget)
@@ -112,66 +187,68 @@ void fg_studio_export_create(lv_obj_t *parent);
 app.post('/export-idf-project', (req, res) => {
   try {
     const code = req.body.code || ''
+    const assetSources = req.body.assetSources || []
+
     function safeProjectName(name) {
-  return String(name || 'ForgeUI_Export')
-    .trim()
-    .replace(/[^a-zA-Z0-9_-]/g, '_')
-    .replace(/_+/g, '_')
-    .replace(/^_+|_+$/g, '') || 'ForgeUI_Export'
-}
-
-function getUniqueExportDir(exportsRoot, baseName) {
-  let exportDir = path.join(exportsRoot, baseName)
-
-  if (!fs.existsSync(exportDir)) {
-    return exportDir
-  }
-
-  let index = 1
-
-  while (true) {
-    const nextName = `${baseName}_${String(index).padStart(3, '0')}`
-    exportDir = path.join(exportsRoot, nextName)
-
-    if (!fs.existsSync(exportDir)) {
-      return exportDir
+      return String(name || 'ForgeUI_Export')
+        .trim()
+        .replace(/[^a-zA-Z0-9_-]/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_+|_+$/g, '') || 'ForgeUI_Export'
     }
 
-    index++
-  }
-}
+    function getUniqueExportDir(exportsRoot, baseName) {
+      let exportDir = path.join(exportsRoot, baseName)
 
-const projectName = safeProjectName(req.body.projectName)
+      if (!fs.existsSync(exportDir)) {
+        return exportDir
+      }
 
-const sourceDir = path.resolve(
-  __dirname,
-  '../firmware/ForgeUI-One'
-)
+      let index = 1
 
-const exportsRoot = 'C:\\ForgeUI-Exports'
+      while (true) {
+        const nextName = `${baseName}_${String(index).padStart(3, '0')}`
+        exportDir = path.join(exportsRoot, nextName)
 
-const exportDir = getUniqueExportDir(exportsRoot, projectName)
+        if (!fs.existsSync(exportDir)) {
+          return exportDir
+        }
 
-fs.mkdirSync(exportsRoot, { recursive: true })
+        index++
+      }
+    }
 
-fs.cpSync(sourceDir, exportDir, {
-  recursive: true,
-  force: false,
-  errorOnExist: true,
+    const projectName = safeProjectName(req.body.projectName)
 
-  filter: (src) => {
-    const name = path.basename(src).toLowerCase()
+    const sourceDir = path.resolve(
+      __dirname,
+      '../firmware/ForgeUI-One'
+    )
 
-    const blocked = [
-      'build',
-      '.vscode',
-      '.vs',
-      'managed_components',
-    ]
+    const exportsRoot = 'C:\\ForgeUI-Exports'
 
-    return !blocked.includes(name)
-  },
-})
+    const exportDir = getUniqueExportDir(exportsRoot, projectName)
+
+    fs.mkdirSync(exportsRoot, { recursive: true })
+
+    fs.cpSync(sourceDir, exportDir, {
+      recursive: true,
+      force: false,
+      errorOnExist: true,
+
+      filter: (src) => {
+        const name = path.basename(src).toLowerCase()
+
+        const blocked = [
+          'build',
+          '.vscode',
+          '.vs',
+          'managed_components',
+        ]
+
+        return !blocked.includes(name)
+      },
+    })
 
     const header =
 `#pragma once
@@ -190,10 +267,58 @@ void fg_studio_export_create(lv_obj_t *parent);
 `
 
     const cTarget = path.join(exportDir, 'main', '90_Studio_Export.c')
-    const hTarget = path.join(exportDir, 'main', '90_Studio_Export.h')
+  const hTarget = path.join(exportDir, 'main', '90_Studio_Export.h')
+
+const cmakeSources = [
+  '"main.c"',
+  '"01_FG_Runtime.c"',
+  '"20_RTC.c"',
+  '"30_Audio.c"',
+  '"30_WIFI.c"',
+  '"40_SD.c"',
+  '"90_Studio_Export.c"',
+]
+
+assetSources.forEach((src) => {
+  cmakeSources.push(`"${src}"`)
+})
+
+const generatedCMake =
+`idf_component_register(
+    SRCS
+        ${cmakeSources.join('\n        ')}
+
+    INCLUDE_DIRS
+        "."
+
+    REQUIRES
+        nvs_flash
+        driver
+        esp_event
+        esp_netif
+        esp_wifi
+        esp_wifi_remote
+        esp_hosted
+        fatfs
+        sdmmc
+        waveshare__esp32_p4_wifi6_touch_lcd_7b
+
+    PRIV_REQUIRES
+        bsp_extra
+)`
 
     fs.writeFileSync(cTarget, code, 'utf8')
     fs.writeFileSync(hTarget, header, 'utf8')
+
+    const cmakeTarget = path.join(exportDir, 'main', 'CMakeLists.txt')
+
+fs.writeFileSync(
+  cmakeTarget,
+  generatedCMake,
+  'utf8'
+)
+
+console.log('Generated CMake:', cmakeTarget)
 
     console.log('ESP-IDF project exported to:', exportDir)
 

@@ -2,5 +2,6 @@
     "idf.currentSetup": "C:/Espressif/frameworks/esp-idf-v5.5.4/",
     "idf.openOcdConfigs": [
         "board/esp32p4-builtin.cfg"
-    ]
+    ],
+    "cmake.sourceDirectory": "C:/ForgeUI/Projects/esp32p4-ui-studio/firmware/ForgeUI-One"
 }

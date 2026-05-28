@@ -1,5 +1,6 @@
 // const ACTIVE_BACKGROUND_FLAVOUR = 'reactor_dark'
 // const ACTIVE_BACKGROUND_FLAVOUR = 'nordic_blue'
+import { FORGEUI_IMAGE_ASSETS } from './ForgeUIAssetRegistry'
 const ACTIVE_BACKGROUND_FLAVOUR = 'graphite'
 
 const FG_PALETTES: Record<string, any> = {
@@ -241,7 +242,8 @@ const buildLvglBlock = (
   parentVar: string,
   lines: string[],
   counter: { value: number },
-  palette: any
+  palette: any,
+  usedAssetSources: Set<string>
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -440,16 +442,30 @@ const buildLvglBlock = (
   break
 }
 
-      case 'Image': {
-        lines.push(`lv_obj_t * ${varName} = lv_obj_create(${parentVar});`)
-        lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
-        lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
-        lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), 0);`)
-        lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), 0);`)
-        lines.push(`lv_obj_set_style_border_width(${varName}, 2, 0);`)
-        lines.push(``)
-        break
-      }
+case 'Image': {
+  const src = child.props.src || ''
+
+  const asset = FORGEUI_IMAGE_ASSETS.find(
+    (a: any) => a.src === src
+  )
+
+  if (asset?.lvgl) {
+    if (asset.cFile) {
+      usedAssetSources.add(asset.cFile)
+    }
+
+    lines.push(`LV_IMAGE_DECLARE(${asset.lvgl});`)
+    lines.push(`lv_obj_t * ${varName} = lv_image_create(${parentVar});`)
+    lines.push(`lv_image_set_src(${varName}, &${asset.lvgl});`)
+  } else {
+    lines.push(`lv_obj_t * ${varName} = lv_obj_create(${parentVar});`)
+  }
+
+  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
+  lines.push(``)
+  break
+}
 
      
 
@@ -506,8 +522,16 @@ case 'CircularProgress': {
         break
     }
 
-    if (child.children?.length) {
-      buildLvglBlock(child, components, varName, lines, counter, palette)
+        if (child.children?.length) {
+      buildLvglBlock(
+        child,
+        components,
+        varName,
+        lines,
+        counter,
+        palette,
+        usedAssetSources
+      )
     }
   })
 }
@@ -517,8 +541,10 @@ export const generateForgeUILvglCode = (
   themeId: string = 'graphite',
 ) => {
   const lines: string[] = []
+  const usedAssetSources = new Set<string>()
+
   const palette =
-  FG_PALETTES[themeId] || FG_PALETTES.reactor_dark
+    FG_PALETTES[themeId] || FG_PALETTES.reactor_dark
 
   lines.push(`#include "90_Studio_Export.h"`)
   lines.push(`#include "lvgl.h"`)
@@ -543,7 +569,15 @@ export const generateForgeUILvglCode = (
     Object.values(components)[0]
 
   if (root) {
-    buildLvglBlock(root, components, 'parent', body, { value: 0 }, palette)
+    buildLvglBlock(
+      root,
+      components,
+      'parent',
+      body,
+      { value: 0 },
+      palette,
+      usedAssetSources
+    )
   }
 
   body.forEach(line => {
@@ -552,5 +586,8 @@ export const generateForgeUILvglCode = (
 
   lines.push(`}`)
 
-  return lines.join('\n')
+  return {
+    code: lines.join('\n'),
+    assetSources: Array.from(usedAssetSources),
+  }
 }

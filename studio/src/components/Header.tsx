@@ -177,111 +177,123 @@ useEffect(() => {
     if (!flashPanelOpen) return
 
     const timer = setInterval(async () => {
-      try {
-        const res = await fetch('http://localhost:3030/flash-log')
-        const data = await res.json()
+  try {
+    const res = await fetch('http://localhost:3030/flash-log')
+    const data = await res.json()
 
-        setFlashLog(data.log || '')
-        setFlashRunning(Boolean(data.running))
-      } catch (err) {
-        console.error(err)
-      }
-    }, 500)
+    setFlashLog(data.log || '')
+    setFlashRunning(Boolean(data.running))
+  } catch (err) {
+    console.error(err)
+  }
+}, 500)
 
-    return () => clearInterval(timer)
-  }, [flashPanelOpen])
+return () => clearInterval(timer)
+}, [flashPanelOpen])
 
-    useEffect(() => {
-    const handleClose = () => {
-      try {
-        navigator.sendBeacon('http://localhost:3030/shutdown')
-      } catch (err) {
-        console.error(err)
-      }
+useEffect(() => {
+  const handleClose = () => {
+    try {
+      navigator.sendBeacon('http://localhost:3030/shutdown')
+    } catch (err) {
+      console.error(err)
     }
-
-    window.addEventListener('beforeunload', handleClose)
-
-    return () => {
-      window.removeEventListener('beforeunload', handleClose)
-    }
-  }, [])
-
-  const exportToForgeUIOne = async () => {
-    const code = generateForgeUILvglCode(
-  components,
-  themeId,
-)
-
-    setFlashPanelOpen(true)
-    setFlashLog('Starting Build & Flash...\n')
-
-    await fetch('http://localhost:3030/export', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
-    })
-
-    await fetch('http://localhost:3030/flash', {
-      method: 'POST',
-    })
   }
 
-  const exportEspIdfProject = async () => {
-  const code = generateForgeUILvglCode(
+  window.addEventListener('beforeunload', handleClose)
+
+  return () => {
+    window.removeEventListener('beforeunload', handleClose)
+  }
+}, [])
+
+const exportToForgeUIOne = async () => {
+  const result = generateForgeUILvglCode(
     components,
     themeId,
   )
 
-  setFlashPanelOpen(false)
-  setFlashLog(
-  'Standalone ESP-IDF project exported successfully.\n' +
-  'Export location: C:\\ForgeUI-Exports\n' +
-  'Open the exported project in ESP-IDF.\n' +
-  'Close this window when finished.\n'
-)
+  const code = result.code
 
-  await fetch('http://localhost:3030/export-idf-project', {
+  setFlashPanelOpen(true)
+  setFlashLog('Starting Build & Flash...\n')
+
+  await fetch('http://localhost:3030/export', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      code,
+      assetSources: result.assetSources,
+    }),
+  })
+
+ await fetch('http://localhost:3030/flash', {
+  method: 'POST',
+})
+}
+
+
+  const exportEspIdfProject = async () => {
+    const result = generateForgeUILvglCode(
+      components,
+      themeId,
+    )
+
+    const code = result.code
+    const assetSources = result.assetSources
+
+    setFlashPanelOpen(false)
+    setFlashLog(
+      'Standalone ESP-IDF project exported successfully.\n' +
+      'Export location: C:\\ForgeUI-Exports\n' +
+      'Open the exported project in ESP-IDF.\n' +
+      'Close this window when finished.\n'
+    )
+
+    await fetch('http://localhost:3030/export-idf-project', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code,
+        assetSources,
+        projectName: 'ForgeUI_Export',
+      }),
+    })
+
+    toast({
+      title: 'Standalone ESP-IDF Project Exported',
+      description: 'Project exported to C:\\ForgeUI-Exports',
+      status: 'success',
+      duration: 7000,
+      isClosable: true,
+    })
+  }
+
+  const cleanBuildFlashForgeUIOne = async () => {
+    const result = generateForgeUILvglCode(
+      components,
+      themeId,
+    )
+
+    const code = result.code
+
+setFlashPanelOpen(true)
+setFlashLog('Starting Clean Build & Flash...\n')
+
+await fetch('http://localhost:3030/export', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     code,
-    projectName: 'ForgeUI_Export',
+    assetSources: result.assetSources,
   }),
 })
 
-  
-  toast({
-  title: 'Standalone ESP-IDF Project Exported',
-  description:
-    'Project exported to C:\\ForgeUI-Exports',
-  status: 'success',
-  duration: 7000,
-  isClosable: true,
+await fetch('http://localhost:3030/clean-flash', {
+  method: 'POST',
 })
-  }
 
-
-
-  const cleanBuildFlashForgeUIOne = async () => {
-        const code = generateForgeUILvglCode(
-  components,
-  themeId,
-)
-
-    setFlashPanelOpen(true)
-    setFlashLog('Starting Clean Build & Flash...\n')
-
-    await fetch('http://localhost:3030/export', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
-    })
-
-    await fetch('http://localhost:3030/clean-flash', {
-      method: 'POST',
-    })
-  }
+}
 
   return (
     <DarkMode>

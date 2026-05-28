@@ -29,26 +29,36 @@ const ImagePanel = () => {
   </FormControl>
 
   <FormControl label="Preset image" htmlFor="presetImage">
-    <Select
-      placeholder="Select preset image"
-      size="sm"
-      onChange={(e) =>
-        setValueFromEvent({
-          target: {
-            name: 'src',
-            value: e.target.value,
-          },
-        } as any)
-      }
-    >
-      {FORGEUI_IMAGE_ASSETS.map((asset) => (
-        <option key={asset.name} value={asset.src}>
-          {asset.name}
-        </option>
-      ))}
-    </Select>
-  </FormControl>
+  <Select
+    placeholder="Select preset image"
+    size="sm"
+    bg="#1a202c"
+    color="white"
+    borderColor="#2dd4bf"
+    value={src || ''}
+    onChange={(e) => {
+      const value = e.target.value
 
+      setValueFromEvent({
+        target: {
+          name: 'src',
+          value,
+        },
+      } as any)
+    }}
+  >
+    {FORGEUI_IMAGE_ASSETS.map((asset) => (
+      <option
+        key={asset.name}
+        value={asset.src}
+        style={{ background: '#1a202c', color: 'white' }}
+      >
+        {asset.name}
+      </option>
+    ))}
+  </Select>
+</FormControl>
+ 
       <FormControl label="Fallback Src" htmlFor="fallbackSrc">
         <Input
           placeholder="Image URL"

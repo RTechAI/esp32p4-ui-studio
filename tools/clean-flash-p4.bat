@@ -1,4 +1,6 @@
 @echo off
+chcp 65001 >nul
+set PYTHONIOENCODING=utf-8
 
 echo =========================================
 echo ESP32-P4 UI Studio CLEAN Build / Flash
