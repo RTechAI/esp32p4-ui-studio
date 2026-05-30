@@ -11,6 +11,8 @@
 * **Theme Direction:** Synchronized token contract system unifying Browser Preview, native LVGL C export, and flashed firmware runtime
 * **Active Architectural Save Point:** `FORGEUI_STUDIO_EXPORT_ASSET_PIPELINE_LIVE_OK__EXPORT_CMAKE_ALIGNED__2026-05-29`
 
+sandbox removed Asset Manager V2 thumbnails, delete support, and Studio cleanup
+
 ### Technical Project Mission
 
 * Low-code visual HMI designer
