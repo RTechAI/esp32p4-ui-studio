@@ -459,11 +459,11 @@ case 'Image': {
   )
 
   const uploadedAsset = uploadedAssets.find((a: any) =>
-  a.src === src ||
+  a.id === child.props.uploadedAssetId ||
+  a.browserSrc === src ||
+  a.browserSrc === child.props.src ||
   a.name === child.props.assetName ||
-  a.fileName === child.props.assetName ||
-  a.name === child.props.alt ||
-  a.fileName === child.props.alt
+  a.name === child.props.alt
 )
 
   const asset: any = presetAsset || uploadedAsset
