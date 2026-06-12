@@ -21,19 +21,24 @@ const FG_PALETTES: Record<string, any> = {
   },
 
   graphite: {
-    name: 'Carbon Graphite',
+  name: 'Carbon Graphite',
 
-    bg: '0x121417',
+  bg: '0x121417',
 
-    surface: '0x1E2328',
-    surface2: '0x2A3138',
+  surface: '0x1E2328',
+  surface2: '0x2A3138',
 
-    border: '0xF2A900',
+  border: '0xF2A900',
 
-    text: '0xF5F5F5',
+  text: '0xF5F5F5',
 
-    accent: '0xF2A900',
+  accent: '0xF2A900',
+
+    textureAsset: {
+    symbol: 'fg_theme_carbon_fiber',
+    source: 'assets/themes/fg_theme_carbon_fiber.c',
   },
+},
 
   nordic_blue: {
     name: 'Nordic Blue',
@@ -607,6 +612,16 @@ export const generateForgeUILvglCode = (
   lines.push(`    lv_obj_set_style_bg_color(parent, lv_color_hex(${palette.bg}), 0);`)
   lines.push(`    lv_obj_set_style_bg_opa(parent, LV_OPA_COVER, 0);`)
   lines.push(``)
+
+  if (palette.textureAsset) {
+  usedAssetSources.add(palette.textureAsset.source)
+
+  lines.push(`    LV_IMAGE_DECLARE(${palette.textureAsset.symbol});`)
+  lines.push(`    lv_obj_t * bg_texture = lv_image_create(parent);`)
+  lines.push(`    lv_image_set_src(bg_texture, &${palette.textureAsset.symbol});`)
+  lines.push(`    lv_obj_set_pos(bg_texture, 0, 0);`)
+  lines.push(``)
+}
 
   const body: string[] = []
 
