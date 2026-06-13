@@ -5,6 +5,10 @@
 [![Target Hardware](https://shields.io)](https://www.waveshare.com)
 [![License](https://shields.io)](LICENSE)
 
+## AI Nexus Theme
+
+![AI Nexus](./studio/public/images/AI%20Nexus%20Theme.png)
+
 **ESP32-P4 Studio** (ForgeUI Studio) is an open-source visual HMI designer, LVGL code generator, asset pipeline, and automated deployment environment built specifically for **Espressif ESP32-P4** hardware running **LVGL v9** and **ESP-IDF**.
 
 The platform bridges browser-based drag-and-drop UI design with native embedded deployment. Layouts, widgets, styling, assets, and image resources are transformed into optimized LVGL C code, compiled locally using ESP-IDF, and deployed directly to physical ESP32-P4 hardware.
