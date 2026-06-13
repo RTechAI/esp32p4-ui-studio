@@ -215,8 +215,6 @@ ESP32-P4 Display
 PROVEN
 ```
 
----
-
 # ✅ Proven Milestones
 
 Theme Manager V2                     ✓ PROVEN
@@ -558,8 +556,143 @@ Nordic Engineering
 Nordic Ice
 Nordic Frost
 Nordic Slate
+Nordic Night
+Control Room
+Cyber Teal Pro
+Forge Orange
+Carbon Red
+OLED Black Pro
+Clean Light Pro
+Test Purple
+Quantum Hex
+AI Mesh
+Neural Core
+Quantum Flow
+AI Nexus
+Neon Horizon
+Nebula Core
+Singularity
+```
 
+---
 
-Nordic NightControl RoomCyber Teal ProForge OrangeCarbon RedOLED Black ProClean Light ProTest PurpleQuantum HexAI MeshNeural CoreQuantum FlowAI NexusNeon HorizonNebula CoreSingularity%%MAGIT_PARSER_PROTECT%%```🎨 Theme System V2 (PROVEN)🌌 Fullscreen Theme Backgrounds V1 (PROVEN)Status:%%MAGIT_PARSER_PROTECT%%text PROVEN %%MAGIT_PARSER_PROTECT%%ForgeUI Studio now supports two background rendering modes:%%MAGIT_PARSER_PROTECT%%text tile fullscreen %%MAGIT_PARSER_PROTECT%%Tile ModeUsed by industrial textures:%%MAGIT_PARSER_PROTECT%%text Carbon Fiber Brushed Steel Hex Mesh Blueprint Grid Industrial Panel Dark Noise %%MAGIT_PARSER_PROTECT%%Rendering:%%MAGIT_PARSER_PROTECT%%```textRepeated texture renderingBuilderBrowser PreviewLVGL ExportESP32-P4%%MAGIT_PARSER_PROTECT%%```Fullscreen ModeUsed by AI and sci-fi themes:%%MAGIT_PARSER_PROTECT%%text AI Mesh AI Nexus Neural Core Quantum Flow Quantum Hex Neon Horizon Nebula Core Singularity %%MAGIT_PARSER_PROTECT%%Rendering:%%MAGIT_PARSER_PROTECT%%```textSingle 1024x600 hero imageBuilderBrowser PreviewLVGL ExportESP32-P4%%MAGIT_PARSER_PROTECT%%```Proven Validation Path%%MAGIT_PARSER_PROTECT%%text Theme Manager ↓ Builder ↓ Browser Preview ↓ ForgeUILvglExport ↓ Generated LVGL C ↓ ESP32-P4 Hardware %%MAGIT_PARSER_PROTECT%%Hardware ValidationValidated on:%%MAGIT_PARSER_PROTECT%%text Waveshare ESP32-P4-WIFI6-Touch-LCD-7B %%MAGIT_PARSER_PROTECT%%Results:%%MAGIT_PARSER_PROTECT%%text ✓ Fullscreen hero backgrounds render correctly ✓ Widgets render above backgrounds ✓ Build & flash verified functional without resource overlap or partition memory boundary overflow %%MAGIT_PARSER_PROTECT%%🏁 Workspace Initialization1. Boot the Visual Design Studio Dashboard%%MAGIT_PARSER_PROTECT%%bash git clone https://github.com cd esp32p4-ui-studio/studio npm install npm run dev %%MAGIT_PARSER_PROTECT%%2. Configure Local Image Transpiler Engine Dependencies%%MAGIT_PARSER_PROTECT%%bash pip install pypng lz4 %%MAGIT_PARSER_PROTECT%%3. Deploy Firmware to Target Chip HardwareConnect your Waveshare ESP32-P4 7B module directly via the dedicated USB-UART serial connector port.Select your custom components and active theme layer variants within the visual workspace panel dashboard layout.Trigger Build & Flash inside the editor viewport to compile layouts and pipe full theme packs down to the physical screen instantly.
+# 🎨 Theme System V2 (PROVEN)
 
-{content: }
+# 🌌 Fullscreen Theme Backgrounds V1 (PROVEN)
+
+Status:
+
+```text
+PROVEN
+```
+
+ForgeUI Studio now supports two background rendering modes:
+
+```text
+tile
+fullscreen
+```
+
+### Tile Mode
+
+Used by industrial textures:
+
+```text
+Carbon Fiber
+Brushed Steel
+Hex Mesh
+Blueprint Grid
+Industrial Panel
+Dark Noise
+```
+
+Rendering:
+
+```text
+Repeated texture rendering
+
+Builder
+Browser Preview
+LVGL Export
+ESP32-P4
+```
+
+### Fullscreen Mode
+
+Used by AI and sci-fi themes:
+
+```text
+AI Mesh
+AI Nexus
+Neural Core
+Quantum Flow
+Quantum Hex
+Neon Horizon
+Nebula Core
+Singularity
+```
+
+Rendering:
+
+```text
+Single 1024x600 hero image
+
+Builder
+Browser Preview
+LVGL Export
+ESP32-P4
+```
+
+### Proven Validation Path
+
+```text
+Theme Manager
+      ↓
+Builder
+      ↓
+Browser Preview
+      ↓
+ForgeUILvglExport
+      ↓
+Generated LVGL C
+      ↓
+ESP32-P4 Hardware
+```
+
+### Hardware Validation
+
+Validated on:
+
+```text
+Waveshare ESP32-P4-WIFI6-Touch-LCD-7B
+```
+
+Results:
+
+```text
+✓ Fullscreen hero backgrounds render correctly
+✓ Widgets render above backgrounds
+✓ Build & flash verified functional without resource overlap or partition memory boundary overflow
+```
+
+---
+
+# 🏁 Workspace Initialization
+
+### 1. Boot the Visual Design Studio Dashboard
+```bash
+git clone https://github.com
+cd esp32p4-ui-studio/studio
+npm install
+npm run dev
+```
+
+### 2. Configure Local Image Transpiler Engine Dependencies
+```bash
+pip install pypng lz4
+```
+
+### 3. Deploy Firmware to Target Chip Hardware
+1. Connect your **Waveshare ESP32-P4 7B** module directly via the dedicated **USB-UART** serial connector port.
+2. Select your custom components and active theme layer variants within the visual workspace panel dashboard layout.
+3. Trigger **Build & Flash** inside the editor viewport to compile layouts and pipe full theme packs down to the physical screen instantly.
