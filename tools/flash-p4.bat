@@ -1,7 +1,9 @@
 @echo off
+chcp 65001 >nul
+set PYTHONIOENCODING=utf-8
 
 echo =========================================
-echo ESP32-P4 UI Studio Build / Flash
+echo ESP32-P4 UI Studio SAFE Build / Flash
 echo =========================================
 echo.
 
@@ -14,6 +16,15 @@ cd /d C:\ForgeUI\Projects\esp32p4-ui-studio\firmware\ForgeUI-One
 
 python --version
 idf.py --version
+
+echo.
+echo =========================================
+echo REPAIR ESP-IDF MANAGED COMPONENT CACHE
+echo =========================================
+echo.
+
+if exist managed_components rmdir /s /q managed_components
+if exist dependencies.lock del /q dependencies.lock
 
 echo.
 echo =========================================

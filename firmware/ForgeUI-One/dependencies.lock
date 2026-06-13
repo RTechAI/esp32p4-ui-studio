@@ -44,7 +44,7 @@ dependencies:
       type: service
     version: 0.5.3
   espressif/eppp_link:
-    component_hash: 9472e6825f4bb71eca2b39cf1bc92659c1ac60bfd7416560ad033a7dd8641b17
+    component_hash: 04f7f31868b8ae6014c96132740a192d09611a6e46aaa7038c865ffc7e26b38f
     dependencies:
     - name: espressif/esp_serial_slave_link
       registry_url: https://components.espressif.com
@@ -56,7 +56,7 @@ dependencies:
     source:
       registry_url: https://components.espressif.com
       type: service
-    version: 1.1.4
+    version: 1.1.5
   espressif/esp_codec_dev:
     component_hash: 014948481bda426cd46714f297fe1891711246c62bea288863a8cc8cf13ef1f0
     dependencies:
@@ -128,7 +128,7 @@ dependencies:
       require: public
       version: '>=8,<10'
     source:
-      registry_url: https://components.espressif.com
+      registry_url: https://components.espressif.com/
       type: service
     version: 2.7.2
   espressif/esp_serial_slave_link:
@@ -222,10 +222,11 @@ direct_dependencies:
 - chmorgan/esp-audio-player
 - chmorgan/esp-file-iterator
 - espressif/esp_hosted
+- espressif/esp_lvgl_port
 - espressif/esp_wifi_remote
 - idf
 - lvgl/lvgl
 - waveshare/esp32_p4_wifi6_touch_lcd_7b
-manifest_hash: 5051bd0c7a9412148b1e09f07f94a7ad6d800267050e89d3e6518a736c56c0d7
+manifest_hash: fd2ed9672be5d5e10037b36fd4ee485099a94935f1dfd0a44fb0711a714e6b9e
 target: esp32p4
 version: 2.0.0

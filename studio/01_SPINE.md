@@ -564,6 +564,203 @@ Hardware Validation
 
 ---
 
+
+# ForgeUI Feature Map — Where Things Live
+
+This section exists so future chats do not need 10 file tabs pasted every time.
+
+---
+
+## Main Lanes
+
+```text
+Browser / Editor Lane
+    ↓
+Studio UI, Builder, Theme Manager, Asset Manager, Preview
+```
+
+Lives mostly in:
+
+```text
+studio/src/components/
+studio/src/forgeui/
+studio/src/forgeui/preview/
+studio/src/forgeui/theme/
+```
+
+---
+
+```text
+Export Lane
+    ↓
+Turns Studio layout into LVGL C
+```
+
+Main file:
+
+```text
+studio/src/forgeui/ForgeUILvglExport.ts
+```
+
+If something works in browser but not on the ESP32-P4, check this lane first.
+
+---
+
+```text
+Firmware Lane
+    ↓
+ESP-IDF / LVGL project that builds and flashes
+```
+
+Lives in:
+
+```text
+firmware/ForgeUI-One/
+firmware/ForgeUI-One/main/
+firmware/ForgeUI-One/main/assets/
+```
+
+If the build fails or an asset does not compile, check this lane.
+
+---
+
+# Feature Touch Map
+
+## Add / edit themes
+
+Touch:
+
+```text
+studio/src/forgeui/preview/forgeThemeMap.ts
+studio/src/forgeui/ForgeUILvglExport.ts
+```
+
+Do not start by touching firmware.
+
+---
+
+## Add background textures
+
+Touch:
+
+```text
+studio/public/textures/
+firmware/ForgeUI-One/main/assets/themes/
+studio/src/forgeui/preview/forgeThemeMap.ts
+studio/src/forgeui/ForgeUILvglExport.ts
+```
+
+Known proven example:
+
+```text
+carbon_fiber.png
+fg_theme_carbon_fiber.c
+fg_theme_carbon_fiber
+```
+
+---
+
+## Add Background Selector / Randomiser
+
+Likely touch:
+
+```text
+studio/src/forgeui/theme/ForgeThemeContext.tsx
+Theme Manager component
+studio/src/forgeui/preview/forgeThemeMap.ts
+studio/src/forgeui/ForgeUILvglExport.ts
+```
+
+Rule:
+
+```text
+Theme Manager owns the UI.
+ForgeThemeContext owns selected state.
+forgeThemeMap owns preview theme/background metadata.
+ForgeUILvglExport owns physical ESP32-P4 output.
+```
+
+Do not create another theme selector.
+
+---
+
+## Add uploaded image features
+
+Touch:
+
+```text
+studio/src/forgeui/assets/ForgeUIAssetManager.tsx
+studio/src/forgeui/ForgeUIUploadedAssetRegistry.ts
+studio/src/forgeui/ForgeUILvglExport.ts
+tools/lvgl/LVGLImage.py
+firmware/ForgeUI-One/main/assets/uploads/
+```
+
+---
+
+## Add new widgets
+
+Touch:
+
+```text
+studio/src/forgeui/ForgeUIWidgetSet.ts
+studio/src/components/editor/ComponentPreview.tsx
+studio/src/forgeui/ForgeUILvglExport.ts
+```
+
+Rule:
+
+```text
+Browser widget first.
+LVGL export second.
+P4 flash third.
+```
+
+---
+
+# Current Texture System Direction
+
+Do not re-research image conversion.
+
+Current next work:
+
+```text
+Texture Pack V1
+Background Playground
+Background Selector
+Randomiser
+Flash Flair
+```
+
+Preferred order:
+
+```text
+1. Add more built-in texture PNGs
+2. Convert them to LVGL C assets
+3. Add texture entries to forgeThemeMap.ts
+4. Add textureAsset entries to ForgeUILvglExport.ts
+5. Validate Browser Preview
+6. Clean Build & Flash
+7. Validate physical ESP32-P4
+8. Then expose selector/randomiser in Theme Manager
+```
+
+---
+
+# Rule For Future Chats
+
+Before asking Scott to paste files, first identify the lane:
+
+```text
+Browser problem?
+Export problem?
+Firmware problem?
+Asset conversion problem?
+```
+
+Then ask only for the smallest file set from that lane.
+
+
 # Future One-Wrapper Goal
 
 Current setup:

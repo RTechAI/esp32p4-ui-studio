@@ -611,18 +611,8 @@ await fetch('http://localhost:3030/clean-flash', {
   </Box>
 
   <HStack spacing={4} align="stretch" flexWrap="wrap">
-    {[
-      ['graphite', 'Carbon Graphite'],
-      ['industrial_steel', 'Industrial Steel'],
-      ['matrix_green', 'Matrix Green'],
-      ['military_green', 'Military Green'],
-      ['nordic_blue', 'Nordic Blue'],
-      ['reactor_dark', 'Reactor Dark'],
-      ['cyber_teal', 'Cyber Teal'],
-      ['forge_orange', 'Forge Orange'],
-      ['carbon_red', 'Carbon Red'],
-      ['oled_black', 'OLED Black'],
-    ].map(([id, name]) => (
+  {Object.entries(FG_PREVIEW_PALETTES).map(
+    ([id, palette]) => (
       <Box
         key={id}
         width="220px"
@@ -640,35 +630,39 @@ await fetch('http://localhost:3030/clean-flash', {
             : 'none'
         }
       >
-        <Flex justify="space-between" align="center" mb={3}>
-  <Box fontWeight="bold">
-    {name}
-  </Box>
+                <Flex justify="space-between" align="center" mb={3}>
+          <Box fontWeight="bold">{palette.name}</Box>
 
-  {themeId === id && (
-    <Badge
-  colorScheme="cyan"
-  variant="solid"
-  borderRadius="full"
-  px={2}
->
-  ACTIVE
-</Badge>
-  )}
-</Flex>
+          {themeId === id && (
+            <Badge
+              colorScheme="cyan"
+              variant="solid"
+              borderRadius="full"
+              px={2}
+            >
+              ACTIVE
+            </Badge>
+          )}
+        </Flex>
 
-        <Box display="flex" height="48px" borderRadius="md" overflow="hidden">
-  <Box flex="1" bg={FG_PREVIEW_PALETTES[id as keyof typeof FG_PREVIEW_PALETTES].bg} />
-  <Box flex="1" bg={FG_PREVIEW_PALETTES[id as keyof typeof FG_PREVIEW_PALETTES].surface} />
-  <Box flex="1" bg={FG_PREVIEW_PALETTES[id as keyof typeof FG_PREVIEW_PALETTES].accent} />
-</Box>
+        <Box
+          display="flex"
+          height="48px"
+          borderRadius="md"
+          overflow="hidden"
+        >
+          <Box flex="1" bg={palette.bg} />
+          <Box flex="1" bg={palette.surface} />
+          <Box flex="1" bg={palette.accent} />
+        </Box>
 
         <Box mt={3} fontSize="xs" color="gray.400">
           {themeId === id ? 'Active Theme' : 'Click to apply'}
         </Box>
       </Box>
-    ))}
-  </HStack>
+    )
+  )}
+</HStack>
 </Box>
   </Box>
 )}

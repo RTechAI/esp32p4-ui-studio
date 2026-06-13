@@ -12,6 +12,7 @@ import { getComponents } from '~core/selectors/components'
 import { getShowLayout, getShowCode } from '~core/selectors/app'
 import ComponentPreview from '~components/editor/ComponentPreview'
 import { FORGEUI_ACTIVE_DEVICE } from '~forgeui/ForgeUIDeviceConfig'
+import { useForgeTheme } from '~forgeui/theme/ForgeThemeContext'
 
 const GRID_SIZE = FORGEUI_ACTIVE_DEVICE.gridSize
 
@@ -22,11 +23,50 @@ export const gridStyles = {
   bgColor: '#07111f',
 }
 
+const textureBackgrounds: Record<string, any> = {
+  carbon_fiber: {
+    backgroundImage: 'url("/textures/carbon_fiber.png")',
+    backgroundRepeat: 'repeat',
+    backgroundSize: '512px 512px',
+  },
+
+  dark_noise: {
+    backgroundImage: 'url("/textures/dark_noise.png")',
+    backgroundRepeat: 'repeat',
+    backgroundSize: '256px 256px',
+  },
+
+  brushed_steel: {
+    backgroundImage: 'url("/textures/brushed_steel.png")',
+    backgroundRepeat: 'repeat',
+    backgroundSize: '512px 512px',
+  },
+
+  hex_mesh: {
+    backgroundImage: 'url("/textures/hex_mesh.png")',
+    backgroundRepeat: 'repeat',
+    backgroundSize: '512px 512px',
+  },
+
+  blueprint_grid: {
+    backgroundImage: 'url("/textures/blueprint_grid.png")',
+    backgroundRepeat: 'repeat',
+    backgroundSize: '512px 512px',
+  },
+
+  industrial_panel: {
+    backgroundImage: 'url("/textures/industrial_panel.png")',
+    backgroundRepeat: 'repeat',
+    backgroundSize: '512px 512px',
+  },
+}
+
 const Editor: React.FC = () => {
   const showCode = useSelector(getShowCode)
   const showLayout = useSelector(getShowLayout)
   const components = useSelector(getComponents)
   const dispatch = useDispatch()
+  const { palette } = useForgeTheme()
 
   const viewportRef = useRef<HTMLDivElement | null>(null)
   const { drop } = useDropComponent('root', undefined, true, viewportRef)
@@ -44,6 +84,9 @@ const Editor: React.FC = () => {
     editorBackgroundProps = gridStyles
   }
 
+  const textureId = (palette as any).texture
+  const textureStyle = textureId ? textureBackgrounds[textureId] || {} : {}
+
   const deviceProps = {
     ...rootProps,
   }
@@ -60,14 +103,15 @@ const Editor: React.FC = () => {
       onClick={onSelectBackground}
     >
       <Box
-        bg="#101826"
-        border="1px solid rgba(56, 189, 248, 0.45)"
-        boxShadow="0 0 0 1px rgba(255,255,255,0.04), 0 24px 80px rgba(0,0,0,0.45)"
+        bg={(palette as any).bg || '#101826'}
+        border={`1px solid ${(palette as any).border || 'rgba(56, 189, 248, 0.45)'}`}
+        boxShadow={`0 0 0 1px rgba(255,255,255,0.04), 0 24px 80px rgba(0,0,0,0.45), 0 0 28px ${(palette as any).accent || '#2dd4bf'}44`}
         borderRadius="14px"
         overflow="hidden"
         position="relative"
         mx="auto"
         my={4}
+        {...textureStyle}
         {...deviceProps}
         ref={(node: HTMLDivElement | null) => {
           viewportRef.current = node
@@ -84,8 +128,21 @@ const Editor: React.FC = () => {
         alignItems="center"
         flexDirection="column"
       >
+        <Box
+          position="absolute"
+          inset={0}
+          bg="blackAlpha.400"
+          pointerEvents="none"
+        />
+
         {isEmpty && (
-          <Text maxWidth="md" color="gray.400" fontSize="xl" textAlign="center">
+          <Text
+            maxWidth="md"
+            color={(palette as any).text || 'gray.400'}
+            fontSize="xl"
+            textAlign="center"
+            zIndex={1}
+          >
             Drag ForgeUI components onto the ESP32-P4 screen.
             <br />
             Active target: {FORGEUI_ACTIVE_DEVICE.name}

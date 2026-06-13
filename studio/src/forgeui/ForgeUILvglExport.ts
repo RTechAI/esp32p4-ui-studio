@@ -205,6 +205,66 @@ const FG_PALETTES: Record<string, any> = {
     accent: '0xFF4500',
   },
 
+    nordic_ice: {
+    name: 'Nordic Ice',
+    bg: '0xEAF4FA',
+    surface: '0xFFFFFF',
+    surface2: '0xDCEAF3',
+    border: '0x7DD3FC',
+    text: '0x0F172A',
+    accent: '0x38BDF8',
+  },
+
+  nordic_frost: {
+    name: 'Nordic Frost',
+    bg: '0xF7FBFD',
+    surface: '0xFFFFFF',
+    surface2: '0xE6F1F7',
+    border: '0x94A3B8',
+    text: '0x0F172A',
+    accent: '0x06B6D4',
+  },
+
+  nordic_slate: {
+    name: 'Nordic Slate',
+    bg: '0xDCE3E8',
+    surface: '0xF6F8FA',
+    surface2: '0xC9D4DC',
+    border: '0x64748B',
+    text: '0x1E293B',
+    accent: '0x0EA5E9',
+  },
+
+  nordic_night: {
+    name: 'Nordic Night',
+    bg: '0x1B2430',
+    surface: '0x253041',
+    surface2: '0x344256',
+    border: '0x60A5FA',
+    text: '0xF8FAFC',
+    accent: '0x7DD3FC',
+  },
+
+  control_room: {
+    name: 'Control Room',
+    bg: '0x18222D',
+    surface: '0x223040',
+    surface2: '0x2E4156',
+    border: '0x4FC3F7',
+    text: '0xEAF6FF',
+    accent: '0x4FC3F7',
+  },
+
+  clean_light: {
+    name: 'Clean Light Pro',
+    bg: '0xF3F4F6',
+    surface: '0xFFFFFF',
+    surface2: '0xE5E7EB',
+    border: '0x2563EB',
+    text: '0x111827',
+    accent: '0x2563EB',
+  },
+
   blueprint: {
     name: 'Blueprint',
 
