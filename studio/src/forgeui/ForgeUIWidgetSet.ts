@@ -15,14 +15,17 @@ export const forgeuiCoreWidgets = [
   'Line',
   'Tabview',
   'Tileview',
-  'ImageButton',
-  'AnimImage',
-  'Lottie',
-  'Spinner',
+
+  // Parked
+  // 'ImageButton',
+  // 'AnimImage',
+  // 'Lottie',
+  // 'Spinner',
 
   // Basic ForgeUI Controls
   'Button',
   'Text',
+  'Heading',
   'Input',
   'Textarea',
   'Switch',
@@ -35,4 +38,23 @@ export const forgeuiCoreWidgets = [
   'Select',
   'Image',
   'Box',
+
+  // Common UI
+  'Icon',
+  'IconButton',
+  'CloseButton',
+  'Link',
+  'Badge',
+  'Tag',
+  'Divider',
+  'Code',
+  'Kbd',
+
+  // Layout
+  'Flex',
+  'Grid',
+  'SimpleGrid',
+  'Stack',
+  'Container',
+  'Center',
 ]

@@ -160,20 +160,25 @@ export const renderForgePreview = ({
       }
 
       case 'Select': {
-        output.push(
-          <Select
-            key={child.id}
-            {...commonStyle}
-            value=""
-            color={palette.text}
-            borderColor={palette.border}
-            background={palette.surface}
-          >
-            <option value="">Select</option>
-          </Select>,
-        )
-        break
-      }
+  output.push(
+    <Box
+      key={child.id}
+      {...commonStyle}
+      display="flex"
+      alignItems="center"
+      justifyContent="space-between"
+      px="10px"
+      border={`1px solid ${palette.border}`}
+      borderRadius="8px"
+      bg={palette.surface}
+      color={palette.text}
+    >
+      <Text>Select</Text>
+      <Text>▼</Text>
+    </Box>,
+  )
+  break
+}
 
       case 'Switch': {
         output.push(
@@ -626,15 +631,215 @@ case 'Roller': {
   break
 }
 
-case 'ButtonMatrix':
-case 'Canvas':
-case 'Line':
-case 'Tabview':
-case 'Tileview':
-case 'ImageButton':
-case 'AnimImage':
+case 'ButtonMatrix': {
+  output.push(
+    <Box
+      key={child.id}
+      {...commonStyle}
+      display="grid"
+      gridTemplateColumns="repeat(3, 1fr)"
+      gridTemplateRows="repeat(2, 1fr)"
+      gap="6px"
+      p="8px"
+      border={`1px solid ${palette.border}`}
+      borderRadius="8px"
+      bg={palette.surface}
+    >
+      {['One', 'Two', 'Three', 'Four', 'Five', 'Six'].map((label, i) => (
+        <Box
+          key={label}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          borderRadius="6px"
+          bg={i === 1 ? palette.accent : palette.surface2}
+          color={i === 1 ? palette.bg : palette.text}
+          fontSize="12px"
+          fontWeight="bold"
+        >
+          {label}
+        </Box>
+      ))}
+    </Box>,
+  )
+  break
+}
+
+case 'Canvas': {
+  output.push(
+    <Box
+      key={child.id}
+      {...commonStyle}
+      bg={palette.surface}
+      border={`1px solid ${palette.border}`}
+      borderRadius="8px"
+      overflow="hidden"
+    >
+      <svg width="100%" height="100%" viewBox="0 0 200 120">
+        <line
+          x1="10"
+          y1="10"
+          x2="190"
+          y2="110"
+          stroke={palette.accent}
+          strokeWidth="2"
+        />
+
+        <line
+          x1="190"
+          y1="10"
+          x2="10"
+          y2="110"
+          stroke={palette.accent}
+          strokeWidth="2"
+        />
+
+        <rect
+          x="60"
+          y="30"
+          width="80"
+          height="40"
+          fill="none"
+          stroke={palette.accent}
+          strokeWidth="2"
+        />
+
+        <circle
+          cx="100"
+          cy="80"
+          r="15"
+          fill={palette.accent}
+        />
+      </svg>
+    </Box>,
+  )
+  break
+}
+
+case 'Line': {
+  output.push(
+    <Box
+      key={child.id}
+      {...commonStyle}
+      overflow="hidden"
+    >
+      <svg width="100%" height="100%" viewBox="0 0 100 100">
+        <line
+          x1="0"
+          y1="0"
+          x2="100"
+          y2="100"
+          stroke={palette.border}
+          strokeWidth="3"
+        />
+      </svg>
+    </Box>,
+  )
+  break
+}
+
+case 'Tabview': {
+  output.push(
+    <Box
+      key={child.id}
+      {...commonStyle}
+      border={`1px solid ${palette.border}`}
+      borderRadius="8px"
+      overflow="hidden"
+      bg={palette.surface}
+    >
+      <Box display="flex" height="34px">
+        {['Tab 1', 'Tab 2', 'Tab 3'].map((tab, i) => (
+          <Box
+            key={tab}
+            flex="1"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            bg={i === 0 ? palette.accent : palette.surface2}
+            color={i === 0 ? palette.bg : palette.text}
+            fontSize="12px"
+            fontWeight="bold"
+            borderRight={i < 2 ? `1px solid ${palette.border}` : 'none'}
+          >
+            {tab}
+          </Box>
+        ))}
+      </Box>
+
+      <Box
+        height="calc(100% - 34px)"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        color={palette.text}
+        fontSize="13px"
+      >
+        Tab 1 content
+      </Box>
+    </Box>,
+  )
+  break
+}
+
+case 'Tileview': {
+  const tiles = ['Tile 1', 'Tile 2', 'Tile 3', 'Tile 4']
+
+  output.push(
+    <Box
+      key={child.id}
+      {...commonStyle}
+      display="grid"
+      gridTemplateColumns="repeat(2, 1fr)"
+      gridTemplateRows="repeat(2, 1fr)"
+      gap="6px"
+      p="8px"
+      border={`1px solid ${palette.border}`}
+      borderRadius="8px"
+      bg={palette.surface}
+    >
+      {tiles.map((tile, i) => (
+        <Box
+          key={tile}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          borderRadius="6px"
+          bg={i === 0 ? palette.accent : palette.surface2}
+          color={i === 0 ? palette.bg : palette.text}
+          fontSize="12px"
+          fontWeight="bold"
+        >
+          {tile}
+        </Box>
+      ))}
+    </Box>,
+  )
+  break
+}
+
+case 'AnimImage': {
+  output.push(
+    <Box
+      key={child.id}
+      {...commonStyle}
+      border={`1px solid ${palette.border}`}
+      borderRadius="8px"
+      bg={palette.surface}
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      color={palette.text}
+    >
+      AnimImage
+    </Box>,
+  )
+  break
+}
+
 case 'Lottie':
 case 'Spinner': {
+
   output.push(
     <Box
       key={child.id}

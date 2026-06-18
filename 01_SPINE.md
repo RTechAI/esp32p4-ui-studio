@@ -3,7 +3,7 @@
 ## Current Save Point
 
 ```text
-FORGEUI_SINGLE_THEME_SOURCE_V1__PREVIEW_EXPORT_P4_SYNC_PROVEN__TEST_PURPLE_VALIDATED__2026-06-13
+FORGEUI_WIDGET_BATCH2_COMPLETE__BUTTONMATRIX_CANVAS_LINE_TABVIEW_TILEVIEW__P4_PROVEN__SIDEBAR_AUDIT_NEXT__2026-06-18
 ```
 
 ---
@@ -179,6 +179,16 @@ FG_PREVIEW_PALETTES
 ```
 
 directly.
+
+ButtonMatrix = Proven
+
+Canvas = Proven
+
+Line = Proven
+
+Tabview = Proven
+
+Tileview = Proven
 
 ---
 
@@ -665,6 +675,34 @@ Physical ESP32-P4 Rendering = Proven
 
 ✓ Theme Manager → Preview → Export → P4 path proven
 
+✓ ButtonMatrix Browser Preview implemented
+
+✓ ButtonMatrix LVGL Export implemented
+
+✓ Canvas Browser Preview implemented
+
+✓ Canvas LVGL Export implemented
+
+✓ Line Browser Preview implemented
+
+✓ Line LVGL Export implemented
+
+✓ Tabview Browser Preview implemented
+
+✓ Tabview LVGL Export implemented
+
+✓ Tileview Browser Preview implemented
+
+✓ Tileview LVGL Export implemented
+
+✓ Physical ESP32-P4 validation completed
+
+✓ Sidebar audit completed
+
+✓ Hidden OpenChakra widgets confirmed retained
+
+✓ forgeuiCoreWidgets confirmed as sidebar source of truth
+
 Validated on hardware:
 
 AI Nexus / Neural-style 1024x600 hero background rendered fullscreen on ESP32-P4.
@@ -722,11 +760,26 @@ Achievements:
 # Immediate Next Mission
 
 ```text
-FORGEUI_TEXTURE_SYSTEM_V1
+FORGEUI_SIDEBAR_AUDIT_V1
 ```
 
-Goals:
-
+Center
+    ↓
+Container
+    ↓
+Stack
+    ↓
+Flex
+    ↓
+Grid
+    ↓
+SimpleGrid
+    ↓
+Build Canvas Validation
+    ↓
+Browser Preview Validation
+    ↓
+LVGL Export Validation
 ```text
 Carbon Fiber Enhancements
     ↓

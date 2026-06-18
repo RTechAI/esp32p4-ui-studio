@@ -467,15 +467,206 @@ case 'Roller': {
   break
 }
 
+case 'Canvas': {
+  lines.push(`lv_obj_t * ${varName} = lv_obj_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
+
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_COVER, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${varName}, 2, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${varName}, 8, LV_PART_MAIN);`)
+
+  lines.push(``)
+  break
+}
+
+case 'Line': {
+  lines.push(`static lv_point_precise_t ${varName}_pts[] = {`)
+  lines.push(`  {0, 0},`)
+  lines.push(`  {${w}, ${h}}`)
+  lines.push(`};`)
+
+  lines.push(`lv_obj_t * ${varName} = lv_line_create(${parentVar});`)
+  lines.push(`lv_line_set_points(${varName}, ${varName}_pts, 2);`)
+  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
+
+  lines.push(`lv_obj_set_style_line_color(${varName}, lv_color_hex(${palette.border}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_line_width(${varName}, 3, LV_PART_MAIN);`)
+
+  lines.push(``)
+  break
+}
+
+case 'Tabview': {
+  lines.push(`lv_obj_t * ${varName} = lv_tabview_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
+
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_COVER, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${varName}, 2, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
+
+  lines.push(`lv_obj_t * ${varName}_tab1 = lv_tabview_add_tab(${varName}, "Tab 1");`)
+  lines.push(`lv_obj_t * ${varName}_tab2 = lv_tabview_add_tab(${varName}, "Tab 2");`)
+  lines.push(`lv_obj_t * ${varName}_tab3 = lv_tabview_add_tab(${varName}, "Tab 3");`)
+
+  lines.push(`lv_obj_set_style_bg_color(${varName}_tab1, lv_color_hex(${palette.surface2}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}_tab2, lv_color_hex(${palette.surface2}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}_tab3, lv_color_hex(${palette.surface2}), LV_PART_MAIN);`)
+
+  lines.push(`lv_obj_t * ${varName}_lbl1 = lv_label_create(${varName}_tab1);`)
+  lines.push(`lv_label_set_text(${varName}_lbl1, "Tab 1 content");`)
+  lines.push(`lv_obj_set_style_text_color(${varName}_lbl1, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_center(${varName}_lbl1);`)
+
+  lines.push(`lv_obj_t * ${varName}_lbl2 = lv_label_create(${varName}_tab2);`)
+  lines.push(`lv_label_set_text(${varName}_lbl2, "Tab 2 content");`)
+  lines.push(`lv_obj_set_style_text_color(${varName}_lbl2, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_center(${varName}_lbl2);`)
+
+  lines.push(`lv_obj_t * ${varName}_lbl3 = lv_label_create(${varName}_tab3);`)
+  lines.push(`lv_label_set_text(${varName}_lbl3, "Tab 3 content");`)
+  lines.push(`lv_obj_set_style_text_color(${varName}_lbl3, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_center(${varName}_lbl3);`)
+
+  lines.push(``)
+  break
+}
+
+case 'Tileview': {
+  lines.push(`lv_obj_t * ${varName} = lv_tileview_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
+
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_COVER, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${varName}, 2, LV_PART_MAIN);`)
+
+  lines.push(`lv_obj_t * ${varName}_tile1 = lv_tileview_add_tile(${varName}, 0, 0, LV_DIR_ALL);`)
+  lines.push(`lv_obj_t * ${varName}_tile2 = lv_tileview_add_tile(${varName}, 1, 0, LV_DIR_ALL);`)
+  lines.push(`lv_obj_t * ${varName}_tile3 = lv_tileview_add_tile(${varName}, 0, 1, LV_DIR_ALL);`)
+  lines.push(`lv_obj_t * ${varName}_tile4 = lv_tileview_add_tile(${varName}, 1, 1, LV_DIR_ALL);`)
+
+  ;[1, 2, 3, 4].forEach((n) => {
+    lines.push(`lv_obj_set_style_bg_color(${varName}_tile${n}, lv_color_hex(${n === 1 ? palette.border : palette.surface2}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_bg_opa(${varName}_tile${n}, LV_OPA_COVER, LV_PART_MAIN);`)
+    lines.push(`lv_obj_clear_flag(${varName}_tile${n}, LV_OBJ_FLAG_SCROLLABLE);`)
+  })
+
+  lines.push(`lv_obj_t * ${varName}_lbl1 = lv_label_create(${varName}_tile1);`)
+  lines.push(`lv_label_set_text(${varName}_lbl1, "Tile 1");`)
+  lines.push(`lv_obj_set_style_text_color(${varName}_lbl1, lv_color_hex(${palette.bg}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_center(${varName}_lbl1);`)
+
+  lines.push(`lv_obj_t * ${varName}_lbl2 = lv_label_create(${varName}_tile2);`)
+  lines.push(`lv_label_set_text(${varName}_lbl2, "Tile 2");`)
+  lines.push(`lv_obj_set_style_text_color(${varName}_lbl2, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_center(${varName}_lbl2);`)
+
+  lines.push(`lv_obj_t * ${varName}_lbl3 = lv_label_create(${varName}_tile3);`)
+  lines.push(`lv_label_set_text(${varName}_lbl3, "Tile 3");`)
+  lines.push(`lv_obj_set_style_text_color(${varName}_lbl3, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_center(${varName}_lbl3);`)
+
+  lines.push(`lv_obj_t * ${varName}_lbl4 = lv_label_create(${varName}_tile4);`)
+  lines.push(`lv_label_set_text(${varName}_lbl4, "Tile 4");`)
+  lines.push(`lv_obj_set_style_text_color(${varName}_lbl4, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_center(${varName}_lbl4);`)
+
+  lines.push(``)
+  break
+}
+
+case 'AnimImage': {
+  lines.push(`lv_obj_t * ${varName} = lv_obj_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
+
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), LV_PART_MAIN);`)
+
+  lines.push(`lv_obj_t * ${varName}_label = lv_label_create(${varName});`)
+  lines.push(`lv_label_set_text(${varName}_label, "AnimImage");`)
+  lines.push(`lv_obj_set_style_text_color(${varName}_label, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_center(${varName}_label);`)
+
+  lines.push(``)
+  break
+}
+
+
+case 'ButtonMatrix': {
+  lines.push(`static const char * ${varName}_map[] = {"One", "Two", "Three", "\\n", "Four", "Five", "Six", ""};`)
+
+  lines.push(`lv_obj_t * ${varName} = lv_buttonmatrix_create(${parentVar});`)
+  lines.push(`lv_buttonmatrix_set_map(${varName}, ${varName}_map);`)
+  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
+
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_COVER, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${varName}, 2, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${varName}, 8, LV_PART_MAIN);`)
+
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface2}), LV_PART_ITEMS);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.text}), LV_PART_ITEMS);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), LV_PART_ITEMS);`)
+  lines.push(`lv_obj_set_style_border_width(${varName}, 1, LV_PART_ITEMS);`)
+
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.border}), LV_PART_ITEMS | LV_STATE_CHECKED);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.bg}), LV_PART_ITEMS | LV_STATE_CHECKED);`)
+
+  lines.push(`lv_buttonmatrix_set_selected_button(${varName}, 1);`)
+
+  lines.push(``)
+  break
+}
+
 case 'Msgbox': {
-  lines.push(`lv_obj_t * ${varName} = lv_msgbox_create(NULL);`)
+  lines.push(`lv_obj_t * ${varName} = lv_obj_create(${parentVar});`)
   lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
   lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
-  lines.push(`lv_obj_set_parent(${varName}, ${parentVar});`)
 
   lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${varName}, 2, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${varName}, 6, LV_PART_MAIN);`)
+  lines.push(`lv_obj_clear_flag(${varName}, LV_OBJ_FLAG_SCROLLABLE);`)
+
+  lines.push(``)
+
+  lines.push(`lv_obj_t * ${varName}_title = lv_label_create(${varName});`)
+  lines.push(`lv_label_set_text(${varName}_title, "Message");`)
+  lines.push(`lv_obj_align(${varName}_title, LV_ALIGN_TOP_LEFT, 10, 8);`)
+
+  lines.push(`lv_obj_t * ${varName}_text = lv_label_create(${varName});`)
+  lines.push(`lv_label_set_text(${varName}_text, "Example message text");`)
+  lines.push(`lv_obj_set_width(${varName}_text, ${Math.max(80, w - 20)});`)
+  lines.push(`lv_label_set_long_mode(${varName}_text, LV_LABEL_LONG_WRAP);`)
+  lines.push(`lv_obj_align(${varName}_text, LV_ALIGN_TOP_LEFT, 10, 30);`)
+
+  lines.push(`lv_obj_t * ${varName}_ok = lv_button_create(${varName});`)
+  lines.push(`lv_obj_set_size(${varName}_ok, 56, 26);`)
+  lines.push(`lv_obj_align(${varName}_ok, LV_ALIGN_BOTTOM_RIGHT, -74, -4);`)
+
+  lines.push(`lv_obj_t * ${varName}_ok_lbl = lv_label_create(${varName}_ok);`)
+  lines.push(`lv_label_set_text(${varName}_ok_lbl, "OK");`)
+  lines.push(`lv_obj_center(${varName}_ok_lbl);`)
+
+  lines.push(`lv_obj_t * ${varName}_cancel = lv_button_create(${varName});`)
+  lines.push(`lv_obj_set_size(${varName}_cancel, 64, 26);`)
+  lines.push(`lv_obj_align(${varName}_cancel, LV_ALIGN_BOTTOM_RIGHT, -4, -4);`)
+
+  lines.push(`lv_obj_t * ${varName}_cancel_lbl = lv_label_create(${varName}_cancel);`)
+  lines.push(`lv_label_set_text(${varName}_cancel_lbl, "Cancel");`)
+  lines.push(`lv_obj_center(${varName}_cancel_lbl);`)
 
   lines.push(``)
   break

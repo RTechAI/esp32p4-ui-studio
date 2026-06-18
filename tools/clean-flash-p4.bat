@@ -3,7 +3,7 @@ chcp 65001 >nul
 set PYTHONIOENCODING=utf-8
 
 echo =========================================
-echo ESP32-P4 UI Studio CLEAN Build / Flash
+echo ESP32-P4 UI Studio FAST Build / Flash
 echo =========================================
 echo.
 
@@ -16,14 +16,6 @@ cd /d C:\ForgeUI\Projects\esp32p4-ui-studio\firmware\ForgeUI-One
 
 python --version
 idf.py --version
-
-echo.
-echo =========================================
-echo FULL CLEAN
-echo =========================================
-echo.
-
-idf.py fullclean
 
 echo.
 echo =========================================

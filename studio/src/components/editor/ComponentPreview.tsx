@@ -371,23 +371,17 @@ case 'Select':
         width="100%"
         height="100%"
         display="flex"
-        flexDirection="column"
-        justifyContent="center"
-        gap="6px"
+        alignItems="center"
+        justifyContent="space-between"
+        px="10px"
+        border="1px solid #00d4ff"
+        borderRadius="8px"
+        bg="#1e2328"
+        color="white"
+        fontSize="14px"
       >
-        <Chakra.Text color="white" fontSize="sm">
-          Select
-        </Chakra.Text>
-
-        <Chakra.Select
-         {...component.props}
-         {...forgeuiInputStyle}
-        width="100%"
->
-          <option>Option 1</option>
-          <option>Option 2</option>
-          <option>Option 3</option>
-        </Chakra.Select>
+        <Chakra.Text>Option 1</Chakra.Text>
+        <Chakra.Text>▼</Chakra.Text>
       </Chakra.Box>
     </PreviewContainer>
   )
@@ -775,20 +769,41 @@ case 'Table':
         color="white"
         display="flex"
         flexDirection="column"
-        justifyContent="space-between"
-        p="8px"
+        p="12px"
       >
-        <Chakra.Text fontWeight="bold">
+        <Chakra.Text
+          fontSize="lg"
+          fontWeight="bold"
+          mb="10px"
+        >
           Message
         </Chakra.Text>
 
-        <Chakra.Text fontSize="sm">
+        <Chakra.Text
+          fontSize="md"
+          color="white"
+          opacity={0.95}
+          flex="1"
+        >
           Example message text
         </Chakra.Text>
 
-        <Chakra.HStack justify="flex-end">
-          <Chakra.Button size="xs">OK</Chakra.Button>
-          <Chakra.Button size="xs">Cancel</Chakra.Button>
+        <Chakra.HStack justify="flex-end" mt="12px">
+          <Chakra.Button
+            size="sm"
+            bg="#00d4ff"
+            color="black"
+          >
+            OK
+          </Chakra.Button>
+
+          <Chakra.Button
+            size="sm"
+            bg="#3a3f46"
+            color="white"
+          >
+            Cancel
+          </Chakra.Button>
         </Chakra.HStack>
       </Chakra.Box>
     </PreviewContainer>
@@ -821,15 +836,175 @@ case 'Table':
     </PreviewContainer>
   )
 
-  case 'AnimImage':
-case 'ButtonMatrix':
-case 'Canvas':
-case 'ImageButton':
+  case 'ButtonMatrix':
+  return (
+    <PreviewContainer
+      component={component}
+      enableVisualHelper
+      {...forwardedProps}
+    >
+      <Chakra.Box
+        width="100%"
+        height="100%"
+        display="grid"
+        gridTemplateColumns="repeat(3, 1fr)"
+        gridTemplateRows="repeat(2, 1fr)"
+        gap="6px"
+        p="8px"
+        bg="rgba(0,212,255,0.08)"
+        border="1px solid #00d4ff"
+        borderRadius="8px"
+      >
+        {['One', 'Two', 'Three', 'Four', 'Five', 'Six'].map((label, i) => (
+          <Chakra.Box
+            key={label}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            borderRadius="6px"
+            bg={i === 1 ? '#00d4ff' : '#2a3138'}
+            color={i === 1 ? 'black' : 'white'}
+            fontSize="13px"
+            fontWeight="bold"
+          >
+            {label}
+          </Chakra.Box>
+        ))}
+      </Chakra.Box>
+    </PreviewContainer>
+  )
+
+  case 'Canvas':
+  return (
+    <PreviewContainer
+      component={component}
+      enableVisualHelper
+      {...forwardedProps}
+    >
+      <Chakra.Box
+        width="100%"
+        height="100%"
+        bg="#1e2328"
+        border="1px solid #00d4ff"
+        borderRadius="8px"
+        position="relative"
+        overflow="hidden"
+      >
+        <svg width="100%" height="100%" viewBox="0 0 200 120">
+          <line
+            x1="10"
+            y1="10"
+            x2="190"
+            y2="110"
+            stroke="#00d4ff"
+            strokeWidth="2"
+          />
+
+          <line
+            x1="190"
+            y1="10"
+            x2="10"
+            y2="110"
+            stroke="#00d4ff"
+            strokeWidth="2"
+          />
+
+          <rect
+            x="60"
+            y="30"
+            width="80"
+            height="40"
+            fill="none"
+            stroke="#00d4ff"
+            strokeWidth="2"
+          />
+
+          <circle
+            cx="100"
+            cy="80"
+            r="15"
+            fill="#00d4ff"
+          />
+        </svg>
+      </Chakra.Box>
+    </PreviewContainer>
+  )
+
 case 'Line':
+  return (
+    <PreviewContainer
+      component={component}
+      enableVisualHelper
+      {...forwardedProps}
+    >
+      <Chakra.Box
+        width="100%"
+        height="100%"
+        overflow="hidden"
+      >
+        <svg width="100%" height="100%" viewBox="0 0 100 100">
+          <line
+            x1="0"
+            y1="0"
+            x2="100"
+            y2="100"
+            stroke="#00d4ff"
+            strokeWidth="3"
+          />
+        </svg>
+      </Chakra.Box>
+    </PreviewContainer>
+  )
+
+case 'Tabview':
+  return (
+    <PreviewContainer
+      component={component}
+      enableVisualHelper
+      {...forwardedProps}
+    >
+      <Chakra.Box
+        width="100%"
+        height="100%"
+        border="1px solid #00d4ff"
+        borderRadius="8px"
+        overflow="hidden"
+        bg="#1e2328"
+      >
+        <Chakra.Box display="flex" height="34px">
+          {['Tab 1', 'Tab 2', 'Tab 3'].map((tab, i) => (
+            <Chakra.Box
+              key={tab}
+              flex="1"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              bg={i === 0 ? '#00d4ff' : '#2a3138'}
+              color={i === 0 ? 'black' : 'white'}
+              fontSize="12px"
+              fontWeight="bold"
+            >
+              {tab}
+            </Chakra.Box>
+          ))}
+        </Chakra.Box>
+
+        <Chakra.Box
+          height="calc(100% - 34px)"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          color="white"
+        >
+          Tab 1 content
+        </Chakra.Box>
+      </Chakra.Box>
+    </PreviewContainer>
+  )
+
+  case 'ImageButton':
 case 'Lottie':
 case 'ObjxTempl':
-case 'Tabview':
-case 'Tileview':
   return (
     <PreviewContainer
       component={component}
@@ -848,6 +1023,67 @@ case 'Tileview':
         bg="rgba(0,212,255,0.08)"
       >
         {type}
+      </Chakra.Box>
+    </PreviewContainer>
+  )
+
+case 'Tileview':
+  return (
+    <PreviewContainer
+      component={component}
+      enableVisualHelper
+      {...forwardedProps}
+    >
+      <Chakra.Box
+        width="100%"
+        height="100%"
+        display="grid"
+        gridTemplateColumns="repeat(2, 1fr)"
+        gridTemplateRows="repeat(2, 1fr)"
+        gap="6px"
+        p="8px"
+        border="1px solid #00d4ff"
+        borderRadius="8px"
+        bg="#1e2328"
+      >
+        {['Tile 1', 'Tile 2', 'Tile 3', 'Tile 4'].map((tile, i) => (
+          <Chakra.Box
+            key={tile}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            borderRadius="6px"
+            bg={i === 0 ? '#00d4ff' : '#2a3138'}
+            color={i === 0 ? 'black' : 'white'}
+            fontSize="12px"
+            fontWeight="bold"
+          >
+            {tile}
+          </Chakra.Box>
+        ))}
+      </Chakra.Box>
+    </PreviewContainer>
+  )
+
+case 'AnimImage':
+  return (
+    <PreviewContainer
+      component={component}
+      enableVisualHelper
+      {...forwardedProps}
+    >
+      <Chakra.Box
+        width="100%"
+        height="100%"
+        border="1px solid #00d4ff"
+        borderRadius="8px"
+        bg="#1e2328"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+        color="white"
+      >
+        AnimImage
       </Chakra.Box>
     </PreviewContainer>
   )
