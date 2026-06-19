@@ -1,3 +1,62 @@
+
+
+# 🛠️ ForgeUI Studio (esp32p4-ui-studio)
+
+### Open-Source Visual LVGL v9 HMI Designer, ESP32-P4 UI Builder, Asset Pipeline, and Standalone ESP-IDF Code Generator
+
+[![Framework](https://shields.io)](https://github.com)
+[![LVGL Version](https://shields.io)](https://lvgl.io)
+[![ESP-IDF](https://shields.io)](https://www.espressif.com)
+[![Primary Target](https://shields.io)](https://www.waveshare.com)
+[![Performance Proof](https://shields.io)](#-verified-hardware-performance)
+
+**ForgeUI Studio** is an open-source visual UI designer and HMI development environment for **Espressif ESP32-P4** microcontrollers running **LVGL v9** and **ESP-IDF v5.5+**.
+
+Built specifically for modern embedded displays, ForgeUI Studio combines a browser-based drag-and-drop editor, real-time preview engine, local LVGL image conversion pipeline, theme manager, asset manager, and automated code generation workflow into a single development platform.
+
+Design interfaces visually, preview layouts instantly, generate production-ready LVGL C code, and deploy directly to physical ESP32-P4 hardware—or export completely standalone **ESP-IDF CMake projects** for development in **Visual Studio Code**.
+
+## Key Features
+
+* Visual drag-and-drop LVGL UI designer
+* Native LVGL v9 code generation
+* ESP32-P4 optimized export pipeline
+* Standalone ESP-IDF project generation
+* Browser Preview with hardware-aligned rendering
+* Theme Manager with single-source theme architecture
+* Local PNG → LVGL C asset conversion
+* Uploaded image asset management
+* One-click Build & Flash workflows
+* Physical ESP32-P4 hardware validation
+* 1024×600 HMI display support
+* Waveshare ESP32-P4-WIFI6-Touch-LCD-7B support
+* No cloud services required
+* No subscription required
+* Fully local development workflow
+
+## Target Hardware
+
+ForgeUI Studio is currently validated on:
+
+* Espressif ESP32-P4
+* Waveshare ESP32-P4-WIFI6-Touch-LCD-7B
+* 1024×600 MIPI-DSI displays
+* GT911 capacitive touch controllers
+
+## Designed For
+
+* Industrial HMI systems
+* Machine control panels
+* Dashboard interfaces
+* IoT control displays
+* Embedded touchscreens
+* ESP32-P4 product development
+* LVGL application development
+* Rapid HMI prototyping
+
+ForgeUI Studio bridges the gap between modern visual UI design tools and native embedded execution, enabling developers to move from drag-and-drop design to physical ESP32-P4 hardware without manually writing LVGL layouts.
+
+
 # 🛠️ ForgeUI Studio (esp32p4-ui-studio)
 
 ### The Open-Source Visual HMI Studio, Local Asset Pipeline, and Standalone Code Generator for Espressif ESP32-P4 Running Native LVGL v9.
