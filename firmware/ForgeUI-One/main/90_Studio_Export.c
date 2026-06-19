@@ -69,7 +69,7 @@ void fg_studio_export_create(lv_obj_t *parent)
 
     lv_obj_t * obj6 = lv_calendar_create(parent);
     lv_obj_set_pos(obj6, 0, 342);
-    lv_obj_set_size(obj6, 204, 87);
+    lv_obj_set_size(obj6, 237, 155);
     lv_calendar_set_today_date(obj6, 2026, 6, 18);
     lv_calendar_set_showed_date(obj6, 2026, 6);
     lv_obj_set_style_bg_color(obj6, lv_color_hex(0x120824), LV_PART_MAIN);
@@ -78,8 +78,8 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_border_width(obj6, 2, LV_PART_MAIN);
 
     lv_obj_t * obj7 = lv_scale_create(parent);
-    lv_obj_set_pos(obj7, 5, 441);
-    lv_obj_set_size(obj7, 150, 60);
+    lv_obj_set_pos(obj7, 552, 316);
+    lv_obj_set_size(obj7, 232, 60);
     lv_scale_set_mode(obj7, LV_SCALE_MODE_HORIZONTAL_BOTTOM);
     lv_scale_set_range(obj7, 0, 100);
     lv_scale_set_total_tick_count(obj7, 11);
@@ -315,10 +315,17 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_border_color(obj24, lv_color_hex(0xD946EF), 0);
     lv_obj_set_style_border_width(obj24, 2, 0);
 
-    LV_IMAGE_DECLARE(fg_upload_fg_icon_brightness_48px_3d825a15);
-    lv_obj_t * obj25 = lv_image_create(parent);
-    lv_image_set_src(obj25, &fg_upload_fg_icon_brightness_48px_3d825a15);
-    lv_image_set_scale(obj25, 256);
+    lv_obj_t * obj25 = lv_button_create(parent);
+    lv_obj_set_style_radius(obj25, 12, 0);
+    lv_obj_set_style_bg_color(obj25, lv_color_hex(0x120824), 0);
+    lv_obj_set_style_bg_opa(obj25, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_color(obj25, lv_color_hex(0xD946EF), 0);
+    lv_obj_set_style_border_width(obj25, 2, 0);
+    lv_obj_t * obj25_label = lv_label_create(obj25);
+    lv_label_set_text(obj25_label, "fg_icon_brightness_48px.png\nPending LVGL Export");
+    lv_obj_set_style_text_color(obj25_label, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_text_align(obj25_label, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_center(obj25_label);
     lv_obj_set_pos(obj25, 821, 501);
     lv_obj_set_size(obj25, 203, 95);
     lv_obj_add_flag(obj25, LV_OBJ_FLAG_CLICKABLE);
