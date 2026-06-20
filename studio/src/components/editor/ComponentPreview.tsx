@@ -1,7 +1,7 @@
 import { forgeuiInputStyle } from '~forgeui/ForgeUIControlStyle'
 import React, { memo } from 'react'
 import { useSelector } from 'react-redux'
-
+import ClockPreview from './previews/ClockPreview'
 import AlertPreview from '~components/editor/previews/AlertPreview'
 import AvatarPreview, {
   AvatarBadgePreview,
@@ -425,19 +425,7 @@ case 'Select':
       enableVisualHelper
       {...forwardedProps}
     >
-      <Chakra.Text
-        width="100%"
-        height="100%"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-        color="#00d4ff"
-        fontSize="32px"
-        fontWeight="bold"
-        fontFamily="monospace"
-      >
-        12:34
-      </Chakra.Text>
+      <ClockPreview />
     </PreviewContainer>
   )
 
