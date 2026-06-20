@@ -1,6 +1,7 @@
 #include "90_Studio_Export.h"
 #include "lvgl.h"
 #include "20_RTC.h"
+#include "30_WIFI.h"
 #include <stdbool.h>
 
 static lv_obj_t * fg_clock_label = NULL;
@@ -26,6 +27,22 @@ static void fg_clock_tick_cb(lv_timer_t *timer)
     {
         lv_label_set_text(fg_clock_label, time_buf);
     }
+}
+
+static void fg_wifi_tick_cb(lv_timer_t *timer)
+{
+    LV_UNUSED(timer);
+
+    if (!fg_wifi_label)
+    {
+        return;
+    }
+
+    fg_wifi_pump();
+
+    char wifi_buf[128];
+    snprintf(wifi_buf, sizeof(wifi_buf), "WIFI\n%s\nIP: %s", fg_wifi_status_text(), fg_wifi_ip_text());
+    lv_label_set_text(fg_wifi_label, wifi_buf);
 }
 
 // ForgeUI LVGL Export Proof V1
@@ -63,4 +80,7 @@ void fg_studio_export_create(lv_obj_t *parent)
 
     fg_clock_tick_cb(NULL);
     lv_timer_create(fg_clock_tick_cb, 1000, NULL);
+
+    fg_wifi_tick_cb(NULL);
+    lv_timer_create(fg_wifi_tick_cb, 1000, NULL);
 }

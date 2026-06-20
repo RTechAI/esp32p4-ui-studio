@@ -3,8 +3,7 @@
 ## Current Save Point
 
 ```text
-FORGEUI_CLOCK_WIDGET_V5_COMPLETE__RTC_RUNTIME_CONNECTED__BLINKING_COLON_HEARTBEAT__BUILDER_PREVIEW_EXPORT_P4_ALIGNED__2026-06-20
-```
+FORGEUI_WIFI_WIDGET_V2__30_WIFI_RUNTIME_STATUS_BOUND__INIT_READY_P4_PROVEN__CONNECT_PATH_NEXT__2026-06-20
 
 ---
 
@@ -59,6 +58,127 @@ ESP-IDF Build & Flash succeeds
 Physical ESP32-P4 renders Clock widget correctly
 
 Builder, Preview, Export and P4 alignment proven
+
+# WiFi Widget V2 Status
+
+# WiFi Widget V2 Status
+
+## Status
+
+PROVEN ON PHYSICAL ESP32-P4
+
+## What Was Proven
+
+WiFi widget is no longer static.
+
+Generated LVGL now includes:
+
+#include "30_WIFI.h"
+
+Generated export creates:
+
+static lv_obj_t * fg_wifi_label = NULL;
+
+Generated export adds:
+
+fg_wifi_tick_cb()
+
+WiFi timer now calls:
+
+fg_wifi_pump()
+fg_wifi_status_text()
+fg_wifi_ip_text()
+
+Physical ESP32-P4 proof completed.
+
+Observed runtime transition:
+
+WIFI
+INIT
+IP: -
+
+then:
+
+WIFI
+READY
+IP: -
+
+This proves Studio WiFi widget is now bound to the existing 30_WIFI runtime.
+
+## Architecture Truth
+
+30_WIFI owns WiFi state.
+
+WiFi widget owns display only.
+
+LVGL timer owns refresh.
+
+UI does not own WiFi truth.
+
+No new WiFi framework was created.
+
+## Next Mission
+
+WiFi Connect Path
+
+Goal:
+
+Prove:
+
+WIFI
+CONNECTED
+IP: 192.168.x.x
+
+before building drawer / scan / keyboard / saved credentials.
+
+## Status
+
+PROVEN ON PHYSICAL ESP32-P4
+
+## What Was Proven
+
+WiFi widget appears in ForgeUI Studio sidebar
+
+WiFi widget can be placed on Builder canvas
+
+WiFi widget renders in Builder mode
+
+WiFi widget renders in Browser Preview
+
+WiFi widget exports to generated LVGL C
+
+Generated LVGL compiles successfully
+
+ESP-IDF Build & Flash succeeds
+
+Physical ESP32-P4 renders WiFi widget correctly
+
+Builder / Preview / Export / P4 alignment proven
+
+Current display:
+
+WIFI
+DISCONNECTED
+IP: -
+
+## Architecture
+
+30_WIFI.c
+↓
+ForgeUI WiFi Runtime
+↓
+WiFi Widget
+↓
+Display Only
+
+UI does not own WiFi truth.
+
+WiFi runtime owns WiFi truth.
+
+Widget owns display only.
+
+Runtime binding is next.
+
 
 ## Status
 
@@ -686,7 +806,7 @@ studio/src/forgeui/ForgeUILvglExport.ts
 
 ---
 
-# Sidebar Audit Status
+# WiFi Runtime Binding V2
 
 ## Current Mission
 
@@ -838,7 +958,7 @@ Then request the smallest required file.
 # Current Immediate Next Mission
 
 ```text
-FORGEUI_SIDEBAR_AUDIT_CONTINUE__ICON_ICONBUTTON_DIVIDER_DECISION__POST_CLOCK_V5
+FORGEUI_WIFI_RUNTIME_BINDING_V2__30_WIFI_STATUS_IP_TIMER__2026-06-20
 ```
 
 ## Start Here
