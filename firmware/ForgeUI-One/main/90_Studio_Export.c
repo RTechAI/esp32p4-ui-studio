@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 static lv_obj_t * fg_clock_label = NULL;
+static lv_obj_t * fg_wifi_label = NULL;
 
 static void fg_clock_tick_cb(lv_timer_t *timer)
 {
@@ -44,10 +45,18 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_pos(bg_texture_0, 0, 0);
     lv_obj_set_size(bg_texture_0, 1024, 600);
 
+    fg_wifi_label = lv_label_create(parent);
+    lv_label_set_text(fg_wifi_label, "WIFI\nDISCONNECTED\nIP: -");
+    lv_obj_set_pos(fg_wifi_label, 39, 41);
+    lv_obj_set_size(fg_wifi_label, 240, 120);
+    lv_obj_set_style_text_color(fg_wifi_label, lv_color_hex(0x00D4FF), 0);
+    lv_obj_set_style_text_font(fg_wifi_label, &lv_font_montserrat_20, 0);
+    lv_label_set_long_mode(fg_wifi_label, LV_LABEL_LONG_WRAP);
+
     fg_clock_label = lv_label_create(parent);
     lv_label_set_text(fg_clock_label, "12:34");
-    lv_obj_set_pos(fg_clock_label, 364, 450);
-    lv_obj_set_size(fg_clock_label, 240, 120);
+    lv_obj_set_pos(fg_clock_label, 12.999969482421875, 540);
+    lv_obj_set_size(fg_clock_label, 105, 54);
     lv_obj_set_style_text_color(fg_clock_label, lv_color_hex(0x00D4FF), 0);
     lv_obj_set_style_text_font(fg_clock_label, &lv_font_montserrat_32, 0);
 

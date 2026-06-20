@@ -186,6 +186,18 @@ case 'Clock': {
   lines.push(``)
   break
 }
+
+case 'WiFi': {
+  lines.push(`fg_wifi_label = lv_label_create(${parentVar});`)
+  lines.push(`lv_label_set_text(fg_wifi_label, "WIFI\\nDISCONNECTED\\nIP: -");`)
+  lines.push(`lv_obj_set_pos(fg_wifi_label, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(fg_wifi_label, ${w}, ${h});`)
+  lines.push(`lv_obj_set_style_text_color(fg_wifi_label, lv_color_hex(0x00D4FF), 0);`)
+  lines.push(`lv_obj_set_style_text_font(fg_wifi_label, &lv_font_montserrat_20, 0);`)
+  lines.push(`lv_label_set_long_mode(fg_wifi_label, LV_LABEL_LONG_WRAP);`)
+  lines.push(``)
+  break
+}
       
             case 'Button': {
         const text = esc(
@@ -886,13 +898,14 @@ const palette = {
 
 
   lines.push(`#include "90_Studio_Export.h"`)
-  lines.push(`#include "lvgl.h"`)
-  lines.push(`#include "20_RTC.h"`)
-  lines.push(`#include <stdbool.h>`)
+lines.push(`#include "lvgl.h"`)
+lines.push(`#include "20_RTC.h"`)
+lines.push(`#include <stdbool.h>`)
 
-  lines.push(``)
-  lines.push(`static lv_obj_t * fg_clock_label = NULL;`)
-  lines.push(``)
+lines.push(``)
+lines.push(`static lv_obj_t * fg_clock_label = NULL;`)
+lines.push(`static lv_obj_t * fg_wifi_label = NULL;`)
+lines.push(``)
 
   lines.push(`static void fg_clock_tick_cb(lv_timer_t *timer)`)
   lines.push(`{`)

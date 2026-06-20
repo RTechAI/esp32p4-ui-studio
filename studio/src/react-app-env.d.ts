@@ -40,6 +40,7 @@ type ComponentType =
   | 'Grid'
   | 'Heading'
   | 'Clock'
+  | 'WiFi'
   | 'Highlight'
   | 'Icon'
   | 'IconButton'

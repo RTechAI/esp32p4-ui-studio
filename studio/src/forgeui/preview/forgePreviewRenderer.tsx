@@ -98,6 +98,46 @@ export const renderForgePreview = ({
   break
 }
 
+case 'WiFi': {
+  output.push(
+    <Box
+      key={child.id}
+      {...commonStyle}
+      p="10px"
+      border={`1px solid ${palette.border}`}
+      borderRadius="8px"
+      bg={palette.surface}
+      display="flex"
+      flexDirection="column"
+      justifyContent="center"
+    >
+      <Text
+        color={palette.accent}
+        fontWeight="bold"
+        fontSize="14px"
+      >
+        WIFI
+      </Text>
+
+      <Text
+        color={palette.text}
+        fontSize="13px"
+      >
+        DISCONNECTED
+      </Text>
+
+      <Text
+        color={palette.text}
+        opacity={0.7}
+        fontSize="12px"
+      >
+        IP: -
+      </Text>
+    </Box>,
+  )
+  break
+}
+
       case 'Text': {
         output.push(
           <Text

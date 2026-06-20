@@ -95,6 +95,7 @@ type PreviewDefaultProps = {
   CircularProgress?: PropsWithForm<CircularProgressProps>
   Heading?: PropsWithForm<HeadingProps>
   Clock?: PropsWithForm<TextProps>
+  WiFi?: PropsWithForm<TextProps>
   Highlight?: PropsWithForm<HighlightProps>
   Tag?: PropsWithForm<TagProps>
   SimpleGrid?: PropsWithForm<SimpleGridProps>
@@ -240,6 +241,14 @@ export const DEFAULT_PROPS: PreviewDefaultProps = {
      w: 160,
      h: 60,
 },
+WiFi: {
+    children: 'WiFi\nDISCONNECTED\nIP: -',
+    positionMode: 'absolute',
+    x: 40,
+    y: 120,
+    w: 220,
+    h: 90,
+  },
   Highlight: {
     children: 'Heading title',
     query: 'title',

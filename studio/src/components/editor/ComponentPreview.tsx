@@ -429,6 +429,43 @@ case 'Select':
     </PreviewContainer>
   )
 
+  case 'WiFi':
+  return (
+    <PreviewContainer
+      component={component}
+      enableVisualHelper
+      {...forwardedProps}
+    >
+      <Chakra.Box
+        width="100%"
+        height="100%"
+        p="10px"
+        border="1px solid #00d4ff"
+        borderRadius="8px"
+        bg="rgba(0,212,255,0.08)"
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
+      >
+        <Chakra.Text
+          color="#00d4ff"
+          fontWeight="bold"
+          fontSize="14px"
+        >
+          WIFI
+        </Chakra.Text>
+
+        <Chakra.Text color="white" fontSize="13px">
+          DISCONNECTED
+        </Chakra.Text>
+
+        <Chakra.Text color="gray.300" fontSize="12px">
+          IP: -
+        </Chakra.Text>
+      </Chakra.Box>
+    </PreviewContainer>
+  )
+
   case 'Input':
   return (
     <PreviewContainer

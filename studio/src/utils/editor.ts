@@ -28,6 +28,7 @@ export const COMPONENTS: (ComponentType | MetaComponentType)[] = [
   'Grid',
   'Heading',
   'Clock',
+  'WiFi',
   'Highlight',
   'Icon',
   'IconButton',
