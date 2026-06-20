@@ -3,7 +3,7 @@
 ## Current Save Point
 
 ```text
-FORGEUI_CLOCK_WIDGET_V3_COMPLETE__BUILDER_PREVIEW_EXPORT_P4_ALIGNED__RTC_RUNTIME_ALREADY_PRESENT__NEXT_V4_RTC_TICKING_CLOCK__2026-06-20
+FORGEUI_CLOCK_WIDGET_V5_COMPLETE__RTC_RUNTIME_CONNECTED__BLINKING_COLON_HEARTBEAT__BUILDER_PREVIEW_EXPORT_P4_ALIGNED__2026-06-20
 ```
 
 ---
@@ -161,39 +161,63 @@ The important proof is that the Heading widget exports, compiles, flashes, and r
 ```
 # RTC Runtime Architecture Status
 
-Status
+# Clock Widget V5 Status
 
-PROVEN
+## Status
 
-Runtime ownership exists in ForgeUI One.
+PROVEN ON PHYSICAL ESP32-P4
 
-Files:
+## What Was Proven
 
-firmware/ForgeUI-One/main/20_RTC.h
-firmware/ForgeUI-One/main/20_RTC.c
+Clock widget appears in ForgeUI Studio sidebar
 
-Available API:
+Clock widget can be placed on Builder canvas
 
-fg_rtc_init()
-fg_rtc_set()
-fg_rtc_get()
+Clock widget renders on Builder canvas
+
+Clock widget updates live in Builder
+
+Clock widget renders in Browser Preview
+
+Clock widget exports to generated LVGL C
+
+Generated LVGL compiles successfully
+
+ESP-IDF Build & Flash succeeds
+
+Physical ESP32-P4 renders Clock widget correctly
+
+RTC runtime integration proven
+
+LVGL timer refresh proven
+
+Builder / Preview / Export / P4 alignment proven
+
+Blinking colon heartbeat proven
+
+24-hour HH:MM display format proven
+
+Minute rollover observed on hardware
+
+## Runtime Architecture
+
+20_RTC.c
+    ↓
 fg_rtc_format_time()
-fg_rtc_format_day()
-fg_rtc_format_header()
+    ↓
+fg_clock_tick_cb()
+    ↓
+lv_label_set_text()
+    ↓
+Clock Widget
 
-Features:
+UI does not own time truth.
 
-ESP system time runtime truth
+RTC runtime owns time truth.
 
-DS3231 hardware RTC support
+Clock widget owns display only.
 
-NVS persistence fallback
-
-Time formatting helpers
-
-Runtime abstraction layer
-
-UI does not own time truth
+LVGL timer owns refresh.
 ---
 
 # Heading Widget Result
@@ -332,6 +356,18 @@ Physical ESP32-P4 Rendering = Proven
 Heading Font Pipeline = Proven
 
 Heading Widget = Proven
+
+RTC Runtime = Proven
+
+Clock Widget = Proven
+
+Clock RTC Integration = Proven
+
+LVGL Timer Refresh = Proven
+
+Builder/Preview/P4 Clock Alignment = Proven
+
+Blinking Colon Heartbeat = Proven
 ```
 
 ---
@@ -502,6 +538,12 @@ AI / sci-fi backgrounds
 Fullscreen hero backgrounds
 
 Texture backgrounds
+
+Clock widget rendering
+
+24-hour HH:MM clock preview
+
+Clock heartbeat preview
 ```
 
 ---
@@ -538,6 +580,16 @@ Theme background rendering
 ESP-IDF Build & Flash
 
 Physical ESP32-P4 validation
+
+RTC runtime integration
+
+Clock widget export
+
+LVGL timer generation
+
+Clock heartbeat generation
+
+HH:MM runtime formatting
 ```
 
 ---
@@ -786,7 +838,7 @@ Then request the smallest required file.
 # Current Immediate Next Mission
 
 ```text
-FORGEUI_SIDEBAR_AUDIT_CONTINUE__ICON_ICONBUTTON_DIVIDER_DECISION
+FORGEUI_SIDEBAR_AUDIT_CONTINUE__ICON_ICONBUTTON_DIVIDER_DECISION__POST_CLOCK_V5
 ```
 
 ## Start Here

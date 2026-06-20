@@ -7,10 +7,10 @@ const ClockPreview = () => {
   React.useEffect(() => {
     const updateTime = () => {
       setTime(
-        new Date().toLocaleTimeString([], {
+        new Date().toLocaleTimeString('en-NZ', {
           hour: '2-digit',
           minute: '2-digit',
-          second: '2-digit',
+          hour12: false,
         })
       )
     }
