@@ -12,7 +12,7 @@ import {
   Portal,
 } from '@chakra-ui/react'
 import { ChevronDownIcon } from '@chakra-ui/icons'
-import { FaImages, FaPalette } from 'react-icons/fa'
+import { FaImages, FaPalette, FaRobot } from 'react-icons/fa'
 
 const CustomMenuButton: React.FC<
   MenuButtonProps | ButtonProps
@@ -31,6 +31,10 @@ const HeaderMenu = () => {
   const openThemeManager = () => {
     window.dispatchEvent(new CustomEvent('forgeui-open-theme-manager'))
   }
+  
+  const openAiPlayground = () => {
+  window.dispatchEvent(new CustomEvent('forgeui-open-ai-playground'))
+}
 
   return (
     <Menu placement="bottom">
@@ -55,6 +59,12 @@ const HeaderMenu = () => {
               <Box mr={2} as={FaPalette} />
               Theme Manager
             </MenuItem>
+
+            <MenuItem onClick={openAiPlayground}>
+            <Box mr={2} as={FaRobot} />
+             AI Playground
+            </MenuItem>
+
           </MenuList>
         </LightMode>
       </Portal>

@@ -129,6 +129,7 @@ const Header = () => {
 
   const [assetManagerOpen, setAssetManagerOpen] = useState(false)
   const [themeManagerOpen, setThemeManagerOpen] = useState(false)
+  const [aiPlaygroundOpen, setAiPlaygroundOpen] = useState(false)
 
   const flashLogRef = useRef<HTMLPreElement | null>(null)
 
@@ -182,12 +183,19 @@ useEffect(() => {
     setThemeManagerOpen(true)
   }
 
+ const openAiPlayground = () => {
+  setAiPlaygroundOpen(true)
+ }
+
+ 
   window.addEventListener('forgeui-open-asset-manager', openAssetManager)
   window.addEventListener('forgeui-open-theme-manager', openThemeManager)
+  window.addEventListener('forgeui-open-ai-playground', openAiPlayground)
 
   return () => {
     window.removeEventListener('forgeui-open-asset-manager', openAssetManager)
     window.removeEventListener('forgeui-open-theme-manager', openThemeManager)
+    window.removeEventListener('forgeui-open-ai-playground', openAiPlayground)
   }
 }, [])
 
@@ -667,8 +675,65 @@ await fetch('http://localhost:3030/clean-flash', {
   </Box>
 )}
 
+{aiPlaygroundOpen && (
+  <Box
+    position="fixed"
+    left="20px"
+    top="70px"
+    right="20px"
+    bottom="20px"
+    bg="#070b12"
+    color="white"
+    border="1px solid #2dd4bf"
+    borderRadius="md"
+    zIndex={9999}
+    overflow="auto"
+    boxShadow="0 0 24px rgba(0,0,0,0.65)"
+    p={4}
+  >
+    <Flex justify="space-between" align="center" mb={4}>
+      <Box fontWeight="bold" fontSize="lg">
+        ForgeUI AI Playground
+      </Box>
+
+      <Button
+        size="xs"
+        colorScheme="red"
+        onClick={() => setAiPlaygroundOpen(false)}
+      >
+        Close
+      </Button>
+    </Flex>
+
+    <Box color="gray.400" mb={4}>
+      AI layout generation playground.
+    </Box>
+
+    <Button
+    colorScheme="cyan"
+    onClick={() => {
+    dispatch.components.addComponent({
+      parentName: 'root',
+      type: 'Heading' as any,
+      rootParentType: 'Heading' as any,
+      props: {
+        positionMode: 'absolute',
+        x: 360,
+        y: 90,
+        w: 320,
+        h: 60,
+        children: 'WiFi Setup',
+      },
+    })
+  }}
+>
+  Test WiFi Layout
+</Button>
+  </Box>
+)}
+
 </DarkMode>
-)
+  )
 }
 
 export default memo(Header)
