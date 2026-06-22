@@ -698,13 +698,14 @@ const AI_LAYOUTS = {
 
 const DEFAULT_LAYOUT_JSON = JSON.stringify(
   {
+    name: '',
+    category: '',
+    description: '',
     layout: [],
   },
   null,
   2
 )
-
-
 const AI_TEMPLATE_BUTTONS = [
   {
     label: 'WiFi Setup',
@@ -731,6 +732,60 @@ const AI_TEMPLATE_BUTTONS = [
       category: 'Templates',
       description: 'Basic dashboard layout',
       layout: AI_LAYOUTS.dashboard,
+    },
+  },
+  {
+    label: 'Settings',
+    document: {
+      name: 'Settings',
+      category: 'Templates',
+      description: 'Basic settings screen with toggles',
+      layout: AI_LAYOUTS.settingsScreen,
+    },
+  },
+  {
+    label: 'Sensor Dashboard',
+    document: {
+      name: 'Sensor Dashboard',
+      category: 'Templates',
+      description: 'Sensor values displayed in dashboard cards',
+      layout: AI_LAYOUTS.sensorDashboard,
+    },
+  },
+  {
+    label: 'Machine Status',
+    document: {
+      name: 'Machine Status',
+      category: 'Templates',
+      description: 'Machine status panel with indicator LEDs',
+      layout: AI_LAYOUTS.machineStatusPanel,
+    },
+  },
+  {
+    label: 'Diagnostics',
+    document: {
+      name: 'Diagnostics',
+      category: 'Templates',
+      description: 'System diagnostics screen with status bars',
+      layout: AI_LAYOUTS.diagnosticsScreen,
+    },
+  },
+  {
+    label: 'Touch Keypad',
+    document: {
+      name: 'Touch Keypad',
+      category: 'Templates',
+      description: 'Touch keypad screen for PIN entry',
+      layout: AI_LAYOUTS.touchKeypadScreen,
+    },
+  },
+  {
+    label: 'WiFi Drawer',
+    document: {
+      name: 'WiFi Drawer',
+      category: 'Templates',
+      description: 'Mockup WiFi drawer with scan and connect controls',
+      layout: AI_LAYOUTS.wifiDrawerMockup,
     },
   },
 ]
