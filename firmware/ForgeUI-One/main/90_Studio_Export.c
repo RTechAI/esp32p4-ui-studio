@@ -62,20 +62,55 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_pos(bg_texture_0, 0, 0);
     lv_obj_set_size(bg_texture_0, 1024, 600);
 
-    fg_wifi_label = lv_label_create(parent);
-    lv_label_set_text(fg_wifi_label, "WIFI\nDISCONNECTED\nIP: -");
-    lv_obj_set_pos(fg_wifi_label, 39, 41);
-    lv_obj_set_size(fg_wifi_label, 240, 120);
-    lv_obj_set_style_text_color(fg_wifi_label, lv_color_hex(0x00D4FF), 0);
-    lv_obj_set_style_text_font(fg_wifi_label, &lv_font_montserrat_20, 0);
-    lv_label_set_long_mode(fg_wifi_label, LV_LABEL_LONG_WRAP);
+    lv_obj_t * obj1 = lv_label_create(parent);
+    lv_label_set_text(obj1, "WiFi Setup");
+    lv_obj_set_pos(obj1, 360, 90);
+    lv_obj_set_style_text_color(obj1, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_text_font(obj1, &lv_font_montserrat_32, 0);
 
-    fg_clock_label = lv_label_create(parent);
-    lv_label_set_text(fg_clock_label, "12:34");
-    lv_obj_set_pos(fg_clock_label, 12.999969482421875, 540);
-    lv_obj_set_size(fg_clock_label, 105, 54);
-    lv_obj_set_style_text_color(fg_clock_label, lv_color_hex(0x00D4FF), 0);
-    lv_obj_set_style_text_font(fg_clock_label, &lv_font_montserrat_32, 0);
+    lv_obj_t * obj2 = lv_textarea_create(parent);
+    lv_textarea_set_one_line(obj2, true);
+    lv_textarea_set_placeholder_text(obj2, "Input");
+    lv_obj_set_pos(obj2, 360, 180);
+    lv_obj_set_size(obj2, 320, 50);
+    lv_obj_set_style_bg_color(obj2, lv_color_hex(0x120824), 0);
+    lv_obj_set_style_text_color(obj2, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_border_color(obj2, lv_color_hex(0xD946EF), 0);
+
+    lv_obj_t * obj3 = lv_textarea_create(parent);
+    lv_textarea_set_one_line(obj3, true);
+    lv_textarea_set_placeholder_text(obj3, "Input");
+    lv_obj_set_pos(obj3, 360, 250);
+    lv_obj_set_size(obj3, 320, 50);
+    lv_obj_set_style_bg_color(obj3, lv_color_hex(0x120824), 0);
+    lv_obj_set_style_text_color(obj3, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_border_color(obj3, lv_color_hex(0xD946EF), 0);
+
+    lv_obj_t * obj4 = lv_button_create(parent);
+    lv_obj_set_pos(obj4, 360, 330);
+    lv_obj_set_size(obj4, 140, 50);
+    lv_obj_set_style_radius(obj4, 12, 0);
+    lv_obj_set_style_bg_color(obj4, lv_color_hex(0x120824), 0);
+    lv_obj_set_style_bg_opa(obj4, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_color(obj4, lv_color_hex(0xD946EF), 0);
+    lv_obj_set_style_border_width(obj4, 2, 0);
+    lv_obj_t * obj4_label = lv_label_create(obj4);
+    lv_label_set_text(obj4_label, "Scan");
+    lv_obj_set_style_text_color(obj4_label, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_center(obj4_label);
+
+    lv_obj_t * obj5 = lv_button_create(parent);
+    lv_obj_set_pos(obj5, 540, 330);
+    lv_obj_set_size(obj5, 140, 50);
+    lv_obj_set_style_radius(obj5, 12, 0);
+    lv_obj_set_style_bg_color(obj5, lv_color_hex(0x120824), 0);
+    lv_obj_set_style_bg_opa(obj5, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_color(obj5, lv_color_hex(0xD946EF), 0);
+    lv_obj_set_style_border_width(obj5, 2, 0);
+    lv_obj_t * obj5_label = lv_label_create(obj5);
+    lv_label_set_text(obj5_label, "Connect");
+    lv_obj_set_style_text_color(obj5_label, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_center(obj5_label);
 
 
     fg_clock_tick_cb(NULL);

@@ -131,6 +131,79 @@ const Header = () => {
   const [themeManagerOpen, setThemeManagerOpen] = useState(false)
   const [aiPlaygroundOpen, setAiPlaygroundOpen] = useState(false)
 
+  const insertAiLayout = (items: any[]) => {
+  items.forEach((item) => {
+    dispatch.components.addComponent({
+      parentName: 'root',
+      type: item.type as any,
+      rootParentType: item.type as any,
+      props: item.props,
+    })
+  })
+}
+
+const AI_LAYOUTS = {
+  wifiSetup: [
+    {
+      type: 'Heading',
+      props: {
+        positionMode: 'absolute',
+        x: 360,
+        y: 90,
+        w: 320,
+        h: 60,
+        children: 'WiFi Setup',
+      },
+    },
+
+    {
+      type: 'Input',
+      props: {
+        positionMode: 'absolute',
+        x: 360,
+        y: 180,
+        w: 320,
+        h: 50,
+      },
+    },
+
+    {
+      type: 'Input',
+      props: {
+        positionMode: 'absolute',
+        x: 360,
+        y: 250,
+        w: 320,
+        h: 50,
+      },
+    },
+
+    {
+      type: 'Button',
+      props: {
+        positionMode: 'absolute',
+        x: 360,
+        y: 330,
+        w: 140,
+        h: 50,
+        children: 'Scan',
+      },
+    },
+
+    {
+      type: 'Button',
+      props: {
+        positionMode: 'absolute',
+        x: 540,
+        y: 330,
+        w: 140,
+        h: 50,
+        children: 'Connect',
+      },
+    },
+  ],
+}
+
   const flashLogRef = useRef<HTMLPreElement | null>(null)
 
 useEffect(() => {
@@ -582,7 +655,7 @@ await fetch('http://localhost:3030/clean-flash', {
     onClose={() => setAssetManagerOpen(false)}
   />
 )}
-    {themeManagerOpen && (
+   {themeManagerOpen && (
   <Box
     position="fixed"
     left="20px"
@@ -612,66 +685,62 @@ await fetch('http://localhost:3030/clean-flash', {
       </Button>
     </Flex>
 
-    <Box>
-  <Box color="gray.400" fontSize="sm" mb={4}>
-    Select a ForgeUI visual theme. This updates the builder, browser preview,
-    and LVGL export colour palette.
-  </Box>
+    <Box color="gray.400" fontSize="sm" mb={4}>
+      Select a ForgeUI visual theme. This updates the builder, browser preview,
+      and LVGL export colour palette.
+    </Box>
 
-  <HStack spacing={4} align="stretch" flexWrap="wrap">
-  {Object.entries(FG_PREVIEW_PALETTES).map(
-    ([id, palette]) => (
-      <Box
-        key={id}
-        width="220px"
-        minHeight="120px"
-        p={3}
-        border="2px solid"
-        borderColor={themeId === id ? 'cyan.300' : 'gray.600'}
-        borderRadius="lg"
-        bg="#101827"
-        cursor="pointer"
-        onClick={() => setThemeId(id as any)}
-        boxShadow={
-          themeId === id
-            ? '0 0 18px rgba(103, 232, 249, 0.45)'
-            : 'none'
-        }
-      >
-                <Flex justify="space-between" align="center" mb={3}>
-          <Box fontWeight="bold">{palette.name}</Box>
-
-          {themeId === id && (
-            <Badge
-              colorScheme="cyan"
-              variant="solid"
-              borderRadius="full"
-              px={2}
-            >
-              ACTIVE
-            </Badge>
-          )}
-        </Flex>
-
+    <HStack spacing={4} align="stretch" flexWrap="wrap">
+      {Object.entries(FG_PREVIEW_PALETTES).map(([id, palette]) => (
         <Box
-          display="flex"
-          height="48px"
-          borderRadius="md"
-          overflow="hidden"
+          key={id}
+          width="220px"
+          minHeight="120px"
+          p={3}
+          border="2px solid"
+          borderColor={themeId === id ? 'cyan.300' : 'gray.600'}
+          borderRadius="lg"
+          bg="#101827"
+          cursor="pointer"
+          onClick={() => setThemeId(id as any)}
+          boxShadow={
+            themeId === id
+              ? '0 0 18px rgba(103, 232, 249, 0.45)'
+              : 'none'
+          }
         >
-          <Box flex="1" bg={palette.bg} />
-          <Box flex="1" bg={palette.surface} />
-          <Box flex="1" bg={palette.accent} />
-        </Box>
+          <Flex justify="space-between" align="center" mb={3}>
+            <Box fontWeight="bold">{palette.name}</Box>
 
-        <Box mt={3} fontSize="xs" color="gray.400">
-          {themeId === id ? 'Active Theme' : 'Click to apply'}
+            {themeId === id && (
+              <Badge
+                colorScheme="cyan"
+                variant="solid"
+                borderRadius="full"
+                px={2}
+              >
+                ACTIVE
+              </Badge>
+            )}
+          </Flex>
+
+          <Box
+            display="flex"
+            height="48px"
+            borderRadius="md"
+            overflow="hidden"
+          >
+            <Box flex="1" bg={palette.bg} />
+            <Box flex="1" bg={palette.surface} />
+            <Box flex="1" bg={palette.accent} />
+          </Box>
+
+          <Box mt={3} fontSize="xs" color="gray.400">
+            {themeId === id ? 'Active Theme' : 'Click to apply'}
+          </Box>
         </Box>
-      </Box>
-    )
-  )}
-</HStack>
-</Box>
+      ))}
+    </HStack>
   </Box>
 )}
 
@@ -710,84 +779,45 @@ await fetch('http://localhost:3030/clean-flash', {
     </Box>
 
     <Button
-  colorScheme="cyan"
-  onClick={() => {
-    const items = [
-      {
-        type: 'Heading',
-        props: {
-          positionMode: 'absolute',
-          x: 360,
-          y: 90,
-          w: 320,
-          h: 60,
-          children: 'WiFi Setup',
-        },
-      },
-
-      {
-        type: 'Input',
-        props: {
-          positionMode: 'absolute',
-          x: 360,
-          y: 180,
-          w: 320,
-          h: 50,
-        },
-      },
-
-      {
-        type: 'Input',
-        props: {
-          positionMode: 'absolute',
-          x: 360,
-          y: 250,
-          w: 320,
-          h: 50,
-        },
-      },
-
-      {
-        type: 'Button',
-        props: {
-          positionMode: 'absolute',
-          x: 360,
-          y: 330,
-          w: 140,
-          h: 50,
-          children: 'Scan',
-        },
-      },
-
-      {
-        type: 'Button',
-        props: {
-          positionMode: 'absolute',
-          x: 540,
-          y: 330,
-          w: 140,
-          h: 50,
-          children: 'Connect',
-        },
-      },
-    ]
-
-    items.forEach((item) => {
-      dispatch.components.addComponent({
-        parentName: 'root',
-        type: item.type as any,
-        rootParentType: item.type as any,
-        props: item.props,
-      })
-    })
-  }}
->
-  Test WiFi Layout
-</Button>
+      colorScheme="cyan"
+      onClick={() => insertAiLayout(AI_LAYOUTS.wifiSetup)}
+    >
+      Insert WiFi Setup Layout
+    </Button>
   </Box>
 )}
 
-</DarkMode>
+<Button
+  mt={4}
+  colorScheme="purple"
+  onClick={() => {
+    const json = `
+    {
+      "layout": [
+        {
+          "type": "Heading",
+          "props": {
+            "positionMode": "absolute",
+            "x": 100,
+            "y": 100,
+            "w": 300,
+            "h": 60,
+            "children": "JSON Test"
+          }
+        }
+      ]
+    }
+    `
+
+    const parsed = JSON.parse(json)
+
+    insertAiLayout(parsed.layout)
+  }}
+>
+  Insert From JSON
+</Button>
+
+    </DarkMode>
   )
 }
 
