@@ -8,6 +8,7 @@ import ForgeAIPanel from '~forgeui/ai/ForgeAIPanel'
 
 import {
   Box,
+  Image,
   Switch,
   Button,
   Badge,
@@ -32,7 +33,6 @@ import {
 } from '@chakra-ui/react'
 import { ExternalLinkIcon, SmallCloseIcon, CheckIcon } from '@chakra-ui/icons'
 import { DiGithubBadge } from 'react-icons/di'
-import { AiFillThunderbolt } from 'react-icons/ai'
 import useDispatch from '~hooks/useDispatch'
 import { useSelector } from 'react-redux'
 import { getComponents } from '~core/selectors/components'
@@ -304,15 +304,15 @@ await fetch('http://localhost:3030/clean-flash', {
     <DarkMode>
       <Flex
         justifyContent="space-between"
-        bg="#1a202c"
+        bg="#070b12"
         as="header"
         height="3rem"
         px="1rem"
       >
         <Flex
-          width="14rem"
+          width="20rem"
           height="100%"
-          backgroundColor="#1a202c"
+          backgroundColor="transparent"
           color="white"
           as="a"
           fontSize="xl"
@@ -320,8 +320,13 @@ await fetch('http://localhost:3030/clean-flash', {
           alignItems="center"
           aria-label="ForgeUI Studio"
         >
-          <Box fontSize="2xl" as={AiFillThunderbolt} mr={1} color="teal.100" />{' '}
-          <Box fontWeight="bold">ForgeUI</Box>&nbsp;Studio
+          <Image
+  src="/images/forgeui-logo.svg"
+  alt="ForgeUI Studio"
+  h="60px"
+  ml="-20px"
+  objectFit="contain"
+/>
         </Flex>
 
         <Flex flexGrow={1} justifyContent="space-between" alignItems="center">
