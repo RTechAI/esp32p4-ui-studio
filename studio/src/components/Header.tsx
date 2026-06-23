@@ -497,15 +497,22 @@ await fetch('http://localhost:3030/clean-flash', {
           direction="row"
           spacing="2"
         >
-          <Link isExternal href="https://github.com/premieroctet/openchakra">
-            <Box as={DiGithubBadge} size={32} color="gray.200" />
-          </Link>
-          <Box lineHeight="shorter" color="white" fontSize="xs">
-            by{' '}
-              <Link isExternal href="https://github.com/RTechAI" color="teal.100">
-               RTechAI
-              </Link>
-          </Box>
+          <Link
+           isExternal
+           href="https://github.com/RTechAI/esp32p4-ui-studio"
+>
+       <Box as={DiGithubBadge} size={32} color="gray.200" />
+        </Link>
+
+        <Box lineHeight="shorter" color="white" fontSize="xs">
+  <Link
+            isExternal
+             href="https://github.com/RTechAI/esp32p4-ui-studio"
+             color="teal.100"
+  >
+           esp32p4-ui-studio
+  </Link>
+</Box>
         </Stack>
       </Flex>
 
