@@ -18,6 +18,11 @@ const IconPreview = ({ component }: Props) => {
 
   const Icon = icons[icon as keyof typeof icons]
 
+  const iconSize =
+    typeof boxSize === 'number'
+      ? boxSize
+      : parseInt(String(boxSize || '48'), 10) || 48
+
   return (
     <Box
       {...props}
@@ -29,9 +34,8 @@ const IconPreview = ({ component }: Props) => {
       bg={isOver ? 'teal.50' : props.bg}
     >
       <Icon
-        path=""
-        color={color}
-        boxSize={boxSize || '60%'}
+        color={color || '#ffffff'}
+        size={iconSize}
       />
     </Box>
   )

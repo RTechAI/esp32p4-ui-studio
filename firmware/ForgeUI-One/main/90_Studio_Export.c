@@ -62,29 +62,21 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_pos(bg_texture_0, 0, 0);
     lv_obj_set_size(bg_texture_0, 1024, 600);
 
-    lv_obj_t * obj1 = lv_led_create(parent);
-    lv_obj_set_pos(obj1, 0, 29);
-    lv_obj_set_size(obj1, 48, 48);
-    lv_led_set_color(obj1, lv_palette_main(LV_PALETTE_GREEN));
-    lv_led_set_brightness(obj1, 255);
-    lv_led_on(obj1);
+    lv_obj_t * obj1 = lv_label_create(parent);
+    lv_label_set_text(obj1, LV_SYMBOL_SETTINGS);
+    lv_obj_set_pos(obj1, 64, 45);
+    lv_obj_set_style_text_color(obj1, lv_color_hex(0xFFFFFF), 0);
 
-    lv_obj_t * obj2 = lv_checkbox_create(parent);
-    lv_checkbox_set_text(obj2, "Label checkbox");
-    lv_obj_set_pos(obj2, 63, 190);
-    lv_obj_set_style_text_color(obj2, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
-    lv_obj_set_style_border_color(obj2, lv_color_hex(0xD946EF), LV_PART_INDICATOR);
-    lv_obj_set_style_bg_color(obj2, lv_color_hex(0x120824), LV_PART_INDICATOR);
-    lv_obj_set_style_bg_color(obj2, lv_color_hex(0xC026D3), LV_PART_INDICATOR | LV_STATE_CHECKED);
-    lv_obj_set_style_text_color(obj2, lv_color_hex(0xFFFFFF), LV_PART_INDICATOR | LV_STATE_CHECKED);
-
-    lv_obj_t * obj3 = lv_slider_create(parent);
-    lv_obj_set_pos(obj3, 89, 445);
-    lv_obj_set_size(obj3, 492, 86);
-    lv_slider_set_value(obj3, 50, LV_ANIM_OFF);
-    lv_obj_set_style_bg_color(obj3, lv_color_hex(0x120824), LV_PART_MAIN);
-    lv_obj_set_style_bg_color(obj3, lv_color_hex(0xD946EF), LV_PART_INDICATOR);
-    lv_obj_set_style_bg_color(obj3, lv_color_hex(0xFFFFFF), LV_PART_KNOB);
+    lv_obj_t * obj2 = lv_button_create(parent);
+    lv_obj_set_pos(obj2, 64, 192);
+    lv_obj_set_size(obj2, 240, 120);
+    lv_obj_set_style_radius(obj2, 12, 0);
+    lv_obj_set_style_bg_color(obj2, lv_color_hex(0x120824), 0);
+    lv_obj_set_style_border_color(obj2, lv_color_hex(0xD946EF), 0);
+    lv_obj_set_style_border_width(obj2, 2, 0);
+    lv_obj_t * obj2_label = lv_label_create(obj2);
+    lv_label_set_text(obj2_label, LV_SYMBOL_OK);
+    lv_obj_center(obj2_label);
 
 
     fg_clock_tick_cb(NULL);

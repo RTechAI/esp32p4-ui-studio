@@ -16,6 +16,7 @@
 
 #include "01_FG_Runtime.h"
 
+void fg_sidebar_init(void);
 
 static const char *TAG = "APP_MAIN";
 

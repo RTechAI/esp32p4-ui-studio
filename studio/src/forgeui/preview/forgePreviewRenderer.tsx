@@ -1,4 +1,5 @@
 import React from 'react'
+import icons from '~iconsList'
 import { useForgeTheme } from '~forgeui/theme/ForgeThemeContext'
 import {
   Box,
@@ -210,6 +211,14 @@ case 'WiFi': {
       }
 
       case 'Icon': {
+  const Icon =
+    icons[child.props.icon as keyof typeof icons]
+
+  if (!Icon) break
+
+  const iconSize =
+    parseInt(String(child.props.boxSize || '48'), 10) || 48
+
   output.push(
     <Box
       key={child.id}
@@ -217,12 +226,14 @@ case 'WiFi': {
       display="flex"
       alignItems="center"
       justifyContent="center"
-      color={palette.text}
-      fontSize="32px"
     >
-      {child.props.icon || '⚙'}
+      <Icon
+        color={child.props.color || palette.text}
+        size={iconSize}
+      />
     </Box>,
   )
+
   break
 }
 

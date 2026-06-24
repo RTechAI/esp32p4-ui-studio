@@ -46,11 +46,27 @@ const InputSuggestion: React.FC<FormControlPropType> = ({
         autoComplete="off"
       />
 
-      {isFocus && (
-        <ComboboxPopover className="forgeui-combobox-popover">
+            {isFocus && (
+        <ComboboxPopover
+          className="forgeui-combobox-popover"
+          style={{
+            background: '#0b0f16',
+            border: '1px solid #2dd4bf',
+            color: '#ffffff',
+            zIndex: 10000,
+            boxShadow: '0 12px 28px rgba(0,0,0,0.55)',
+          }}
+        >
           <ComboboxList
             className="forgeui-combobox-list"
             aria-labelledby={name}
+            style={{
+              background: '#0b0f16',
+              color: '#ffffff',
+              maxHeight: '320px',
+              overflowY: 'auto',
+              border: '1px solid #2dd4bf',
+            }}
           >
             {children}
           </ComboboxList>

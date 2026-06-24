@@ -253,11 +253,11 @@ WiFi: {
     children: 'Heading title',
     query: 'title',
   },
-  Icon: { icon: 'CopyIcon' },
+  Icon: { icon: 'FiSettings' },
   IconButton: {
     'aria-label': 'icon',
     // @ts-ignore
-    icon: 'CopyIcon',
+    icon: 'FiSettings',
     size: 'md',
   },
   Image: {
