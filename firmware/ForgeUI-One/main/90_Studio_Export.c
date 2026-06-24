@@ -62,21 +62,36 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_pos(bg_texture_0, 0, 0);
     lv_obj_set_size(bg_texture_0, 1024, 600);
 
-    lv_obj_t * obj1 = lv_label_create(parent);
-    lv_label_set_text(obj1, LV_SYMBOL_SETTINGS);
-    lv_obj_set_pos(obj1, 64, 45);
-    lv_obj_set_style_text_color(obj1, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_t * obj1 = lv_led_create(parent);
+    lv_obj_set_pos(obj1, 711, 38);
+    lv_obj_set_size(obj1, 48, 48);
+    lv_led_set_color(obj1, lv_palette_main(LV_PALETTE_GREEN));
+    lv_led_set_brightness(obj1, 255);
+    lv_led_on(obj1);
 
-    lv_obj_t * obj2 = lv_button_create(parent);
-    lv_obj_set_pos(obj2, 64, 192);
-    lv_obj_set_size(obj2, 240, 120);
-    lv_obj_set_style_radius(obj2, 12, 0);
-    lv_obj_set_style_bg_color(obj2, lv_color_hex(0x120824), 0);
-    lv_obj_set_style_border_color(obj2, lv_color_hex(0xD946EF), 0);
-    lv_obj_set_style_border_width(obj2, 2, 0);
-    lv_obj_t * obj2_label = lv_label_create(obj2);
-    lv_label_set_text(obj2_label, LV_SYMBOL_OK);
-    lv_obj_center(obj2_label);
+    lv_obj_t * obj2 = lv_label_create(parent);
+    lv_label_set_text(obj2, LV_SYMBOL_WIFI);
+    lv_obj_set_pos(obj2, 56, 19);
+    lv_obj_set_style_text_color(obj2, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_text_font(obj2, &lv_font_montserrat_48, 0);
+
+    lv_obj_t * obj3 = lv_label_create(parent);
+    lv_label_set_text(obj3, LV_SYMBOL_SETTINGS);
+    lv_obj_set_pos(obj3, 114, 438);
+    lv_obj_set_style_text_color(obj3, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_text_font(obj3, &lv_font_montserrat_48, 0);
+
+    lv_obj_t * obj4 = lv_label_create(parent);
+    lv_label_set_text(obj4, LV_SYMBOL_SETTINGS);
+    lv_obj_set_pos(obj4, 715, 439);
+    lv_obj_set_style_text_color(obj4, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_text_font(obj4, &lv_font_montserrat_48, 0);
+
+    lv_obj_t * obj5 = lv_label_create(parent);
+    lv_label_set_text(obj5, LV_SYMBOL_SETTINGS);
+    lv_obj_set_pos(obj5, 385, 20);
+    lv_obj_set_style_text_color(obj5, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_text_font(obj5, &lv_font_montserrat_48, 0);
 
 
     fg_clock_tick_cb(NULL);

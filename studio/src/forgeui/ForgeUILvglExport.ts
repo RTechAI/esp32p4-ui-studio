@@ -95,6 +95,24 @@ const FG_TEXTURE_ASSETS: Record<
 
 }
 
+const FG_ICON_LVGL_SYMBOLS: Record<string, string> = {
+  FiWifi: 'LV_SYMBOL_WIFI',
+  FiSettings: 'LV_SYMBOL_SETTINGS',
+  FiPower: 'LV_SYMBOL_POWER',
+  FiHome: 'LV_SYMBOL_HOME',
+  FiMenu: 'LV_SYMBOL_LIST',
+  FiSearch: 'LV_SYMBOL_SEARCH',
+  FiBattery: 'LV_SYMBOL_BATTERY_FULL',
+  FiBluetooth: 'LV_SYMBOL_BLUETOOTH',
+
+  FiCheck: 'LV_SYMBOL_OK',
+  FiX: 'LV_SYMBOL_CLOSE',
+  FiAlertTriangle: 'LV_SYMBOL_WARNING',
+  FiTrash2: 'LV_SYMBOL_TRASH',
+  FiDownload: 'LV_SYMBOL_DOWNLOAD',
+  FiUpload: 'LV_SYMBOL_UPLOAD',
+}
+
 const lv = (v: any, d: any = 0) =>
   v !== undefined && v !== null && v !== '' ? v : d
 
@@ -243,10 +261,23 @@ case 'WiFi': {
 }
 
 case 'Icon': {
+  const icon = child.props.icon || 'FiSettings'
+
+  const symbol =
+    FG_ICON_LVGL_SYMBOLS[icon] ||
+    'LV_SYMBOL_SETTINGS'
+
+  const color = child.props.color
+    ? `0x${String(child.props.color).replace('#', '')}`
+    : palette.text
+
+  const iconSize = lv(child.props.boxSize, 48)
+
   lines.push(`lv_obj_t * ${varName} = lv_label_create(${parentVar});`)
-  lines.push(`lv_label_set_text(${varName}, LV_SYMBOL_SETTINGS);`)
+  lines.push(`lv_label_set_text(${varName}, ${symbol});`)
   lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
-  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.text}), 0);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${color}), 0);`)
+  lines.push(`lv_obj_set_style_text_font(${varName}, &lv_font_montserrat_${iconSize}, 0);`)
   lines.push(``)
   break
 }
