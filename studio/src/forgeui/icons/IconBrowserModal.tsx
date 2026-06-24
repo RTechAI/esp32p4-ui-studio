@@ -21,14 +21,14 @@ type Props = {
 const IconBrowserModal = ({ isOpen, onClose, onSelect }: Props) => {
   const [search, setSearch] = useState('')
 
-  const filteredIcons = useMemo(() => {
+    const filteredIcons = useMemo(() => {
     const term = search.toLowerCase().trim()
 
-    if (!term) return ICON_NAMES.slice(0, 50)
+    if (!term) return ICON_NAMES
 
-    return ICON_NAMES
-      .filter(iconName => iconName.toLowerCase().includes(term))
-      .slice(0, 50)
+    return ICON_NAMES.filter(iconName =>
+      iconName.toLowerCase().includes(term)
+    )
   }, [search])
 
   return (
