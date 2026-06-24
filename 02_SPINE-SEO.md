@@ -1,152 +1,128 @@
-# ForgeUI Studio Architecture: ESP32-P4 UI Developer Save Point & Milestone Log
+# 🛠️ SPINE: ForgeUI Studio (`esp32p4-ui-studio`)
 
-## 📌 Architectural Save Point Meta-Tag
+## 📌 Current Save Point
 ```text
-FORGEUI_HEADING_WIDGET_COMPLETE__PREVIEW_EXPORT_P4_FONT_PIPELINE_PROVEN__NEXT_SIDEBAR_AUDIT__2026-06-19
+FORGEUI_ICON_LIBRARY_V1__REACT_ICON_TO_LVGL_ASSET_SCALING_P4_PROVEN__2026-06-24
 ```
 
 ---
 
-## 🛠️ Project Definition (Repository SEO Summary)
-
-**ForgeUI Studio** is an open-source visual Human-Machine Interface (**HMI**) designer, graphical **LVGL v9** code generator, embedded asset pipeline, theme manager, and automated **ESP-IDF flash workflow** custom-built for high-performance **ESP32-P4 microcontrollers**.
-
-It bridges browser-based drag-and-drop UI design with native embedded **LVGL C export** and physical ESP32-P4 silicon validation.
-
-### Core Hardware & Software Target Specs
-* **Hardware Evaluation Board:** Waveshare ESP32-P4-WIFI6-Touch-LCD-7B
-* **Display Interface:** High-speed MIPI-DSI LCD Panel
-* **Touch Controller Component:** GT911 Capacitive Touch
-* **Native Framebuffer Resolution:** 1024x600 pixels
-* **Graphics Framework:** LVGL v9.2.2 Engine
-* **Development SDK:** Espressif ESP-IDF v5.5.x
-
----
-
-## 🎯 System Status: PROVEN
-
-ForgeUI Studio has successfully achieved compilation and flashing over physical ESP32-P4 silicon. The end-to-end HMI pipeline validates fully from browser to display panel:
+# 📈 Project Status
 
 ```text
-ForgeUI Studio Builder (React)
-    ↓ [Browser Canvas Preview]
-LVGL C Code Generation (TypeScript Export)
-    ↓ [ESP-IDF Compilation & GCC Toolchain]
-Firmware Binary Flashing
-    ↓ [MIPI-DSI / GT911 Touch Layer]
-Physical ESP32-P4 System Rendering
+STATUS: ACTIVE | STABLE | END-TO-END PHYSICAL HARDWARE PROVEN
+TARGET HARDWARE SOC: Espressif ESP32-P4 (Dual-Core RISC-V @ 360MHz Engine)
+TARGET HARDWARE LCD: Waveshare ESP32-P4-WiFi6-Touch-LCD-7B (1024x600 MIPI-DSI / GT911 Touch Controller)
+NATIVE CORE GRAPHICS: Light and Versatile Graphics Library (LVGL v9.2.2) + ESP-IDF v5.5.4 Toolchain
+```
+
+### Verified Hardware Pipeline Flow
+```text
+Visual Studio Builder ➔ Local Browser Preview ➔ Local Asset & Script Exporter ➔ 
+Decoupled Native C Source ➔ ESP-IDF Ninja Compiler (-O3) ➔ Bare-Metal ESP32-P4 Flash Execution
 ```
 
 ---
 
-## 💎 Feature Milestone: Heading Widget & Font Pipeline
+# 🧱 Current Architecture Truth
 
-The `Heading` widget is fully operational and verified. It successfully bridges web-rendered CSS text sizing layouts into embedded C fonts.
+## 🎨 Asset Pipeline (9,514 Icons Integration)
+```text
+Icon Browser ➔ React Icon Selection ➔ renderToStaticMarkup() ➔ SVG Vector ➔ Canvas Rasterization ➔ 
+PNG Asset ➔ Asset Manager Interface ➔ LVGLImage.py ➔ Generated C Asset (ARGB8888) ➔ LVGL Export ➔ ESP32-P4 Flash
+```
+*   **Non-Negotiable Pipeline Rule:** Do not create a second icon export pipeline. Do not bypass the Asset Manager. Raw PNG remains the strict, non-negotiable input format for `LVGLImage.py` processing loops.
+*   **Pipeline Parity:** `Icon Browser ➔ Search ➔ Visual Browser ➔ Multi-Select ➔ Selected Asset Tray ➔ Canvas Render ➔ Preview Render ➔ PNG Generation ➔ LVGLImage.py Conversion ➔ Generated C Assets ➔ ESP-IDF Build ➔ Physical Hardware Flash` are 100% verified with absolute Image Scaling Correctness.
 
-### Heading Font Pipeline Technical Architecture
-A font size discrepancy naturally exists between browser rendering contexts and embedded hardware:
-* **Browser Canvas CSS:** `font-size: 32px`
-* **Embedded LVGL Context:** `lv_font_montserrat_32`
+## 🎨 Theme Pipeline (Theme Manager V2)
+```text
+FG_PREVIEW_PALETTES (25+ Industrial Presets) ➔ Theme Manager ➔ ForgeThemeContext ➔ Studio Builder ➔ Preview ➔ Export ➔ ESP32-P4
+```
+*   **Non-Negotiable Theme Rule:** `FG_PREVIEW_PALETTES` remains the only source of truth. Do not create duplicate theme systems, maps, trackers, or selectors. 
+*   **Ecosystem Parity:** Theme Selection, Theme Persistence, Preview Parity, Export Parity, and Physical P4 Parity are locked down across high-contrast Texture Backgrounds and design templates.
 
-To guarantee compiling integrity without breaking runtime assets, the underlying Montserrat font pipeline must match.
+## ⚙️ Runtime Systems & Architecture Rules
+```text
+Runtime Driver owns Truth ➔ Component Widget owns Display ➔ LVGL Timer owns Refresh ➔ Studio UI owns Neither
+```
+### 1. High-Accuracy RTC Runtime
+*   **Flow:** `20_RTC ➔ Clock Widget`
+*   **Ownership Layer:** RTC driver owns time truth variables. The Clock component widget owns display rendering only. The native LVGL timer handles task refresh intervals. Do not rebuild RTC loops.
 
-### Required `sdkconfig` & `sdkconfig.defaults` Configuration
-The following parameters are hard-coded into `firmware/ForgeUI-One/` to expose larger typography scales:
-```ini
-CONFIG_LV_FONT_MONTSERRAT_28=y
-CONFIG_LV_FONT_MONTSERRAT_30=y
-CONFIG_LV_FONT_MONTSERRAT_32=y
-CONFIG_LV_FONT_MONTSERRAT_36=y
-CONFIG_LV_FONT_MONTSERRAT_40=y
-CONFIG_LV_FONT_MONTSERRAT_48=y
+### 2. Asynchronous Wi-Fi Runtime
+*   **Flow:** `30_WIFI ➔ WiFi Widget`
+*   **Ownership Layer:** `30_WIFI` driver owns network truth registers. The Wi-Fi widget component handles text state display mapping only. The native LVGL timer handles task refresh loops. Do not rebuild Wi-Fi loops.
+
+---
+
+# 🎛️ Component Manifest & Device Status
+
+## 🧩 Core Primitives (`Builder` ✓ | `Preview` ✓ | `Export` ✓ | `ESP32-P4 Hardware` ✓)
+```text
+Button, Text, Heading, Input, Textarea, Switch, Checkbox, Radio, Slider, Progress, CircularProgress, NumberInput, Select, Image, Box, Icon, IconButton
 ```
 
-### Verified Pipeline Features
-* **Heading Widget UI:** Rendered on Sidebar and canvas layout.
-* **Code Export:** Translates elements into compliant `lv_label` blocks.
-* **Firmware Validation:** Successfully builds, flashes, and displays on the 7-inch hardware target.
+## 📊 Advanced LVGL Widgets (`Builder` ✓ | `Preview` ✓ | `Export` ✓ | `ESP32-P4 Hardware` ✓)
+```text
+Led, Bar, Arc, Chart, Calendar, Keyboard, Scale, Table, Roller, Msgbox, ButtonMatrix, Canvas, Line, Tabview, Tileview, Keyboard, AnimImage
+```
+
+## ⏱️ Runtime Dashboard Components (`Builder` ✓ | `Preview` ✓ | `Export` ✓ | `PHYSICAL P4 PROVEN` ✓)
+```text
+Clock (Synchronized local RTC tracking) | WiFi (Asynchronous non-blocking network state pump)
+```
 
 ---
 
-## 📦 Verified HMI Widget Ecosystem
-
-### Core Layout & Form UI Components
-`Button` | `Text` | `Heading` | `Input` | `Textarea` | `Switch` | `Checkbox` | `Radio` | `Slider` | `Progress` | `CircularProgress` | `NumberInput` | `Select` | `Image` | `Box`
-
-### Embedded LVGL Graphic Objects
-`Led` | `Bar` | `Arc` | `Chart` | `Table` | `Calendar` | `Scale` | `Roller` | `Msgbox` | `ButtonMatrix` | `Canvas` | `Line` | `Tabview` | `Tileview`
-
----
-
-## 🎨 Theme & Asset Pipelines (Single Source of Truth)
-
-### Unified Theme Architecture
-To prevent structural variations or visual runtime drift, all visual styles flow down strictly in a unidirectional manner:
+# 🧠 AI Playground V1 Specification
 
 ```text
-FG_PREVIEW_PALETTES (forgeThemeMap.ts)
-        ↓
-Theme Manager System
-        ↓
-ForgeThemeContext Hook
-        ↓
-Visual Builder UI / Browser Preview
-        ↓
-ForgeUILvglExport.ts Engine
-        ↓
-Generated UI C Code
-        ↓
-ESP32-P4 Display Panel
+AI suggests ➔ ForgeUI validates ➔ Builder owns layout ➔ Preview owns preview ➔ Export owns LVGL generation
+AI does not write firmware. AI does not generate React. AI does not generate raw LVGL. 
+AI generates standardized ForgeUI schema layout document objects ONLY.
 ```
 
-> ⚠️ **Critical Pipeline Constraint:** Never replicate `FG_PALETTES`. Do not generate auxiliary theme selectors. Keep browser environments and firmware theme layers completely unified.
-
-### Image Asset Compilation Process
+### Input Processing Architecture
 ```text
-Uploaded Image UI Asset
-    ↓ [Studio Asset Manager UI]
-LVGLImage.py Script Engine
-    ↓ [C-Array Binary Generation]
-firmware/ForgeUI-One/main/assets/uploads/
-    ↓ [CMake Injection & Asset Registry Mapping]
-LV_IMAGE_DECLARE(...) Macromapping
-    ↓ [lv_image_set_src Execution]
-ESP32-P4 Flash Output
+Template Library / LLM Suggestion ➔ Layout Document Model ➔ JSON Editor Panel ➔ 
+JSON.parse() ➔ validateAiLayout() ➔ insertAiLayout() ➔ ForgeUI Store ➔ Studio Canvas
 ```
+*   **Ecosystem Validation:** Layout Document Metadata Support, Multi-Component Layouts, Schema Parsing, and Registry Binding are verified. Invalid component schemas are rejected before insertion.
+*   **🤖 OpenAI Integration Status: PAUSED** (Deferred until deployment onto dedicated home development laptop. No active OpenAI communication layer required for current ForgeUI progress targets).
 
 ---
 
-## 🗺️ Engineering Directory Touch-Map
+# 🛠️ Build & Flashing Pipeline
 
-When extending or updating features within the project structure, locate codebases according to this file mapping:
-
-### 🌟 Theme Modifiers
-* **Scope:** Theme dictionaries and color maps.
-* **Target File:** `studio/src/forgeui/preview/forgeThemeMap.ts`
-
-### 🌟 Custom Widget Registrations
-* **Scope:** Defining UI components, editing canvas preview, and creating LVGL code exporters.
-* **Target Files:**
-  * `studio/src/forgeui/ForgeUIWidgetSet.ts`
-  * `studio/src/components/editor/ComponentPreview.tsx`
-  * `studio/src/forgeui/ForgeUILvglExport.ts`
-
-### 🌟 Embedded Typography Scales
-* **Scope:** Modifying sdkconfig profiles.
-* **Target Files:**
-  * `firmware/ForgeUI-One/sdkconfig`
-  * `firmware/ForgeUI-One/sdkconfig.defaults`
-
-### 🌟 Image Assets & Layout Pipelines
-* **Scope:** Modifying runtime image upload schemas or custom asset generation.
-* **Target Files:**
-  * `studio/src/forgeui/assets/ForgeUIAssetManager.tsx`
-  * `studio/src/forgeui/ForgeUIUploadedAssetRegistry.ts`
-  * `tools/lvgl/LVGLImage.py`
+*   **Verified Features:** `Export Project ➔ Build & Flash ➔ Clean Build & Flash ➔ Detached Export ➔ ESP-IDF Reconfigure ➔ Physical Hardware Flash`.
+*   **Low-Level Memory Infrastructure:** Injects a custom `partitions.csv` matrix mapping an **8MB Factory App Partition Slot** (`0x10000, 8M`) alongside a **7MB Storage SPIFFS Partition Block** (`0x810000, 7M`) directly into the decoupled project folder configuration targets.
 
 ---
 
-## 🔍 Sidebar Component Audit Strategy
-* **Current Mission Identifier:** `FORGEUI_SIDEBAR_AUDIT_CONTINUE`
-* **Objective:** Streamline the HMI sidebar workspace. Safely remove legacy web layout elements (inherited from OpenChakra) that do not directly translate to optimized MCU or micro-controller memory limits.
-* **Component Classification Values:** `KEEP` (Embedded Core UI asset) | `ALIVE` (Active Preview component)
+# 🎯 Active Mission Profiles
+
+## 🏁 Current Active Mission
+```text
+FORGEUI_THEME_SYSTEM_V2__BACKGROUND_AND_WIDGET_POLISH__2026-06-24
+```
+*   **Exploration Objectives:** Theme usability, widget text readability, background texture aesthetic quality, theme identity consistency, and visual builder interface style tuning.
+
+## 🚀 Current Next Mission
+```text
+FORGEUI_THEME_SHOWCASE_V1__DASHBOARD_PROOF_AND_THEME_AUDIT_NEXT
+```
+*   **Target Milestones:** Design representative interface dashboard layouts, evaluate all major built-in ForgeUI theme palleted presets, identify the strongest out-of-the-box default theme, and audit comprehensive widget text contrast profiles across various background mesh styles.
+
+---
+
+# 🛑 Global Non-Negotiable Rules
+1.  **Do not rebuild RTC blocks.**
+2.  **Do not rebuild Wi-Fi driver routines.**
+3.  **Do not create duplicate theme engines.**
+4.  **Do not create duplicate background or runtime loops.**
+5.  **Do not bypass the Visual Builder canvas store.**
+6.  **Do not bypass the Standalone Code Exporter pipeline.**
+7.  **Do not create a second graphic asset pipeline.**
+8.  **Extend proven, bare-metal hardware systems strictly.**
+9.  **Preserve the immutable pipeline chain configuration maps:**
+    `Builder ➔ Local Preview ➔ Standalone C/C++ Export ➔ Native ESP32-P4 Serial Flash`
