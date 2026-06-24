@@ -50,9 +50,11 @@ export function forgeUICreateUploadedAsset(file: File): ForgeUIUploadedAsset {
     .replace(/[^a-zA-Z0-9]/g, '')
     .slice(0, 8)}`
 
-  const isPng =
-    file.type === 'image/png' ||
-    file.name.toLowerCase().endsWith('.png')
+  const isConvertibleImage =
+  file.type === 'image/png' ||
+  file.type === 'image/jpeg' ||
+  file.type === 'image/svg+xml' ||
+  /\.(png|jpe?g|svg)$/i.test(file.name)
 
   return {
     id,
@@ -66,9 +68,9 @@ export function forgeUICreateUploadedAsset(file: File): ForgeUIUploadedAsset {
 
     kind: 'uploaded',
 
-    exportStatus: isPng
-      ? 'pending_conversion'
-      : 'browser_only',
+    exportStatus: isConvertibleImage
+  ? 'pending_conversion'
+  : 'browser_only',
 
     lvgl: symbol,
 

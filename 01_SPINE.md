@@ -3,8 +3,7 @@
 ## Current Save Point
 
 ```text
-FORGEUI_ICON_EXPORT_V1__LVGL_SYMBOL_MAPPING_P4_PROVEN__ICON_ASSET_EXPORT_NEXT__2026-06-24
-```
+FORGEUI_ICON_LIBRARY_V1__REACT_ICON_ASSET_FLASH_PROVEN__P4_RENDER_SCALE_AUDIT_NEXT__2026-06-24```
 
 ---
 
@@ -64,11 +63,9 @@ ESP-IDF Build
 Physical ESP32-P4
 ```
 
-Status:
+React Icons → PNG → Asset Manager → LVGLImage.py → .c asset → ESP32-P4
 
-```text
 PROVEN
-```
 
 ---
 
@@ -1108,6 +1105,15 @@ ESP32-P4
 # Icon Library V1
 
 ## Status
+
+Image Widget scaling audit
+
+Check:
+lv_image_set_scale()
+lv_obj_set_size()
+imageScale
+native 64x64 generated PNG size
+Builder/Preview/P4 parity
 
 PROVEN IN STUDIO
 

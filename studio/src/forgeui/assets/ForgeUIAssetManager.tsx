@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { Box, Button, HStack, Text, VStack } from '@chakra-ui/react'
 import { useDropzone } from 'react-dropzone'
 import {
@@ -38,6 +38,24 @@ export function ForgeUIAssetManager({
   const [assets, setAssets] = useState<ForgeUIUploadedAsset[]>(
     forgeUIGetUploadedAssets(),
   )
+
+  useEffect(() => {
+    const refreshAssets = () => {
+      setAssets([...forgeUIGetUploadedAssets()])
+    }
+
+    window.addEventListener(
+      'forgeui-assets-updated',
+      refreshAssets,
+    )
+
+    return () => {
+      window.removeEventListener(
+        'forgeui-assets-updated',
+        refreshAssets,
+      )
+    }
+  }, [])
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const uploadedAssets: ForgeUIUploadedAsset[] = acceptedFiles.map(

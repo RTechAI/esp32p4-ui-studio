@@ -62,36 +62,35 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_pos(bg_texture_0, 0, 0);
     lv_obj_set_size(bg_texture_0, 1024, 600);
 
-    lv_obj_t * obj1 = lv_led_create(parent);
-    lv_obj_set_pos(obj1, 711, 38);
-    lv_obj_set_size(obj1, 48, 48);
-    lv_led_set_color(obj1, lv_palette_main(LV_PALETTE_GREEN));
-    lv_led_set_brightness(obj1, 255);
-    lv_led_on(obj1);
+    LV_IMAGE_DECLARE(fg_upload_fiairplay_26ccd278);
+    lv_obj_t * obj1 = lv_image_create(parent);
+    lv_image_set_src(obj1, &fg_upload_fiairplay_26ccd278);
+    lv_image_set_scale(obj1, 256);
+    lv_obj_set_pos(obj1, 6, 87);
+    lv_obj_set_size(obj1, 577, 250);
+    lv_obj_add_flag(obj1, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_set_style_transform_pivot_x(obj1, 288, 0);
+    lv_obj_set_style_transform_pivot_y(obj1, 125, 0);
+    lv_obj_set_style_transform_scale(obj1, 256, 0);
+    lv_obj_set_style_transform_scale(obj1, 235, LV_STATE_PRESSED);
 
     lv_obj_t * obj2 = lv_label_create(parent);
-    lv_label_set_text(obj2, LV_SYMBOL_WIFI);
-    lv_obj_set_pos(obj2, 56, 19);
+    lv_label_set_text(obj2, LV_SYMBOL_SETTINGS);
+    lv_obj_set_pos(obj2, 21, 355);
     lv_obj_set_style_text_color(obj2, lv_color_hex(0xFFFFFF), 0);
     lv_obj_set_style_text_font(obj2, &lv_font_montserrat_48, 0);
 
-    lv_obj_t * obj3 = lv_label_create(parent);
-    lv_label_set_text(obj3, LV_SYMBOL_SETTINGS);
-    lv_obj_set_pos(obj3, 114, 438);
-    lv_obj_set_style_text_color(obj3, lv_color_hex(0xFFFFFF), 0);
-    lv_obj_set_style_text_font(obj3, &lv_font_montserrat_48, 0);
-
-    lv_obj_t * obj4 = lv_label_create(parent);
-    lv_label_set_text(obj4, LV_SYMBOL_SETTINGS);
-    lv_obj_set_pos(obj4, 715, 439);
-    lv_obj_set_style_text_color(obj4, lv_color_hex(0xFFFFFF), 0);
-    lv_obj_set_style_text_font(obj4, &lv_font_montserrat_48, 0);
-
-    lv_obj_t * obj5 = lv_label_create(parent);
-    lv_label_set_text(obj5, LV_SYMBOL_SETTINGS);
-    lv_obj_set_pos(obj5, 385, 20);
-    lv_obj_set_style_text_color(obj5, lv_color_hex(0xFFFFFF), 0);
-    lv_obj_set_style_text_font(obj5, &lv_font_montserrat_48, 0);
+    LV_IMAGE_DECLARE(fg_upload_fialigncenter_befae985);
+    lv_obj_t * obj3 = lv_image_create(parent);
+    lv_image_set_src(obj3, &fg_upload_fialigncenter_befae985);
+    lv_image_set_scale(obj3, 256);
+    lv_obj_set_pos(obj3, 702, 57);
+    lv_obj_set_size(obj3, 240, 120);
+    lv_obj_add_flag(obj3, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_set_style_transform_pivot_x(obj3, 120, 0);
+    lv_obj_set_style_transform_pivot_y(obj3, 60, 0);
+    lv_obj_set_style_transform_scale(obj3, 256, 0);
+    lv_obj_set_style_transform_scale(obj3, 235, LV_STATE_PRESSED);
 
 
     fg_clock_tick_cb(NULL);
