@@ -2,6 +2,7 @@
   "name": "open-chakra",
   "version": "0.1.0",
   "private": true,
+  "main": "electron/main.js",
   "dependencies": {
     "@bugsnag/js": "^6.5.2",
     "@bugsnag/plugin-react": "^6.5.0",
@@ -43,17 +44,18 @@
     "webpack-bundle-analyzer": "^3.6.0"
   },
   "scripts": {
-  "dev": "next dev",
-  "build": "next build",
-  "start": "next start",
-  "test": "jest --watch",
-  "test:ci": "jest --ci",
-  "analyze": "BUNDLE_VISUALIZE=1 react-app-rewired build",
-  "lint": "next lint",
-  "electron": "electron electron/main.js",
-"desktop": "concurrently \"npm run dev\" \"node export-server.js\" \"wait-on http://localhost:3000 http://localhost:3030 && npm run electron\"",
-"desktop:hosted": "electron electron/main.js"
-},
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "jest --watch",
+    "test:ci": "jest --ci",
+    "analyze": "BUNDLE_VISUALIZE=1 react-app-rewired build",
+    "lint": "next lint",
+    "electron": "electron electron/main.js",
+    "desktop": "concurrently \"npm run dev\" \"node export-server.js\" \"wait-on http://localhost:3000 http://localhost:3030 && npm run electron\"",
+    "desktop:hosted": "electron electron/main.js",
+    "dist": "electron-builder"
+  },
   "browserslist": {
     "production": [
       ">0.2%",
@@ -81,6 +83,7 @@
     "@types/react-redux": "^7.1.7",
     "concurrently": "^10.0.3",
     "electron": "^42.5.0",
+    "electron-builder": "^26.15.3",
     "eslint": "^8.23.0",
     "eslint-config-next": "12.2.5",
     "husky": "^4.2.1",
@@ -93,7 +96,8 @@
     "pretty-quick": "^2.0.1",
     "typedoc": "^0.16.9",
     "typescript": "4.6.4",
-    "wait-on": "^9.0.10"
+    "wait-on": "^9.0.10",
+    "wait-port": "^1.1.0"
   },
   "resolutions": {
     "@types/react": "^17.0.0"
@@ -103,5 +107,18 @@
       "eslint src/**/*.{ts,tsx} --fix",
       "git add"
     ]
+  },
+  "build": {
+    "appId": "com.forgeui.studio",
+    "productName": "ForgeUI Studio",
+    "directories": {
+      "output": "dist"
+    },
+    "asarUnpack": [
+      "export-server.js"
+    ],
+    "win": {
+      "target": "nsis"
+    }
   }
 }

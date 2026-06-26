@@ -1,12 +1,14 @@
 const { app, BrowserWindow } = require('electron')
 const { spawn, exec } = require('child_process')
+const path = require('path')
+const net = require('net')
 
 let mainWindow = null
 const childProcesses = []
 
-function startProcess(command, args, name) {
+function startProcess(command, args, name, cwd = process.cwd()) {
   const child = spawn(command, args, {
-    cwd: process.cwd(),
+    cwd,
     shell: true,
     stdio: 'inherit',
   })
@@ -20,6 +22,45 @@ function startProcess(command, args, name) {
   return child
 }
 
+function waitForPort(port, host = '127.0.0.1', timeoutMs = 30000) {
+  const startTime = Date.now()
+
+  return new Promise((resolve, reject) => {
+    function tryConnect() {
+      const socket = new net.Socket()
+      socket.setTimeout(1000)
+
+      socket.once('connect', () => {
+        socket.destroy()
+        resolve()
+      })
+
+      socket.once('timeout', () => {
+        socket.destroy()
+        retry()
+      })
+
+      socket.once('error', () => {
+        socket.destroy()
+        retry()
+      })
+
+      socket.connect(port, host)
+    }
+
+    function retry() {
+      if (Date.now() - startTime > timeoutMs) {
+        reject(new Error(`Timed out waiting for port ${port}`))
+        return
+      }
+
+      setTimeout(tryConnect, 500)
+    }
+
+    tryConnect()
+  })
+}
+
 function stopForgeUIProcesses() {
   console.log('Stopping ForgeUI child processes...')
 
@@ -30,8 +71,6 @@ function stopForgeUIProcesses() {
     }
   }
 
-  // ForgeUI Desktop V1 safety net:
-  // Prevent orphan Node/Next/export-server processes from blocking next launch.
   exec('taskkill /F /IM node.exe /T', () => {})
 }
 
@@ -53,14 +92,31 @@ function createWindow() {
   })
 }
 
-app.whenReady().then(() => {
-  startProcess('node', ['export-server.js'], 'Export Server')
-  startProcess('npm', ['run', 'dev'], 'Next.js')
+async function startForgeUIDesktop() {
+ const appPath = app.isPackaged
+  ? app.getAppPath()
+  : path.join(__dirname, '..')
 
-  setTimeout(() => {
-    createWindow()
-  }, 4000)
-})
+  console.log('Current working directory:', process.cwd())
+  console.log('Application path:', appPath)
+
+  const exportServerPath = path.join(appPath, 'export-server.js')
+
+  console.log('Export server path:', exportServerPath)
+
+  startProcess('node', [exportServerPath], 'Export Server')
+  startProcess('npm', ['run', 'dev'], 'Next.js', appPath)
+
+  console.log('Waiting for ForgeUI services...')
+
+  await waitForPort(3030)
+  await waitForPort(3000)
+
+  console.log('ForgeUI services ready.')
+  createWindow()
+}
+
+app.whenReady().then(startForgeUIDesktop)
 
 app.on('before-quit', () => {
   stopForgeUIProcesses()
