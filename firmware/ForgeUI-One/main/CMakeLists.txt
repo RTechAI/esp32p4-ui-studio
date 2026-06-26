@@ -7,11 +7,7 @@ idf_component_register(
         "30_WIFI.c"
         "40_SD.c"
         "90_Studio_Export.c"
-        "assets/uploads/fg_upload_1024x600_ai_mesh_9f3f1b39.c"
-        "assets/uploads/fg_upload_fialertoctagon_43e91a01.c"
-        "assets/uploads/fg_upload_fichevronright_09b0845a.c"
-        "assets/uploads/fg_upload_fieyeoff_9ea90dc4.c"
-        "assets/uploads/fg_upload_fihash_a60cd16c.c"
+        "assets/uploads/fg_upload_1024x600_creation_786cf05c.c"
 
     INCLUDE_DIRS
         "."

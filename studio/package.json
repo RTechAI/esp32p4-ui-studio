@@ -43,14 +43,16 @@
     "webpack-bundle-analyzer": "^3.6.0"
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "test": "jest --watch",
-    "test:ci": "jest --ci",
-    "analyze": "BUNDLE_VISUALIZE=1 react-app-rewired build",
-    "lint": "next lint"
-  },
+  "dev": "next dev",
+  "build": "next build",
+  "start": "next start",
+  "test": "jest --watch",
+  "test:ci": "jest --ci",
+  "analyze": "BUNDLE_VISUALIZE=1 react-app-rewired build",
+  "lint": "next lint",
+  "electron": "electron electron/main.js",
+  "desktop": "concurrently \"npm run dev\" \"wait-on http://localhost:3000 && npm run electron\""
+},
   "browserslist": {
     "production": [
       ">0.2%",
@@ -76,6 +78,8 @@
     "@types/react-color": "^3.0.1",
     "@types/react-dom": "^18.0.0",
     "@types/react-redux": "^7.1.7",
+    "concurrently": "^10.0.3",
+    "electron": "^42.5.0",
     "eslint": "^8.23.0",
     "eslint-config-next": "12.2.5",
     "husky": "^4.2.1",
@@ -87,7 +91,8 @@
     "prettier": "^1.19.1",
     "pretty-quick": "^2.0.1",
     "typedoc": "^0.16.9",
-    "typescript": "4.6.4"
+    "typescript": "4.6.4",
+    "wait-on": "^9.0.10"
   },
   "resolutions": {
     "@types/react": "^17.0.0"
