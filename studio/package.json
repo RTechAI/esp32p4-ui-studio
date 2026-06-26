@@ -51,7 +51,8 @@
   "analyze": "BUNDLE_VISUALIZE=1 react-app-rewired build",
   "lint": "next lint",
   "electron": "electron electron/main.js",
-  "desktop": "concurrently \"npm run dev\" \"node export-server.js\" \"wait-on http://localhost:3000 http://localhost:3030 && npm run electron\""
+"desktop": "concurrently \"npm run dev\" \"node export-server.js\" \"wait-on http://localhost:3000 http://localhost:3030 && npm run electron\"",
+"desktop:hosted": "electron electron/main.js"
 },
   "browserslist": {
     "production": [
