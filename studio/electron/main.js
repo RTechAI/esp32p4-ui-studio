@@ -20,17 +20,18 @@ function startProcess(command, args, name) {
   return child
 }
 
-function killChildProcesses() {
+function stopForgeUIProcesses() {
   console.log('Stopping ForgeUI child processes...')
 
   for (const item of childProcesses) {
     if (item.child && !item.child.killed) {
       console.log(`Stopping ${item.name}...`)
-      item.child.kill()
+      item.child.kill('SIGTERM')
     }
   }
 
-  // Windows cleanup safety net
+  // ForgeUI Desktop V1 safety net:
+  // Prevent orphan Node/Next/export-server processes from blocking next launch.
   exec('taskkill /F /IM node.exe /T', () => {})
 }
 
@@ -62,10 +63,10 @@ app.whenReady().then(() => {
 })
 
 app.on('before-quit', () => {
-  killChildProcesses()
+  stopForgeUIProcesses()
 })
 
 app.on('window-all-closed', () => {
-  killChildProcesses()
+  stopForgeUIProcesses()
   app.quit()
 })
