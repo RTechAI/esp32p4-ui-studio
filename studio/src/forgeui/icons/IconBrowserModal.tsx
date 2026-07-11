@@ -5,6 +5,7 @@ import {
   ModalOverlay,
   ModalContent,
   ModalHeader,
+  ModalCloseButton,
   ModalBody,
   Text,
   Input,
@@ -305,6 +306,7 @@ const IconBrowserModal = ({
         maxW="900px"
       >
         <ModalHeader>ForgeUI Icon Browser</ModalHeader>
+        <ModalCloseButton color="white" />
 
         <ModalBody pb={4}>
           <HStack align="start" spacing={4}>
@@ -432,16 +434,25 @@ const IconBrowserModal = ({
                 Add Selected To Assets
               </Button>
 
-              {selectedIcons.length === 1 && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  colorScheme="cyan"
-                  onClick={() => handleUseSelectedIcon(selectedIcons[0])}
-                >
-                  Use As Icon Widget
-                </Button>
-              )}
+            {selectedIcons.length === 1 && (
+  <Button
+    size="sm"
+    variant="outline"
+    colorScheme="cyan"
+    onClick={() => handleUseSelectedIcon(selectedIcons[0])}
+  >
+    Use As Icon Widget
+  </Button>
+)}
+
+<Button
+  size="sm"
+  variant="ghost"
+  color="gray.300"
+  onClick={onClose}
+>
+  Close
+</Button>
             </VStack>
           </HStack>
         </ModalBody>

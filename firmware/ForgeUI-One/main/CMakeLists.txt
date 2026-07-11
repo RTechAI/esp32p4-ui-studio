@@ -8,9 +8,6 @@ idf_component_register(
         "40_SD.c"
         "90_Studio_Export.c"
         "assets/uploads/fg_upload_1024x600_neural_core_67dd4ba0.c"
-        "assets/uploads/fg_upload_fiairplay_436a7606.c"
-        "assets/uploads/fg_upload_fialignleft_356b17c6.c"
-        "assets/uploads/fg_upload_ficornerdownleft_f2ba1fb2.c"
 
     INCLUDE_DIRS
         "."

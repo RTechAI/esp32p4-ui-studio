@@ -62,26 +62,55 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_pos(bg_texture_0, 0, 0);
     lv_obj_set_size(bg_texture_0, 1024, 600);
 
-    LV_IMAGE_DECLARE(fg_upload_fiairplay_436a7606);
-    lv_obj_t * obj1 = lv_image_create(parent);
-    lv_image_set_src(obj1, &fg_upload_fiairplay_436a7606);
-    lv_image_set_scale(obj1, 256);
-    lv_obj_set_pos(obj1, 30, 41);
-    lv_obj_set_size(obj1, 240, 120);
+    lv_obj_t * obj1 = lv_label_create(parent);
+    lv_label_set_text(obj1, "WiFi Setup");
+    lv_obj_set_pos(obj1, 360, 90);
+    lv_obj_set_style_text_color(obj1, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_text_font(obj1, &lv_font_montserrat_32, 0);
 
-    LV_IMAGE_DECLARE(fg_upload_fialignleft_356b17c6);
-    lv_obj_t * obj2 = lv_image_create(parent);
-    lv_image_set_src(obj2, &fg_upload_fialignleft_356b17c6);
-    lv_image_set_scale(obj2, 256);
-    lv_obj_set_pos(obj2, 699, 36);
-    lv_obj_set_size(obj2, 240, 120);
+    lv_obj_t * obj2 = lv_textarea_create(parent);
+    lv_textarea_set_one_line(obj2, true);
+    lv_textarea_set_placeholder_text(obj2, "Input");
+    lv_obj_set_pos(obj2, 360, 180);
+    lv_obj_set_size(obj2, 320, 50);
+    lv_obj_set_style_bg_color(obj2, lv_color_hex(0x120824), 0);
+    lv_obj_set_style_text_color(obj2, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_border_color(obj2, lv_color_hex(0xD946EF), 0);
 
-    LV_IMAGE_DECLARE(fg_upload_ficornerdownleft_f2ba1fb2);
-    lv_obj_t * obj3 = lv_image_create(parent);
-    lv_image_set_src(obj3, &fg_upload_ficornerdownleft_f2ba1fb2);
-    lv_image_set_scale(obj3, 256);
-    lv_obj_set_pos(obj3, 640, 237);
-    lv_obj_set_size(obj3, 240, 120);
+    lv_obj_t * obj3 = lv_textarea_create(parent);
+    lv_textarea_set_one_line(obj3, true);
+    lv_textarea_set_placeholder_text(obj3, "Input");
+    lv_obj_set_pos(obj3, 360, 250);
+    lv_obj_set_size(obj3, 320, 50);
+    lv_obj_set_style_bg_color(obj3, lv_color_hex(0x120824), 0);
+    lv_obj_set_style_text_color(obj3, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_border_color(obj3, lv_color_hex(0xD946EF), 0);
+
+    lv_obj_t * obj4 = lv_button_create(parent);
+    lv_obj_set_pos(obj4, 360, 330);
+    lv_obj_set_size(obj4, 140, 50);
+    lv_obj_set_style_radius(obj4, 12, 0);
+    lv_obj_set_style_bg_color(obj4, lv_color_hex(0x120824), 0);
+    lv_obj_set_style_bg_opa(obj4, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_color(obj4, lv_color_hex(0xD946EF), 0);
+    lv_obj_set_style_border_width(obj4, 2, 0);
+    lv_obj_t * obj4_label = lv_label_create(obj4);
+    lv_label_set_text(obj4_label, "Scan");
+    lv_obj_set_style_text_color(obj4_label, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_center(obj4_label);
+
+    lv_obj_t * obj5 = lv_button_create(parent);
+    lv_obj_set_pos(obj5, 540, 330);
+    lv_obj_set_size(obj5, 140, 50);
+    lv_obj_set_style_radius(obj5, 12, 0);
+    lv_obj_set_style_bg_color(obj5, lv_color_hex(0x120824), 0);
+    lv_obj_set_style_bg_opa(obj5, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_color(obj5, lv_color_hex(0xD946EF), 0);
+    lv_obj_set_style_border_width(obj5, 2, 0);
+    lv_obj_t * obj5_label = lv_label_create(obj5);
+    lv_label_set_text(obj5_label, "Connect");
+    lv_obj_set_style_text_color(obj5_label, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_center(obj5_label);
 
 
     fg_clock_tick_cb(NULL);
