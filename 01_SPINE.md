@@ -1,6 +1,6 @@
 SPINE
 Current Save Point
-FORGEUI_STANDALONE_EXPORT__INDEPENDENT_VSCODE_BUILD_AND_FLASH__MULTIPLE_ICON_PIPELINE__PHYSICAL_P4_PROVEN__2026-07-11
+FORGEUI_ICON_WORKFLOW_AUTO_BROWSER__SINGLE_ICON_SELECTOR__EXISTING_ASSET_PIPELINE_PRESERVED__2026-07-12
 Project Status
 ACTIVE
 
@@ -294,7 +294,16 @@ Icon Library V1
 Status:
 
 FULLY PROVEN
+
+Icon Widget UX Automation
+
+PROVEN
+
+Status:
+
+FULLY PROVEN
 Proven
+
 9514 React Icons
 ✓
 
@@ -314,6 +323,24 @@ Add Selected To Assets
 ✓
 
 Use As Icon Widget
+✓
+
+Single Inspector Icon Selector
+✓
+
+Duplicate Preset Icon Dropdown Removed
+✓
+
+Duplicate Browse Icons Button Removed
+✓
+
+Current Icon Opens Icon Browser
+✓
+
+Automatic Icon Browser On New Icon Drop
+✓
+
+Existing Icon Move Does Not Reopen Browser
 ✓
 
 Canvas Render
@@ -357,28 +384,32 @@ Builder / Preview / Export / P4 Parity
 
 Unified Image Asset Pipeline
 ✓
-Architecture
-React Icon
+
+Icon Widget Workflow
+
+Drag Icon
+    ↓
+Icon Widget Created
+    ↓
+Icon Widget Selected
+    ↓
+Icon Browser Opens Automatically
+    ↓
+Choose React Icon
     ↓
 Use As Icon Widget
     ↓
-PNG Generation
-    ↓
-ForgeUI Uploaded Asset
-    ↓
-Asset Manager
-    ↓
-LVGLImage.py
-    ↓
-Generated LVGL C Asset
-    ↓
-Asset Registry
+Existing Image Asset Pipeline
     ↓
 LVGL Export
     ↓
 Standalone ESP-IDF Project
     ↓
 ESP32-P4
+
+Status:
+
+PROVEN
 Theme Manager V2
 
 Status:

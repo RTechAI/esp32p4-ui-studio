@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react'
+import React, { memo, useEffect, useState } from 'react'
 import { Button } from '@chakra-ui/react'
 import ColorsControl from '~components/inspector/controls/ColorsControl'
 import InputSuggestion from '~components/inspector/inputs/InputSuggestion'
@@ -7,76 +7,80 @@ import { ComboboxOption } from '@reach/combobox'
 import FormControl from '~components/inspector/controls/FormControl'
 import { useForm } from '~hooks/useForm'
 import usePropsSelector from '~hooks/usePropsSelector'
-import IconControl from '~components/inspector/controls/IconControl'
-import { FORGEUI_ICON_ASSETS } from '~forgeui/ForgeUIIconRegistry'
 import IconBrowserModal from '~forgeui/icons/IconBrowserModal'
 
 const IconPanel = () => {
   const [iconBrowserOpen, setIconBrowserOpen] = useState(false)
-  const { setValueFromEvent } = useForm()
+    const { setValueFromEvent } = useForm()
 
-    const boxSize = usePropsSelector('boxSize')
+  useEffect(() => {
+    const openIconBrowser = () => {
+      setIconBrowserOpen(true)
+    }
+
+    window.addEventListener(
+      'forgeui-open-icon-browser',
+      openIconBrowser,
+    )
+
+    return () => {
+      window.removeEventListener(
+        'forgeui-open-icon-browser',
+        openIconBrowser,
+      )
+    }
+  }, [])
+
+  const boxSize = usePropsSelector('boxSize')
   const icon = usePropsSelector('icon')
 
   return (
     <>
-      <FormControl label="Preset icon" htmlFor="presetIcon">
-        <InputSuggestion
-          value={icon || ''}
-          handleChange={setValueFromEvent}
-          name="icon"
+      <FormControl label="Icon" htmlFor="iconBrowser">
+        <Button
+          id="iconBrowser"
+          size="sm"
+          width="100%"
+          justifyContent="flex-start"
+          onClick={() => setIconBrowserOpen(true)}
         >
-          {FORGEUI_ICON_ASSETS.map((asset, index) => (
-            <ComboboxOption key={index} value={asset.icon} />
-          ))}
-        </InputSuggestion>
+          {icon || 'Choose icon'}
+        </Button>
       </FormControl>
-
-      <Button
-        size="sm"
-        width="100%"
-        mb={3}
-        onClick={() => setIconBrowserOpen(true)}
-      >
-        Browse Icons
-      </Button>
 
       <IconBrowserModal
         isOpen={iconBrowserOpen}
         onClose={() => setIconBrowserOpen(false)}
         onSelect={selection => {
-  setValueFromEvent({
-    target: {
-      name: 'icon',
-      value: selection.iconName,
-    },
-  })
+          setValueFromEvent({
+            target: {
+              name: 'icon',
+              value: selection.iconName,
+            },
+          })
 
-  setValueFromEvent({
-    target: {
-      name: 'src',
-      value: selection.src,
-    },
-  })
+          setValueFromEvent({
+            target: {
+              name: 'src',
+              value: selection.src,
+            },
+          })
 
-  setValueFromEvent({
-    target: {
-      name: 'uploadedAssetId',
-      value: selection.uploadedAssetId,
-    },
-  })
+          setValueFromEvent({
+            target: {
+              name: 'uploadedAssetId',
+              value: selection.uploadedAssetId,
+            },
+          })
 
-  setValueFromEvent({
-    target: {
-      name: 'assetName',
-      value: selection.assetName,
-    },
-  })
-}}
-        
+          setValueFromEvent({
+            target: {
+              name: 'assetName',
+              value: selection.assetName,
+            },
+          })
+        }}
       />
-
-      <IconControl label="Icon" name="icon" />
 
       <FormControl label="Size" htmlFor="boxSize">
         <InputSuggestion

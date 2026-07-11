@@ -83,8 +83,7 @@ export const useDropComponent = (
         0,
         Math.round(viewportRect.height - defaultH),
       )
-
-      dispatch.components.addComponent({
+            dispatch.components.addComponent({
         parentName: componentId,
         type: item.type,
         rootParentType: item.rootParentType,
@@ -96,6 +95,14 @@ export const useDropComponent = (
           h: defaultH,
         },
       })
+
+      if (item.type === 'Icon') {
+        window.setTimeout(() => {
+          window.dispatchEvent(
+            new CustomEvent('forgeui-open-icon-browser'),
+          )
+        }, 0)
+      }
     },
     canDrop: () => canDrop,
   })
