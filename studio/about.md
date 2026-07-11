@@ -44,9 +44,13 @@ ForgeUI Studio Canvas
             ↓
 Generate Native LVGL Code
             ↓
-Generate Asset Sources
+Generate LVGL Image Assets
+            ↓
+Generate Asset Registry
             ↓
 Generate CMake Sources
+            ↓
+Export Standalone ESP-IDF Project
             ↓
 ESP-IDF Build
             ↓
@@ -59,35 +63,55 @@ Physical Hardware Validation
 
 # 🖼️ Uploaded Image Pipeline (PROVEN)
 
-ForgeUI Studio now supports user-uploaded image assets which are automatically converted into LVGL-compatible C assets.
+F# 🎨 React Icon Pipeline (PROVEN)
+
+ForgeUI Studio now exports React Icons through the exact same asset pipeline used by Image widgets.
 
 ## Proven Workflow
+
 ```text
-PNG Upload
+React Icon
     ↓
-Asset Manager
+renderToStaticMarkup()
+    ↓
+SVG
+    ↓
+Canvas Conversion
+    ↓
+PNG
+    ↓
+ForgeUI Uploaded Asset
     ↓
 LVGLImage.py
     ↓
-ARGB8888 Conversion
-    ↓
 Generated LVGL C Asset
     ↓
-Firmware Assets/uploads
-    ↓
 Asset Registry
-    ↓
-assetSources[]
-    ↓
-Generated CMake
     ↓
 LV_IMAGE_DECLARE(...)
     ↓
 lv_image_set_src(...)
     ↓
-Build & Flash
+ESP-IDF Build
     ↓
-Physical ESP32-P4 Rendering
+Physical ESP32-P4
+```
+
+## Proven Capabilities
+
+* 9,514 searchable React Icons
+* Multi-select Browser
+* Use As Icon Widget
+* PNG Generation
+* Automatic LVGL Conversion
+* Automatic Asset Registry Integration
+* Unified Image Asset Pipeline
+* Multiple Unique Icon Validation
+* Physical ESP32-P4 Rendering
+
+React Icons and Image widgets now share a single export pipeline.
+
+Legacy `LV_SYMBOL_*` support remains available only for backwards compatibility.
 ```
 
 ## Proven Capabilities
@@ -121,9 +145,14 @@ No cloud conversion services are required. All image conversion occurs locally.
 *   Asset Integration
 
 ## Build & Flash
-*   Browser Build & Flash Triggers
-*   Clean Build Support with Live Flash Console
-*   Direct Local ESP-IDF Toolchain Integration
+
+* Browser Build & Flash Triggers
+* Export Standalone ESP-IDF Project
+* VS Code ESP-IDF Extension Support
+* Detached Build & Flash Workflow
+* Clean Build Support
+* Live Flash Console
+* Direct Local ESP-IDF Toolchain Integration
 
 ## Asset Management
 *   Upload & Delete Assets
@@ -198,14 +227,18 @@ Validated using:
 ---
 
 # ✅ Proven Milestones
-
-*   **Browser UI Builder & Preview:** `PROVEN`
-*   **Local Build & Flash Controls:** `PROVEN`
-*   **Detached ESP-IDF Project Export:** `PROVEN`
-*   **Local LVGLImage.py Integration:** `PROVEN`
-*   **PNG → LVGL C Component Conversion:** `PROVEN`
-*   **Automatic CMake Injection Pipeline:** `PROVEN`
-*   **Physical ESP32-P4 Image Rendering:** `PROVEN`
+* Browser UI Builder & Preview — PROVEN
+* Native LVGL Code Generation — PROVEN
+* Standalone ESP-IDF Project Export — PROVEN
+* Independent VS Code Build — PROVEN
+* ESP-IDF Extension Build & Flash — PROVEN
+* Local LVGLImage.py Integration — PROVEN
+* Uploaded Image Pipeline — PROVEN
+* React Icon Pipeline — PROVEN
+* Unified Image Asset Pipeline — PROVEN
+* Automatic CMake Injection Pipeline — PROVEN
+* Multiple Unique Icon Validation — PROVEN
+* Physical ESP32-P4 Rendering — PROVEN
 
 ---
 
@@ -221,13 +254,14 @@ ForgeUI Studio is optimized for:
 
 # 🔮 Current Development Direction
 
-Current focus areas:
-```text
-Multi-Image Validation
-Builder ↔ Preview ↔ Hardware Sizing Parity
-Image Scaling Controls & Asset Cleanup Management
-Asset Browser Improvements & Template Expansion
-Future AI-Assisted UI Generation Frameworks
+Icon Asset Reuse
+Duplicate Asset Prevention
+Automatic Asset Cleanup
+Startup Cleanup
+Document Persistence
+Builder ↔ Preview ↔ Hardware Parity
+Template Library Expansion
+Future AI-Assisted UI Generation
 ```
 
 ---
@@ -257,7 +291,7 @@ ForgeUI Project
 
 ## Current Save Point
 ```text
-FORGEUI_ICON_LIBRARY_V1__REACT_ICON_TO_LVGL_ASSET_SCALING_P4_PROVEN__2026-06-24
+FORGEUI_STANDALONE_EXPORT__INDEPENDENT_VSCODE_BUILD_AND_FLASH__MULTIPLE_ICON_PIPELINE__PHYSICAL_P4_PROVEN__2026-07-11
 ```
 
 ## 🔍 Targeted Search Index & Comparative Reference

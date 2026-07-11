@@ -1,6 +1,6 @@
 SPINE
 Current Save Point
-FORGEUI_ICON_EXPORT_UNIFICATION__MULTIPLE_UNIQUE_REACT_ICONS_TO_LVGL_ASSETS__P4_PROVEN__2026-07-11
+FORGEUI_STANDALONE_EXPORT__INDEPENDENT_VSCODE_BUILD_AND_FLASH__MULTIPLE_ICON_PIPELINE__PHYSICAL_P4_PROVEN__2026-07-11
 Project Status
 ACTIVE
 
@@ -20,6 +20,8 @@ LVGL Export
     ↓
 Generated C
     ↓
+Standalone ESP-IDF Project
+    ↓
 ESP-IDF Build
     ↓
 Physical ESP32-P4
@@ -36,6 +38,8 @@ Generated LVGL C Asset
 Asset Registry
     ↓
 LVGL Export
+    ↓
+Standalone ESP-IDF Project
     ↓
 ESP-IDF Build
     ↓
@@ -57,6 +61,8 @@ PNG
     ↓
 Base64 browserSrc
     ↓
+ForgeUI Uploaded Asset
+    ↓
 Asset Manager
     ↓
 LVGLImage.py
@@ -67,6 +73,8 @@ Asset Registry
     ↓
 LVGL Export
     ↓
+Standalone ESP-IDF Project
+    ↓
 ESP-IDF Build
     ↓
 Physical ESP32-P4
@@ -76,6 +84,7 @@ Status:
 FULLY PROVEN
 
 MULTIPLE UNIQUE ICONS
+
 PHYSICAL HARDWARE VERIFIED
 Architecture Rule
 React Icons are exported as LVGL image assets.
@@ -110,11 +119,13 @@ ForgeUI Uploaded Asset
     ↓
 LVGLImage.py
     ↓
-Generated C Asset
+Generated LVGL C Asset
     ↓
 Asset Registry
     ↓
 LVGL Export
+    ↓
+Standalone ESP-IDF Project
     ↓
 ESP32-P4
 
@@ -278,9 +289,6 @@ AI Playground V1
 Status:
 
 PROVEN
-
-(unchanged)
-
 Icon Library V1
 
 Status:
@@ -368,15 +376,14 @@ Asset Registry
     ↓
 LVGL Export
     ↓
+Standalone ESP-IDF Project
+    ↓
 ESP32-P4
 Theme Manager V2
 
 Status:
 
 PROVEN
-
-(unchanged)
-
 Build & Flash Pipeline
 
 Status:
@@ -386,28 +393,97 @@ Proven
 Export Project
 ✓
 
-Build & Flash
+Detached Standalone Export
 ✓
 
-Clean Build & Flash
+Independent VS Code Build
 ✓
 
-Detached Export
+ESP-IDF Extension Build
 ✓
 
 ESP-IDF Reconfigure
 ✓
 
+Independent Build Environment
+✓
+
+Clean Build
+✓
+
+Build & Flash
+✓
+
+Independent Physical ESP32-P4 Flash
+✓
+
 Physical Hardware Flash
 ✓
+Standalone Export Pipeline
+
+Status:
+
+FULLY PROVEN
+Proven
+ForgeUI Export
+✓
+
+Standalone ESP-IDF Project
+✓
+
+Fresh Laptop Verification
+✓
+
+VS Code Workflow
+✓
+
+ESP-IDF Extension
+✓
+
+Independent Build
+✓
+
+Independent Flash
+✓
+
+Physical ESP32-P4
+✓
+Architecture
+ForgeUI Studio
+    ↓
+Export Project
+    ↓
+Standalone ESP-IDF Project
+    ↓
+VS Code
+    ↓
+ESP-IDF Extension
+    ↓
+Build
+    ↓
+Flash
+    ↓
+Physical ESP32-P4
+Rules
+Exported projects are completely standalone.
+
+ForgeUI Studio is not required after export.
+
+ESP-IDF owns build and flash.
+
+ForgeUI owns project generation.
+
+Every exported project must remain independently buildable.
 Current Active Mission
-FORGEUI_ICON_LIBRARY_V2__WORKFLOW_SIMPLIFICATION__2026-07-11
+FORGEUI_STANDALONE_EXPORT_AND_ICON_WORKFLOW_SIMPLIFICATION__2026-07-11
 
 Current exploration:
 
 Remove duplicate icon workflows
 
-Automatic asset reuse
+Automatic icon asset reuse
+
+Duplicate asset prevention
 
 Automatic asset cleanup
 
@@ -416,32 +492,38 @@ Startup cleanup
 Document persistence
 
 Session recovery
+
+Standalone export documentation
+
+VS Code build workflow
 Current Next Mission
-FORGEUI_ICON_WORKFLOW_SIMPLIFICATION_AND_DOCUMENT_RECOVERY_NEXT
+FORGEUI_ICON_WORKFLOW_AUTOMATION__ASSET_REUSE__DOCUMENT_RECOVERY__2026-07-12
 
 Goal:
 
-Reduce the remaining manual icon workflow.
+Complete the remaining workflow automation.
 
-Builder
-
-↓
-
-Preview
-
-↓
-
+React Icon
+    ↓
+Asset Reuse
+    ↓
+Single Asset Pipeline
+    ↓
 LVGL Export
-
-↓
-
+    ↓
+Standalone ESP-IDF Project
+    ↓
+VS Code
+    ↓
 ESP32-P4
 
-should require only a single user action.
+One click.
 
-Automatically reuse existing icon assets where possible.
+Zero duplicate assets.
 
-Preserve the single unified image asset pipeline.
+Zero manual cleanup.
+
+Preserve standalone exported project compatibility.
 Non-Negotiable Rules
 Do not rebuild RTC.
 
@@ -463,6 +545,8 @@ Do not create a second icon export pipeline.
 
 React Icons must export through the Image asset pipeline.
 
+Every exported project must remain standalone and independently buildable.
+
 Extend proven systems.
 
 Preserve:
@@ -471,6 +555,8 @@ Builder
     ↓
 Preview
     ↓
-Export
+LVGL Export
+    ↓
+Standalone ESP-IDF Project
     ↓
 ESP32-P4

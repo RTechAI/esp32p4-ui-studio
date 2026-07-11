@@ -32,9 +32,47 @@ ForgeUI Studio couples asset configuration, interface styling, and structural lo
 
 ### 2. High-Speed Local Asset Conversion Engine
 ```text
-Uploaded Asset (.png/.jpg/.svg) ──► Asset Manager ──► LVGLImage.py ──► ARGB8888 Binary Array 
-                                                                                ↓
-Physical Panel ◄── esptool.py flash ◄── CMake Injection ◄── firmware/main/assets/uploads/
+### 2. Unified Local Asset Conversion Engine
+
+```text
+Uploaded Image / React Icon
+            ↓
+Asset Manager
+            ↓
+LVGLImage.py
+            ↓
+ARGB8888 Conversion
+            ↓
+Generated LVGL C Asset
+            ↓
+Asset Registry
+            ↓
+assetSources[]
+            ↓
+Generated CMakeLists.txt
+            ↓
+LV_IMAGE_DECLARE(...)
+            ↓
+lv_image_set_src(...)
+            ↓
+Standalone ESP-IDF Project
+            ↓
+ESP-IDF Build
+            ↓
+Physical ESP32-P4
+```
+
+**Verified Capabilities**
+
+- PNG / JPG / SVG Upload
+- React Icon → PNG Conversion
+- Automatic LVGLImage.py Processing
+- Automatic Asset Registry Integration
+- Automatic CMake Source Generation
+- Unified Image & Icon Asset Pipeline
+- Physical ESP32-P4 Validation
+
+Image widgets and React Icon widgets now share a single native LVGL asset pipeline.
 ```
 *   **Hardware Acceleration Integration**: Mapped asset variables bypass runtime filesystem processing. They convert into pure source memory sheets (`.c` files), injecting automated `LV_IMAGE_DECLARE(...)` mappings and binding layout nodes via raw `lv_image_set_src(...)` hooks natively.
 
@@ -57,7 +95,13 @@ Install these baseline dependencies to prevent compiler environment mismatches:
 
 ### 2. IDE Workspace Configuration
 *   **Code Editor**: **Visual Studio Code (VS Code)**.
-*   **Core System Extensions**: Install **ESLint**, **Prettier**, and the official **Espressif ESP-IDF Extension** layout tool.
+*   **Core System Extensions
+
+• ESLint
+• Prettier
+• Espressif ESP-IDF Extension
+
+The ESP-IDF Extension has been physically verified to build and flash exported ForgeUI projects directly inside Visual Studio Code without requiring ForgeUI Studio.
 
 ### 3. Native Embedded Toolchain Framework
 *   **Development Framework**: **ESP-IDF v5.5.4 Stable Core**.
@@ -114,24 +158,68 @@ STOP_FORGEUI_STUDIO.bat
 ```
 *   **System Processes Cleared**: Disconnects active Node system processes, frees up network port entries, stops active project file watchers, and gracefully shuts down running local server contexts.
 
+## 🚀 Standalone Export Verification
+
+The exported firmware project is completely independent from ForgeUI Studio.
+
+### Verified Workflow
+
+```text
+ForgeUI Studio
+        ↓
+Export Standalone Project
+        ↓
+Standalone ESP-IDF Project
+        ↓
+Visual Studio Code
+        ↓
+ESP-IDF Extension
+        ↓
+Build
+        ↓
+Flash
+        ↓
+Physical ESP32-P4
+```
+
+### Proven
+
+- Independent VS Code Build
+- Independent ESP-IDF Build
+- Independent Flash
+- Physical ESP32-P4 Verification
+
+After export, ForgeUI Studio is no longer required.
+
 ---
 
 ## 💾 Workspace Directory Mapping
 
 ```text
 C:\ForgeUI\Projects\esp32p4-ui-studio/
-├── studio/                     # React / Next.js Canvas Builder UI environment
-│   ├── src/                    # Component canvas logic and asset source maps
-│   ├── public/                 # Static graphical visual items
-│   └── export-server.js        # Local WebUSB/WebSerial local bridge routing logic
-├── firmware/ForgeUI-One/       # Native ESP-IDF Standalone Export Project Template
-│   ├── main/                   # Peripheral drivers (Audio, WIFI, RTC, SD) & UI logic
-│   └── partitions.csv          # Custom 16MB flash memory division map
-├── tools/lvgl/LVGLImage.py     # Local offline ARGB8888 image array compiler script
-├── docs/history/               # System state logs and architectural milestones
-├── START_FORGEUI_STUDIO.bat    # Foreground local developer server terminal script
-├── START_FORGEUI_STUDIO_HIDDEN.vbs # Background server hidden orchestration script
-└── STOP_FORGEUI_STUDIO.bat     # Server teardown process cleanup script
+├── studio/                          # React / Next.js visual UI builder
+│   ├── src/                         # Builder, widgets, themes, preview, export logic
+│   ├── public/                      # Static web assets
+│   └── export-server.js             # Local build, flash and asset conversion server
+├── firmware/ForgeUI-One/            # Reference standalone ESP-IDF project
+│   ├── main/
+│   │   ├── assets/uploads/          # Generated LVGL image assets (.c)
+│   │   ├── 00_ForgeUI_Config.h      # Global ForgeUI configuration
+│   │   ├── 01_FG_Runtime.c/.h       # Runtime framework
+│   │   ├── 20_RTC.c/.h              # RTC runtime
+│   │   ├── 30_Audio.c/.h            # Audio runtime
+│   │   ├── 30_WIFI.c/.h             # Wi-Fi runtime
+│   │   ├── 40_SD.c/.h               # SD card runtime
+│   │   └── 90_Studio_Export.c       # Generated LVGL user interface
+│   ├── partitions.csv               # Custom flash partition layout
+│   ├── sdkconfig.defaults           # Default ESP-IDF configuration
+│   └── CMakeLists.txt               # Root ESP-IDF build script
+├── tools/lvgl/LVGLImage.py          # Offline LVGL image conversion engine
+├── docs/history/                    # Project history and architecture milestones
+├── START_FORGEUI_STUDIO.bat         # Launch ForgeUI Studio
+├── START_FORGEUI_STUDIO_HIDDEN.vbs  # Launch Studio in the background
+└── STOP_FORGEUI_STUDIO.bat          # Stop Studio services
+```
 ```
 
 ---
@@ -140,10 +228,23 @@ C:\ForgeUI\Projects\esp32p4-ui-studio/
 
 ### Current Active Fingerprint
 ```text
-FORGEUI_FULLSCREEN_THEME_BACKGROUNDS_V1__P4_HERO_RENDERING_PROVEN__SINGLE_THEME_ARCHITECTURE_STABLE__2026
+FORGEUI_STANDALONE_EXPORT__INDEPENDENT_VSCODE_BUILD_AND_FLASH__MULTIPLE_ICON_PIPELINE__PHYSICAL_P4_PROVEN__2026-07-11
 ```
 
 ### Mapped Engineering Verification Points
+
+### Mapped Engineering Verification Points
+
+* ✓ Browser Builder & Preview
+* ✓ Native LVGL Code Generation
+* ✓ Unified Image Asset Pipeline
+* ✓ Unified React Icon Pipeline
+* ✓ Automatic LVGLImage.py Conversion
+* ✓ Standalone ESP-IDF Export
+* ✓ Independent VS Code Build
+* ✓ ESP-IDF Extension Build & Flash
+* ✓ Physical ESP32-P4 Validation
+
 *   **`✓ PROVEN` Visual Integrity**: Full theme preview validations running across 25+ distinct UI setups (Nordic Ice, Graphite, Carbon Fiber, Test Purple, Quantum Hex).
 *   **`✓ PROVEN` Toolchain Flashing**: Direct WebSerial flashing, isolated system builds, and complete cache restorations (`Clean Build & Flash`).
 *   **`✓ PROVEN` Native Performance**: Real-world hardware outputs lock perfectly onto the physical panel at **63 FPS** with near **2.5% CPU load** and fixed **5ms drawing windows** `[63 FPS, 2.5% CPU | 5ms (5|0)]`.
@@ -151,8 +252,49 @@ FORGEUI_FULLSCREEN_THEME_BACKGROUNDS_V1__P4_HERO_RENDERING_PROVEN__SINGLE_THEME_
 
 ### Upcoming Milestones
 ```text
-Texture Pack V1 ──► Additional Built-In Textures ──► Background Playground ──► Theme Categories ──► Custom Theme Creation ──► Theme Import/Export ──► Desktop Wrapper
+Icon Asset Reuse
+        ↓
+Duplicate Asset Prevention
+        ↓
+Automatic Asset Cleanup
+        ↓
+Startup Cleanup
+        ↓
+Document Persistence
+        ↓
+Template Library Expansion
+        ↓
+Desktop Wrapper
+        ↓
+AI Layout Generation
+
 ```
+
+## ✅ Proven ForgeUI Architecture
+
+```text
+Builder
+    ↓
+Browser Preview
+    ↓
+Unified Image & Icon Asset Pipeline
+    ↓
+LVGL Export
+    ↓
+Standalone ESP-IDF Project
+    ↓
+Visual Studio Code
+    ↓
+ESP-IDF Extension
+    ↓
+Build
+    ↓
+Flash
+    ↓
+Physical ESP32-P4
+```
+
+This complete workflow has been physically verified using multiple React icons, uploaded image assets, detached standalone exports, and independent builds on a separate development laptop.
 
 
 ---
