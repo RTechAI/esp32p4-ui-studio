@@ -62,17 +62,29 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_pos(bg_texture_0, 0, 0);
     lv_obj_set_size(bg_texture_0, 1024, 600);
 
-    LV_IMAGE_DECLARE(fg_upload_ficornerrightdown_0f260ee5);
+    LV_IMAGE_DECLARE(fg_upload_fialerttriangle_aea59e21);
     lv_obj_t * obj1 = lv_image_create(parent);
-    lv_image_set_src(obj1, &fg_upload_ficornerrightdown_0f260ee5);
+    lv_image_set_src(obj1, &fg_upload_fialerttriangle_aea59e21);
     lv_image_set_scale(obj1, 256);
-    lv_obj_set_pos(obj1, 627, 79);
+    lv_obj_set_pos(obj1, 25, 61);
     lv_obj_set_size(obj1, 240, 120);
     lv_obj_add_flag(obj1, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_set_style_transform_pivot_x(obj1, 120, 0);
     lv_obj_set_style_transform_pivot_y(obj1, 60, 0);
     lv_obj_set_style_transform_scale(obj1, 256, 0);
     lv_obj_set_style_transform_scale(obj1, 235, LV_STATE_PRESSED);
+
+    LV_IMAGE_DECLARE(fg_upload_fialignleft_b93eb27d);
+    lv_obj_t * obj2 = lv_image_create(parent);
+    lv_image_set_src(obj2, &fg_upload_fialignleft_b93eb27d);
+    lv_image_set_scale(obj2, 256);
+    lv_obj_set_pos(obj2, 784, 79);
+    lv_obj_set_size(obj2, 240, 120);
+    lv_obj_add_flag(obj2, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_set_style_transform_pivot_x(obj2, 120, 0);
+    lv_obj_set_style_transform_pivot_y(obj2, 60, 0);
+    lv_obj_set_style_transform_scale(obj2, 256, 0);
+    lv_obj_set_style_transform_scale(obj2, 235, LV_STATE_PRESSED);
 
 
     fg_clock_tick_cb(NULL);

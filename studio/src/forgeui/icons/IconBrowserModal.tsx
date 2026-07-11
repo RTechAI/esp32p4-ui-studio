@@ -25,6 +25,7 @@ type Props = {
   isOpen: boolean
   onClose: () => void
   onSelect: (iconName: string) => void
+  onAssetsAdded?: () => void
 }
 
 const iconNameToPngFile = async (iconName: string): Promise<File | null> => {
@@ -85,7 +86,13 @@ const fileToBase64 = (file: File) =>
     reader.readAsDataURL(file)
   })
 
-const IconBrowserModal = ({ isOpen, onClose, onSelect }: Props) => {
+const IconBrowserModal = ({
+  isOpen,
+  onClose,
+  onSelect,
+  onAssetsAdded,
+}: Props) => {
+
   const [search, setSearch] = useState('')
   const [selectedIcons, setSelectedIcons] = useState<string[]>([])
 
@@ -119,9 +126,16 @@ const IconBrowserModal = ({ isOpen, onClose, onSelect }: Props) => {
     )
   ).filter(Boolean) as File[]
 
+  if (files.length === 0) {
+    return
+  }
+
   const assets = files.map(forgeUICreateUploadedAsset)
 
   forgeUIAddUploadedAssets(assets)
+
+  // Notify the parent editor after the assets have been created.
+  onAssetsAdded?.()
 
   setSelectedIcons([])
   onClose()
@@ -131,45 +145,52 @@ const IconBrowserModal = ({ isOpen, onClose, onSelect }: Props) => {
   )
 
   for (const asset of assets) {
-    if (asset.exportStatus !== 'pending_conversion') continue
+    if (asset.exportStatus !== 'pending_conversion') {
+      continue
+    }
 
     try {
       const base64 = await fileToBase64(asset.file)
 
-      const res = await fetch('http://localhost:3030/convert-lvgl-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fileName: asset.name,
-          symbolName: asset.lvgl,
-          base64,
-        }),
-      })
+      const res = await fetch(
+        'http://localhost:3030/convert-lvgl-image',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            fileName: asset.name,
+            symbolName: asset.lvgl,
+            base64,
+          }),
+        }
+      )
 
       const data = await res.json()
 
-      if (!data.ok) {
+      if (!res.ok || !data.ok) {
         console.error('LVGL icon conversion failed:', data)
         continue
       }
 
       console.log('LVGL icon conversion OK:', data)
-      forgeUIUpdateUploadedAsset(asset.id, {
-  exportStatus: 'lvgl_ready',
-  cFile: data.assetSource || asset.cFile,
-})
 
-window.dispatchEvent(
-  new CustomEvent('forgeui-assets-updated')
-)
+      forgeUIUpdateUploadedAsset(asset.id, {
+        exportStatus: 'lvgl_ready',
+        cFile: data.assetSource || asset.cFile,
+      })
+
+      window.dispatchEvent(
+        new CustomEvent('forgeui-assets-updated')
+      )
     } catch (err) {
       console.error('LVGL icon conversion error:', err)
     }
   }
+}
 
-    }
-
-  return (
+   return (
     <Modal isOpen={isOpen} onClose={onClose} size="5xl" isCentered>
       <ModalOverlay bg="blackAlpha.800" />
 
