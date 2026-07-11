@@ -21,10 +21,19 @@ import {
   forgeUIUpdateUploadedAsset,
 } from '~forgeui/ForgeUIUploadedAssetRegistry'
 
+export type ForgeUIIconSelection = {
+  iconName: string
+  uploadedAssetId: string
+  src: string
+  assetName: string
+  lvgl: string
+  cFile: string
+}
+
 type Props = {
   isOpen: boolean
   onClose: () => void
-  onSelect: (iconName: string) => void
+  onSelect: (selection: ForgeUIIconSelection) => void
   onAssetsAdded?: () => void
 }
 
@@ -114,10 +123,84 @@ const IconBrowserModal = ({
     )
   }
 
-  const handleUseSelectedIcon = (iconName: string) => {
-    onSelect(iconName)
-    onClose()
+  const handleUseSelectedIcon = async (
+  iconName: string,
+) => {
+  const file = await iconNameToPngFile(iconName)
+
+  if (!file) {
+    console.error(
+      'Failed to create icon PNG:',
+      iconName,
+    )
+    return
   }
+
+  const browserSrc = await fileToBase64(file)
+
+  const asset = forgeUICreateUploadedAsset(
+    file,
+    browserSrc,
+  )
+
+  forgeUIAddUploadedAssets([asset])
+
+  let cFile = asset.cFile
+
+  try {
+    const res = await fetch(
+      'http://localhost:3030/convert-lvgl-image',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileName: asset.name,
+          symbolName: asset.lvgl,
+          base64: asset.browserSrc,
+        }),
+      },
+    )
+
+    const data = await res.json()
+
+    if (!res.ok || !data.ok) {
+      console.error(
+        'LVGL icon conversion failed:',
+        data,
+      )
+      return
+    }
+
+    cFile =
+      data.assetSource ||
+      asset.cFile
+
+    forgeUIUpdateUploadedAsset(asset.id, {
+      exportStatus: 'lvgl_ready',
+      cFile,
+    })
+  } catch (err) {
+    console.error(
+      'LVGL icon conversion error:',
+      err,
+    )
+    return
+  }
+
+  onSelect({
+    iconName,
+    uploadedAssetId: asset.id,
+    src: asset.browserSrc,
+    assetName: asset.name,
+    lvgl: asset.lvgl,
+    cFile,
+  })
+
+  setSelectedIcons([])
+  onClose()
+}
 
   const handleAddSelectedToAssets = async () => {
   const files = (

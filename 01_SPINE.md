@@ -1,28 +1,17 @@
-# SPINE
-
-## Current Save Point
-
-```text
-FORGEUI_ICON_ASSET_WORKFLOW__SOURCE_ICON_AUTO_REMOVE__ONE_CLICK_STARTUP__2026-07-11
-```
-
----
-
-# Project Status
-
-```text
+SPINE
+Current Save Point
+FORGEUI_ICON_EXPORT_UNIFICATION__MULTIPLE_UNIQUE_REACT_ICONS_TO_LVGL_ASSETS__P4_PROVEN__2026-07-11
+Project Status
 ACTIVE
 
 STABLE
 
 PHYSICAL HARDWARE PROVEN
-```
 
 ForgeUI Studio is an open-source visual LVGL v9 HMI designer, code generator, asset pipeline, theme system, and ESP-IDF workflow targeting ESP32-P4 hardware.
 
 Core pipeline proven:
 
-```text
 Builder
     ↓
 Browser Preview
@@ -34,15 +23,8 @@ Generated C
 ESP-IDF Build
     ↓
 Physical ESP32-P4
-```
-
----
-
-# Current Architecture Truth
-
-## Asset Pipeline
-
-```text
+Current Architecture Truth
+Asset Pipeline
 Uploaded Asset
     ↓
 Asset Manager
@@ -58,17 +40,11 @@ LVGL Export
 ESP-IDF Build
     ↓
 Physical ESP32-P4
-```
 
 Status:
 
-```text
 PROVEN
-```
-
-### React Icon Asset Pipeline
-
-```text
+React Icon Asset Pipeline
 React Icon
     ↓
 renderToStaticMarkup()
@@ -79,38 +55,86 @@ Canvas Conversion
     ↓
 PNG
     ↓
+Base64 browserSrc
+    ↓
 Asset Manager
     ↓
 LVGLImage.py
     ↓
-Generated .c Asset
+Generated LVGL C Asset
     ↓
-ESP32-P4
-```
+Asset Registry
+    ↓
+LVGL Export
+    ↓
+ESP-IDF Build
+    ↓
+Physical ESP32-P4
 
 Status:
 
-```text
-PROVEN
-```
+FULLY PROVEN
 
-Rule:
+MULTIPLE UNIQUE ICONS
+PHYSICAL HARDWARE VERIFIED
+Architecture Rule
+React Icons are exported as LVGL image assets.
 
-```text
+Icons use the identical export pipeline as Image widgets.
+
 Do not create a second icon export pipeline.
 
 Do not bypass Asset Manager.
 
 PNG remains the LVGLImage.py input format.
-```
 
----
+Persist browserSrc.
 
-## Theme Pipeline
+Persist uploadedAssetId.
+
+Persist assetName.
+
+Blob URLs are temporary session resources only.
+
+Base64 browserSrc is the persistent browser representation.
+Icon Export Architecture
+Icon Widget
+    ↓
+Use As Icon Widget
+    ↓
+React Icon
+    ↓
+PNG Generation
+    ↓
+ForgeUI Uploaded Asset
+    ↓
+LVGLImage.py
+    ↓
+Generated C Asset
+    ↓
+Asset Registry
+    ↓
+LVGL Export
+    ↓
+ESP32-P4
+
+Status:
+
+PROVEN
+
+MULTIPLE UNIQUE ICONS
+
+PHYSICAL ESP32-P4 VERIFIED
+
+Compatibility Rule:
+
+LV_SYMBOL support remains available only as a backwards compatibility fallback.
+
+Primary export path is LVGL image assets.
+Theme Pipeline
 
 Single source of truth:
 
-```text
 FG_PREVIEW_PALETTES
     ↓
 Theme Manager
@@ -124,81 +148,50 @@ Preview
 Export
     ↓
 ESP32-P4
-```
 
 Status:
 
-```text
 PROVEN
 
 NO DRIFT
-```
 
 Rule:
 
-```text
 FG_PREVIEW_PALETTES remains the only source of truth.
-```
-
----
-
-## Runtime Systems
-
-### RTC Runtime
-
-```text
+Runtime Systems
+RTC Runtime
 20_RTC
     ↓
 Clock Widget
-```
 
 Status:
 
-```text
 PROVEN ON PHYSICAL ESP32-P4
-```
 
 Ownership:
 
-```text
 RTC owns truth
 
 Clock owns display
 
 LVGL timer owns refresh
-```
-
----
-
-### WiFi Runtime
-
-```text
+WiFi Runtime
 30_WIFI
     ↓
 WiFi Widget
-```
 
 Status:
 
-```text
 PROVEN ON PHYSICAL ESP32-P4
-```
 
 Ownership:
 
-```text
 WiFi runtime owns truth
 
 Widget owns display
 
 LVGL timer owns refresh
-```
-
----
-
-## Runtime Architecture Rule
-
-```text
+Runtime Architecture Rule
 Runtime owns truth
 
 Widget owns display
@@ -206,15 +199,8 @@ Widget owns display
 LVGL timer owns refresh
 
 UI owns neither
-```
-
----
-
-# Proven Systems
-
-## Core Widgets
-
-```text
+Proven Systems
+Core Widgets
 Button
 Text
 Heading
@@ -232,11 +218,9 @@ Image
 Box
 Icon
 IconButton
-```
 
 Status:
 
-```text
 Builder
 ✓
 
@@ -248,13 +232,7 @@ Export
 
 ESP32-P4
 ✓
-```
-
----
-
-## LVGL Widgets
-
-```text
+LVGL Widgets
 Led
 Bar
 Arc
@@ -271,11 +249,9 @@ Line
 Tabview
 Tileview
 AnimImage
-```
 
 Status:
 
-```text
 Builder
 ✓
 
@@ -287,132 +263,30 @@ Export
 
 ESP32-P4
 ✓
-```
-
----
-
-## Runtime Widgets
-
-```text
+Runtime Widgets
 Clock
 ✓
 
 WiFi
 ✓
-```
 
 Status:
 
-```text
 PHYSICAL P4 PROVEN
-```
-
----
-
-# AI Playground V1
+AI Playground V1
 
 Status:
 
-```text
 PROVEN
-```
 
-### Proven
+(unchanged)
 
-```text
-Template Library
-✓
-
-Document Model
-✓
-
-JSON Editor
-✓
-
-JSON.parse()
-✓
-
-Schema Validation
-✓
-
-Registry Binding
-✓
-
-Canvas Insertion
-✓
-
-Multi Component Layout
-✓
-
-Metadata Support
-✓
-```
-
-### Architecture
-
-```text
-Template Library
-    ↓
-Layout Document
-    ↓
-JSON Editor
-    ↓
-JSON.parse()
-    ↓
-validateAiLayout()
-    ↓
-insertAiLayout()
-    ↓
-ForgeUI Store
-    ↓
-Canvas
-```
-
-### Rules
-
-```text
-AI suggests
-
-ForgeUI validates
-
-Builder owns layout
-
-Preview owns preview
-
-Export owns LVGL generation
-
-Runtime owns truth
-
-AI generates ForgeUI layouts only
-```
-
-### OpenAI Status
-
-```text
-PAUSED
-```
-
-Reason:
-
-```text
-Deferred until dedicated home development laptop.
-
-No OpenAI integration required for current ForgeUI progress.
-```
-
----
-
-# Icon Library V1
+Icon Library V1
 
 Status:
 
-```text
-PROVEN
-```
-
-### Proven
-
-```text
+FULLY PROVEN
+Proven
 9514 React Icons
 ✓
 
@@ -431,13 +305,22 @@ Selected Asset Tray
 Add Selected To Assets
 ✓
 
+Use As Icon Widget
+✓
+
 Canvas Render
 ✓
 
 Preview Render
 ✓
 
+Browser Persistence
+✓
+
 PNG Generation
+✓
+
+Base64 Persistence
 ✓
 
 Asset Manager Integration
@@ -449,102 +332,57 @@ LVGLImage.py Conversion
 Generated C Assets
 ✓
 
+LVGL Export
+✓
+
 ESP-IDF Build
 ✓
 
 Physical ESP32-P4 Flash
 ✓
 
-Builder / Preview / P4 Parity
+Multiple Unique Icons
 ✓
 
-Image Scaling Correct
-✓
-```
-
-Automatic Source Icon Removal
+Builder / Preview / Export / P4 Parity
 ✓
 
-One Click Asset Conversion
+Unified Image Asset Pipeline
 ✓
-
-One Click Studio Startup
-✓
-
-Automatic Previous Node Cleanup
-✓
-
-### Architecture
-
-Icon Widget
-    ↓
-Browse Icons
-    ↓
+Architecture
 React Icon
     ↓
-PNG Asset
+Use As Icon Widget
+    ↓
+PNG Generation
+    ↓
+ForgeUI Uploaded Asset
     ↓
 Asset Manager
     ↓
 LVGLImage.py
     ↓
-Generated C Asset
+Generated LVGL C Asset
     ↓
-Source Icon Removed
+Asset Registry
     ↓
 LVGL Export
     ↓
 ESP32-P4
-```
-
----
-
-# Theme Manager V2
+Theme Manager V2
 
 Status:
 
-```text
 PROVEN
-```
 
-### Proven
+(unchanged)
 
-```text
-Theme Selection
-✓
-
-Theme Persistence
-✓
-
-Preview Parity
-✓
-
-Export Parity
-✓
-
-Physical P4 Parity
-✓
-
-Texture Backgrounds
-✓
-
-FG_PREVIEW_PALETTES Binding
-✓
-```
-
----
-
-# Build & Flash Pipeline
+Build & Flash Pipeline
 
 Status:
 
-```text
 PROVEN
-```
-
-### Proven
-
-```text
+Proven
 Export Project
 ✓
 
@@ -562,61 +400,49 @@ ESP-IDF Reconfigure
 
 Physical Hardware Flash
 ✓
-```
-
----
-
-# Current Active Mission
-
-```text
-FORGEUI_DOCUMENT_RECOVERY_AND_STARTUP_CLEANUP__2026-07-11
-```
+Current Active Mission
+FORGEUI_ICON_LIBRARY_V2__WORKFLOW_SIMPLIFICATION__2026-07-11
 
 Current exploration:
 
-```text
-Studio startup cleanup
+Remove duplicate icon workflows
+
+Automatic asset reuse
+
+Automatic asset cleanup
+
+Startup cleanup
 
 Document persistence
 
-Asset recovery
-
-Browser blob restoration
-
 Session recovery
-```
-
----
-
-# Current Next Mission
-
-```text
-FORGEUI_DOCUMENT_RECOVERY_AND_STARTUP_CLEANUP_NEXT
-```
+Current Next Mission
+FORGEUI_ICON_WORKFLOW_SIMPLIFICATION_AND_DOCUMENT_RECOVERY_NEXT
 
 Goal:
 
-```text
-Investigate Studio persistence.
+Reduce the remaining manual icon workflow.
 
-Locate localStorage / persistence.
+Builder
 
-Prevent orphaned browser assets.
+↓
 
-Either:
+Preview
 
-Start with a clean document
+↓
 
-or
+LVGL Export
 
-Restore valid sessions only.
-```
+↓
 
----
+ESP32-P4
 
-# Non-Negotiable Rules
+should require only a single user action.
 
-```text
+Automatically reuse existing icon assets where possible.
+
+Preserve the single unified image asset pipeline.
+Non-Negotiable Rules
 Do not rebuild RTC.
 
 Do not rebuild WiFi.
@@ -633,6 +459,10 @@ Do not bypass the component store.
 
 Do not create a second asset pipeline.
 
+Do not create a second icon export pipeline.
+
+React Icons must export through the Image asset pipeline.
+
 Extend proven systems.
 
 Preserve:
@@ -644,4 +474,3 @@ Preview
 Export
     ↓
 ESP32-P4
-```

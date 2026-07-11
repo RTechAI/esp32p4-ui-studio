@@ -10,18 +10,12 @@ import usePropsSelector from '~hooks/usePropsSelector'
 import IconControl from '~components/inspector/controls/IconControl'
 import { FORGEUI_ICON_ASSETS } from '~forgeui/ForgeUIIconRegistry'
 import IconBrowserModal from '~forgeui/icons/IconBrowserModal'
-import { useSelector } from 'react-redux'
-import useDispatch from '~hooks/useDispatch'
-import { getSelectedComponent } from '~core/selectors/components'
 
 const IconPanel = () => {
   const [iconBrowserOpen, setIconBrowserOpen] = useState(false)
   const { setValueFromEvent } = useForm()
 
-  const dispatch = useDispatch()
-  const component = useSelector(getSelectedComponent)
-
-  const boxSize = usePropsSelector('boxSize')
+    const boxSize = usePropsSelector('boxSize')
   const icon = usePropsSelector('icon')
 
   return (
@@ -50,17 +44,36 @@ const IconPanel = () => {
       <IconBrowserModal
         isOpen={iconBrowserOpen}
         onClose={() => setIconBrowserOpen(false)}
-        onSelect={iconName => {
-          setValueFromEvent({
-            target: {
-              name: 'icon',
-              value: iconName,
-            },
-          })
-        }}
-        onAssetsAdded={() => {
-          dispatch.components.deleteComponent(component.id)
-        }}
+        onSelect={selection => {
+  setValueFromEvent({
+    target: {
+      name: 'icon',
+      value: selection.iconName,
+    },
+  })
+
+  setValueFromEvent({
+    target: {
+      name: 'src',
+      value: selection.src,
+    },
+  })
+
+  setValueFromEvent({
+    target: {
+      name: 'uploadedAssetId',
+      value: selection.uploadedAssetId,
+    },
+  })
+
+  setValueFromEvent({
+    target: {
+      name: 'assetName',
+      value: selection.assetName,
+    },
+  })
+}}
+        
       />
 
       <IconControl label="Icon" name="icon" />

@@ -261,23 +261,86 @@ case 'WiFi': {
 }
 
 case 'Icon': {
-  const icon = child.props.icon || 'FiSettings'
+  const src =
+    child.props.src ||
+    child.props.browserSrc ||
+    ''
 
-  const symbol =
-    FG_ICON_LVGL_SYMBOLS[icon] ||
-    'LV_SYMBOL_SETTINGS'
+  const uploadedAssets = forgeUIGetUploadedAssets()
 
-  const color = child.props.color
-    ? `0x${String(child.props.color).replace('#', '')}`
-    : palette.text
+  const uploadedAsset = uploadedAssets.find(
+    (asset: any) =>
+      asset.id === child.props.uploadedAssetId ||
+      asset.browserSrc === src ||
+      asset.name === child.props.assetName,
+  )
 
-  const iconSize = lv(child.props.boxSize, 48)
+  if (
+    uploadedAsset?.exportStatus === 'lvgl_ready' &&
+    uploadedAsset?.lvgl
+  ) {
+    const symbol = uploadedAsset.lvgl
+    const cFile = uploadedAsset.cFile
 
-  lines.push(`lv_obj_t * ${varName} = lv_label_create(${parentVar});`)
-  lines.push(`lv_label_set_text(${varName}, ${symbol});`)
-  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
-  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${color}), 0);`)
-  lines.push(`lv_obj_set_style_text_font(${varName}, &lv_font_montserrat_${iconSize}, 0);`)
+    if (cFile) {
+      usedAssetSources.add(cFile)
+    }
+
+    const imageScale = Number(
+      child.props.imageScale || 256,
+    )
+
+    lines.push(`LV_IMAGE_DECLARE(${symbol});`)
+    lines.push(
+      `lv_obj_t * ${varName} = lv_image_create(${parentVar});`,
+    )
+    lines.push(
+      `lv_image_set_src(${varName}, &${symbol});`,
+    )
+    lines.push(
+      `lv_image_set_scale(${varName}, ${imageScale});`,
+    )
+    lines.push(
+      `lv_obj_set_pos(${varName}, ${x}, ${y});`,
+    )
+    lines.push(
+      `lv_obj_set_size(${varName}, ${w}, ${h});`,
+    )
+  } else {
+    const icon =
+      child.props.icon ||
+      'FiSettings'
+
+    const symbol =
+      FG_ICON_LVGL_SYMBOLS[icon] ||
+      'LV_SYMBOL_SETTINGS'
+
+    const color = child.props.color
+      ? `0x${String(child.props.color).replace('#', '')}`
+      : palette.text
+
+    const iconSize = lv(
+      child.props.boxSize,
+      48,
+    )
+
+    lines.push(
+      `lv_obj_t * ${varName} = lv_label_create(${parentVar});`,
+    )
+    lines.push(
+      `lv_label_set_text(${varName}, ${symbol});`,
+    )
+    lines.push(
+      `lv_obj_set_pos(${varName}, ${x}, ${y});`,
+    )
+    lines.push(
+      `lv_obj_set_style_text_color(${varName}, lv_color_hex(${color}), 0);`,
+    )
+    lines.push(
+      `lv_obj_set_style_text_font(${varName}, &lv_font_montserrat_${iconSize}, 0);`,
+    )
+  }
+
   lines.push(``)
   break
 }
