@@ -8,28 +8,91 @@ export type ForgeUIUploadedAsset = {
   name: string
   type: string
   size: number
-  file: File
+
+  // File only exists during the current browser session.
+  // It cannot be restored from localStorage.
+  file?: File
+
   createdAt: number
-
-  // Browser-side preview source only.
-  // This cannot be flashed directly to ESP32-P4.
   browserSrc: string
-
-  // Upload pipeline identity.
   kind: 'uploaded'
-
-  // Current export state.
-  // PNG assets start as pending_conversion.
-  // JPG/SVG remain browser_only until conversion support is added.
   exportStatus: ForgeUIUploadedAssetExportStatus
-
-  // Future LVGL export identity.
-  // These are reserved now so the rest of Studio can scaffold around them.
   lvgl: string
   cFile: string
 }
 
-let forgeUIUploadedAssets: ForgeUIUploadedAsset[] = []
+const FORGEUI_UPLOADED_ASSETS_KEY =
+  'forgeui_uploaded_assets_v1'
+
+const loadPersistedAssets = (): ForgeUIUploadedAsset[] => {
+  if (typeof window === 'undefined') {
+    return []
+  }
+
+  try {
+    const raw = window.localStorage.getItem(
+      FORGEUI_UPLOADED_ASSETS_KEY,
+    )
+
+    if (!raw) {
+      return []
+    }
+
+    const parsed = JSON.parse(raw)
+
+    if (!Array.isArray(parsed)) {
+      return []
+    }
+
+    return parsed.filter(
+      (asset: ForgeUIUploadedAsset) =>
+        asset &&
+        typeof asset.id === 'string' &&
+        typeof asset.browserSrc === 'string',
+    )
+  } catch (err) {
+    console.error(
+      'Failed to restore ForgeUI uploaded assets:',
+      err,
+    )
+
+    return []
+  }
+}
+
+let forgeUIUploadedAssets: ForgeUIUploadedAsset[] =
+  loadPersistedAssets()
+
+const persistUploadedAssets = () => {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  try {
+    const serialisableAssets =
+      forgeUIUploadedAssets.map(({ file, ...asset }) => asset)
+
+    window.localStorage.setItem(
+      FORGEUI_UPLOADED_ASSETS_KEY,
+      JSON.stringify(serialisableAssets),
+    )
+  } catch (err) {
+    console.error(
+      'Failed to persist ForgeUI uploaded assets:',
+      err,
+    )
+  }
+}
+
+const notifyAssetsUpdated = () => {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  window.dispatchEvent(
+    new Event('forgeui-assets-updated'),
+  )
+}
 
 const forgeUISafeAssetName = (name: string) =>
   String(name || 'asset')
@@ -38,23 +101,29 @@ const forgeUISafeAssetName = (name: string) =>
     .replace(/[^a-z0-9]+/g, '_')
     .replace(/^_+|_+$/g, '') || 'asset'
 
-export function forgeUICreateUploadedAsset(file: File): ForgeUIUploadedAsset {
+export function forgeUICreateUploadedAsset(
+  file: File,
+  browserSrc: string,
+): ForgeUIUploadedAsset {
   const baseName = forgeUISafeAssetName(file.name)
 
   const id =
-    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    typeof crypto !== 'undefined' &&
+    'randomUUID' in crypto
       ? crypto.randomUUID()
-      : `${Date.now()}_${Math.random().toString(16).slice(2)}`
+      : `${Date.now()}_${Math.random()
+          .toString(16)
+          .slice(2)}`
 
   const symbol = `fg_upload_${baseName}_${id
     .replace(/[^a-zA-Z0-9]/g, '')
     .slice(0, 8)}`
 
   const isConvertibleImage =
-  file.type === 'image/png' ||
-  file.type === 'image/jpeg' ||
-  file.type === 'image/svg+xml' ||
-  /\.(png|jpe?g|svg)$/i.test(file.name)
+    file.type === 'image/png' ||
+    file.type === 'image/jpeg' ||
+    file.type === 'image/svg+xml' ||
+    /\.(png|jpe?g|svg)$/i.test(file.name)
 
   return {
     id,
@@ -63,17 +132,14 @@ export function forgeUICreateUploadedAsset(file: File): ForgeUIUploadedAsset {
     size: file.size,
     file,
     createdAt: Date.now(),
-
-    browserSrc: URL.createObjectURL(file),
-
+    browserSrc,
     kind: 'uploaded',
 
     exportStatus: isConvertibleImage
-  ? 'pending_conversion'
-  : 'browser_only',
+      ? 'pending_conversion'
+      : 'browser_only',
 
     lvgl: symbol,
-
     cFile: `assets/uploads/${symbol}.c`,
   }
 }
@@ -90,35 +156,53 @@ export function forgeUIAddUploadedAssets(
     ...assets,
   ]
 
+  persistUploadedAssets()
+  notifyAssetsUpdated()
+
   return forgeUIUploadedAssets
 }
 
 export function forgeUIDeleteUploadedAsset(id: string) {
-  const asset = forgeUIUploadedAssets.find(a => a.id === id)
+  const asset = forgeUIUploadedAssets.find(
+    item => item.id === id,
+  )
 
-  if (asset?.browserSrc) {
+  if (asset?.browserSrc?.startsWith('blob:')) {
     URL.revokeObjectURL(asset.browserSrc)
   }
 
-  forgeUIUploadedAssets = forgeUIUploadedAssets.filter(
-    asset => asset.id !== id,
-  )
+  forgeUIUploadedAssets =
+    forgeUIUploadedAssets.filter(
+      asset => asset.id !== id,
+    )
+
+  persistUploadedAssets()
+  notifyAssetsUpdated()
 
   return forgeUIUploadedAssets
 }
 
 export function forgeUIUpdateUploadedAsset(
   id: string,
-  patch: Partial<Pick<ForgeUIUploadedAsset, 'exportStatus' | 'lvgl' | 'cFile'>>,
+  patch: Partial<
+    Pick<
+      ForgeUIUploadedAsset,
+      'exportStatus' | 'lvgl' | 'cFile'
+    >
+  >,
 ) {
-  forgeUIUploadedAssets = forgeUIUploadedAssets.map((asset) =>
-    asset.id === id
-      ? {
-          ...asset,
-          ...patch,
-        }
-      : asset,
-  )
+  forgeUIUploadedAssets =
+    forgeUIUploadedAssets.map(asset =>
+      asset.id === id
+        ? {
+            ...asset,
+            ...patch,
+          }
+        : asset,
+    )
+
+  persistUploadedAssets()
+  notifyAssetsUpdated()
 
   return forgeUIUploadedAssets
 }

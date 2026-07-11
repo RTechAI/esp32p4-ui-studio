@@ -122,7 +122,7 @@ const IconBrowserModal = ({
   const handleAddSelectedToAssets = async () => {
   const files = (
     await Promise.all(
-      selectedIcons.map(iconNameToPngFile)
+      selectedIcons.map(iconNameToPngFile),
     )
   ).filter(Boolean) as File[]
 
@@ -130,7 +130,16 @@ const IconBrowserModal = ({
     return
   }
 
-  const assets = files.map(forgeUICreateUploadedAsset)
+  const assets = await Promise.all(
+    files.map(async file => {
+      const browserSrc = await fileToBase64(file)
+
+      return forgeUICreateUploadedAsset(
+        file,
+        browserSrc,
+      )
+    }),
+  )
 
   forgeUIAddUploadedAssets(assets)
 
@@ -141,7 +150,7 @@ const IconBrowserModal = ({
   onClose()
 
   window.dispatchEvent(
-    new CustomEvent('forgeui-open-asset-manager')
+    new CustomEvent('forgeui-open-asset-manager'),
   )
 
   for (const asset of assets) {
@@ -150,7 +159,7 @@ const IconBrowserModal = ({
     }
 
     try {
-      const base64 = await fileToBase64(asset.file)
+      const base64 = asset.browserSrc
 
       const res = await fetch(
         'http://localhost:3030/convert-lvgl-image',
@@ -164,31 +173,41 @@ const IconBrowserModal = ({
             symbolName: asset.lvgl,
             base64,
           }),
-        }
+        },
       )
 
       const data = await res.json()
 
       if (!res.ok || !data.ok) {
-        console.error('LVGL icon conversion failed:', data)
+        console.error(
+          'LVGL icon conversion failed:',
+          data,
+        )
+
         continue
       }
 
-      console.log('LVGL icon conversion OK:', data)
+      console.log(
+        'LVGL icon conversion OK:',
+        data,
+      )
 
       forgeUIUpdateUploadedAsset(asset.id, {
         exportStatus: 'lvgl_ready',
-        cFile: data.assetSource || asset.cFile,
+        cFile:
+          data.assetSource ||
+          asset.cFile,
       })
-
-      window.dispatchEvent(
-        new CustomEvent('forgeui-assets-updated')
-      )
     } catch (err) {
-      console.error('LVGL icon conversion error:', err)
+      console.error(
+        'LVGL icon conversion error:',
+        err,
+      )
     }
   }
 }
+
+  
 
    return (
     <Modal isOpen={isOpen} onClose={onClose} size="5xl" isCentered>

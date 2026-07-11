@@ -95,20 +95,20 @@ const ImagePanel = () => {
             } as any)
 
             if (asset) {
-              setValueFromEvent({
-                target: {
-                  name: 'src',
-                  value: URL.createObjectURL(asset.file),
-                },
-              } as any)
+  setValueFromEvent({
+    target: {
+      name: 'src',
+      value: asset.browserSrc,
+    },
+  } as any)
 
-              setValueFromEvent({
-                target: {
-                  name: 'alt',
-                  value: asset.name,
-                },
-              } as any)
-            }
+  setValueFromEvent({
+    target: {
+      name: 'alt',
+      value: asset.name,
+    },
+  } as any)
+}
           }}
         >
           {uploadedAssets.map((asset) => (

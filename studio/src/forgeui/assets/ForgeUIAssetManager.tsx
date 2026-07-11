@@ -58,19 +58,25 @@ export function ForgeUIAssetManager({
   }, [])
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    const uploadedAssets: ForgeUIUploadedAsset[] = acceptedFiles.map(
-      (file) => forgeUICreateUploadedAsset(file),
-    )
+  const uploadedAssets: ForgeUIUploadedAsset[] = await Promise.all(
+    acceptedFiles.map(async file => {
+      const browserSrc = await fileToBase64(file)
 
-    setAssets(forgeUIAddUploadedAssets(uploadedAssets))
+      return forgeUICreateUploadedAsset(file, browserSrc)
+    }),
+  )
 
-    for (const asset of uploadedAssets) {
-      if (asset.exportStatus !== 'pending_conversion') continue
+  setAssets(forgeUIAddUploadedAssets(uploadedAssets))
 
-      try {
-        const base64 = await fileToBase64(asset.file)
+  for (const asset of uploadedAssets) {
+    if (asset.exportStatus !== 'pending_conversion') continue
 
-        const res = await fetch('http://localhost:3030/convert-lvgl-image', {
+    try {
+      const base64 = asset.browserSrc
+
+      const res = await fetch(
+        'http://localhost:3030/convert-lvgl-image',
+        {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -78,32 +84,35 @@ export function ForgeUIAssetManager({
             symbolName: asset.lvgl,
             base64,
           }),
-        })
+        },
+      )
 
-        const data = await res.json()
+      const data = await res.json()
 
-        if (!data.ok) {
-  console.error('LVGL conversion failed:', data)
-  alert(
-    'LVGL conversion failed:\n\n' +
-    (data.error || 'Unknown error') +
-    '\n\n' +
-    (data.log || data.detail || '')
-  )
-  continue
-}
+      if (!data.ok) {
+        console.error('LVGL conversion failed:', data)
 
-        setAssets(
-          forgeUIUpdateUploadedAsset(asset.id, {
-            exportStatus: 'lvgl_ready',
-            cFile: data.assetSource || asset.cFile,
-          }),
+        alert(
+          'LVGL conversion failed:\n\n' +
+            (data.error || 'Unknown error') +
+            '\n\n' +
+            (data.log || data.detail || ''),
         )
-      } catch (err) {
-        console.error('LVGL conversion error:', err)
+
+        continue
       }
+
+      setAssets(
+        forgeUIUpdateUploadedAsset(asset.id, {
+          exportStatus: 'lvgl_ready',
+          cFile: data.assetSource || asset.cFile,
+        }),
+      )
+    } catch (err) {
+      console.error('LVGL conversion error:', err)
     }
-  }, [])
+  }
+}, [])
 
   const {
     getRootProps,
