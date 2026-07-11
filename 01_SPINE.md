@@ -3,7 +3,7 @@
 ## Current Save Point
 
 ```text
-FORGEUI_ICON_LIBRARY_V1__REACT_ICON_TO_LVGL_ASSET_SCALING_P4_PROVEN__2026-06-24
+FORGEUI_ICON_ASSET_WORKFLOW__SOURCE_ICON_AUTO_REMOVE__ONE_CLICK_STARTUP__2026-07-11
 ```
 
 ---
@@ -462,10 +462,23 @@ Image Scaling Correct
 ✓
 ```
 
+Automatic Source Icon Removal
+✓
+
+One Click Asset Conversion
+✓
+
+One Click Studio Startup
+✓
+
+Automatic Previous Node Cleanup
+✓
+
 ### Architecture
 
-```text
-Icon Browser
+Icon Widget
+    ↓
+Browse Icons
     ↓
 React Icon
     ↓
@@ -476,6 +489,8 @@ Asset Manager
 LVGLImage.py
     ↓
 Generated C Asset
+    ↓
+Source Icon Removed
     ↓
 LVGL Export
     ↓
@@ -554,21 +569,21 @@ Physical Hardware Flash
 # Current Active Mission
 
 ```text
-FORGEUI_THEME_SYSTEM_V2__BACKGROUND_AND_WIDGET_POLISH__2026-06-24
+FORGEUI_DOCUMENT_RECOVERY_AND_STARTUP_CLEANUP__2026-07-11
 ```
 
 Current exploration:
 
 ```text
-Theme usability
+Studio startup cleanup
 
-Widget readability
+Document persistence
 
-Background visual quality
+Asset recovery
 
-Theme identity
+Browser blob restoration
 
-Builder aesthetics
+Session recovery
 ```
 
 ---
@@ -576,19 +591,25 @@ Builder aesthetics
 # Current Next Mission
 
 ```text
-FORGEUI_THEME_SHOWCASE_V1__DASHBOARD_PROOF_AND_THEME_AUDIT_NEXT
+FORGEUI_DOCUMENT_RECOVERY_AND_STARTUP_CLEANUP_NEXT
 ```
 
 Goal:
 
 ```text
-Create representative dashboard layouts.
+Investigate Studio persistence.
 
-Evaluate all major ForgeUI themes.
+Locate localStorage / persistence.
 
-Identify strongest default theme.
+Prevent orphaned browser assets.
 
-Verify widget readability across themes.
+Either:
+
+Start with a clean document
+
+or
+
+Restore valid sessions only.
 ```
 
 ---
