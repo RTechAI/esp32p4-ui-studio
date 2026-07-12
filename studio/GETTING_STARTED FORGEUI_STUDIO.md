@@ -1,6 +1,10 @@
-# 🚀 ForgeUI Studio | First-Time Setup & Getting Started Guide
+# 🚀 ForgeUI Studio
 
-### The Zero-Friction Visual Layout, Asset Compilation, and Toolchain Deployment Workflow for Espressif ESP32-P4 and LVGL v9.2.2.
+### Visual LVGL v9 Designer, AI Layout Generator and Standalone ESP-IDF Export Framework for Espressif ESP32-P4.
+
+Design visually, generate native LVGL code, export a standalone ESP-IDF project, and continue development independently in Visual Studio Code.
+
+---
 
 # 🚀 Quick Start
 
@@ -17,7 +21,7 @@ cd esp32p4-ui-studio
 
 ---
 
-## 2. Run the First-Time Setup
+## 2. Run ForgeUI Setup
 
 Launch:
 
@@ -25,7 +29,9 @@ Launch:
 FIRST_TIME_FORGEUI_SETUP.bat
 ```
 
-The setup utility will automatically:
+This utility prepares, validates and repairs the ForgeUI development environment.
+
+It will automatically:
 
 - ✓ Verify Node.js
 - ✓ Verify npm
@@ -35,10 +41,10 @@ The setup utility will automatically:
 - ✓ Install pypng
 - ✓ Install lz4
 - ✓ Verify `LVGLImage.py`
-- ✓ Verify the ESP-IDF installation
+- ✓ Verify ESP-IDF 5.5.x
 - ✓ Verify the OpenAI package
 - ✓ Check OpenAI API configuration
-- ✓ Verify the standalone export environment
+- ✓ Validate the standalone export environment
 - ✓ Optionally launch ForgeUI Studio
 
 If anything is missing, ForgeUI provides guided repair instructions wherever possible.
@@ -47,18 +53,17 @@ If anything is missing, ForgeUI provides guided repair instructions wherever pos
 
 ## 3. Start ForgeUI Studio
 
-Launch:
+For everyday development, launch:
 
 ```text
 START_FORGEUI_STUDIO_HIDDEN.vbs
 ```
 
-ForgeUI Studio will start the local development services and automatically open:
+ForgeUI Studio starts the local development services and automatically opens:
 
 ```text
 http://localhost:3000
 ```
-
 ---
 
 ## 4. Design, Export and Continue Development
@@ -495,30 +500,54 @@ After export, ForgeUI Studio is no longer required.
 ## 💾 Workspace Directory Mapping
 
 ```text
-C:\ForgeUI\Projects\esp32p4-ui-studio/
-├── studio/                          # React / Next.js visual UI builder
-│   ├── src/                         # Builder, widgets, themes, preview, export logic
-│   ├── public/                      # Static web assets
-│   └── export-server.js             # Local build, flash and asset conversion server
-├── firmware/ForgeUI-One/            # Reference standalone ESP-IDF project
+esp32p4-ui-studio/
+├── studio/                              # React / Next.js visual ForgeUI Studio
+│   ├── src/                             # Builder, widgets, themes, AI, preview & export logic
+│   ├── public/                          # Static web assets
+│   ├── export-server.js                 # Local asset conversion, export & flash services
+│   └── .env.local                       # Optional OpenAI API configuration (user created)
+│
+├── firmware/ForgeUI-One/                # Reference standalone ESP-IDF project template
 │   ├── main/
-│   │   ├── assets/uploads/          # Generated LVGL image assets (.c)
-│   │   ├── 00_ForgeUI_Config.h      # Global ForgeUI configuration
-│   │   ├── 01_FG_Runtime.c/.h       # Runtime framework
-│   │   ├── 20_RTC.c/.h              # RTC runtime
-│   │   ├── 30_Audio.c/.h            # Audio runtime
-│   │   ├── 30_WIFI.c/.h             # Wi-Fi runtime
-│   │   ├── 40_SD.c/.h               # SD card runtime
-│   │   └── 90_Studio_Export.c       # Generated LVGL user interface
-│   ├── partitions.csv               # Custom flash partition layout
-│   ├── sdkconfig.defaults           # Default ESP-IDF configuration
-│   └── CMakeLists.txt               # Root ESP-IDF build script
-├── tools/lvgl/LVGLImage.py          # Offline LVGL image conversion engine
-├── docs/history/                    # Project history and architecture milestones
-├── START_FORGEUI_STUDIO.bat         # Launch ForgeUI Studio
-├── START_FORGEUI_STUDIO_HIDDEN.vbs  # Launch Studio in the background
-└── STOP_FORGEUI_STUDIO.bat          # Stop Studio services
+│   │   ├── assets/uploads/              # Generated LVGL image & icon assets
+│   │   ├── 00_ForgeUI_Config.h          # Global ForgeUI configuration
+│   │   ├── 01_FG_Runtime.c/.h           # Runtime framework
+│   │   ├── 20_RTC.c/.h                  # RTC runtime
+│   │   ├── 30_Audio.c/.h                # Audio runtime
+│   │   ├── 30_WIFI.c/.h                 # Wi-Fi runtime
+│   │   ├── 40_SD.c/.h                   # SD card runtime
+│   │   └── 90_Studio_Export.c           # Generated LVGL user interface
+│   ├── partitions.csv                   # Flash partition layout
+│   ├── sdkconfig.defaults               # Default ESP-IDF configuration
+│   └── CMakeLists.txt                   # Root ESP-IDF build script
+│
+├── tools/
+│   ├── lvgl/
+│   │   └── LVGLImage.py                 # Offline LVGL image conversion engine
+│   └── startup/
+│       └── forgeui-preflight.ps1        # First-time setup & dependency validation
+│
+├── docs/
+│   └── history/                         # Project history & architecture milestones
+│
+├── START_FORGEUI_STUDIO.bat             # Launch ForgeUI Studio
+├── START_FORGEUI_STUDIO_HIDDEN.vbs      # Hidden background launcher
+├── STOP_FORGEUI_STUDIO.bat              # Stop Studio services
+├── FIRST_TIME_FORGEUI_SETUP.bat         # First-time setup & automatic dependency repair
+│
+└── README.md
 ```
+
+### Directory Overview
+
+| Folder | Purpose |
+|---------|----------|
+| **studio** | Visual designer, AI playground, browser preview and export system |
+| **firmware** | Standalone ESP-IDF project template generated by ForgeUI |
+| **tools/lvgl** | Offline LVGL image conversion pipeline |
+| **tools/startup** | Environment validation, dependency repair and first-time setup |
+| **docs/history** | Project milestones and architecture save points |
+
 ```
 
 ---
