@@ -56,41 +56,45 @@ http://localhost:3000
 The complete ForgeUI workflow is structured as follows:
 
 ```text
-ForgeUI Studio / AI Playground
-              │
-              ▼
-    Visual Layout Design Canvas
-              │
-              ▼
-    Zero-Compile Browser Preview
-              │
-              ▼
-    AI Layout Generation (Optional)
-              │
-              ▼
-    Highly-Optimized LVGL 9 Export
-              │
-              ▼
-  Independent Standalone ESP-IDF Project
-              │
-              ▼
-     Visual Studio Code (IDE Workspace)
-              │
-              ▼
-     Official Espressif ESP-IDF Extension
-              │
-              ▼
-    [Add Custom I/O, Drivers, & App Logic]
-    (GPIO, I2C, SPI, UART, CAN, Networking)
-              │
-              ▼
-     Native Cross-Compiler Cross-Build
-              │
-              ▼
-     Hardware Flash & Binary Verification
-              │
-              ▼
-    Physical Waveshare ESP32-P4 Target SoC
+                 ForgeUI Studio / AI Studio
+                           │
+                           ▼
+                    Visual Builder
+                           │
+              ┌────────────┴────────────┐
+              │                         │
+              ▼                         ▼
+      Manual Visual Design      AI Layout Generation
+              │                         │
+              └────────────┬────────────┘
+                           ▼
+                 ForgeUI Layout Document
+                           │
+                           ▼
+               Zero-Compile Browser Preview
+                           │
+                           ▼
+               Highly-Optimized LVGL 9 Export
+                           │
+                           ▼
+         Independent Standalone ESP-IDF Project
+                           │
+                           ▼
+            Visual Studio Code (IDE Workspace)
+                           │
+                           ▼
+       Official Espressif ESP-IDF Extension
+                           │
+                           ▼
+        Add Custom I/O, Drivers & Application Logic
+      (GPIO, I²C, SPI, UART, CAN, Networking, Sensors)
+                           │
+                           ▼
+              Native ESP-IDF Build & Flash
+                           │
+                           ▼
+             Physical Waveshare ESP32-P4 Target
+```
 ```
 
 ForgeUI Studio generates a **fully standalone ESP-IDF project**. Once exported, development continues entirely independently in Visual Studio Code using the official ESP-IDF extension. You are free to add custom GPIO, I²C, SPI, UART, CAN, networking, sensors, drivers, and application logic without being locked into the ForgeUI Studio environment.
@@ -276,3 +280,17 @@ To experience the maximum fluidity of the decoupled workspace architecture, conf
 *   **Recommended Workspace Extensions:** `ESLint`, `Prettier`, and the official **Espressif ESP-IDF Extension**.
 
 *Note: The official Espressif VS Code Extension has been physically verified to build, partition, link, and flash standalone ForgeUI project exports directly from your editor without requiring ForgeUI Studio running in the background.*
+
+
+## 🤖 ForgeUI AI Roadmap
+
+ForgeUI AI is designed as a modular architecture where every AI capability shares the same engine, prompt builder, parser, validator, and export pipeline.
+
+Planned AI modules:
+
+- ✓ Layout Generation
+- 🚧 Theme Generation
+- Planned Asset Generation
+- Planned Image Generation
+- Planned Icon Generation
+- Planned Runtime Assistant

@@ -1,11 +1,22 @@
 import React, { useState } from 'react'
 import {
+  Badge,
   Box,
   Button,
+  Collapse,
+  Divider,
   Flex,
+  Heading,
   HStack,
   SimpleGrid,
+  Tab,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Tabs,
+  Text,
   Textarea,
+  VStack,
 } from '@chakra-ui/react'
 
 import { aiSupportedComponents } from '~componentsList'
@@ -798,13 +809,17 @@ export const ForgeAIPanel = ({
 }: ForgeAIPanelProps) => {
   
   const [layoutJson, setLayoutJson] = useState(DEFAULT_LAYOUT_JSON)
-const [jsonError, setJsonError] = useState('')
-
-const [aiPrompt, setAiPrompt] = useState('')
-const [isGenerating, setIsGenerating] = useState(false)
+  const [jsonError, setJsonError] = useState('')
+  const [aiPrompt, setAiPrompt] = useState('')
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [showAdvanced, setShowAdvanced] = useState(false)
+  const [resultName, setResultName] = useState('')
+  const [resultDescription, setResultDescription] = useState('')
 
   const loadLayoutJson = (document: any) => {
     setLayoutJson(JSON.stringify(document, null, 2))
+    setResultName(document.name || 'Template Layout')
+    setResultDescription(document.description || '')
   }
 
   const validateAiLayout = (layout: any[]) => {
@@ -836,24 +851,26 @@ const [isGenerating, setIsGenerating] = useState(false)
   }
 
   const generateLayout = async () => {
-  try {
-    setJsonError('')
-    setIsGenerating(true)
+    try {
+      setJsonError('')
+      setIsGenerating(true)
 
-    const context = createForgeAIContext()
+      const context = createForgeAIContext()
 
-    const document = await generateForgeAILayout({
-      prompt: aiPrompt,
-      ...context,
-    })
+      const document = await generateForgeAILayout({
+        prompt: aiPrompt,
+        ...context,
+      })
 
-    setLayoutJson(JSON.stringify(document, null, 2))
-  } catch (err: any) {
-    setJsonError(err.message || 'AI layout generation failed')
-  } finally {
-    setIsGenerating(false)
+      setLayoutJson(JSON.stringify(document, null, 2))
+      setResultName(document.name || 'AI Generated Layout')
+      setResultDescription(document.description || '')
+    } catch (err: any) {
+      setJsonError(err.message || 'AI layout generation failed')
+    } finally {
+      setIsGenerating(false)
+    }
   }
-}
   
   const insertJsonLayout = () => {
     try {
@@ -878,103 +895,327 @@ const [isGenerating, setIsGenerating] = useState(false)
       bottom="20px"
       bg="#070b12"
       color="white"
-      border="1px solid #2dd4bf"
-      borderRadius="md"
+      border="1px solid rgba(45, 212, 191, 0.55)"
+      borderRadius="xl"
       zIndex={9999}
-      overflow="auto"
-      boxShadow="0 0 24px rgba(0,0,0,0.65)"
-      p={4}
+      overflow="hidden"
+      boxShadow="0 24px 80px rgba(0, 0, 0, 0.72)"
     >
-      <Flex justify="space-between" align="center" mb={4}>
-        <Box fontWeight="bold" fontSize="lg">
-          ForgeUI AI Playground
+      <Flex
+        justify="space-between"
+        align="center"
+        px={{ base: 4, md: 6 }}
+        py={4}
+        borderBottom="1px solid rgba(148, 163, 184, 0.16)"
+        bg="linear-gradient(90deg, rgba(124, 58, 237, 0.16), rgba(6, 182, 212, 0.08))"
+      >
+        <Box>
+          <HStack spacing={3} mb={1}>
+            <Box
+              w="10px"
+              h="10px"
+              borderRadius="full"
+              bg="purple.400"
+              boxShadow="0 0 18px rgba(167, 139, 250, 0.95)"
+            />
+            <Heading size="md">ForgeUI AI Playground</Heading>
+            <Badge
+              colorScheme="purple"
+              variant="subtle"
+              borderRadius="full"
+              px={2}
+            >
+              LIVE
+            </Badge>
+          </HStack>
+
+          <Text color="gray.400" fontSize="sm">
+            Natural language → ForgeUI layout → ESP32-P4
+          </Text>
         </Box>
 
-        <Button size="xs" colorScheme="red" onClick={onClose}>
+        <Button
+          size="sm"
+          variant="outline"
+          colorScheme="red"
+          onClick={onClose}
+        >
           Close
         </Button>
       </Flex>
 
-      <Box color="gray.400" mb={4}>
-        AI layout generation playground.
+      <Box h="calc(100% - 82px)" overflowY="auto" px={{ base: 4, md: 6 }} py={5}>
+        <Tabs colorScheme="purple" variant="soft-rounded" isLazy>
+          <TabList
+            gap={2}
+            overflowX="auto"
+            pb={3}
+            borderBottom="1px solid rgba(148, 163, 184, 0.14)"
+          >
+            <Tab>Layout</Tab>
+            <Tab>Theme</Tab>
+            <Tab isDisabled>Assets</Tab>
+            <Tab isDisabled>Images</Tab>
+            <Tab isDisabled>Icons</Tab>
+            <Tab isDisabled>Runtime</Tab>
+          </TabList>
+
+          <TabPanels>
+            <TabPanel px={0} pt={5}>
+              <SimpleGrid columns={{ base: 1, xl: 2 }} spacing={5}>
+                <VStack spacing={5} align="stretch">
+                  <Box
+                    border="1px solid rgba(124, 58, 237, 0.4)"
+                    bg="rgba(15, 23, 42, 0.72)"
+                    borderRadius="xl"
+                    p={5}
+                    boxShadow="inset 0 1px 0 rgba(255,255,255,0.03)"
+                  >
+                    <HStack justify="space-between" mb={1}>
+                      <Heading size="sm">Create a layout</Heading>
+                      <Badge colorScheme="purple">GPT</Badge>
+                    </HStack>
+
+                    <Text color="gray.400" fontSize="sm" mb={4}>
+                      Describe the screen, controls and visual direction.
+                    </Text>
+
+                    <Textarea
+                      value={aiPrompt}
+                      onChange={(e) => setAiPrompt(e.target.value)}
+                      placeholder="Create a modern industrial dashboard with machine status, temperature, pressure and start/stop controls..."
+                      minH="150px"
+                      resize="vertical"
+                      bg="#050914"
+                      color="white"
+                      borderColor="rgba(139, 92, 246, 0.52)"
+                      _hover={{ borderColor: 'purple.400' }}
+                      _focus={{
+                        borderColor: 'purple.300',
+                        boxShadow: '0 0 0 1px #c4b5fd',
+                      }}
+                      fontSize="sm"
+                    />
+
+                    <Flex
+                      mt={4}
+                      gap={3}
+                      justify="space-between"
+                      align={{ base: 'stretch', md: 'center' }}
+                      direction={{ base: 'column', md: 'row' }}
+                    >
+                      <Text color="gray.500" fontSize="xs">
+                        Complete screens work best with clear controls and purpose.
+                      </Text>
+
+                      <Button
+                        colorScheme="purple"
+                        px={7}
+                        onClick={generateLayout}
+                        isLoading={isGenerating}
+                        loadingText="Forging layout"
+                        isDisabled={!aiPrompt.trim()}
+                        boxShadow="0 0 24px rgba(124, 58, 237, 0.32)"
+                      >
+                        Generate Layout
+                      </Button>
+                    </Flex>
+                  </Box>
+
+                  <Box
+                    border="1px solid rgba(34, 211, 238, 0.28)"
+                    bg="rgba(8, 15, 26, 0.76)"
+                    borderRadius="xl"
+                    p={5}
+                  >
+                    <Flex justify="space-between" align="center" mb={4}>
+                      <Box>
+                        <Heading size="sm">Quick templates</Heading>
+                        <Text color="gray.500" fontSize="xs" mt={1}>
+                          Load a proven starter document, then edit or insert it.
+                        </Text>
+                      </Box>
+
+                      <Badge colorScheme="cyan">
+                        {AI_TEMPLATE_BUTTONS.length} READY
+                      </Badge>
+                    </Flex>
+
+                    <SimpleGrid columns={{ base: 2, md: 3 }} spacing={3}>
+                      {AI_TEMPLATE_BUTTONS.map((template) => (
+                        <Button
+                          key={template.label}
+                          size="sm"
+                          variant="outline"
+                          colorScheme="cyan"
+                          justifyContent="flex-start"
+                          onClick={() => {
+                            setJsonError('')
+                            loadLayoutJson(template.document)
+                          }}
+                        >
+                          {template.label}
+                        </Button>
+                      ))}
+                    </SimpleGrid>
+                  </Box>
+                </VStack>
+
+                <VStack spacing={5} align="stretch">
+                  <Box
+                    border="1px solid rgba(45, 212, 191, 0.32)"
+                    bg="rgba(8, 18, 24, 0.82)"
+                    borderRadius="xl"
+                    p={5}
+                    minH="250px"
+                  >
+                    <Flex justify="space-between" align="flex-start" mb={4}>
+                      <Box>
+                        <Heading size="sm">Generated result</Heading>
+                        <Text color="gray.500" fontSize="xs" mt={1}>
+                          Review the document, then place it onto the canvas.
+                        </Text>
+                      </Box>
+
+                      <Badge colorScheme={resultName ? 'green' : 'gray'}>
+                        {resultName ? 'READY' : 'WAITING'}
+                      </Badge>
+                    </Flex>
+
+                    {resultName ? (
+                      <Box
+                        border="1px solid rgba(74, 222, 128, 0.22)"
+                        bg="rgba(22, 101, 52, 0.08)"
+                        borderRadius="lg"
+                        p={4}
+                        mb={4}
+                      >
+                        <Text fontWeight="bold" color="green.200">
+                          {resultName}
+                        </Text>
+
+                        <Text color="gray.400" fontSize="sm" mt={1}>
+                          {resultDescription || 'ForgeUI layout document ready.'}
+                        </Text>
+                      </Box>
+                    ) : (
+                      <Flex
+                        minH="112px"
+                        align="center"
+                        justify="center"
+                        border="1px dashed rgba(148, 163, 184, 0.25)"
+                        borderRadius="lg"
+                        mb={4}
+                        px={4}
+                        textAlign="center"
+                      >
+                        <Text color="gray.500" fontSize="sm">
+                          Generate a layout or choose a quick template.
+                        </Text>
+                      </Flex>
+                    )}
+
+                    <Button
+                      w="full"
+                      size="lg"
+                      colorScheme="teal"
+                      onClick={insertJsonLayout}
+                      isDisabled={!resultName}
+                      boxShadow={
+                        resultName
+                          ? '0 0 28px rgba(45, 212, 191, 0.25)'
+                          : 'none'
+                      }
+                    >
+                      Insert Into Canvas
+                    </Button>
+
+                    <Divider my={4} borderColor="rgba(148, 163, 184, 0.16)" />
+
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      colorScheme="cyan"
+                      onClick={() => setShowAdvanced((value) => !value)}
+                    >
+                      {showAdvanced ? 'Hide Advanced JSON' : 'Show Advanced JSON'}
+                    </Button>
+
+                    <Collapse in={showAdvanced} animateOpacity>
+                      <Box mt={4}>
+                        <Textarea
+                          value={layoutJson}
+                          onChange={(e) => {
+                            setLayoutJson(e.target.value)
+                            setJsonError('')
+                          }}
+                          minH="330px"
+                          bg="#050914"
+                          color="cyan.100"
+                          borderColor="gray.700"
+                          fontFamily="monospace"
+                          fontSize="sm"
+                        />
+                      </Box>
+                    </Collapse>
+
+                    {jsonError && (
+                      <Box
+                        mt={4}
+                        p={3}
+                        borderRadius="md"
+                        bg="rgba(127, 29, 29, 0.3)"
+                        border="1px solid rgba(248, 113, 113, 0.45)"
+                        color="red.200"
+                        fontFamily="monospace"
+                        fontSize="sm"
+                      >
+                        {jsonError}
+                      </Box>
+                    )}
+                  </Box>
+
+                  <Box
+                    border="1px solid rgba(148, 163, 184, 0.16)"
+                    borderRadius="xl"
+                    p={4}
+                    bg="rgba(15, 23, 42, 0.42)"
+                  >
+                    <Text color="gray.300" fontWeight="semibold" fontSize="sm">
+                      Layout Engine
+                    </Text>
+                    <Text color="gray.500" fontSize="xs" mt={1}>
+                      GPT generation, validation, canvas insertion, browser preview
+                      and physical ESP32-P4 output are proven.
+                    </Text>
+                  </Box>
+                </VStack>
+              </SimpleGrid>
+            </TabPanel>
+
+            <TabPanel px={0} pt={5}>
+              <Box
+                maxW="900px"
+                border="1px solid rgba(124, 58, 237, 0.36)"
+                bg="rgba(15, 23, 42, 0.72)"
+                borderRadius="xl"
+                p={6}
+              >
+                <HStack mb={3}>
+                  <Heading size="md">AI Theme Engine</Heading>
+                  <Badge colorScheme="purple">BACKEND READY</Badge>
+                </HStack>
+
+                <Text color="gray.400" maxW="680px">
+                  Theme documents, prompt builders, parser validation and custom
+                  palette context are now in place. The next step is wiring the
+                  prompt and live Apply Theme action into this workspace.
+                </Text>
+              </Box>
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
       </Box>
-      
-      <Box mb={2} color="purple.200" fontWeight="bold">
-  AI Layout Generator
-</Box>
-
-<Textarea
-  value={aiPrompt}
-  onChange={(e) => setAiPrompt(e.target.value)}
-  placeholder="Describe the screen you want ForgeUI to create..."
-  minH="110px"
-  mb={3}
-  bg="#101827"
-  color="white"
-  borderColor="purple.500"
-  fontSize="sm"
-/>
-
-<Button
-  colorScheme="purple"
-  mb={5}
-  onClick={generateLayout}
-  isLoading={isGenerating}
-  loadingText="Generating"
-  isDisabled={!aiPrompt.trim()}
->
-  Generate Layout
-</Button>
-
-<Box mb={2} color="cyan.200" fontWeight="bold">
-  Template Library
-</Box>
-
-<SimpleGrid columns={3} spacing={3} mb={4}>
-  {AI_TEMPLATE_BUTTONS.map((template) => (
-    <Button
-      key={template.label}
-      size="sm"
-      variant="outline"
-      colorScheme="cyan"
-      onClick={() => {
-        setJsonError('')
-        loadLayoutJson(template.document)
-      }}
-    >
-      {template.label}
-    </Button>
-  ))}
-</SimpleGrid>
-
-      <HStack spacing={3} mb={4} flexWrap="wrap">
-
-        <Button colorScheme="purple" onClick={insertJsonLayout}>
-          Insert JSON
-        </Button>
-        
-      </HStack>
-
-      <Box mb={2} color="cyan.200" fontWeight="bold">
-        Layout JSON
-      </Box>
-
-      <Textarea
-        value={layoutJson}
-        onChange={(e) => setLayoutJson(e.target.value)}
-        minH="300px"
-        bg="#101827"
-        color="white"
-        borderColor="gray.600"
-        fontFamily="monospace"
-        fontSize="sm"
-      />
-
-      {jsonError && (
-        <Box mt={3} color="red.300" fontFamily="monospace">
-          {jsonError}
-        </Box>
-      )}
     </Box>
   )
 }

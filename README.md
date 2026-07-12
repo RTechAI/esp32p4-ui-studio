@@ -25,6 +25,57 @@ Real-world runtime logs captured directly via `idf_monitor.py` on the physical *
 
 ForgeUI Studio has now been physically verified from Builder to hardware using both the integrated Studio workflow and a completely detached exported project.
 
+## 🤖 AI Studio V2 — Verified End-to-End AI Interface Generation
+
+ForgeUI Studio now includes **ForgeUI AI Studio**, allowing developers to describe interfaces using natural language and generate validated ForgeUI layouts that can be immediately edited, exported, compiled and flashed to physical hardware.
+
+### Proven AI Workflow
+
+```text
+Natural Language Prompt
+            │
+            ▼
+        OpenAI GPT
+            │
+            ▼
+Validated ForgeUI Layout Document
+            │
+            ▼
+Visual Builder Canvas
+            │
+            ▼
+Zero-Delay Browser Preview
+            │
+            ▼
+Highly-Optimized LVGL Export
+            │
+            ▼
+Independent Standalone ESP-IDF Project
+            │
+            ▼
+Visual Studio Code
+            │
+            ▼
+ESP-IDF Build
+            │
+            ▼
+Physical ESP32-P4 Hardware
+```
+
+### Verified
+
+- ✓ Live GPT integration
+- ✓ Structured ForgeUI document generation
+- ✓ Automatic JSON validation
+- ✓ Component validation
+- ✓ One-click Canvas insertion
+- ✓ Browser preview
+- ✓ Native LVGL export
+- ✓ Independent ESP-IDF project generation
+- ✓ Physical ESP32-P4 deployment
+
+This architecture transforms ForgeUI Studio from a traditional visual editor into an AI-assisted embedded interface design platform while preserving completely native LVGL and ESP-IDF output.
+
 ### Proven Workflow
 
 ```text

@@ -45,7 +45,9 @@ export const ForgeThemeProvider: React.FC<{
   }
 
   const palette =
-    customPalette ?? FG_PREVIEW_PALETTES[themeId]
+  customPalette ??
+  FG_PREVIEW_PALETTES[themeId] ??
+  FG_PREVIEW_PALETTES.reactor_dark
 
   return (
     <ForgeThemeContext.Provider
