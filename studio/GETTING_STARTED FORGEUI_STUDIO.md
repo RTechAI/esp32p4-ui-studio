@@ -2,37 +2,149 @@
 
 ### The Zero-Friction Visual Layout, Asset Compilation, and Toolchain Deployment Workflow for Espressif ESP32-P4 and LVGL v9.2.2.
 
-This setup manual guides you through initializing, mounting, and compiling your development environment to transition visual drag-and-drop web layouts into optimized standalone firmware binaries.
+# 🚀 Quick Start
+
+Get ForgeUI Studio running in just a few minutes.
 
 ---
 
-## 🎨 Unified Architecture Streams
+## 1. Clone the Repository
 
-ForgeUI Studio couples asset configuration, interface styling, and structural logic into a centralized, single-source-of-truth pipeline:
-
-### 1. Theme Management System (V2 Stack)
-```text
-  [ FG_PREVIEW_PALETTES ] ──► Base structural interface color schema arrays
-             ↓
-  [    Theme Manager    ] ──► Workspace selection engine (25+ preset layouts)
-             ↓
-  [  ForgeThemeContext ] ──► Unified runtime variable map
-             ↓
-  [    Canvas Builder   ] ──► Real-time edit vector bounding box layer
-             ↓
-  [   Browser Preview   ] ──► Zero-lag layout emulated rendering viewport
-             ↓
-  [  ForgeUILvglExport  ] ──► Pure C layout translation transformation
-             ↓
-  [   Generated LVGL    ] ──► Native framework component parameters
-             ↓
-  [    Physical ESP32-P4  ] ──► Hardware-accelerated screen draw passes (63 FPS)
+```bash
+git clone <your-repository-url> esp32p4-ui-studio
+cd esp32p4-ui-studio
 ```
-*   **Centralized Configuration Matrix**: Adjusting parameters inside `studio/src/forgeui/preview/forgeThemeMap.ts` auto-populates selectors, maps browser previews, structures code generation arrays, and configures physical flash configurations simultaneously.
 
-### 2. High-Speed Local Asset Conversion Engine
+---
+
+## 2. Run the First-Time Setup
+
+Launch:
+
 ```text
-### 2. Unified Local Asset Conversion Engine
+FIRST_TIME_FORGEUI_SETUP.bat
+```
+
+The setup utility will automatically:
+
+- ✓ Verify Node.js
+- ✓ Verify npm
+- ✓ Install `node_modules` (if required)
+- ✓ Locate a compatible Python 3.11 installation
+- ✓ Install Pillow
+- ✓ Install pypng
+- ✓ Install lz4
+- ✓ Verify `LVGLImage.py`
+- ✓ Verify the ESP-IDF installation
+- ✓ Verify the OpenAI package
+- ✓ Check OpenAI API configuration
+- ✓ Verify the standalone export environment
+- ✓ Optionally launch ForgeUI Studio
+
+If anything is missing, ForgeUI provides guided repair instructions wherever possible.
+
+---
+
+## 3. Start ForgeUI Studio
+
+Launch:
+
+```text
+START_FORGEUI_STUDIO_HIDDEN.vbs
+```
+
+ForgeUI Studio will start the local development services and automatically open:
+
+```text
+http://localhost:3000
+```
+
+---
+
+## 4. Design, Export and Continue Development
+
+The complete ForgeUI workflow is:
+
+```text
+ForgeUI Studio
+        ↓
+Visual Layout Design
+        ↓
+Browser Preview
+        ↓
+AI Layout Generation (Optional)
+        ↓
+LVGL Export
+        ↓
+Standalone ESP-IDF Project
+        ↓
+Visual Studio Code
+        ↓
+ESP-IDF Extension
+        ↓
+Add Custom I/O
+Drivers
+Application Logic
+        ↓
+Build
+        ↓
+Flash
+        ↓
+Physical ESP32-P4
+```
+
+ForgeUI generates a **fully standalone ESP-IDF project**. Once exported, development continues independently in Visual Studio Code using the ESP-IDF extension. You are free to add custom GPIO, I²C, SPI, UART, CAN, networking, sensors, drivers, and application logic without being locked into the ForgeUI Studio environment.
+
+This guide walks through configuring your development environment and taking a visual drag-and-drop interface all the way through to a standalone, production-ready ESP32-P4 firmware project.
+---
+
+## 🎨 Unified ForgeUI Architecture
+
+ForgeUI Studio is built around a single-source-of-truth architecture where visual design, themes, assets, AI generation, and code export all share the same project model.
+
+Every stage of the workflow feeds directly into the next, eliminating duplicated configuration and ensuring browser previews accurately represent the generated firmware.
+
+---
+
+### 1. Theme Management System
+
+```text
+FG_PREVIEW_PALETTES
+            ↓
+Theme Manager
+            ↓
+ForgeThemeContext
+            ↓
+Canvas Builder
+            ↓
+Browser Preview
+            ↓
+LVGL Export
+            ↓
+Generated LVGL Code
+            ↓
+Standalone ESP-IDF Project
+            ↓
+Physical ESP32-P4
+```
+
+**Verified**
+
+- Unified Theme System
+- Live Browser Preview
+- Automatic LVGL Code Generation
+- Physical ESP32-P4 Validation
+
+Changing a theme automatically updates:
+
+- Theme selectors
+- Browser preview
+- Exported LVGL code
+- Physical firmware output
+
+---
+
+### 2. Unified Image & Icon Asset Pipeline
 
 ```text
 Uploaded Image / React Icon
@@ -69,71 +181,258 @@ Physical ESP32-P4
 - Automatic LVGLImage.py Processing
 - Automatic Asset Registry Integration
 - Automatic CMake Source Generation
-- Unified Image & Icon Asset Pipeline
+- Unified Image & Icon Pipeline
 - Physical ESP32-P4 Validation
 
 Image widgets and React Icon widgets now share a single native LVGL asset pipeline.
-```
-*   **Hardware Acceleration Integration**: Mapped asset variables bypass runtime filesystem processing. They convert into pure source memory sheets (`.c` files), injecting automated `LV_IMAGE_DECLARE(...)` mappings and binding layout nodes via raw `lv_image_set_src(...)` hooks natively.
 
 ---
 
-## 🛠️ Required Frameworks & Dependencies
+### 3. AI Layout Generation Pipeline
 
-Install these baseline dependencies to prevent compiler environment mismatches:
+```text
+Natural Language Prompt
+            ↓
+OpenAI
+            ↓
+ForgeUI JSON Layout
+            ↓
+Schema Validation
+            ↓
+Component Registry
+            ↓
+Canvas Builder
+            ↓
+Browser Preview
+            ↓
+LVGL Export
+            ↓
+Standalone ESP-IDF Project
+```
 
-### 1. Runtimes & Version Source Control
-*   **Node.js Runtime Platform**: Enforces **Node.js v20 LTS (or newer)**. Verify tracking variables via console tools:
-    ```bash
-    node -v
-    npm -v
-    ```
-*   **Git Source Control SCM**: Essential for version branches and dependency pulls. Verify version loops:
-    ```bash
-    git --version
-    ```
+**Current Capabilities**
 
-### 2. IDE Workspace Configuration
-*   **Code Editor**: **Visual Studio Code (VS Code)**.
-*   **Core System Extensions
+- AI Layout Generation
+- JSON Schema Validation
+- Supported Component Verification
+- Direct Canvas Insertion
+- Native LVGL Export
 
-• ESLint
-• Prettier
-• Espressif ESP-IDF Extension
-
-The ESP-IDF Extension has been physically verified to build and flash exported ForgeUI projects directly inside Visual Studio Code without requiring ForgeUI Studio.
-
-### 3. Native Embedded Toolchain Framework
-*   **Development Framework**: **ESP-IDF v5.5.4 Stable Core**.
-*   **Compilation Target Processor**: **ESP32-P4**.
-*   **System Python Packages**: The local ARGB8888 canvas asset converter (`tools/lvgl/LVGLImage.py`) requires native Python 3.11 bindings. Install compressed compilation dependencies directly:
-    ```powershell
-    pip install pypng lz4
-    ```
+AI-generated layouts become first-class ForgeUI layouts and follow the same export pipeline as manually created interfaces.
 
 ---
 
-## 📦 Local Workspace Installation Steps
+### 4. Standalone Export Architecture
 
-Follow this precise structural alignment path to preserve background script lookup boundaries:
-
-### 1. Clone Source Repository
-To ensure automated execution script paths function without internal parameter drift, map your target branch directly into this folder structure:
-```bash
-# Create base directories and pull project repository sources
-mkdir -p C:\ForgeUI\Projects\
-cd C:\ForgeUI\Projects\
-git clone <your-repository-url> esp32p4-ui-studio
+```text
+ForgeUI Studio
+            ↓
+Visual UI Design
+            ↓
+Browser Preview
+            ↓
+LVGL Export
+            ↓
+Standalone ESP-IDF Project
+            ↓
+Visual Studio Code
+            ↓
+ESP-IDF Extension
+            ↓
+Build
+            ↓
+Flash
+            ↓
+Physical ESP32-P4
 ```
-*   **Verified Path Target**: `C:\ForgeUI\Projects\esp32p4-ui-studio`
 
-### 2. Run Studio Interface Installation
-Initialize local ecosystem dependency modules natively from your workspace directory tree:
-```bash
-cd C:\ForgeUI\Projects\esp32p4-ui-studio\studio
-npm install
+**Verified**
+
+- Independent Project Export
+- Independent VS Code Development
+- Independent ESP-IDF Build
+- Independent Flash
+- Physical ESP32-P4 Validation
+
+ForgeUI generates a complete standalone ESP-IDF project.
+
+After export, developers are free to continue development outside ForgeUI Studio by adding custom GPIO, I²C, SPI, UART, CAN, networking, sensors, drivers, middleware, and application logic.
+
+ForgeUI is a visual designer and code generator—not a locked development ecosystem.
+
+---
+
+### 5. First-Time Setup & Environment Validation
+
+```text
+Clone Repository
+            ↓
+FIRST_TIME_FORGEUI_SETUP.bat
+            ↓
+Verify Node.js
+            ↓
+Install node_modules
+            ↓
+Locate Python
+            ↓
+Install Pillow / pypng / lz4
+            ↓
+Verify LVGLImage.py
+            ↓
+Verify ESP-IDF
+            ↓
+Verify OpenAI
+            ↓
+Launch ForgeUI Studio
 ```
-*   **Ecosystem Components Added**: Configures Next.js compilation layers, React engines, Chakra UI layout frames, and `react-dropzone` components safely.
+
+The integrated setup utility automatically prepares a new development environment, validates project dependencies, and provides guided repair for common installation issues before launching ForgeUI Studio.
+
+```text
+FIRST_TIME_FORGEUI_SETUP.bat
+```
+
+The setup utility will automatically:
+
+- Verify **Node.js**
+- Verify **npm**
+- Install **node_modules** (if missing)
+- Locate a compatible **Python 3.11** installation
+- Install required Python packages:
+  - Pillow
+  - pypng
+  - lz4
+- Verify the **LVGLImage.py** asset conversion engine
+- Verify **ESP-IDF 5.5.x** installation
+- Verify OpenAI package installation
+- Check OpenAI API configuration
+- Optionally launch ForgeUI Studio
+
+---
+
+### 1. Runtime Requirements
+
+#### Node.js
+
+ForgeUI requires **Node.js v20 LTS (or newer)**.
+
+Verify your installation:
+
+```bash
+node -v
+npm -v
+```
+
+If `node_modules` is missing, **FIRST_TIME_FORGEUI_SETUP.bat** will automatically install the required project packages.
+
+#### Git
+
+Git is required for cloning and updating the ForgeUI repository.
+
+Verify:
+
+```bash
+git --version
+```
+
+---
+
+### 2. Development Environment
+
+Recommended IDE:
+
+- Visual Studio Code
+
+Recommended Extensions:
+
+- ESLint
+- Prettier
+- Espressif ESP-IDF Extension
+
+The ESP-IDF extension has been physically verified to build and flash standalone ForgeUI exports directly from Visual Studio Code without requiring ForgeUI Studio.
+
+---
+
+### 3. ESP-IDF Standalone Development
+
+ForgeUI exports a completely independent ESP-IDF project.
+
+Required:
+
+- ESP-IDF v5.5.x
+- ESP32-P4 Toolchain
+- ESP-IDF VS Code Extension (recommended)
+
+After exporting a project you may continue development independently:
+
+```text
+ForgeUI Studio
+        ↓
+Export Standalone ESP-IDF Project
+        ↓
+Visual Studio Code
+        ↓
+ESP-IDF Extension
+        ↓
+Add Custom I/O
+GPIO
+I2C
+SPI
+UART
+CAN
+Networking
+Application Logic
+        ↓
+Build
+        ↓
+Flash
+        ↓
+Physical ESP32-P4
+```
+
+ForgeUI does **not** lock your project into the Studio environment.
+
+---
+
+### 4. LVGL Image Conversion
+
+ForgeUI uses a local offline image conversion pipeline.
+
+The first-time setup automatically verifies:
+
+- Python 3.11
+- Pillow
+- pypng
+- lz4
+- `tools/lvgl/LVGLImage.py`
+
+This pipeline converts uploaded images and React Icons into native LVGL C assets ready for standalone ESP-IDF builds.
+
+---
+
+### 5. OpenAI Integration
+
+AI-assisted layout generation requires:
+
+- OpenAI npm package
+- An OpenAI API key
+
+Create:
+
+```text
+studio/.env.local
+```
+
+Example:
+
+```text
+OPENAI_API_KEY=your_api_key_here
+```
+
+The first-time setup verifies both the OpenAI package installation and API key configuration.
+
+---
+
 
 ---
 
@@ -231,7 +530,6 @@ C:\ForgeUI\Projects\esp32p4-ui-studio/
 FORGEUI_STANDALONE_EXPORT__INDEPENDENT_VSCODE_BUILD_AND_FLASH__MULTIPLE_ICON_PIPELINE__PHYSICAL_P4_PROVEN__2026-07-11
 ```
 
-### Mapped Engineering Verification Points
 
 ### Mapped Engineering Verification Points
 
