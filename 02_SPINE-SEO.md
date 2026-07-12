@@ -1,128 +1,257 @@
-# 🛠️ SPINE: ForgeUI Studio (`esp32p4-ui-studio`)
+# 📑 SPINE & SYSTEM DOCUMENTATION
 
-## 📌 Current Save Point
+## 🎯 Current Save Point
 ```text
-FORGEUI_ICON_LIBRARY_V1__REACT_ICON_TO_LVGL_ASSET_SCALING_P4_PROVEN__2026-06-24
+FORGEUI_AI_ENGINE_V2__LIVE_GPT_TO_PHYSICAL_ESP32P4_PIPELINE_PROVEN__2026-07-12
+FORGEUI_AI_LAYOUT_GENERATION__LIVE_OPENAI_INTEGRATION__VALIDATED_JSON_PROVEN__AI_ENGINE_NEXT__2026-07-12
 ```
 
 ---
 
-# 📈 Project Status
+## 🚦 Project Status
+* **ACTIVE**
+* **STABLE**
+* **PHYSICAL HARDWARE PROVEN** (Waveshare 7" 1024x600 MIPI-DSI)
+* **LIVE OPENAI GENERATION PROVEN**
+* **SECURE SERVER-SIDE AI PROVEN**
+* **FIRST-TIME WORKSPACE SETUP PROVEN**
+* **DEPENDENCY AUTOMATION RECOVERY PROVEN**
+
+---
+
+## 📝 ForgeUI Overview
+ForgeUI Studio is an open-source visual LVGL v9 HMI designer, AI-assisted user interface generator, structured asset conversion pipeline, global theme builder, and decoupled ESP-IDF architecture utility targeting advanced **ESP32-P4** silicon. 
+
+The complete embedded system pipeline has been verified from raw natural language input strings down to real-world physical runtime rendering at **60+ FPS**.
+
+---
+
+## 📈 Core Execution Architecture
 
 ```text
-STATUS: ACTIVE | STABLE | END-TO-END PHYSICAL HARDWARE PROVEN
-TARGET HARDWARE SOC: Espressif ESP32-P4 (Dual-Core RISC-V @ 360MHz Engine)
-TARGET HARDWARE LCD: Waveshare ESP32-P4-WiFi6-Touch-LCD-7B (1024x600 MIPI-DSI / GT911 Touch Controller)
-NATIVE CORE GRAPHICS: Light and Versatile Graphics Library (LVGL v9.2.2) + ESP-IDF v5.5.4 Toolchain
+Visual Builder / Canvas
+        │
+        ▼
+Browser Layout Preview
+        │
+        ▼
+LVGL 9 Source Export
+        │
+        ▼
+Generated Decoupled C Sources
+        │
+        ▼
+ESP-IDF Build Environment (v5.5.4)
+        │
+        ▼
+Physical ESP32-P4 Target Board
 ```
+* **STATUS:** `PROVEN`
 
-### Verified Hardware Pipeline Flow
+---
+
+## 🤖 End-to-End AI Pipeline
+
 ```text
-Visual Studio Builder ➔ Local Browser Preview ➔ Local Asset & Script Exporter ➔ 
-Decoupled Native C Source ➔ ESP-IDF Ninja Compiler (-O3) ➔ Bare-Metal ESP32-P4 Flash Execution
+User Natural Language Prompt
+        │
+        ▼
+OpenAI Responses API (GPT Engine)
+        │
+        ▼
+ForgeUI JSON Specification Document
+        │
+        ▼
+Automated Schema JSON Validation
+        │
+        ▼
+Embedded Component Rule Validation
+        │
+        ▼
+Canvas Instantiation & Layout Grid
+        │
+        ▼
+Browser Renderer Preview
+        │
+        ▼
+Highly-Optimized LVGL Export
+        │
+        ▼
+Pristine Generated C Sources (.c/.h)
+        │
+        ▼
+ESP-IDF Toolchain / Ninja Compiler
+        │
+        ▼
+Physical ESP32-P4 Silicon Display
+```
+* **STATUS:** `PROVEN`
+
+---
+
+## 🧠 Server-Side AI Subsystem Architecture
+
+```text
+ForgeAIPanel (Studio Workspace UI)
+        │
+        ▼
+ForgeAIEngine (Central AI Orchestrator)
+        │
+        ├──────────────────────────────┐
+        │                              │
+        ▼                              ▼
+ForgeAIPrompts (Prompt Rules)   ForgeAIContext (Active State Canvas)
+        │                              │
+        └──────────────┬───────────────┘
+                       ▼
+                 ForgeAIClient
+                       │
+                       ▼
+         Secure Next.js API Routes
+                       │
+                       ▼
+              OpenAI Responses API
+                       │
+                       ▼
+                ForgeAIParser
+                       │
+                       ▼
+          Validated ForgeUI Document
+                       │
+                       ▼
+           Monaco / JSON Code Editor
+                       │
+                       ▼
+          Dynamic Canvas Insertion
+                       │
+                       ▼
+                WYSIWYG Canvas
+```
+* **STATUS:** `MODULAR` | `PROVEN`
+
+---
+
+## ⚡ Current AI Feature Sets
+* **Natural Language Layout Generation:** Translates complex industrial and consumer HMI text descriptions directly to spatial layout arrays.
+* **Prompt Engineering Interface:** Native prompt editor optimizing inputs for predictable embedded system shapes.
+* **Secure Server-Side Proxies:** Protects OpenAI SDK private credentials behind a Next.js server route away from the client browser.
+* **Automatic JSON Validation:** Checks and repairs output fields prior to rendering loops.
+* **Canvas Interoperability:** Instant schema parsing allows manual drag-and-drop modification of AI layout blocks.
+* **Unified Template Libraries:** Speeds up early interface mockups using baseline components.
+
+---
+
+## 🛠️ Proven Developer Workflows
+
+```text
+Describe Screen Interface ➔ Generate Layout Schema ➔ Review Output JSON 
+        ➔ Insert to Canvas ➔ Preview Locally ➔ Standalone Code Export 
+        ➔ CMake Configuration ➔ Toolchain Flashing ➔ Physical Hardware Run
+```
+* **STATUS:** `PROVEN`
+
+---
+
+## 📦 Workspace Setup & Recovery Flowchart
+
+```text
+Clone GitHub Repository
+        │
+        ▼
+Execute 'FIRST_TIME_FORGEUI_SETUP.bat'
+        │
+        ▼
+Verify System Node.js & npm Status
+        │
+        ▼
+Automated Installation of 'node_modules'
+        │
+        ▼
+Locate System ESP-IDF Python Virtual Env
+        │
+        ▼
+Install Python Graphics Dependencies (Pillow, pypng, lz4)
+        │
+        ▼
+Verify Native 'LVGLImage.py' Compilation Scripts
+        │
+        ▼
+Verify Local OpenAI SDK Integration
+        │
+        ▼
+Validate Standalone C Project Export Environment
+        │
+        ▼
+Launch Active ForgeUI Studio Web Server
+```
+* **STATUS:** `PROVEN`
+
+---
+
+## 🎨 Asset & Component Workspace Registry
+```text
+main/
+├── CMakeLists.txt         <-- Component registration & strict macro requirements
+├── main.c                 <-- Global RTOS scheduler and initial driver startup
+├── 00_ForgeUI_Config.h    <-- Hardware pin configurations and canvas layout boundaries
+├── 01_FG_Runtime.c        <-- Asynchronous execution loop hooks for screen redraws
+├── 20_RTC.c               <-- High-accuracy DS3231 I2C real-time clock tickers
+├── 30_Audio.c             <-- Asynchronous MP3 / WAV hardware decoder hooks
+├── 30_WIFI.c              <-- Hosted SDIO networking driver hooks utilizing co-processors
+├── 40_SD.c                <-- Local SPIFFS / FATFS SD storage block initializations
+├── 90_Studio_Export.c     <-- Pure, native LVGL v9 HMI generated UI source file
+└── assets/
+    └── uploads/           <-- Auto-converted binary frames (Neural Core background assets)
 ```
 
 ---
 
-# 🧱 Current Architecture Truth
+## 🏛️ Standalone Project Philosophy
+ForgeUI Studio strictly acts as an **accelerator, visual designer, and framework generation toolchain**. 
 
-## 🎨 Asset Pipeline (9,514 Icons Integration)
-```text
-Icon Browser ➔ React Icon Selection ➔ renderToStaticMarkup() ➔ SVG Vector ➔ Canvas Rasterization ➔ 
-PNG Asset ➔ Asset Manager Interface ➔ LVGLImage.py ➔ Generated C Asset (ARGB8888) ➔ LVGL Export ➔ ESP32-P4 Flash
-```
-*   **Non-Negotiable Pipeline Rule:** Do not create a second icon export pipeline. Do not bypass the Asset Manager. Raw PNG remains the strict, non-negotiable input format for `LVGLImage.py` processing loops.
-*   **Pipeline Parity:** `Icon Browser ➔ Search ➔ Visual Browser ➔ Multi-Select ➔ Selected Asset Tray ➔ Canvas Render ➔ Preview Render ➔ PNG Generation ➔ LVGLImage.py Conversion ➔ Generated C Assets ➔ ESP-IDF Build ➔ Physical Hardware Flash` are 100% verified with absolute Image Scaling Correctness.
-
-## 🎨 Theme Pipeline (Theme Manager V2)
-```text
-FG_PREVIEW_PALETTES (25+ Industrial Presets) ➔ Theme Manager ➔ ForgeThemeContext ➔ Studio Builder ➔ Preview ➔ Export ➔ ESP32-P4
-```
-*   **Non-Negotiable Theme Rule:** `FG_PREVIEW_PALETTES` remains the only source of truth. Do not create duplicate theme systems, maps, trackers, or selectors. 
-*   **Ecosystem Parity:** Theme Selection, Theme Persistence, Preview Parity, Export Parity, and Physical P4 Parity are locked down across high-contrast Texture Backgrounds and design templates.
-
-## ⚙️ Runtime Systems & Architecture Rules
-```text
-Runtime Driver owns Truth ➔ Component Widget owns Display ➔ LVGL Timer owns Refresh ➔ Studio UI owns Neither
-```
-### 1. High-Accuracy RTC Runtime
-*   **Flow:** `20_RTC ➔ Clock Widget`
-*   **Ownership Layer:** RTC driver owns time truth variables. The Clock component widget owns display rendering only. The native LVGL timer handles task refresh intervals. Do not rebuild RTC loops.
-
-### 2. Asynchronous Wi-Fi Runtime
-*   **Flow:** `30_WIFI ➔ WiFi Widget`
-*   **Ownership Layer:** `30_WIFI` driver owns network truth registers. The Wi-Fi widget component handles text state display mapping only. The native LVGL timer handles task refresh loops. Do not rebuild Wi-Fi loops.
+The exported project code contains **zero vendor lock-in**. It ships as a standard, fully configured ESP-IDF template. Developers are completely free to disconnect from the studio environment and execute custom low-level engineering directly inside Visual Studio Code or terminal environments by wrapping features onto the decoupled hooks:
+* Direct Peripherals (`GPIO`, `I2C`, `SPI`, `UART`, `TWAI/CAN`)
+* High-Performance Driver Layers (`DMA`, `PPA` hardware acceleration pipelines)
+* Cloud Networking & Middleware Layers
+* Advanced Business Logic Tasks
 
 ---
 
-# 🎛️ Component Manifest & Device Status
+## 🚀 Upcoming Development Phase: AI Engine V3
 
-## 🧩 Core Primitives (`Builder` ✓ | `Preview` ✓ | `Export` ✓ | `ESP32-P4 Hardware` ✓)
+### Architectural Target
 ```text
-Button, Text, Heading, Input, Textarea, Switch, Checkbox, Radio, Slider, Progress, CircularProgress, NumberInput, Select, Image, Box, Icon, IconButton
+ForgeAIPanel ➔ ForgeAIClient ➔ ForgeAIEngine ➔ ContextBuilder ➔ PromptBuilder ➔ AIProvider (OpenAI / Ollama / Anthropic / Gemini)
 ```
 
-## 📊 Advanced LVGL Widgets (`Builder` ✓ | `Preview` ✓ | `Export` ✓ | `ESP32-P4 Hardware` ✓)
+### Module Structure Expansion Plan
 ```text
-Led, Bar, Arc, Chart, Calendar, Keyboard, Scale, Table, Roller, Msgbox, ButtonMatrix, Canvas, Line, Tabview, Tileview, Keyboard, AnimImage
+forgeui/ai/
+├── engine/
+│   ├── ForgeAIEngine.ts        <-- Core AI abstraction orchestra block
+│   ├── ContextBuilder.ts       <-- Packages current layout, canvas themes, & asset maps
+│   └── PromptBuilder.ts        <-- Generates instructions for layout adjustments
+├── providers/
+│   ├── AIProvider.ts           <-- Abstract interface class for model agnostic calls
+│   └── OpenAIProvider.ts       <-- Live cloud provider connector (Add-on: Ollama/Gemini)
+├── validation/
+│   ├── LayoutValidator.ts      <-- Deep node verification checks
+│   └── LayoutRepair.ts         <-- Automatic healing of corrupted JSON nodes
+└── knowledge/
+    └── ComponentKnowledge.ts   <-- Frozen component properties library for LVGL 9 APIs
 ```
 
-## ⏱️ Runtime Dashboard Components (`Builder` ✓ | `Preview` ✓ | `Export` ✓ | `PHYSICAL P4 PROVEN` ✓)
-```text
-Clock (Synchronized local RTC tracking) | WiFi (Asynchronous non-blocking network state pump)
-```
+### Planned Capabilities
+* **Active Screen Modification:** Mutate, scale, or edit existing interfaces using localized contextual prompt updates without replacing the whole design document.
+* **Automated Design Theme Generator:** Generate custom light, dark, and specialized hex theme states from text commands.
+* **Asset Aware Prompts:** Checks `assets/uploads/` arrays so the engine knows what background files are locally compilation-ready.
+* **Automatic Layout Repair:** Catches broken coordinates or missing elements before compilation, self-correcting structural nodes.
+* **Multi-Screen Project Tracking:** Enables generation and contextual mapping of complex workflows spanning multiple independent container screens.
 
 ---
 
-# 🧠 AI Playground V1 Specification
-
-```text
-AI suggests ➔ ForgeUI validates ➔ Builder owns layout ➔ Preview owns preview ➔ Export owns LVGL generation
-AI does not write firmware. AI does not generate React. AI does not generate raw LVGL. 
-AI generates standardized ForgeUI schema layout document objects ONLY.
-```
-
-### Input Processing Architecture
-```text
-Template Library / LLM Suggestion ➔ Layout Document Model ➔ JSON Editor Panel ➔ 
-JSON.parse() ➔ validateAiLayout() ➔ insertAiLayout() ➔ ForgeUI Store ➔ Studio Canvas
-```
-*   **Ecosystem Validation:** Layout Document Metadata Support, Multi-Component Layouts, Schema Parsing, and Registry Binding are verified. Invalid component schemas are rejected before insertion.
-*   **🤖 OpenAI Integration Status: PAUSED** (Deferred until deployment onto dedicated home development laptop. No active OpenAI communication layer required for current ForgeUI progress targets).
-
----
-
-# 🛠️ Build & Flashing Pipeline
-
-*   **Verified Features:** `Export Project ➔ Build & Flash ➔ Clean Build & Flash ➔ Detached Export ➔ ESP-IDF Reconfigure ➔ Physical Hardware Flash`.
-*   **Low-Level Memory Infrastructure:** Injects a custom `partitions.csv` matrix mapping an **8MB Factory App Partition Slot** (`0x10000, 8M`) alongside a **7MB Storage SPIFFS Partition Block** (`0x810000, 7M`) directly into the decoupled project folder configuration targets.
-
----
-
-# 🎯 Active Mission Profiles
-
-## 🏁 Current Active Mission
-```text
-FORGEUI_THEME_SYSTEM_V2__BACKGROUND_AND_WIDGET_POLISH__2026-06-24
-```
-*   **Exploration Objectives:** Theme usability, widget text readability, background texture aesthetic quality, theme identity consistency, and visual builder interface style tuning.
-
-## 🚀 Current Next Mission
-```text
-FORGEUI_THEME_SHOWCASE_V1__DASHBOARD_PROOF_AND_THEME_AUDIT_NEXT
-```
-*   **Target Milestones:** Design representative interface dashboard layouts, evaluate all major built-in ForgeUI theme palleted presets, identify the strongest out-of-the-box default theme, and audit comprehensive widget text contrast profiles across various background mesh styles.
-
----
-
-# 🛑 Global Non-Negotiable Rules
-1.  **Do not rebuild RTC blocks.**
-2.  **Do not rebuild Wi-Fi driver routines.**
-3.  **Do not create duplicate theme engines.**
-4.  **Do not create duplicate background or runtime loops.**
-5.  **Do not bypass the Visual Builder canvas store.**
-6.  **Do not bypass the Standalone Code Exporter pipeline.**
-7.  **Do not create a second graphic asset pipeline.**
-8.  **Extend proven, bare-metal hardware systems strictly.**
-9.  **Preserve the immutable pipeline chain configuration maps:**
-    `Builder ➔ Local Preview ➔ Standalone C/C++ Export ➔ Native ESP32-P4 Serial Flash`
+## 🎯 Current Priority: AI Playground V2
+1. Map physical **Generate Layout** visual buttons to server endpoint `/api/forgeui-ai-layout`.
+2. Map response JSON specs into the system editor via `setLayoutJson(JSON.stringify(document, null, 2))`.
+3. Use the **Insert JSON** block as a manual layout verification gateway.
+4. Scale tested design panels over real targets to expand custom interface libraries.

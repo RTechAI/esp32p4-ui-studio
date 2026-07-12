@@ -1,313 +1,217 @@
 # 🛠️ ForgeUI Studio
 
-An open-source **Visual UI Designer, Low-Code HMI Layout Engine, Asset Pipeline, and Automated Firmware Deployment Studio** engineered specifically for the **Espressif ESP32-P4** ecosystem running **LVGL v9** and **ESP-IDF**.
+An open-source **Visual UI Designer, Low-Code HMI Layout Engine, Offline Asset Pipeline, and Automated Firmware Deployment Studio** engineered explicitly for the high-performance **Espressif ESP32-P4** SoC running native **LVGL v9** and **ESP-IDF**.
 
-ForgeUI Studio bridges the gap between browser-based UI design and production-ready embedded deployment. It eliminates manual coordinate calculations, automates LVGL code generation, manages image assets, and deploys directly to ESP32-P4 hardware from a single workflow.
+ForgeUI Studio bridges the gap between high-level browser-based layout design and low-level production-ready embedded deployments. It completely eliminates manual coordinate calculations, automates standard LVGL code output structures, converts graphic assets locally, and streams compiled partitions directly to physical silicon within a unified development workspace.
 
 ---
 
 # ⚡ Key Architectural Advancement
 
-ForgeUI Studio supports both:
-*   Integrated browser-based Build & Flash workflows.
-*   Fully standalone ESP-IDF project exports.
+ForgeUI Studio supports two distinct execution paths within a single workflow:
+*   **Integrated Web-Serial Pipeline:** Cloud-free, browser-triggered build compilation and direct flashing over local serial ports (`COMx`).
+*   **Decoupled Project Exporter:** Instant generation of pristine, completely independent ESP-IDF application structures.
 
-Visual layouts remain editable inside the Studio while generated firmware remains portable and independent.
+Visual elements remain editable inside the drag-and-drop studio, while the resulting firmware repository is highly portable, completely isolated, and structured for long-term maintainability.
 
 ---
 
 # 📦 Standalone ESP-IDF Export Architecture
 
-ForgeUI Studio can generate complete standalone ESP-IDF projects which no longer depend on the Studio after export.
+Clicking **Export Standalone Project** produces a production-grade workspace directory that is 100% disconnected from the studio toolchain. 
 
-## Benefits
-*   Zero framework lock-in.
-*   Open directly inside Visual Studio Code.
-*   Native ESP-IDF workflow compatibility.
-*   Portable project distribution.
-*   Clean rebuild support.
-*   Long-term firmware maintainability.
-
-Only the generated UI layer is injected into the runtime shell:
-```text
-90_Studio_Export.c
-90_Studio_Export.h
-```
-Everything else remains standard ESP-IDF and LVGL.
+## Structural Advantages
+*   **Zero Proprietary Lock-In:** No subscription gates, no license validation checks, and no background phone-home telemetry.
+*   **IDE Interoperability:** Drop the generated workspace directly into **Visual Studio Code** or native command terminals.
+*   **Native Toolchain Compliance:** Automatically matches Espressif's rigorous workspace design guidelines and standard `CMakeLists.txt` component registrations.
+*   **Pristine Logic Isolation:** Only the visual components are generated and loaded through the target files:
+    ```text
+    main/90_Studio_Export.c
+    main/90_Studio_Export.h
+    ```
+    This clean separation allows product engineers to write complex low-level business logic inside `main.c` without worrying about layout iterations overwriting their work.
 
 ---
 
 # 🔄 Proven Deployment Pipeline
 
 ```text
-ForgeUI Studio Canvas
-            ↓
-Generate Native LVGL Code
-            ↓
-Generate LVGL Image Assets
-            ↓
-Generate Asset Registry
-            ↓
-Generate CMake Sources
-            ↓
-Export Standalone ESP-IDF Project
-            ↓
-ESP-IDF Build
-            ↓
-Flash ESP32-P4
-            ↓
-Physical Hardware Validation
+       ForgeUI Studio Visual Canvas
+                     │
+                     ▼
+       Generate Native LVGL 9 Code
+                     │
+                     ▼
+       Convert Local Asset Buffers
+                     │
+                     ▼
+       Serialize Binary Asset Registry
+                     │
+                     ▼
+       Generate Native CMake Sources
+                     │
+                     ▼
+    Export Standalone ESP-IDF Project (v5.5)
+                     │
+                     ▼
+     VS Code / Native ESP-IDF Build Tasks
+                     │
+                     ▼
+       Flash Target Address (0x10000)
+                     │
+                     ▼
+   Physical ESP32-P4 Hardware Validation
 ```
 
 ---
 
-# 🖼️ Uploaded Image Pipeline (PROVEN)
+# 🎨 Unified Asset Pipelines (PROVEN)
 
-F# 🎨 React Icon Pipeline (PROVEN)
+ForgeUI Studio handles all graphic assets entirely inside a local offline environment. No external APIs or cloud subscription transformation services are ever utilized.
 
-ForgeUI Studio now exports React Icons through the exact same asset pipeline used by Image widgets.
+### 1. Uploaded Image Asset Pipeline
+*   **Proven Formats:** PNG, JPG, and SVG asset matrices.
+*   **Offline Transformations:** Local dragging and dropping automatically invokes a native Python helper utility (`tools/lvgl/LVGLImage.py`).
+*   **Low-Level Output:** Translates raw shapes into highly optimized `ARGB8888` rasterized pixel data, outputs clean static `.c` data arrays directly onto disk, and appends corresponding `LV_IMAGE_DECLARE(...)` mappings to the build profile.
 
-## Proven Workflow
+### 2. React Icon Conversion Pipeline
+ForgeUI Studio exports vector React Icons through the exact same asset engine used by high-contrast graphic layouts, eliminating the dependency friction of rendering heavy character sets.
 
 ```text
-React Icon
-    ↓
-renderToStaticMarkup()
-    ↓
-SVG
-    ↓
-Canvas Conversion
-    ↓
-PNG
-    ↓
-ForgeUI Uploaded Asset
-    ↓
-LVGLImage.py
-    ↓
-Generated LVGL C Asset
-    ↓
-Asset Registry
-    ↓
-LV_IMAGE_DECLARE(...)
-    ↓
-lv_image_set_src(...)
-    ↓
-ESP-IDF Build
-    ↓
-Physical ESP32-P4
+React Icon Selection (9,514 Icons)
+                 │
+                 ▼
+       renderToStaticMarkup()
+                 │
+                 ▼
+       Raw Vector SVG Layout
+                 │
+                 ▼
+       Canvas Mapping Buffer
+                 │
+                 ▼
+     Prerendered Raster PNG Frame
+                 │
+                 ▼
+         Local Upload Asset
+                 │
+                 ▼
+     tools/lvgl/LVGLImage.py Utility
+                 │
+                 ▼
+    Generated LVGL C Array Struct
+                 │
+                 ▼
+       Project Asset Registry
+                 │
+                 ▼
+       LV_IMAGE_DECLARE(...)
+                 │
+                 ▼
+       lv_image_set_src(...)
+                 │
+                 ▼
+      ESP-IDF Cross-Compilation
+                 │
+                 ▼
+  Physical Waveshare ESP32-P4 Display
 ```
 
-## Proven Capabilities
-
-* 9,514 searchable React Icons
-* Multi-select Browser
-* Use As Icon Widget
-* PNG Generation
-* Automatic LVGL Conversion
-* Automatic Asset Registry Integration
-* Unified Image Asset Pipeline
-* Multiple Unique Icon Validation
-* Physical ESP32-P4 Rendering
-
-React Icons and Image widgets now share a single export pipeline.
-
-Legacy `LV_SYMBOL_*` support remains available only for backwards compatibility.
-```
-
-## Proven Capabilities
-*   PNG / JPG / SVG Upload
-*   Drag & Drop Asset Import
-*   Thumbnail Generation & Asset Registry
-*   Automatic LVGL Conversion (ARGB8888)
-*   Automatic Asset Compilation & CMake Integration
-*   Physical ESP32-P4 Rendering
-
-No cloud conversion services are required. All image conversion occurs locally.
+*   **Icon Metrics:** 9,514 indexed vector shapes, multi-select queuing cart panel, automated asset validation, and direct structural rendering down to physical silicon.
+*   *Note: Legacy `LV_SYMBOL_*` options remain preserved purely for backward-compatibility limits.*
 
 ---
 
-# 🚀 Core Features
+# 🚀 Core Feature Matrix
 
-## Visual Designer
-*   WYSIWYG Canvas Editing with Absolute Positioning
-*   Drag & Drop Layout Construction with Resize Handles
-*   Grid Alignment & Device-Aware Workspaces
+### Visual Designer Workspace
+*   **WYSIWYG Layout Canvas:** Real-time drag, drop, and absolute positioning control with pixel-perfect snap-to-grid mechanics.
+*   **Tactile Workspace Bounds:** Device-aware sizing handles matching real panel footprints (such as 1024x600 widescreen profiles).
 
-## Browser Preview
-*   Real-Time Preview Rendering
-*   Preview-to-Hardware Validation
-*   Theme Previewing & Live Layout Inspection
+### Sandboxed Browser Preview
+*   **Zero-Delay Simulation:** Instantly test visual boundaries, theme updates, color balances, and responsive layouts inside the browser without executing local compiler chains.
 
-## LVGL Code Generation
-*   Native LVGL v9 Output
-*   Optimized Static Layout Generation
-*   Automatic Widget Creation & Styling Generation
-*   Asset Integration
+### Native Code Generation
+*   **Clean C API Target:** Generates highly structured C expressions utilizing modern native **LVGL 9** coordinate targets (`lv_screen_active()`) and styling hooks.
 
-## Build & Flash
-
-* Browser Build & Flash Triggers
-* Export Standalone ESP-IDF Project
-* VS Code ESP-IDF Extension Support
-* Detached Build & Flash Workflow
-* Clean Build Support
-* Live Flash Console
-* Direct Local ESP-IDF Toolchain Integration
-
-## Asset Management
-*   Upload & Delete Assets
-*   Asset Registry & Thumbnail Browser
-*   Local LVGL Asset & Firmware Component Generation
+### Toolchain Automation
+*   **1-Click Flashing Console:** Streams compiler progress, locks component directories, resolves dependency trees, and outputs raw hex values straight over serial ports from local child processes.
 
 ---
 
-# 🎨 Supported Widgets
-
-ForgeUI Studio currently supports:
-
-## Structure
-*   Box
-*   Text
-*   Image
-
-## Input
-*   Input
-*   Textarea
-*   NumberInput
-*   Select
-
-## Controls
-*   Button
-*   Switch
-*   Checkbox
-*   Radio
-*   Slider
-
-## Status
-*   Progress
-*   CircularProgress
-
-The widget pipeline is validated across:
+# 🧩 Validated Widget Registry
+The system features strict validation checking layers mapping elements securely along the following data path:
 ```text
-Canvas ➔ Preview ➔ Generated LVGL ➔ ESP32-P4 Hardware
+Studio Canvas ➔ Browser Preview ➔ Generated C Layout ➔ Hardware Silicon
 ```
 
----
-
-# 🎨 Built-In Themes
-
-ForgeUI Studio ships with multiple hardware-validated visual themes:
-*   Reactor Dark | Graphite | Nordic Blue | Midnight Terminal
-*   Industrial Steel | Military Green | Cyber Teal | Forge Orange
-*   Nebula Purple | OLED Black | Matrix Green | Carbon Red
-*   Arctic Ice | Blueprint | Toxic Lime
-
-Theme tokens remain synchronized across:
-```text
-Builder ➔ Preview ➔ Generated LVGL ➔ Hardware
-```
+### Supported Component Objects
+*   **Structural Layouts:** Flex Boxes, Text Labels, High-Contrast Images.
+*   **User Inputs:** Fields, Structured Textareas, Multi-state Selection Lists.
+*   **Functional Controls:** Push Buttons, Toggle Switches, Checkboxes, Radio Sets, Variable Sliders.
+*   **Dynamic Status Displays:** Linear Progress Tracks, Circular Vector Arcs.
 
 ---
 
-# 💻 Hardware Validation
-
-## Primary Target
-**ESP32-P4**
-
-Validated using:
-**Waveshare ESP32-P4-WIFI6-Touch-LCD-7B**
-
-## Specifications
-*   ESP32-P4 SoC
-*   1024×600 MIPI-DSI LCD Display
-*   Capacitive Touch Screen Controller
-*   LVGL v9 Engine Integration
-*   ESP-IDF v5.5.4 Toolchain
+# 🎨 Hardware-Validated Theme Engine
+Theme properties utilize specialized color weight tokens that synchronize perfectly from the visual editor straight into physical memory configurations. Built-in presets include:
+*   **Industrial Panels:** *Industrial Carbon, Reactor Hex, Cyber Teal Pro, Forge Orange, Military Steel.*
+*   **High-Contrast Operations:** *Midnight Terminal, OLED Black, Nordic Blue, Quantum Flow, Toxic Lime.*
+*   **Futuristic Conceptions:** *Neon Horizon, Nebula Purple, Matrix Green, Blueprint Slate, Carbon Red.*
 
 ---
 
-# ✅ Proven Milestones
-* Browser UI Builder & Preview — PROVEN
-* Native LVGL Code Generation — PROVEN
-* Standalone ESP-IDF Project Export — PROVEN
-* Independent VS Code Build — PROVEN
-* ESP-IDF Extension Build & Flash — PROVEN
-* Local LVGLImage.py Integration — PROVEN
-* Uploaded Image Pipeline — PROVEN
-* React Icon Pipeline — PROVEN
-* Unified Image Asset Pipeline — PROVEN
-* Automatic CMake Injection Pipeline — PROVEN
-* Multiple Unique Icon Validation — PROVEN
-* Physical ESP32-P4 Rendering — PROVEN
+# 💻 Hardware Target Specifications
+
+*   **Primary System SoC Target:** Espressif ESP32-P4 (High-Performance dual-core RISC-V clocking up to 360MHz).
+*   **Verified Development Platform:** Waveshare ESP32-P4-WiFi6-Touch-LCD-7B.
+*   **Integrated Touch Hardware Controllers:** GT911 capacitive touch mapping registers.
+*   **Display Interface Link:** Multi-lane MIPI-DSI high-definition panel (1024×600 pixel tracking resolution).
+*   **Volatile Memory Architecture:** 32MB External Hex-PSRAM device running on a 200MHz bus clock.
+*   **Target Core Software Environment:** ESP-IDF v5.4 / v5.5 Toolchain + LVGL v9.2.2 Engine.
+
+---
+
+# ✅ Proven Project Milestones
+*   ✓ WYSIWYG Browser UI Builder Canvas — **PROVEN**
+*   ✓ Native LVGL v9 Code Generation — **PROVEN**
+*   ✓ Standalone ESP-IDF Project Export — **PROVEN**
+*   ✓ Independent External VS Code Compilation — **PROVEN**
+*   ✓ Native Ninja Build & Flash Utilities — **PROVEN**
+*   ✓ Local Python `LVGLImage.py` Asset Transformation — **PROVEN**
+*   ✓ Local Local Upload Image Asset Pipeline — **PROVEN**
+*   ✓ Server-Side Next.js Secure OpenAI Routings — **PROVEN**
+*   ✓ React Icon SVG-to-Raster Conversion Engine — **PROVEN**
+*   ✓ Multiple Unique Icon Component Validation Loops — **PROVEN**
+*   ✓ High-Resolution Physical ESP32-P4 Execution — **PROVEN** (**63 FPS @ 2.5% CPU**)
 
 ---
 
 # 🏭 Target Use Cases
-
-ForgeUI Studio is optimized for:
-*   Industrial HMI Systems & Machine Control Panels
-*   IoT Dashboards & Smart Home Controllers
-*   Medical Equipment Interfaces & Kiosk Displays
-*   Automation Systems & Touchscreen Appliances
+*   **Industrial Controls:** Heavy machinery monitoring consoles, crane dashboards, and tactile field equipment.
+*   **IoT & Automation Display Hubs:** Luxury smart home control docks and high-speed energy analytics tracking portals.
+*   **Commercial Appliances:** High-resolution digital medical equipment panels and point-of-sale kiosk interfaces.
 
 ---
 
-# 🔮 Current Development Direction
-
-Icon Asset Reuse
-Duplicate Asset Prevention
-Automatic Asset Cleanup
-Startup Cleanup
-Document Persistence
-Builder ↔ Preview ↔ Hardware Parity
-Template Library Expansion
-Future AI-Assisted UI Generation
-```
+# 🔮 Next-Phase Development Goals
+*   **Asset Footprint Verification:** Duplicate asset file checking layers and automated compilation array cleanups.
+*   **Multi-Screen Architecture:** Dynamic cross-linking configurations for multi-page interface tracking.
+*   **AI Engine V3 Subsystem:** Context-aware prompts enabling selective section mutations without deleting existing screen documents.
 
 ---
 
 # 🤝 Open Source Credits
+ForgeUI Studio is built upon the visual design workspace structures originally engineered by Premier Octet. 
 
-ForgeUI Studio is built upon the excellent open-source editor foundations originally created by Premier Octet.
-
-The project has been extensively adapted and expanded for:
-*   LVGL v9
-*   ESP32-P4 Hardware Targets
-*   Embedded HMI Development
-*   ESP-IDF Integration
-*   Hardware Deployment Automation
-
-Original licensing and attribution remain preserved.
+The original codebase has been extensively customized, expanded, and optimized for:
+*   Native LVGL v9 API targets and core formatting modifications.
+*   ESP32-P4 deep silicon and MIPI-DSI display configurations.
+*   Automated local file compilation and direct Web-Serial deployment tracking.
+*   All original open-source attributions and licensing remain preserved on disk.
 
 ---
 
 # 👨‍💻 Project Maintainer
 
 **Scott Forster**  
-ForgeUI Project  
-📧 [forgeui.esp32@gmail.com](mailto:forgeui.esp32@gmail.com)
-
----
-
-## Current Save Point
-```text
-FORGEUI_STANDALONE_EXPORT__INDEPENDENT_VSCODE_BUILD_AND_FLASH__MULTIPLE_ICON_PIPELINE__PHYSICAL_P4_PROVEN__2026-07-11
-```
-
-## 🔍 Targeted Search Index & Comparative Reference
-
-This framework is engineered specifically for hardware engineers and embedded software developers migrating away from restrictive graphical ecosystem platforms. If your production pipeline requires any of the following technical capabilities, ForgeUI Studio is built for your workflow:
-
-### 1. High-Performance Display Architecture
-*   **Hardware Keywords**: `ESP32-P4 MIPI-DSI LCD driver initialization`, `Waveshare 7-inch ESP32-P4 touch controller configuration`, `GT911 capacitive touch SPI/I2C mapping`, `RISC-V dual-core 360MHz microcontroller graphics`.
-*   **Optimizations**: `ESP32-P4 internal 2D-DMA framebuffer tuning`, `bsp_display_lock thread safety loops`, `LVGL v9 parallel rendering hardware benchmarks`.
-
-### 2. Standalone Code Generation & Exporters
-*   **Keywords**: `Free alternative to subscription embedded UI builders`, `Zero-lock-in LVGL code generator`, `Convert React visual canvas to native C strings`, `Export standalone ESP-IDF CMake project repository`.
-*   **Low-Level Deployment**: `Custom partitions.csv for 16MB flash configurations`, `8MB factory app slot allocation`, `7MB local storage SPIFFS partition matrix setup`.
-
-### 3. Local Offline Asset Compilation Pipelines
-*   **Keywords**: `Local PNG to LVGL C array asset conversion tool`, `Offline SVG to ARGB8888 bitmap rasterizer`, `tools/lvgl/LVGLImage.py Espressif python script execution`, `Automatic CMakeLists.txt idf_component_register injection`.
-
-### 4. Modular Peripheral Separations
-*   **Keywords**: `Asynchronous non-blocking Wi-Fi service pump loops`, `I2C DS3231 real-time clock firmware integration`, `High-speed SD/MMC mass storage filesystem managers for ESP32-P4`.

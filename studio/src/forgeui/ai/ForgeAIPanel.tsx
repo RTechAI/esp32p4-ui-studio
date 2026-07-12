@@ -9,6 +9,8 @@ import {
 } from '@chakra-ui/react'
 
 import { aiSupportedComponents } from '~componentsList'
+import { createForgeAIContext } from './ForgeAIContext'
+import { generateForgeAILayout } from './ForgeAIEngine'
 
 type ForgeAIPanelProps = {
   onClose: () => void
@@ -794,8 +796,12 @@ export const ForgeAIPanel = ({
   onClose,
   insertAiLayout,
 }: ForgeAIPanelProps) => {
+  
   const [layoutJson, setLayoutJson] = useState(DEFAULT_LAYOUT_JSON)
-  const [jsonError, setJsonError] = useState('')
+const [jsonError, setJsonError] = useState('')
+
+const [aiPrompt, setAiPrompt] = useState('')
+const [isGenerating, setIsGenerating] = useState(false)
 
   const loadLayoutJson = (document: any) => {
     setLayoutJson(JSON.stringify(document, null, 2))
@@ -829,6 +835,25 @@ export const ForgeAIPanel = ({
     })
   }
 
+  const generateLayout = async () => {
+  try {
+    setJsonError('')
+    setIsGenerating(true)
+
+    const context = createForgeAIContext()
+
+    const document = await generateForgeAILayout({
+      prompt: aiPrompt,
+      ...context,
+    })
+
+    setLayoutJson(JSON.stringify(document, null, 2))
+  } catch (err: any) {
+    setJsonError(err.message || 'AI layout generation failed')
+  } finally {
+    setIsGenerating(false)
+  }
+}
   
   const insertJsonLayout = () => {
     try {
@@ -874,6 +899,33 @@ export const ForgeAIPanel = ({
         AI layout generation playground.
       </Box>
       
+      <Box mb={2} color="purple.200" fontWeight="bold">
+  AI Layout Generator
+</Box>
+
+<Textarea
+  value={aiPrompt}
+  onChange={(e) => setAiPrompt(e.target.value)}
+  placeholder="Describe the screen you want ForgeUI to create..."
+  minH="110px"
+  mb={3}
+  bg="#101827"
+  color="white"
+  borderColor="purple.500"
+  fontSize="sm"
+/>
+
+<Button
+  colorScheme="purple"
+  mb={5}
+  onClick={generateLayout}
+  isLoading={isGenerating}
+  loadingText="Generating"
+  isDisabled={!aiPrompt.trim()}
+>
+  Generate Layout
+</Button>
+
 <Box mb={2} color="cyan.200" fontWeight="bold">
   Template Library
 </Box>

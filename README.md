@@ -20,7 +20,6 @@ Real-world runtime logs captured directly via `idf_monitor.py` on the physical *
 *   **Expanded Volatile Memory**: Auto-maps a **32MB external Hex-PSRAM bank running at a 200MHz bus clock** for massive volatile canvas allocations.
 
 ---
----
 
 ## ✅ Verified End-to-End Development Workflow
 
@@ -29,37 +28,42 @@ ForgeUI Studio has now been physically verified from Builder to hardware using b
 ### Proven Workflow
 
 ```text
-ForgeUI Studio
-        ↓
-Builder
-        ↓
-Browser Preview
-        ↓
-LVGL Export
-        ↓
-Standalone ESP-IDF Project
-        ↓
-VS Code
-        ↓
-ESP-IDF Extension
-        ↓
-Build
-        ↓
-Flash
-        ↓
-Physical ESP32-P4
+ForgeUI Studio / AI Playground
+              │
+              ▼
+    Visual Builder UI Canvas
+              │
+              ▼
+    Zero-Delay Browser Preview
+              │
+              ▼
+    Highly-Optimized LVGL Export
+              │
+              ▼
+  Independent Standalone ESP-IDF Project
+              │
+              ▼
+    Visual Studio Code Workspace
+              │
+              ▼
+    Official ESP-IDF Extension Build
+              │
+              ▼
+  Native Ninja Toolchain Binary Flash
+              │
+              ▼
+ Physical Waveshare ESP32-P4 Silicon
 ```
 
-Status:
+### Build Status Indicators
+- **✓ Browser Canvas Preview:** Verified responsive widget rendering and coordinate validation layers.
+- **✓ LVGL Code Generation:** Verified structural generation outputting clean static native C vectors.
+- **✓ Standalone Workspace Export:** Verified one-click asset decoupling to external target files.
+- **✓ Independent VS Code Build:** Verified clean cross-compilation with standard `riscv32-esp-elf` tools.
+- **✓ ESP-IDF Extension Compatibility:** Verified matching manifest definitions with Ninja build runners.
+- **✓ Physical ESP32-P4 Flash:** Verified operational boot cycles using native Web-Serial or hardware tools.
 
-- ✓ Browser Preview
-- ✓ LVGL Code Generation
-- ✓ Standalone Export
-- ✓ Independent VS Code Build
-- ✓ ESP-IDF Extension Build
-- ✓ Physical ESP32-P4 Flash
-
-
+---
 
 ## 🚀 Core Philosophy: Zero-Bloat Native Output
 
@@ -93,78 +97,67 @@ Complex CMake script management   ───►  Zero Web Runtimes Ever Deployed 
 
 ## 📁 Decoupled Workspace Architecture
 
-## 📁 Decoupled Workspace Architecture
-
 Clicking **Export Standalone Project** completely decouples ForgeUI Studio from the generated firmware, producing a fully independent ESP-IDF workspace that can be built, flashed, version controlled, and shared without requiring ForgeUI Studio.
 
 The exported project has been physically verified by:
-
-- ✓ Opening directly in Visual Studio Code
-- ✓ Building with the Espressif ESP-IDF Extension
-- ✓ Flashing to a physical ESP32-P4
-- ✓ Running independently of ForgeUI Studio
+*   ✓ Opening directly in Visual Studio Code
+*   ✓ Building with the Espressif ESP-IDF Extension
+*   ✓ Flashing to a physical ESP32-P4
+*   ✓ Running independently of ForgeUI Studio
 
 ```text
 ForgeUI Studio
-        ↓
-Export Standalone Project
-        ↓
-Independent ESP-IDF Workspace
-        ↓
-Visual Studio Code
-        ↓
-ESP-IDF Extension
-        ↓
-Build
-        ↓
-Flash
-        ↓
-Physical ESP32-P4
+        │
+        ▼
+   Export Standalone Project
+        │
+        ▼
+ Independent ESP-IDF Workspace
+        │
+        ▼
+   Visual Studio Code Workspace
+        │
+        ▼
+   Official ESP-IDF Extension Build
+        │
+        ▼
+   Ninja Toolchain Binary Flash
+        │
+        ▼
+ Physical ESP32-P4 Hardware Run
 ```
 
-Example export location:
-
+**Example Export Destination Target:**
 ```text
-C:\ForgeUI-Exports\ForgeUI_Export
+C:\ForgeUI-Exports\ForgeUI_Export_003
 ```
 
-Project structure:
-
+**Project Structural Workspace Directory Tree:**
 ```text
 esp32p4-ui-studio/
-├── studio/                     # React / Next.js visual builder
-├── tools/lvgl/LVGLImage.py     # Local offline LVGL asset converter
-└── firmware/ForgeUI-One/       # Standalone ESP-IDF reference project
-    ├── .vscode/                # VS Code workspace configuration
-    ├── partitions.csv          # Flash partition layout
-    ├── sdkconfig.defaults      # Default ESP-IDF configuration
-    ├── sdkconfig               # Generated project configuration
-    ├── CMakeLists.txt          # Root project build script
+├── studio/                     # React / Next.js visual builder workspace
+├── tools/lvgl/LVGLImage.py     # Local offline raw LVGL asset asset converter
+└── firmware/ForgeUI-One/       # Standalone ESP-IDF reference deployment target
+    ├── .vscode/                # Pre-configured editor workspace files
+    ├── partitions.csv          # Linear flash partition memory layouts
+    ├── sdkconfig.defaults      # Default optimization settings and frequency parameters
+    ├── sdkconfig               # Actively generated target compilation properties
+    ├── CMakeLists.txt          # Top-level project build declaration file
     └── main/
-        ├── assets/uploads/     # Generated LVGL image assets (.c)
-        ├── 00_ForgeUI_Config.h # Global project configuration
-        ├── 01_FG_Runtime.c/.h  # Runtime framework
-        ├── 20_RTC.c/.h         # RTC runtime
-        ├── 30_Audio.c/.h       # Audio runtime
-        ├── 30_WIFI.c/.h        # Wi-Fi runtime
-        ├── 40_SD.c/.h          # SD card runtime
-        └── 90_Studio_Export.c  # Generated LVGL user interface
+        ├── assets/uploads/     # Auto-converted target image data structs (.c)
+        ├── 00_ForgeUI_Config.h # Global canvas pin constraints and geometric definitions
+        ├── 01_FG_Runtime.c/.h  # Threaded interface redraw hooks and execution timers
+        ├── 20_RTC.c/.h         # Native I2C real-time system clock drivers (DS3231)
+        ├── 30_Audio.c/.h       # Asynchronous MP3 / WAV hardware decoding runtimes
+        ├── 30_WIFI.c/.h        # Hosted SDIO Wi-Fi wireless co-processor management (ESP32-C6)
+        ├── 40_SD.c/.h          # FATFS system memory interface drivers
+        └── 90_Studio_Export.c  # Clean native generated LVGL 9 application source code
 ```
 
 ### Standalone Export Philosophy
+ForgeUI Studio maintains absolute ownership over visual project generation layouts, while ESP-IDF maintains total ownership over low-level code compilation and hardware deployment. 
 
-ForgeUI owns project generation.
-
-ESP-IDF owns compilation and deployment.
-
-After export, the generated project becomes a normal ESP-IDF application that can be:
-
-- Built in Visual Studio Code
-- Flashed using the ESP-IDF Extension
-- Shared with other developers
-- Committed to Git independently
-- Maintained without ForgeUI Studio
-```
+Following export, the directory acts as an independent application. Developers are completely free to track progress inside isolated Git repositories and integrate backend modifications without vendor lock-in.
 
 ---
 
@@ -178,115 +171,4 @@ Your exported code incorporates a high-capacity custom allocation scheme designe
 
 ### 2. Low-Level Silicon Optimization Settings
 *   **Direct 2D-DMA Tunneling**: The display refresh configuration parameters (`bsp_display_cfg_t`) lock pixel allocation pathways directly to active DMA engines (`.buff_dma = true`) while enforcing direct internal RAM layout tracking (`.buff_spiram = false`). This completely eliminates frame rendering transmission latency over slower external memory lanes.
-*   **Thread-Safe Graphics Handshaking**: Visual initialization calls inside `main.c` are fully encapsulated within native Espressif display locks (`bsp_display_lock(0)`), ensuring your graphic components populate safely without blocking host operating system kernel tasks.
-
----
-
-## 🏁 Building a Standalone Export
-
-Open the exported project in Visual Studio Code.
-
-Configure the ESP-IDF Extension once.
-
-Then simply:
-
-```bash
-idf.py reconfigure
-idf.py build
-idf.py flash
-```
-
-or
-
-```bash
-idf.py build flash monitor
-```
-
-This workflow has been physically verified on a second development laptop using only:
-
-- Visual Studio Code
-- Espressif ESP-IDF Extension
-- Standalone ForgeUI Export
-
-ForgeUI Studio is not required after export.
-   ```
-
-
-## React Icon Asset Pipeline
-
-## React Icon Asset Pipeline
-
-React Icons are now exported through the exact same asset pipeline as Image widgets.
-
-```text
-React Icon
-        ↓
-renderToStaticMarkup()
-        ↓
-SVG
-        ↓
-Canvas Conversion
-        ↓
-PNG
-        ↓
-ForgeUI Uploaded Asset
-        ↓
-LVGLImage.py
-        ↓
-Generated LVGL C Asset
-        ↓
-Asset Registry
-        ↓
-LVGL Export
-        ↓
-Standalone ESP-IDF Project
-        ↓
-ESP32-P4
-```
-
-### Verified
-
-- ✓ 9,514 searchable React Icons
-- ✓ Multi-select Browser
-- ✓ Use As Icon Widget
-- ✓ PNG Generation
-- ✓ Asset Manager Integration
-- ✓ LVGLImage.py Conversion
-- ✓ Generated C Assets
-- ✓ Unified Image Asset Pipeline
-- ✓ Multiple Unique Icons
-- ✓ Physical ESP32-P4 Verified
-
-React Icons no longer require a dedicated export path. Image widgets and Icon widgets share a single LVGL image asset pipeline.
-
----
-
-## 🤝 Contributing
-
-We welcome community contributions, optimization patches, and new widget layouts! Please review our `CONTRIBUTING.md` before submitting pull requests.
-
-## 📝 License
-ForgeUI Studio is released under the **MIT License**. Check out `LICENSE` for further operational guidelines.
-
----
-
-### 🌐 Technical SEO Tag Index Matrix
-*`open source ESP32-P4 visual UI designer studio`, `free alternative to subscription embedded HMI software tools`, `LVGL v9 code generation engine layout parser`, `Waveshare ESP32-P4-WIFI6-Touch-LCD-7B board configurations`, `ESP-IDF custom partitions.csv layout configuration matrix`, `low latency ARGB8888 image file conversion script python ecosystem`, `bare-metal RISC-V graphics pipeline optimizations`.*
-
-## 🔍 Targeted Search Index & Comparative Reference
-
-This framework is engineered specifically for hardware engineers and embedded software developers migrating away from restrictive graphical ecosystem platforms. If your production pipeline requires any of the following technical capabilities, ForgeUI Studio is built for your workflow:
-
-### 1. High-Performance Display Architecture
-*   **Hardware Keywords**: `ESP32-P4 MIPI-DSI LCD driver initialization`, `Waveshare 7-inch ESP32-P4 touch controller configuration`, `GT911 capacitive touch SPI/I2C mapping`, `RISC-V dual-core 360MHz microcontroller graphics`.
-*   **Optimizations**: `ESP32-P4 internal 2D-DMA framebuffer tuning`, `bsp_display_lock thread safety loops`, `LVGL v9 parallel rendering hardware benchmarks`.
-
-### 2. Standalone Code Generation & Exporters
-*   **Keywords**: `Free alternative to subscription embedded UI builders`, `Zero-lock-in LVGL code generator`, `Convert React visual canvas to native C strings`, `Export standalone ESP-IDF CMake project repository`.
-*   **Low-Level Deployment**: `Custom partitions.csv for 16MB flash configurations`, `8MB factory app slot allocation`, `7MB local storage SPIFFS partition matrix setup`.
-
-### 3. Local Offline Asset Compilation Pipelines
-*   **Keywords**: `Local PNG to LVGL C array asset conversion tool`, `Offline SVG to ARGB8888 bitmap rasterizer`, `tools/lvgl/LVGLImage.py Espressif python script execution`, `Automatic CMakeLists.txt idf_component_register injection`.
-
-### 4. Modular Peripheral Separations
-*   **Keywords**: `Asynchronous non-blocking Wi-Fi service pump loops`, `I2C DS3231 real-time clock firmware integration`, `High-speed SD/MMC mass storage filesystem managers for ESP32-P4`.
+*   **Thread-Safe Graphics Handshaking**: Visual initialization calls inside `main.c` are fully encapsulated within native Espressif display locks (`bsp_display_lock(0)`), ensuring your graphic compositions update with complete structural integrity across multi-core task switches.

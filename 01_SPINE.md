@@ -1,6 +1,256 @@
 
 # SPINE
 
+SPINE
+Current Save Point
+FORGEUI_AI_ENGINE_V2__LIVE_GPT_TO_PHYSICAL_ESP32P4_PIPELINE_PROVEN__2026-07-12
+Project Status
+ACTIVE
+
+STABLE
+
+PHYSICAL HARDWARE PROVEN
+
+AI PIPELINE PROVEN
+ForgeUI Overview
+
+ForgeUI Studio is an open-source visual LVGL v9 HMI designer, AI-assisted UI generator, code generator, asset pipeline, theme system, and ESP-IDF workflow targeting ESP32-P4 hardware.
+
+The complete embedded workflow has now been proven from natural language prompt through to physical hardware.
+
+Core Pipeline
+Visual Builder
+        │
+        ▼
+Browser Preview
+        │
+        ▼
+LVGL Export
+        │
+        ▼
+Generated C
+        │
+        ▼
+ESP-IDF Build
+        │
+        ▼
+Physical ESP32-P4
+
+Status
+
+PROVEN
+AI Pipeline
+User Prompt
+        │
+        ▼
+GPT-5
+        │
+        ▼
+ForgeUI JSON Document
+        │
+        ▼
+JSON Validation
+        │
+        ▼
+Component Validation
+        │
+        ▼
+Canvas
+        │
+        ▼
+Browser Preview
+        │
+        ▼
+LVGL Export
+        │
+        ▼
+Generated C
+        │
+        ▼
+ESP-IDF Build
+        │
+        ▼
+Physical ESP32-P4
+
+Status
+
+PROVEN
+AI Engine Architecture
+ForgeAIPanel
+        │
+        ▼
+ForgeAIEngine
+        │
+        ├─────────────┐
+        │             │
+        ▼             ▼
+ForgeAIPrompts   ForgeAIContext
+        │             │
+        └──────┬──────┘
+               ▼
+       ForgeAIClient
+               │
+               ▼
+      OpenAI Responses API
+               │
+               ▼
+       ForgeAIParser
+               │
+               ▼
+Validated ForgeUI Document
+               │
+               ▼
+JSON Editor
+               │
+               ▼
+Insert JSON
+               │
+               ▼
+Canvas
+
+Status
+
+MODULAR
+
+PROVEN
+AI Features
+
+Current capabilities
+
+Natural Language Layout Generation
+
+Prompt Editor
+
+Live GPT Integration
+
+JSON Validation
+
+Component Validation
+
+Template Library
+
+ForgeUI JSON Editor
+
+Canvas Insertion
+
+Browser Preview
+
+LVGL Export
+
+Physical ESP32-P4 Deployment
+
+Status
+
+PROVEN
+Proven Workflow
+Describe Screen
+
+↓
+
+Generate Layout
+
+↓
+
+Review Generated JSON
+
+↓
+
+Insert Layout
+
+↓
+
+Preview
+
+↓
+
+Export
+
+↓
+
+Build
+
+↓
+
+Flash
+
+↓
+
+Physical Hardware
+
+Status
+
+PROVEN
+Current Project Architecture
+Visual Builder
+        │
+        ├──────────────┐
+        │              │
+        ▼              ▼
+Manual Design     AI Layout Generation
+        │              │
+        └──────┬───────┘
+               ▼
+        ForgeUI JSON
+               ▼
+         Validation
+               ▼
+            Canvas
+               ▼
+      Browser Preview
+               ▼
+        LVGL Export
+               ▼
+        Generated C
+               ▼
+       ESP-IDF Build
+               ▼
+       Physical ESP32-P4
+Next Development Phase
+AI Engine V3
+
+Current Project Context
+
+Current Canvas
+
+Current Theme
+
+Current Assets
+
+Current Icons
+
+↓
+
+Prompt
+
+↓
+
+AI Screen Modification
+
+↓
+
+Updated ForgeUI Document
+
+Planned capabilities
+
+Modify Existing Screens
+
+Theme Generation
+
+Asset Awareness
+
+Icon Awareness
+
+Project Context
+
+Runtime Widget Generation
+
+Multi-screen Projects
+
+Status
+
+NEXT
+
+-------------------------------------------------------------
 
 
 New Save Point
