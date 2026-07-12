@@ -1,3 +1,194 @@
+
+# SPINE
+
+## Current Save Point
+
+```text
+FORGEUI_SETUP_AND_RECOVERY__DEPENDENCY_PREFLIGHT__ESP_IDF_DETECTION__OPENAI_READY__AI_PLAYGROUND_NEXT__2026-07-12
+```
+
+---
+
+# Project Status
+
+```text
+ACTIVE
+
+STABLE
+
+PHYSICAL HARDWARE PROVEN
+
+FIRST-TIME SETUP PROVEN
+
+DEPENDENCY RECOVERY PROVEN
+```
+
+---
+
+# New Proven Capabilities
+
+## ForgeUI Setup & Recovery
+
+```text
+Clone Repository
+        ↓
+FIRST_TIME_FORGEUI_SETUP.bat
+        ↓
+Verify Node.js
+        ↓
+Verify npm
+        ↓
+Install node_modules
+        ↓
+Locate ESP-IDF Python
+        ↓
+Install Pillow
+        ↓
+Install pypng
+        ↓
+Install lz4
+        ↓
+Verify LVGLImage.py
+        ↓
+Verify OpenAI Package
+        ↓
+Verify ESP-IDF Installation
+        ↓
+Validate Standalone Export Environment
+        ↓
+Launch ForgeUI Studio
+```
+
+### Proven
+
+- Automatic node_modules recovery
+- Automatic Python package installation
+- ESP-IDF Python discovery
+- LVGL converter verification
+- OpenAI package verification
+- ESP-IDF installation detection
+- Guided repair messaging
+- Successful Studio launch
+
+---
+
+# Core Architecture
+
+```text
+Builder
+        ↓
+Browser Preview
+        ↓
+AI Layout Generation
+        ↓
+Unified Image & Icon Asset Pipeline
+        ↓
+LVGL Export
+        ↓
+Standalone ESP-IDF Project
+        ↓
+Visual Studio Code
+        ↓
+ESP-IDF Extension
+        ↓
+Build
+        ↓
+Flash
+        ↓
+Physical ESP32-P4
+```
+
+Status:
+
+```text
+PROVEN
+```
+
+---
+
+# Standalone Philosophy
+
+ForgeUI Studio is a visual designer and code generator.
+
+The generated ESP-IDF project is completely independent.
+
+Developers are free to continue development in Visual Studio Code by adding:
+
+- GPIO
+- I²C
+- SPI
+- UART
+- CAN
+- Networking
+- Drivers
+- Sensors
+- Application Logic
+
+ForgeUI intentionally avoids locking projects into the Studio environment.
+
+---
+
+# Documentation
+
+Updated:
+
+- Quick Start
+- Setup & Recovery
+- Architecture
+- AI Pipeline
+- Standalone Export
+- Dependency Validation
+- Workspace Layout
+
+Documentation now reflects the current architecture.
+
+---
+
+# Next Milestone
+
+```text
+OpenAI API Integration
+        ↓
+Natural Language UI Generation
+        ↓
+Theme Generation
+        ↓
+Asset Generation
+        ↓
+AI Playground V2
+```
+
+---
+
+# Current Priority
+
+```text
+AI Playground
+```
+
+Goal:
+
+```text
+Prompt
+        ↓
+OpenAI
+        ↓
+Validated ForgeUI JSON
+        ↓
+Canvas
+        ↓
+Browser Preview
+        ↓
+LVGL Export
+        ↓
+Physical ESP32-P4
+```
+
+The existing JSON validation pipeline has already been proven.
+
+The next stage is connecting the OpenAI backend to generate validated ForgeUI layouts and themes directly from natural language prompts.
+
+Hostrical bellow here
 # SPINE
 
 ## Current Save Point
