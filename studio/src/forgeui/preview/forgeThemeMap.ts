@@ -22,6 +22,18 @@ export type ForgeBorderStyle =
   | 'soft'
   | 'terminal'
 
+export type ForgePreviewPalette = {
+  name: string
+  bg: string
+  surface: string
+  surface2: string
+  border: string
+  text: string
+  accent: string
+  texture: ForgeTextureId
+  borderStyle: ForgeBorderStyle
+}
+
 export const ACTIVE_BACKGROUND_FLAVOUR = 'graphite'
 
 export const FG_PREVIEW_PALETTES = {
