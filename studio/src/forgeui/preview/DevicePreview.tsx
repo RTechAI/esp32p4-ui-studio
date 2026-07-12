@@ -9,7 +9,7 @@ interface DevicePreviewProps {
 }
 
 const DevicePreview: React.FC<DevicePreviewProps> = ({ components }) => {
-  const { palette } = useForgeTheme()
+  const { palette, heroBackground } = useForgeTheme()
   const root = components.root
 
   const textureUrlMap: Record<string, string> = {
@@ -71,10 +71,18 @@ const textureUrl =
           minWidth={`${FORGEUI_ACTIVE_DEVICE.width}px`}
           minHeight={`${FORGEUI_ACTIVE_DEVICE.height}px`}
           bg={palette.bg}
-          backgroundImage={textureUrl ? `url("${textureUrl}")` : undefined}
-          backgroundRepeat={isHeroTexture ? 'no-repeat' : 'repeat'}
+          backgroundImage={
+         heroBackground
+          ? `url("${heroBackground}")`
+          : textureUrl
+          ? `url("${textureUrl}")`
+          : undefined
+}
+          backgroundRepeat={heroBackground || isHeroTexture ? 'no-repeat' : 'repeat'}
           backgroundSize={
-          isHeroTexture
+         heroBackground
+          ? '1024px 600px'
+          : isHeroTexture
           ? '1024px 600px'
           : palette.texture === 'dark_noise'
           ? '256px 256px'

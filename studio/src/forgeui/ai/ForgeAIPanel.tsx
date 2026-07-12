@@ -1,3 +1,4 @@
+import { useForgeTheme } from '~forgeui/theme/ForgeThemeContext'
 import React, { useState } from 'react'
 import {
   Badge,
@@ -807,7 +808,9 @@ export const ForgeAIPanel = ({
   onClose,
   insertAiLayout,
 }: ForgeAIPanelProps) => {
-  
+
+  const { setHeroBackground } = useForgeTheme()
+
   const [layoutJson, setLayoutJson] = useState(DEFAULT_LAYOUT_JSON)
   const [jsonError, setJsonError] = useState('')
   const [aiPrompt, setAiPrompt] = useState('')
@@ -815,6 +818,9 @@ export const ForgeAIPanel = ({
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [resultName, setResultName] = useState('')
   const [resultDescription, setResultDescription] = useState('')
+  const [heroPrompt, setHeroPrompt] = useState('')
+  const [isGeneratingHero, setIsGeneratingHero] = useState(false)
+  const [heroError, setHeroError] = useState('')
 
   const loadLayoutJson = (document: any) => {
     setLayoutJson(JSON.stringify(document, null, 2))
@@ -872,6 +878,35 @@ export const ForgeAIPanel = ({
     }
   }
   
+  const generateHeroBackground = async () => {
+  try {
+    setHeroError('')
+    setIsGeneratingHero(true)
+
+    const response = await fetch('/api/forgeui-ai-hero', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt: heroPrompt,
+      }),
+    })
+
+    const payload = await response.json()
+
+    if (!payload.ok) {
+      throw new Error(payload.error)
+    }
+
+    setHeroBackground(payload.image)
+  } catch (err: any) {
+    setHeroError(err.message)
+  } finally {
+    setIsGeneratingHero(false)
+  }
+}
+
   const insertJsonLayout = () => {
     try {
       setJsonError('')
@@ -1194,24 +1229,40 @@ export const ForgeAIPanel = ({
             </TabPanel>
 
             <TabPanel px={0} pt={5}>
-              <Box
-                maxW="900px"
-                border="1px solid rgba(124, 58, 237, 0.36)"
-                bg="rgba(15, 23, 42, 0.72)"
-                borderRadius="xl"
-                p={6}
-              >
-                <HStack mb={3}>
-                  <Heading size="md">AI Theme Engine</Heading>
-                  <Badge colorScheme="purple">BACKEND READY</Badge>
-                </HStack>
+            
+      <Box
+  maxW="900px"
+  border="1px solid rgba(124,58,237,0.36)"
+  bg="rgba(15,23,42,0.72)"
+  borderRadius="xl"
+  p={6}
+>
+  <Heading size="md" mb={4}>
+    AI Hero Background
+  </Heading>
 
-                <Text color="gray.400" maxW="680px">
-                  Theme documents, prompt builders, parser validation and custom
-                  palette context are now in place. The next step is wiring the
-                  prompt and live Apply Theme action into this workspace.
-                </Text>
-              </Box>
+  <Textarea
+    value={heroPrompt}
+    onChange={(e) => setHeroPrompt(e.target.value)}
+    placeholder="Create a luxury yacht dashboard background..."
+    mb={4}
+  />
+
+  <Button
+    colorScheme="purple"
+    onClick={generateHeroBackground}
+    isLoading={isGeneratingHero}
+    isDisabled={!heroPrompt.trim()}
+  >
+    Generate Hero Background
+  </Button>
+
+  {heroError && (
+    <Text mt={4} color="red.300">
+      {heroError}
+    </Text>
+  )}
+</Box>
             </TabPanel>
           </TabPanels>
         </Tabs>

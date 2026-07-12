@@ -17,6 +17,9 @@ type ForgeThemeContextValue = {
   customPalette: ForgePreviewPalette | null
   setCustomPalette: (palette: ForgePreviewPalette | null) => void
 
+  heroBackground: string | null
+  setHeroBackground: (src: string | null) => void
+
   palette: ForgePreviewPalette
   isCustomTheme: boolean
 }
@@ -33,6 +36,9 @@ export const ForgeThemeProvider: React.FC<{
   const [customPalette, setCustomPaletteState] =
     useState<ForgePreviewPalette | null>(null)
 
+  const [heroBackground, setHeroBackground] =
+    useState<string | null>(null)
+
   const setThemeId = (id: ForgeThemeId) => {
     setThemeIdState(id)
     setCustomPaletteState(null)
@@ -45,9 +51,9 @@ export const ForgeThemeProvider: React.FC<{
   }
 
   const palette =
-  customPalette ??
-  FG_PREVIEW_PALETTES[themeId] ??
-  FG_PREVIEW_PALETTES.reactor_dark
+    customPalette ??
+    FG_PREVIEW_PALETTES[themeId] ??
+    FG_PREVIEW_PALETTES.reactor_dark
 
   return (
     <ForgeThemeContext.Provider
@@ -56,6 +62,8 @@ export const ForgeThemeProvider: React.FC<{
         setThemeId,
         customPalette,
         setCustomPalette,
+        heroBackground,
+        setHeroBackground,
         palette,
         isCustomTheme: customPalette !== null,
       }}
