@@ -1,15 +1,198 @@
 
 # SPINE
 
+
+
+New Save Point
+FORGEUI_AI_LAYOUT_GENERATION__LIVE_OPENAI_INTEGRATION__VALIDATED_JSON_PROVEN__AI_ENGINE_NEXT__2026-07-12
+New Status
+ACTIVE
+
+STABLE
+
+PHYSICAL HARDWARE PROVEN
+
+LIVE OPENAI GENERATION PROVEN
+
+SECURE SERVER-SIDE AI PROVEN
+New Proven Capability
+User Prompt
+        ↓
+ForgeUI AI Playground
+        ↓
+Next.js API Route
+        ↓
+OpenAI Responses API
+        ↓
+ForgeUI JSON Document
+        ↓
+JSON Validation
+        ↓
+Browser Response
+
+Status:
+
+PROVEN
+Newly Proven
+OpenAI Integration
+
+Proven:
+
+OpenAI SDK
+Secure server-side API key
+Server-side API route
+Responses API
+Live authenticated requests
+JSON-only generation
+ForgeUI document generation
+Valid document parsing
+Existing validator compatibility
+Proven Test Prompt
+Create a modern WiFi setup screen.
+
+Returned:
+
+ForgeUI Layout Document
+
+18 Components
+
+Valid JSON
+
+Successfully Parsed
+
+Status:
+
+PROVEN
+Current AI Pipeline
+Prompt
+        ↓
+OpenAI
+        ↓
+ForgeUI JSON Document
+        ↓
+Server Validation
+        ↓
+Browser
+
+Status:
+
+PROVEN
+Current Remaining Work
+
+The backend is finished.
+
+The remaining work is UI integration.
+
+Current target:
+
+Prompt
+        ↓
+Generate Button
+        ↓
+POST /api/forgeui-ai-layout
+        ↓
+OpenAI
+        ↓
+ForgeUI JSON
+        ↓
+setLayoutJson(...)
+        ↓
+Existing JSON Editor
+        ↓
+Insert JSON
+        ↓
+Canvas
+
+No backend redesign required.
+
+Next Architecture
+
+This is the point where the AI should stop living inside the API route and become a proper subsystem.
+
+ForgeAIPanel
+        ↓
+ForgeAIClient
+        ↓
+ForgeAIEngine
+        ↓
+ContextBuilder
+        ↓
+PromptBuilder
+        ↓
+AIProvider
+        ↓
+OpenAIProvider
+        ↓
+OpenAI
+
+The browser should never know about OpenAI directly.
+
+AI Engine V1
+
+Recommended structure:
+
+forgeui/ai/
+    engine/
+        ForgeAIEngine.ts
+        ContextBuilder.ts
+        PromptBuilder.ts
+    providers/
+        AIProvider.ts
+        OpenAIProvider.ts
+    validation/
+        LayoutValidator.ts
+        LayoutRepair.ts
+    knowledge/
+        ComponentKnowledge.ts
+    types/
+        ForgeAITypes.ts
+
+Purpose:
+
+Provider abstraction
+Future Ollama support
+Future Anthropic support
+Future Gemini support
+Theme context
+Asset context
+Runtime context
+Automatic layout repair
+Central AI orchestration
+Current Priority
+AI Playground V2
+
+Immediate tasks:
+
+Connect Generate Layout button to /api/forgeui-ai-layout.
+Populate the existing JSON editor with:
+setLayoutJson(JSON.stringify(document, null, 2))
+Keep Insert JSON as the validation checkpoint.
+Prove canvas rendering.
+Prove browser preview.
+Export.
+Flash to the physical ESP32-P4.
+
+
+
 ## Current Save Point
 
 ```text
-FORGEUI_SETUP_AND_RECOVERY__DEPENDENCY_PREFLIGHT__ESP_IDF_DETECTION__OPENAI_READY__AI_PLAYGROUND_NEXT__2026-07-12
+FORGEUI_AI_LAYOUT_GENERATION__LIVE_OPENAI_INTEGRATION__VALIDATED_JSON_PROVEN__AI_ENGINE_NEXT__2026-07-12
 ```
 
 ---
 
 # Project Status
+
+ACTIVE
+
+STABLE
+
+PHYSICAL HARDWARE PROVEN
+
+LIVE OPENAI GENERATION PROVEN
+
+SECURE SERVER-SIDE AI PROVEN
 
 ```text
 ACTIVE
@@ -26,6 +209,20 @@ DEPENDENCY RECOVERY PROVEN
 ---
 
 # New Proven Capabilities
+
+User Prompt
+        ↓
+ForgeUI AI Playground
+        ↓
+Next.js API Route
+        ↓
+OpenAI Responses API
+        ↓
+ForgeUI JSON Document
+        ↓
+JSON Validation
+        ↓
+Browser Response
 
 ## ForgeUI Setup & Recovery
 
@@ -1316,3 +1513,369 @@ OpenAI
 Valid ForgeUI Layout Document
     ↓
 Existing JSON Editor
+
+
+NOTES
+
+Recommended first implementation
+
+Start smaller than the full proposed tree:
+
+studio/src/forgeui/ai/
+├── engine/
+│   ├── ForgeAIEngine.ts
+│   ├── PromptBuilder.ts
+│   ├── ContextBuilder.ts
+│   └── AIProvider.ts
+├── providers/
+│   └── OpenAIProvider.ts
+├── validation/
+│   ├── LayoutValidator.ts
+│   └── LayoutRepair.ts
+├── knowledge/
+│   └── ComponentKnowledge.ts
+└── types/
+    └── ForgeAITypes.ts
+
+Theme and asset context can be added immediately after prompt-to-layout works:
+
+ThemeContext.ts
+AssetContext.ts
+
+That avoids building empty abstractions before the first generated screen is proven.
+
+Core contract
+
+The engine should expose one clean function:
+
+const result = await forgeAIEngine.generateLayout({
+  prompt,
+  device,
+  currentTheme,
+  availableAssets,
+  currentLayout,
+})
+
+And return:
+
+type ForgeAIGenerationResult = {
+  success: boolean
+  document?: ForgeUILayoutDocument
+  warnings: string[]
+  repairs: string[]
+  rawResponse?: string
+  error?: string
+}
+
+The UI should never call OpenAI directly.
+
+Provider abstraction
+export interface AIProvider {
+  generate(request: AIProviderRequest): Promise<AIProviderResponse>
+}
+
+Then:
+
+export class OpenAIProvider implements AIProvider
+
+Later these can be added without changing the engine:
+
+LocalAIProvider
+OllamaProvider
+AnthropicProvider
+GeminiProvider
+
+The engine only understands AIProvider.
+
+Engine responsibility
+
+ForgeAIEngine.ts should orchestrate the whole sequence:
+
+build context
+    ↓
+build prompt
+    ↓
+call provider
+    ↓
+parse response
+    ↓
+validate document
+    ↓
+repair safe problems
+    ↓
+validate again
+    ↓
+return result
+
+Conceptually:
+
+export class ForgeAIEngine {
+  constructor(private provider: AIProvider) {}
+
+  async generateLayout(
+    request: ForgeAIGenerationRequest,
+  ): Promise<ForgeAIGenerationResult> {
+    const context = buildForgeAIContext(request)
+
+    const providerRequest = buildLayoutPrompt({
+      userPrompt: request.prompt,
+      context,
+    })
+
+    const response = await this.provider.generate(providerRequest)
+
+    const parsed = parseLayoutDocument(response.content)
+    const validation = validateLayoutDocument(parsed, context)
+
+    if (validation.valid) {
+      return {
+        success: true,
+        document: parsed,
+        warnings: validation.warnings,
+        repairs: [],
+      }
+    }
+
+    const repaired = repairLayoutDocument(parsed, validation, context)
+    const repairedValidation = validateLayoutDocument(repaired.document, context)
+
+    return {
+      success: repairedValidation.valid,
+      document: repairedValidation.valid ? repaired.document : undefined,
+      warnings: repairedValidation.warnings,
+      repairs: repaired.repairs,
+      error: repairedValidation.valid
+        ? undefined
+        : 'Generated layout could not be repaired safely.',
+    }
+  }
+}
+ComponentKnowledge should be generated from ForgeUI truth
+
+Do not maintain a second handwritten list of supported components if the existing registry already defines them.
+
+ComponentKnowledge.ts should adapt the proven registry into AI-friendly knowledge:
+
+type AIComponentDefinition = {
+  type: string
+  description: string
+  allowedProps: string[]
+  requiredProps: string[]
+  defaults: Record<string, unknown>
+  layoutRules?: string[]
+}
+
+Example:
+
+{
+  type: 'Button',
+  description: 'Interactive push button with visible label.',
+  allowedProps: [
+    'x',
+    'y',
+    'w',
+    'h',
+    'text',
+    'fontSize',
+    'backgroundColor',
+    'color',
+  ],
+  requiredProps: ['x', 'y', 'w', 'h'],
+  defaults: {
+    text: 'Button',
+    w: 140,
+    h: 48,
+  },
+}
+
+The AI should receive only component information relevant to generation, not the entire internal component implementation.
+
+ContextBuilder responsibilities
+
+ContextBuilder.ts should assemble:
+
+Device dimensions
+Supported components
+Current ForgeUI theme
+Available assets
+Current layout, when editing
+Generation mode
+Export constraints
+
+The first context object could be:
+
+type ForgeAIContext = {
+  device: {
+    name: string
+    width: number
+    height: number
+    gridSize: number
+  }
+  components: AIComponentDefinition[]
+  theme?: ForgeAIThemeContext
+  assets?: ForgeAIAssetContext[]
+  currentDocument?: ForgeUILayoutDocument
+  rules: {
+    absolutePositioning: boolean
+    keepInsideCanvas: boolean
+    uniqueIds: boolean
+    lvglCompatibleOnly: boolean
+  }
+}
+PromptBuilder responsibility
+
+The prompt builder should produce both a strong system instruction and a structured user request.
+
+It should instruct the provider to:
+
+Return JSON only
+Use the exact ForgeUI document shape
+Use only supplied component types
+Use only supported properties
+Keep objects within 1024 × 600
+Use absolute positioning
+Avoid overlaps where possible
+Create unique IDs
+Produce LVGL-compatible screens
+
+The model should not be responsible for knowing ForgeUI from memory. ForgeUI supplies the knowledge every time.
+
+Validation versus repair
+
+Keep these separate.
+
+LayoutValidator.ts identifies problems:
+
+Unsupported component
+Missing layout array
+Invalid coordinate
+Off-screen element
+Missing ID
+Duplicate ID
+Invalid dimensions
+Unsupported property
+Invalid document shape
+
+LayoutRepair.ts only performs deterministic, safe fixes:
+
+Clamp x and y
+Clamp width and height
+Generate missing IDs
+Remove unsupported properties
+Apply missing defaults
+Remove unsupported components
+Normalize numbers
+
+It should not creatively redesign the screen.
+
+For example:
+
+x = Math.max(0, Math.min(x, canvasWidth - width))
+y = Math.max(0, Math.min(y, canvasHeight - height))
+
+If a document is structurally broken or mostly unsupported, repair should fail rather than silently inventing a different screen.
+
+First engine mode
+
+Begin with one mode only:
+
+generate-layout
+
+Later add:
+
+modify-layout
+generate-theme
+generate-widget
+generate-assets
+explain-layout
+repair-layout
+
+Use a discriminated request:
+
+type ForgeAIRequest =
+  | {
+      mode: 'generate-layout'
+      prompt: string
+    }
+  | {
+      mode: 'modify-layout'
+      prompt: string
+      currentDocument: ForgeUILayoutDocument
+    }
+API boundary
+
+The browser-side engine should not hold the API key or call OpenAI directly.
+
+Recommended path:
+
+ForgeAIPanel
+    ↓
+ForgeAIClient
+    ↓
+POST /api/forgeui-ai/generate
+    ↓
+Server-side ForgeAIEngine
+    ↓
+OpenAIProvider
+
+Depending on the current Next.js structure, this would be either:
+
+studio/src/pages/api/forgeui-ai/generate.ts
+
+or:
+
+studio/src/app/api/forgeui-ai/generate/route.ts
+
+The API key remains server-side.
+
+UI changes after the engine exists
+
+The playground then only needs:
+
+Prompt textarea
+Generate button
+Loading state
+Generation error
+Warnings and repairs
+Generated JSON editor
+Insert JSON button
+
+Flow:
+
+const result = await generateForgeUILayout(prompt)
+
+if (result.success && result.document) {
+  setLayoutJson(JSON.stringify(result.document, null, 2))
+}
+
+Insertion continues through the existing proven function.
+
+Best build order
+1. ForgeAITypes.ts
+2. AIProvider.ts
+3. ComponentKnowledge.ts
+4. ContextBuilder.ts
+5. PromptBuilder.ts
+6. LayoutValidator.ts
+7. LayoutRepair.ts
+8. OpenAIProvider.ts
+9. ForgeAIEngine.ts
+10. API route
+11. ForgeAIPanel integration
+12. Generate and flash the first AI-created screen
+Next save-point target
+FORGEUI_AI_ENGINE_V1__PROVIDER_ABSTRACTION__PROMPT_TO_VALIDATED_LAYOUT__JSON_EDITOR_PROVEN__2026-07-12
+
+The first physical proof should be:
+
+“Create an industrial battery monitoring dashboard”
+        ↓
+ForgeAIEngine
+        ↓
+Validated ForgeUI JSON
+        ↓
+Existing canvas insertion
+        ↓
+LVGL export
+        ↓
+Physical ESP32-P4
