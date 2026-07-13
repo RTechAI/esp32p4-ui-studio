@@ -14,6 +14,7 @@ import {
   Divider,
   Flex,
   Heading,
+  Input,
   HStack,
   SimpleGrid,
   Tab,
@@ -810,6 +811,227 @@ const AI_TEMPLATE_BUTTONS = [
   },
 ]
 
+type HeroPromptExample = {
+  title: string
+  category: string
+  prompt: string
+}
+
+const HERO_PROMPT_EXAMPLES: HeroPromptExample[] = [
+  {
+    title: 'EV Fast Charger',
+    category: 'Energy',
+    prompt:
+      'Create a premium futuristic EV fast-charging station hero background for a 1024x600 embedded HMI. Position the charger and vehicle in the lower-left. Use graphite black, electric cyan, brushed aluminium and subtle amber indicators. Leave at least 45% of the upper-right as a smooth dark gradient for transparent LVGL widgets. Cinematic lighting, polished floor reflections, photorealistic, no people, text, logos, buttons or UI elements.',
+  },
+  {
+    title: 'Battery Energy Storage',
+    category: 'Energy',
+    prompt:
+      'Create a premium battery energy storage facility hero background for a 1024x600 embedded HMI. Place containerised battery racks, power converters and illuminated electrical cabinets along the lower-left. Use dark graphite, steel grey, electric green and cyan status lighting. Leave the upper-right clean and dark for transparent widgets. Photorealistic engineering visualisation, no people, text, logos or UI elements.',
+  },
+  {
+    title: 'Nuclear Reactor',
+    category: 'Energy',
+    prompt:
+      'Create a dramatic premium nuclear reactor control environment for a 1024x600 embedded HMI. Position the glowing reactor core, pipes and engineering structures on the lower-left. Use industrial steel, deep graphite, electric cyan and amber light. Reserve the upper-right as a clean dark gradient for transparent widgets. Photorealistic, cinematic, no people, text, warning labels, logos or UI controls.',
+  },
+  {
+    title: 'Fusion Energy Core',
+    category: 'Energy',
+    prompt:
+      'Create a futuristic fusion energy chamber hero background for a 1024x600 embedded HMI. Show a contained blue-white plasma ring in the lower-left with precision engineering, magnetic coils and dark metallic structures. Leave half of the right side as smooth dark negative space. Premium cinematic realism, cyan, violet and white energy glow, no people, text, logos or UI elements.',
+  },
+
+  {
+    title: 'Industrial Factory',
+    category: 'Industrial',
+    prompt:
+      'Create a premium Industry 4.0 smart factory hero background for a 1024x600 embedded HMI. Position robotic assembly lines, CNC machines, conveyors and illuminated control cabinets across the lower-left third. Use graphite black, industrial grey, brushed steel, electric cyan and amber status lights. Leave approximately 45% of the upper-right as a smooth dark gradient for transparent LVGL widgets. Photorealistic, clean engineering visualisation, no people, text, logos, warning signs or UI elements.',
+  },
+  {
+    title: 'Warehouse Automation',
+    category: 'Industrial',
+    prompt:
+      'Create a premium automated warehouse hero background for a 1024x600 embedded HMI. Show autonomous mobile robots, storage racks, conveyor systems and robotic picking equipment on the left. Use dark steel, cyan navigation lights and warm amber indicators. Reserve the right side as clean dark negative space for widgets. Photorealistic, minimal clutter, no people, text, logos or UI controls.',
+  },
+  {
+    title: 'Mining Operations',
+    category: 'Industrial',
+    prompt:
+      'Create a cinematic mining operations control hero background for a 1024x600 embedded HMI. Position a large excavator, haul truck and illuminated processing equipment in the lower-left. Use charcoal rock, dark steel, amber work lights and cool blue status lighting. Leave the upper-right dark and uncluttered for widgets. Photorealistic, no people, text, logos or UI elements.',
+  },
+  {
+    title: 'Water Treatment Plant',
+    category: 'Industrial',
+    prompt:
+      'Create a premium modern water-treatment facility hero background for a 1024x600 embedded HMI. Place stainless-steel pipes, pumps, filtration tanks and subtle blue-lit equipment on the left. Use deep navy, steel grey, cyan and white highlights. Reserve the right half as clean smooth gradients for transparent widgets. Photorealistic, no people, labels, logos or UI controls.',
+  },
+
+  {
+    title: 'Luxury Supercar',
+    category: 'Automotive',
+    prompt:
+      'Create a premium luxury electric hypercar showroom hero background for a 1024x600 embedded HMI. Position the vehicle in the lower-left beneath cinematic architectural lighting. Use matte black, graphite, carbon fibre, electric blue and polished concrete reflections. Leave the upper-right intentionally clean and dark for transparent widgets. Photorealistic, no people, logos, badges, text or UI controls.',
+  },
+  {
+    title: 'Classic Muscle Car',
+    category: 'Automotive',
+    prompt:
+      'Create a cinematic classic muscle-car garage hero background for a 1024x600 embedded HMI. Position a powerful late-1960s style coupe in the lower-left without visible branding. Use deep metallic red, black chrome, warm workshop lighting and polished floor reflections. Leave the upper-right dark and clean for widgets. Photorealistic, no people, text, logos or UI elements.',
+  },
+  {
+    title: 'Race Team Garage',
+    category: 'Automotive',
+    prompt:
+      'Create a premium motorsport pit-garage hero background for a 1024x600 embedded HMI. Place an unbranded racing vehicle, tyre equipment and illuminated engineering tools along the lower-left. Use carbon fibre, graphite, red accents and bright white strip lighting. Reserve the upper-right as clean negative space for widgets. Photorealistic, no people, sponsors, text, logos or UI elements.',
+  },
+  {
+    title: 'Off-Road Explorer',
+    category: 'Automotive',
+    prompt:
+      'Create a cinematic off-road expedition hero background for a 1024x600 embedded HMI. Position a rugged unbranded 4WD vehicle on the lower-left overlooking mountains and a remote trail. Use dark earth tones, amber sunset light and cool blue shadows. Leave the upper-right sky clean for widgets. Photorealistic, no people, text, logos or UI controls.',
+  },
+
+  {
+    title: 'Luxury Yacht',
+    category: 'Marine',
+    prompt:
+      'Create a premium luxury yacht glass-cockpit hero background for a 1024x600 embedded HMI. Position the helm, polished metal and ocean view along the lower-left. Use deep navy, brushed aluminium, cyan navigation lighting and elegant reflections. Leave the upper-right clean and dark for transparent widgets. Photorealistic, no people, text, logos, labels or UI controls.',
+  },
+  {
+    title: 'Marine Radar',
+    category: 'Marine',
+    prompt:
+      'Create a professional marine radar bridge hero background for a 1024x600 embedded HMI. Position subtle radar hardware, navigation equipment and panoramic ocean windows on the left. Use midnight navy, cyan glow, steel grey and soft white lighting. Leave half of the right side as clean negative space. Photorealistic, no people, text, logos or UI elements.',
+  },
+  {
+    title: 'Fishing Sonar',
+    category: 'Marine',
+    prompt:
+      'Create a premium sport-fishing vessel hero background for a 1024x600 embedded HMI. Show the boat console, sonar hardware, rods and open ocean in the lower-left without visible branding. Use deep blue water, cyan lighting, white highlights and dark graphite surfaces. Reserve the upper-right for transparent widgets. Photorealistic, no people, text, logos or UI controls.',
+  },
+  {
+    title: 'Offshore Platform',
+    category: 'Marine',
+    prompt:
+      'Create a dramatic offshore energy platform hero background for a 1024x600 embedded HMI. Position structural steel, cranes, pipelines and illuminated equipment along the lower-left horizon. Use deep ocean blue, graphite steel, amber work lights and cyan status lighting. Leave the upper-right dark and uncluttered. Photorealistic, no people, text, logos or UI elements.',
+  },
+
+  {
+    title: 'Medical Monitor',
+    category: 'Medical',
+    prompt:
+      'Create a premium modern intensive-care monitoring room hero background for a 1024x600 embedded HMI. Position an unoccupied bed, ventilator, infusion pumps and medical equipment on the left. Use medical white, soft cyan, deep navy and steel grey. Leave approximately 50% of the right side as smooth clean gradients for transparent widgets. Photorealistic, no people, patients, doctors, text, logos, branding or UI controls.',
+  },
+  {
+    title: 'Medical Laboratory',
+    category: 'Medical',
+    prompt:
+      'Create a premium futuristic medical laboratory hero background for a 1024x600 embedded HMI. Place analysers, microscopes, glass equipment and cool illuminated cabinets on the lower-left. Use clean white, cyan, pale blue and graphite. Reserve the right side as uncluttered negative space for widgets. Photorealistic, no people, text, logos, labels or UI elements.',
+  },
+
+  {
+    title: 'Space Command',
+    category: 'Space',
+    prompt:
+      'Create a premium deep-space command centre hero background for a 1024x600 embedded HMI. Position a sleek command console in the lower-left and Earth near the lower-right horizon beyond a panoramic window. Use space black, midnight blue, electric cyan, cool white and subtle amber lights. Keep the upper-right dark and open for widgets. Photorealistic cinematic science fiction, no people, astronauts, text, logos, weapons or UI elements.',
+  },
+  {
+    title: 'Lunar Base',
+    category: 'Space',
+    prompt:
+      'Create a cinematic lunar research-base hero background for a 1024x600 embedded HMI. Place habitat modules, scientific equipment and a rover along the lower-left lunar horizon. Use moon-grey, deep black, cool white and electric blue lighting. Leave the upper-right as open black space for transparent widgets. Photorealistic, no people, text, logos, flags or UI elements.',
+  },
+  {
+    title: 'Mars Habitat',
+    category: 'Space',
+    prompt:
+      'Create a premium Mars habitat hero background for a 1024x600 embedded HMI. Position futuristic habitat modules, solar arrays and a rover in the lower-left against a red desert landscape. Use rust orange, dark graphite, cyan status lights and soft sunset haze. Reserve the upper-right sky for widgets. Photorealistic, no people, text, logos or UI controls.',
+  },
+
+  {
+    title: 'Cyberpunk Neon',
+    category: 'Future',
+    prompt:
+      'Create a premium cyberpunk megacity hero background for a 1024x600 embedded HMI. Place a holographic workstation in the lower-left and a neon city skyline across the lower third. Use midnight black, neon cyan, magenta, deep violet and dark chrome. Leave half of the upper-right as clean dark atmosphere for widgets. Rain reflections, volumetric fog, cinematic realism, no people, text, billboards, logos, weapons or UI controls.',
+  },
+  {
+    title: 'Quantum Computer',
+    category: 'Future',
+    prompt:
+      'Create a premium quantum-computing laboratory hero background for a 1024x600 embedded HMI. Position a suspended cryogenic quantum processor and illuminated engineering hardware on the lower-left. Use polished gold, dark graphite, electric cyan and violet lighting. Leave the right side dark and clean for transparent widgets. Photorealistic, no people, text, logos or UI elements.',
+  },
+  {
+    title: 'AI Neural Core',
+    category: 'Future',
+    prompt:
+      'Create a cinematic artificial-intelligence neural core hero background for a 1024x600 embedded HMI. Show a glowing abstract processor and branching light pathways in the lower-left. Use deep black, electric cyan, violet, magenta and white energy highlights. Reserve the upper-right as smooth dark negative space. Premium photorealistic technology art, no text, logos or UI controls.',
+  },
+
+  {
+    title: 'Arctic Blue',
+    category: 'Colour',
+    prompt:
+      'Create an elegant arctic-blue embedded HMI hero background for 1024x600. Use layered ice-blue glass, frosted translucent surfaces, cool white highlights and subtle metallic reflections. Keep visual detail concentrated in the lower-left and leave the upper-right as a smooth blue-black gradient for transparent widgets. Premium, photorealistic, no text, logos or UI elements.',
+  },
+  {
+    title: 'Emerald Glass',
+    category: 'Colour',
+    prompt:
+      'Create a luxury emerald-green glass hero background for a 1024x600 embedded HMI. Use dark green crystal surfaces, brushed aluminium, soft glowing edges and deep black gradients. Concentrate detail on the left and reserve the right half for transparent widgets. Premium photorealistic design, no text, logos or UI controls.',
+  },
+  {
+    title: 'Royal Purple',
+    category: 'Colour',
+    prompt:
+      'Create a premium royal-purple technology hero background for a 1024x600 embedded HMI. Use illuminated violet glass, dark chrome, subtle lavender light beams and smooth black gradients. Keep decorative detail on the lower-left and leave the upper-right clean for widgets. Photorealistic, no text, logos or UI elements.',
+  },
+  {
+    title: 'Amber Industrial',
+    category: 'Colour',
+    prompt:
+      'Create a premium amber-and-graphite industrial hero background for a 1024x600 embedded HMI. Use brushed dark steel, glowing amber edge lights, warm reflections and subtle mechanical detail on the lower-left. Leave the upper-right dark and uncluttered for transparent widgets. Photorealistic, no text, logos or UI controls.',
+  },
+  {
+    title: 'Crimson Steel',
+    category: 'Colour',
+    prompt:
+      'Create a dramatic crimson-red and black steel hero background for a 1024x600 embedded HMI. Use precision-machined metal, dark carbon surfaces, red illuminated seams and polished reflections. Concentrate detail on the left and reserve the right for widgets. Premium cinematic realism, no text, logos or UI elements.',
+  },
+  {
+    title: 'Gold Luxury',
+    category: 'Colour',
+    prompt:
+      'Create an ultra-premium black-and-gold hero background for a 1024x600 embedded HMI. Use polished brass, dark marble, smoked glass, warm architectural lighting and elegant reflections. Keep detailed luxury materials on the lower-left and leave the upper-right clean for widgets. Photorealistic, no text, logos or UI controls.',
+  },
+
+  {
+    title: 'Retro Arcade',
+    category: 'Playful',
+    prompt:
+      'Create a colourful retro-arcade hero background for a 1024x600 embedded HMI. Use glowing pixel-inspired shapes, purple and cyan neon, checkerboard reflections and playful 1980s atmosphere. Keep visual elements concentrated in the lower-left and leave the upper-right dark for widgets. No readable text, logos, characters or UI controls.',
+  },
+  {
+    title: 'Cartoon Factory',
+    category: 'Playful',
+    prompt:
+      'Create a polished colourful caricature-style smart factory hero background for a 1024x600 embedded HMI. Show exaggerated friendly robotic arms, chunky conveyor machines and rounded industrial equipment on the lower-left. Use bright cyan, orange, yellow and purple with clean cel-shaded lighting. Leave the upper-right simple and uncluttered for widgets. No people, text, logos or UI controls.',
+  },
+  {
+    title: 'Cartoon Space Station',
+    category: 'Playful',
+    prompt:
+      'Create a premium animated caricature-style space-station hero background for a 1024x600 embedded HMI. Show a charming rounded command console, exaggerated planet shapes and colourful stars on the lower-left. Use deep navy, cyan, violet, pink and warm yellow highlights. Leave the upper-right as clean dark space for widgets. No characters, text, logos or UI controls.',
+  },
+  {
+    title: 'Comic Supercar',
+    category: 'Playful',
+    prompt:
+      'Create a bold comic-book caricature hero background for a 1024x600 embedded HMI. Position an exaggerated futuristic supercar in the lower-left with dynamic reflections, chunky wheels and energetic cyan, red and yellow lighting. Leave the upper-right clean for widgets. High-end illustrated style, no drivers, text, logos, badges or UI elements.',
+  },
+]
+
 export const ForgeAIPanel = ({
   onClose,
   insertAiLayout,
@@ -828,6 +1050,26 @@ export const ForgeAIPanel = ({
   const [heroPrompt, setHeroPrompt] = useState('')
   const [isGeneratingHero, setIsGeneratingHero] = useState(false)
   const [heroError, setHeroError] = useState('')
+
+const [heroPromptSearch, setHeroPromptSearch] =
+  useState('')
+
+const filteredHeroPrompts =
+  HERO_PROMPT_EXAMPLES.filter((example) => {
+    const query = heroPromptSearch
+      .trim()
+      .toLowerCase()
+
+    if (!query) {
+      return true
+    }
+
+    return (
+      example.title.toLowerCase().includes(query) ||
+      example.category.toLowerCase().includes(query) ||
+      example.prompt.toLowerCase().includes(query)
+    )
+  })
 
   const loadLayoutJson = (document: any) => {
     setLayoutJson(JSON.stringify(document, null, 2))
@@ -1329,51 +1571,182 @@ toast({
 
             <TabPanel px={0} pt={5}>
             
-     <Box
-  maxW="900px"
-  border="1px solid rgba(124,58,237,0.36)"
-  bg="rgba(15,23,42,0.72)"
-  borderRadius="xl"
-  p={6}
+    <SimpleGrid
+  columns={{ base: 1, xl: 3 }}
+  spacing={5}
+  alignItems="stretch"
 >
-  <Heading size="md" mb={4}>
-    AI Hero Background
-  </Heading>
+  <Box
+    gridColumn={{ base: 'auto', xl: 'span 2' }}
+    border="1px solid rgba(124,58,237,0.36)"
+    bg="rgba(15,23,42,0.72)"
+    borderRadius="xl"
+    p={6}
+  >
+    <Heading size="md" mb={2}>
+      AI Hero Background
+    </Heading>
 
-  <Textarea
-    value={heroPrompt}
-    onChange={(e) => setHeroPrompt(e.target.value)}
-    placeholder="Create a luxury yacht dashboard background..."
-    minH="280px"
-    resize="vertical"
-    mb={4}
-  />
-
-  <HStack spacing={4} mb={4}>
-    <Button
-      colorScheme="purple"
-      onClick={generateHeroBackground}
-      isLoading={isGeneratingHero}
-      isDisabled={!heroPrompt.trim()}
-    >
-      Generate Hero Background
-    </Button>
-
-    <Button
-      colorScheme="green"
-      onClick={saveHeroAsset}
-      isDisabled={!heroBackground}
-    >
-      Save To Assets
-    </Button>
-  </HStack>
-
-  {heroError && (
-    <Text mt={4} color="red.300">
-      {heroError}
+    <Text color="gray.400" fontSize="sm" mb={4}>
+      Describe the visual atmosphere, industry, lighting and style.
     </Text>
-  )}
-</Box>
+
+    <Textarea
+      value={heroPrompt}
+      onChange={(e) => setHeroPrompt(e.target.value)}
+      placeholder="Create a luxury yacht dashboard background..."
+      minH="280px"
+      resize="vertical"
+      mb={4}
+      bg="#050914"
+      color="white"
+      borderColor="rgba(139, 92, 246, 0.52)"
+      _hover={{
+        borderColor: 'purple.400',
+      }}
+      _focus={{
+        borderColor: 'purple.300',
+        boxShadow: '0 0 0 1px #c4b5fd',
+      }}
+    />
+
+    <HStack spacing={4}>
+      <Button
+        colorScheme="purple"
+        onClick={generateHeroBackground}
+        isLoading={isGeneratingHero}
+        loadingText="Generating"
+        isDisabled={!heroPrompt.trim()}
+      >
+        Generate Hero Background
+      </Button>
+
+      <Button
+        colorScheme="green"
+        onClick={saveHeroAsset}
+        isDisabled={!heroBackground}
+      >
+        Save To Assets
+      </Button>
+    </HStack>
+
+    {heroError && (
+      <Text mt={4} color="red.300">
+        {heroError}
+      </Text>
+    )}
+  </Box>
+
+  <Box
+  border="1px solid rgba(34,211,238,0.28)"
+  bg="rgba(8,15,26,0.76)"
+  borderRadius="xl"
+  p={5}
+  maxH="780px"
+  overflowY="auto"
+>
+    <Heading size="sm" mb={1}>
+      Hero Gallery
+    </Heading>
+
+    <Text color="gray.500" fontSize="xs" mb={4}>
+      Load an example, edit it, then generate.
+    </Text>
+<Input
+  value={heroPromptSearch}
+  onChange={(e) =>
+    setHeroPromptSearch(e.target.value)
+  }
+  placeholder="Search factory, marine, purple..."
+  size="sm"
+  mb={4}
+  bg="#050914"
+  borderColor="rgba(34,211,238,0.3)"
+  _focus={{
+    borderColor: 'cyan.300',
+    boxShadow: '0 0 0 1px #67e8f9',
+  }}
+/>
+
+<HStack mb={4} justify="space-between">
+  <Badge colorScheme="cyan">
+    {filteredHeroPrompts.length} PROMPTS
+  </Badge>
+
+  <Button
+    size="xs"
+    variant="ghost"
+    colorScheme="purple"
+    onClick={() => {
+      const randomPrompt =
+        HERO_PROMPT_EXAMPLES[
+          Math.floor(
+            Math.random() *
+              HERO_PROMPT_EXAMPLES.length,
+          )
+        ]
+
+      setHeroPrompt(randomPrompt.prompt)
+      setHeroError('')
+    }}
+  >
+    Surprise Me
+  </Button>
+</HStack>
+    <VStack spacing={3} align="stretch">
+      {filteredHeroPrompts.map((example) => (
+        <Box
+          key={example.title}
+          border="1px solid rgba(148,163,184,0.18)"
+          bg="rgba(15,23,42,0.7)"
+          borderRadius="lg"
+          p={3}
+          _hover={{
+            borderColor: 'rgba(34,211,238,0.5)',
+          }}
+        >
+          <Text
+            color="cyan.100"
+            fontSize="sm"
+            fontWeight="semibold"
+            mb={1}
+          >
+            {example.title}
+          </Text>
+
+<Badge
+  colorScheme="purple"
+  variant="subtle"
+  mb={2}
+>
+  {example.category}
+</Badge>
+
+          <Text
+            color="gray.500"
+            fontSize="xs"
+            noOfLines={2}
+            mb={3}
+          >
+            {example.prompt}
+          </Text>
+
+          <Button
+            size="xs"
+            variant="outline"
+            colorScheme="cyan"
+            onClick={() => {
+              setHeroPrompt(example.prompt)
+              setHeroError('')
+            }}
+          >
+            Load
+          </Button>
+        </Box>
+      ))}
+    </VStack>
+  </Box>
+</SimpleGrid>
             </TabPanel>
           </TabPanels>
         </Tabs>
