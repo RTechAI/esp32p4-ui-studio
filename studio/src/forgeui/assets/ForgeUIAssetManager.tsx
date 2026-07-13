@@ -103,17 +103,18 @@ export function ForgeUIAssetManager({
       }
 
       setAssets(
-        forgeUIUpdateUploadedAsset(asset.id, {
-          exportStatus: 'lvgl_ready',
-          cFile: data.assetSource || asset.cFile,
-        }),
-      )
+  forgeUIUpdateUploadedAsset(asset.id, {
+    exportStatus: 'lvgl_ready',
+    lvgl: data.symbolName || asset.lvgl,
+    cFile: data.assetSource || asset.cFile,
+    browserSrc: data.browserSrc || asset.browserSrc,
+  }),
+)
     } catch (err) {
       console.error('LVGL conversion error:', err)
     }
   }
 }, [])
-
   const {
     getRootProps,
     getInputProps,

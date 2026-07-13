@@ -1,6 +1,7 @@
 import React, {
   createContext,
   useContext,
+  useEffect,
   useState,
 } from 'react'
 
@@ -15,7 +16,9 @@ type ForgeThemeContextValue = {
   setThemeId: (id: ForgeThemeId) => void
 
   customPalette: ForgePreviewPalette | null
-  setCustomPalette: (palette: ForgePreviewPalette | null) => void
+  setCustomPalette: (
+    palette: ForgePreviewPalette | null,
+  ) => void
 
   heroBackground: string | null
   setHeroBackground: (src: string | null) => void
@@ -23,6 +26,15 @@ type ForgeThemeContextValue = {
   palette: ForgePreviewPalette
   isCustomTheme: boolean
 }
+
+type PersistedForgeTheme = {
+  themeId: ForgeThemeId
+  customPalette: ForgePreviewPalette | null
+  heroBackground: string | null
+}
+
+const FORGEUI_THEME_STORAGE_KEY =
+  'forgeui_active_theme_v1'
 
 const ForgeThemeContext =
   createContext<ForgeThemeContextValue | null>(null)
@@ -38,6 +50,79 @@ export const ForgeThemeProvider: React.FC<{
 
   const [heroBackground, setHeroBackground] =
     useState<string | null>(null)
+
+  const [themeRestored, setThemeRestored] =
+    useState(false)
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(
+        FORGEUI_THEME_STORAGE_KEY,
+      )
+
+      if (raw) {
+        const saved =
+          JSON.parse(raw) as Partial<PersistedForgeTheme>
+
+        if (
+          saved.themeId &&
+          saved.themeId in FG_PREVIEW_PALETTES
+        ) {
+          setThemeIdState(saved.themeId)
+        }
+
+        if (saved.customPalette) {
+          setCustomPaletteState(
+            saved.customPalette,
+          )
+        }
+
+        if (
+          typeof saved.heroBackground === 'string'
+        ) {
+          setHeroBackground(
+            saved.heroBackground,
+          )
+        }
+      }
+    } catch (err) {
+      console.error(
+        'Failed to restore ForgeUI theme:',
+        err,
+      )
+    } finally {
+      setThemeRestored(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!themeRestored) {
+      return
+    }
+
+    try {
+      const saved: PersistedForgeTheme = {
+        themeId,
+        customPalette,
+        heroBackground,
+      }
+
+      window.localStorage.setItem(
+        FORGEUI_THEME_STORAGE_KEY,
+        JSON.stringify(saved),
+      )
+    } catch (err) {
+      console.error(
+        'Failed to persist ForgeUI theme:',
+        err,
+      )
+    }
+  }, [
+    themeId,
+    customPalette,
+    heroBackground,
+    themeRestored,
+  ])
 
   const setThemeId = (id: ForgeThemeId) => {
     setThemeIdState(id)
@@ -65,7 +150,8 @@ export const ForgeThemeProvider: React.FC<{
         heroBackground,
         setHeroBackground,
         palette,
-        isCustomTheme: customPalette !== null,
+        isCustomTheme:
+          customPalette !== null,
       }}
     >
       {children}

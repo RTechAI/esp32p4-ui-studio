@@ -51,8 +51,6 @@ function runScript(scriptPath, res) {
   res.json({ ok: true })
 }
 
-app.use(express.json({ limit: '5mb' }))
-
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
@@ -65,6 +63,21 @@ app.use((req, res, next) => {
   next()
 })
 
+app.use(express.json({ limit: '30mb' }))
+
+const persistentUploadsDir = path.resolve(
+  __dirname,
+  '../firmware/ForgeUI-One/main/assets/uploads/_input'
+)
+
+fs.mkdirSync(persistentUploadsDir, {
+  recursive: true,
+})
+
+app.use(
+  '/forgeui-assets/uploads',
+  express.static(persistentUploadsDir)
+)
 
 function safeSymbolName(name) {
   return String(name || 'fg_uploaded_image')
@@ -279,16 +292,20 @@ app.post('/convert-lvgl-image', (req, res) => {
 
         responseSent = true
 
-        return res.json({
-          ok: true,
-          symbolName,
-          inputPath,
-          outputDir,
-          cFile,
-          assetSource,
-          preprocessLog,
-          log,
-        })
+        const browserSrc =
+  `http://localhost:3030/forgeui-assets/uploads/${symbolName}.png`
+
+return res.json({
+  ok: true,
+  symbolName,
+  browserSrc,
+  inputPath,
+  outputDir,
+  cFile,
+  assetSource,
+  preprocessLog,
+  log,
+})
       })
     })
   } catch (err) {

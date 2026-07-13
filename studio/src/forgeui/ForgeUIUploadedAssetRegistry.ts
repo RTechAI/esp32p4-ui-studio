@@ -44,12 +44,26 @@ const loadPersistedAssets = (): ForgeUIUploadedAsset[] => {
       return []
     }
 
-    return parsed.filter(
-      (asset: ForgeUIUploadedAsset) =>
-        asset &&
-        typeof asset.id === 'string' &&
-        typeof asset.browserSrc === 'string',
-    )
+    return parsed
+      .filter(
+        (asset: ForgeUIUploadedAsset) =>
+          asset &&
+          typeof asset.id === 'string' &&
+          typeof asset.lvgl === 'string',
+      )
+      .map((asset: ForgeUIUploadedAsset) => {
+        const persistentBrowserSrc =
+          `http://localhost:3030/forgeui-assets/uploads/${asset.lvgl}.png`
+
+        return {
+          ...asset,
+          browserSrc:
+            !asset.browserSrc ||
+            asset.browserSrc.startsWith('blob:')
+              ? persistentBrowserSrc
+              : asset.browserSrc,
+        }
+      })
   } catch (err) {
     console.error(
       'Failed to restore ForgeUI uploaded assets:',
@@ -187,7 +201,10 @@ export function forgeUIUpdateUploadedAsset(
   patch: Partial<
     Pick<
       ForgeUIUploadedAsset,
-      'exportStatus' | 'lvgl' | 'cFile'
+      | 'exportStatus'
+      | 'lvgl'
+      | 'cFile'
+      | 'browserSrc'
     >
   >,
 ) {

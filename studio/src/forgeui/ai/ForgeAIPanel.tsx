@@ -947,10 +947,8 @@ const saveHeroAsset = async () => {
       heroBackground,
     )
 
-    // Add to Asset Manager
     forgeUIAddUploadedAssets([asset])
 
-    // Automatically run the existing LVGL conversion pipeline
     if (asset.exportStatus === 'pending_conversion') {
       const res = await fetch(
         'http://localhost:3030/convert-lvgl-image',
@@ -977,11 +975,17 @@ const saveHeroAsset = async () => {
 
       forgeUIUpdateUploadedAsset(asset.id, {
         exportStatus: 'lvgl_ready',
+        lvgl: data.symbolName || asset.lvgl,
         cFile: data.assetSource || asset.cFile,
+        browserSrc:
+          data.browserSrc || asset.browserSrc,
       })
     }
 
-    console.log('AI Hero saved to assets:', asset)
+    console.log(
+      'AI Hero saved to assets:',
+      asset,
+    )
   } catch (err: any) {
     console.error(err)
 
