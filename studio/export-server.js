@@ -87,13 +87,18 @@ app.post('/convert-lvgl-image', (req, res) => {
       })
     }
 
+    const pythonPath =
+      'C:\\Espressif\\python_env\\idf5.5_py3.11_env\\Scripts\\python.exe'
+
     const converterPath = path.resolve(
       __dirname,
       '../tools/lvgl/LVGLImage.py'
     )
 
-    console.log('Converter path:', converterPath)
-    console.log('Converter exists:', fs.existsSync(converterPath))
+    const preprocessorPath = path.resolve(
+      __dirname,
+      '../tools/ForgeUIImagePreprocessor.py'
+    )
 
     const tempInputDir = path.resolve(
       __dirname,
@@ -108,108 +113,193 @@ app.post('/convert-lvgl-image', (req, res) => {
     fs.mkdirSync(tempInputDir, { recursive: true })
     fs.mkdirSync(outputDir, { recursive: true })
 
-    const ext = path.extname(fileName).toLowerCase() || '.png'
-    const inputPath = path.join(tempInputDir, `${symbolName}${ext}`)
+    const inputPath = path.join(
+      tempInputDir,
+      `${symbolName}.png`
+    )
 
-    const cleanBase64 = String(base64).replace(/^data:image\/\w+;base64,/, '')
+    const cleanBase64 = String(base64).replace(
+      /^data:image\/\w+;base64,/,
+      ''
+    )
 
-    fs.writeFileSync(inputPath, Buffer.from(cleanBase64, 'base64'))
+    fs.writeFileSync(
+      inputPath,
+      Buffer.from(cleanBase64, 'base64')
+    )
 
-    console.log('LVGL convert input:', inputPath)
-    console.log('LVGL converter:', converterPath)
-    console.log('LVGL output dir:', outputDir)
+    console.log('Preprocessor:', preprocessorPath)
+    console.log('Preprocess input:', inputPath)
 
-    const child = spawn(
-  'C:\\Espressif\\python_env\\idf5.5_py3.11_env\\Scripts\\python.exe',
-  [
-    converterPath,
-    '--ofmt',
-    'C',
-    '--cf',
-    'ARGB8888',
-    '--output',
-    outputDir,
-    '--name',
-    symbolName,
-    inputPath,
-  ],
-  {
-    cwd: path.resolve(__dirname, '../tools/lvgl'),
-    windowsHide: true,
-  }
-)
+    const preprocess = spawn(
+      pythonPath,
+      [
+        preprocessorPath,
+        inputPath,
+      ],
+      {
+        cwd: path.resolve(__dirname, '../tools'),
+        windowsHide: true,
+      }
+    )
 
-    let log = ''
+    let preprocessLog = ''
+    let responseSent = false
 
-    child.stdout.on('data', (data) => {
-      log += data.toString()
+    preprocess.stdout.on('data', (data) => {
+      preprocessLog += data.toString()
     })
 
-    child.stderr.on('data', (data) => {
-      log += data.toString()
+    preprocess.stderr.on('data', (data) => {
+      preprocessLog += data.toString()
     })
 
-    child.on('error', (err) => {
-      console.error('LVGL converter spawn error:', err)
+    preprocess.on('error', (err) => {
+      if (responseSent) return
+      responseSent = true
+
+      console.error('Image preprocessor error:', err)
 
       return res.status(500).json({
         ok: false,
-        error: 'Failed to start Python/LVGLImage.py',
+        error: 'Failed to start image preprocessor',
         detail: String(err),
-        converterPath,
-        inputPath,
-        outputDir,
+        preprocessorPath,
       })
     })
 
-    child.on('close', (code) => {
-      console.log('LVGL converter exited:', code)
-      console.log(log)
+    preprocess.on('close', (preprocessCode) => {
+      console.log('Image preprocessor exited:', preprocessCode)
+      console.log(preprocessLog)
 
-      if (code !== 0) {
+      if (responseSent) return
+
+      if (preprocessCode !== 0) {
+        responseSent = true
+
         return res.status(500).json({
           ok: false,
-          error: 'LVGL image conversion failed',
-          code,
-          log,
+          error: 'Image preprocessing failed',
+          code: preprocessCode,
+          log: preprocessLog,
+          preprocessorPath,
+          inputPath,
+        })
+      }
+
+      console.log('LVGL converter:', converterPath)
+      console.log('LVGL input:', inputPath)
+      console.log('LVGL output:', outputDir)
+
+      const child = spawn(
+        pythonPath,
+        [
+          converterPath,
+          '--ofmt',
+          'C',
+          '--cf',
+          'ARGB8888',
+          '--output',
+          outputDir,
+          '--name',
+          symbolName,
+          inputPath,
+        ],
+        {
+          cwd: path.resolve(__dirname, '../tools/lvgl'),
+          windowsHide: true,
+        }
+      )
+
+      let log = ''
+
+      child.stdout.on('data', (data) => {
+        log += data.toString()
+      })
+
+      child.stderr.on('data', (data) => {
+        log += data.toString()
+      })
+
+      child.on('error', (err) => {
+        if (responseSent) return
+        responseSent = true
+
+        console.error('LVGL converter spawn error:', err)
+
+        return res.status(500).json({
+          ok: false,
+          error: 'Failed to start Python/LVGLImage.py',
+          detail: String(err),
           converterPath,
           inputPath,
           outputDir,
         })
-      }
+      })
 
-      const cFile = path.join(outputDir, `${symbolName}.c`)
-      const assetSource = `assets/uploads/${symbolName}.c`
+      child.on('close', (code) => {
+        console.log('LVGL converter exited:', code)
+        console.log(log)
 
-      if (!fs.existsSync(cFile)) {
-        return res.status(500).json({
-          ok: false,
-          error: 'LVGL converter finished but .c file was not created',
+        if (responseSent) return
+
+        if (code !== 0) {
+          responseSent = true
+
+          return res.status(500).json({
+            ok: false,
+            error: 'LVGL image conversion failed',
+            code,
+            log,
+            converterPath,
+            inputPath,
+            outputDir,
+          })
+        }
+
+        const cFile = path.join(
+          outputDir,
+          `${symbolName}.c`
+        )
+
+        const assetSource =
+          `assets/uploads/${symbolName}.c`
+
+        if (!fs.existsSync(cFile)) {
+          responseSent = true
+
+          return res.status(500).json({
+            ok: false,
+            error:
+              'LVGL converter finished but .c file was not created',
+            cFile,
+            log,
+          })
+        }
+
+        responseSent = true
+
+        return res.json({
+          ok: true,
+          symbolName,
+          inputPath,
+          outputDir,
           cFile,
+          assetSource,
+          preprocessLog,
           log,
         })
-      }
-
-      res.json({
-        ok: true,
-        symbolName,
-        inputPath,
-        outputDir,
-        cFile,
-        assetSource,
-        log,
       })
     })
   } catch (err) {
     console.error(err)
 
-    res.status(500).json({
+    return res.status(500).json({
       ok: false,
       error: String(err),
     })
   }
 })
-
 
 app.post('/export', (req, res) => {
   try {

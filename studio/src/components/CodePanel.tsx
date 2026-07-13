@@ -6,20 +6,29 @@ import { useSelector } from 'react-redux'
 import { getComponents } from '~core/selectors/components'
 import { generateForgeUILvglCode } from '~forgeui/ForgeUILvglExport'
 import { useForgeTheme } from '~forgeui/theme/ForgeThemeContext'
+import { forgeUIGetUploadedAssets } from '~forgeui/ForgeUIUploadedAssetRegistry'
 
 const CodePanel = () => {
   const components = useSelector(getComponents)
-  const { themeId } = useForgeTheme()
+  const { themeId, heroBackground } = useForgeTheme()
+
   const [code, setCode] = useState<string | undefined>(undefined)
 
   useEffect(() => {
-    const getCode = async () => {
-     const result = generateForgeUILvglCode(components, themeId)
-    setCode(result.code)
-    }
+    const uploadedAssets = forgeUIGetUploadedAssets()
 
-    getCode()
-  }, [components, themeId])
+    const selectedHeroAsset = uploadedAssets.find(
+      asset => asset.browserSrc === heroBackground,
+    )
+
+    const result = generateForgeUILvglCode(
+      components,
+      themeId,
+      selectedHeroAsset,
+    )
+
+    setCode(result.code)
+  }, [components, themeId, heroBackground])
 
   const { onCopy, hasCopied } = useClipboard(code!)
 

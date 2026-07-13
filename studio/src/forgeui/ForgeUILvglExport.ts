@@ -946,6 +946,7 @@ case 'Chart': {
 export const generateForgeUILvglCode = (
   components: IComponents,
   themeId: string = 'graphite',
+  heroBackground?: any,
 ) => {
   const lines: string[] = []
   const usedAssetSources = new Set<string>()
@@ -990,17 +991,39 @@ const palette = {
     : 'tile',
 }
 
+const heroAsset =
+  heroBackground?.exportStatus === 'lvgl_ready' &&
+  heroBackground?.lvgl &&
+  heroBackground?.cFile
+    ? {
+        symbol: heroBackground.lvgl,
+        source: heroBackground.cFile,
+      }
+    : undefined
+
+// Export priority:
+// 1. Selected AI/uploaded Hero
+// 2. Theme texture
+// 3. Solid theme colour
+const backgroundAsset =
+  heroAsset ||
+  palette.textureAsset
+
+const backgroundMode =
+  heroAsset
+    ? 'fullscreen'
+    : palette.textureMode
 
   lines.push(`#include "90_Studio_Export.h"`)
-lines.push(`#include "lvgl.h"`)
-lines.push(`#include "20_RTC.h"`)
-lines.push(`#include "30_WIFI.h"`)
-lines.push(`#include <stdbool.h>`)
-
-lines.push(``)
-lines.push(`static lv_obj_t * fg_clock_label = NULL;`)
-lines.push(`static lv_obj_t * fg_wifi_label = NULL;`)
-lines.push(``)
+  lines.push(`#include "lvgl.h"`)
+  lines.push(`#include "20_RTC.h"`)
+  lines.push(`#include "30_WIFI.h"`)
+  lines.push(`#include <stdbool.h>`)
+  lines.push(`#include <stdio.h>`)
+  lines.push(``)
+  lines.push(`static lv_obj_t * fg_clock_label = NULL;`)
+  lines.push(`static lv_obj_t * fg_wifi_label = NULL;`)
+  lines.push(``)
 
   lines.push(`static void fg_clock_tick_cb(lv_timer_t *timer)`)
   lines.push(`{`)
@@ -1025,22 +1048,22 @@ lines.push(``)
   lines.push(`}`)
   lines.push(``)
 
-lines.push(`static void fg_wifi_tick_cb(lv_timer_t *timer)`)
-lines.push(`{`)
-lines.push(`    LV_UNUSED(timer);`)
-lines.push(``)
-lines.push(`    if (!fg_wifi_label)`)
-lines.push(`    {`)
-lines.push(`        return;`)
-lines.push(`    }`)
-lines.push(``)
-lines.push(`    fg_wifi_pump();`)
-lines.push(``)
-lines.push(`    char wifi_buf[128];`)
-lines.push(`    snprintf(wifi_buf, sizeof(wifi_buf), "WIFI\\n%s\\nIP: %s", fg_wifi_status_text(), fg_wifi_ip_text());`)
-lines.push(`    lv_label_set_text(fg_wifi_label, wifi_buf);`)
-lines.push(`}`)
-lines.push(``)
+  lines.push(`static void fg_wifi_tick_cb(lv_timer_t *timer)`)
+  lines.push(`{`)
+  lines.push(`    LV_UNUSED(timer);`)
+  lines.push(``)
+  lines.push(`    if (!fg_wifi_label)`)
+  lines.push(`    {`)
+  lines.push(`        return;`)
+  lines.push(`    }`)
+  lines.push(``)
+  lines.push(`    fg_wifi_pump();`)
+  lines.push(``)
+  lines.push(`    char wifi_buf[128];`)
+  lines.push(`    snprintf(wifi_buf, sizeof(wifi_buf), "WIFI\\n%s\\nIP: %s", fg_wifi_status_text(), fg_wifi_ip_text());`)
+  lines.push(`    lv_label_set_text(fg_wifi_label, wifi_buf);`)
+  lines.push(`}`)
+  lines.push(``)
 
   lines.push(`// ForgeUI LVGL Export Proof V1`)
   lines.push(`// Generated from ForgeUI Studio`)
@@ -1055,37 +1078,43 @@ lines.push(``)
   lines.push(``)
 
   if (
-  palette.textureAsset?.source &&
-  palette.textureAsset?.symbol
+  backgroundAsset?.source &&
+  backgroundAsset?.symbol
 ) {
-  usedAssetSources.add(palette.textureAsset.source)
+  usedAssetSources.add(backgroundAsset.source)
 
-  lines.push(`    LV_IMAGE_DECLARE(${palette.textureAsset.symbol});`)
+  lines.push(`    LV_IMAGE_DECLARE(${backgroundAsset.symbol});`)
 
-if (palette.textureMode === 'fullscreen') {
-  lines.push(`    lv_obj_t * bg_texture_0 = lv_image_create(parent);`)
-  lines.push(`    lv_image_set_src(bg_texture_0, &${palette.textureAsset.symbol});`)
-  lines.push(`    lv_obj_set_pos(bg_texture_0, 0, 0);`)
-  lines.push(`    lv_obj_set_size(bg_texture_0, 1024, 600);`)
-} else {
-  lines.push(`    lv_obj_t * bg_texture_0 = lv_image_create(parent);`)
-  lines.push(`    lv_image_set_src(bg_texture_0, &${palette.textureAsset.symbol});`)
-  lines.push(`    lv_obj_set_pos(bg_texture_0, 0, 0);`)
+  if (backgroundMode === 'fullscreen') {
+    lines.push(`    lv_obj_t * bg_texture_0 = lv_image_create(parent);`)
+    lines.push(`    lv_image_set_src(bg_texture_0, &${backgroundAsset.symbol});`)
+    lines.push(`    lv_obj_set_pos(bg_texture_0, 0, 0);`)
+    lines.push(`    lv_obj_set_size(bg_texture_0, 1024, 600);`)
+    lines.push(`    lv_obj_move_background(bg_texture_0);`)
+  } else {
+    lines.push(`    lv_obj_t * bg_texture_0 = lv_image_create(parent);`)
+    lines.push(`    lv_image_set_src(bg_texture_0, &${backgroundAsset.symbol});`)
+    lines.push(`    lv_obj_set_pos(bg_texture_0, 0, 0);`)
 
-  lines.push(`    lv_obj_t * bg_texture_1 = lv_image_create(parent);`)
-  lines.push(`    lv_image_set_src(bg_texture_1, &${palette.textureAsset.symbol});`)
-  lines.push(`    lv_obj_set_pos(bg_texture_1, 512, 0);`)
+    lines.push(`    lv_obj_t * bg_texture_1 = lv_image_create(parent);`)
+    lines.push(`    lv_image_set_src(bg_texture_1, &${backgroundAsset.symbol});`)
+    lines.push(`    lv_obj_set_pos(bg_texture_1, 512, 0);`)
 
-  lines.push(`    lv_obj_t * bg_texture_2 = lv_image_create(parent);`)
-  lines.push(`    lv_image_set_src(bg_texture_2, &${palette.textureAsset.symbol});`)
-  lines.push(`    lv_obj_set_pos(bg_texture_2, 0, 512);`)
+    lines.push(`    lv_obj_t * bg_texture_2 = lv_image_create(parent);`)
+    lines.push(`    lv_image_set_src(bg_texture_2, &${backgroundAsset.symbol});`)
+    lines.push(`    lv_obj_set_pos(bg_texture_2, 0, 512);`)
 
-  lines.push(`    lv_obj_t * bg_texture_3 = lv_image_create(parent);`)
-  lines.push(`    lv_image_set_src(bg_texture_3, &${palette.textureAsset.symbol});`)
-  lines.push(`    lv_obj_set_pos(bg_texture_3, 512, 512);`)
-}
+    lines.push(`    lv_obj_t * bg_texture_3 = lv_image_create(parent);`)
+    lines.push(`    lv_image_set_src(bg_texture_3, &${backgroundAsset.symbol});`)
+    lines.push(`    lv_obj_set_pos(bg_texture_3, 512, 512);`)
 
-lines.push(``)
+    lines.push(`    lv_obj_move_background(bg_texture_0);`)
+    lines.push(`    lv_obj_move_background(bg_texture_1);`)
+    lines.push(`    lv_obj_move_background(bg_texture_2);`)
+    lines.push(`    lv_obj_move_background(bg_texture_3);`)
+  }
+
+  lines.push(``)
 }
 
   const body: string[] = []

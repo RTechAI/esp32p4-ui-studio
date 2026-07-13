@@ -21,6 +21,79 @@ Real-world runtime logs captured directly via `idf_monitor.py` on the physical *
 
 ---
 
+
+## ✅ Native Render Parity Achieved
+
+ForgeUI now maintains render parity across:
+
+✓ Builder Canvas
+
+✓ Browser Preview
+
+✓ Generated LVGL Assets
+
+✓ Physical ESP32-P4 Hardware
+
+Images imported into ForgeUI are automatically processed into native device-sized assets ensuring identical rendering throughout the complete development workflow.
+
+## 🖼️ AI Hero Asset Pipeline V2
+
+ForgeUI Studio now supports automatic AI-generated Hero Backgrounds that are converted into native LVGL assets during import.
+
+### Proven Workflow
+
+```text
+Natural Language Prompt
+            │
+            ▼
+     OpenAI Image Generation
+            │
+            ▼
+      PNG Import
+            │
+            ▼
+ Automatic Device Preprocessing
+            │
+            ▼
+ Center Crop
+            │
+            ▼
+ Resize To Active Display
+            │
+            ▼
+ Native LVGL Asset Generation
+            │
+            ▼
+ Theme Manager
+            │
+            ▼
+ Builder Canvas
+            │
+            ▼
+ Browser Preview
+            │
+            ▼
+ ESP-IDF Export
+            │
+            ▼
+ Physical ESP32-P4
+```
+
+### Verified
+
+✓ AI Hero Generation
+
+✓ Automatic Image Processing
+
+✓ Native LVGL Asset Generation
+
+✓ Builder Rendering
+
+✓ Browser Preview
+
+✓ ESP32-P4 Hardware
+---
+
 ## ✅ Verified End-to-End Development Workflow
 
 ForgeUI Studio has now been physically verified from Builder to hardware using both the integrated Studio workflow and a completely detached exported project.
@@ -142,9 +215,33 @@ Complex CMake script management   ───►  Zero Web Runtimes Ever Deployed 
 
 ### 2. Automated Build & Local Flashing Pipeline
 *   **Inline Flash Console**: Trigger compilation, execute local toolchain checks, run background memory repairs (`REPAIR ESP-IDF MANAGED COMPONENT CACHE`), and stream real-time logging records directly through local browser child processes.
-*   **Local Image Converter Pipeline V1**: Zero cloud dependencies, zero external telemetry. Drag-and-drop PNG, JPG, or SVG assets directly into a local Python converter utility (`tools/lvgl/LVGLImage.py`). The pipeline handles local thumbnail layout mapping, performs precise `ARGB8888` vector-to-raster transformations, generates clean static `.c` image array buffers on disk, and injects safe `LV_IMAGE_DECLARE(...)` expressions into your build tree automatically.
+*   **Device-Aware Asset Pipeline V2**: Zero cloud dependencies, zero external telemetry. Drag-and-drop PNG, JPG, or SVG assets directly into a local Python converter utility (`tools/lvgl/LVGLImage.py`). The pipeline handles local thumbnail layout mapping, performs precise `ARGB8888` vector-to-raster transformations, generates clean static `.c` image array buffers on disk, and injects safe `LV_IMAGE_DECLARE(...)` expressions into your build tree automatically.
+
+• AI Layout Generation
+• AI Hero Background Generation
+• Automatic Device-Aware Image Processing
+• Native LVGL Asset Generation
 
 ---
+
+proven pipline 
+AI Hero
+      ↓
+Upload
+      ↓
+Image Preprocessor
+      ↓
+1024x600 Native PNG
+      ↓
+LVGLImage.py
+      ↓
+Generated C Asset
+      ↓
+Builder
+      ↓
+Preview
+      ↓
+ESP32-P4
 
 ## 📁 Decoupled Workspace Architecture
 
@@ -224,6 +321,14 @@ Your exported code incorporates a high-capacity custom allocation scheme designe
 *   **Direct 2D-DMA Tunneling**: The display refresh configuration parameters (`bsp_display_cfg_t`) lock pixel allocation pathways directly to active DMA engines (`.buff_dma = true`) while enforcing direct internal RAM layout tracking (`.buff_spiram = false`). This completely eliminates frame rendering transmission latency over slower external memory lanes.
 *   **Thread-Safe Graphics Handshaking**: Visual initialization calls inside `main.c` are fully encapsulated within native Espressif display locks (`bsp_display_lock(0)`), ensuring your graphic compositions update with complete structural integrity across multi-core task switches.
 
+philosophy
+Build it.
+
+Prove it.
+
+Flash it.
+
+Repeat.
 
 # About the Creator
 

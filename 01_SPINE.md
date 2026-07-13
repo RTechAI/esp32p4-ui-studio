@@ -3,6 +3,312 @@
 ## Current Save Point
 
 ```text
+FORGEUI_AI_STUDIO_V2_3_3__DEVICE_AWARE_HERO_IMPORT_PIPELINE__1024X600_NATIVE_ASSETS__CANVAS_PREVIEW_P4_PARITY__2026-07-13
+```
+
+---
+
+# Project Status
+
+```text
+ACTIVE
+
+STABLE
+
+PHYSICAL HARDWARE PROVEN
+
+AI LAYOUT PIPELINE PROVEN
+
+AI HERO PIPELINE PROVEN
+
+DEVICE-AWARE HERO IMPORT PROVEN
+
+CANVAS / PREVIEW / ESP32-P4 PARITY PROVEN
+```
+
+---
+
+# Major Milestone
+
+ForgeUI Studio now performs automatic device-aware preprocessing for AI-generated and uploaded Hero Backgrounds.
+
+Images are no longer converted at their original resolution.
+
+During import, ForgeUI now:
+
+```text
+Detects Image Size
+        ↓
+Center Crops
+        ↓
+Resizes To Active Device Resolution
+        ↓
+Generates Native LVGL Asset
+        ↓
+Builder
+        ↓
+Browser Preview
+        ↓
+ESP32-P4
+```
+
+This eliminates the rendering mismatch previously caused by oversized assets and ensures identical rendering across the complete ForgeUI pipeline.
+
+Status
+
+```text
+FULLY PROVEN
+```
+
+---
+
+# Native Hero Asset Pipeline
+
+```text
+Natural Language Prompt
+        ↓
+OpenAI Image Generation
+        ↓
+PNG Upload
+        ↓
+ForgeUI Image Preprocessor
+        ↓
+Center Crop
+        ↓
+1024×600 Native PNG
+        ↓
+LVGLImage.py
+        ↓
+Native LVGL C Asset
+        ↓
+Theme Manager
+        ↓
+Builder Canvas
+        ↓
+Browser Preview
+        ↓
+ESP-IDF Export
+        ↓
+Physical ESP32-P4
+```
+
+Status
+
+```text
+PROVEN
+```
+
+---
+
+# Platform Validation
+
+The following pipeline has now been physically validated.
+
+```text
+Canvas
+      ✓
+
+Browser Preview
+      ✓
+
+Generated LVGL Asset
+      ✓
+
+Standalone Export
+      ✓
+
+ESP-IDF Build
+      ✓
+
+ESP32-P4 Flash
+      ✓
+
+Physical Display
+      ✓
+```
+
+Result
+
+```text
+Canvas
+
+≈
+
+Browser Preview
+
+≈
+
+Physical Hardware
+```
+
+---
+
+# Architecture Discovery
+
+Root cause identified:
+
+```text
+LVGL was never the issue.
+
+ESP32-P4 was never the issue.
+
+Browser Preview was never the issue.
+```
+
+The issue was that imported Hero images were converted using their original dimensions.
+
+Example
+
+```text
+Original
+
+1536 × 1024
+
+↓
+
+LVGL Native Asset
+
+1536 × 1024
+
+↓
+
+1024 × 600 Display
+
+↓
+
+Clipping
+```
+
+Now
+
+```text
+Original Image
+
+↓
+
+Automatic Crop
+
+↓
+
+Automatic Resize
+
+↓
+
+1024 × 600 Native Asset
+
+↓
+
+LVGL
+
+↓
+
+Perfect Display Fit
+```
+
+---
+
+# Native LVGL Asset Verification
+
+Generated assets now correctly produce:
+
+```c
+.w = 1024
+.h = 600
+.stride = 4096
+```
+
+Status
+
+```text
+PROVEN
+```
+
+---
+
+# ForgeUI Architecture
+
+```text
+Layout AI
+        │
+        ├──────────────┐
+        │              │
+        ▼              ▼
+Layout JSON     Hero Generation
+        │              │
+        ▼              ▼
+Canvas      Image Preprocessor
+        │              │
+        ▼              ▼
+Builder Canvas
+        │
+        ▼
+Browser Preview
+        │
+        ▼
+LVGL Export
+        │
+        ▼
+ESP-IDF
+        │
+        ▼
+Physical ESP32-P4
+```
+
+---
+
+# Next Milestone
+
+## Device Profiles
+
+Generalise the image preprocessor so imported assets automatically target the currently selected ForgeUI device.
+
+```text
+Active Device
+        ↓
+Read Resolution
+        ↓
+Automatic Crop
+        ↓
+Automatic Resize
+        ↓
+Native LVGL Asset
+```
+
+This will allow ForgeUI to support multiple display resolutions using the same import pipeline.
+
+---
+
+# Summary
+
+ForgeUI now has a complete AI-assisted visual asset workflow from natural language through to native embedded hardware.
+
+```text
+Prompt
+      ↓
+AI Hero
+      ↓
+Automatic Device Preprocessing
+      ↓
+Native LVGL Asset
+      ↓
+Builder
+      ↓
+Browser Preview
+      ↓
+LVGL Export
+      ↓
+ESP-IDF
+      ↓
+Physical ESP32-P4
+```
+
+This milestone establishes **render parity** across the Builder Canvas, Browser Preview and physical ESP32-P4 hardware, providing a single, reliable visual pipeline for future ForgeUI development.
+---------------------------------------------------------
+# SPINE
+
+## Current Save Point
+
+```text
 FORGEUI_AI_STUDIO_V2_3_0__AI_HERO_ASSET_PIPELINE__BUILDER_THEME_PREVIEW_UNIFIED__LVGL_READY__2026-07-13
 ```
 

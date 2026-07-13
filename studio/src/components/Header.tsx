@@ -47,8 +47,6 @@ const ExportProjectButton = ({
 }: {
   exportEspIdfProject: () => Promise<void>
 }) => {
- 
-
   return (
     <Popover>
       {({ onClose }) => (
@@ -56,73 +54,79 @@ const ExportProjectButton = ({
           <PopoverTrigger>
             <Button
               rightIcon={<ExternalLinkIcon path="" />}
-               variant="ghost"
-                size="xs"
->
+              variant="ghost"
+              size="xs"
+            >
               Export Project
             </Button>
           </PopoverTrigger>
 
           <LightMode>
-  <PopoverContent zIndex={100} bg="white">
-    <PopoverArrow />
-    <PopoverCloseButton />
-    <PopoverHeader>Export Project</PopoverHeader>
+            <PopoverContent zIndex={100} bg="white">
+              <PopoverArrow />
+              <PopoverCloseButton />
+              <PopoverHeader>Export Project</PopoverHeader>
 
-    <PopoverBody fontSize="sm">
-  Export a standalone ESP-IDF project or open the exports folder.
-</PopoverBody>
+              <PopoverBody fontSize="sm">
+                Export a standalone ESP-IDF project or open the exports folder.
+              </PopoverBody>
 
-    <PopoverFooter
-      display="flex"
-      justifyContent="flex-end"
-      alignItems="center"
-      flexWrap="wrap"
-      gap={2}
-    >
-            
-      <Button
-        size="sm"
-        variant="ghost"
-        colorScheme="purple"
-        onClick={async () => {
-          await exportEspIdfProject()
-          if (onClose) onClose()
-        }}
-      >
-        ESP-IDF
-      </Button>
+              <PopoverFooter
+                display="flex"
+                justifyContent="flex-end"
+                alignItems="center"
+                flexWrap="wrap"
+                gap={2}
+              >
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  colorScheme="purple"
+                  onClick={async () => {
+                    await exportEspIdfProject()
+                    if (onClose) onClose()
+                  }}
+                >
+                  ESP-IDF
+                </Button>
 
-      <Button
-        size="sm"
-        variant="ghost"
-        colorScheme="teal"
-        onClick={async () => {
-          await fetch('http://localhost:3030/open-exports', {
-            method: 'POST',
-          })
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  colorScheme="teal"
+                  onClick={async () => {
+                    await fetch('http://localhost:3030/open-exports', {
+                      method: 'POST',
+                    })
 
-          if (onClose) onClose()
-        }}
-      >
-        Open Exports Folder
-      </Button>
-    </PopoverFooter>
-  </PopoverContent>
-</LightMode>
+                    if (onClose) onClose()
+                  }}
+                >
+                  Open Exports Folder
+                </Button>
+              </PopoverFooter>
+            </PopoverContent>
+          </LightMode>
         </>
       )}
     </Popover>
   )
 }
+
 const Header = () => {
   const {
     themeId,
+    heroBackground,
     setThemeId,
     setHeroBackground,
   } = useForgeTheme()
 
   const uploadedAssets = forgeUIGetUploadedAssets()
+
+  const selectedHeroAsset = uploadedAssets.find(
+    asset => asset.browserSrc === heroBackground,
+  )
+
   const showLayout = useSelector(getShowLayout)
   const showCode = useSelector(getShowCode)
   const dispatch = useDispatch()
@@ -222,9 +226,10 @@ useEffect(() => {
 
 const exportToForgeUIOne = async () => {
   const result = generateForgeUILvglCode(
-    components,
-    themeId,
-  )
+  components,
+  themeId,
+  selectedHeroAsset,
+)
 
   const code = result.code
 
@@ -247,67 +252,67 @@ const exportToForgeUIOne = async () => {
 
 
   const exportEspIdfProject = async () => {
-    const result = generateForgeUILvglCode(
-      components,
-      themeId,
-    )
+  const result = generateForgeUILvglCode(
+    components,
+    themeId,
+    selectedHeroAsset,
+  )
 
-    const code = result.code
-    const assetSources = result.assetSources
+  const code = result.code
+  const assetSources = result.assetSources
 
-    setFlashPanelOpen(false)
-    setFlashLog(
-      'Standalone ESP-IDF project exported successfully.\n' +
+  setFlashPanelOpen(false)
+  setFlashLog(
+    'Standalone ESP-IDF project exported successfully.\n' +
       'Export location: C:\\ForgeUI-Exports\n' +
       'Open the exported project in ESP-IDF.\n' +
-      'Close this window when finished.\n'
-    )
+      'Close this window when finished.\n',
+  )
 
-    await fetch('http://localhost:3030/export-idf-project', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        code,
-        assetSources,
-        projectName: 'ForgeUI_Export',
-      }),
-    })
+  await fetch('http://localhost:3030/export-idf-project', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      code,
+      assetSources,
+      projectName: 'ForgeUI_Export',
+    }),
+  })
 
-    toast({
-      title: 'Standalone ESP-IDF Project Exported',
-      description: 'Project exported to C:\\ForgeUI-Exports',
-      status: 'success',
-      duration: 7000,
-      isClosable: true,
-    })
-  }
-
-  const cleanBuildFlashForgeUIOne = async () => {
-    const result = generateForgeUILvglCode(
-      components,
-      themeId,
-    )
-
-    const code = result.code
-
-setFlashPanelOpen(true)
-setFlashLog('Starting Clean Build & Flash...\n')
-
-await fetch('http://localhost:3030/export', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    code,
-    assetSources: result.assetSources,
-  }),
-})
-
-await fetch('http://localhost:3030/clean-flash', {
-  method: 'POST',
-})
-
+  toast({
+    title: 'Standalone ESP-IDF Project Exported',
+    description: 'Project exported to C:\\ForgeUI-Exports',
+    status: 'success',
+    duration: 7000,
+    isClosable: true,
+  })
 }
 
+const cleanBuildFlashForgeUIOne = async () => {
+  const result = generateForgeUILvglCode(
+    components,
+    themeId,
+    selectedHeroAsset,
+  )
+
+  const code = result.code
+
+  setFlashPanelOpen(true)
+  setFlashLog('Starting Clean Build & Flash...\n')
+
+  await fetch('http://localhost:3030/export', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      code,
+      assetSources: result.assetSources,
+    }),
+  })
+
+  await fetch('http://localhost:3030/clean-flash', {
+    method: 'POST',
+  })
+}
   return (
     <DarkMode>
       <Flex
