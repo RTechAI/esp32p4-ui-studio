@@ -5,6 +5,7 @@ import {
 } from '~forgeui/ForgeUIUploadedAssetRegistry'
 import { useForgeTheme } from '~forgeui/theme/ForgeThemeContext'
 import React, { useState } from 'react'
+import { useToast } from '@chakra-ui/react'
 import {
   Badge,
   Box,
@@ -816,6 +817,7 @@ export const ForgeAIPanel = ({
 
   const { heroBackground, setHeroBackground } = useForgeTheme()
 
+  const toast = useToast()
   const [layoutJson, setLayoutJson] = useState(DEFAULT_LAYOUT_JSON)
   const [jsonError, setJsonError] = useState('')
   const [aiPrompt, setAiPrompt] = useState('')
@@ -983,9 +985,18 @@ const saveHeroAsset = async () => {
     }
 
     console.log(
-      'AI Hero saved to assets:',
-      asset,
-    )
+  'AI Hero saved to assets:',
+  asset,
+)
+
+toast({
+  title: 'Hero background saved',
+  description:
+    'Open Theme Manager and select it to make it active.',
+  status: 'success',
+  duration: 4000,
+  isClosable: true,
+})
   } catch (err: any) {
     console.error(err)
 
@@ -1012,15 +1023,15 @@ const saveHeroAsset = async () => {
   return (
     <Box
       position="fixed"
-      left="20px"
-      top="70px"
-      right="20px"
-      bottom="20px"
+      left="10px"
+      top="48px"
+      right="10px"
+      bottom="10px"
       bg="#070b12"
       color="white"
       border="1px solid rgba(45, 212, 191, 0.55)"
       borderRadius="xl"
-      zIndex={9999}
+      zIndex={1400}
       overflow="hidden"
       boxShadow="0 24px 80px rgba(0, 0, 0, 0.72)"
     >
@@ -1318,7 +1329,7 @@ const saveHeroAsset = async () => {
 
             <TabPanel px={0} pt={5}>
             
-      <Box
+     <Box
   maxW="900px"
   border="1px solid rgba(124,58,237,0.36)"
   bg="rgba(15,23,42,0.72)"
@@ -1333,26 +1344,29 @@ const saveHeroAsset = async () => {
     value={heroPrompt}
     onChange={(e) => setHeroPrompt(e.target.value)}
     placeholder="Create a luxury yacht dashboard background..."
+    minH="280px"
+    resize="vertical"
     mb={4}
   />
 
-  <Button
-  colorScheme="purple"
-  onClick={generateHeroBackground}
-  isLoading={isGeneratingHero}
-  isDisabled={!heroPrompt.trim()}
->
-  Generate Hero Background
-</Button>
+  <HStack spacing={4} mb={4}>
+    <Button
+      colorScheme="purple"
+      onClick={generateHeroBackground}
+      isLoading={isGeneratingHero}
+      isDisabled={!heroPrompt.trim()}
+    >
+      Generate Hero Background
+    </Button>
 
-<Button
-  mt={3}
-  colorScheme="green"
-  onClick={saveHeroAsset}
-  isDisabled={!heroBackground}
->
-  Save To Assets
-</Button>
+    <Button
+      colorScheme="green"
+      onClick={saveHeroAsset}
+      isDisabled={!heroBackground}
+    >
+      Save To Assets
+    </Button>
+  </HStack>
 
   {heroError && (
     <Text mt={4} color="red.300">
