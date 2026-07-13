@@ -5,6 +5,9 @@ import { generateForgeUILvglCode } from '~forgeui/ForgeUILvglExport'
 import { useForgeTheme } from '~forgeui/theme/ForgeThemeContext'
 import { FG_PREVIEW_PALETTES } from '~forgeui/preview/forgeThemeMap'
 import ForgeAIPanel from '~forgeui/ai/ForgeAIPanel'
+import {
+  forgeUIGetUploadedAssets,
+} from '~forgeui/ForgeUIUploadedAssetRegistry'
 
 import {
   Box,
@@ -112,9 +115,14 @@ const ExportProjectButton = ({
     </Popover>
   )
 }
-
 const Header = () => {
-  const { themeId, setThemeId } = useForgeTheme()
+  const {
+    themeId,
+    setThemeId,
+    setHeroBackground,
+  } = useForgeTheme()
+
+  const uploadedAssets = forgeUIGetUploadedAssets()
   const showLayout = useSelector(getShowLayout)
   const showCode = useSelector(getShowCode)
   const dispatch = useDispatch()
@@ -654,7 +662,10 @@ await fetch('http://localhost:3030/clean-flash', {
           borderRadius="lg"
           bg="#101827"
           cursor="pointer"
-          onClick={() => setThemeId(id as any)}
+          onClick={() => {
+  setThemeId(id as any)
+  setHeroBackground(null)
+}}
           boxShadow={
             themeId === id
               ? '0 0 18px rgba(103, 232, 249, 0.45)'
@@ -693,6 +704,83 @@ await fetch('http://localhost:3030/clean-flash', {
         </Box>
       ))}
     </HStack>
+    <Box mt={8}>
+  <Box
+    fontWeight="bold"
+    fontSize="lg"
+    mb={4}
+  >
+    AI & Uploaded Backgrounds
+  </Box>
+
+  {uploadedAssets.length === 0 ? (
+    <Box color="gray.500" fontSize="sm">
+      No uploaded backgrounds available.
+    </Box>
+  ) : (
+    <HStack
+      spacing={4}
+      align="stretch"
+      flexWrap="wrap"
+    >
+      {[...uploadedAssets]
+        .reverse()
+        .filter(
+          asset =>
+            asset.type.startsWith('image/') &&
+            asset.exportStatus === 'lvgl_ready',
+        )
+        .map(asset => (
+          <Box
+            key={asset.id}
+            width="220px"
+            p={3}
+            border="2px solid"
+            borderColor="gray.600"
+            borderRadius="lg"
+            bg="#101827"
+            cursor="pointer"
+            onClick={() =>
+              setHeroBackground(asset.browserSrc)
+            }
+            _hover={{
+              borderColor: 'cyan.300',
+              boxShadow:
+                '0 0 18px rgba(103, 232, 249, 0.35)',
+            }}
+          >
+            <Box
+              as="img"
+              src={asset.browserSrc}
+              alt={asset.name}
+              width="100%"
+              height="120px"
+              objectFit="cover"
+              borderRadius="md"
+              bg="#05070a"
+            />
+
+            <Box
+              mt={3}
+              fontSize="sm"
+              fontWeight="semibold"
+              noOfLines={1}
+            >
+              {asset.name}
+            </Box>
+
+            <Badge
+              mt={2}
+              colorScheme="teal"
+              variant="subtle"
+            >
+              LVGL READY
+            </Badge>
+          </Box>
+        ))}
+    </HStack>
+  )}
+</Box>
   </Box>
 )}
 

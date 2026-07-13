@@ -1,3 +1,8 @@
+import {
+  forgeUIAddUploadedAssets,
+  forgeUICreateUploadedAsset,
+  forgeUIUpdateUploadedAsset,
+} from '~forgeui/ForgeUIUploadedAssetRegistry'
 import { useForgeTheme } from '~forgeui/theme/ForgeThemeContext'
 import React, { useState } from 'react'
 import {
@@ -809,7 +814,7 @@ export const ForgeAIPanel = ({
   insertAiLayout,
 }: ForgeAIPanelProps) => {
 
-  const { setHeroBackground } = useForgeTheme()
+  const { heroBackground, setHeroBackground } = useForgeTheme()
 
   const [layoutJson, setLayoutJson] = useState(DEFAULT_LAYOUT_JSON)
   const [jsonError, setJsonError] = useState('')
@@ -904,6 +909,85 @@ export const ForgeAIPanel = ({
     setHeroError(err.message)
   } finally {
     setIsGeneratingHero(false)
+  }
+}
+
+const saveHeroAsset = async () => {
+  if (!heroBackground) {
+    return
+  }
+
+  try {
+    setHeroError('')
+
+    const response = await fetch(heroBackground)
+
+    if (!response.ok) {
+      throw new Error('Failed to prepare Hero image')
+    }
+
+    const blob = await response.blob()
+
+    const extension =
+      blob.type === 'image/jpeg' ? 'jpg' : 'png'
+
+    const fileName =
+      `ai_hero_${Date.now()}.${extension}`
+
+    const file = new File(
+      [blob],
+      fileName,
+      {
+        type: blob.type || 'image/png',
+      },
+    )
+
+    const asset = forgeUICreateUploadedAsset(
+      file,
+      heroBackground,
+    )
+
+    // Add to Asset Manager
+    forgeUIAddUploadedAssets([asset])
+
+    // Automatically run the existing LVGL conversion pipeline
+    if (asset.exportStatus === 'pending_conversion') {
+      const res = await fetch(
+        'http://localhost:3030/convert-lvgl-image',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            fileName: asset.name,
+            symbolName: asset.lvgl,
+            base64: asset.browserSrc,
+          }),
+        },
+      )
+
+      const data = await res.json()
+
+      if (!data.ok) {
+        throw new Error(
+          data.error || 'LVGL conversion failed',
+        )
+      }
+
+      forgeUIUpdateUploadedAsset(asset.id, {
+        exportStatus: 'lvgl_ready',
+        cFile: data.assetSource || asset.cFile,
+      })
+    }
+
+    console.log('AI Hero saved to assets:', asset)
+  } catch (err: any) {
+    console.error(err)
+
+    setHeroError(
+      err.message || 'Failed to save Hero asset',
+    )
   }
 }
 
@@ -1249,13 +1333,22 @@ export const ForgeAIPanel = ({
   />
 
   <Button
-    colorScheme="purple"
-    onClick={generateHeroBackground}
-    isLoading={isGeneratingHero}
-    isDisabled={!heroPrompt.trim()}
-  >
-    Generate Hero Background
-  </Button>
+  colorScheme="purple"
+  onClick={generateHeroBackground}
+  isLoading={isGeneratingHero}
+  isDisabled={!heroPrompt.trim()}
+>
+  Generate Hero Background
+</Button>
+
+<Button
+  mt={3}
+  colorScheme="green"
+  onClick={saveHeroAsset}
+  isDisabled={!heroBackground}
+>
+  Save To Assets
+</Button>
 
   {heroError && (
     <Text mt={4} color="red.300">

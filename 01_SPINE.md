@@ -1,5 +1,317 @@
 # SPINE
 
+## Current Save Point
+
+```text
+FORGEUI_AI_STUDIO_V2_3_0__AI_HERO_ASSET_PIPELINE__BUILDER_THEME_PREVIEW_UNIFIED__LVGL_READY__2026-07-13
+```
+
+---
+
+# Project Status
+
+```text
+ACTIVE
+
+STABLE
+
+PHYSICAL HARDWARE PROVEN
+
+AI HERO PIPELINE PROVEN
+
+LVGL ASSET PIPELINE PROVEN
+```
+
+---
+
+# Major Milestone
+
+ForgeUI Studio now supports a complete AI Hero Background workflow integrated directly into the Studio.
+
+The generated artwork is no longer a temporary preview.
+
+AI artwork is now a reusable ForgeUI asset.
+
+---
+
+# Proven AI Hero Pipeline
+
+```text
+Natural Language Prompt
+        ↓
+OpenAI Image Generation
+        ↓
+Live Browser Preview
+        ↓
+Save To Asset Manager
+        ↓
+Automatic LVGL Conversion
+        ↓
+LVGL Ready Asset
+        ↓
+Theme Manager
+        ↓
+Builder Canvas
+```
+
+Status
+
+```text
+PROVEN
+```
+
+---
+
+# Unified Theme Architecture
+
+ForgeThemeContext now provides a single source of truth for:
+
+```text
+Theme Palette
+Texture
+Hero Background
+```
+
+Consumers
+
+```text
+Browser Preview
+Builder Canvas
+Theme Manager
+```
+
+All now use the same active Hero Background.
+
+Status
+
+```text
+PROVEN
+```
+
+---
+
+# Asset Pipeline
+
+AI Generated Image
+
+```text
+Prompt
+      ↓
+OpenAI
+      ↓
+PNG Base64
+      ↓
+ForgeUI Uploaded Asset Registry
+      ↓
+Asset Manager
+      ↓
+Auto LVGL Converter
+      ↓
+Generated C Asset
+      ↓
+LVGL Ready
+```
+
+Status
+
+```text
+PROVEN
+```
+
+---
+
+# Theme Manager
+
+Theme Manager now supports:
+
+```text
+ForgeUI Theme Palettes
+
++
+
+AI / Uploaded Background Library
+```
+
+Capabilities
+
+```text
+Select Hero Background
+Live Browser Preview
+Live Builder Canvas
+Persistent Project Asset
+```
+
+Status
+
+```text
+PROVEN
+```
+
+---
+
+# Builder Canvas
+
+Builder now shares the same Hero Background rendering path as Browser Preview.
+
+Rendering priority
+
+```text
+Hero Background
+        ↓
+Theme Texture
+        ↓
+Solid Theme Background
+```
+
+Status
+
+```text
+PROVEN
+```
+
+---
+
+# Current AI Capabilities
+
+## Layout AI
+
+```text
+Prompt
+      ↓
+GPT
+      ↓
+ForgeUI Layout JSON
+      ↓
+Validation
+      ↓
+Canvas
+      ↓
+Browser Preview
+      ↓
+LVGL Export
+      ↓
+ESP32-P4
+```
+
+Status
+
+```text
+PROVEN
+```
+
+---
+
+## Theme AI
+
+```text
+Prompt
+      ↓
+OpenAI Image Generation
+      ↓
+Hero Background
+      ↓
+Asset Manager
+      ↓
+Automatic LVGL Conversion
+      ↓
+Theme Manager
+      ↓
+Builder Canvas
+      ↓
+Browser Preview
+```
+
+Status
+
+```text
+PROVEN
+```
+
+---
+
+# Current Architecture
+
+```text
+Prompt
+      │
+      ├──────────────┐
+      │              │
+      ▼              ▼
+ Layout AI      Theme AI
+      │              │
+      ▼              ▼
+ Layout JSON     Hero Image
+      │              │
+      ▼              ▼
+ Canvas      Uploaded Assets
+      │              │
+      └──────┬───────┘
+             ▼
+      Builder Canvas
+             ▼
+      Browser Preview
+             ▼
+      LVGL Export
+             ▼
+      ESP32-P4
+```
+
+---
+
+# Next Milestone
+
+## AI Project Generation
+
+Goal
+
+```text
+Describe Application
+        ↓
+Generate Theme
+        ↓
+Generate Hero
+        ↓
+Generate Layout
+        ↓
+Generate Assets
+        ↓
+Populate Builder
+        ↓
+LVGL Export
+        ↓
+Flash ESP32-P4
+```
+
+---
+
+# Future Vision
+
+```text
+One Prompt
+
+↓
+
+Complete Embedded HMI
+
+↓
+
+Editable Inside ForgeUI
+
+↓
+
+One Click Export
+
+↓
+
+ESP32-P4 Hardware
+```
+
+This completes the transition from an AI-assisted editor to an AI-native embedded HMI development environment.
+
+----------------------------------------------------------------------
+
+# SPINE
+
 # Current Save Point
 
 ```text

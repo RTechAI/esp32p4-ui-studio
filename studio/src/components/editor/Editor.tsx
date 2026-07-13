@@ -123,7 +123,10 @@ const Editor: React.FC = () => {
   const showLayout = useSelector(getShowLayout)
   const components = useSelector(getComponents)
   const dispatch = useDispatch()
-  const { palette } = useForgeTheme()
+  const {
+  palette,
+  heroBackground,
+} = useForgeTheme()
 
   const viewportRef = useRef<HTMLDivElement | null>(null)
   const { drop } = useDropComponent('root', undefined, true, viewportRef)
@@ -141,8 +144,20 @@ const Editor: React.FC = () => {
     editorBackgroundProps = gridStyles
   }
 
-  const textureId = (palette as any).texture
-  const textureStyle = textureId ? textureBackgrounds[textureId] || {} : {}
+ const textureId = (palette as any).texture
+
+const textureStyle = textureId
+  ? textureBackgrounds[textureId] || {}
+  : {}
+
+const heroStyle = heroBackground
+  ? {
+      backgroundImage: `url("${heroBackground}")`,
+      backgroundRepeat: 'no-repeat',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+    }
+  : {}
 
   const deviceProps = {
     ...rootProps,
@@ -170,6 +185,7 @@ const Editor: React.FC = () => {
         my={4}
         {...deviceProps}
         {...textureStyle}
+        {...heroStyle}
         ref={(node: HTMLDivElement | null) => {
           viewportRef.current = node
           drop(node)
@@ -185,7 +201,7 @@ const Editor: React.FC = () => {
         alignItems="center"
         flexDirection="column"
       >
-        {textureId && textureId !== 'none' && (
+       {(heroBackground || (textureId && textureId !== 'none')) && (
   <Box
     position="absolute"
     inset={0}

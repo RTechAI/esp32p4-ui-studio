@@ -132,7 +132,8 @@ export function ForgeUIAssetManager({
     <Box
       position="fixed"
       inset="40px"
-      bg="#10141c"
+       bg="#10141c"
+      overflowY="auto"
       color="white"
       border="1px solid #2dd4bf"
       borderRadius="12px"
@@ -181,7 +182,7 @@ export function ForgeUIAssetManager({
           <Text opacity={0.65}>No assets uploaded yet.</Text>
         ) : (
           <VStack align="stretch" spacing={2}>
-            {assets.map((asset) => (
+            {[...assets].reverse().map((asset) => (
               <Box
                 key={asset.id}
                 bg="#0b0f16"
