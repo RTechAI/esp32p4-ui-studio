@@ -57,9 +57,9 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_bg_color(parent, lv_color_hex(0x05030A), 0);
     lv_obj_set_style_bg_opa(parent, LV_OPA_COVER, 0);
 
-    LV_IMAGE_DECLARE(fg_upload_ai_hero_1783919319331_692d3082);
+    LV_IMAGE_DECLARE(fg_upload_ai_hero_1783927562712_40305dd1);
     lv_obj_t * bg_texture_0 = lv_image_create(parent);
-    lv_image_set_src(bg_texture_0, &fg_upload_ai_hero_1783919319331_692d3082);
+    lv_image_set_src(bg_texture_0, &fg_upload_ai_hero_1783927562712_40305dd1);
     lv_obj_set_pos(bg_texture_0, 0, 0);
     lv_obj_set_size(bg_texture_0, 1024, 600);
     lv_obj_move_background(bg_texture_0);

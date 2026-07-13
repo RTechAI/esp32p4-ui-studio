@@ -460,35 +460,94 @@ app.post('/export-idf-project', (req, res) => {
 
     const projectName = safeProjectName(req.body.projectName)
 
-    const sourceDir = path.resolve(
-      __dirname,
-      '../firmware/ForgeUI-One'
+const sourceDir = path.resolve(
+  __dirname,
+  '../firmware/ForgeUI-One'
+)
+
+const exportsRoot = 'C:\\ForgeUI-Exports'
+
+const exportDir = getUniqueExportDir(
+  exportsRoot,
+  projectName
+)
+
+fs.mkdirSync(exportsRoot, {
+  recursive: true,
+})
+
+fs.cpSync(sourceDir, exportDir, {
+  recursive: true,
+  force: false,
+  errorOnExist: true,
+
+  filter: (src) => {
+    const name = path.basename(src).toLowerCase()
+
+    const blocked = [
+      'build',
+      '.vscode',
+      '.vs',
+      'managed_components',
+    ]
+
+    return !blocked.includes(name)
+  },
+})
+
+const exportUploadsDir = path.join(
+  exportDir,
+  'main/assets/uploads'
+)
+
+fs.rmSync(exportUploadsDir, {
+  recursive: true,
+  force: true,
+})
+
+fs.mkdirSync(exportUploadsDir, {
+  recursive: true,
+})
+
+assetSources.forEach((src) => {
+  const normalizedSrc = String(src)
+    .replace(/\\/g, '/')
+    .replace(/^main\//, '')
+    .replace(/^\/+/, '')
+
+  if (!normalizedSrc.startsWith('assets/uploads/')) {
+    return
+  }
+
+  const sourceAsset = path.resolve(
+    sourceDir,
+    'main',
+    normalizedSrc
+  )
+
+  const targetAsset = path.resolve(
+    exportDir,
+    'main',
+    normalizedSrc
+  )
+
+  if (!fs.existsSync(sourceAsset)) {
+    throw new Error(
+      `Referenced uploaded asset missing:\n${sourceAsset}`
     )
+  }
 
-    const exportsRoot = 'C:\\ForgeUI-Exports'
+  fs.mkdirSync(path.dirname(targetAsset), {
+    recursive: true,
+  })
 
-    const exportDir = getUniqueExportDir(exportsRoot, projectName)
+  fs.copyFileSync(sourceAsset, targetAsset)
 
-    fs.mkdirSync(exportsRoot, { recursive: true })
-
-    fs.cpSync(sourceDir, exportDir, {
-      recursive: true,
-      force: false,
-      errorOnExist: true,
-
-      filter: (src) => {
-        const name = path.basename(src).toLowerCase()
-
-        const blocked = [
-          'build',
-          '.vscode',
-          '.vs',
-          'managed_components',
-        ]
-
-        return !blocked.includes(name)
-      },
-    })
+  console.log(
+    'Copied uploaded asset:',
+    normalizedSrc
+  )
+})
 
     const header =
 `#pragma once
