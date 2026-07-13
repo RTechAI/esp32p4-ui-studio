@@ -294,3 +294,28 @@ Planned AI modules:
 - Planned Image Generation
 - Planned Icon Generation
 - Planned Runtime Assistant
+
+# About the Creator
+
+Hi, I'm **Scott Forster** from New Zealand.
+
+ForgeUI Studio began as a personal project to make embedded HMI development easier, faster and more enjoyable. As someone who enjoys solving real engineering problems, I wanted a tool that could take an idea from a simple prompt all the way through to a working interface running on physical ESP32 hardware.
+
+Every feature in ForgeUI is developed with a simple philosophy:
+
+> **Build it. Prove it. Flash it. Improve it.**
+
+The project has grown into an open-source AI-assisted embedded UI platform combining visual design, AI-powered generation, LVGL, and ESP-IDF into a single workflow.
+
+ForgeUI is built in collaboration with ChatGPT, which has been an invaluable coding assistant, sounding board and development partner throughout the project. While I design the architecture, test the hardware and drive the vision, ChatGPT has helped accelerate development by assisting with implementation, refactoring and documentation.
+
+This project is shared with the community in the hope that it makes embedded development more accessible and inspires others to build amazing products.
+
+I welcome feedback, ideas and contributions from developers around the world.
+
+---
+
+**Scott Forster**  
+Creator & Lead Developer — ForgeUI Studio
+
+📧 **forgeui.esp32@gmail.com**
