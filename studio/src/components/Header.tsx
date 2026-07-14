@@ -671,7 +671,6 @@ const cleanBuildFlashForgeUIOne = async () => {
           cursor="pointer"
           onClick={() => {
   setThemeId(id as any)
-  setHeroBackground(null)
 }}
           boxShadow={
             themeId === id
@@ -738,24 +737,33 @@ const cleanBuildFlashForgeUIOne = async () => {
             asset.exportStatus === 'lvgl_ready',
         )
         .map(asset => (
-          <Box
-            key={asset.id}
-            width="220px"
-            p={3}
-            border="2px solid"
-            borderColor="gray.600"
-            borderRadius="lg"
-            bg="#101827"
-            cursor="pointer"
-            onClick={() =>
-              setHeroBackground(asset.browserSrc)
-            }
-            _hover={{
-              borderColor: 'cyan.300',
-              boxShadow:
-                '0 0 18px rgba(103, 232, 249, 0.35)',
-            }}
-          >
+  <Box
+    key={asset.id}
+    width="220px"
+    p={3}
+    border="2px solid"
+    borderColor={
+      heroBackground === asset.browserSrc
+        ? 'cyan.300'
+        : 'gray.600'
+    }
+    borderRadius="lg"
+    bg="#101827"
+    cursor="pointer"
+    boxShadow={
+      heroBackground === asset.browserSrc
+        ? '0 0 18px rgba(103,232,249,0.45)'
+        : 'none'
+    }
+    onClick={() =>
+      setHeroBackground(asset.browserSrc)
+    }
+    _hover={{
+      borderColor: 'cyan.300',
+      boxShadow:
+        '0 0 18px rgba(103, 232, 249, 0.35)',
+    }}
+  >
             <Box
               as="img"
               src={asset.browserSrc}
