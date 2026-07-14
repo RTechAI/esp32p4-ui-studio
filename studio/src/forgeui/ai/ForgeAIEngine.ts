@@ -37,8 +37,9 @@ export const generateForgeAILayout = async ({
   screenHeight,
   currentLayout = [],
   currentTheme = null,
+  relevantIcons = [],
 }: GenerateForgeAILayoutOptions): Promise<ForgeAILayoutDocument> => {
-  const trimmedPrompt = prompt.trim()
+   const trimmedPrompt = prompt.trim()
 
   if (!trimmedPrompt) {
     throw new Error('Enter an AI layout prompt')
@@ -68,13 +69,14 @@ export const generateForgeAILayout = async ({
   }
 
   const systemPrompt =
-    buildForgeUILayoutSystemPrompt({
-      supportedComponents,
-      screenWidth,
-      screenHeight,
-      currentLayout,
-      currentTheme,
-    })
+  buildForgeUILayoutSystemPrompt({
+    supportedComponents,
+    screenWidth,
+    screenHeight,
+    currentLayout,
+    currentTheme,
+    relevantIcons,
+  })
 
   const userPrompt =
     buildForgeUILayoutUserPrompt(trimmedPrompt)

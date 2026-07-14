@@ -1,3 +1,6 @@
+import {
+  resolveForgeUIIconLayoutItems,
+} from '~forgeui/icons/ForgeUIIconResolver'
 import React, { memo, useEffect, useRef, useState } from 'react'
 import DevicePreview from '~forgeui/preview/DevicePreview'
 import { ForgeUIAssetManager } from '~forgeui/assets/ForgeUIAssetManager'
@@ -143,15 +146,51 @@ const Header = () => {
   const [themeManagerOpen, setThemeManagerOpen] = useState(false)
   const [aiPlaygroundOpen, setAiPlaygroundOpen] = useState(false)
 
-  const insertAiLayout = (items: any[]) => {
-  items.forEach((item) => {
-    dispatch.components.addComponent({
-      parentName: 'root',
-      type: item.type as any,
-      rootParentType: item.type as any,
-      props: item.props,
+  const insertAiLayout = async (
+  items: any[],
+) => {
+  try {
+    const resolvedItems =
+      await resolveForgeUIIconLayoutItems(
+        items,
+      )
+
+    console.log(
+      'Resolved AI layout:',
+      resolvedItems,
+    )
+
+    resolvedItems.forEach(item => {
+      console.log(
+        'Adding component:',
+        item.type,
+        item.props,
+      )
+
+      dispatch.components.addComponent({
+        parentName: 'root',
+        type: item.type as any,
+        rootParentType:
+          item.type as any,
+        props: item.props,
+      })
     })
-  })
+  } catch (err: any) {
+    console.error(
+      'AI icon resolution failed:',
+      err,
+    )
+
+    toast({
+      title: 'AI icon insertion failed',
+      description:
+        err.message ||
+        'Unable to resolve the requested icon assets.',
+      status: 'error',
+      duration: 5000,
+      isClosable: true,
+    })
+  }
 }
 
 

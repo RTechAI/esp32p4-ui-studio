@@ -1,21 +1,28 @@
+export type ForgeAIRelevantIconGroup = {
+  query: string
+  matches: string[]
+}
+
 export type ForgeAIPromptContext = {
   supportedComponents: string[]
   screenWidth: number
   screenHeight: number
   currentLayout?: unknown[]
   currentTheme?: unknown
+  relevantIcons?: ForgeAIRelevantIconGroup[]
 }
 
 export const buildForgeUILayoutSystemPrompt = (
   context: ForgeAIPromptContext
 ): string => {
   const {
-    supportedComponents,
-    screenWidth,
-    screenHeight,
-    currentLayout = [],
-    currentTheme = null,
-  } = context
+  supportedComponents,
+  screenWidth,
+  screenHeight,
+  currentLayout = [],
+  currentTheme = null,
+  relevantIcons = [],
+} = context
 
   return `
 You are the ForgeUI AI layout engine.
@@ -30,6 +37,28 @@ SCREEN:
 
 SUPPORTED COMPONENTS:
 ${supportedComponents.join(', ')}
+
+RELEVANT VALID ICONS:
+${
+  relevantIcons.length > 0
+    ? relevantIcons
+        .map(
+          group =>
+            `${group.query}: ${group.matches.join(', ')}`,
+        )
+        .join('\n')
+    : 'No relevant icon matches were supplied.'
+}
+
+ICON RULES:
+1. Use the standard ForgeUI Icon component for icons.
+2. Never invent component types such as WiFiWidget, ClockWidget or BatteryWidget.
+3. When RELEVANT VALID ICONS are supplied, use one of the exact icon names provided.
+4. Do not reuse the same icon for different requested meanings.
+5. Create each icon as a separate top-level component unless the user explicitly requests grouping.
+6. Every Icon component must include an "iconName" property using one exact supplied icon name.
+7. Do not use "icon", "name", "src", "uploadedAssetId", "assetName", "lvgl" or "cFile" for AI-generated icons.
+8. ForgeUI will resolve "iconName" into the real asset and LVGL properties during canvas insertion.
 
 OUTPUT RULES:
 1. Return valid JSON only.

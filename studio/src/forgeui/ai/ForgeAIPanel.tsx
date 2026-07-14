@@ -1110,7 +1110,9 @@ const filteredHeroPrompts =
       setJsonError('')
       setIsGenerating(true)
 
-      const context = createForgeAIContext()
+      const context = createForgeAIContext({
+  userPrompt: aiPrompt,
+})
 
       const document = await generateForgeAILayout({
         prompt: aiPrompt,

@@ -1,3 +1,4 @@
+import { searchForgeUIIcons } from './ForgeUIIconSearch'
 import React, { useMemo, useState } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import {
@@ -107,14 +108,15 @@ const IconBrowserModal = ({
   const [selectedIcons, setSelectedIcons] = useState<string[]>([])
 
   const filteredIcons = useMemo(() => {
-    const term = search.toLowerCase().trim()
+  if (!search.trim()) {
+    return ICON_NAMES
+  }
 
-    if (!term) return ICON_NAMES
-
-    return ICON_NAMES.filter(iconName =>
-      iconName.toLowerCase().includes(term)
-    )
-  }, [search])
+  return searchForgeUIIcons(
+    search,
+    ICON_COUNT,
+  )
+}, [search])
 
   const toggleSelectedIcon = (iconName: string) => {
     setSelectedIcons(current =>
@@ -127,6 +129,11 @@ const IconBrowserModal = ({
   const handleUseSelectedIcon = async (
   iconName: string,
 ) => {
+  console.log(
+    'Use As Icon Widget clicked:',
+    iconName,
+  )
+
   const file = await iconNameToPngFile(iconName)
 
   if (!file) {
