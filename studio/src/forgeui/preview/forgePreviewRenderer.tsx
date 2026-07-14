@@ -198,17 +198,33 @@ case 'WiFi': {
 }
 
       case 'Box': {
-        output.push(
-          <Box
-            key={child.id}
-            {...commonStyle}
-            borderRadius="12px"
-            background={palette.surface}
-            border={`2px solid ${palette.border}`}
-          />,
-        )
-        break
+  const isFullScreenBackground =
+    x === 0 &&
+    y === 0 &&
+    w >= 1024 &&
+    h >= 600
+
+  output.push(
+    <Box
+      key={child.id}
+      {...commonStyle}
+      borderRadius={
+        isFullScreenBackground ? '0' : '12px'
       }
+      background={
+        isFullScreenBackground
+          ? 'transparent'
+          : palette.surface
+      }
+      border={
+        isFullScreenBackground
+          ? 'none'
+          : `2px solid ${palette.border}`
+      }
+    />,
+  )
+  break
+}
 
       case 'Icon': {
   const Icon =
