@@ -587,35 +587,37 @@ const cleanBuildFlashForgeUIOne = async () => {
 )}
 
             {previewOpen && (
-        <Box
-          position="fixed"
-          left="20px"
-          top="70px"
-          right="20px"
-          bottom="20px"
-          bg="#070b12"
-          color="white"
-          border="1px solid #2dd4bf"
-          borderRadius="md"
-          zIndex={9998}
-          overflow="auto"
-          boxShadow="0 0 24px rgba(0,0,0,0.65)"
-        >
-          <Flex justify="flex-end" p={3}>
-            <Button
-             size="xs"
-              colorScheme="red"
-               onClick={() => setPreviewOpen(false)}
+  <Box
+    position="fixed"
+    left="5px"
+    top="45px"
+    right="5px"
+    bottom="0px"
+    bg="#070b12"
+    color="white"
+    border="1px solid #2dd4bf"
+    borderRadius="md"
+    zIndex={9998}
+    overflow="auto"
+    boxShadow="0 0 24px rgba(0,0,0,0.65)"
   >
-               Close Preview
-               </Button>
-                </Flex>
+    <Flex align="flex-start">
+  <DevicePreview components={components} />
 
-          <DevicePreview components={components} />
-        </Box>
-      )}
+  <Box pt="20px" px={3}>
+    <Button
+      size="xs"
+      colorScheme="red"
+      onClick={() => setPreviewOpen(false)}
+    >
+      Close Preview
+    </Button>
+  </Box>
+</Flex>
+  </Box>
+)}
 
-      {assetManagerOpen && (
+{assetManagerOpen && (
   <ForgeUIAssetManager
     onClose={() => setAssetManagerOpen(false)}
   />
@@ -626,7 +628,7 @@ const cleanBuildFlashForgeUIOne = async () => {
     left="20px"
     top="70px"
     right="20px"
-    bottom="20px"
+    bottom="10px"
     bg="#070b12"
     color="white"
     border="1px solid #805ad5"
