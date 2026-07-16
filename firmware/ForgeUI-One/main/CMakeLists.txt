@@ -7,10 +7,7 @@ idf_component_register(
         "30_WIFI.c"
         "40_SD.c"
         "90_Studio_Export.c"
-        "assets/uploads/fg_upload_ai_hero_1784024653132_b800e885.c"
-        "assets/uploads/fg_upload_fiwifi_0304f4da.c"
-        "assets/uploads/fg_upload_fibattery_6aa479a4.c"
-        "assets/uploads/fg_upload_ficlock_86e2b378.c"
+        "assets/uploads/fg_upload_carbon_fiber_be774fd2.c"
 
     INCLUDE_DIRS
         "."

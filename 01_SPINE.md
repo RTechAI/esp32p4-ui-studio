@@ -3,6 +3,241 @@
 ## Current Save Point
 
 ```text
+FORGEUI_V2_3_9__FIRMWARE_SWEEP_PROVEN__FACTORY_RESET__DETERMINISTIC_FIRMWARE_PIPELINE__2026-07-16
+```
+
+---
+
+# Project Status
+
+```text
+ACTIVE
+
+STABLE
+
+PHYSICAL HARDWARE PROVEN
+
+FIRMWARE FACTORY RESET PROVEN
+
+FIRMWARE SWEEP PROVEN
+
+DETERMINISTIC BUILD PIPELINE PROVEN
+
+CMAKE REGENERATION PROVEN
+
+STUDIO EXPORT REGENERATION PROVEN
+```
+
+---
+
+# Major Milestone
+
+ForgeUI Studio now includes a complete Firmware Factory Reset and Firmware Sweep system.
+
+Firmware is no longer incrementally accumulated.
+
+Every firmware rebuild can now start from a known clean baseline.
+
+---
+
+# Proven Firmware Sweep Pipeline
+
+```text
+Firmware Sweep
+        ↓
+Clean Firmware Assets
+        ↓
+Delete ESP-IDF Build Folder
+        ↓
+Regenerate 90_Studio_Export.c
+        ↓
+Regenerate 90_Studio_Export.h
+        ↓
+Regenerate CMakeLists.txt
+        ↓
+Remove Stale LVGL Declarations
+        ↓
+Remove Stale Uploaded Assets
+        ↓
+Ready For Build & Flash
+```
+
+Status
+
+```text
+FULLY PROVEN
+```
+
+---
+
+# Factory Reset Validation
+
+Successfully validated:
+
+```text
+Firmware Upload Folder
+✓
+
+Upload Input Folder
+✓
+
+Uploaded Asset Registry
+✓
+
+In-Memory Asset Registry
+✓
+
+Browser Persistence
+✓
+
+Hero Background Reset
+✓
+
+Theme Reset
+✓
+
+ESP-IDF Build Folder Removal
+✓
+
+CMake Regeneration
+✓
+
+Studio Export Regeneration
+✓
+```
+
+---
+
+# Regeneration Validation
+
+Firmware Sweep correctly restores:
+
+```text
+90_Studio_Export.c
+
+↓
+
+Minimal Baseline Export
+
+↓
+
+No Widgets
+
+↓
+
+No LV_IMAGE_DECLARE()
+
+↓
+
+No Uploaded Asset References
+```
+
+After rebuilding:
+
+```text
+Current Canvas
+        ↓
+Generate Export
+        ↓
+Generate CMake
+        ↓
+Only Current Assets Included
+```
+
+No historical firmware artefacts remain.
+
+Status
+
+```text
+PROVEN
+```
+
+---
+
+# Deterministic Firmware Architecture
+
+```text
+Canvas
+      ↓
+LVGL Export
+      ↓
+Firmware Sweep
+      ↓
+Fresh CMake
+      ↓
+Fresh Studio Export
+      ↓
+Build
+      ↓
+Flash
+      ↓
+Physical ESP32-P4
+```
+
+---
+
+# Core Rule
+
+```text
+Disk is the source of truth.
+```
+
+Never trust:
+
+```text
+Cached browser assets
+
+Stale uploaded asset registry
+
+Old generated C files
+
+Historical CMake entries
+
+Orphaned LVGL declarations
+```
+
+Every firmware image is regenerated from the current project state.
+
+---
+
+# Next Milestone
+
+## Runtime Widget Expansion
+
+The firmware pipeline is now stable enough to begin expanding interactive runtime widgets.
+
+Initial targets:
+
+```text
+Switch
+
+↓
+
+LED
+
+↓
+
+GPIO Binding
+
+↓
+
+Board Profiles
+
+↓
+
+AI Runtime Widget Generation
+```
+
+The deterministic firmware pipeline established in v2.3.9 provides the foundation for future AI-generated runtime controls and hardware-aware widgets.
+
+-------------------------------------------------------------
+
+
+# SPINE
+
+## Current Save Point
+
+```text
 FORGEUI_AI_SEMANTIC_ICON_RESOLVER__PROMPT_AWARE_REGISTRY_SEARCH__AUTOMATIC_ICON_ASSET_PIPELINE__CANVAS_PREVIEW_PROVEN__2026-07-15
 
 Project Status

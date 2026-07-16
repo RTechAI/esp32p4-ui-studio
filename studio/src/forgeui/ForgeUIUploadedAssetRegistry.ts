@@ -84,7 +84,15 @@ const persistUploadedAssets = () => {
 
   try {
     const serialisableAssets =
-      forgeUIUploadedAssets.map(({ file, ...asset }) => asset)
+      forgeUIUploadedAssets.map(({ file, ...asset }) => ({
+        ...asset,
+
+        browserSrc:
+          asset.browserSrc.startsWith('data:') ||
+          asset.browserSrc.startsWith('blob:')
+            ? ''
+            : asset.browserSrc,
+      }))
 
     window.localStorage.setItem(
       FORGEUI_UPLOADED_ASSETS_KEY,
@@ -176,18 +184,48 @@ export function forgeUIAddUploadedAssets(
   return forgeUIUploadedAssets
 }
 
-export function forgeUIDeleteUploadedAsset(id: string) {
+export async function forgeUIDeleteUploadedAsset(
+  id: string,
+) {
   const asset = forgeUIUploadedAssets.find(
     item => item.id === id,
   )
 
-  if (asset?.browserSrc?.startsWith('blob:')) {
+  if (!asset) {
+    return forgeUIUploadedAssets
+  }
+
+  try {
+    await fetch(
+      'http://localhost:3030/delete-forgeui-asset',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: asset.id,
+          name: asset.name,
+          lvgl: asset.lvgl,
+          cFile: asset.cFile,
+          browserSrc: asset.browserSrc,
+        }),
+      },
+    )
+  } catch (err) {
+    console.error(
+      'Failed to delete ForgeUI asset from disk:',
+      err,
+    )
+  }
+
+  if (asset.browserSrc?.startsWith('blob:')) {
     URL.revokeObjectURL(asset.browserSrc)
   }
 
   forgeUIUploadedAssets =
     forgeUIUploadedAssets.filter(
-      asset => asset.id !== id,
+      item => item.id !== id,
     )
 
   persistUploadedAssets()
@@ -219,6 +257,26 @@ export function forgeUIUpdateUploadedAsset(
     )
 
   persistUploadedAssets()
+  notifyAssetsUpdated()
+
+  return forgeUIUploadedAssets
+}
+
+export function forgeUIClearUploadedAssets() {
+  forgeUIUploadedAssets.forEach(asset => {
+    if (asset.browserSrc?.startsWith('blob:')) {
+      URL.revokeObjectURL(asset.browserSrc)
+    }
+  })
+
+  forgeUIUploadedAssets = []
+
+  if (typeof window !== 'undefined') {
+    window.localStorage.removeItem(
+      FORGEUI_UPLOADED_ASSETS_KEY,
+    )
+  }
+
   notifyAssetsUpdated()
 
   return forgeUIUploadedAssets

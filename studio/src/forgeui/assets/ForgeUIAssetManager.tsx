@@ -227,13 +227,14 @@ export function ForgeUIAssetManager({
                   </HStack>
 
                   <Button
-                    size="sm"
-                    colorScheme="red"
-                    onClick={() =>
-                      setAssets(
-                        forgeUIDeleteUploadedAsset(asset.id),
-                      )
-                    }
+                  size="sm"
+                  colorScheme="red"
+                  onClick={async () => {
+                   const nextAssets =
+                   await forgeUIDeleteUploadedAsset(asset.id)
+
+                   setAssets([...nextAssets])
+                 }}
                   >
                     Delete
                   </Button>

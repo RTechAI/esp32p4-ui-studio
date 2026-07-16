@@ -1,3 +1,10 @@
+
+import {
+  MdDeleteSweep,
+  MdCleaningServices,
+  MdBuild,
+} from 'react-icons/md'
+
 import {
   resolveForgeUIIconLayoutItems,
 } from '~forgeui/icons/ForgeUIIconResolver'
@@ -10,6 +17,7 @@ import { FG_PREVIEW_PALETTES } from '~forgeui/preview/forgeThemeMap'
 import ForgeAIPanel from '~forgeui/ai/ForgeAIPanel'
 import {
   forgeUIGetUploadedAssets,
+  forgeUIClearUploadedAssets,
 } from '~forgeui/ForgeUIUploadedAssetRegistry'
 
 import {
@@ -509,31 +517,153 @@ const cleanBuildFlashForgeUIOne = async () => {
                     <PopoverContent zIndex={100} bg="white">
                       <PopoverArrow />
                       <PopoverCloseButton />
-                      <PopoverHeader>Are you sure?</PopoverHeader>
-                      <PopoverBody fontSize="sm">
-                        Do you really want to remove all components on the
-                        editor?
-                      </PopoverBody>
-                      <PopoverFooter
-                        display="flex"
-                          justifyContent="flex-end"
-                            alignItems="center"
-                             flexWrap="wrap"
-                               gap={2}
+                      
+<Button
+  variant="ghost"
+  justifyContent="flex-start"
+  leftIcon={<MdDeleteSweep size={20} />}
+  size="md"
+  width="100%"
+  borderRadius="md"
+  fontWeight="normal"
+  onClick={() => {
+    dispatch.components.reset()
+
+    toast({
+      title: 'Canvas cleared',
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+    })
+
+    if (onClose) onClose()
+  }}
 >
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          colorScheme="red"
-                          rightIcon={<CheckIcon path="" />}
-                          onClick={() => {
-                            dispatch.components.reset()
-                            if (onClose) onClose()
-                          }}
-                        >
-                          Yes, clear
-                        </Button>
-                      </PopoverFooter>
+  Clear Canvas
+</Button>
+
+<Button
+  variant="ghost"
+  justifyContent="flex-start"
+  leftIcon={<MdCleaningServices size={20} />}
+  size="md"
+  width="100%"
+  borderRadius="md"
+  fontWeight="normal"
+  onClick={async () => {
+    try {
+      const response = await fetch(
+        'http://localhost:3030/clean-firmware-uploads',
+        {
+          method: 'POST',
+        },
+      )
+
+      const data = await response.json()
+
+      if (!response.ok || !data.ok) {
+        throw new Error(
+          data.error ||
+          `Clean failed: ${response.status}`,
+        )
+      }
+
+      forgeUIClearUploadedAssets()
+
+localStorage.removeItem(
+  'forgeui_active_theme_v1',
+)
+
+      setHeroBackground(null)
+      setThemeId('graphite')
+
+      toast({
+        title: 'Firmware assets cleaned',
+        description: `${data.filesRemoved || 0} files removed`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      })
+
+      if (onClose) onClose()
+
+      window.location.reload()
+    } catch (err: any) {
+      toast({
+        title: 'Firmware clean failed',
+        description: err.message,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      })
+    }
+  }}
+>
+  Clean Firmware Assets
+</Button>
+
+<Button
+  variant="ghost"
+  justifyContent="flex-start"
+  leftIcon={<MdBuild size={20} />}
+  size="md"
+  width="100%"
+  borderRadius="md"
+  fontWeight="normal"
+  onClick={async () => {
+    try {
+      const response = await fetch(
+        'http://localhost:3030/clean-firmware-sweep',
+        {
+          method: 'POST',
+        },
+      )
+
+      const data = await response.json()
+
+      if (!response.ok || !data.ok) {
+        throw new Error(
+          data.error ||
+          `Sweep failed: ${response.status}`,
+        )
+      }
+
+      localStorage.removeItem(
+        'forgeui_uploaded_assets_v1',
+      )
+
+      localStorage.removeItem(
+        'forgeui_active_theme_v1',
+      )
+
+      setHeroBackground(null)
+      setThemeId('graphite')
+
+      toast({
+        title: 'Firmware sweep complete',
+        description: `${data.filesRemoved || 0} files removed`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      })
+
+      if (onClose) onClose()
+
+      window.location.reload()
+    } catch (err: any) {
+      toast({
+        title: 'Firmware sweep failed',
+        description: err.message,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      })
+    }
+  }}
+>
+  Firmware Sweep
+</Button>
+
                     </PopoverContent>
                   </LightMode>
                 </>

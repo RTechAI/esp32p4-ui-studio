@@ -224,20 +224,22 @@ export const resolveForgeUIIcon = async (
   forgeUIAddUploadedAssets([asset])
 
   const response = await fetch(
-    'http://localhost:3030/convert-lvgl-image',
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type':
-          'application/json',
-      },
-      body: JSON.stringify({
-        fileName: asset.name,
-        symbolName: asset.lvgl,
-        base64: asset.browserSrc,
-      }),
+  'http://localhost:3030/convert-lvgl-image',
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
     },
-  )
+    body: JSON.stringify({
+      fileName: asset.name,
+      symbolName: asset.lvgl,
+      base64: asset.browserSrc,
+
+      // NEW
+      assetMode: 'icon',
+    }),
+  },
+)
 
   const data = await response.json()
 

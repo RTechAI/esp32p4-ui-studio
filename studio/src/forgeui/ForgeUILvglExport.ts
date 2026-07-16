@@ -261,6 +261,13 @@ case 'WiFi': {
 }
 
 case 'Icon': {
+  console.log('LVGL ICON EXPORT DEBUG', {
+    id: child.id,
+    icon: child.props.icon,
+    iconName: child.props.iconName,
+    props: child.props,
+  })
+
   const src =
     child.props.src ||
     child.props.browserSrc ||
@@ -274,7 +281,6 @@ case 'Icon': {
       asset.browserSrc === src ||
       asset.name === child.props.assetName,
   )
-
   if (
     uploadedAsset?.exportStatus === 'lvgl_ready' &&
     uploadedAsset?.lvgl
