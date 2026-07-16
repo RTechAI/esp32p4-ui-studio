@@ -1,8 +1,9 @@
-
 import {
   MdDeleteSweep,
   MdCleaningServices,
   MdBuild,
+  MdPreview,
+  MdFlashOn,
 } from 'react-icons/md'
 
 import {
@@ -472,31 +473,69 @@ const cleanBuildFlashForgeUIOne = async () => {
               </Box>
               
               <Button
-              size="xs"
-               variant="outline"
-                colorScheme="cyan"
-                  onClick={() => setPreviewOpen(prev => !prev)}
+  size="sm"
+  h="32px"
+  px={4}
+  borderRadius="5px"
+  fontSize="12px"
+  fontWeight="600"
+  letterSpacing="0.2px"
+  leftIcon={<MdPreview />}
+  bg="#111827"
+  color="cyan.200"
+  border="1px solid"
+  borderColor="cyan.700"
+  _hover={{
+    bg: "#172033",
+    borderColor: "cyan.400",
+  }}
+  onClick={() => setPreviewOpen(prev => !prev)}
 >
-                    {previewOpen ? 'Close Preview' : 'Preview'}
-              </Button>
-              
-              <Button
-                size="xs"
-                variant="solid"
-                colorScheme="teal"
-                onClick={exportToForgeUIOne}
-              >
-                Build & Flash
-              </Button>
+  {previewOpen ? "Close Preview" : "Preview"}
+</Button>
 
-              <Button
-                size="xs"
-                variant="outline"
-                colorScheme="orange"
-                onClick={cleanBuildFlashForgeUIOne}
-              >
-                Clean Build & Flash
-              </Button>
+<Button
+  size="sm"
+  h="32px"
+  px={4}
+  borderRadius="5px"
+  fontSize="12px"
+  fontWeight="600"
+  letterSpacing="0.2px"
+  leftIcon={<MdFlashOn />}
+  bg="#0f766e"
+  color="white"
+  border="1px solid"
+  borderColor="#14b8a6"
+  _hover={{
+    bg: "#115e59",
+  }}
+  onClick={exportToForgeUIOne}
+>
+  Build & Flash
+</Button>
+
+<Button
+  size="sm"
+  h="32px"
+  px={4}
+  borderRadius="5px"
+  fontSize="12px"
+  fontWeight="600"
+  letterSpacing="0.2px"
+  leftIcon={<MdBuild />}
+  bg="#111827"
+  color="#fbbf24"
+  border="1px solid"
+  borderColor="#b45309"
+  _hover={{
+    bg: "#1f2937",
+    borderColor: "#f59e0b",
+  }}
+  onClick={cleanBuildFlashForgeUIOne}
+>
+  Clean Build & Flash
+</Button>
             </HStack>
 
             <Popover>
@@ -780,7 +819,11 @@ const cleanBuildFlashForgeUIOne = async () => {
   left="17rem"
   right="18rem"
   bottom="14px"
-  height="118px"
+  height="220px"
+  minHeight="118px"
+  maxHeight="70vh"
+  resize="vertical"
+  overflow="hidden"
   bg="#05070a"
   color="green.100"
   border="1px solid #2dd4bf"
@@ -819,12 +862,19 @@ const cleanBuildFlashForgeUIOne = async () => {
   as="pre"
   whiteSpace="pre-wrap"
   overflowY="auto"
-  height="62px"
+  height="calc(100% - 42px)"
   fontSize="11px"
-  fontFamily="monospace"
+  fontFamily="Consolas, 'Courier New', monospace"
   bg="#020304"
+  color="green.100"
   p={2}
   borderRadius="md"
+  cursor="text"
+  userSelect="text"
+  sx={{
+    userSelect: 'text',
+    WebkitUserSelect: 'text',
+  }}
 >
   {flashLog || 'Waiting for flash output...'}
 </Box>
@@ -902,59 +952,85 @@ const cleanBuildFlashForgeUIOne = async () => {
       and LVGL export colour palette.
     </Box>
 
-    <HStack spacing={4} align="stretch" flexWrap="wrap">
-      {Object.entries(FG_PREVIEW_PALETTES).map(([id, palette]) => (
-        <Box
-          key={id}
-          width="220px"
-          minHeight="120px"
-          p={3}
-          border="2px solid"
-          borderColor={themeId === id ? 'cyan.300' : 'gray.600'}
-          borderRadius="lg"
-          bg="#101827"
-          cursor="pointer"
-          onClick={() => {
-  setThemeId(id as any)
-}}
-          boxShadow={
-            themeId === id
-              ? '0 0 18px rgba(103, 232, 249, 0.45)'
-              : 'none'
-          }
-        >
-          <Flex justify="space-between" align="center" mb={3}>
-            <Box fontWeight="bold">{palette.name}</Box>
+   <Box
+  display="grid"
+  gridTemplateColumns="repeat(auto-fill, minmax(145px, 1fr))"
+  gap={2}
+>
+  {Object.entries(FG_PREVIEW_PALETTES).map(([id, palette]) => {
+    const isActive = themeId === id
 
-            {themeId === id && (
-              <Badge
-                colorScheme="cyan"
-                variant="solid"
-                borderRadius="full"
-                px={2}
-              >
-                ACTIVE
-              </Badge>
-            )}
-          </Flex>
-
+    return (
+      <Box
+        key={id}
+        p={2}
+        minWidth={0}
+        border="1px solid"
+        borderColor={isActive ? 'cyan.300' : 'gray.700'}
+        borderRadius="6px"
+        bg="#101827"
+        cursor="pointer"
+        transition="all 0.15s ease"
+        onClick={() => setThemeId(id as any)}
+        boxShadow={
+          isActive
+            ? '0 0 10px rgba(103,232,249,0.22)'
+            : 'none'
+        }
+        _hover={{
+          borderColor: 'cyan.500',
+          bg: '#131d2c',
+        }}
+      >
+        <Flex justify="space-between" align="center" mb={1.5}>
           <Box
-            display="flex"
-            height="48px"
-            borderRadius="md"
-            overflow="hidden"
+            fontWeight="600"
+            fontSize="12px"
+            color="white"
+            noOfLines={1}
           >
-            <Box flex="1" bg={palette.bg} />
-            <Box flex="1" bg={palette.surface} />
-            <Box flex="1" bg={palette.accent} />
+            {palette.name}
           </Box>
 
-          <Box mt={3} fontSize="xs" color="gray.400">
-            {themeId === id ? 'Active Theme' : 'Click to apply'}
-          </Box>
+          {isActive && (
+            <Badge
+              colorScheme="cyan"
+              fontSize="8px"
+              lineHeight="14px"
+              height="14px"
+              borderRadius="3px"
+              px={1}
+            >
+              ACTIVE
+            </Badge>
+          )}
+        </Flex>
+
+        <Box
+          display="flex"
+          height="28px"
+          borderRadius="4px"
+          overflow="hidden"
+          border="1px solid"
+          borderColor="whiteAlpha.100"
+        >
+          <Box flex={1} bg={palette.bg} />
+          <Box flex={1} bg={palette.surface} />
+          <Box flex={1} bg={palette.accent} />
         </Box>
-      ))}
-    </HStack>
+
+        <Box
+          mt={1.5}
+          fontSize="10px"
+          color={isActive ? 'cyan.200' : 'gray.500'}
+        >
+          {isActive ? 'Current' : 'Apply'}
+        </Box>
+      </Box>
+    )
+  })}
+</Box>
+
     <Box mt={8}>
   <Box
     fontWeight="bold"

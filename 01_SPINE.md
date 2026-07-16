@@ -1,3 +1,206 @@
+# SPINE 
+
+FORGEUI_V2_3_10__FIRMWARE_MAINTENANCE__STUDIO_POLISH__THEME_MANAGER_REFRESH__FLASH_CONSOLE_UX__2026-07-16
+
+## Completed
+
+### Firmware Maintenance
+
+Firmware maintenance workflow is now complete and split into two distinct operations.
+
+#### ✅ Clean Firmware
+
+Fast repair tool.
+
+Regenerates:
+
+- main/CMakeLists.txt
+- 90_Studio_Export.c
+- 90_Studio_Export.h
+
+Leaves generated assets untouched.
+
+Purpose:
+
+Quick recovery when generated firmware becomes out of sync.
+
+---
+
+#### ✅ Firmware Maintenance
+
+Full generated firmware workspace cleanup.
+
+Performs:
+
+- Generated icon cleanup
+- Generated theme cleanup
+- Uploaded asset cleanup
+- Upload cache cleanup
+- ESP-IDF build cleanup
+- Clean CMake regeneration
+- Clean Studio Export regeneration
+
+Purpose:
+
+Recover from stale generated assets, failed builds, long development sessions and firmware workspace growth.
+
+Status
+
+```text
+PROVEN
+```
+
+---
+
+# Studio UX Polish
+
+ForgeUI Studio received a significant UI refinement pass.
+
+Completed:
+
+✓ Compact Theme Manager
+
+✓ Improved theme card layout
+
+✓ Better active theme highlighting
+
+✓ Cleaner toolbar buttons
+
+✓ IDE-style header appearance
+
+✓ Improved Firmware Maintenance workflow
+
+✓ Resizable Flash Console
+
+✓ Selectable Flash Console output
+
+✓ Flash Console copy-friendly output
+
+Status
+
+```text
+PROVEN
+```
+
+---
+
+# Theme Manager
+
+Theme Manager now provides a compact visual asset browser.
+
+Features:
+
+```text
+Compact Theme Cards
+
+Current Theme Highlight
+
+Live Theme Switching
+
+AI Background Library
+
+Uploaded Background Library
+```
+
+Status
+
+```text
+PROVEN
+```
+
+---
+
+# Flash Console
+
+Flash Console usability improved.
+
+Features:
+
+```text
+Resizable Height
+
+Selectable Text
+
+Copy Friendly Output
+
+Persistent Docked Console
+
+Live Build Monitoring
+```
+
+Future polish:
+
+```text
+Copy Log Button
+
+Top Drag Handle
+
+Auto-scroll Toggle
+
+Persist Console Height
+```
+
+---
+
+# Engineering Discovery
+
+Firmware generation is now considered deterministic.
+
+The Studio no longer relies on stale generated firmware artefacts.
+
+```text
+Canvas
+      ↓
+Generate Export
+      ↓
+Generate Assets
+      ↓
+Generate CMake
+      ↓
+Build
+      ↓
+Flash
+      ↓
+Physical ESP32-P4
+```
+
+Status
+
+```text
+FULLY PROVEN
+```
+
+---
+
+# Current Save Point
+
+```text
+FORGEUI_V2_3_10__FIRMWARE_MAINTENANCE__STUDIO_POLISH__THEME_MANAGER_REFRESH__FLASH_CONSOLE_UX__2026-07-16
+```
+
+---
+
+# Next Development Phase
+
+v2.3.11
+
+Focus:
+
+- Theme Manager polish
+- Flash Console improvements
+- Asset browser refinement
+- Workspace consistency
+- Runtime widget expansion
+- Switch → LED → GPIO binding
+- AI runtime widget generation
+
+The firmware pipeline is now stable.
+
+Development focus can return to expanding ForgeUI's runtime capabilities.
+
+
+
+
 # FORGEUI_V2_3_10__FIRMWARE_MAINTENANCE__CLEAN_GENERATED_FIRMWARE__WORKSPACE_MAINTENANCE__2026-07-16
 
 ## Completed
