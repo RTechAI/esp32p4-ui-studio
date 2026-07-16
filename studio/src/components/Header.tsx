@@ -536,7 +536,9 @@ const cleanBuildFlashForgeUIOne = async () => {
       isClosable: true,
     })
 
-    if (onClose) onClose()
+    if (onClose) {
+      onClose()
+    }
   }}
 >
   Clear Canvas
@@ -545,7 +547,7 @@ const cleanBuildFlashForgeUIOne = async () => {
 <Button
   variant="ghost"
   justifyContent="flex-start"
-  leftIcon={<MdCleaningServices size={20} />}
+  leftIcon={<MdBuild size={20} />}
   size="md"
   width="100%"
   borderRadius="md"
@@ -568,30 +570,24 @@ const cleanBuildFlashForgeUIOne = async () => {
         )
       }
 
-      forgeUIClearUploadedAssets()
-
-localStorage.removeItem(
-  'forgeui_active_theme_v1',
-)
-
-      setHeroBackground(null)
-      setThemeId('graphite')
-
       toast({
-        title: 'Firmware assets cleaned',
-        description: `${data.filesRemoved || 0} files removed`,
+        title: 'Firmware cleaned',
+        description:
+          'CMake and Studio export files were reset to a clean baseline.',
         status: 'success',
-        duration: 3000,
+        duration: 4000,
         isClosable: true,
       })
 
-      if (onClose) onClose()
-
-      window.location.reload()
+      if (onClose) {
+        onClose()
+      }
     } catch (err: any) {
       toast({
         title: 'Firmware clean failed',
-        description: err.message,
+        description:
+          err.message ||
+          'Unable to reset the generated firmware files.',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -599,70 +595,150 @@ localStorage.removeItem(
     }
   }}
 >
-  Clean Firmware Assets
+  Clean Firmware
 </Button>
 
-<Button
-  variant="ghost"
-  justifyContent="flex-start"
-  leftIcon={<MdBuild size={20} />}
-  size="md"
-  width="100%"
-  borderRadius="md"
-  fontWeight="normal"
-  onClick={async () => {
-    try {
-      const response = await fetch(
-        'http://localhost:3030/clean-firmware-sweep',
-        {
-          method: 'POST',
-        },
-      )
+<Popover>
+  {({ onClose: closeMaintenance }) => (
+    <>
+      <PopoverTrigger>
+        <Button
+          variant="ghost"
+          justifyContent="flex-start"
+          leftIcon={<MdCleaningServices size={20} />}
+          size="md"
+          width="100%"
+          borderRadius="md"
+          fontWeight="normal"
+        >
+          Firmware Maintenance
+        </Button>
+      </PopoverTrigger>
 
-      const data = await response.json()
+      <LightMode>
+        <PopoverContent
+          zIndex={200}
+          bg="white"
+          color="gray.800"
+        >
+          <PopoverArrow />
+          <PopoverCloseButton />
 
-      if (!response.ok || !data.ok) {
-        throw new Error(
-          data.error ||
-          `Sweep failed: ${response.status}`,
-        )
-      }
+          <PopoverHeader
+            fontWeight="bold"
+            color="orange.600"
+          >
+            Firmware Maintenance
+          </PopoverHeader>
 
-      localStorage.removeItem(
-        'forgeui_uploaded_assets_v1',
-      )
+          <PopoverBody fontSize="sm">
+            Cleans all generated firmware icons, themes,
+            uploaded assets, cached input files, generated
+            Studio export files, CMake references and the
+            ESP-IDF build cache.
+            <br />
+            <br />
+            Use this if Build &amp; Flash fails, firmware
+            assets become out of sync, or after a large
+            project cleanup.
+            <br />
+            <br />
+            To remove individual uploaded assets, use
+            <strong> Asset Manager</strong>.
+            <br />
+            <br />
+            <strong>
+              Your ForgeUI project and canvas are not deleted.
+            </strong>
+            <br />
+            <br />
+            <strong>
+              Restart ForgeUI Studio after maintenance before
+              continuing.
+            </strong>
+          </PopoverBody>
 
-      localStorage.removeItem(
-        'forgeui_active_theme_v1',
-      )
+          <PopoverFooter
+            display="flex"
+            justifyContent="flex-end"
+            gap={2}
+          >
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={closeMaintenance}
+            >
+              Cancel
+            </Button>
 
-      setHeroBackground(null)
-      setThemeId('graphite')
+            <Button
+              size="sm"
+              colorScheme="orange"
+              onClick={async () => {
+                try {
+                  const response = await fetch(
+                    'http://localhost:3030/clean-firmware-sweep',
+                    {
+                      method: 'POST',
+                    },
+                  )
 
-      toast({
-        title: 'Firmware sweep complete',
-        description: `${data.filesRemoved || 0} files removed`,
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      })
+                  const data = await response.json()
 
-      if (onClose) onClose()
+                  if (!response.ok || !data.ok) {
+                    throw new Error(
+                      data.error ||
+                      `Maintenance failed: ${response.status}`,
+                    )
+                  }
 
-      window.location.reload()
-    } catch (err: any) {
-      toast({
-        title: 'Firmware sweep failed',
-        description: err.message,
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      })
-    }
-  }}
->
-  Firmware Sweep
-</Button>
+                  dispatch.components.reset()
+                  forgeUIClearUploadedAssets()
+
+                  localStorage.removeItem(
+                    'forgeui_active_theme_v1',
+                  )
+
+                  setHeroBackground(null)
+                  setThemeId('graphite')
+
+                  toast({
+                    title:
+                      'Firmware Maintenance Complete',
+                    description:
+                      `${data.filesRemoved || 0} generated files cleaned. Restart ForgeUI Studio before continuing.`,
+                    status: 'success',
+                    duration: 8000,
+                    isClosable: true,
+                  })
+
+                  closeMaintenance()
+
+                  if (onClose) {
+                    onClose()
+                  }
+                } catch (err: any) {
+                  toast({
+                    title:
+                      'Firmware Maintenance Failed',
+                    description:
+                      err.message ||
+                      'Unable to complete firmware maintenance.',
+                    status: 'error',
+                    duration: 6000,
+                    isClosable: true,
+                  })
+                }
+              }}
+            >
+              Run Maintenance
+            </Button>
+          </PopoverFooter>
+        </PopoverContent>
+      </LightMode>
+    </>
+  )}
+</Popover>
 
                     </PopoverContent>
                   </LightMode>

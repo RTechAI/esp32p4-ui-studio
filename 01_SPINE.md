@@ -1,3 +1,135 @@
+# FORGEUI_V2_3_10__FIRMWARE_MAINTENANCE__CLEAN_GENERATED_FIRMWARE__WORKSPACE_MAINTENANCE__2026-07-16
+
+## Completed
+
+### Firmware Maintenance Workflow Refined
+
+Firmware maintenance has been split into two clear maintenance levels.
+
+---
+
+## ✅ Clean Firmware
+
+Fast repair tool for generated firmware files only.
+
+Now rebuilds a clean baseline for:
+
+- `main/CMakeLists.txt`
+- `main/90_Studio_Export.c`
+- `main/90_Studio_Export.h`
+
+Does **NOT** modify:
+
+- uploaded assets
+- generated icons
+- generated themes
+- upload cache
+- build directory
+
+Purpose:
+
+Repair generated firmware source if CMake or Studio export becomes out of sync.
+
+---
+
+## ✅ Firmware Maintenance
+
+Full generated firmware workspace cleanup.
+
+Now performs:
+
+- Clean generated icons
+- Clean generated themes
+- Clean uploaded assets
+- Clean upload cache (`_input`)
+- Remove ESP-IDF build directory
+- Rebuild clean `CMakeLists.txt`
+- Rebuild clean `90_Studio_Export.c`
+- Rebuild clean `90_Studio_Export.h`
+
+Purpose:
+
+Recover from firmware corruption, stale generated assets, failed exports, build issues, or long development sessions where generated assets accumulate.
+
+---
+
+## UI Improvements
+
+Maintenance dialog now explains:
+
+- what is cleaned
+- when to use Firmware Maintenance
+- Asset Manager should be used for individual asset deletion
+- ForgeUI project and canvas are preserved
+- Studio restart is required after maintenance
+
+Terminology updated:
+
+- "Firmware Sweep" → **Firmware Maintenance**
+- "Clean Firmware Assets" → **Clean Firmware**
+
+This provides a much clearer separation between a quick generated-code repair and a full firmware workspace maintenance operation.
+
+---
+
+## Engineering Notes
+
+During development approximately **1.4 GB** of stale generated firmware assets were discovered inside:
+
+- generated icons
+- generated themes
+- uploaded assets
+- upload cache
+
+These accumulated over many export cycles.
+
+Firmware Maintenance now provides an official cleanup path to prevent long-term firmware workspace growth.
+
+---
+
+## Current Maintenance Menu
+
+- Clear Canvas
+- Clean Firmware
+- Firmware Maintenance
+
+---
+
+## Proven
+
+✅ Generated firmware regeneration
+
+✅ Clean CMake regeneration
+
+✅ Clean Studio Export regeneration
+
+✅ Full generated firmware workspace cleanup
+
+✅ ESP-IDF build cache cleanup
+
+✅ Physical ESP32-P4 build and flash validation
+
+---
+
+# Next Development Phase
+
+v2.3.11
+
+Studio polish and UX refinement.
+
+Focus:
+
+- maintenance dialog polish
+- UI consistency
+- preview polish
+- workflow improvements
+- builder usability
+- general production-quality refinement
+
+ForgeUI firmware generation and maintenance pipeline is now considered stable.
+
+-------------------------------------------------------------------------
+
 # SPINE
 
 ## Current Save Point
@@ -69,7 +201,6 @@ FULLY PROVEN
 ```
 
 ---
-
 # Factory Reset Validation
 
 Successfully validated:

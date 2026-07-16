@@ -51,42 +51,35 @@ static void fg_wifi_tick_cb(lv_timer_t *timer)
 
 void fg_studio_export_create(lv_obj_t *parent)
 {
-    // Background flavour: Forge Orange
-    lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0x1A120B), 0);
+    // Background flavour: OLED Black Pro
+    lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0x000000), 0);
     lv_obj_set_style_bg_opa(lv_screen_active(), LV_OPA_COVER, 0);
-    lv_obj_set_style_bg_color(parent, lv_color_hex(0x1A120B), 0);
+    lv_obj_set_style_bg_color(parent, lv_color_hex(0x000000), 0);
     lv_obj_set_style_bg_opa(parent, LV_OPA_COVER, 0);
 
-    LV_IMAGE_DECLARE(fg_upload_carbon_fiber_be774fd2);
+    LV_IMAGE_DECLARE(fg_upload_dark_noise_08fcab09);
     lv_obj_t * bg_texture_0 = lv_image_create(parent);
-    lv_image_set_src(bg_texture_0, &fg_upload_carbon_fiber_be774fd2);
+    lv_image_set_src(bg_texture_0, &fg_upload_dark_noise_08fcab09);
     lv_obj_set_pos(bg_texture_0, 0, 0);
     lv_obj_t * bg_texture_1 = lv_image_create(parent);
-    lv_image_set_src(bg_texture_1, &fg_upload_carbon_fiber_be774fd2);
+    lv_image_set_src(bg_texture_1, &fg_upload_dark_noise_08fcab09);
     lv_obj_set_pos(bg_texture_1, 512, 0);
     lv_obj_t * bg_texture_2 = lv_image_create(parent);
-    lv_image_set_src(bg_texture_2, &fg_upload_carbon_fiber_be774fd2);
+    lv_image_set_src(bg_texture_2, &fg_upload_dark_noise_08fcab09);
     lv_obj_set_pos(bg_texture_2, 0, 512);
     lv_obj_t * bg_texture_3 = lv_image_create(parent);
-    lv_image_set_src(bg_texture_3, &fg_upload_carbon_fiber_be774fd2);
+    lv_image_set_src(bg_texture_3, &fg_upload_dark_noise_08fcab09);
     lv_obj_set_pos(bg_texture_3, 512, 512);
     lv_obj_move_background(bg_texture_0);
     lv_obj_move_background(bg_texture_1);
     lv_obj_move_background(bg_texture_2);
     lv_obj_move_background(bg_texture_3);
 
-    lv_obj_t * obj1 = lv_led_create(parent);
-    lv_obj_set_pos(obj1, 178, 57);
-    lv_obj_set_size(obj1, 48, 48);
-    lv_led_set_color(obj1, lv_palette_main(LV_PALETTE_GREEN));
-    lv_led_set_brightness(obj1, 255);
-    lv_led_on(obj1);
-
-    lv_obj_t * obj2 = lv_bar_create(parent);
-    lv_obj_set_pos(obj2, 135, 226);
-    lv_obj_set_size(obj2, 240, 120);
-    lv_bar_set_range(obj2, 0, 100);
-    lv_bar_set_value(obj2, 70, LV_ANIM_OFF);
+    lv_obj_t * obj1 = lv_bar_create(parent);
+    lv_obj_set_pos(obj1, 104, 66);
+    lv_obj_set_size(obj1, 240, 120);
+    lv_bar_set_range(obj1, 0, 100);
+    lv_bar_set_value(obj1, 70, LV_ANIM_OFF);
 
 
     fg_clock_tick_cb(NULL);

@@ -171,94 +171,13 @@ app.post(
           ok: false,
           success: false,
           error:
-            'Cannot clean firmware assets while build or flash is running',
+            'Cannot clean generated firmware files while build or flash is running',
         })
       }
 
-      const before =
-        inspectDirectory(firmwareUploadsDir)
-
-      emptyDirectory(firmwareUploadsDir)
-
-      // Keep the folders required by the
-      // upload and image-conversion pipeline.
-      fs.mkdirSync(firmwareUploadsDir, {
-        recursive: true,
-      })
-
-      fs.mkdirSync(firmwareInputDir, {
-        recursive: true,
-      })
-
-      const after =
-        inspectDirectory(firmwareUploadsDir)
-
-      console.log(
-        `Firmware assets cleaned: ${before.files} files, ${before.bytes} bytes recovered`
-      )
-
-      return res.json({
-        ok: true,
-        success: true,
-
-        filesRemoved: before.files,
-        bytesRecovered: before.bytes,
-
-        assetsRemaining: after.files,
-        uploadsRemaining: after.files,
-        inputRemaining: 0,
-
-        uploadsDirectory:
-          firmwareUploadsDir,
-
-        resetClientState: {
-          uploadedAssetRegistry: true,
-          activeUploadedHero: true,
-          heroBackground: true,
-          themeId: 'graphite',
-        },
-      })
-    } catch (err) {
-      console.error(
-        'Firmware asset cleanup failed:',
-        err
-      )
-
-      return res.status(500).json({
-        ok: false,
-        success: false,
-        error: String(err),
-      })
-    }
-  }
-)
-
-app.post(
-  '/clean-firmware-sweep',
-  (req, res) => {
-    try {
-      if (currentProcess) {
-        return res.status(409).json({
-          ok: false,
-          success: false,
-          error:
-            'Cannot sweep firmware while build or flash is running',
-        })
-      }
-
-      const firmwareRoot = path.resolve(
+      const mainDir = path.resolve(
         __dirname,
-        '../firmware/ForgeUI-One'
-      )
-
-      const mainDir = path.join(
-        firmwareRoot,
-        'main'
-      )
-
-      const buildDir = path.join(
-        firmwareRoot,
-        'build'
+        '../firmware/ForgeUI-One/main'
       )
 
       const cTarget = path.join(
@@ -276,43 +195,6 @@ app.post(
         'CMakeLists.txt'
       )
 
-      /*
-       * STEP 1
-       * Inspect and clean uploaded firmware assets.
-       *
-       * This uses the same proven helper functions as
-       * /clean-firmware-uploads without making an HTTP
-       * request back into this server.
-       */
-      const uploadsBefore =
-        inspectDirectory(firmwareUploadsDir)
-
-      emptyDirectory(firmwareUploadsDir)
-
-      fs.mkdirSync(firmwareUploadsDir, {
-        recursive: true,
-      })
-
-      fs.mkdirSync(firmwareInputDir, {
-        recursive: true,
-      })
-
-      /*
-       * STEP 2
-       * Delete the ESP-IDF build cache.
-       */
-      const buildExisted =
-        fs.existsSync(buildDir)
-
-      fs.rmSync(buildDir, {
-        recursive: true,
-        force: true,
-      })
-
-      /*
-       * STEP 3
-       * Restore a clean Studio Export header.
-       */
       const cleanHeader =
 `#pragma once
 
@@ -329,14 +211,6 @@ void fg_studio_export_create(lv_obj_t *parent);
 #endif
 `
 
-      /*
-       * STEP 4
-       * Restore a clean empty Studio Export source.
-       *
-       * No uploaded declarations.
-       * No stale LV_IMAGE_DECLARE entries.
-       * No stale UI component references.
-       */
       const cleanSource =
 `#include "90_Studio_Export.h"
 
@@ -346,13 +220,6 @@ void fg_studio_export_create(lv_obj_t *parent)
 }
 `
 
-      /*
-       * STEP 5
-       * Rebuild CMake from the fixed firmware baseline.
-       *
-       * There are intentionally no uploaded .c sources
-       * after a full firmware sweep.
-       */
       const cleanCMake =
 `idf_component_register(
     SRCS
@@ -405,18 +272,9 @@ target_compile_definitions(\${COMPONENT_LIB} PRIVATE
         'utf8'
       )
 
-      const uploadsAfter =
-        inspectDirectory(firmwareUploadsDir)
-
       console.log(
-        'Firmware sweep complete:',
+        'Generated firmware files cleaned:',
         {
-          filesRemoved:
-            uploadsBefore.files,
-          bytesRecovered:
-            uploadsBefore.bytes,
-          buildDeleted:
-            buildExisted,
           cTarget,
           hTarget,
           cmakeTarget,
@@ -427,14 +285,255 @@ target_compile_definitions(\${COMPONENT_LIB} PRIVATE
         ok: true,
         success: true,
 
-        filesRemoved:
-          uploadsBefore.files,
+        filesRemoved: 0,
+        bytesRecovered: 0,
 
-        bytesRecovered:
-          uploadsBefore.bytes,
+        cmakeRebuilt: true,
+        studioExportRebuilt: true,
+        buildDeleted: false,
+        assetsDeleted: false,
 
-        uploadsRemaining:
-          uploadsAfter.files,
+        paths: {
+          cmakeTarget,
+          cTarget,
+          hTarget,
+        },
+      })
+    } catch (err) {
+      console.error(
+        'Generated firmware cleanup failed:',
+        err
+      )
+
+      return res.status(500).json({
+        ok: false,
+        success: false,
+        error: String(err),
+      })
+    }
+  }
+)
+
+app.post(
+  '/clean-firmware-sweep',
+  (req, res) => {
+    try {
+      if (currentProcess) {
+        return res.status(409).json({
+          ok: false,
+          success: false,
+          error:
+            'Cannot reset firmware while build or flash is running',
+        })
+      }
+
+      const firmwareRoot = path.resolve(
+        __dirname,
+        '../firmware/ForgeUI-One'
+      )
+
+      const mainDir = path.join(
+        firmwareRoot,
+        'main'
+      )
+
+      const buildDir = path.join(
+        firmwareRoot,
+        'build'
+      )
+
+      const assetsDir = path.join(
+        mainDir,
+        'assets'
+      )
+
+      const iconsDir = path.join(
+        assetsDir,
+        'icons'
+      )
+
+      const themesDir = path.join(
+        assetsDir,
+        'themes'
+      )
+
+      const uploadsDir = path.join(
+        assetsDir,
+        'uploads'
+      )
+
+      const inputDir = path.join(
+        uploadsDir,
+        '_input'
+      )
+
+      const cTarget = path.join(
+        mainDir,
+        '90_Studio_Export.c'
+      )
+
+      const hTarget = path.join(
+        mainDir,
+        '90_Studio_Export.h'
+      )
+
+      const cmakeTarget = path.join(
+        mainDir,
+        'CMakeLists.txt'
+      )
+
+      const iconsBefore =
+        inspectDirectory(iconsDir)
+
+      const themesBefore =
+        inspectDirectory(themesDir)
+
+      const uploadsBefore =
+        inspectDirectory(uploadsDir)
+
+      emptyDirectory(iconsDir)
+      emptyDirectory(themesDir)
+      emptyDirectory(uploadsDir)
+
+      fs.mkdirSync(iconsDir, {
+        recursive: true,
+      })
+
+      fs.mkdirSync(themesDir, {
+        recursive: true,
+      })
+
+      fs.mkdirSync(uploadsDir, {
+        recursive: true,
+      })
+
+      fs.mkdirSync(inputDir, {
+        recursive: true,
+      })
+
+      const buildExisted =
+        fs.existsSync(buildDir)
+
+      fs.rmSync(buildDir, {
+        recursive: true,
+        force: true,
+      })
+
+      const cleanHeader =
+`#pragma once
+
+#include "lvgl.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void fg_studio_export_create(lv_obj_t *parent);
+
+#ifdef __cplusplus
+}
+#endif
+`
+
+      const cleanSource =
+`#include "90_Studio_Export.h"
+
+void fg_studio_export_create(lv_obj_t *parent)
+{
+    (void)parent;
+}
+`
+
+      const cleanCMake =
+`idf_component_register(
+    SRCS
+        "main.c"
+        "01_FG_Runtime.c"
+        "20_RTC.c"
+        "30_Audio.c"
+        "30_WIFI.c"
+        "40_SD.c"
+        "90_Studio_Export.c"
+
+    INCLUDE_DIRS
+        "."
+
+    REQUIRES
+        nvs_flash
+        driver
+        esp_event
+        esp_netif
+        esp_wifi
+        esp_wifi_remote
+        esp_hosted
+        fatfs
+        sdmmc
+        waveshare__esp32_p4_wifi6_touch_lcd_7b
+
+    PRIV_REQUIRES
+        bsp_extra
+)
+
+target_compile_definitions(\${COMPONENT_LIB} PRIVATE
+    LV_LVGL_H_INCLUDE_SIMPLE
+)`
+
+      fs.writeFileSync(
+        cTarget,
+        cleanSource,
+        'utf8'
+      )
+
+      fs.writeFileSync(
+        hTarget,
+        cleanHeader,
+        'utf8'
+      )
+
+      fs.writeFileSync(
+        cmakeTarget,
+        cleanCMake,
+        'utf8'
+      )
+
+      const filesRemoved =
+        iconsBefore.files +
+        themesBefore.files +
+        uploadsBefore.files
+
+      const bytesRecovered =
+        iconsBefore.bytes +
+        themesBefore.bytes +
+        uploadsBefore.bytes
+
+      console.log(
+        'Firmware destructive reset complete:',
+        {
+          filesRemoved,
+          bytesRecovered,
+          iconsRemoved:
+            iconsBefore.files,
+          themesRemoved:
+            themesBefore.files,
+          uploadsRemoved:
+            uploadsBefore.files,
+          buildDeleted:
+            buildExisted,
+        }
+      )
+
+      return res.json({
+        ok: true,
+        success: true,
+
+        filesRemoved,
+        bytesRecovered,
+
+        foldersCleaned: {
+          icons: iconsBefore.files,
+          themes: themesBefore.files,
+          uploads: uploadsBefore.files,
+        },
 
         buildDeleted:
           buildExisted,
@@ -444,17 +543,12 @@ target_compile_definitions(\${COMPONENT_LIB} PRIVATE
         staleDeclarationsRemoved: true,
         staleAssetSourcesRemoved: true,
 
-        resetClientState: {
-          uploadedAssetRegistry: true,
-          activeUploadedHero: true,
-          heroBackground: true,
-          themeId: 'graphite',
-        },
-
         paths: {
+          iconsDir,
+          themesDir,
+          uploadsDir,
+          inputDir,
           buildDir,
-          uploadsDir:
-            firmwareUploadsDir,
           cmakeTarget,
           cTarget,
           hTarget,
@@ -462,7 +556,7 @@ target_compile_definitions(\${COMPONENT_LIB} PRIVATE
       })
     } catch (err) {
       console.error(
-        'Firmware sweep failed:',
+        'Firmware destructive reset failed:',
         err
       )
 
@@ -1103,6 +1197,36 @@ app.get('/flash-log', (req, res) => {
     running: Boolean(currentProcess),
     log: flashLog.join(''),
   })
+})
+
+app.post('/restart-forgeui', (req, res) => {
+  try {
+    const launcher = path.resolve(
+      __dirname,
+      '../START_FORGEUI_STUDIO_HIDDEN.vbs'
+    )
+
+    console.log('Restarting ForgeUI Studio...')
+
+    spawn('wscript.exe', [launcher], {
+      detached: true,
+      windowsHide: true,
+      stdio: 'ignore',
+    }).unref()
+
+    res.json({ ok: true })
+
+    setTimeout(() => {
+      process.exit(0)
+    }, 1000)
+  } catch (err) {
+    console.error(err)
+
+    res.status(500).json({
+      ok: false,
+      error: String(err),
+    })
+  }
 })
 
 app.post('/shutdown', (req, res) => {
