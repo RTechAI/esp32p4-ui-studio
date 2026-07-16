@@ -3,6 +3,85 @@
 ## Current Save Point
 
 ```text
+FORGEUI_V2_3_12__AI_LAYOUT_PROMPT_HELPER_V1__VISUAL_PROMPT_BUILDER__GUIDED_LAYOUT_GENERATION__2026-07-17
+```
+
+---
+
+# New Since v2.3.11
+
+## AI Layout Prompt Helper V1
+
+ForgeUI AI Playground now includes a visual Layout Prompt Helper inside the Layout tab.
+
+Completed:
+
+```text
+✓ Dashboard type selector
+
+✓ Editable heading
+
+✓ Dashboard section toggles
+  • Trend Chart
+  • Alerts
+  • Controls
+  • Touch Friendly
+
+✓ Status icon toggles
+  • WiFi
+  • Battery
+  • Clock
+
+✓ Build Prompt button
+
+✓ Prompt generated into the existing AI prompt editor
+
+✓ Prompt remains editable before generation
+
+✓ Vertical resize support for Prompt and Advanced JSON editors
+```
+
+Workflow:
+
+```text
+Layout Prompt Helper
+        ↓
+Build Prompt
+        ↓
+Editable AI Prompt
+        ↓
+Generate Layout
+        ↓
+Validated ForgeUI JSON
+        ↓
+Canvas
+        ↓
+Browser Preview
+        ↓
+LVGL Export
+        ↓
+ESP32-P4
+```
+
+Status:
+
+```text
+PROVEN
+```
+
+---
+
+# Next Session
+
+Stress-test Layout Prompt Helper V1 using multiple dashboard types and prompt combinations.
+
+Do not expand the helper until V1 has been validated through Browser Preview and physical ESP32-P4 testing.
+-------------------------------------------------------------------------------------
+# SPINE
+
+## Current Save Point
+
+```text
 FORGEUI_V2_3_11__AI_ICON_NATIVE_SIZE_PIPELINE__ICON_PREPROCESSOR_MODE_SPLIT__ESP32P4_PHYSICAL_VALIDATION__2026-07-17
 ```
 

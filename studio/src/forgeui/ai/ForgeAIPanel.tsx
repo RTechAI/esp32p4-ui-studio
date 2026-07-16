@@ -10,12 +10,14 @@ import {
   Badge,
   Box,
   Button,
+  Checkbox,
   Collapse,
   Divider,
   Flex,
   Heading,
   Input,
   HStack,
+  Select,
   SimpleGrid,
   Tab,
   TabList,
@@ -1041,9 +1043,49 @@ export const ForgeAIPanel = ({
 
   const toast = useToast()
   const [layoutJson, setLayoutJson] = useState(DEFAULT_LAYOUT_JSON)
-  const [jsonError, setJsonError] = useState('')
-  const [aiPrompt, setAiPrompt] = useState('')
-  const [isGenerating, setIsGenerating] = useState(false)
+const [jsonError, setJsonError] = useState('')
+
+const [aiPrompt, setAiPrompt] = useState('')
+
+//
+// Layout Prompt Helper
+//
+
+const [helperDashboardType, setHelperDashboardType] =
+  useState('industrial dashboard')
+
+const [helperHeading, setHelperHeading] =
+  useState('Industrial Dashboard')
+
+const [helperTheme, setHelperTheme] =
+  useState('Modern industrial blue theme')
+
+const [helperPanelCount, setHelperPanelCount] =
+  useState('Three')
+
+const [helperTrendChart, setHelperTrendChart] =
+  useState(true)
+
+const [helperAlerts, setHelperAlerts] =
+  useState(true)
+
+const [helperControls, setHelperControls] =
+  useState(true)
+
+const [helperTouchFriendly, setHelperTouchFriendly] =
+  useState(true)
+
+const [helperWifi, setHelperWifi] =
+  useState(true)
+
+const [helperBattery, setHelperBattery] =
+  useState(true)
+
+const [helperClock, setHelperClock] =
+  useState(true)
+
+const [isGenerating, setIsGenerating] =
+  useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [resultName, setResultName] = useState('')
   const [resultDescription, setResultDescription] = useState('')
@@ -1104,6 +1146,76 @@ const filteredHeroPrompts =
       }
     })
   }
+
+const buildLayoutPrompt = () => {
+  const requirements: string[] = [
+    `- Large heading: ${helperHeading}`,
+    `- ${helperPanelCount} production summary panels`,
+  ]
+
+  if (helperTrendChart) {
+    requirements.push('- One live trend chart')
+  }
+
+  if (helperAlerts) {
+    requirements.push('- One alerts panel')
+  }
+
+  if (helperControls) {
+    requirements.push('- One controls panel')
+  }
+
+  requirements.push(`- ${helperTheme}`)
+
+  if (helperTouchFriendly) {
+    requirements.push('- Touch-friendly layout')
+  }
+
+  const icons: string[] = []
+
+  if (helperWifi) {
+    icons.push('- WiFi')
+  }
+
+  if (helperBattery) {
+    icons.push('- Battery')
+  }
+
+  if (helperClock) {
+    icons.push('- Clock')
+  }
+
+  const iconSection =
+    icons.length > 0
+      ? `Top-right status area:
+
+Create ${icons.length} separate Icon components.
+
+Required icons:
+${icons.join('\n')}
+
+Rules:
+- Use the standard ForgeUI Icon component.
+- Use one iconName for each Icon.
+- Use the exact icon names supplied in RELEVANT VALID ICONS whenever available.
+- If only a semantic name is known (wifi, battery, clock), ForgeUI will resolve it automatically.
+- Do not use uploadedAssetId, src, assetName, lvgl or cFile.
+- Do not invent WiFiWidget, BatteryWidget or ClockWidget.
+- Do not group the icons.`
+      : ''
+
+  const prompt = `Create a modern ${helperDashboardType} for a 1024x600 ESP32-P4 display.
+
+Requirements:
+
+${requirements.join('\n')}
+
+${iconSection}
+
+Return valid ForgeUI JSON only.`
+
+  setAiPrompt(prompt)
+}
 
   const generateLayout = async () => {
     try {
@@ -1359,21 +1471,222 @@ toast({
                     </Text>
 
                     <Textarea
-                      value={aiPrompt}
-                      onChange={(e) => setAiPrompt(e.target.value)}
-                      placeholder="Create a modern industrial dashboard with machine status, temperature, pressure and start/stop controls..."
-                      minH="150px"
-                      resize="vertical"
-                      bg="#050914"
-                      color="white"
-                      borderColor="rgba(139, 92, 246, 0.52)"
-                      _hover={{ borderColor: 'purple.400' }}
-                      _focus={{
-                        borderColor: 'purple.300',
-                        boxShadow: '0 0 0 1px #c4b5fd',
-                      }}
-                      fontSize="sm"
-                    />
+  value={aiPrompt}
+  onChange={(e) => setAiPrompt(e.target.value)}
+  placeholder="Create a modern industrial dashboard with machine status, temperature, pressure and start/stop controls..."
+  minH="150px"
+  resize="vertical"
+  bg="#050914"
+  color="white"
+  borderColor="rgba(139, 92, 246, 0.52)"
+  _hover={{
+    borderColor: 'purple.400',
+  }}
+  _focus={{
+    borderColor: 'purple.300',
+    boxShadow: '0 0 0 1px #c4b5fd',
+  }}
+  fontSize="sm"
+/>
+
+<Box
+  mt={4}
+  p={4}
+  border="1px solid rgba(34,211,238,0.28)"
+  borderRadius="lg"
+  bg="rgba(8,15,26,0.76)"
+>
+  <HStack
+    justify="space-between"
+    mb={3}
+  >
+    <Heading size="xs">
+      Layout Prompt Helper
+    </Heading>
+
+    <Badge colorScheme="cyan">
+      V1
+    </Badge>
+  </HStack>
+
+  <SimpleGrid
+    columns={2}
+    spacing={3}
+    mb={4}
+  >
+    <Box>
+      <Text
+        fontSize="xs"
+        color="gray.400"
+        mb={1}
+      >
+        Dashboard
+      </Text>
+
+      <Select
+        size="sm"
+        value={helperDashboardType}
+        onChange={(e) =>
+          setHelperDashboardType(
+            e.target.value,
+          )
+        }
+      >
+        <option value="industrial dashboard">
+          Industrial Dashboard
+        </option>
+
+        <option value="machine health dashboard">
+          Machine Health
+        </option>
+
+        <option value="energy dashboard">
+          Energy
+        </option>
+
+        <option value="marine dashboard">
+          Marine
+        </option>
+
+        <option value="diagnostics dashboard">
+          Diagnostics
+        </option>
+      </Select>
+    </Box>
+
+    <Box>
+      <Text
+        fontSize="xs"
+        color="gray.400"
+        mb={1}
+      >
+        Heading
+      </Text>
+
+      <Input
+        size="sm"
+        value={helperHeading}
+        onChange={(e) =>
+          setHelperHeading(
+            e.target.value,
+          )
+        }
+      />
+    </Box>
+  </SimpleGrid>
+
+  <Text
+    fontSize="xs"
+    color="gray.400"
+    mb={2}
+  >
+    Dashboard Sections
+  </Text>
+
+  <SimpleGrid
+    columns={2}
+    spacing={2}
+    mb={4}
+  >
+    <Checkbox
+      isChecked={helperTrendChart}
+      onChange={(e) =>
+        setHelperTrendChart(
+          e.target.checked,
+        )
+      }
+    >
+      Trend Chart
+    </Checkbox>
+
+    <Checkbox
+      isChecked={helperAlerts}
+      onChange={(e) =>
+        setHelperAlerts(
+          e.target.checked,
+        )
+      }
+    >
+      Alerts
+    </Checkbox>
+
+    <Checkbox
+      isChecked={helperControls}
+      onChange={(e) =>
+        setHelperControls(
+          e.target.checked,
+        )
+      }
+    >
+      Controls
+    </Checkbox>
+
+    <Checkbox
+      isChecked={helperTouchFriendly}
+      onChange={(e) =>
+        setHelperTouchFriendly(
+          e.target.checked,
+        )
+      }
+    >
+      Touch Friendly
+    </Checkbox>
+  </SimpleGrid>
+
+  <Text
+    fontSize="xs"
+    color="gray.400"
+    mb={2}
+  >
+    Status Icons
+  </Text>
+
+  <HStack
+    spacing={6}
+    mb={4}
+  >
+    <Checkbox
+      isChecked={helperWifi}
+      onChange={(e) =>
+        setHelperWifi(
+          e.target.checked,
+        )
+      }
+    >
+      WiFi
+    </Checkbox>
+
+    <Checkbox
+      isChecked={helperBattery}
+      onChange={(e) =>
+        setHelperBattery(
+          e.target.checked,
+        )
+      }
+    >
+      Battery
+    </Checkbox>
+
+    <Checkbox
+      isChecked={helperClock}
+      onChange={(e) =>
+        setHelperClock(
+          e.target.checked,
+        )
+      }
+    >
+      Clock
+    </Checkbox>
+  </HStack>
+
+  <Button
+    width="100%"
+    colorScheme="cyan"
+    onClick={buildLayoutPrompt}
+  >
+    Build Prompt
+  </Button>
+</Box>
 
                     <Flex
                       mt={4}
@@ -1521,20 +1834,31 @@ toast({
 
                     <Collapse in={showAdvanced} animateOpacity>
                       <Box mt={4}>
-                        <Textarea
-                          value={layoutJson}
-                          onChange={(e) => {
-                            setLayoutJson(e.target.value)
-                            setJsonError('')
-                          }}
-                          minH="330px"
-                          bg="#050914"
-                          color="cyan.100"
-                          borderColor="gray.700"
-                          fontFamily="monospace"
-                          fontSize="sm"
-                        />
-                      </Box>
+  <Textarea
+    value={layoutJson}
+    onChange={(e) => {
+      setLayoutJson(e.target.value)
+      setJsonError('')
+    }}
+    minH="330px"
+    maxH="700px"
+    resize="vertical"
+    overflowY="auto"
+    bg="#050914"
+    color="cyan.100"
+    borderColor="gray.700"
+    fontFamily="monospace"
+    fontSize="sm"
+    sx={{
+      '&::-webkit-resizer': {
+        borderWidth: '0 0 12px 12px',
+        borderStyle: 'solid',
+        borderColor:
+          'transparent transparent #67e8f9 transparent',
+      },
+    }}
+  />
+</Box>
                     </Collapse>
 
                     {jsonError && (
