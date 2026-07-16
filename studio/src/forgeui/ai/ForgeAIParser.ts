@@ -10,6 +10,21 @@ export type ForgeAILayoutDocument = {
   layout: ForgeAILayoutItem[]
 }
 
+const clampNumber = (
+  value: unknown,
+  min: number,
+  max: number,
+  fallback: number,
+): number => {
+  const numericValue = Number(value)
+
+  if (!Number.isFinite(numericValue)) {
+    return fallback
+  }
+
+  return Math.min(max, Math.max(min, numericValue))
+}
+
 const extractJsonText = (value: string): string => {
   const trimmed = value.trim()
 
@@ -35,7 +50,9 @@ const extractJsonText = (value: string): string => {
 const validateLayoutItem = (
   item: unknown,
   index: number,
-  supportedComponents: Set<string>
+  supportedComponents: Set<string>,
+  screenWidth: number,
+  screenHeight: number,
 ): ForgeAILayoutItem => {
   if (!item || typeof item !== 'object' || Array.isArray(item)) {
     throw new Error(`layout[${index}] must be an object`)
@@ -59,15 +76,36 @@ const validateLayoutItem = (
     throw new Error(`layout[${index}].props must be an object`)
   }
 
+  const normalizedProps = {
+    ...(candidate.props as Record<string, unknown>),
+    positionMode: 'absolute',
+  }
+
+  const x = clampNumber(normalizedProps.x, 0, screenWidth, 0)
+  const y = clampNumber(normalizedProps.y, 0, screenHeight, 0)
+  const w = clampNumber(normalizedProps.w, 24, screenWidth, Math.min(240, screenWidth))
+  const h = clampNumber(normalizedProps.h, 24, screenHeight, Math.min(120, screenHeight))
+
+  const safeWidth = Math.max(24, Math.min(screenWidth - x, w))
+  const safeHeight = Math.max(24, Math.min(screenHeight - y, h))
+
   return {
     type: candidate.type,
-    props: candidate.props as Record<string, unknown>,
+    props: {
+      ...normalizedProps,
+      x,
+      y,
+      w: safeWidth,
+      h: safeHeight,
+    },
   }
 }
 
 export const parseForgeAIResponse = (
   rawResponse: string,
-  supportedComponentNames: string[]
+  supportedComponentNames: string[],
+  screenWidth = 1024,
+  screenHeight = 600,
 ): ForgeAILayoutDocument => {
   const jsonText = extractJsonText(rawResponse)
 
@@ -92,7 +130,7 @@ export const parseForgeAIResponse = (
   const supportedComponents = new Set(supportedComponentNames)
 
   const layout = document.layout.map((item, index) =>
-    validateLayoutItem(item, index, supportedComponents)
+    validateLayoutItem(item, index, supportedComponents, screenWidth, screenHeight)
   )
 
   return {

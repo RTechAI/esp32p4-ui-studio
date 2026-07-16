@@ -73,7 +73,7 @@ void fg_studio_export_create(lv_obj_t *parent)
 
     lv_obj_t * obj2 = lv_obj_create(parent);
     lv_obj_set_pos(obj2, 0, 0);
-    lv_obj_set_size(obj2, 1024, 600);
+    lv_obj_set_size(obj2, 1024, 577);
     lv_obj_set_style_radius(obj2, 12, 0);
     lv_obj_set_style_bg_color(obj2, lv_color_hex(0x120A2A), 0);
     lv_obj_set_style_bg_opa(obj2, LV_OPA_80, 0);
