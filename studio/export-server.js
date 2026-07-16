@@ -574,6 +574,8 @@ app.post('/convert-lvgl-image', (req, res) => {
     const fileName = req.body.fileName || 'uploaded.png'
     const symbolName = safeSymbolName(req.body.symbolName)
     const base64 = req.body.base64
+    const assetMode =
+  req.body.assetMode || 'image'
 
     if (!base64) {
       return res.status(400).json({
@@ -629,9 +631,10 @@ app.post('/convert-lvgl-image', (req, res) => {
     const preprocess = spawn(
       pythonPath,
       [
-        preprocessorPath,
-        inputPath,
-      ],
+  preprocessorPath,
+  inputPath,
+  assetMode,
+],
       {
         cwd: path.resolve(__dirname, '../tools'),
         windowsHide: true,

@@ -1,5 +1,8 @@
 import React from 'react'
-import { renderToStaticMarkup } from 'react-dom/server'
+import {
+  renderToStaticMarkup,
+} from 'react-dom/server'
+
 import iconsList, {
   ICON_NAMES,
 } from '~forgeui/iconsList'
@@ -7,7 +10,6 @@ import iconsList, {
 import {
   searchForgeUIIcons,
 } from './ForgeUIIconSearch'
-
 
 import {
   forgeUIAddUploadedAssets,
@@ -18,15 +20,20 @@ import {
 
 export type ForgeUIResolvedIcon = {
   iconName: string
+  icon: string
   uploadedAssetId: string
   src: string
   assetName: string
+  alt: string
+  objectFit: 'contain'
   lvgl: string
   cFile: string
 }
 
 const iconNameToPngFile = async (
   iconName: string,
+  requestedWidth = 32,
+  requestedHeight = 32,
 ): Promise<File> => {
   const IconComponent =
     iconsList[
@@ -39,12 +46,26 @@ const iconNameToPngFile = async (
     )
   }
 
-  const svgMarkup = renderToStaticMarkup(
-    <IconComponent
-      size={64}
-      color="white"
-    />,
+  const width = Math.max(
+    1,
+    Math.round(requestedWidth),
   )
+
+  const height = Math.max(
+    1,
+    Math.round(requestedHeight),
+  )
+
+  const iconSize =
+    Math.min(width, height)
+
+  const svgMarkup =
+    renderToStaticMarkup(
+      <IconComponent
+        size={iconSize}
+        color="white"
+      />,
+    )
 
   const svgBlob = new Blob(
     [svgMarkup],
@@ -62,6 +83,7 @@ const iconNameToPngFile = async (
     await new Promise<void>(
       (resolve, reject) => {
         image.onload = () => resolve()
+
         image.onerror = () =>
           reject(
             new Error(
@@ -76,8 +98,8 @@ const iconNameToPngFile = async (
     const canvas =
       document.createElement('canvas')
 
-    canvas.width = 64
-    canvas.height = 64
+    canvas.width = width
+    canvas.height = height
 
     const ctx =
       canvas.getContext('2d')
@@ -88,8 +110,29 @@ const iconNameToPngFile = async (
       )
     }
 
-    ctx.clearRect(0, 0, 64, 64)
-    ctx.drawImage(image, 0, 0, 64, 64)
+    ctx.clearRect(
+      0,
+      0,
+      width,
+      height,
+    )
+
+    const drawSize =
+      Math.min(width, height)
+
+    const drawX =
+      (width - drawSize) / 2
+
+    const drawY =
+      (height - drawSize) / 2
+
+    ctx.drawImage(
+      image,
+      drawX,
+      drawY,
+      drawSize,
+      drawSize,
+    )
 
     const pngBlob =
       await new Promise<Blob | null>(
@@ -109,7 +152,7 @@ const iconNameToPngFile = async (
 
     return new File(
       [pngBlob],
-      `${iconName}.png`,
+      `${iconName}_${width}x${height}.png`,
       {
         type: 'image/png',
       },
@@ -142,9 +185,12 @@ const fileToBase64 = (
 
 const findExistingIconAsset = (
   iconName: string,
+  width: number,
+  height: number,
 ): ForgeUIResolvedIcon | null => {
   const expectedName =
-    `${iconName}.png`.toLowerCase()
+    `${iconName}_${width}x${height}.png`
+      .toLowerCase()
 
   const asset =
     forgeUIGetUploadedAssets().find(
@@ -160,29 +206,32 @@ const findExistingIconAsset = (
   }
 
   return {
-  iconName,
-  icon: iconName,
-  uploadedAssetId: asset.id,
-  src: asset.browserSrc,
-  assetName: asset.name,
-  alt: asset.name,
-  objectFit: 'contain',
-  lvgl: asset.lvgl,
-  cFile: asset.cFile,
-}
+    iconName,
+    icon: iconName,
+    uploadedAssetId: asset.id,
+    src: asset.browserSrc,
+    assetName: asset.name,
+    alt: asset.name,
+    objectFit: 'contain',
+    lvgl: asset.lvgl,
+    cFile: asset.cFile,
+  }
 }
 
 const resolveIconRegistryName = (
   requestedName: string,
 ): string => {
-  if (ICON_NAMES.includes(requestedName)) {
+  if (
+    ICON_NAMES.includes(requestedName)
+  ) {
     return requestedName
   }
 
-  const matches = searchForgeUIIcons(
-    requestedName,
-    1,
-  )
+  const matches =
+    searchForgeUIIcons(
+      requestedName,
+      1,
+    )
 
   if (matches.length === 0) {
     throw new Error(
@@ -193,24 +242,43 @@ const resolveIconRegistryName = (
   return matches[0]
 }
 
-
 export const resolveForgeUIIcon = async (
   requestedName: string,
+  requestedWidth = 32,
+  requestedHeight = 32,
 ): Promise<ForgeUIResolvedIcon> => {
   const iconName =
     resolveIconRegistryName(
       requestedName,
     )
 
+  const width = Math.max(
+    1,
+    Math.round(requestedWidth),
+  )
+
+  const height = Math.max(
+    1,
+    Math.round(requestedHeight),
+  )
+
   const existing =
-    findExistingIconAsset(iconName)
+    findExistingIconAsset(
+      iconName,
+      width,
+      height,
+    )
 
   if (existing) {
     return existing
   }
 
   const file =
-    await iconNameToPngFile(iconName)
+    await iconNameToPngFile(
+      iconName,
+      width,
+      height,
+    )
 
   const browserSrc =
     await fileToBase64(file)
@@ -221,29 +289,34 @@ export const resolveForgeUIIcon = async (
       browserSrc,
     )
 
-  forgeUIAddUploadedAssets([asset])
+  forgeUIAddUploadedAssets([
+    asset,
+  ])
 
   const response = await fetch(
-  'http://localhost:3030/convert-lvgl-image',
-  {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+    'http://localhost:3030/convert-lvgl-image',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type':
+          'application/json',
+      },
+      body: JSON.stringify({
+        fileName: asset.name,
+        symbolName: asset.lvgl,
+        base64: asset.browserSrc,
+        assetMode: 'icon',
+      }),
     },
-    body: JSON.stringify({
-      fileName: asset.name,
-      symbolName: asset.lvgl,
-      base64: asset.browserSrc,
+  )
 
-      // NEW
-      assetMode: 'icon',
-    }),
-  },
-)
+  const data =
+    await response.json()
 
-  const data = await response.json()
-
-  if (!response.ok || !data.ok) {
+  if (
+    !response.ok ||
+    !data.ok
+  ) {
     throw new Error(
       data?.error ||
         `LVGL conversion failed for ${iconName}`,
@@ -261,23 +334,24 @@ export const resolveForgeUIIcon = async (
   forgeUIUpdateUploadedAsset(
     asset.id,
     {
-      exportStatus: 'lvgl_ready',
+      exportStatus:
+        'lvgl_ready',
       cFile,
       lvgl,
     },
   )
 
   return {
-  iconName,
-  icon: iconName,
-  uploadedAssetId: asset.id,
-  src: asset.browserSrc,
-  assetName: asset.name,
-  alt: asset.name,
-  objectFit: 'contain',
-  lvgl,
-  cFile,
-}
+    iconName,
+    icon: iconName,
+    uploadedAssetId: asset.id,
+    src: asset.browserSrc,
+    assetName: asset.name,
+    alt: asset.name,
+    objectFit: 'contain',
+    lvgl,
+    cFile,
+  }
 }
 
 export const resolveForgeUIIconLayoutItems =
@@ -288,8 +362,8 @@ export const resolveForgeUIIconLayoutItems =
       items.map(async item => {
         if (
           item?.type !== 'Icon' ||
-          typeof item?.props?.iconName !==
-            'string'
+          typeof item?.props
+            ?.iconName !== 'string'
         ) {
           return item
         }
@@ -297,6 +371,12 @@ export const resolveForgeUIIconLayoutItems =
         const resolved =
           await resolveForgeUIIcon(
             item.props.iconName,
+            Number(
+              item.props.w,
+            ) || 32,
+            Number(
+              item.props.h,
+            ) || 32,
           )
 
         return {

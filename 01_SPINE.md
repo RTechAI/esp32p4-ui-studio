@@ -1,3 +1,492 @@
+# SPINE
+
+## Current Save Point
+
+```text
+FORGEUI_V2_3_11__AI_ICON_NATIVE_SIZE_PIPELINE__ICON_PREPROCESSOR_MODE_SPLIT__ESP32P4_PHYSICAL_VALIDATION__2026-07-17
+```
+
+---
+
+# Project Status
+
+```text
+ACTIVE
+
+STABLE
+
+PHYSICAL HARDWARE PROVEN
+
+AI LAYOUT PIPELINE PROVEN
+
+SEMANTIC ICON RESOLVER PROVEN
+
+NATIVE-SIZE ICON ASSET PIPELINE PROVEN
+
+HERO IMAGE PREPROCESSOR PRESERVED
+
+CANVAS / PREVIEW / ESP32-P4 ICON PARITY PROVEN
+```
+
+---
+
+# Major Milestone
+
+ForgeUI AI-generated status icons now render correctly on the physical ESP32-P4.
+
+The previous white-square failure on WiFi and battery icons has been resolved.
+
+Validated icons:
+
+```text
+WiFi
+✓
+
+Battery
+✓
+
+Clock
+✓
+```
+
+Physical result:
+
+```text
+Browser Preview
+        ≈
+Generated LVGL Assets
+        ≈
+ESP32-P4 Display
+```
+
+Status:
+
+```text
+FULLY PROVEN
+```
+
+---
+
+# Root Cause
+
+AI-generated icons were correctly created as small PNG assets such as:
+
+```text
+FiWifi_28x28.png
+FiBattery_28x28.png
+```
+
+However, every uploaded image was being passed through:
+
+```text
+ForgeUIImagePreprocessor.py
+```
+
+That preprocessor is intentionally designed for Hero backgrounds and always outputs:
+
+```text
+1024 × 600
+```
+
+The generated icon C descriptors therefore incorrectly contained:
+
+```c
+.w = 1024,
+.h = 600,
+.stride = 4096,
+```
+
+instead of the native icon size.
+
+This caused LVGL to display clipped white/cyan squares on the P4.
+
+---
+
+# Final Fix
+
+The asset pipeline now distinguishes icons from normal images.
+
+The semantic icon resolver sends:
+
+```ts
+assetMode: 'icon'
+```
+
+The export server forwards the mode into the Python preprocessor:
+
+```js
+const assetMode =
+  req.body.assetMode || 'image'
+```
+
+```js
+[
+  preprocessorPath,
+  inputPath,
+  assetMode,
+]
+```
+
+The Python preprocessor now preserves native dimensions for icons:
+
+```text
+assetMode = icon
+        ↓
+Preserve original PNG dimensions
+        ↓
+LVGLImage.py
+        ↓
+Native-size C asset
+```
+
+Hero images still use the existing device-aware pipeline:
+
+```text
+assetMode = image
+        ↓
+Center crop
+        ↓
+Resize to 1024 × 600
+        ↓
+LVGLImage.py
+```
+
+---
+
+# Native Icon Pipeline
+
+```text
+Natural Language Prompt
+        ↓
+AI Layout JSON
+        ↓
+iconName intent
+        ↓
+ForgeUI Semantic Icon Resolver
+        ↓
+React Icon
+        ↓
+PNG generated at AI-selected size
+        ↓
+Example: 28 × 28
+        ↓
+Uploaded Asset Registry
+        ↓
+assetMode: icon
+        ↓
+Preprocessor preserves native dimensions
+        ↓
+LVGLImage.py
+        ↓
+Native LVGL C asset
+        ↓
+LVGL Export
+        ↓
+ESP-IDF Build
+        ↓
+ESP32-P4
+```
+
+Status:
+
+```text
+PROVEN
+```
+
+---
+
+# Size-Aware Icon Assets
+
+Icon assets are now generated and cached by their requested dimensions.
+
+Examples:
+
+```text
+FiWifi_28x28.png
+FiBattery_28x28.png
+FiClock_28x28.png
+```
+
+This allows AI layouts to request smaller or larger icons without forcing all assets through a fixed 64 × 64 source.
+
+The AI remains responsible for choosing:
+
+```text
+w
+h
+x
+y
+```
+
+ForgeUI remains responsible for creating the correct physical asset.
+
+Ownership rule:
+
+```text
+AI chooses intent and size.
+
+ForgeUI resolves and generates the asset.
+
+Export preserves the native dimensions.
+
+LVGL displays the final asset.
+```
+
+---
+
+# Files Updated
+
+```text
+src/forgeui/icons/ForgeUIIconResolver.tsx
+
+export-server.js
+
+tools/ForgeUIImagePreprocessor.py
+```
+
+Key changes:
+
+```text
+Size-aware icon PNG generation
+
+Size-specific asset names
+
+AI layout width and height passed into resolver
+
+assetMode: icon sent to conversion endpoint
+
+assetMode passed from Node to Python
+
+Python preprocessor preserves icons
+
+Hero preprocessing remains unchanged
+```
+
+---
+
+# Physical Validation
+
+Fresh test procedure completed:
+
+```text
+Clear Canvas
+        ↓
+Delete existing assets
+        ↓
+Firmware Maintenance
+        ↓
+Restart Studio
+        ↓
+Generate fresh AI layout
+        ↓
+Create native-size icon assets
+        ↓
+Generate LVGL export
+        ↓
+Build
+        ↓
+Flash
+        ↓
+Physical ESP32-P4
+```
+
+Result:
+
+```text
+WiFi icon rendered correctly
+✓
+
+Battery icon rendered correctly
+✓
+
+Clock icon rendered correctly
+✓
+
+No white squares
+✓
+
+No 1024 × 600 icon descriptors
+✓
+
+Dashboard flashed successfully
+✓
+```
+
+---
+
+# Important Engineering Discovery
+
+ForgeUI now has two explicit visual asset modes.
+
+## Hero / Theme Image Mode
+
+```text
+Large source image
+        ↓
+Center crop
+        ↓
+Device resize
+        ↓
+1024 × 600
+        ↓
+LVGL asset
+```
+
+## Icon Mode
+
+```text
+React icon
+        ↓
+Native-size PNG
+        ↓
+No device resize
+        ↓
+Native-size LVGL asset
+```
+
+This separation is now part of the ForgeUI asset contract.
+
+---
+
+# Non-Negotiable Rules
+
+```text
+Do not send icons through Hero preprocessing.
+
+Do not force icons to 1024 × 600.
+
+Preserve AI-selected icon dimensions.
+
+Keep Hero preprocessing unchanged.
+
+Keep semantic icon resolution using the existing icon registry.
+
+Keep uploaded asset registry as the shared source of truth.
+
+Validate every layout through browser preview and physical hardware.
+```
+
+---
+
+# Next Development Session
+
+## Layout Stress Testing
+
+Test several new AI-generated layouts using different icon sizes and positions.
+
+Validation targets:
+
+```text
+16 × 16 icons
+
+20 × 20 icons
+
+24 × 24 icons
+
+28 × 28 icons
+
+32 × 32 icons
+
+Mixed icon sizes in one layout
+
+Different icon families
+
+Different themes
+
+Hero background plus icons
+
+Multiple rows of status icons
+
+Standalone export
+
+Clean build and flash
+```
+
+Check each layout for:
+
+```text
+Canvas parity
+
+Browser Preview parity
+
+Correct asset names
+
+Correct C descriptors
+
+Correct CMake entries
+
+No stale assets
+
+No white squares
+
+Correct physical placement
+
+Correct physical icon size
+```
+
+---
+
+# Suggested First Test Prompts
+
+```text
+Create a compact industrial status dashboard with small 20 × 20 WiFi, battery and clock icons in the top-right corner.
+```
+
+```text
+Create a machine health dashboard with mixed icon sizes: WiFi 16 × 16, battery 24 × 24 and clock 32 × 32.
+```
+
+```text
+Create a dark industrial control panel with six separate status icons across the top and a live trend chart below.
+```
+
+```text
+Create a clean white glass dashboard with compact status icons, three metric cards, alerts and controls.
+```
+
+---
+
+# Current Save Point
+
+```text
+FORGEUI_V2_3_11__AI_ICON_NATIVE_SIZE_PIPELINE__ICON_PREPROCESSOR_MODE_SPLIT__ESP32P4_PHYSICAL_VALIDATION__2026-07-17
+```
+
+---
+
+# Commit Name
+
+```text
+fix(ai-icons): preserve native icon dimensions through LVGL asset pipeline
+```
+
+---
+
+# New Chat Kickoff
+
+```text
+Continue from:
+
+FORGEUI_V2_3_11__AI_ICON_NATIVE_SIZE_PIPELINE__ICON_PREPROCESSOR_MODE_SPLIT__ESP32P4_PHYSICAL_VALIDATION__2026-07-17
+
+The WiFi, battery and clock white-square issue is fixed and physically proven on ESP32-P4.
+
+Next task:
+
+Stress-test several fresh AI-generated layouts using different icon sizes, themes and placements.
+
+For each test, verify:
+
+- Canvas
+- Browser Preview
+- generated asset names
+- LVGL C descriptor width and height
+- CMake asset entries
+- physical ESP32-P4 rendering
+
+Do not change the asset pipeline unless a new failure is reproduced.
+```
+----------------------------------------------------------------------------
 # SPINE 
 
 FORGEUI_V2_3_10__FIRMWARE_MAINTENANCE__STUDIO_POLISH__THEME_MANAGER_REFRESH__FLASH_CONSOLE_UX__2026-07-16

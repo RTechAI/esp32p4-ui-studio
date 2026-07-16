@@ -295,6 +295,11 @@ case 'Icon': {
     const imageScale = Number(
       child.props.imageScale || 256,
     )
+console.log('EXPORT ICON', {
+  assetName: uploadedAsset?.name,
+  lvgl: uploadedAsset?.lvgl,
+  cFile: uploadedAsset?.cFile,
+})
 
     lines.push(`LV_IMAGE_DECLARE(${symbol});`)
     lines.push(
