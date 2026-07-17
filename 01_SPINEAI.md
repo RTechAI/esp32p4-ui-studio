@@ -3,6 +3,387 @@
 ## Current Save Point
 
 ```text
+FORGEUI_AI_ASSET_LIBRARY_V1__GENERATION_SAVE_RELOAD_INSERT_PROVEN__PROMPT_LAYOUT_LIMITS_IDENTIFIED__NEXT_ASSET_NORMALISER_AND_TEMPLATE_GUIDANCE__2026-07-17
+```
+
+## Commit Candidate
+
+```text
+feat(ai): prove reusable asset library and document prompt-layout limits
+```
+
+---
+
+# Project Status
+
+```text
+ACTIVE
+STABLE
+
+AI LAYOUT PIPELINE PROVEN
+AI HERO PIPELINE PROVEN
+SEMANTIC ICON RESOLUTION PROVEN
+
+AI ASSET GENERATION PROVEN
+AI ASSET METADATA PREVIEW PROVEN
+AI ASSET CANVAS INSERTION PROVEN
+AI ASSET SAVE PROVEN
+AI ASSET LOCALSTORAGE RELOAD PROVEN
+SAVED ASSET REINSERTION PROVEN
+
+AI ASSET VISUAL QUALITY NOT YET RELIABLE
+```
+
+---
+
+# Important Clarification
+
+The AI Asset pipeline is working.
+
+The latest tests proved that ForgeUI can:
+
+```text
+Prompt
+  ↓
+Generate structured reusable asset JSON
+  ↓
+Validate supported components
+  ↓
+Preview metadata / JSON
+  ↓
+Insert normal editable ForgeUI components
+  ↓
+Save structured asset
+  ↓
+List asset in My Forge Assets
+  ↓
+Persist through reload
+  ↓
+Reinsert saved asset into canvas
+```
+
+The current problem is not asset persistence, canvas insertion, theme rendering, browser preview or export.
+
+The current problem is:
+
+```text
+GPT-generated absolute coordinates are visually inconsistent.
+```
+
+The model follows some spacing instructions, but still creates collisions, oversized text, poor metric grouping and decorative components that interfere with labels.
+
+Do not confuse this with a ForgeUI renderer bug.
+
+---
+
+# Latest Visual Test
+
+The latest generated battery card successfully inserted onto the normal 1024x600 canvas and rendered over the active hero background.
+
+Observed improvements:
+
+```text
+Compact outer card
+Clear main heading
+Status LED in the header
+Progress bars present
+Two internal metric panels
+Asset positioned as one grouped composition
+```
+
+Remaining problems:
+
+```text
+State-of-charge label intersects the progress area
+Voltage and current values collide with labels
+Temperature and health panel is cramped
+Warning row overlaps LED and status text
+Unrequested Health Trend chart appeared
+Asset height was not sufficient for the requested content
+```
+
+Conclusion:
+
+```text
+The pipeline works.
+The generated layout quality is not yet production-ready.
+Longer prompt rules alone will not guarantee collision-free coordinates.
+```
+
+---
+
+# Current Main File
+
+```text
+src/forgeui/ai/ForgeAIPanel.tsx
+```
+
+Current implemented asset functions:
+
+```tsx
+generateAsset()
+saveGeneratedAsset()
+insertGeneratedAsset()
+insertSavedAsset()
+```
+
+Current structured asset model:
+
+```ts
+type ForgeUISavedAsset = {
+  id: string
+  name: string
+  category: string
+  style: string
+  description: string
+  width: number
+  height: number
+  layout: any[]
+  createdAt: string
+}
+```
+
+Current storage key:
+
+```text
+forgeui_ai_assets_v1
+```
+
+Current library badge:
+
+```tsx
+<Badge colorScheme="cyan">
+  {savedAssets.length} SAVED
+</Badge>
+```
+
+---
+
+# Proven Asset Library Behaviour
+
+The Assets tab now supports:
+
+```text
+Design Asset
+Save Asset
+Insert Generated Asset
+List Saved Assets
+Use Saved Asset
+Dynamic Saved Count
+LocalStorage Persistence
+Reload And Reinsert
+```
+
+Saved structured assets remain separate from image/icon binary assets.
+
+Do not move these structured JSON assets into:
+
+```text
+ForgeUIUploadedAssetRegistry
+```
+
+That registry remains for image and icon assets.
+
+---
+
+# Current Prompt Rules
+
+The asset-specific prompt now:
+
+```text
+Requires one reusable widget
+Rejects complete 1024x600 screens
+Allows only supported ForgeUI components
+Rejects Flex / Stack / Grid / Tabs / Collapse helpers
+Requires absolute positioning
+Requires coordinates relative to asset origin
+Requests compact bounds and internal spacing
+Requests no overlap
+Requests final self-check
+```
+
+These rules improved the generated result, but did not solve coordinate quality completely.
+
+Do not keep adding endless prose to the prompt without measuring whether it improves output.
+
+---
+
+# Correct Next Direction
+
+The next pass should not rebuild the asset library.
+
+The next pass should focus on deterministic asset layout quality.
+
+Recommended order:
+
+```text
+1. Inspect generated asset JSON and calculate actual bounds.
+
+2. Add a local asset normalisation / validation pass:
+   - calculate minX / minY
+   - calculate maxX+w / maxY+h
+   - detect items outside declared bounds
+   - detect obvious rectangle intersections
+   - report collisions before Save or Insert
+
+3. Decide whether to:
+   A. reject overlapping generated assets and ask the user to regenerate
+   B. auto-expand asset width / height when content exceeds bounds
+   C. apply only safe coordinate normalisation
+
+4. Add a small set of proven asset layout archetypes:
+   - status card
+   - metric card
+   - dual-column card
+   - gauge card
+   - trend card
+   - controls card
+
+5. Let AI select and populate an archetype rather than inventing every coordinate from scratch.
+```
+
+Do not attempt a general automatic layout engine yet.
+
+Start with collision detection and one proven archetype.
+
+---
+
+# Recommended Immediate Next Proof
+
+Use one manually defined two-column battery-card archetype.
+
+Example regions:
+
+```text
+Header:
+  title
+  status LED
+  status text
+
+Left column:
+  SOC label
+  SOC value
+  SOC bar
+  Health label
+  Health value
+  Health bar
+
+Right column:
+  Voltage
+  Current
+  Temperature
+  Warning state
+```
+
+The AI should fill:
+
+```text
+text
+values
+component colours
+status
+```
+
+The archetype should own:
+
+```text
+coordinates
+width
+height
+spacing
+```
+
+This separates content generation from layout geometry and should produce consistent reusable assets.
+
+---
+
+# Do Not Touch
+
+Keep these proven systems stable:
+
+```text
+Manual Builder
+Browser Preview
+DevicePreview
+Theme Manager
+Hero Pipeline
+Uploaded Image Pipeline
+Semantic Icon Resolver
+React Icon Rasterisation
+LVGL Export
+Standalone Export
+CMake Asset Injection
+Firmware Build
+Firmware Flash
+```
+
+---
+
+# New Chat Opening Instruction
+
+```text
+Read 01_SPINEAI.md and continue from the current save point.
+
+AI Asset Library V1 is now functionally proven:
+generation, validation, generated insertion, save, dynamic saved count,
+localStorage persistence, reload and saved-asset reinsertion all work.
+
+The latest battery card also proved the normal Builder and browser preview
+render the generated components correctly over the active hero.
+
+Do not rebuild persistence or insertion.
+
+The remaining issue is AI coordinate quality:
+the generated widget still contains overlapping labels, values, LEDs and
+bars even after stronger prompt rules.
+
+Start by inspecting one generated asset JSON and adding a small local
+asset-bounds/collision inspection helper. Do not silently redesign the
+widget yet.
+
+After collision reporting is proven, create one deterministic
+two-column battery-card archetype where ForgeUI owns coordinates and the
+AI supplies content and style.
+
+Keep all existing Layout, Theme, Hero, icon, export and firmware pipelines
+unchanged.
+```
+
+---
+
+# Summary
+
+ForgeUI now has a functional third AI workflow:
+
+```text
+Layout AI
+Theme / Hero AI
+Asset AI
+```
+
+Asset AI V1 is proven as a creation and persistence pipeline.
+
+The next milestone is not more library plumbing.
+
+The next milestone is:
+
+```text
+Reliable reusable asset geometry
+```
+
+The key architectural correction is:
+
+```text
+AI generates content and intent
+ForgeUI owns proven component geometry
+```
+-------------------------------------------------------------------------
+
+# FORGEUI AI SPINE — AI ASSET DESIGNER HANDOVER
+
+## Current Save Point
+
+```text
 FORGEUI_AI_ASSET_DESIGNER_V1__GENERATION_PROVEN__METADATA_PREVIEW_READY__NEXT_CANVAS_INSERTION_AND_JSON_VIEW__2026-07-17
 ```
 

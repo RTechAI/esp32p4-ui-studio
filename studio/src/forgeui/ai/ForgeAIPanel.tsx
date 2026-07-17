@@ -4,7 +4,7 @@ import {
   forgeUIUpdateUploadedAsset,
 } from '~forgeui/ForgeUIUploadedAssetRegistry'
 import { useForgeTheme } from '~forgeui/theme/ForgeThemeContext'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useToast } from '@chakra-ui/react'
 import {
   Badge,
@@ -1034,6 +1034,21 @@ const HERO_PROMPT_EXAMPLES: HeroPromptExample[] = [
   },
 ]
 
+type ForgeUISavedAsset = {
+  id: string
+  name: string
+  category: string
+  style: string
+  description: string
+  width: number
+  height: number
+  layout: any[]
+  createdAt: string
+}
+
+const FORGE_AI_ASSETS_STORAGE_KEY =
+  'forgeui_ai_assets_v1'
+
 export const ForgeAIPanel = ({
   onClose,
   insertAiLayout,
@@ -1115,6 +1130,32 @@ const [assetError, setAssetError] =
 
 const [assetJson, setAssetJson] =
   useState('')
+
+  const [savedAssets, setSavedAssets] =
+  useState<ForgeUISavedAsset[]>([])
+
+  useEffect(() => {
+  try {
+    const stored = localStorage.getItem(
+      FORGE_AI_ASSETS_STORAGE_KEY,
+    )
+
+    if (!stored) {
+      return
+    }
+
+    const parsed = JSON.parse(stored)
+
+    if (Array.isArray(parsed)) {
+      setSavedAssets(parsed)
+    }
+  } catch (err) {
+    console.error(
+      'Failed to load Forge AI assets:',
+      err,
+    )
+  }
+}, [])
 
 const filteredHeroPrompts =
   HERO_PROMPT_EXAMPLES.filter((example) => {
@@ -1284,10 +1325,45 @@ SimpleGrid
 Grid
 Stack
 
+Widget layout rules:
+
+Widget design workflow:
+
+1. Decide the widget width and height before placing components.
+2. Divide the widget into logical regions such as header, primary metrics, secondary metrics and status.
+3. Reserve enough space for every component before assigning coordinates.
+4. Use a clear row-and-column structure.
+5. Check all component bounds for collisions.
+6. Correct every overlap before returning the JSON.
+
+Widget layout rules:
+
 - Use absolute positioning.
-- Keep coordinates relative to the asset origin.
+- Keep all coordinates relative to the asset origin.
 - Start x and y near 0.
-- Width and height should match the widget size.
+- Leave 12 to 16 pixels of padding around all widget edges.
+- Leave at least 10 pixels of vertical spacing between rows.
+- Leave at least 12 pixels of horizontal spacing between columns.
+- Components must never overlap.
+- Text must never overlap bars, icons, charts, borders or other text.
+- Keep labels clearly separated from their values.
+- Place labels and values on the same row only when enough horizontal space exists.
+- Use a two-column layout when several metrics must fit in one widget.
+- Reserve the full bounds of CircularProgress, Arc, Scale and Chart components.
+- Do not place text inside or across a CircularProgress, Arc, Scale or Chart unless explicitly requested.
+- Place status LEDs directly beside their associated status text.
+- Do not use LEDs as decorative background elements.
+- Progress bars must have their own row and must not sit behind text.
+- Use consistent alignment, margins and spacing.
+- Keep all components fully inside the declared width and height.
+- Width and height must match the actual widget bounds.
+- Choose an appropriate compact widget size.
+- Do not exceed 420x280 unless the user explicitly asks for a larger asset.
+- Reduce the number of components if the requested content cannot fit cleanly.
+- Prefer simple, readable layouts over dense layouts.
+- Use compact headings suitable for a reusable HMI widget.
+- Produce a polished commercial-quality industrial HMI widget.
+- Before returning JSON, verify every component bounding box and correct all intersections.
 
 Return JSON with:
 
@@ -1336,6 +1412,220 @@ const generateAsset = async () => {
     )
   } finally {
     setIsGeneratingAsset(false)
+  }
+}
+
+const saveGeneratedAsset = () => {
+  if (
+    !assetPreview ||
+    !Array.isArray(assetPreview.layout) ||
+    assetPreview.layout.length === 0
+  ) {
+    return
+  }
+
+  try {
+    setAssetError('')
+
+    validateAiLayout(assetPreview.layout)
+
+    const savedAsset: ForgeUISavedAsset = {
+      id:
+        globalThis.crypto?.randomUUID?.() ||
+        `forge_asset_${Date.now()}`,
+
+      name:
+        assetPreview.name ||
+        'AI Generated Asset',
+
+      category:
+        assetPreview.category ||
+        assetCategory,
+
+      style:
+        assetPreview.style ||
+        assetStyle,
+
+      description:
+        assetPreview.description ||
+        'AI-generated reusable ForgeUI asset.',
+
+      width:
+        Number(assetPreview.width) || 320,
+
+      height:
+        Number(assetPreview.height) || 220,
+
+      layout: assetPreview.layout.map(
+        (item: any) => ({
+          ...item,
+          props: {
+            ...item.props,
+          },
+        }),
+      ),
+
+      createdAt: new Date().toISOString(),
+    }
+
+    const nextAssets = [
+      savedAsset,
+      ...savedAssets,
+    ]
+
+    setSavedAssets(nextAssets)
+
+    localStorage.setItem(
+      FORGE_AI_ASSETS_STORAGE_KEY,
+      JSON.stringify(nextAssets),
+    )
+
+    toast({
+      title: 'Forge asset saved',
+      description:
+        `${savedAsset.name} added to My Forge Assets.`,
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+    })
+  } catch (err: any) {
+    console.error(err)
+
+    setAssetError(
+      err.message ||
+        'Failed to save AI asset',
+    )
+  }
+}
+
+const insertSavedAsset = (
+  savedAsset: ForgeUISavedAsset,
+) => {
+  try {
+    setAssetError('')
+
+    validateAiLayout(savedAsset.layout)
+
+    const originX = 120
+    const originY = 120
+
+    const minX = Math.min(
+      ...savedAsset.layout.map(
+        (item: any) =>
+          Number(item.props?.x || 0),
+      ),
+    )
+
+    const minY = Math.min(
+      ...savedAsset.layout.map(
+        (item: any) =>
+          Number(item.props?.y || 0),
+      ),
+    )
+
+    const items = savedAsset.layout.map(
+      (item: any) => ({
+        ...item,
+        props: {
+          ...item.props,
+          positionMode: 'absolute',
+          x:
+            originX +
+            Number(item.props?.x || 0) -
+            minX,
+          y:
+            originY +
+            Number(item.props?.y || 0) -
+            minY,
+        },
+      }),
+    )
+
+    insertAiLayout(items)
+
+    toast({
+      title: 'Asset inserted',
+      description:
+        `${savedAsset.name} added to the canvas.`,
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+    })
+  } catch (err: any) {
+    console.error(err)
+
+    setAssetError(
+      err.message ||
+        'Failed to insert saved asset',
+    )
+  }
+}
+
+const insertGeneratedAsset = () => {
+  if (
+    !assetPreview ||
+    !Array.isArray(assetPreview.layout)
+  ) {
+    return
+  }
+
+  try {
+    setAssetError('')
+
+    validateAiLayout(assetPreview.layout)
+
+    const originX = 120
+    const originY = 120
+
+    const minX = Math.min(
+      ...assetPreview.layout.map(
+        (item: any) =>
+          Number(item.props?.x || 0),
+      ),
+    )
+
+    const minY = Math.min(
+      ...assetPreview.layout.map(
+        (item: any) =>
+          Number(item.props?.y || 0),
+      ),
+    )
+
+    const items = assetPreview.layout.map(
+      (item: any) => ({
+        ...item,
+        props: {
+          ...item.props,
+          positionMode: 'absolute',
+          x:
+            originX +
+            Number(item.props?.x || 0) -
+            minX,
+          y:
+            originY +
+            Number(item.props?.y || 0) -
+            minY,
+        },
+      }),
+    )
+
+    insertAiLayout(items)
+
+    toast({
+      title: 'Asset inserted',
+      description:
+        `${assetPreview.name || 'AI asset'} added to the canvas.`,
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+    })
+  } catch (err: any) {
+    console.error(err)
+
+    setAssetError(
+      err.message ||
+        'Failed to insert AI asset',
+    )
   }
 }
 
@@ -1911,22 +2201,25 @@ toast({
                           {resultDescription || 'ForgeUI layout document ready.'}
                         </Text>
                       </Box>
-                    ) : (
-                      <Flex
-                        minH="112px"
-                        align="center"
-                        justify="center"
-                        border="1px dashed rgba(148, 163, 184, 0.25)"
-                        borderRadius="lg"
-                        mb={4}
-                        px={4}
-                        textAlign="center"
-                      >
-                        <Text color="gray.500" fontSize="sm">
-                          Generate a layout or choose a quick template.
-                        </Text>
-                      </Flex>
-                    )}
+                   ) : (
+  <Flex
+    minH="112px"
+    align="center"
+    justify="center"
+    border="1px dashed rgba(148, 163, 184, 0.25)"
+    borderRadius="lg"
+    mb={4}
+    px={4}
+    textAlign="center"
+  >
+    <Text
+      color="gray.500"
+      fontSize="sm"
+    >
+      Generate a layout or choose a quick template.
+    </Text>
+  </Flex>
+)}
 
                     <Button
                       w="full"
@@ -2119,7 +2412,7 @@ toast({
 <HStack mb={4} justify="space-between">
   <Badge colorScheme="cyan">
     {filteredHeroPrompts.length} PROMPTS
-  </Badge>
+      </Badge>
 
   <Button
     size="xs"
@@ -2375,26 +2668,68 @@ toast({
           </Box>
 
           <Badge colorScheme="cyan">
-            0 SAVED
-          </Badge>
+  {savedAssets.length} SAVED
+</Badge>
         </Flex>
 
-        <Flex
-          minH="150px"
-          align="center"
-          justify="center"
-          border="1px dashed rgba(148, 163, 184, 0.25)"
-          borderRadius="lg"
-          px={4}
-          textAlign="center"
-        >
-          <Text
-            color="gray.500"
-            fontSize="sm"
+        {savedAssets.length === 0 ? (
+  <Flex
+    minH="150px"
+    align="center"
+    justify="center"
+    border="1px dashed rgba(148, 163, 184, 0.25)"
+    borderRadius="lg"
+    px={4}
+    textAlign="center"
+  >
+    <Text
+      color="gray.500"
+      fontSize="sm"
+    >
+      No Forge assets created yet.
+    </Text>
+  </Flex>
+) : (
+  <VStack spacing={3} align="stretch">
+    {savedAssets.map((savedAsset) => (
+      <Box
+        key={savedAsset.id}
+        border="1px solid rgba(148, 163, 184, 0.18)"
+        borderRadius="lg"
+        bg="rgba(15, 23, 42, 0.7)"
+        p={3}
+      >
+        <Flex justify="space-between" align="center">
+          <Box>
+            <Text
+  fontWeight="bold"
+  color="cyan.100"
+  noOfLines={1}
+>
+  {savedAsset.name}
+</Text>
+
+<Text
+  color="gray.500"
+  fontSize="xs"
+  noOfLines={2}
+>
+  {savedAsset.description}
+</Text>
+          </Box>
+
+          <Button
+            size="sm"
+            colorScheme="cyan"
+            onClick={() => insertSavedAsset(savedAsset)}
           >
-            No Forge assets created yet.
-          </Text>
+            Use
+          </Button>
         </Flex>
+      </Box>
+    ))}
+  </VStack>
+)}
       </Box>
     </VStack>
 
@@ -2528,23 +2863,33 @@ toast({
 </Box>
 
         <HStack mt={4} spacing={3}>
-          <Button
-            flex={1}
-            colorScheme="teal"
-            isDisabled
-          >
-            Save Asset
-          </Button>
+  <Button
+  flex={1}
+  colorScheme="teal"
+  onClick={saveGeneratedAsset}
+  isDisabled={
+    !assetPreview ||
+    !Array.isArray(assetPreview.layout) ||
+    assetPreview.layout.length === 0
+  }
+>
+  Save Asset
+</Button>
 
-          <Button
-            flex={1}
-            variant="outline"
-            colorScheme="cyan"
-            isDisabled
-          >
-            Insert Into Canvas
-          </Button>
-        </HStack>
+  <Button
+    flex={1}
+    variant="outline"
+    colorScheme="cyan"
+    onClick={insertGeneratedAsset}
+    isDisabled={
+      !assetPreview ||
+      !Array.isArray(assetPreview.layout) ||
+      assetPreview.layout.length === 0
+    }
+  >
+    Insert Into Canvas
+  </Button>
+</HStack>
 
         <Divider
           my={4}
