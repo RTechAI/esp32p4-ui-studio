@@ -1092,6 +1092,8 @@ const [isGenerating, setIsGenerating] =
   const [heroPrompt, setHeroPrompt] = useState('')
   const [isGeneratingHero, setIsGeneratingHero] = useState(false)
   const [heroError, setHeroError] = useState('')
+  const [heroPromptSearch, setHeroPromptSearch] =
+  useState('')
   
   const [assetPrompt, setAssetPrompt] =
   useState('')
@@ -1102,7 +1104,16 @@ const [assetPreview, setAssetPreview] =
 const [isGeneratingAsset, setIsGeneratingAsset] =
   useState(false)
 
-const [heroPromptSearch, setHeroPromptSearch] =
+const [assetCategory, setAssetCategory] =
+  useState('industrial')
+
+const [assetStyle, setAssetStyle] =
+  useState('modern')
+
+const [assetError, setAssetError] =
+  useState('')
+
+const [assetJson, setAssetJson] =
   useState('')
 
 const filteredHeroPrompts =
@@ -1224,6 +1235,108 @@ ${iconSection}
 Return valid ForgeUI JSON only.`
 
   setAiPrompt(prompt)
+}
+
+const buildAssetGenerationPrompt = () => {
+  return `Create one reusable ForgeUI asset.
+
+Asset category:
+${assetCategory}
+
+Visual style:
+${assetStyle}
+
+User brief:
+${assetPrompt}
+
+Rules:
+
+- Return ONE reusable ForgeUI asset.
+- Do NOT create a complete 1024x600 dashboard.
+- Do NOT create an application or screen.
+- Generate a reusable widget only.
+
+Use ONLY these ForgeUI components:
+
+Box
+Text
+Heading
+Button
+Image
+Icon
+Led
+Bar
+Arc
+Scale
+CircularProgress
+Progress
+Chart
+
+Never use:
+
+Divider
+Tabs
+Collapse
+Flex
+VStack
+HStack
+SimpleGrid
+Grid
+Stack
+
+- Use absolute positioning.
+- Keep coordinates relative to the asset origin.
+- Start x and y near 0.
+- Width and height should match the widget size.
+
+Return JSON with:
+
+name
+category
+style
+description
+width
+height
+layout
+
+Return valid JSON only.
+
+Do not include markdown or explanations.`
+}
+
+const generateAsset = async () => {
+  try {
+    setAssetError('')
+    setIsGeneratingAsset(true)
+    setAssetPreview(null)
+
+    const prompt =
+      buildAssetGenerationPrompt()
+
+    const context = createForgeAIContext({
+      userPrompt: prompt,
+    })
+
+    const document = await generateForgeAILayout({
+      prompt,
+      ...context,
+    })
+
+    setAssetJson(
+      JSON.stringify(document, null, 2),
+    )
+
+    setAssetPreview(document)
+  } catch (err: any) {
+    console.error(err)
+
+    setAssetError(
+      err.message ||
+        'AI asset generation failed',
+    )
+  } finally {
+    setIsGeneratingAsset(false)
+  }
 }
 
   const generateLayout = async () => {
@@ -2140,7 +2253,7 @@ toast({
           mt={4}
         >
           <Box>
-            <Text
+           <Text
   fontSize="xs"
   color="gray.400"
   mb={1}
@@ -2150,7 +2263,10 @@ toast({
 
 <Select
   size="sm"
-  defaultValue="industrial"
+  value={assetCategory}
+  onChange={(e) =>
+    setAssetCategory(e.target.value)
+  }
   bg="#050914"
 >
   <option value="industrial">
@@ -2177,32 +2293,11 @@ toast({
     General UI
   </option>
 </Select>
-
-            <Select
-              size="sm"
-              defaultValue="widget"
-              bg="#050914"
-            >
-              <option value="widget">
-                Composite Widget
-              </option>
-
-              <option value="status-card">
-                Status Card
-              </option>
-
-              <option value="gauge">
-                Gauge
-              </option>
-
-              <option value="control-panel">
-                Control Panel
-              </option>
-            </Select>
+            
           </Box>
 
           <Box>
-            <Text
+           <Text
   fontSize="xs"
   color="gray.400"
   mb={1}
@@ -2212,7 +2307,10 @@ toast({
 
 <Select
   size="sm"
-  defaultValue="modern"
+  value={assetStyle}
+  onChange={(e) =>
+    setAssetStyle(e.target.value)
+  }
   bg="#050914"
 >
   <option value="modern">
@@ -2239,15 +2337,16 @@ toast({
         </SimpleGrid>
 
         <Button
-  width="100%"
-  colorScheme="purple"
-  mt={4}
-  isLoading={isGeneratingAsset}
-  loadingText="Designing..."
-  isDisabled={!assetPrompt.trim()}
->
-  ✨ Design Asset
-</Button>
+          width="100%"
+          colorScheme="purple"
+          mt={4}
+          isLoading={isGeneratingAsset}
+          loadingText="Designing..."
+          isDisabled={!assetPrompt.trim()}
+          onClick={generateAsset}
+        >
+          ✨ Design Asset
+        </Button>
       </Box>
 
       <Box
@@ -2328,29 +2427,105 @@ toast({
   </Text>
 </Box>
 
-          <Badge colorScheme="gray">
-            WAITING
-          </Badge>
+          <Badge
+  colorScheme={
+    assetError
+      ? 'red'
+      : assetPreview
+        ? 'green'
+        : 'gray'
+  }
+>
+  {assetError
+    ? 'ERROR'
+    : assetPreview
+      ? 'READY'
+      : 'WAITING'}
+</Badge>
         </Flex>
 
-        <Flex
-          minH="260px"
-          align="center"
-          justify="center"
-          border="1px dashed rgba(148, 163, 184, 0.25)"
-          borderRadius="lg"
-          bg="#050914"
-          px={4}
-          textAlign="center"
-        >
-          <Text
-            color="gray.500"
-            fontSize="sm"
-          >
-            Describe an asset and generate it to see
-            the preview.
-          </Text>
-        </Flex>
+        <Box
+  minH="260px"
+  border="1px dashed rgba(148, 163, 184, 0.25)"
+  borderRadius="lg"
+  bg="#050914"
+  p={4}
+>
+  {assetError ? (
+    <Flex
+      minH="228px"
+      align="center"
+      justify="center"
+      textAlign="center"
+    >
+      <Text
+        color="red.300"
+        fontSize="sm"
+      >
+        {assetError}
+      </Text>
+    </Flex>
+  ) : assetPreview ? (
+    <VStack
+      minH="228px"
+      align="stretch"
+      justify="center"
+      spacing={3}
+    >
+      <Text
+        color="green.200"
+        fontWeight="bold"
+        fontSize="lg"
+      >
+        {assetPreview.name ||
+          'AI Generated Asset'}
+      </Text>
+
+      <Text
+        color="gray.400"
+        fontSize="sm"
+      >
+        {assetPreview.description ||
+          'ForgeUI asset document generated.'}
+      </Text>
+
+      <HStack spacing={2}>
+        <Badge colorScheme="purple">
+          {assetPreview.category ||
+            assetCategory}
+        </Badge>
+
+        <Badge colorScheme="cyan">
+          {assetPreview.style ||
+            assetStyle}
+        </Badge>
+
+        <Badge colorScheme="green">
+          {Array.isArray(
+            assetPreview.layout,
+          )
+            ? `${assetPreview.layout.length} COMPONENTS`
+            : 'DOCUMENT READY'}
+        </Badge>
+      </HStack>
+    </VStack>
+  ) : (
+    <Flex
+      minH="228px"
+      align="center"
+      justify="center"
+      textAlign="center"
+    >
+      <Text
+        color="gray.500"
+        fontSize="sm"
+      >
+        Describe an asset and generate it to
+        see the preview.
+      </Text>
+    </Flex>
+  )}
+</Box>
 
         <HStack mt={4} spacing={3}>
           <Button

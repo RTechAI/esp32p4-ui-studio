@@ -3,6 +3,1040 @@
 ## Current Save Point
 
 ```text
+FORGEUI_AI_ASSET_DESIGNER_V1__GENERATION_PROVEN__METADATA_PREVIEW_READY__NEXT_CANVAS_INSERTION_AND_JSON_VIEW__2026-07-17
+```
+
+## Project Status
+
+```text
+ACTIVE
+
+STABLE
+
+AI LAYOUT PIPELINE PROVEN
+
+AI HERO PIPELINE PROVEN
+
+SEMANTIC ICON RESOLUTION PROVEN
+
+AI ASSET DESIGNER UI V1 COMPLETE
+
+AI ASSET GENERATION PROVEN
+
+ASSET DOCUMENT VALIDATION PROVEN
+
+ASSET METADATA PREVIEW PROVEN
+
+CANVAS INSERTION NEXT
+```
+
+---
+
+# Current Mission
+
+ForgeUI now has three live AI creation workflows:
+
+```text
+Layout AI
+Theme / Hero AI
+Asset AI
+```
+
+The AI Asset Designer can now generate one reusable structured ForgeUI asset from a natural-language brief.
+
+Current proven flow:
+
+```text
+Asset Brief
+      ↓
+Asset-specific prompt
+      ↓
+Existing ForgeAI context and engine
+      ↓
+Valid structured ForgeUI asset document
+      ↓
+Supported-component validation
+      ↓
+READY metadata preview
+```
+
+Next proof:
+
+```text
+Generated Asset
+      ↓
+Insert Into Canvas
+      ↓
+Normal editable ForgeUI components
+      ↓
+Existing Browser Preview
+      ↓
+Existing LVGL Export
+      ↓
+ESP-IDF
+      ↓
+Physical ESP32-P4
+```
+
+The architecture must remain narrow. Do not create a duplicate AI, preview, component, or export stack.
+
+---
+
+# Architecture Rules
+
+## Hard Rule 1 — Keep AI Inside AI Playground
+
+Do not place AI asset generation directly into the Builder.
+
+The AI Playground remains the AI creation workspace.
+
+Current tabs:
+
+```text
+Layout   ENABLED AND PROVEN
+Theme    ENABLED AND PROVEN
+Assets   ENABLED — GENERATION PROVEN
+Images   DISABLED
+Icons    DISABLED
+Runtime  DISABLED
+```
+
+---
+
+## Hard Rule 2 — Keep The Tab Named Assets
+
+Do not rename the Assets tab to Widgets.
+
+```text
+Layout
+→ Layout Documents
+
+Theme
+→ Theme Assets
+
+Assets
+→ Reusable Forge Assets
+
+Images
+→ Future AI Image Assets
+
+Icons
+→ Future AI Icon Assets
+
+Runtime
+→ Future Runtime Bindings
+```
+
+---
+
+## Hard Rule 3 — Reuse Existing AI Infrastructure
+
+Existing files:
+
+```text
+src/forgeui/ai/ForgeAIClient.ts
+src/forgeui/ai/ForgeAIContext.ts
+src/forgeui/ai/ForgeAIEngine.ts
+src/forgeui/ai/ForgeAIPanel.tsx
+src/forgeui/ai/ForgeAIParser.ts
+src/forgeui/ai/ForgeAIPrompts.ts
+```
+
+The first Asset AI proof successfully reused:
+
+```text
+createForgeAIContext(...)
+generateForgeAILayout(...)
+```
+
+Do not create duplicate files such as:
+
+```text
+ForgeAIWidgetClient
+ForgeAIWidgetEngine
+ForgeAIWidgetParser
+```
+
+Small asset-specific helpers may be added later only if the current engine becomes restrictive.
+
+---
+
+## Hard Rule 4 — Builder Must Not Know AI Exists
+
+AI output must end as normal ForgeUI component data.
+
+```text
+AI Asset Document
+      ↓
+Normal ForgeUI Items
+      ↓
+Existing Store
+      ↓
+Canvas
+      ↓
+Preview
+      ↓
+LVGL Export
+```
+
+No AI-only Builder component or renderer.
+
+---
+
+## Hard Rule 5 — Do Not Touch Proven Pipelines Yet
+
+Do not modify during the next insertion proof:
+
+```text
+ForgeUIUploadedAssetRegistry image pipeline
+LVGLImage.py
+Icon rasterisation pipeline
+LVGL export core
+Standalone export
+CMake asset injection
+Firmware build and flash workflow
+Theme pipeline
+Hero pipeline
+```
+
+The structured asset uses supported standard ForgeUI components only.
+
+---
+
+# Main File Being Edited
+
+```text
+src/forgeui/ai/ForgeAIPanel.tsx
+```
+
+This file currently owns:
+
+```text
+Layout AI UI
+Layout Prompt Helper
+Quick Layout Templates
+Generated Layout JSON
+Layout Canvas Insertion
+Theme Hero Generator
+Hero Prompt Gallery
+Hero Save-To-Asset Pipeline
+AI Asset Designer UI
+Asset Prompt Builder
+Asset Generation
+Asset Metadata Preview
+```
+
+---
+
+# Completed Work In This Pass
+
+## 1. Assets Tab Enabled
+
+```tsx
+<Tab>Layout</Tab>
+<Tab>Theme</Tab>
+<Tab>Assets</Tab>
+<Tab isDisabled>Images</Tab>
+<Tab isDisabled>Icons</Tab>
+<Tab isDisabled>Runtime</Tab>
+```
+
+---
+
+## 2. AI Asset Designer UI Complete
+
+Left side:
+
+```text
+AI Asset Designer
+Asset Brief textarea
+Design Category
+Asset Style
+✨ Design Asset
+My Forge Assets
+```
+
+Right side:
+
+```text
+Live Asset Preview
+Dynamic WAITING / READY / ERROR badge
+Generated asset metadata
+Save Asset
+Insert Into Canvas
+Show Advanced JSON
+```
+
+---
+
+## 3. Asset State Added
+
+Current state:
+
+```tsx
+const [assetPrompt, setAssetPrompt] =
+  useState('')
+
+const [assetPreview, setAssetPreview] =
+  useState<any>(null)
+
+const [isGeneratingAsset, setIsGeneratingAsset] =
+  useState(false)
+
+const [assetCategory, setAssetCategory] =
+  useState('industrial')
+
+const [assetStyle, setAssetStyle] =
+  useState('modern')
+
+const [assetError, setAssetError] =
+  useState('')
+
+const [assetJson, setAssetJson] =
+  useState('')
+```
+
+Also restored missing Hero Gallery search state:
+
+```tsx
+const [heroPromptSearch, setHeroPromptSearch] =
+  useState('')
+```
+
+---
+
+## 4. Category And Style Selectors Controlled
+
+Design Category is bound to:
+
+```tsx
+value={assetCategory}
+onChange={(e) =>
+  setAssetCategory(e.target.value)
+}
+```
+
+Asset Style is bound to:
+
+```tsx
+value={assetStyle}
+onChange={(e) =>
+  setAssetStyle(e.target.value)
+}
+```
+
+The stale uncontrolled selector containing:
+
+```text
+Composite Widget
+Status Card
+Gauge
+Control Panel
+```
+
+was removed.
+
+---
+
+## 5. Asset-Specific Prompt Builder Added
+
+Current prompt helper:
+
+```tsx
+const buildAssetGenerationPrompt = () => {
+  return `Create one reusable ForgeUI asset.
+
+Asset category:
+${assetCategory}
+
+Visual style:
+${assetStyle}
+
+User brief:
+${assetPrompt}
+
+Rules:
+
+- Return ONE reusable ForgeUI asset.
+- Do NOT create a complete 1024x600 dashboard.
+- Do NOT create an application or screen.
+- Generate a reusable widget only.
+
+Use ONLY these ForgeUI components:
+
+Box
+Text
+Heading
+Button
+Image
+Icon
+Led
+Bar
+Arc
+Scale
+CircularProgress
+Progress
+Chart
+
+Never use:
+
+Divider
+Tabs
+Collapse
+Flex
+VStack
+HStack
+SimpleGrid
+Grid
+Stack
+
+- Use absolute positioning.
+- Keep coordinates relative to the asset origin.
+- Start x and y near 0.
+- Width and height should match the widget size.
+
+Return JSON with:
+
+name
+category
+style
+description
+width
+height
+layout
+
+Return valid JSON only.
+
+Do not include markdown or explanations.`
+}
+```
+
+Why the strict component list exists:
+
+The first generation reached the validator but failed with:
+
+```text
+Unsupported component: Divider
+```
+
+This proved the request, AI engine, parser, and validation path were alive.
+
+After tightening the prompt and explicitly forbidding layout-helper components, generation passed.
+
+---
+
+## 6. Asset Generation Wired
+
+Current function:
+
+```tsx
+const generateAsset = async () => {
+  try {
+    setAssetError('')
+    setIsGeneratingAsset(true)
+    setAssetPreview(null)
+
+    const prompt =
+      buildAssetGenerationPrompt()
+
+    const context = createForgeAIContext({
+      userPrompt: prompt,
+    })
+
+    const document = await generateForgeAILayout({
+      prompt,
+      ...context,
+    })
+
+    setAssetJson(
+      JSON.stringify(document, null, 2),
+    )
+
+    setAssetPreview(document)
+  } catch (err: any) {
+    console.error(err)
+
+    setAssetError(
+      err.message ||
+        'AI asset generation failed',
+    )
+  } finally {
+    setIsGeneratingAsset(false)
+  }
+}
+```
+
+The Design Asset button is wired:
+
+```tsx
+onClick={generateAsset}
+```
+
+---
+
+## 7. Dynamic Preview State Added
+
+The Live Asset Preview badge now reflects:
+
+```text
+WAITING
+READY
+ERROR
+```
+
+The preview panel displays:
+
+```text
+Generated asset name
+Description
+Category
+Style
+Component count
+```
+
+Error messages are displayed directly in the panel.
+
+---
+
+## 8. First Successful AI Asset Generated
+
+Test brief:
+
+```text
+Create a compact industrial battery status card with SOC,
+voltage, current, temperature and warning state.
+```
+
+Selections:
+
+```text
+Category: Industrial
+Style: Modern
+```
+
+Successful result:
+
+```text
+Industrial Battery Status Card
+INDUSTRIAL
+MODERN
+18 COMPONENTS
+READY
+```
+
+This proves:
+
+```text
+Asset Designer UI works
+Asset prompt builder works
+Existing Forge AI engine can generate an asset document
+JSON parsing works
+Supported-component validation works
+assetPreview state works
+assetJson state works
+READY metadata preview works
+```
+
+This is the first end-to-end AI Asset generation milestone.
+
+---
+
+# Current V1 Asset Document Shape
+
+The live result is treated as:
+
+```ts
+type ForgeAIAssetDocument = {
+  name: string
+  category: string
+  style: string
+  description: string
+  width?: number
+  height?: number
+  layout: any[]
+}
+```
+
+Do not overbuild the permanent marketplace schema yet.
+
+The next objective is insertion of `layout` as ordinary ForgeUI components.
+
+---
+
+# Current Non-Functional Controls
+
+```text
+Save Asset
+→ Still disabled.
+
+Insert Into Canvas
+→ Still disabled.
+
+Show Advanced JSON
+→ Still disabled.
+
+My Forge Assets
+→ Static empty state.
+
+Visual widget preview
+→ Metadata only; actual component rendering not wired.
+```
+
+---
+
+# Next Chat — Start Here And Continue Directly
+
+## Immediate Step 1 — Add Asset Canvas Insertion
+
+Add this near the existing insertion helpers:
+
+```tsx
+const insertGeneratedAsset = () => {
+  if (
+    !assetPreview ||
+    !Array.isArray(assetPreview.layout)
+  ) {
+    return
+  }
+
+  try {
+    setAssetError('')
+
+    validateAiLayout(assetPreview.layout)
+
+    const originX = 120
+    const originY = 120
+
+    const items = assetPreview.layout.map(
+      (item: any) => ({
+        ...item,
+        props: {
+          ...item.props,
+          x:
+            originX +
+            Number(item.props?.x || 0),
+          y:
+            originY +
+            Number(item.props?.y || 0),
+        },
+      }),
+    )
+
+    insertAiLayout(items)
+
+    toast({
+      title: 'Asset inserted',
+      description:
+        `${assetPreview.name || 'AI asset'} added to the canvas.`,
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+    })
+  } catch (err: any) {
+    setAssetError(
+      err.message ||
+        'Failed to insert AI asset',
+    )
+  }
+}
+```
+
+Wire the button:
+
+```tsx
+<Button
+  flex={1}
+  variant="outline"
+  colorScheme="cyan"
+  onClick={insertGeneratedAsset}
+  isDisabled={
+    !assetPreview ||
+    !Array.isArray(assetPreview.layout)
+  }
+>
+  Insert Into Canvas
+</Button>
+```
+
+Test this before doing anything else.
+
+Expected proof:
+
+```text
+Click Insert Into Canvas.
+18 normal ForgeUI components appear together.
+They are offset from the top-left by 120,120.
+They remain individually editable.
+Existing Builder preview still works.
+```
+
+---
+
+## Immediate Step 2 — Wire Advanced JSON
+
+Add state:
+
+```tsx
+const [showAssetJson, setShowAssetJson] =
+  useState(false)
+```
+
+Update button:
+
+```tsx
+<Button
+  size="sm"
+  variant="ghost"
+  colorScheme="cyan"
+  onClick={() =>
+    setShowAssetJson((value) => !value)
+  }
+  isDisabled={!assetJson}
+>
+  {showAssetJson
+    ? 'Hide Advanced JSON'
+    : 'Show Advanced JSON'}
+</Button>
+```
+
+Below it add:
+
+```tsx
+<Collapse in={showAssetJson} animateOpacity>
+  <Box mt={4}>
+    <Textarea
+      value={assetJson}
+      onChange={(e) =>
+        setAssetJson(e.target.value)
+      }
+      minH="280px"
+      resize="vertical"
+      bg="#050914"
+      color="cyan.100"
+      borderColor="gray.700"
+      fontFamily="monospace"
+      fontSize="sm"
+    />
+  </Box>
+</Collapse>
+```
+
+For V1, generated JSON can be editable, but insertion should continue using `assetPreview` until an explicit Apply JSON action is added.
+
+---
+
+## Immediate Step 3 — Verify Asset Bounds
+
+After insertion works, inspect the generated JSON for:
+
+```text
+width
+height
+minimum x/y
+maximum x+w
+maximum y+h
+```
+
+Do not block insertion if width and height were discarded by the current parser.
+
+If width and height are missing, calculate bounds locally from the layout later.
+
+Do not create a second AI engine merely to preserve these fields yet.
+
+---
+
+## Immediate Step 4 — Actual Visual Preview
+
+Only after insertion works, identify the cleanest reusable component renderer already used by:
+
+```text
+Builder canvas
+Browser Preview
+DevicePreview
+```
+
+Preferred result:
+
+```text
+Render assetPreview.layout inside a relative preview surface
+Scale to fit the available panel
+Reuse existing ForgeUI rendering logic
+```
+
+Do not write a separate AI-only renderer.
+
+Metadata preview remains acceptable until a reusable renderer is found cleanly.
+
+---
+
+## Immediate Step 5 — Save Asset Registry
+
+Do not save structured assets into:
+
+```text
+ForgeUIUploadedAssetRegistry
+```
+
+That registry is for binary image/icon assets.
+
+Create a dedicated structured registry later, for example:
+
+```text
+src/forgeui/assets/ForgeUIReusableAssetRegistry.ts
+```
+
+Possible model:
+
+```ts
+type ForgeUIReusableAsset = {
+  id: string
+  name: string
+  category: string
+  style: string
+  description: string
+  width: number
+  height: number
+  layout: any[]
+  createdAt: number
+}
+```
+
+Suggested localStorage key:
+
+```text
+forgeui_reusable_assets_v1
+```
+
+Only build this after canvas insertion and preview are proven.
+
+---
+
+# Recommended Next Milestone Order
+
+```text
+1. Insert generated asset into canvas
+2. Verify all generated items remain editable
+3. Verify existing browser preview
+4. Wire Advanced JSON
+5. Calculate or preserve asset bounds
+6. Reuse existing renderer for visual asset preview
+7. Build structured reusable asset registry
+8. Enable Save Asset
+9. Populate My Forge Assets
+10. Reload and insert saved asset
+11. Existing LVGL export test
+12. Physical ESP32-P4 test
+```
+
+---
+
+# Definition Of Next Success
+
+The next milestone is proven when:
+
+```text
+User generates the Industrial Battery Status Card.
+
+Live Asset Preview shows READY and 18 COMPONENTS.
+
+User clicks Insert Into Canvas.
+
+All generated components appear together around x:120, y:120.
+
+Every component is a standard editable ForgeUI item.
+
+Builder preview remains correct.
+
+Existing LVGL export sees the components without a new export path.
+```
+
+---
+
+# Risks To Watch
+
+## Risk 1 — Coordinates Outside Compact Bounds
+
+The reused layout engine may still produce large coordinates.
+
+Before insertion:
+
+```text
+Inspect minimum and maximum positions.
+Offset relative coordinates only.
+Do not scale unless clearly necessary.
+```
+
+---
+
+## Risk 2 — Unsupported Components Reappearing
+
+The prompt currently forbids known layout helpers.
+
+Always validate:
+
+```tsx
+validateAiLayout(assetPreview.layout)
+```
+
+before insertion.
+
+---
+
+## Risk 3 — Invented Composite Types
+
+Reject unsupported types such as:
+
+```text
+BatteryWidget
+IndustrialCard
+MotorStatusWidget
+CustomGauge
+```
+
+The asset must remain a composition of registered ForgeUI components.
+
+---
+
+## Risk 4 — Wrong Registry
+
+Structured assets are JSON documents, not uploaded binary images.
+
+Do not route them through image conversion or LVGL image asset registration.
+
+---
+
+## Risk 5 — Duplicate Renderer
+
+Do not create an AI-only visual component system.
+
+Reuse the Builder or preview renderer.
+
+---
+
+# Current Proven Systems That Must Remain Stable
+
+```text
+Manual Builder
+Browser Preview
+LVGL Export
+Standalone Export
+ESP-IDF Build
+Physical ESP32-P4 Flash
+AI Layout Generation
+AI Layout Validation
+AI Layout Canvas Insertion
+AI Hero Generation
+Hero Save To Uploaded Assets
+Automatic LVGL Image Conversion
+Theme Manager
+Semantic Icon Resolver
+React Icon → PNG → LVGL C pipeline
+AI Asset Generation
+AI Asset Metadata Preview
+```
+
+---
+
+# Immediate Commit Candidate
+
+```text
+feat(ai): prove AI asset generation and metadata preview
+```
+
+Suggested save point:
+
+```text
+FORGEUI_AI_ASSET_DESIGNER_V1__GENERATION_PROVEN__METADATA_PREVIEW_READY__NEXT_CANVAS_INSERTION_AND_JSON_VIEW__2026-07-17
+```
+
+---
+
+# New Chat Opening Instruction
+
+```text
+Read 01_SPINEAI.md and continue directly from the current save point.
+
+AI Asset generation is now proven inside:
+src/forgeui/ai/ForgeAIPanel.tsx
+
+A compact Industrial Battery Status Card generated successfully with:
+READY
+INDUSTRIAL
+MODERN
+18 COMPONENTS
+
+The first failure was Unsupported component: Divider.
+The asset prompt was tightened to allow only registered canvas components
+and forbid Divider, Flex, Stack, Grid, Tabs, Collapse and other helpers.
+
+Do not rebuild the AI engine.
+Do not touch Layout, Theme, Hero, icon, export or firmware pipelines.
+
+Start by adding insertGeneratedAsset(), offset the asset layout to
+origin x:120 y:120, validate it with validateAiLayout(), and wire the
+Insert Into Canvas button.
+
+Test canvas insertion immediately before continuing.
+
+After insertion is proven, wire Show Advanced JSON.
+Then locate and reuse the existing ForgeUI renderer for a real visual
+asset preview. Do not create an AI-only renderer.
+
+Structured asset persistence comes later in a dedicated reusable asset
+registry. Do not put structured JSON assets into
+ForgeUIUploadedAssetRegistry.
+```
+
+---
+
+# Summary
+
+ForgeUI now has a working third AI workflow:
+
+```text
+Layout AI
+Theme AI
+Asset AI
+```
+
+The Asset AI is no longer a UI shell.
+
+It can now:
+
+```text
+Accept an asset brief
+Use category and style
+Generate one compact structured asset
+Reject unsupported components
+Store formatted JSON
+Show READY metadata
+Report component count
+```
+
+The next critical proof is:
+
+```text
+READY Asset
+      ↓
+Insert Into Canvas
+      ↓
+Editable Normal ForgeUI Components
+      ↓
+Existing Preview
+      ↓
+Existing Export
+```
+
+Keep the next chat focused on that insertion proof. Do not jump ahead into persistence or a marketplace schema until the generated asset is alive on the normal ForgeUI canvas.
+
+-----------------------------------------------------------------------------------
+
+
+# FORGEUI AI SPINE — AI ASSET DESIGNER HANDOVER
+
+## Current Save Point
+
+```text
 FORGEUI_AI_ASSET_DESIGNER_V1__ASSET_STUDIO_UI__PROMPT_STATE_READY__NEXT_ASSET_SCHEMA_AND_GENERATION_PIPELINE__2026-07-17
 ```
 
