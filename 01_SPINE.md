@@ -1,3 +1,172 @@
+# SPINE
+
+## Current Save Point
+
+```text
+FORGEUI_V2_4_1__AI_ARTWORK_NATIVE_PIPELINE__MULTI_MODE_IMAGE_PREPROCESSOR__PHYSICAL_ESP32P4_PROVEN__2026-07-17
+```
+
+---
+
+# Project Status
+
+```text
+ACTIVE
+
+STABLE
+
+PHYSICAL HARDWARE PROVEN
+
+AI HERO PIPELINE PROVEN
+
+AI ARTWORK PIPELINE PROVEN
+
+MULTI-MODE IMAGE PREPROCESSOR PROVEN
+
+CANVAS / PREVIEW / ESP32-P4 PARITY PROVEN
+```
+
+---
+
+# Major Milestone
+
+ForgeUI now supports independent preprocessing pipelines for different visual asset types.
+
+The image pipeline no longer treats every uploaded image as a full-screen hero background.
+
+Supported asset modes:
+
+```text
+hero
+↓
+
+1024 × 600
+↓
+
+Full-screen backgrounds
+
+artwork
+↓
+
+320 × 220
+↓
+
+Reusable dashboard artwork
+
+image
+↓
+
+Standard uploaded images
+```
+
+Each asset type now follows its own preprocessing path before LVGL conversion.
+
+Status
+
+```text
+FULLY PROVEN
+```
+
+---
+
+# Root Cause
+
+The artwork export pipeline was always sending:
+
+```text
+assetMode = image
+```
+
+causing every generated artwork image to use the default image preprocessing branch.
+
+Large AI artwork (typically 1536 × 1024) therefore remained at its original resolution and was rendered oversized on the ESP32-P4.
+
+The issue was isolated to the frontend export request—not the Python preprocessor or LVGL export.
+
+---
+
+# Final Architecture
+
+```text
+AI Asset
+      │
+      ▼
+Save To Assets
+      │
+      ▼
+assetMode
+(hero / artwork / image)
+      │
+      ▼
+ForgeUIImagePreprocessor.py
+      │
+      ▼
+Mode-specific preprocessing
+      │
+      ▼
+LVGLImage.py
+      │
+      ▼
+ARGB8888 C Asset
+      │
+      ▼
+ForgeUI Export
+      │
+      ▼
+ESP32-P4
+```
+
+---
+
+# Physical Validation
+
+Validated on hardware:
+
+```text
+Hero backgrounds
+✓
+
+AI artwork
+✓
+
+Browser Preview parity
+✓
+
+LVGL export parity
+✓
+
+ESP32-P4 rendering parity
+✓
+```
+
+Generated artwork descriptors now correctly produce:
+
+```c
+.w = 320,
+.h = 220,
+```
+
+Hero assets continue to generate:
+
+```c
+.w = 1024,
+.h = 600,
+```
+
+This establishes a robust, extensible asset pipeline for future image types while preserving existing Hero behavior.
+
+---
+
+# Next Session
+
+Continue polishing the Asset Manager experience:
+
+- Auto-open selected artwork on the canvas.
+- Remove unnecessary clickable/pressed transforms from artwork images.
+- Improve thumbnail presentation and selection workflow.
+- Expand the AI widget library with richer industrial dashboard assets.
+
+--------------------------------------------------------------
 ## SPINE
 
 # FORGEUI CURRENT SAVE POINT

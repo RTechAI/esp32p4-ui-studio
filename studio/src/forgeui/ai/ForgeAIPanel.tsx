@@ -1568,7 +1568,7 @@ const saveAssetArtwork = async () => {
               symbolName: asset.lvgl,
               base64:
                 asset.browserSrc,
-              assetMode: 'image',
+              assetMode: 'artwork',
             }),
           },
         )

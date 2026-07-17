@@ -576,6 +576,10 @@ app.post('/convert-lvgl-image', (req, res) => {
     const base64 = req.body.base64
     const assetMode =
   req.body.assetMode || 'image'
+  console.log('=== CONVERT REQUEST ===')
+  console.log('fileName :', fileName)
+  console.log('assetMode:', assetMode)
+  console.log('symbol   :', symbolName)
 
     if (!base64) {
       return res.status(400).json({

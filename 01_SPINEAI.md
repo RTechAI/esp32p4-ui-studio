@@ -1,3 +1,147 @@
+# ForgeUI AI Progress
+
+## Save Point: V2.4.1
+
+### Multi-Mode AI Image Pipeline Completed
+
+The ForgeUI AI asset system now supports independent preprocessing pipelines for different image asset types.
+
+### AI Hero Pipeline
+
+- AI hero generation
+- Theme Manager integration
+- Automatic 1024×600 preprocessing
+- Native LVGL conversion
+- Browser / Preview / ESP32-P4 parity
+- Physically proven
+
+### AI Artwork Pipeline
+
+- Standalone reusable artwork generation
+- Save directly into Forge Asset Library
+- Dedicated artwork preprocessing
+- Automatic resize to 320×220
+- Native LVGL conversion
+- Browser / Preview / ESP32-P4 parity
+- Physically proven
+
+### Image Pipeline
+
+ForgeUI now distinguishes three image classes before LVGL conversion.
+
+```text
+Hero
+↓
+
+1024 × 600
+
+Artwork
+↓
+
+320 × 220
+
+Standard Image
+↓
+
+Original image workflow
+```
+
+Each mode now follows its own preprocessing path before ARGB8888 conversion.
+
+---
+
+## Engineering Discovery
+
+The rendering issue was **not** caused by LVGL or the ESP32-P4.
+
+The root cause was that AI artwork was being exported using the default image preprocessing mode, leaving generated artwork at its original AI resolution.
+
+The frontend now correctly supplies:
+
+```text
+assetMode = hero
+assetMode = artwork
+assetMode = image
+```
+
+allowing the Python preprocessor to execute the correct pipeline for each asset type.
+
+---
+
+## Physical Validation
+
+Verified on hardware:
+
+```text
+Hero backgrounds
+✓
+
+AI artwork
+✓
+
+Browser Preview parity
+✓
+
+Generated LVGL assets
+✓
+
+ESP32-P4 rendering
+✓
+```
+
+Generated artwork assets now correctly produce:
+
+```c
+.w = 320
+.h = 220
+```
+
+Hero assets continue to generate:
+
+```c
+.w = 1024
+.h = 600
+```
+
+---
+
+## Current AI Capabilities
+
+ForgeUI Studio now contains:
+
+- AI Layout Designer
+- Layout Prompt Builder
+- AI Hero Generator
+- Hero Gallery
+- AI Widget Designer
+- AI Artwork Generator
+- Forge Asset Library
+- Theme Manager
+- Multi-Mode Image Pipeline
+- LVGL Export
+- ESP32-P4 Flash Pipeline
+
+All major AI generation workflows are now operational and physically validated.
+
+---
+
+## Next Development Phase
+
+Development now shifts away from infrastructure and toward content quality.
+
+### Next Focus
+
+- Build a commercial-quality reusable widget library.
+- Improve AI-generated widget geometry and spacing.
+- Auto-open selected assets on the canvas.
+- Continue Asset Manager polish.
+- Expand industrial dashboard asset collections.
+
+The AI generation pipeline is now considered stable.
+
+Future work will focus on producing higher-quality reusable ForgeUI assets rather than building additional infrastructure.
+---------------------------------------------------------------
+
 # ForgeUI Studio Progress
 ## Save Point: V2.4.0
 
