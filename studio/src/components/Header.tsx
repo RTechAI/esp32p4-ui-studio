@@ -924,6 +924,26 @@ const cleanBuildFlashForgeUIOne = async () => {
     onClose={() =>
       setThemeManagerOpen(false)
     }
+    onInsertImageAsset={asset => {
+      insertAiLayout([
+        {
+          type: 'Image',
+          props: {
+            positionMode: 'absolute',
+            x: 120,
+            y: 120,
+            w: 320,
+            h: 220,
+            src: asset.browserSrc,
+            uploadedAssetId: asset.id,
+            cFile: asset.cFile,
+            lvgl: asset.lvgl,
+          },
+        },
+      ])
+
+      setThemeManagerOpen(false)
+    }}
   />
 )}
 

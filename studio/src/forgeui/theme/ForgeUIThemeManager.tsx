@@ -1,10 +1,11 @@
-import React from 'react'
+import React, { useState } from 'react'
 import {
   Badge,
   Box,
   Button,
   Flex,
   HStack,
+  Image,
 } from '@chakra-ui/react'
 
 import { useForgeTheme } from './ForgeThemeContext'
@@ -13,12 +14,20 @@ import {
   forgeUIGetUploadedAssets,
 } from '~forgeui/ForgeUIUploadedAssetRegistry'
 
+type UploadedAsset = ReturnType<
+  typeof forgeUIGetUploadedAssets
+>[number]
+
 type ForgeUIThemeManagerProps = {
   onClose: () => void
+  onInsertImageAsset: (
+    asset: UploadedAsset,
+  ) => void
 }
 
 const ForgeUIThemeManager = ({
   onClose,
+  onInsertImageAsset,
 }: ForgeUIThemeManagerProps) => {
   const {
     themeId,
@@ -29,6 +38,12 @@ const ForgeUIThemeManager = ({
 
   const uploadedAssets =
     forgeUIGetUploadedAssets()
+
+const [
+  selectedArtworkId,
+  setSelectedArtworkId,
+] = useState<string | null>(null)
+
 
   const heroAssets = [...uploadedAssets]
     .reverse()
@@ -41,16 +56,30 @@ const ForgeUIThemeManager = ({
           .startsWith('ai_hero_'),
     )
 
-  const iconAssets = [...uploadedAssets]
-    .reverse()
-    .filter(
-      asset =>
-        asset.type.startsWith('image/') &&
-        asset.exportStatus === 'lvgl_ready' &&
-        !asset.name
-          .toLowerCase()
-          .startsWith('ai_hero_'),
+  const artworkAssets = [...uploadedAssets]
+  .reverse()
+  .filter(asset => {
+    const name = asset.name.toLowerCase()
+
+    return (
+      asset.type.startsWith('image/') &&
+      asset.exportStatus === 'lvgl_ready' &&
+      name.includes('_artwork_')
     )
+  })
+
+const iconAssets = [...uploadedAssets]
+  .reverse()
+  .filter(asset => {
+    const name = asset.name.toLowerCase()
+
+    return (
+      asset.type.startsWith('image/') &&
+      asset.exportStatus === 'lvgl_ready' &&
+      !name.startsWith('ai_hero_') &&
+      !name.includes('_artwork_')
+    )
+  })
 
   return (
     <Box
@@ -297,14 +326,74 @@ const ForgeUIThemeManager = ({
         )}
       </Box>
 
-      <Box mt={10}>
-        <Box
-          fontWeight="bold"
-          fontSize="lg"
-          mb={4}
-        >
-          Uploaded Icons
-        </Box>
+      {artworkAssets.length > 0 && (
+  <Box mt={10}>
+    <Box
+      fontWeight="bold"
+      fontSize="lg"
+      mb={4}
+    >
+      Uploaded Artwork
+    </Box>
+
+    <Flex wrap="wrap" gap={3} mb={8}>
+      {artworkAssets.map(asset => {
+        const isSelected =
+          selectedArtworkId === asset.id
+
+        return (
+          <Box
+            key={asset.id}
+            cursor="pointer"
+            border="2px solid"
+            borderColor={
+              isSelected
+                ? 'cyan.300'
+                : 'gray.700'
+            }
+            borderRadius="md"
+            p={2}
+            _hover={{
+              borderColor: 'cyan.400',
+            }}
+            onClick={() => {
+              setSelectedArtworkId(asset.id)
+              onInsertImageAsset(asset)
+            }}
+          >
+            <Image
+              src={asset.browserSrc}
+              boxSize="120px"
+              objectFit="contain"
+            />
+
+            <Badge
+              mt={2}
+              colorScheme={
+                isSelected
+                  ? 'cyan'
+                  : 'purple'
+              }
+            >
+              {isSelected
+                ? 'SELECTED'
+                : 'ARTWORK'}
+            </Badge>
+          </Box>
+        )
+      })}
+    </Flex>
+  </Box>
+)}
+
+<Box mt={10}>
+  <Box
+    fontWeight="bold"
+    fontSize="lg"
+    mb={4}
+  >
+    Uploaded Icons
+  </Box>
 
         {iconAssets.length === 0 ? (
           <Box
