@@ -1126,6 +1126,9 @@ const [isGeneratingAsset, setIsGeneratingAsset] =
 const [isGeneratingArtwork, setIsGeneratingArtwork] =
   useState(false)
 
+  const [savedArtworkAsset, setSavedArtworkAsset] =
+  useState<any>(null)
+
 const [assetCategory, setAssetCategory] =
   useState('industrial')
 
@@ -1545,6 +1548,8 @@ const saveAssetArtwork = async () => {
       asset,
     ])
 
+    setSavedArtworkAsset(asset)
+
     if (
       asset.exportStatus ===
       'pending_conversion'
@@ -1583,30 +1588,49 @@ if (
 }
 
       forgeUIUpdateUploadedAsset(
-        asset.id,
-        {
-          exportStatus:
-            'lvgl_ready',
+  asset.id,
+  {
+    exportStatus:
+      'lvgl_ready',
 
-          lvgl:
-            data.symbolName ||
-            asset.lvgl,
+    lvgl:
+      data.symbolName ||
+      asset.lvgl,
 
-          cFile:
-            data.assetSource ||
-            asset.cFile,
+    cFile:
+      data.assetSource ||
+      asset.cFile,
 
-          browserSrc:
-            data.browserSrc ||
-            asset.browserSrc,
-        },
-      )
+    browserSrc:
+      data.browserSrc ||
+      asset.browserSrc,
+  },
+)
+
+setSavedArtworkAsset({
+  ...asset,
+
+  exportStatus:
+    'lvgl_ready',
+
+  lvgl:
+    data.symbolName ||
+    asset.lvgl,
+
+  cFile:
+    data.assetSource ||
+    asset.cFile,
+
+  browserSrc:
+    data.browserSrc ||
+    asset.browserSrc,
+})
     }
 
     toast({
       title: 'AI artwork saved',
       description:
-        'Artwork added to ForgeUI Assets and prepared for LVGL.',
+        'Artwork saved to Artwork Library and prepared for LVGL.',
       status: 'success',
       duration: 4000,
       isClosable: true,
@@ -1620,6 +1644,8 @@ if (
     )
   }
 }
+
+
 
 const saveGeneratedAsset = () => {
   if (
@@ -1859,6 +1885,49 @@ const insertGeneratedAsset = () => {
         'Failed to insert AI asset',
     )
   }
+}
+
+const insertArtwork = () => {
+  if (!savedArtworkAsset) {
+    return
+  }
+
+  insertAiLayout([
+    {
+      type: 'Image',
+      props: {
+        positionMode: 'absolute',
+
+        x: 120,
+        y: 120,
+
+        w: 320,
+        h: 220,
+
+        uploadedAssetId:
+          savedArtworkAsset.id,
+
+        src:
+          savedArtworkAsset.browserSrc,
+
+        alt:
+          savedArtworkAsset.name,
+
+        objectFit: 'contain',
+
+        imageScale: 256,
+      },
+    },
+  ])
+
+  toast({
+    title: 'Artwork inserted',
+    description:
+      `${savedArtworkAsset.name} added to the canvas.`,
+    status: 'success',
+    duration: 3000,
+    isClosable: true,
+  })
 }
 
   const generateLayout = async () => {
@@ -3019,7 +3088,7 @@ toast({
         >
           <Box>
   <Heading size="sm">
-    Live Asset Preview
+    Artwork Preview
   </Heading>
 
   <Text
@@ -3178,13 +3247,25 @@ toast({
 
 <HStack mt={4} spacing={3}>
   {assetArtwork ? (
-    <Button
-      flex={1}
-      colorScheme="green"
-      onClick={saveAssetArtwork}
-    >
-      Save Artwork To Assets
-    </Button>
+    <>
+      <Button
+        flex={1}
+        colorScheme="green"
+        onClick={saveAssetArtwork}
+      >
+        Save To Artwork Library
+      </Button>
+
+      <Button
+  flex={1}
+  variant="outline"
+  colorScheme="cyan"
+  onClick={insertArtwork}
+  isDisabled={!savedArtworkAsset}
+>
+  Insert Artwork
+</Button>
+    </>
   ) : (
     <>
       <Button
