@@ -1,3 +1,31 @@
+## SPINE
+
+# FORGEUI CURRENT SAVE POINT
+
+## Save Point
+
+FORGEUI_THEME_MANAGER_POLISH_PROVEN__INDUSTRIAL_DASHBOARD_LAYOUT_PROVEN__ADVANCED_WIDGETS_NEXT__2026-07-17
+
+## Current Status
+
+ForgeUI Theme Manager extraction and asset classification are proven.
+
+The Studio now correctly separates:
+
+- visual theme palettes
+- AI hero backgrounds
+- uploaded LVGL icon assets
+
+Hero backgrounds retain large preview cards.
+
+Uploaded WiFi, battery, clock and other icon assets render in compact centred cards without being stretched.
+
+The Theme Manager now lives in:
+
+```text
+src/forgeui/theme/ForgeUIThemeManager.tsx
+-----------------------------------------------------------------------------------
+
 # FORGEUI CURRENT SAVE POINT
 
 ## Save Point

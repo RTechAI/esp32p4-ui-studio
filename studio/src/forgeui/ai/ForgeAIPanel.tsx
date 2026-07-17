@@ -1092,6 +1092,15 @@ const [isGenerating, setIsGenerating] =
   const [heroPrompt, setHeroPrompt] = useState('')
   const [isGeneratingHero, setIsGeneratingHero] = useState(false)
   const [heroError, setHeroError] = useState('')
+  
+  const [assetPrompt, setAssetPrompt] =
+  useState('')
+
+const [assetPreview, setAssetPreview] =
+  useState<any>(null)
+
+const [isGeneratingAsset, setIsGeneratingAsset] =
+  useState(false)
 
 const [heroPromptSearch, setHeroPromptSearch] =
   useState('')
@@ -1444,7 +1453,7 @@ toast({
           >
             <Tab>Layout</Tab>
             <Tab>Theme</Tab>
-            <Tab isDisabled>Assets</Tab>
+            <Tab>Assets</Tab>
             <Tab isDisabled>Images</Tab>
             <Tab isDisabled>Icons</Tab>
             <Tab isDisabled>Runtime</Tab>
@@ -2074,6 +2083,335 @@ toast({
   </Box>
 </SimpleGrid>
             </TabPanel>
+            <TabPanel px={0} pt={5}>
+  <SimpleGrid
+    columns={{ base: 1, xl: 2 }}
+    spacing={5}
+    alignItems="start"
+  >
+    <VStack spacing={5} align="stretch">
+      <Box
+        border="1px solid rgba(124, 58, 237, 0.4)"
+        bg="rgba(15, 23, 42, 0.72)"
+        borderRadius="xl"
+        p={5}
+      >
+        <HStack justify="space-between" mb={1}>
+          <Heading size="sm">
+            AI Asset Designer
+          </Heading>
+
+          <Badge colorScheme="purple">
+            AI
+          </Badge>
+        </HStack>
+
+        <Text
+          color="gray.400"
+          fontSize="sm"
+          mb={4}
+          >
+            Design reusable ForgeUI widgets and industrial components using AI.
+          </Text>
+
+        <Textarea
+  value={assetPrompt}
+  onChange={(e) =>
+    setAssetPrompt(e.target.value)
+  }
+  placeholder="Create a compact industrial battery status card with SOC, voltage, current, temperature and warning state..."
+  minH="180px"
+  resize="vertical"
+  bg="#050914"
+  color="white"
+  borderColor="rgba(139, 92, 246, 0.52)"
+  _hover={{
+    borderColor: 'purple.400',
+  }}
+  _focus={{
+    borderColor: 'purple.300',
+    boxShadow: '0 0 0 1px #c4b5fd',
+  }}
+/>
+
+        <SimpleGrid
+          columns={{ base: 1, md: 2 }}
+          spacing={3}
+          mt={4}
+        >
+          <Box>
+            <Text
+  fontSize="xs"
+  color="gray.400"
+  mb={1}
+>
+  Design Category
+</Text>
+
+<Select
+  size="sm"
+  defaultValue="industrial"
+  bg="#050914"
+>
+  <option value="industrial">
+    Industrial
+  </option>
+
+  <option value="energy">
+    Energy
+  </option>
+
+  <option value="automotive">
+    Automotive
+  </option>
+
+  <option value="marine">
+    Marine
+  </option>
+
+  <option value="medical">
+    Medical
+  </option>
+
+  <option value="general">
+    General UI
+  </option>
+</Select>
+
+            <Select
+              size="sm"
+              defaultValue="widget"
+              bg="#050914"
+            >
+              <option value="widget">
+                Composite Widget
+              </option>
+
+              <option value="status-card">
+                Status Card
+              </option>
+
+              <option value="gauge">
+                Gauge
+              </option>
+
+              <option value="control-panel">
+                Control Panel
+              </option>
+            </Select>
+          </Box>
+
+          <Box>
+            <Text
+  fontSize="xs"
+  color="gray.400"
+  mb={1}
+>
+  Asset Style
+</Text>
+
+<Select
+  size="sm"
+  defaultValue="modern"
+  bg="#050914"
+>
+  <option value="modern">
+    Modern
+  </option>
+
+  <option value="industrial">
+    Industrial
+  </option>
+
+  <option value="glass">
+    Glass
+  </option>
+
+  <option value="minimal">
+    Minimal
+  </option>
+
+  <option value="cyber">
+    Cyber
+  </option>
+</Select>
+          </Box>
+        </SimpleGrid>
+
+        <Button
+  width="100%"
+  colorScheme="purple"
+  mt={4}
+  isLoading={isGeneratingAsset}
+  loadingText="Designing..."
+  isDisabled={!assetPrompt.trim()}
+>
+  ✨ Design Asset
+</Button>
+      </Box>
+
+      <Box
+        border="1px solid rgba(34, 211, 238, 0.28)"
+        bg="rgba(8, 15, 26, 0.76)"
+        borderRadius="xl"
+        p={5}
+      >
+        <Flex
+          justify="space-between"
+          align="center"
+          mb={4}
+        >
+          <Box>
+            <Heading size="sm">
+              My Forge Assets
+            </Heading>
+
+            <Text
+              color="gray.500"
+              fontSize="xs"
+              mt={1}
+            >
+              Saved reusable assets will appear here.
+            </Text>
+          </Box>
+
+          <Badge colorScheme="cyan">
+            0 SAVED
+          </Badge>
+        </Flex>
+
+        <Flex
+          minH="150px"
+          align="center"
+          justify="center"
+          border="1px dashed rgba(148, 163, 184, 0.25)"
+          borderRadius="lg"
+          px={4}
+          textAlign="center"
+        >
+          <Text
+            color="gray.500"
+            fontSize="sm"
+          >
+            No Forge assets created yet.
+          </Text>
+        </Flex>
+      </Box>
+    </VStack>
+
+    <VStack spacing={5} align="stretch">
+      <Box
+        border="1px solid rgba(45, 212, 191, 0.32)"
+        bg="rgba(8, 18, 24, 0.82)"
+        borderRadius="xl"
+        p={5}
+        minH="420px"
+      >
+        <Flex
+          justify="space-between"
+          align="flex-start"
+          mb={4}
+        >
+          <Box>
+  <Heading size="sm">
+    Live Asset Preview
+  </Heading>
+
+  <Text
+    color="gray.500"
+    fontSize="xs"
+    mt={1}
+  >
+    Design an industrial asset using the
+    Asset Brief. Review it here before
+    saving it to your Forge Asset Library.
+  </Text>
+</Box>
+
+          <Badge colorScheme="gray">
+            WAITING
+          </Badge>
+        </Flex>
+
+        <Flex
+          minH="260px"
+          align="center"
+          justify="center"
+          border="1px dashed rgba(148, 163, 184, 0.25)"
+          borderRadius="lg"
+          bg="#050914"
+          px={4}
+          textAlign="center"
+        >
+          <Text
+            color="gray.500"
+            fontSize="sm"
+          >
+            Describe an asset and generate it to see
+            the preview.
+          </Text>
+        </Flex>
+
+        <HStack mt={4} spacing={3}>
+          <Button
+            flex={1}
+            colorScheme="teal"
+            isDisabled
+          >
+            Save Asset
+          </Button>
+
+          <Button
+            flex={1}
+            variant="outline"
+            colorScheme="cyan"
+            isDisabled
+          >
+            Insert Into Canvas
+          </Button>
+        </HStack>
+
+        <Divider
+          my={4}
+          borderColor="rgba(148, 163, 184, 0.16)"
+        />
+
+        <Button
+          size="sm"
+          variant="ghost"
+          colorScheme="cyan"
+          isDisabled
+        >
+          Show Advanced JSON
+        </Button>
+      </Box>
+
+      <Box
+        border="1px solid rgba(148, 163, 184, 0.16)"
+        borderRadius="xl"
+        p={4}
+        bg="rgba(15, 23, 42, 0.42)"
+      >
+        <Text
+          color="gray.300"
+          fontWeight="semibold"
+          fontSize="sm"
+        >
+          Asset Creator
+        </Text>
+
+        <Text
+          color="gray.500"
+          fontSize="xs"
+          mt={1}
+        >
+          This workspace will create reusable structured
+          ForgeUI assets using supported components.
+        </Text>
+      </Box>
+    </VStack>
+  </SimpleGrid>
+</TabPanel>
           </TabPanels>
         </Tabs>
       </Box>
