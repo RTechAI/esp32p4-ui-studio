@@ -1,6 +1,7 @@
 # 🛠️ ForgeUI Studio (`esp32p4-ui-studio`)
 
-### The Open-Source AI-Assisted HMI Studio for ESP32-P4 Featuring a Visual Builder, Guided AI Layout Generation, Native LVGL v9, Semantic Icon Pipeline, Device-Aware Asset Processing, and Standalone ESP-IDF v5.5+ Project Generation.
+
+### The Open-Source AI-Assisted Embedded HMI Studio for ESP32-P4 that transforms natural language into production-ready LVGL applications, reusable widgets, native assets and standalone ESP-IDF projects.
 
 ### ⭐ Leave a Star!
 If ForgeUI Studio helped accelerate your embedded development, saved you from proprietary ecosystem lock-in, or slashed your interface compilation times, **please leave a GitHub Star!** Stars are our open-source currency—they drive visibility, fund community development, and ensure this framework remains 100% free and subscription-free forever.
@@ -257,21 +258,59 @@ Complex CMake script management   ───►  Zero Web Runtimes Ever Deployed 
 
 ## 🛠️ Complete Feature Matrix
 
-### 1. Unified Visual Canvas Workflow
-*   **Active Component Panels**: Drag, drop, scale, and visually configure multi-state components including vector Arcs, Charts, Buttons, Calendars, Rollers, Textareas, Lines, Switches, and clean Tabviews.
-*   **Dynamic Theme Manager V2**: Features 25+ built-in, low-contrast industrial design presets (Industrial Carbon, Reactor Hex, Cyber Teal Pro, Quantum Flow, Neon Horizon). Supports automatic background styling behaviors using repeated tiling or full resolution layouts.
-*  **Live Browser Preview**: Validate layouts, themes, runtime widgets and AI-generated interfaces instantly before exporting native LVGL code or flashing physical hardware.
-*   **Batch-Processing Icon Browser**: Native integration with an indexing tree of * **Semantic Icon Browser**: Search and use more than 9,500 icons from the React Icons ecosystem. ForgeUI automatically resolves AI-generated icon requests into native LVGL-ready assets. using an active staging asset cart workspace panel. Select multiple vector objects, queue them up, and inject them into your local asset pool simultaneously.
+### 1. Visual Builder & Design Studio
 
-### 2. Automated Build & Local Flashing Pipeline
-*   **Inline Flash Console**: Trigger compilation, execute local toolchain checks, run background memory repairs (`REPAIR ESP-IDF MANAGED COMPONENT CACHE`), and stream real-time logging records directly through local browser child processes.
-*   **Device-Aware Asset Pipeline V2**: Zero cloud dependencies, zero external telemetry. Drag-and-drop PNG, JPG, or SVG assets directly into a local Python converter utility (`tools/lvgl/LVGLImage.py`). The pipeline handles local thumbnail layout mapping, performs precise `ARGB8888` vector-to-raster transformations, generates clean static `.c` image array buffers on disk, and injects safe `LV_IMAGE_DECLARE(...)` expressions into your build tree automatically.
+* **Visual Canvas** — Drag, drop, resize and configure LVGL components including Buttons, Text, Images, Charts, Arcs, Bars, Scales, LEDs, Calendars, Rollers, Switches and many more.
+
+* **AI Layout Designer** — Generate complete embedded HMI layouts from natural language using the integrated ForgeUI AI Playground.
+
+* **AI Layout Prompt Helper** — Guided prompt builder for creating structured industrial dashboards and embedded interfaces.
+
+* **AI Asset Designer** — Generate reusable ForgeUI widgets and standalone industrial artwork using AI.
+
+* **Forge Asset Library** — Save, organise, reuse and insert AI-generated widgets and artwork across projects.
+
+* **Dynamic Theme Manager V2** — Includes 25+ built-in industrial themes with persistent hero backgrounds and custom asset support.
+
+* **Semantic Icon Browser** — Search and use over 9,500 React Icons. AI-generated icon requests are automatically resolved into native LVGL-ready assets.
+
+* **Live Browser Preview** — Instantly preview layouts, widgets, themes and assets before exporting or flashing hardware.
+
+---
+
+### 2. Native Asset Pipeline
+
+* **Device-Aware Image Processing** — Automatically preprocesses imported artwork and AI-generated images for the active display resolution.
+
+* **Native LVGL Asset Generation** — Converts PNG, JPG and SVG assets into optimized LVGL image resources using the local `LVGLImage.py` pipeline.
+
+* **Automatic Asset Registry** — Manages uploaded images, icons, AI artwork and generated assets with automatic LVGL conversion and project integration.
+
+* **Theme & Hero Pipeline** — AI-generated hero backgrounds integrate directly into the Theme Manager, Builder Canvas and Browser Preview.
+
+---
+
+### 3. Build & Deployment
+
+* **One-Click Build & Flash** — Build, deploy and monitor firmware directly from ForgeUI Studio.
+
+* **Clean Build & Flash** — Regenerates project files, refreshes CMake, performs a clean ESP-IDF build and flashes the physical device.
+
+* **Inline Flash Console** — Streams live build output, firmware logs and deployment status directly inside the Studio.
+
+* **Standalone ESP-IDF Export** — Generate fully independent ESP-IDF projects that build directly in Visual Studio Code without requiring ForgeUI Studio.
+
+* **Native ESP32-P4 Workflow** — Zero cloud runtime, zero embedded web technologies. Every interface compiles into pure native LVGL C running on physical ESP32-P4 hardware.
 
 ### AI Capabilities
 
 - AI Layout Generation
 - AI Layout Prompt Helper
 - AI Hero Background Generation
+- AI Asset Designer
+- AI Artwork Generation
+- Forge Asset Library
+- Reusable Widget Library
 - Semantic Icon Resolution
 - Native Icon Asset Generation
 - Device-Aware Image Processing
@@ -282,23 +321,49 @@ Complex CMake script management   ───►  Zero Web Runtimes Ever Deployed 
 ---
 
 ### Proven Pipeline
-AI Hero
-      ↓
-Upload
-      ↓
-Image Preprocessor
-      ↓
-1024x600 Native PNG
-      ↓
-LVGLImage.py
-      ↓
-Generated C Asset
-      ↓
-Builder
-      ↓
-Preview
-      ↓
-ESP32-P4
+AI Artwork / Hero Prompt
+            │
+            ▼
+    OpenAI Image Generation
+            │
+            ▼
+     ForgeUI Asset Import
+            │
+            ▼
+Automatic Device Preprocessing
+            │
+            ▼
+  Native 1024×600 Processing
+            │
+            ▼
+      LVGLImage.py
+            │
+            ▼
+   Generated LVGL C Asset
+            │
+            ▼
+ ForgeUI Asset Registry
+            │
+            ▼
+ Theme Manager / Asset Library
+            │
+            ▼
+     Builder Canvas
+            │
+            ▼
+    Live Browser Preview
+            │
+            ▼
+ Native LVGL Code Export
+            │
+            ▼
+ Standalone ESP-IDF Project
+            │
+            ▼
+      Build & Flash
+            │
+            ▼
+ Physical ESP32-P4
 
 ## 📁 Decoupled Workspace Architecture
 
@@ -397,11 +462,29 @@ ForgeUI Studio has now proven:
 
 ✓ AI Layout Generation
 
-✓ Layout Prompt Helper
+✓ AI Layout Prompt Helper
+
+✓ AI Hero Background Generation
+
+✓ AI Asset Designer
+
+✓ AI Artwork Generation
+
+✓ Forge Asset Library
+
+✓ Reusable Widget Library
 
 ✓ Semantic Icon Pipeline
 
+✓ Native Icon Asset Generation
+
 ✓ Device-Aware Asset Pipeline
+
+✓ Automatic Image Preprocessing
+
+✓ Native LVGL Asset Generation
+
+✓ Theme Manager Integration
 
 ✓ Browser Preview
 

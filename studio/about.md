@@ -8,6 +8,20 @@ ForgeUI Studio bridges the gap between high-level browser-based layout design an
 
 ---
 
+# 🤖 AI Design Studio
+
+ForgeUI Studio includes three integrated AI workflows:
+
+✓ AI Layout Designer — Generate complete embedded interfaces.
+
+✓ AI Asset Designer — Generate reusable ForgeUI widgets and industrial artwork.
+
+✓ AI Hero Designer — Generate production-ready themed backgrounds with automatic LVGL conversion.
+
+Every generated asset remains fully editable before being exported as native LVGL code for deployment to physical ESP32-P4 hardware.
+
+---
+
 # ⚡ Key Architectural Advancement
 
 * **Guided AI Layout Builder:** Generate structured prompts using the built-in Layout Prompt Helper before sending requests to GPT.
@@ -37,43 +51,94 @@ Clicking **Export Standalone Project** produces a production-grade workspace dir
 
 ---
 
-# 🔄 Proven Deployment Pipeline
+# 🔄 Proven AI Workflows
+
+### AI Layout Generation
 
 ```text
-       Prompt
-        │
-        ▼
-Layout Prompt Helper (Optional)
-        │
-        ▼
+Natural Language Prompt
+          │
+          ▼
+AI Layout Prompt Helper
+          │
+          ▼
 OpenAI GPT
-        │
-        ▼
+          │
+          ▼
 Validated ForgeUI Layout
-        │
-        ▼
-Canvas
-        │
-        ▼
+          │
+          ▼
+Builder Canvas
+          │
+          ▼
 Browser Preview
-        │
-        ▼
-LVGL Export
-        │
-        ▼
+          │
+          ▼
+Native LVGL Export
+          │
+          ▼
 Standalone ESP-IDF
-        │
-        ▼
-Build
-        │
-        ▼
-Flash
-        │
-        ▼
-ESP32-P4
+          │
+          ▼
+Build & Flash
+          │
+          ▼
+Physical ESP32-P4
 ```
 
----
+### AI Hero & Artwork Generation
+
+```text
+Natural Language Prompt
+          │
+          ▼
+OpenAI Image Generation
+          │
+          ▼
+ForgeUI Asset Import
+          │
+          ▼
+Device-Aware Image Processing
+          │
+          ▼
+Native LVGL Asset Generation
+          │
+          ▼
+Theme Manager / Asset Library
+          │
+          ▼
+Builder & Preview
+          │
+          ▼
+ESP-IDF Export
+          │
+          ▼
+Physical ESP32-P4
+```
+
+### AI Asset Designer
+
+```text
+Natural Language Prompt
+          │
+          ▼
+OpenAI Generation
+          │
+          ▼
+Live Asset Preview
+          │
+          ▼
+Save to Forge Asset Library
+          │
+          ▼
+Insert into Canvas
+          │
+          ▼
+Native LVGL Export
+          │
+          ▼
+Physical ESP32-P4
+```
 
 # 🎨 Unified Asset Pipelines (PROVEN)
 
@@ -117,23 +182,53 @@ Native LVGL Asset
 
 ### AI Studio
 
-* Guided Layout Prompt Helper
-* GPT Layout Generation
-* Semantic Icon Resolution
-* AI Hero Background Generation
-* Editable Generated Layouts
-* Native LVGL Export
-*   **WYSIWYG Layout Canvas:** Real-time drag, drop, and absolute positioning control with pixel-perfect snap-to-grid mechanics.
-*   **Tactile Workspace Bounds:** Device-aware sizing handles matching real panel footprints (such as 1024x600 widescreen profiles).
+* **Guided AI Layout Prompt Helper** — Build structured prompts for embedded HMIs and industrial dashboards.
 
-### Sandboxed Browser Preview
-*   **Live Browser Preview:** Instantly test visual boundaries, theme updates, color balances, and responsive layouts inside the browser without executing local compiler chains.
+* **GPT Layout Generation** — Generate complete ForgeUI layouts from natural language.
+
+* **AI Hero Background Generation** — Create production-ready themed backgrounds with automatic device-aware preprocessing.
+
+* **AI Asset Designer** — Generate reusable ForgeUI widgets, controls and industrial artwork.
+
+* **Forge Asset Library** — Save, organise and reuse AI-generated assets across projects.
+
+* **Semantic Icon Resolution** — Automatically resolve AI-generated icon requests into native LVGL-ready assets.
+
+* **Native Icon Asset Generation** — Convert React Icons into optimized LVGL image resources.
+
+* **Editable Generated Layouts** — Every AI-generated layout remains fully editable inside the visual designer before export.
+
+* **Native LVGL Export** — Generate clean native LVGL v9 code ready for ESP-IDF deployment.
+
+* **WYSIWYG Layout Canvas** — Real-time drag-and-drop editing with absolute positioning and pixel-perfect layout control.
+
+* **Device-Aware Workspace** — Canvas dimensions automatically match the selected hardware display profile for accurate design-time rendering.
+
+---
+
+### Live Browser Preview
+
+* **Real-Time Preview** — Instantly validate layouts, themes, AI-generated assets and runtime widgets before exporting or flashing hardware.
+
+* **Render Parity** — Browser Preview, generated LVGL code and physical ESP32-P4 hardware share the same rendering pipeline for consistent visual results.
+
+---
 
 ### Native Code Generation
-*   **Clean C API Target:** Generates highly structured C expressions utilizing modern native **LVGL 9** coordinate targets (`lv_screen_active()`) and styling hooks.
+
+* **Native LVGL v9 Output** — Generates structured, readable LVGL C code using modern APIs and best-practice object creation patterns.
+
+* **Production-Ready Projects** — Export standalone ESP-IDF workspaces ready to build, version control and extend without ForgeUI Studio.
+
+---
 
 ### Toolchain Automation
-*   **1-Click Flashing Console:** Streams compiler progress, locks component directories, resolves dependency trees, and outputs raw hex values straight over serial ports from local child processes.
+
+* **One-Click Build & Flash** — Build, flash and monitor firmware directly from ForgeUI Studio.
+
+* **Firmware Maintenance Tools** — Clean generated assets, regenerate project files, refresh CMake and perform clean ESP-IDF builds.
+
+* **Integrated Flash Console** — Stream live build output, compiler diagnostics and runtime logs directly inside the Studio.
 
 ---
 
@@ -198,20 +293,38 @@ Theme properties utilize specialized color weight tokens that synchronize perfec
 ---
 
 # 🔮 Next-Phase Development Goals
-*   **Asset Footprint Verification:** Duplicate asset file checking layers and automated compilation array cleanups.
-*   **Multi-Screen Architecture:** Dynamic cross-linking configurations for multi-page interface tracking.
-*   **AI Engine V3 Subsystem:** Context-aware prompts enabling selective section mutations without deleting existing screen documents.
-Dashboard Templates
 
-Theme-aware Layout Generation
+### AI & Design Studio
 
-Runtime Widget Generation
+* **AI Component Editing** — Modify existing layouts and widgets using natural language without regenerating the entire interface.
 
-Switch → GPIO Binding
+* **Context-Aware AI Generation** — Enable selective updates that preserve existing layouts, assets and project structure.
 
-AI Component Editing
+* **Dashboard & Widget Templates** — Expand the built-in library of industrial dashboards, reusable widgets and application templates.
 
-Multi-page Applications
+---
+
+### Runtime & Hardware Integration
+
+* **Board Profile System** — Support multiple ESP32-P4 development boards with device-aware display, touch and peripheral configurations.
+
+* **Runtime Widget Generation** — AI-assisted creation of reusable runtime widgets including gauges, indicators, charts and industrial controls.
+
+* **GPIO & Peripheral Binding** — Bind switches, LEDs, relays, sensors and other hardware peripherals directly to generated UI components.
+
+* **Multi-Page Applications** — Native support for multi-screen projects with navigation, shared assets and page management.
+
+---
+
+### Build & Project Management
+
+* **Smart Asset Management** — Automatic duplicate detection, unused asset cleanup and project footprint optimisation.
+
+* **Plugin & Extension Framework** — Support custom components, exporters and project generators.
+
+* **Enhanced Code Generation** — Expand native LVGL generation with additional widgets, runtime behaviours and reusable component libraries.
+
+* **Project Templates** — One-click generation of complete starter applications for industrial, IoT and commercial HMI projects.
 ---
 
 # 🤝 Open Source Credits

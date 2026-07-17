@@ -16,6 +16,7 @@ import {
   Flex,
   Heading,
   Input,
+  Image,
   HStack,
   Select,
   SimpleGrid,
@@ -1116,7 +1117,13 @@ const [isGenerating, setIsGenerating] =
 const [assetPreview, setAssetPreview] =
   useState<any>(null)
 
+const [assetArtwork, setAssetArtwork] =
+  useState('')
+
 const [isGeneratingAsset, setIsGeneratingAsset] =
+  useState(false)
+
+const [isGeneratingArtwork, setIsGeneratingArtwork] =
   useState(false)
 
 const [assetCategory, setAssetCategory] =
@@ -1126,6 +1133,9 @@ const [assetStyle, setAssetStyle] =
   useState('modern')
 
 const [assetError, setAssetError] =
+  useState('')
+
+const [artworkError, setArtworkError] =
   useState('')
 
 const [assetJson, setAssetJson] =
@@ -1402,6 +1412,7 @@ const generateAsset = async () => {
       JSON.stringify(document, null, 2),
     )
 
+    setAssetArtwork('')
     setAssetPreview(document)
   } catch (err: any) {
     console.error(err)
@@ -1412,6 +1423,201 @@ const generateAsset = async () => {
     )
   } finally {
     setIsGeneratingAsset(false)
+  }
+}
+
+const generateAssetArtwork = async () => {
+  try {
+    setArtworkError('')
+    setIsGeneratingArtwork(true)
+    setAssetArtwork('')
+
+    const artworkPrompt = `
+Create one reusable embedded HMI artwork asset.
+
+Category:
+${assetCategory}
+
+Visual style:
+${assetStyle}
+
+User brief:
+${assetPrompt}
+
+Requirements:
+
+- Create a single isolated visual asset.
+- Do not create a complete dashboard or screen.
+- Do not include buttons, labels, values or interface text.
+- Do not include logos or branding.
+- Keep the composition clean and suitable for an embedded HMI.
+- Use a dark or transparent-looking background where appropriate.
+- Keep the important subject centred with safe edge padding.
+- Produce polished commercial-quality artwork.
+`
+
+    const response = await fetch(
+      '/api/forgeui-ai-hero',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type':
+            'application/json',
+        },
+        body: JSON.stringify({
+          prompt: artworkPrompt,
+        }),
+      },
+    )
+
+    const payload = await response.json()
+
+    if (!payload.ok) {
+      throw new Error(
+        payload.error ||
+          'AI artwork generation failed',
+      )
+    }
+
+    setAssetPreview(null)
+    setAssetArtwork(payload.image)
+  } catch (err: any) {
+    console.error(err)
+
+    setArtworkError(
+      err.message ||
+        'AI artwork generation failed',
+    )
+  } finally {
+    setIsGeneratingArtwork(false)
+  }
+}
+
+const saveAssetArtwork = async () => {
+  if (!assetArtwork) {
+    return
+  }
+
+  try {
+    setArtworkError('')
+
+    const response =
+      await fetch(assetArtwork)
+
+    if (!response.ok) {
+      throw new Error(
+        'Failed to prepare AI artwork',
+      )
+    }
+
+    const blob = await response.blob()
+
+    const extension =
+      blob.type === 'image/jpeg'
+        ? 'jpg'
+        : 'png'
+
+    const safeCategory =
+      assetCategory
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '_')
+
+    const fileName =
+      `ai_${safeCategory}_artwork_${Date.now()}.${extension}`
+
+    const file = new File(
+      [blob],
+      fileName,
+      {
+        type:
+          blob.type || 'image/png',
+      },
+    )
+
+    const asset =
+      forgeUICreateUploadedAsset(
+        file,
+        assetArtwork,
+      )
+
+    forgeUIAddUploadedAssets([
+      asset,
+    ])
+
+    if (
+      asset.exportStatus ===
+      'pending_conversion'
+    ) {
+      const conversionResponse =
+        await fetch(
+          'http://localhost:3030/convert-lvgl-image',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type':
+                'application/json',
+            },
+            body: JSON.stringify({
+              fileName: asset.name,
+              symbolName: asset.lvgl,
+              base64:
+                asset.browserSrc,
+              assetMode: 'image',
+            }),
+          },
+        )
+
+      const data =
+  await conversionResponse.json()
+
+if (
+  !data.ok ||
+  !data.symbolName ||
+  !data.assetSource
+) {
+  throw new Error(
+    data.error ||
+      'LVGL conversion failed',
+  )
+}
+
+      forgeUIUpdateUploadedAsset(
+        asset.id,
+        {
+          exportStatus:
+            'lvgl_ready',
+
+          lvgl:
+            data.symbolName ||
+            asset.lvgl,
+
+          cFile:
+            data.assetSource ||
+            asset.cFile,
+
+          browserSrc:
+            data.browserSrc ||
+            asset.browserSrc,
+        },
+      )
+    }
+
+    toast({
+      title: 'AI artwork saved',
+      description:
+        'Artwork added to ForgeUI Assets and prepared for LVGL.',
+      status: 'success',
+      duration: 4000,
+      isClosable: true,
+    })
+  } catch (err: any) {
+    console.error(err)
+
+    setArtworkError(
+      err.message ||
+        'Failed to save AI artwork',
+    )
   }
 }
 
@@ -1496,6 +1702,32 @@ const saveGeneratedAsset = () => {
         'Failed to save AI asset',
     )
   }
+}
+
+
+
+const deleteSavedAsset = (
+  savedAsset: ForgeUISavedAsset,
+) => {
+  const nextAssets = savedAssets.filter(
+    asset => asset.id !== savedAsset.id,
+  )
+
+  setSavedAssets(nextAssets)
+
+  localStorage.setItem(
+    FORGE_AI_ASSETS_STORAGE_KEY,
+    JSON.stringify(nextAssets),
+  )
+
+  toast({
+    title: 'Forge asset deleted',
+    description:
+      `${savedAsset.name} removed from My Forge Assets.`,
+    status: 'success',
+    duration: 3000,
+    isClosable: true,
+  })
 }
 
 const insertSavedAsset = (
@@ -1719,43 +1951,47 @@ const saveHeroAsset = async () => {
 
     forgeUIAddUploadedAssets([asset])
 
-    if (asset.exportStatus === 'pending_conversion') {
-      const res = await fetch(
-        'http://localhost:3030/convert-lvgl-image',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            fileName: asset.name,
-            symbolName: asset.lvgl,
-            base64: asset.browserSrc,
-          }),
-        },
-      )
+ if (asset.exportStatus === 'pending_conversion') {
+  const res = await fetch(
+    'http://localhost:3030/convert-lvgl-image',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fileName: asset.name,
+        symbolName: asset.lvgl,
+        base64: asset.browserSrc,
+      }),
+    },
+  )
 
-      const data = await res.json()
+  const data = await res.json()
 
-      if (!data.ok) {
-        throw new Error(
-          data.error || 'LVGL conversion failed',
-        )
-      }
+  if (
+    !data.ok ||
+    !data.symbolName ||
+    !data.assetSource
+  ) {
+    throw new Error(
+      data.error ||
+        'LVGL conversion failed',
+    )
+  }
 
-      forgeUIUpdateUploadedAsset(asset.id, {
-        exportStatus: 'lvgl_ready',
-        lvgl: data.symbolName || asset.lvgl,
-        cFile: data.assetSource || asset.cFile,
-        browserSrc:
-          data.browserSrc || asset.browserSrc,
-      })
-    }
-
-    console.log(
-  'AI Hero saved to assets:',
-  asset,
-)
+  forgeUIUpdateUploadedAsset(
+    asset.id,
+    {
+      exportStatus: 'lvgl_ready',
+      lvgl: data.symbolName,
+      cFile: data.assetSource,
+      browserSrc:
+        data.browserSrc ||
+        asset.browserSrc,
+    },
+  )
+}
 
 toast({
   title: 'Hero background saved',
@@ -1765,6 +2001,7 @@ toast({
   duration: 4000,
   isClosable: true,
 })
+
   } catch (err: any) {
     console.error(err)
 
@@ -2629,18 +2866,36 @@ toast({
           </Box>
         </SimpleGrid>
 
-        <Button
-          width="100%"
-          colorScheme="purple"
-          mt={4}
-          isLoading={isGeneratingAsset}
-          loadingText="Designing..."
-          isDisabled={!assetPrompt.trim()}
-          onClick={generateAsset}
-        >
-          ✨ Design Asset
-        </Button>
-      </Box>
+      <SimpleGrid
+  columns={{ base: 1, md: 2 }}
+  spacing={3}
+  mt={4}
+>
+  <HStack spacing={3}>
+    <Button
+      flex={1}
+      colorScheme="purple"
+      isLoading={isGeneratingAsset}
+      loadingText="Designing..."
+      isDisabled={!assetPrompt.trim()}
+      onClick={generateAsset}
+    >
+      Design Widget
+    </Button>
+
+    <Button
+      flex={1}
+      colorScheme="cyan"
+      isLoading={isGeneratingArtwork}
+      loadingText="Creating..."
+      isDisabled={!assetPrompt.trim()}
+      onClick={generateAssetArtwork}
+    >
+      ✨ Create AI Artwork
+    </Button>
+  </HStack>
+</SimpleGrid>
+       </Box>
 
       <Box
         border="1px solid rgba(34, 211, 238, 0.28)"
@@ -2718,15 +2973,31 @@ toast({
 </Text>
           </Box>
 
-          <Button
-            size="sm"
-            colorScheme="cyan"
-            onClick={() => insertSavedAsset(savedAsset)}
-          >
-            Use
-          </Button>
-        </Flex>
-      </Box>
+<HStack spacing={2}>
+  <Button
+    size="sm"
+    colorScheme="cyan"
+    onClick={() =>
+      insertSavedAsset(savedAsset)
+    }
+  >
+    Use
+  </Button>
+
+  <Button
+    size="sm"
+    variant="outline"
+    colorScheme="red"
+    onClick={() =>
+      deleteSavedAsset(savedAsset)
+    }
+  >
+    Delete
+  </Button>
+</HStack>
+
+</Flex>
+</Box>
     ))}
   </VStack>
 )}
@@ -2761,19 +3032,18 @@ toast({
     saving it to your Forge Asset Library.
   </Text>
 </Box>
-
-          <Badge
+<Badge
   colorScheme={
-    assetError
+    artworkError || assetError
       ? 'red'
-      : assetPreview
+      : assetArtwork || assetPreview
         ? 'green'
         : 'gray'
   }
 >
-  {assetError
+  {artworkError || assetError
     ? 'ERROR'
-    : assetPreview
+    : assetArtwork || assetPreview
       ? 'READY'
       : 'WAITING'}
 </Badge>
@@ -2786,109 +3056,165 @@ toast({
   bg="#050914"
   p={4}
 >
-  {assetError ? (
-    <Flex
-      minH="228px"
-      align="center"
-      justify="center"
-      textAlign="center"
+  {artworkError ? (
+  <Flex
+    minH="228px"
+    align="center"
+    justify="center"
+    textAlign="center"
+  >
+    <Text
+      color="red.300"
+      fontSize="sm"
     >
-      <Text
-        color="red.300"
-        fontSize="sm"
-      >
-        {assetError}
-      </Text>
-    </Flex>
-  ) : assetPreview ? (
-    <VStack
-      minH="228px"
-      align="stretch"
-      justify="center"
-      spacing={3}
+      {artworkError}
+    </Text>
+  </Flex>
+) : assetArtwork ? (
+  <VStack
+    minH="228px"
+    align="stretch"
+    justify="center"
+    spacing={3}
+  >
+    <Image
+      src={assetArtwork}
+      alt="AI generated artwork"
+      maxH="190px"
+      width="100%"
+      objectFit="contain"
+      borderRadius="md"
+    />
+
+    <HStack spacing={2}>
+      <Badge colorScheme="purple">
+        {assetCategory}
+      </Badge>
+
+      <Badge colorScheme="cyan">
+        {assetStyle}
+      </Badge>
+
+      <Badge colorScheme="green">
+        ARTWORK READY
+      </Badge>
+    </HStack>
+  </VStack>
+) : assetError ? (
+  <Flex
+    minH="228px"
+    align="center"
+    justify="center"
+    textAlign="center"
+  >
+    <Text
+      color="red.300"
+      fontSize="sm"
     >
-      <Text
-        color="green.200"
-        fontWeight="bold"
-        fontSize="lg"
-      >
-        {assetPreview.name ||
-          'AI Generated Asset'}
-      </Text>
-
-      <Text
-        color="gray.400"
-        fontSize="sm"
-      >
-        {assetPreview.description ||
-          'ForgeUI asset document generated.'}
-      </Text>
-
-      <HStack spacing={2}>
-        <Badge colorScheme="purple">
-          {assetPreview.category ||
-            assetCategory}
-        </Badge>
-
-        <Badge colorScheme="cyan">
-          {assetPreview.style ||
-            assetStyle}
-        </Badge>
-
-        <Badge colorScheme="green">
-          {Array.isArray(
-            assetPreview.layout,
-          )
-            ? `${assetPreview.layout.length} COMPONENTS`
-            : 'DOCUMENT READY'}
-        </Badge>
-      </HStack>
-    </VStack>
-  ) : (
-    <Flex
-      minH="228px"
-      align="center"
-      justify="center"
-      textAlign="center"
+      {assetError}
+    </Text>
+  </Flex>
+) : assetPreview ? (
+  <VStack
+    minH="228px"
+    align="stretch"
+    justify="center"
+    spacing={3}
+  >
+    <Text
+      color="green.200"
+      fontWeight="bold"
+      fontSize="lg"
     >
-      <Text
-        color="gray.500"
-        fontSize="sm"
-      >
-        Describe an asset and generate it to
-        see the preview.
-      </Text>
-    </Flex>
-  )}
+      {assetPreview.name ||
+        'AI Generated Asset'}
+    </Text>
+
+    <Text
+      color="gray.400"
+      fontSize="sm"
+    >
+      {assetPreview.description ||
+        'ForgeUI asset document generated.'}
+    </Text>
+
+    <HStack spacing={2}>
+      <Badge colorScheme="purple">
+        {assetPreview.category ||
+          assetCategory}
+      </Badge>
+
+      <Badge colorScheme="cyan">
+        {assetPreview.style ||
+          assetStyle}
+      </Badge>
+
+      <Badge colorScheme="green">
+        {Array.isArray(
+          assetPreview.layout,
+        )
+          ? `${assetPreview.layout.length} COMPONENTS`
+          : 'DOCUMENT READY'}
+      </Badge>
+    </HStack>
+  </VStack>
+) : (
+  <Flex
+    minH="228px"
+    align="center"
+    justify="center"
+    textAlign="center"
+  >
+    <Text
+      color="gray.500"
+      fontSize="sm"
+    >
+      Design a widget or create AI artwork
+      to preview it here.
+    </Text>
+  </Flex>
+)}
 </Box>
 
-        <HStack mt={4} spacing={3}>
-  <Button
-  flex={1}
-  colorScheme="teal"
-  onClick={saveGeneratedAsset}
-  isDisabled={
-    !assetPreview ||
-    !Array.isArray(assetPreview.layout) ||
-    assetPreview.layout.length === 0
-  }
->
-  Save Asset
-</Button>
+<HStack mt={4} spacing={3}>
+  {assetArtwork ? (
+    <Button
+      flex={1}
+      colorScheme="green"
+      onClick={saveAssetArtwork}
+    >
+      Save Artwork To Assets
+    </Button>
+  ) : (
+    <>
+      <Button
+        flex={1}
+        colorScheme="teal"
+        onClick={saveGeneratedAsset}
+        isDisabled={
+          !assetPreview ||
+          !Array.isArray(assetPreview.layout) ||
+          assetPreview.layout.length === 0
+        }
+      >
+        Save Widget
+      </Button>
 
-  <Button
-    flex={1}
-    variant="outline"
-    colorScheme="cyan"
-    onClick={insertGeneratedAsset}
-    isDisabled={
-      !assetPreview ||
-      !Array.isArray(assetPreview.layout) ||
-      assetPreview.layout.length === 0
-    }
-  >
-    Insert Into Canvas
-  </Button>
+      <Button
+        flex={1}
+        variant="outline"
+        colorScheme="cyan"
+        onClick={insertGeneratedAsset}
+        isDisabled={
+          !assetPreview ||
+          !Array.isArray(assetPreview.layout) ||
+          assetPreview.layout.length === 0
+        }
+      >
+        Insert Widget
+      </Button>
+    </>
+  )}
 </HStack>
 
         <Divider

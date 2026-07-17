@@ -239,7 +239,7 @@ Natural Language System Text Prompt
    ForgeUI Structured JSON Specification
                 │
                 ▼
-    Automated Schema Schema Validation
+    Automated Schema Validation
                 │
                 ▼
     Embedded Component Rule Verification
@@ -290,7 +290,6 @@ ForgeUI Studio Designer UI
             │
             ▼
   Physical ESP32-P4 Panel Verification
-```
 
 ---
 
@@ -328,26 +327,43 @@ To experience the maximum fluidity of the decoupled workspace architecture, conf
 
 ## 🤖 ForgeUI AI Roadmap
 
-ForgeUI AI is designed as a modular architecture where every AI capability shares the same engine, prompt builder, parser, validator, and export pipeline.
+ForgeUI AI is built as a modular architecture where every AI capability shares the same prompt engine, parser, validator, asset pipeline, and native LVGL export workflow.
 
-Planned AI modules:
-✓ AI Layout Generation
+### ✅ Proven AI Modules
 
-✓ AI Layout Prompt Helper
+- ✓ AI Layout Generation
+- ✓ AI Layout Prompt Helper
+- ✓ AI Hero Background Generation
+- ✓ AI Asset Designer
+- ✓ AI Artwork Generation
+- ✓ Forge Asset Library
+- ✓ Semantic Icon Resolution
+- ✓ Native Icon Asset Generation
+- ✓ Device-Aware Image Processing
+- ✓ Native LVGL Asset Generation
 
-✓ Semantic Icon Resolution
+---
 
-✓ AI Hero Background Generation
+### 🚧 In Development
 
-🚧 Theme-aware Layout Generation
+- Theme-Aware Layout Generation
+- Runtime Widget Generation
+- AI Component & Layout Editing
+- Board-Aware Project Generation
+- GPIO & Peripheral Binding
+- Dashboard & Widget Templates
 
-🚧 Runtime Widget Generation
+---
 
-Planned Multi-page Applications
+### 🔮 Planned
 
-Planned AI Layout Editing
-
-Planned Runtime Assistant
+- Multi-Page Applications
+- Runtime Assistant
+- Project Templates
+- Plugin & Extension Framework
+- Context-Aware AI Generation
+- Smart Asset Optimisation
+- Collaborative Project Workspaces
 
 # About the Creator
 
