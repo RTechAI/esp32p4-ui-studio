@@ -195,10 +195,11 @@ const Inspector = () => {
       </Box>
 
       <StylesPanel
-        isRoot={isRoot}
-        showChildren={componentHasChildren}
-        parentIsRoot={parentIsRoot}
-      />
+  isRoot={isRoot}
+  showChildren={componentHasChildren}
+  parentIsRoot={parentIsRoot}
+  componentType={type}
+/>
       <Modal onClose={onClose} isOpen={isOpen} isCentered>
         <ModalOverlay>
           <ModalContent>
