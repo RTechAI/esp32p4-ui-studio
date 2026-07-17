@@ -1,3 +1,16 @@
+# FORGEUI CURRENT SAVE POINT
+
+## Save Point
+
+FORGEUI_THEME_MANAGER_REFACTOR__HERO_ICON_ASSET_SEPARATION__HEADER_EXTRACTION__POLISH_AND_TEST_NEXT__2026-07-17
+
+## Current Status
+
+ForgeUI Theme Manager has been successfully extracted from `Header.tsx` into its own component:
+
+```text
+src/forgeui/theme/ForgeUIThemeManager.tsx
+---------------------------------------------------------------------------------
 # SPINE
 
 ## Current Save Point
