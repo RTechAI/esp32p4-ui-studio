@@ -1,12 +1,16 @@
 # 🛠️ ForgeUI Studio
 
-An open-source **Visual UI Designer, Low-Code HMI Layout Engine, Offline Asset Pipeline, and Automated Firmware Deployment Studio** engineered explicitly for the high-performance **Espressif ESP32-P4** SoC running native **LVGL v9** and **ESP-IDF**.
+An open-source **AI-assisted Visual HMI Studio** for **ESP32-P4**, combining a visual UI designer, guided AI layout generation, semantic icon resolution, offline asset pipeline, native LVGL v9 code generation and standalone ESP-IDF deployment into a single engineering workflow.
+
+**Visual UI Designer, Low-Code HMI Layout Engine, Offline Asset Pipeline, and Automated Firmware Deployment Studio** engineered explicitly for the high-performance **Espressif ESP32-P4** SoC running native **LVGL v9** and **ESP-IDF**.
 
 ForgeUI Studio bridges the gap between high-level browser-based layout design and low-level production-ready embedded deployments. It completely eliminates manual coordinate calculations, automates standard LVGL code output structures, converts graphic assets locally, and streams compiled partitions directly to physical silicon within a unified development workspace.
 
 ---
 
 # ⚡ Key Architectural Advancement
+
+* **Guided AI Layout Builder:** Generate structured prompts using the built-in Layout Prompt Helper before sending requests to GPT.
 
 ForgeUI Studio supports two distinct execution paths within a single workflow:
 *   **Integrated Web-Serial Pipeline:** Cloud-free, browser-triggered build compilation and direct flashing over local serial ports (`COMx`).
@@ -36,31 +40,37 @@ Clicking **Export Standalone Project** produces a production-grade workspace dir
 # 🔄 Proven Deployment Pipeline
 
 ```text
-       ForgeUI Studio Visual Canvas
-                     │
-                     ▼
-       Generate Native LVGL 9 Code
-                     │
-                     ▼
-       Convert Local Asset Buffers
-                     │
-                     ▼
-       Serialize Binary Asset Registry
-                     │
-                     ▼
-       Generate Native CMake Sources
-                     │
-                     ▼
-    Export Standalone ESP-IDF Project (v5.5)
-                     │
-                     ▼
-     VS Code / Native ESP-IDF Build Tasks
-                     │
-                     ▼
-       Flash Target Address (0x10000)
-                     │
-                     ▼
-   Physical ESP32-P4 Hardware Validation
+       Prompt
+        │
+        ▼
+Layout Prompt Helper (Optional)
+        │
+        ▼
+OpenAI GPT
+        │
+        ▼
+Validated ForgeUI Layout
+        │
+        ▼
+Canvas
+        │
+        ▼
+Browser Preview
+        │
+        ▼
+LVGL Export
+        │
+        ▼
+Standalone ESP-IDF
+        │
+        ▼
+Build
+        │
+        ▼
+Flash
+        │
+        ▼
+ESP32-P4
 ```
 
 ---
@@ -78,43 +88,22 @@ ForgeUI Studio handles all graphic assets entirely inside a local offline enviro
 ForgeUI Studio exports vector React Icons through the exact same asset engine used by high-contrast graphic layouts, eliminating the dependency friction of rendering heavy character sets.
 
 ```text
-React Icon Selection (9,514 Icons)
-                 │
-                 ▼
-       renderToStaticMarkup()
-                 │
-                 ▼
-       Raw Vector SVG Layout
-                 │
-                 ▼
-       Canvas Mapping Buffer
-                 │
-                 ▼
-     Prerendered Raster PNG Frame
-                 │
-                 ▼
-         Local Upload Asset
-                 │
-                 ▼
-     tools/lvgl/LVGLImage.py Utility
-                 │
-                 ▼
-    Generated LVGL C Array Struct
-                 │
-                 ▼
-       Project Asset Registry
-                 │
-                 ▼
-       LV_IMAGE_DECLARE(...)
-                 │
-                 ▼
-       lv_image_set_src(...)
-                 │
-                 ▼
-      ESP-IDF Cross-Compilation
-                 │
-                 ▼
-  Physical Waveshare ESP32-P4 Display
+Semantic Icon Request
+        │
+        ▼
+ForgeUI Icon Resolver
+        │
+        ▼
+React Icon Registry
+        │
+        ▼
+Native-size PNG
+        │
+        ▼
+LVGLImage.py
+        │
+        ▼
+Native LVGL Asset
 ```
 
 *   **Icon Metrics:** 9,514 indexed vector shapes, multi-select queuing cart panel, automated asset validation, and direct structural rendering down to physical silicon.
@@ -125,11 +114,20 @@ React Icon Selection (9,514 Icons)
 # 🚀 Core Feature Matrix
 
 ### Visual Designer Workspace
+
+### AI Studio
+
+* Guided Layout Prompt Helper
+* GPT Layout Generation
+* Semantic Icon Resolution
+* AI Hero Background Generation
+* Editable Generated Layouts
+* Native LVGL Export
 *   **WYSIWYG Layout Canvas:** Real-time drag, drop, and absolute positioning control with pixel-perfect snap-to-grid mechanics.
 *   **Tactile Workspace Bounds:** Device-aware sizing handles matching real panel footprints (such as 1024x600 widescreen profiles).
 
 ### Sandboxed Browser Preview
-*   **Zero-Delay Simulation:** Instantly test visual boundaries, theme updates, color balances, and responsive layouts inside the browser without executing local compiler chains.
+*   **Live Browser Preview:** Instantly test visual boundaries, theme updates, color balances, and responsive layouts inside the browser without executing local compiler chains.
 
 ### Native Code Generation
 *   **Clean C API Target:** Generates highly structured C expressions utilizing modern native **LVGL 9** coordinate targets (`lv_screen_active()`) and styling hooks.
@@ -184,6 +182,11 @@ Theme properties utilize specialized color weight tokens that synchronize perfec
 *   ✓ React Icon SVG-to-Raster Conversion Engine — **PROVEN**
 *   ✓ Multiple Unique Icon Component Validation Loops — **PROVEN**
 *   ✓ High-Resolution Physical ESP32-P4 Execution — **PROVEN** (**63 FPS @ 2.5% CPU**)
+* ✓ AI Layout Prompt Helper — PROVEN
+* ✓ Semantic Icon Pipeline — PROVEN
+* ✓ Native Icon Asset Pipeline — PROVEN
+* ✓ Browser Preview / ESP32-P4 Parity — PROVEN
+* ✓ Firmware Maintenance Tools — PROVEN
 
 ---
 
@@ -198,7 +201,17 @@ Theme properties utilize specialized color weight tokens that synchronize perfec
 *   **Asset Footprint Verification:** Duplicate asset file checking layers and automated compilation array cleanups.
 *   **Multi-Screen Architecture:** Dynamic cross-linking configurations for multi-page interface tracking.
 *   **AI Engine V3 Subsystem:** Context-aware prompts enabling selective section mutations without deleting existing screen documents.
+Dashboard Templates
 
+Theme-aware Layout Generation
+
+Runtime Widget Generation
+
+Switch → GPIO Binding
+
+AI Component Editing
+
+Multi-page Applications
 ---
 
 # 🤝 Open Source Credits

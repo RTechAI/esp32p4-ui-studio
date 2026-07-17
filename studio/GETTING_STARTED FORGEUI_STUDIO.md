@@ -1,6 +1,6 @@
 # 🚀 ForgeUI Studio: Getting Started Guide
 
-### Visual LVGL v9 Designer, AI Layout Generator, and Standalone ESP-IDF Export Framework for Espressif ESP32-P4.
+### AI-assisted Visual LVGL v9 Designer, AI Layout Generator, and Standalone ESP-IDF Export Framework for Espressif ESP32-P4.
 
 Design visually, generate native LVGL code, export a standalone ESP-IDF project, and continue development independently in Visual Studio Code.
 
@@ -49,52 +49,46 @@ ForgeUI Studio starts the local development services silently in the background 
 
 ```text
 http://localhost:3000
+
 ```
 
 ### 4. Design, Export, and Continue Development
 
-The complete ForgeUI workflow is structured as follows:
-
-```text
-                 ForgeUI Studio / AI Studio
-                           │
-                           ▼
-                    Visual Builder
-                           │
-              ┌────────────┴────────────┐
-              │                         │
-              ▼                         ▼
-      Manual Visual Design      AI Layout Generation
-              │                         │
-              └────────────┬────────────┘
-                           ▼
-                 ForgeUI Layout Document
-                           │
-                           ▼
-               Zero-Compile Browser Preview
-                           │
-                           ▼
-               Highly-Optimized LVGL 9 Export
-                           │
-                           ▼
-         Independent Standalone ESP-IDF Project
-                           │
-                           ▼
-            Visual Studio Code (IDE Workspace)
-                           │
-                           ▼
-       Official Espressif ESP-IDF Extension
-                           │
-                           ▼
-        Add Custom I/O, Drivers & Application Logic
-      (GPIO, I²C, SPI, UART, CAN, Networking, Sensors)
-                           │
-                           ▼
-              Native ESP-IDF Build & Flash
-                           │
-                           ▼
-             Physical Waveshare ESP32-P4 Target
-```
+ForgeUI Studio
+        │
+        ▼
+Visual Builder / AI Studio
+        │
+        ▼
+Manual Design  ─────┐
+                    │
+AI Prompt Helper ───┤
+                    │
+Natural Language ───┘
+        │
+        ▼
+Validated ForgeUI Layout
+        │
+        ▼
+Canvas
+        │
+        ▼
+Live Browser Preview
+        │
+        ▼
+Native LVGL Export
+        │
+        ▼
+Standalone ESP-IDF Project
+        │
+        ▼
+Visual Studio Code
+        │
+        ▼
+ESP-IDF Build & Flash
+        │
+        ▼
+ESP32-P4 Hardware
 ```
 
 ForgeUI Studio generates a **fully standalone ESP-IDF project**. Once exported, development continues entirely independently in Visual Studio Code using the official ESP-IDF extension. You are free to add custom GPIO, I²C, SPI, UART, CAN, networking, sensors, drivers, and application logic without being locked into the ForgeUI Studio environment.
@@ -122,7 +116,7 @@ ForgeThemeContext Global State
 Canvas Builder Engine
         │
         ▼
-Zero-Delay Browser Preview
+Live Browser Preview
         │
         ▼
 Highly-Optimized LVGL Export
@@ -137,48 +131,98 @@ Standalone ESP-IDF Project Structure
 Physical ESP32-P4 Target Hardware
 ```
 
-### 2. Unified Image & Icon Asset Pipeline
+### 2. Unified Native Asset Pipeline
 
-Image widgets and React Icon widgets share a single native, cloud-free local asset pipeline. React Icons are automatically rasterized via a native transformation layer prior to parsing:
+ForgeUI Studio uses a unified local asset pipeline with separate preprocessing paths for images and semantic icons. Both pipelines remain completely offline and ultimately generate native LVGL assets for deployment.
+
+### Image Asset Pipeline
 
 ```text
-Uploaded Image / React Icon Asset
+AI Hero / Uploaded Image
                 │
                 ▼
-      Studio Asset Manager UI Panel
+      Studio Asset Manager
                 │
                 ▼
-    tools/lvgl/LVGLImage.py Script Engine
+     Image Preprocessor
                 │
                 ▼
-    ARGB8888 Color Matrix Conversion
+ Center Crop (if required)
                 │
                 ▼
-   Generated Static LVGL C Asset (.c)
+ Resize to Active Display
                 │
                 ▼
-  Dynamic Project Asset Registry Index
+    tools/lvgl/LVGLImage.py
                 │
                 ▼
-    Local 'assetSources[]' Build Tree
+ Generated Static LVGL C Asset
                 │
                 ▼
-    Automated CMakeLists.txt Injection
+ Project Asset Registry
                 │
                 ▼
-       LV_IMAGE_DECLARE(...) Macro
+ Standalone ESP-IDF Project
                 │
                 ▼
-      lv_image_set_src(...) Assignment
+ Physical ESP32-P4
+```
+
+### Native Icon Pipeline
+
+```text
+Semantic Icon Request
                 │
                 ▼
-     Standalone ESP-IDF Project Target
+    ForgeUI Icon Resolver
                 │
                 ▼
-   ESP-IDF Native Ninja Toolchain Build
+      React Icon Registry
                 │
                 ▼
-     Physical ESP32-P4 Silicon Output
+ Native PNG Generation
+                │
+                ▼
+ assetMode: "icon"
+                │
+                ▼
+ Preserve Native Dimensions
+                │
+                ▼
+    tools/lvgl/LVGLImage.py
+                │
+                ▼
+ Generated Static LVGL C Asset
+                │
+                ▼
+ Project Asset Registry
+                │
+                ▼
+ LV_IMAGE_DECLARE(...)
+                │
+                ▼
+ lv_image_set_src(...)
+                │
+                ▼
+ Standalone ESP-IDF Project
+                │
+                ▼
+ ESP-IDF Build & Flash
+                │
+                ▼
+ Physical ESP32-P4
+```
+
+### Verified
+
+- ✓ Unified local asset pipeline
+- ✓ AI Hero background preprocessing
+- ✓ Native-size icon generation
+- ✓ Semantic icon resolution
+- ✓ Device-aware image preprocessing
+- ✓ LVGL C asset generation
+- ✓ Browser Preview parity
+- ✓ Physical ESP32-P4 validation
 ```
 
 ### 3. AI Layout Generation Pipeline
@@ -287,13 +331,23 @@ To experience the maximum fluidity of the decoupled workspace architecture, conf
 ForgeUI AI is designed as a modular architecture where every AI capability shares the same engine, prompt builder, parser, validator, and export pipeline.
 
 Planned AI modules:
+✓ AI Layout Generation
 
-- ✓ Layout Generation
-- 🚧 Theme Generation
-- Planned Asset Generation
-- Planned Image Generation
-- Planned Icon Generation
-- Planned Runtime Assistant
+✓ AI Layout Prompt Helper
+
+✓ Semantic Icon Resolution
+
+✓ AI Hero Background Generation
+
+🚧 Theme-aware Layout Generation
+
+🚧 Runtime Widget Generation
+
+Planned Multi-page Applications
+
+Planned AI Layout Editing
+
+Planned Runtime Assistant
 
 # About the Creator
 
