@@ -15,6 +15,9 @@ import {
   getAllInteractiveAssets,
   getInteractiveAsset,
   registerInteractiveAsset,
+  removeInteractiveAsset,
+  reloadInteractiveAssets,
+  saveInteractiveAssets,
   updateInteractiveAsset,
 } from '~forgeui/interactive'
 
@@ -31,6 +34,8 @@ const ForgeUIInteractiveAssetPanel = () => {
       )
 
     registerInteractiveAsset(asset)
+
+    saveInteractiveAssets()
 
     console.log(
       'Registry after register:',
@@ -50,12 +55,12 @@ const ForgeUIInteractiveAssetPanel = () => {
 
     const asset = assets[0]
 
-    const updated = updateInteractiveAsset(
-      asset.id,
-      {
+    const updated =
+      updateInteractiveAsset(asset.id, {
         label: 'Updated Button',
-      },
-    )
+      })
+
+    saveInteractiveAssets()
 
     console.log(
       'Updated Asset:',
@@ -65,6 +70,45 @@ const ForgeUIInteractiveAssetPanel = () => {
     console.log(
       'Retrieved:',
       getInteractiveAsset(asset.id),
+    )
+  }
+
+  const runRemoveTest = () => {
+    const assets = getAllInteractiveAssets()
+
+    if (assets.length === 0) {
+      console.warn(
+        'No Interactive Assets registered.',
+      )
+      return
+    }
+
+    const asset = assets[0]
+
+    const removed =
+      removeInteractiveAsset(asset.id)
+
+    saveInteractiveAssets()
+
+    console.log(
+      'Removed:',
+      removed,
+    )
+
+    console.log(
+      'Registry after remove:',
+      getAllInteractiveAssets(),
+    )
+  }
+
+  const runReloadTest = () => {
+    clearInteractiveAssetRegistry()
+
+    reloadInteractiveAssets()
+
+    console.log(
+      'Reloaded Assets:',
+      getAllInteractiveAssets(),
     )
   }
 
@@ -95,7 +139,15 @@ const ForgeUIInteractiveAssetPanel = () => {
           color="gray.400"
           fontSize="sm"
         >
-          Registry validation in progress.
+          Interactive Asset Registry validation.
+        </Text>
+
+        <Text
+          color="gray.500"
+          fontSize="xs"
+        >
+          Temporary registry test tools.
+          These will be removed after Phase 2 is proven.
         </Text>
 
         <Button
@@ -112,6 +164,22 @@ const ForgeUIInteractiveAssetPanel = () => {
           onClick={runUpdateTest}
         >
           Test Update
+        </Button>
+
+        <Button
+          size="sm"
+          colorScheme="red"
+          onClick={runRemoveTest}
+        >
+          Test Remove
+        </Button>
+
+        <Button
+          size="sm"
+          colorScheme="purple"
+          onClick={runReloadTest}
+        >
+          Test Reload
         </Button>
       </VStack>
     </Box>

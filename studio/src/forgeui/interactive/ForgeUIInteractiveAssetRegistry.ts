@@ -69,7 +69,26 @@ export const removeInteractiveAsset = (
 ): boolean =>
   assets.delete(id)
 
-export const clearInteractiveAssetRegistry = (
+export const clearInteractiveAssetRegistry = (): void => {
+  assets.clear()
+}
+
+/* ============================================================
+ * Phase 2
+ * Registry Import / Export
+ * ============================================================ */
+
+export const exportInteractiveAssets =
+  (): ForgeUIInteractiveButtonAsset[] =>
+    Array.from(assets.values())
+
+export const importInteractiveAssets = (
+  imported: ForgeUIInteractiveButtonAsset[],
 ): void => {
   assets.clear()
+
+  imported.forEach(asset => {
+    validateInteractiveButtonAsset(asset)
+    assets.set(asset.id, asset)
+  })
 }

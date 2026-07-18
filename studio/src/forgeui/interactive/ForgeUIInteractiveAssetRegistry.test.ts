@@ -29,6 +29,7 @@ describe('ForgeUI Interactive Asset Registry', () => {
       }).not.toThrow()
 
       registerInteractiveAsset(asset)
+      saveInteractiveAssets()
 
       const retrieved =
         getInteractiveAsset(id)
