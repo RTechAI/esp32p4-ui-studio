@@ -31,6 +31,8 @@ import {
   updateInteractiveAsset,
 } from '~forgeui/interactive'
 
+import InteractiveButtonPreview from './InteractiveButtonPreview'
+
 import {
   forgeUIGetUploadedAssets,
 } from '~forgeui/ForgeUIUploadedAssetRegistry'
@@ -50,7 +52,7 @@ type VisualSelectorMode =
   | 'normal'
   | 'pressed'
   | null
-
+ 
 const ForgeUIInteractiveAssetPanel = () => {
   const [assets, setAssets] = useState<
     ForgeUIInteractiveButtonAsset[]
@@ -74,9 +76,9 @@ const ForgeUIInteractiveAssetPanel = () => {
   >(null)
 
   const [
-    visualSelectorMode,
-    setVisualSelectorMode,
-  ] = useState<VisualSelectorMode>(null)
+  visualSelectorMode,
+  setVisualSelectorMode,
+] = useState<VisualSelectorMode>(null)
 
   const [assetName, setAssetName] =
     useState('New Interactive Button')
@@ -158,6 +160,8 @@ const ForgeUIInteractiveAssetPanel = () => {
     [uploadedAssets, pressedAssetId],
   )
 
+  
+    
   const resetDesigner = () => {
     setAssetName('New Interactive Button')
     setButtonLabel('Button')
@@ -584,27 +588,34 @@ const ForgeUIInteractiveAssetPanel = () => {
               </SimpleGrid>
 
               <SimpleGrid
-                columns={{
-                  base: 1,
-                  md: 2,
-                }}
-                spacing={4}
-              >
-                {renderSelectedVisual(
-                  'Normal State',
-                  normalAsset,
-                  'normal',
-                )}
+  columns={{
+    base: 1,
+    md: 2,
+  }}
+  spacing={4}
+>
+  {renderSelectedVisual(
+    'Normal State',
+    normalAsset,
+    'normal',
+  )}
 
-                {renderSelectedVisual(
-                  'Pressed State',
-                  pressedAsset,
-                  'pressed',
-                )}
-              </SimpleGrid>
+  {renderSelectedVisual(
+    'Pressed State',
+    pressedAsset,
+    'pressed',
+  )}
+</SimpleGrid>
 
-              {visualSelectorMode && (
-                <Box
+<InteractiveButtonPreview
+  normalAsset={normalAsset}
+  pressedAsset={pressedAsset}
+  width={buttonWidth}
+  height={buttonHeight}
+/>
+
+{visualSelectorMode && (
+                  <Box
                   borderWidth="1px"
                   borderColor="blue.400"
                   borderRadius="md"
