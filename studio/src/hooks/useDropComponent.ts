@@ -18,16 +18,26 @@ export const useDropComponent = (
 
   const [{ isOver }, drop] = useDrop({
     accept,
+
     collect: monitor => ({
-      isOver: monitor.isOver({ shallow: true }) && monitor.canDrop(),
+      isOver:
+        monitor.isOver({ shallow: true }) &&
+        monitor.canDrop(),
     }),
-    drop: (item: ComponentItemProps, monitor: DropTargetMonitor) => {
+
+    drop: (
+      item: ComponentItemProps,
+      monitor: DropTargetMonitor,
+    ) => {
       if (!monitor.isOver()) {
         return
       }
 
-      const clientOffset = monitor.getClientOffset()
-      const viewportRect = viewportRef?.current?.getBoundingClientRect()
+      const clientOffset =
+        monitor.getClientOffset()
+
+      const viewportRect =
+        viewportRef?.current?.getBoundingClientRect()
 
       if (!clientOffset || !viewportRect) {
         return
@@ -38,13 +48,21 @@ export const useDropComponent = (
         const h = Number(item.h ?? 120)
 
         const x = clamp(
-          Math.round(clientOffset.x - viewportRect.left - w / 2),
+          Math.round(
+            clientOffset.x -
+              viewportRect.left -
+              w / 2,
+          ),
           0,
           Math.round(viewportRect.width - w),
         )
 
         const y = clamp(
-          Math.round(clientOffset.y - viewportRect.top - h / 2),
+          Math.round(
+            clientOffset.y -
+              viewportRect.top -
+              h / 2,
+          ),
           0,
           Math.round(viewportRect.height - h),
         )
@@ -65,51 +83,175 @@ export const useDropComponent = (
       }
 
       if (item.isMeta) {
-        dispatch.components.addMetaComponent(builder[item.type](componentId))
+        dispatch.components.addMetaComponent(
+          builder[item.type](componentId),
+        )
+
         return
       }
 
-      const defaultW =
-  item.type === 'Led' ? 32 : 240
+const isLed = item.type === 'Led'
+const isArc = item.type === 'Arc'
+const isLine = item.type === 'Line'
+const isText = item.type === 'Text'
+const isHeading = item.type === 'Heading'
+const isClock = item.type === 'Clock'
+const isWifi = item.type === 'WiFi'
+const isInput = item.type === 'Input'
+const isNumberInput = item.type === 'NumberInput'
+const isTextarea = item.type === 'Textarea'
+const isSwitch = item.type === 'Switch'
+const isCheckbox = item.type === 'Checkbox'
+const isRadio = item.type === 'Radio'
+const isSlider = item.type === 'Slider'
+const isProgress = item.type === 'Progress'
+const isCircularProgress =
+  item.type === 'CircularProgress'
+const isButton = item.type === 'Button'
+const isSelect = item.type === 'Select'
+const isIcon = item.type === 'Icon'
+const isIconButton = item.type === 'IconButton'
+const isDivider = item.type === 'Divider'
+const isBox = item.type === 'Box'
 
-const defaultH =
-  item.type === 'Led' ? 32 : 120
+const defaultW = isLed
+  ? 32
+  : isArc || isLine
+    ? 120
+    : isCircularProgress
+      ? 96
+      : isHeading
+        ? 200
+        : isText
+          ? 80
+          : isClock
+            ? 90
+            : isWifi
+              ? 120
+              : isInput
+                ? 160
+                : isNumberInput
+                  ? 280
+                  : isTextarea
+                    ? 220
+                    : isButton
+                      ? 120
+                      : isSelect
+                        ? 180
+                        : isSwitch
+                          ? 48
+                          : isCheckbox
+                            ? 28
+                            : isRadio
+                              ? 28
+                              : isSlider
+                                ? 180
+                                : isProgress
+                                  ? 180
+                                  : isIcon || isIconButton
+                                    ? 48
+                                    : isDivider
+                                      ? 180
+                                      : isBox
+                                        ? 180
+                                        : 240
 
-const x = clamp(
-  Math.round(clientOffset.x - viewportRect.left - defaultW / 2),
-  0,
-  Math.round(viewportRect.width - defaultW),
-)
+const defaultH = isLed
+  ? 32
+  : isArc || isLine
+    ? 120
+    : isCircularProgress
+      ? 92
+      : isHeading
+        ? 48
+        : isText
+          ? 24
+          : isClock
+            ? 32
+            : isWifi
+              ? 60
+              : isInput
+                ? 36
+                : isNumberInput
+                  ? 40
+                  : isTextarea
+                    ? 80
+                    : isButton
+                      ? 40
+                      : isSelect
+                        ? 36
+                        : isSwitch
+                          ? 28
+                          : isCheckbox
+                            ? 28
+                            : isRadio
+                              ? 28
+                              : isSlider
+                                ? 36
+                                : isProgress
+                                  ? 24
+                                  : isIcon || isIconButton
+                                    ? 48
+                                    : isDivider
+                                      ? 2
+                                      : isBox
+                                        ? 100
+                                        : 120
 
-const y = clamp(
-  Math.round(clientOffset.y - viewportRect.top - defaultH / 2),
-  0,
-  Math.round(viewportRect.height - defaultH),
-)
 
-dispatch.components.addComponent({
-  parentName: componentId,
-  type: item.type,
-  rootParentType: item.rootParentType,
-  props: {
-    positionMode: 'absolute',
-    x,
-    y,
-    w: defaultW,
-    h: defaultH,
-  },
-})
+      const x = clamp(
+        Math.round(
+          clientOffset.x -
+            viewportRect.left -
+            defaultW / 2,
+        ),
+        0,
+        Math.round(
+          viewportRect.width - defaultW,
+        ),
+      )
 
-if (item.type === 'Icon') {
-  window.setTimeout(() => {
-    window.dispatchEvent(
-      new CustomEvent('forgeui-open-icon-browser'),
-   )
+      const y = clamp(
+        Math.round(
+          clientOffset.y -
+            viewportRect.top -
+            defaultH / 2,
+        ),
+        0,
+        Math.round(
+          viewportRect.height - defaultH,
+        ),
+      )
+
+      dispatch.components.addComponent({
+        parentName: componentId,
+        type: item.type,
+        rootParentType: item.rootParentType,
+        props: {
+          positionMode: 'absolute',
+          x,
+          y,
+          w: defaultW,
+          h: defaultH,
+        },
+      })
+
+      if (item.type === 'Icon') {
+        window.setTimeout(() => {
+          window.dispatchEvent(
+            new CustomEvent(
+              'forgeui-open-icon-browser',
+            ),
+          )
         }, 0)
       }
     },
+
     canDrop: () => canDrop,
   })
 
-  return { drop, isOver }
+  return {
+    drop,
+    isOver,
+  }
 }

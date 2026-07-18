@@ -6,7 +6,9 @@ interface IProps {
   component: IComponent
 }
 
-const NumberInputPreview = ({ component }: IProps) => {
+const NumberInputPreview = ({
+  component,
+}: IProps) => {
   const [value, setValue] = useState(50)
 
   return (
@@ -14,23 +16,23 @@ const NumberInputPreview = ({ component }: IProps) => {
       width="100%"
       height="100%"
       display="flex"
-      flexDirection="column"
+      alignItems="center"
       justifyContent="center"
-      gap="10px"
-      padding="10px"
+      padding="0"
     >
-      <Chakra.Text color="white" fontSize="sm">
-        Number Input {value}
-      </Chakra.Text>
-
       <Chakra.NumberInput
-       value={value}
-       min={0}
-       max={100}
-       onChange={(_, v) => setValue(v || 0)}
-      {...forgeuiInputStyle}
+        width="100%"
+        value={value}
+        min={0}
+        max={100}
+        onChange={(_, nextValue) =>
+          setValue(nextValue || 0)
+        }
+        {...forgeuiInputStyle}
       >
-        <Chakra.NumberInputField {...forgeuiInputStyle} />
+        <Chakra.NumberInputField
+          {...forgeuiInputStyle}
+        />
 
         <Chakra.NumberInputStepper>
           <Chakra.NumberIncrementStepper />

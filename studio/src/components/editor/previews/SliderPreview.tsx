@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
 import * as Chakra from '@chakra-ui/react'
 
-const SliderPreview: React.FC<IPreviewProps> = ({ component }) => {
+const SliderPreview: React.FC<IPreviewProps> = ({
+  component,
+}) => {
   const [value, setValue] = useState(50)
 
   return (
@@ -9,20 +11,17 @@ const SliderPreview: React.FC<IPreviewProps> = ({ component }) => {
       width="100%"
       height="100%"
       display="flex"
-      flexDirection="column"
+      alignItems="center"
       justifyContent="center"
-      gap="10px"
-      padding="10px"
+      padding="0"
     >
-      <Chakra.Text color="white" fontSize="sm">
-        Slider {value}%
-      </Chakra.Text>
-
       <Chakra.Slider
+        {...component.props}
         value={value}
         min={0}
         max={100}
         onChange={setValue}
+        width="100%"
       >
         <Chakra.SliderTrack>
           <Chakra.SliderFilledTrack />

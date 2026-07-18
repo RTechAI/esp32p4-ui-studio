@@ -1,30 +1,25 @@
-import React, { useState } from 'react'
+import React from 'react'
 import * as Chakra from '@chakra-ui/react'
 
 interface IProps {
   component: IComponent
 }
 
-const ProgressPreview = ({ component }: IProps) => {
-  const [value] = useState(65)
-
+const ProgressPreview = ({
+  component,
+}: IProps) => {
   return (
     <Chakra.Box
       width="100%"
       height="100%"
       display="flex"
-      flexDirection="column"
+      alignItems="center"
       justifyContent="center"
-      gap="10px"
-      padding="10px"
+      padding="0"
     >
-      <Chakra.Text color="white" fontSize="sm">
-        Progress {value}%
-      </Chakra.Text>
-
       <Chakra.Progress
         {...component.props}
-        value={value}
+        value={65}
         width="100%"
         borderRadius="md"
       />

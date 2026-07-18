@@ -88,22 +88,14 @@ const ComponentPreview: React.FC<{
         height="100%"
         display="flex"
         alignItems="center"
-        justifyContent="flex-start"
-        gap="10px"
-        color="white"
-        px="8px"
+        justifyContent="center"
       >
-        <Chakra.Box
-          width="18px"
-          height="18px"
-          borderRadius="999px"
-          border="2px solid white"
-          bg={component.props.isChecked ? '#00d4ff' : 'transparent'}
+        <Chakra.Radio
+          isChecked={component.props.isChecked}
+          colorScheme={
+            component.props.colorScheme || 'blue'
+          }
         />
-
-        <Chakra.Text color="white">
-          {component.props.children || component.props.text || 'Radio'}
-        </Chakra.Text>
       </Chakra.Box>
     </PreviewContainer>
   )
@@ -115,19 +107,20 @@ case 'Switch':
       enableVisualHelper
       {...forwardedProps}
     >
-      <Chakra.Switch
-        color="white"
-        w="100%"
-        h="100%"
-        minW="100%"
-        minH="100%"
+      <Chakra.Box
+        width="100%"
+        height="100%"
         display="flex"
         alignItems="center"
         justifyContent="center"
-        boxSizing="border-box"
       >
-        {component.props.children || 'Switch'}
-      </Chakra.Switch>
+        <Chakra.Switch
+          isChecked={component.props.isChecked}
+          colorScheme={
+            component.props.colorScheme || 'blue'
+          }
+        />
+      </Chakra.Box>
     </PreviewContainer>
   )
   
@@ -523,17 +516,21 @@ case 'Image':
       enableVisualHelper
       {...forwardedProps}
     >
-      <Chakra.Checkbox
-        {...component.props}
-        color="white"
+      <Chakra.Box
         width="100%"
         height="100%"
         display="flex"
         alignItems="center"
-        justifyContent="center"
+        justifyContent="flex-start"
+        px="8px"
       >
-        {component.props.children || 'Checkbox'}
-      </Chakra.Checkbox>
+        <Chakra.Checkbox
+          isChecked={component.props.isChecked}
+          colorScheme={
+            component.props.colorScheme || 'blue'
+          }
+        />
+      </Chakra.Box>
     </PreviewContainer>
   )
 
@@ -666,10 +663,12 @@ case 'Arc':
         display="flex"
         alignItems="center"
         justifyContent="center"
+        boxSizing="border-box"
       >
         <Chakra.Box
-          width="64px"
-          height="64px"
+          width="100%"
+          height="100%"
+          boxSizing="border-box"
           borderRadius="50%"
           border="8px solid"
           borderColor="cyan.300"
