@@ -1,4 +1,271 @@
 
+# FORGEUI_V2_4_1__INTERACTIVE_BUTTON_IMAGE_STATES__ASSET_REFERENCES__PERSISTENCE_PROVEN
+
+---
+
+# Summary
+
+This savepoint completes **Interactive Assets Phase 4**.
+
+Interactive Buttons now reference reusable ForgeUI uploaded image assets for both visual states instead of embedding image data.
+
+Each Interactive Button stores:
+
+- Normal State image
+- Pressed State image
+
+using uploaded asset IDs.
+
+---
+
+# Completed
+
+## Interactive Asset Designer
+
+✔ Create Interactive Buttons
+
+✔ Edit Interactive Buttons
+
+✔ Delete Interactive Buttons
+
+✔ Registry persistence
+
+✔ Save / Reload
+
+---
+
+## Image State Support
+
+Added support for:
+
+- Normal Visual
+- Pressed Visual
+
+using uploaded ForgeUI assets.
+
+Each state now references:
+
+```ts
+normalAssetId?: string
+pressedAssetId?: string
+```
+
+instead of storing duplicated image information.
+
+---
+
+## Asset Browser
+
+Interactive Button Designer now includes:
+
+- LVGL Ready asset browser
+- Normal image selector
+- Pressed image selector
+- Selected image previews
+- Change Visual
+- Clear Visual
+
+---
+
+## Saved Asset Cards
+
+Saved Interactive Buttons now display:
+
+- Button Name
+- Label
+- Width × Height
+- Normal thumbnail
+- Pressed thumbnail
+
+making asset verification much easier.
+
+---
+
+# Architecture
+
+Interactive Assets now reference existing uploaded assets.
+
+The Uploaded Asset Registry remains the single source of truth for:
+
+- browser preview
+- asset name
+- LVGL symbol
+- generated C source
+- export status
+
+No image duplication occurs.
+
+---
+
+# Verified
+
+Successfully tested:
+
+✔ Normal image selection
+
+✔ Pressed image selection
+
+✔ Saving Interactive Button
+
+✔ Editing Interactive Button
+
+✔ Registry persistence
+
+✔ Reload persistence
+
+✔ Full ForgeUI restart restores both visual states
+
+---
+
+# Investigation
+
+During testing it appeared image persistence had failed.
+
+After investigation the cause was **not** Interactive Assets.
+
+The issue was a stale or stopped ForgeUI asset/export server on port **3030**.
+
+Symptoms:
+
+- browser refresh appeared to lose previews
+- saved asset IDs remained intact
+- PNG files still existed on disk
+- full ForgeUI restart restored previews
+
+Therefore the Interactive Asset implementation is considered correct.
+
+---
+
+# Important Note
+
+Interactive Asset persistence is proven.
+
+The temporary missing previews after browser refresh are related to the asset server lifecycle rather than registry serialization.
+
+This behaviour has previously been seen during Firmware Sweep testing.
+
+---
+
+# Files Updated
+
+## ForgeUIInteractiveButtonAsset.ts
+
+Added:
+
+```ts
+normalAssetId?: string
+
+pressedAssetId?: string
+```
+
+---
+
+## ForgeUIInteractiveAssetPanel.tsx
+
+Added:
+
+- Normal image selector
+- Pressed image selector
+- LVGL Ready asset browser
+- Image previews
+- Save/Edit restoration
+- Thumbnail previews
+
+---
+
+# Files Confirmed Stable
+
+No changes required to:
+
+- ForgeUIInteractiveAsset.ts
+- ForgeUIInteractiveAssetRegistry.ts
+- ForgeUIInteractiveAssetPersistence.ts
+- ForgeUIInteractiveAssetValidation.ts
+- ForgeUIUploadedAssetRegistry.ts
+- ForgeUIIconResolver.tsx
+
+---
+
+# Current Interactive Asset Pipeline
+
+```
+ForgeUI Uploaded Assets
+        │
+        ▼
+LVGL Ready Images
+        │
+        ▼
+Interactive Button Designer
+        │
+        ├── Normal Asset ID
+        │
+        └── Pressed Asset ID
+        │
+        ▼
+Interactive Asset Registry
+        │
+        ▼
+Persistence
+        │
+        ▼
+Reload
+        │
+        ▼
+Full ForgeUI Restart
+        │
+        ▼
+Images Restored ✔
+```
+
+---
+
+# Phase 5
+
+Recommended next milestone:
+
+## Live Interactive Preview
+
+Inside the Interactive Button Designer:
+
+- idle shows Normal image
+- pointer down swaps to Pressed image
+- pointer up restores Normal image
+- pointer leave restores Normal image
+
+while respecting saved width and height.
+
+---
+
+# Phase 6
+
+Insert Interactive Button onto the ForgeUI canvas.
+
+Canvas components should reference the saved Interactive Asset ID rather than duplicating image definitions.
+
+---
+
+# Do Not Change
+
+Do not redesign:
+
+- Uploaded Asset Registry
+- Image conversion pipeline
+- Hero pipeline
+- Artwork pipeline
+- Icon pipeline
+- LVGL conversion pipeline
+
+Interactive Assets should continue referencing reusable uploaded assets by ID.
+
+---
+
+# Status
+
+ForgeUI Interactive Assets Phase 4 is complete and proven.
+
+The project is now ready to begin runtime Interactive Button rendering and canvas integration.
+--------------------------------------------------------------
+
 # Spine Update — Interactive Assets Phase 3 (CRUD Complete)
 
 ---

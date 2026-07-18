@@ -4,18 +4,24 @@ import {
   ForgeUIInteractiveVisualState,
 } from './ForgeUIInteractiveAsset'
 
-export type ForgeUIInteractiveButtonAsset = ForgeUIInteractiveAssetBase & {
-  kind: 'button'
-  interactionMode: 'momentary'
+export type ForgeUIInteractiveButtonAsset =
+  ForgeUIInteractiveAssetBase & {
+    kind: 'button'
+    interactionMode: 'momentary'
 
-  label: string
+    label: string
 
-  width: number
-  height: number
+    width: number
+    height: number
 
-  normal: ForgeUIInteractiveVisualState
-  pressed: ForgeUIInteractiveVisualState
-}
+    // Phase 4
+    // References to reusable ForgeUI Image Assets
+    normalAssetId?: string
+    pressedAssetId?: string
+
+    normal: ForgeUIInteractiveVisualState
+    pressed: ForgeUIInteractiveVisualState
+  }
 
 export const createDefaultInteractiveButtonAsset = (
   id: string,
@@ -37,6 +43,11 @@ export const createDefaultInteractiveButtonAsset = (
 
     width: 160,
     height: 56,
+
+    // Phase 4
+    // Image asset references
+    normalAssetId: undefined,
+    pressedAssetId: undefined,
 
     normal: {
       backgroundColor: '#2563eb',
