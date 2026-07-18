@@ -1,3 +1,133 @@
+## Interactive Assets — Phase 5 Complete (Reusable Live Preview)
+
+### Overview
+
+Phase 5 of the Interactive Asset system is now complete.
+
+The Interactive Button designer has been refactored so the live preview is no longer embedded inside the editor panel. Instead, it has been extracted into a dedicated reusable component that owns all preview interaction logic.
+
+This establishes the first reusable runtime renderer for Interactive Assets and provides the foundation for Canvas Integration.
+
+---
+
+### New Component
+
+```
+InteractiveButtonPreview.tsx
+```
+
+Responsibilities:
+
+- Own pressed state
+- Swap Normal ↔ Pressed visuals
+- Handle preview interaction
+- Display reusable interactive button preview
+
+The designer now simply passes:
+
+- Normal Asset
+- Pressed Asset
+- Width
+- Height
+
+to the preview renderer.
+
+---
+
+### Preview Behaviour
+
+Verified:
+
+- Normal image shown by default
+- Mouse Down → Pressed visual
+- Mouse Up → Normal visual
+- Mouse Leave → Normal visual
+- Dynamic width/height updates
+- Uses actual uploaded LVGL-ready assets
+
+---
+
+### Designer Refactor
+
+ForgeUIInteractiveAssetPanel now acts purely as the editor.
+
+Responsibilities remaining inside the panel:
+
+- Asset CRUD
+- Image selection
+- Validation
+- Save/Delete
+- Registry updates
+
+Preview rendering has been completely separated.
+
+---
+
+### Architecture
+
+```
+ForgeUIInteractiveAssetPanel
+            │
+            ▼
+InteractiveButtonPreview
+            │
+            ├── manages pressed state
+            ├── renders Normal image
+            ├── renders Pressed image
+            └── handles mouse interaction
+```
+
+This creates a single source of truth for interactive button rendering.
+
+---
+
+### Benefits
+
+- Cleaner designer
+- No duplicated preview logic
+- Easier maintenance
+- Reusable across the application
+- Matches ForgeUI component architecture
+
+---
+
+### Status
+
+✅ Interactive Asset Registry
+
+✅ CRUD
+
+✅ Persistence
+
+✅ Image References
+
+✅ Image Selector
+
+✅ Save/Edit/Delete
+
+✅ Reusable Live Preview
+
+Phase 5 is now considered **PROVEN**.
+
+---
+
+## Next Phase
+
+### Phase 6 — Canvas Integration
+
+Begin replacing static Button rendering with Interactive Button assets.
+
+Objectives:
+
+- Drag Interactive Button onto canvas
+- Render using InteractiveButtonPreview
+- Preserve Normal/Pressed behaviour
+- Connect designer assets directly to runtime
+- Prepare runtime hooks for physical touch events
+
+The reusable preview component created during Phase 5 will become the rendering foundation for Canvas, Browser Preview and eventually ESP32-P4 runtime.
+
+----------------------------------------------------------------------------------
 
 # FORGEUI_V2_4_1__INTERACTIVE_BUTTON_IMAGE_STATES__ASSET_REFERENCES__PERSISTENCE_PROVEN
 
