@@ -113,6 +113,7 @@ const isIcon = item.type === 'Icon'
 const isIconButton = item.type === 'IconButton'
 const isDivider = item.type === 'Divider'
 const isBox = item.type === 'Box'
+const isRoller = item.type === 'Roller'
 
 const defaultW = isLed
   ? 32
@@ -148,13 +149,15 @@ const defaultW = isLed
                                 ? 180
                                 : isProgress
                                   ? 180
-                                  : isIcon || isIconButton
-                                    ? 48
-                                    : isDivider
-                                      ? 180
-                                      : isBox
+                                  : isRoller
+                                    ? 120
+                                    : isIcon || isIconButton
+                                      ? 48
+                                      : isDivider
                                         ? 180
-                                        : 240
+                                        : isBox
+                                          ? 180
+                                          : 240
 
 const defaultH = isLed
   ? 32
@@ -190,13 +193,17 @@ const defaultH = isLed
                                 ? 36
                                 : isProgress
                                   ? 24
-                                  : isIcon || isIconButton
-                                    ? 48
-                                    : isDivider
-                                      ? 2
-                                      : isBox
-                                        ? 100
-                                        : 120
+                                  : isRoller
+                                    ? 72
+                                    : isIcon || isIconButton
+                                      ? 48
+                                      : isDivider
+                                        ? 2
+                                        : isBox
+                                          ? 100
+                                          : 120
+
+
 
 
       const x = clamp(

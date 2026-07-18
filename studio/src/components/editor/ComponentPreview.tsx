@@ -723,12 +723,14 @@ case 'Calendar':
       <Chakra.Box
         width="100%"
         height="100%"
-        p="8px"
-        border="1px solid #00d4ff"
-        borderRadius="8px"
-        bg="rgba(0,212,255,0.08)"
+        overflow="hidden"
       >
-        <svg width="100%" height="100%" viewBox="0 0 100 60">
+        <svg
+          width="100%"
+          height="100%"
+          viewBox="0 0 100 60"
+          preserveAspectRatio="none"
+        >
           <polyline
             fill="none"
             stroke="#00d4ff"
@@ -753,11 +755,14 @@ case 'Calendar':
         display="flex"
         alignItems="center"
         justifyContent="center"
-        bg="rgba(0,212,255,0.08)"
-        border="1px solid #00d4ff"
-        borderRadius="8px"
+        overflow="hidden"
       >
-        <svg width="90%" height="40">
+        <svg
+          width="100%"
+          height="100%"
+          viewBox="0 0 200 40"
+          preserveAspectRatio="none"
+        >
           <line
             x1="10"
             y1="20"
@@ -766,6 +771,7 @@ case 'Calendar':
             stroke="#00d4ff"
             strokeWidth="2"
           />
+
           {[...Array(11)].map((_, i) => (
             <line
               key={i}
@@ -902,15 +908,29 @@ case 'Table':
         flexDirection="column"
         justifyContent="center"
         alignItems="center"
-        bg="rgba(0,212,255,0.08)"
-        border="1px solid #00d4ff"
-        borderRadius="8px"
+        overflow="hidden"
       >
-        <Chakra.Text color="gray.500">Item 1</Chakra.Text>
-        <Chakra.Text color="#00d4ff" fontWeight="bold">
+        <Chakra.Text
+          color="gray.500"
+          fontSize="sm"
+        >
+          Item 1
+        </Chakra.Text>
+
+        <Chakra.Text
+          color="#00d4ff"
+          fontSize="lg"
+          fontWeight="bold"
+        >
           Item 2
         </Chakra.Text>
-        <Chakra.Text color="gray.500">Item 3</Chakra.Text>
+
+        <Chakra.Text
+          color="gray.500"
+          fontSize="sm"
+        >
+          Item 3
+        </Chakra.Text>
       </Chakra.Box>
     </PreviewContainer>
   )
