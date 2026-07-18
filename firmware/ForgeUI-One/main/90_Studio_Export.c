@@ -51,30 +51,18 @@ static void fg_wifi_tick_cb(lv_timer_t *timer)
 
 void fg_studio_export_create(lv_obj_t *parent)
 {
-    // Background flavour: Military Plate
-    lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0x1B2416), 0);
+    // Background flavour: Terminal Green
+    lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0x000A00), 0);
     lv_obj_set_style_bg_opa(lv_screen_active(), LV_OPA_COVER, 0);
-    lv_obj_set_style_bg_color(parent, lv_color_hex(0x1B2416), 0);
+    lv_obj_set_style_bg_color(parent, lv_color_hex(0x000A00), 0);
     lv_obj_set_style_bg_opa(parent, LV_OPA_COVER, 0);
 
-    LV_IMAGE_DECLARE(fg_upload_ai_hero_1784326156748_9297631f);
+    LV_IMAGE_DECLARE(fg_upload_ai_hero_1784338920383_34783689);
     lv_obj_t * bg_texture_0 = lv_image_create(parent);
-    lv_image_set_src(bg_texture_0, &fg_upload_ai_hero_1784326156748_9297631f);
+    lv_image_set_src(bg_texture_0, &fg_upload_ai_hero_1784338920383_34783689);
     lv_obj_set_pos(bg_texture_0, 0, 0);
     lv_obj_set_size(bg_texture_0, 1024, 600);
     lv_obj_move_background(bg_texture_0);
-
-    LV_IMAGE_DECLARE(fg_upload_ai_industrial_artwork_1784329284849_e08e0956);
-    lv_obj_t * obj1 = lv_image_create(parent);
-    lv_image_set_src(obj1, &fg_upload_ai_industrial_artwork_1784329284849_e08e0956);
-    lv_image_set_scale(obj1, 256);
-    lv_obj_set_pos(obj1, 120, 120);
-    lv_obj_set_size(obj1, 320, 220);
-    lv_obj_add_flag(obj1, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_set_style_transform_pivot_x(obj1, 160, 0);
-    lv_obj_set_style_transform_pivot_y(obj1, 110, 0);
-    lv_obj_set_style_transform_scale(obj1, 256, 0);
-    lv_obj_set_style_transform_scale(obj1, 235, LV_STATE_PRESSED);
 
 
     fg_clock_tick_cb(NULL);

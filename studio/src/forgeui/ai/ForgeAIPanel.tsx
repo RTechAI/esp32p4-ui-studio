@@ -1108,6 +1108,10 @@ const [isGenerating, setIsGenerating] =
   const [heroPrompt, setHeroPrompt] = useState('')
   const [isGeneratingHero, setIsGeneratingHero] = useState(false)
   const [heroError, setHeroError] = useState('')
+  const [isSavingHero, setIsSavingHero] =
+  useState(false)
+  const [generatedHero, setGeneratedHero] =
+  useState('')
   const [heroPromptSearch, setHeroPromptSearch] =
   useState('')
   
@@ -1975,6 +1979,7 @@ const insertArtwork = () => {
       throw new Error(payload.error)
     }
 
+    setGeneratedHero(payload.image)
     setHeroBackground(payload.image)
   } catch (err: any) {
     setHeroError(err.message)
@@ -1984,23 +1989,31 @@ const insertArtwork = () => {
 }
 
 const saveHeroAsset = async () => {
-  if (!heroBackground) {
+  if (!generatedHero) {
     return
   }
+  
 
   try {
     setHeroError('')
+    setIsSavingHero(true)
 
-    const response = await fetch(heroBackground)
+    const response = await fetch(
+      generatedHero,
+    )
 
     if (!response.ok) {
-      throw new Error('Failed to prepare Hero image')
+      throw new Error(
+        'Failed to prepare Hero image',
+      )
     }
 
     const blob = await response.blob()
 
     const extension =
-      blob.type === 'image/jpeg' ? 'jpg' : 'png'
+      blob.type === 'image/jpeg'
+        ? 'jpg'
+        : 'png'
 
     const fileName =
       `ai_hero_${Date.now()}.${extension}`
@@ -2015,23 +2028,28 @@ const saveHeroAsset = async () => {
 
     const asset = forgeUICreateUploadedAsset(
       file,
-      heroBackground,
+      generatedHero,
     )
 
     forgeUIAddUploadedAssets([asset])
 
- if (asset.exportStatus === 'pending_conversion') {
+if (
+  asset.exportStatus ===
+  'pending_conversion'
+) {
   const res = await fetch(
     'http://localhost:3030/convert-lvgl-image',
     {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type':
+          'application/json',
       },
       body: JSON.stringify({
         fileName: asset.name,
         symbolName: asset.lvgl,
         base64: asset.browserSrc,
+        assetMode: 'hero',
       }),
     },
   )
@@ -2072,12 +2090,14 @@ toast({
 })
 
   } catch (err: any) {
-    console.error(err)
+  console.error(err)
 
-    setHeroError(
-      err.message || 'Failed to save Hero asset',
-    )
-  }
+  setHeroError(
+    err.message || 'Failed to save Hero asset',
+  )
+} finally {
+  setIsSavingHero(false)
+}
 }
 
   const insertJsonLayout = () => {
@@ -2669,12 +2689,18 @@ toast({
       </Button>
 
       <Button
-        colorScheme="green"
-        onClick={saveHeroAsset}
-        isDisabled={!heroBackground}
-      >
-        Save To Assets
-      </Button>
+  colorScheme="green"
+  onClick={saveHeroAsset}
+  isLoading={isSavingHero}
+  loadingText="Preparing LVGL"
+  isDisabled={
+    !generatedHero ||
+    isGeneratingHero ||
+    isSavingHero
+  }
+>
+  Save To Assets
+</Button>
     </HStack>
 
     {heroError && (
