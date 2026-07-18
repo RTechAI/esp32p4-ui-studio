@@ -13,6 +13,7 @@ export const COMPONENTS: (ComponentType | MetaComponentType)[] = [
   'Badge',
   'Box',
   'Button',
+  'InteractiveButton',
   'Center',
   'Checkbox',
   'CircularProgress',

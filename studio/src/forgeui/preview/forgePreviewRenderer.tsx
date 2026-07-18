@@ -20,6 +20,8 @@ import {
   Image,
 } from '@chakra-ui/react'
 
+import InteractiveButtonCanvasPreview from '~components/editor/previews/InteractiveButtonCanvasPreview'
+
 const lv = (v: any, d: any = 0) =>
   v !== undefined && v !== null && v !== '' ? v : d
 
@@ -175,6 +177,22 @@ case 'WiFi': {
         )
         break
       }
+
+      case 'InteractiveButton': {
+       output.push(
+         <Box
+          key={child.id}
+          position="absolute"
+          left={`${x}px`}
+        top={`${y}px`}
+    >
+      <InteractiveButtonCanvasPreview
+        component={child}
+      />
+       </Box>,
+  )
+  break
+}
 
       case 'IconButton': {
   output.push(

@@ -1,3 +1,7 @@
+import { useSelector } from 'react-redux'
+import { getSelectedComponent } from '~core/selectors/components'
+import { useForm } from '~hooks/useForm'
+
 import React, {
   useEffect,
   useMemo,
@@ -54,6 +58,19 @@ type VisualSelectorMode =
   | null
  
 const ForgeUIInteractiveAssetPanel = () => {
+  const selectedComponent =
+    useSelector(getSelectedComponent)
+
+  console.log(
+    'INTERACTIVE SELECTED COMPONENT:',
+    selectedComponent,
+  )
+
+  const { setValue } = useForm()
+
+  const selectedIsInteractiveButton =
+    selectedComponent?.type === 'InteractiveButton'
+
   const [assets, setAssets] = useState<
     ForgeUIInteractiveButtonAsset[]
   >([])
@@ -62,7 +79,7 @@ const ForgeUIInteractiveAssetPanel = () => {
     uploadedAssets,
     setUploadedAssets,
   ] = useState<ForgeUIUploadedAsset[]>([])
-
+  
   const [
     isCreatingButton,
     setIsCreatingButton,
@@ -160,7 +177,15 @@ const ForgeUIInteractiveAssetPanel = () => {
     [uploadedAssets, pressedAssetId],
   )
 
-  
+    const assignInteractiveAsset = (
+    asset: ForgeUIInteractiveButtonAsset,
+  ) => {
+    if (!selectedIsInteractiveButton) {
+      return
+    }
+
+    setValue('interactiveAssetId', asset.id)
+  }
     
   const resetDesigner = () => {
     setAssetName('New Interactive Button')
@@ -988,33 +1013,45 @@ const ForgeUIInteractiveAssetPanel = () => {
                         Interactive Button
                       </Badge>
 
-                      <HStack spacing={2}>
-                        <Button
-                          size="xs"
-                          colorScheme="blue"
-                          variant="outline"
-                          onClick={() =>
-                            editInteractiveButton(
-                              asset,
-                            )
-                          }
-                        >
-                          Edit
-                        </Button>
+            <HStack spacing={2}>
+           <Button
+            size="xs"
+             colorScheme="green"
+               variant="outline"
+                isDisabled={!selectedIsInteractiveButton}
+                onClick={() =>
+                  assignInteractiveAsset(asset)
+         }
+         >
+            Use on Selected
+            </Button>
 
-                        <Button
-                          size="xs"
-                          colorScheme="red"
-                          variant="outline"
-                          onClick={() =>
-                            deleteInteractiveAsset(
-                              asset.id,
-                            )
-                          }
-                        >
-                          Delete
-                        </Button>
-                      </HStack>
+           <Button
+          size="xs"
+        colorScheme="blue"
+       variant="outline"
+     onClick={() =>
+      editInteractiveButton(
+        asset,
+      )
+    }
+  >
+    Edit
+  </Button>
+
+  <Button
+    size="xs"
+    colorScheme="red"
+    variant="outline"
+    onClick={() =>
+      deleteInteractiveAsset(
+        asset.id,
+      )
+    }
+  >
+    Delete
+  </Button>
+</HStack>
                     </VStack>
                   </HStack>
                 </Box>
