@@ -39,18 +39,18 @@ const PreviewContainer: React.FC<{
         }
 
   const children = customChildren ? (
-  <Box
-    width="100%"
-    height="100%"
-    display="flex"
-    alignItems="stretch"
-    justifyContent="stretch"
-  >
-    {customChildren}
-  </Box>
-) : type ? (
-  React.createElement(type, childProps)
-) : null
+    <Box
+      width="100%"
+      height="100%"
+      display="flex"
+      alignItems="stretch"
+      justifyContent="stretch"
+    >
+      {customChildren}
+    </Box>
+  ) : type ? (
+    React.createElement(type, childProps)
+  ) : null
 
   if (props.positionMode === 'absolute') {
     return (
@@ -65,25 +65,22 @@ const PreviewContainer: React.FC<{
         }}
         bounds="parent"
         disableDragging={true}
-        enableResizing={true}
-        resizeHandleStyles={{
-  bottomRight: {
-    width: '18px',
-    height: '18px',
-    right: '-9px',
-    bottom: '-9px',
-    background: '#38bdf8',
-    border: '2px solid #ffffff',
-    boxShadow: '0 0 0 1px #0f172a, 0 0 8px #38bdf8',
-    borderRadius: '4px',
-    boxSizing: 'border-box',
-    zIndex: 99999,
-  },
-}}
+        enableResizing={{
+          top: true,
+          right: true,
+          bottom: true,
+          left: true,
+          topRight: false,
+          bottomRight: false,
+          bottomLeft: false,
+          topLeft: false,
+        }}
         style={{
-        border: enableVisualHelper ? '2px solid #67e8f9' : 'none',
-        boxSizing: 'border-box',
-}}
+          border: enableVisualHelper
+            ? '1px solid #67e8f9'
+            : 'none',
+          boxSizing: 'border-box',
+        }}
         onResizeStop={(_, __, element, ___, position) => {
           dispatch.components.updateProps({
             id: component.id,
@@ -123,7 +120,7 @@ const PreviewContainer: React.FC<{
     )
   }
 
-     return (
+  return (
     <Box
       ref={ref}
       position="relative"

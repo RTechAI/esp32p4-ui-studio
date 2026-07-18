@@ -69,38 +69,42 @@ export const useDropComponent = (
         return
       }
 
-      const defaultW = 240
-      const defaultH = 120
+      const defaultW =
+  item.type === 'Led' ? 32 : 240
 
-      const x = clamp(
-        Math.round(clientOffset.x - viewportRect.left - defaultW / 2),
-        0,
-        Math.round(viewportRect.width - defaultW),
-      )
+const defaultH =
+  item.type === 'Led' ? 32 : 120
 
-      const y = clamp(
-        Math.round(clientOffset.y - viewportRect.top - defaultH / 2),
-        0,
-        Math.round(viewportRect.height - defaultH),
-      )
-            dispatch.components.addComponent({
-        parentName: componentId,
-        type: item.type,
-        rootParentType: item.rootParentType,
-        props: {
-          positionMode: 'absolute',
-          x,
-          y,
-          w: defaultW,
-          h: defaultH,
-        },
-      })
+const x = clamp(
+  Math.round(clientOffset.x - viewportRect.left - defaultW / 2),
+  0,
+  Math.round(viewportRect.width - defaultW),
+)
 
-      if (item.type === 'Icon') {
-        window.setTimeout(() => {
-          window.dispatchEvent(
-            new CustomEvent('forgeui-open-icon-browser'),
-          )
+const y = clamp(
+  Math.round(clientOffset.y - viewportRect.top - defaultH / 2),
+  0,
+  Math.round(viewportRect.height - defaultH),
+)
+
+dispatch.components.addComponent({
+  parentName: componentId,
+  type: item.type,
+  rootParentType: item.rootParentType,
+  props: {
+    positionMode: 'absolute',
+    x,
+    y,
+    w: defaultW,
+    h: defaultH,
+  },
+})
+
+if (item.type === 'Icon') {
+  window.setTimeout(() => {
+    window.dispatchEvent(
+      new CustomEvent('forgeui-open-icon-browser'),
+   )
         }, 0)
       }
     },
