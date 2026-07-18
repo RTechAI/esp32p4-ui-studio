@@ -51,15 +51,15 @@ static void fg_wifi_tick_cb(lv_timer_t *timer)
 
 void fg_studio_export_create(lv_obj_t *parent)
 {
-    // Background flavour: Terminal Green
-    lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0x000A00), 0);
+    // Background flavour: Industrial Carbon
+    lv_obj_set_style_bg_color(lv_screen_active(), lv_color_hex(0x121417), 0);
     lv_obj_set_style_bg_opa(lv_screen_active(), LV_OPA_COVER, 0);
-    lv_obj_set_style_bg_color(parent, lv_color_hex(0x000A00), 0);
+    lv_obj_set_style_bg_color(parent, lv_color_hex(0x121417), 0);
     lv_obj_set_style_bg_opa(parent, LV_OPA_COVER, 0);
 
-    LV_IMAGE_DECLARE(fg_upload_ai_hero_1784338920383_34783689);
+    LV_IMAGE_DECLARE(fg_upload_ai_hero_1784342478518_b95a7dc0);
     lv_obj_t * bg_texture_0 = lv_image_create(parent);
-    lv_image_set_src(bg_texture_0, &fg_upload_ai_hero_1784338920383_34783689);
+    lv_image_set_src(bg_texture_0, &fg_upload_ai_hero_1784342478518_b95a7dc0);
     lv_obj_set_pos(bg_texture_0, 0, 0);
     lv_obj_set_size(bg_texture_0, 1024, 600);
     lv_obj_move_background(bg_texture_0);

@@ -3,6 +3,15 @@ const fs = require('fs')
 const path = require('path')
 const { spawn } = require('child_process')
 
+const defaultHeroFileName =
+  'fg_upload_ai_hero_1784342478518_b95a7dc0'
+
+const defaultHeroCSource =
+  `assets/defaults/${defaultHeroFileName}.c`
+
+const defaultHeroBrowserSrc =
+  `http://localhost:3030/forgeui-defaults/${defaultHeroFileName}.png`
+
 const app = express()
 
 let currentProcess = null
@@ -77,6 +86,16 @@ fs.mkdirSync(persistentUploadsDir, {
 app.use(
   '/forgeui-assets/uploads',
   express.static(persistentUploadsDir)
+)
+
+const defaultsDir = path.resolve(
+  __dirname,
+  '../firmware/ForgeUI-One/main/assets/defaults'
+)
+
+app.use(
+  '/forgeui-defaults',
+  express.static(defaultsDir)
 )
 
 function safeSymbolName(name) {
@@ -523,13 +542,21 @@ target_compile_definitions(\${COMPONENT_LIB} PRIVATE
       )
 
       return res.json({
-        ok: true,
-        success: true,
+      ok: true,
+       success: true,
 
-        filesRemoved,
-        bytesRecovered,
+       defaultHero: {
+       id: defaultHeroFileName,
+       name: `${defaultHeroFileName}.png`,
+       browserSrc: defaultHeroBrowserSrc,
+       lvgl: defaultHeroFileName,
+       cFile: defaultHeroCSource,
+      },
 
-        foldersCleaned: {
+         filesRemoved,
+           bytesRecovered,
+
+         foldersCleaned: {
           icons: iconsBefore.files,
           themes: themesBefore.files,
           uploads: uploadsBefore.files,
@@ -876,6 +903,7 @@ const mainDir = path.resolve(
   '"30_WIFI.c"',
   '"40_SD.c"',
   '"90_Studio_Export.c"',
+  `"${defaultHeroCSource}"`,
 ]
 
 assetSources.forEach((src) => {
@@ -1082,6 +1110,7 @@ const cmakeSources = [
   '"30_WIFI.c"',
   '"40_SD.c"',
   '"90_Studio_Export.c"',
+  `"${defaultHeroCSource}"`,
 ]
 
 assetSources.forEach((src) => {

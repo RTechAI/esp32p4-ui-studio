@@ -136,8 +136,31 @@ const Header = () => {
 
   const uploadedAssets = forgeUIGetUploadedAssets()
 
-  const selectedHeroAsset = uploadedAssets.find(
-    asset => asset.browserSrc === heroBackground,
+  const DEFAULT_HERO_FILE =
+  'fg_upload_ai_hero_1784342478518_b95a7dc0'
+
+const defaultHeroAsset = {
+  id: DEFAULT_HERO_FILE,
+  name: `${DEFAULT_HERO_FILE}.png`,
+  type: 'image/png',
+  browserSrc:
+    `http://localhost:3030/forgeui-defaults/${DEFAULT_HERO_FILE}.png`,
+  lvgl: DEFAULT_HERO_FILE,
+  cFile:
+    `assets/defaults/${DEFAULT_HERO_FILE}.c`,
+  exportStatus: 'lvgl_ready',
+} as any
+
+const selectedHeroAsset =
+  uploadedAssets.find(
+    asset =>
+      asset.browserSrc === heroBackground,
+  ) ||
+  (
+    heroBackground ===
+    defaultHeroAsset.browserSrc
+      ? defaultHeroAsset
+      : undefined
   )
 
   const showLayout = useSelector(getShowLayout)
@@ -732,15 +755,33 @@ const cleanBuildFlashForgeUIOne = async () => {
                     )
                   }
 
-                  dispatch.components.reset()
-                  forgeUIClearUploadedAssets()
+                dispatch.components.reset()
+forgeUIClearUploadedAssets()
 
-                  localStorage.removeItem(
-                    'forgeui_active_theme_v1',
-                  )
+localStorage.removeItem(
+  'forgeui_active_theme_v1',
+)
 
-                  setHeroBackground(null)
-                  setThemeId('graphite')
+setHeroBackground(null)
+setThemeId('graphite')
+
+if (data.defaultHero) {
+  setHeroBackground(
+    data.defaultHero.browserSrc,
+  )
+
+  localStorage.setItem(
+    'forgeui_active_theme_v1',
+    JSON.stringify({
+      themeId: 'graphite',
+      customPalette: null,
+      heroBackground:
+        data.defaultHero.browserSrc,
+      activeHeroAssetId:
+        data.defaultHero.id,
+    }),
+  )
+}
 
                   toast({
                     title:
