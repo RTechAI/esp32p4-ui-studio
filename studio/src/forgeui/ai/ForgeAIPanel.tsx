@@ -34,6 +34,11 @@ import { aiSupportedComponents } from '~componentsList'
 import { createForgeAIContext } from './ForgeAIContext'
 import { generateForgeAILayout } from './ForgeAIEngine'
 
+import ForgeUIInteractiveAssetPanel from
+  '~forgeui/interactive/ForgeUIInteractiveAssetPanel'
+
+
+
 type ForgeAIPanelProps = {
   onClose: () => void
   insertAiLayout: (items: any[]) => void
@@ -2172,23 +2177,33 @@ toast({
         </Button>
       </Flex>
 
-      <Box h="calc(100% - 82px)" overflowY="auto" px={{ base: 4, md: 6 }} py={5}>
-        <Tabs colorScheme="purple" variant="soft-rounded" isLazy>
-          <TabList
-            gap={2}
-            overflowX="auto"
-            pb={3}
-            borderBottom="1px solid rgba(148, 163, 184, 0.14)"
-          >
-            <Tab>Layout</Tab>
-            <Tab>Theme</Tab>
-            <Tab>Assets</Tab>
-            <Tab isDisabled>Images</Tab>
-            <Tab isDisabled>Icons</Tab>
-            <Tab isDisabled>Runtime</Tab>
-          </TabList>
+      <Box
+  h="calc(100% - 82px)"
+  overflowY="auto"
+  px={{ base: 4, md: 6 }}
+  py={5}
+>
+  <Tabs
+    colorScheme="purple"
+    variant="soft-rounded"
+    isLazy
+  >
+    <TabList
+      gap={2}
+      overflowX="auto"
+      pb={3}
+      borderBottom="1px solid rgba(148, 163, 184, 0.14)"
+    >
+      <Tab>Layout</Tab>
+      <Tab>Theme</Tab>
+      <Tab>Assets</Tab>
+      <Tab>Interactive</Tab>
+      <Tab isDisabled>Images</Tab>
+      <Tab isDisabled>Icons</Tab>
+      <Tab isDisabled>Runtime</Tab>
+    </TabList>
 
-          <TabPanels>
+    <TabPanels>
             <TabPanel px={0} pt={5}>
               <SimpleGrid columns={{ base: 1, xl: 2 }} spacing={5}>
                 <VStack spacing={5} align="stretch">
@@ -3365,11 +3380,16 @@ toast({
     </VStack>
   </SimpleGrid>
 </TabPanel>
-          </TabPanels>
-        </Tabs>
-      </Box>
-    </Box>
-  )
+
+<TabPanel px={0} pt={5}>
+  <ForgeUIInteractiveAssetPanel />
+</TabPanel>
+
+</TabPanels>
+</Tabs>
+</Box>
+</Box>
+)
 }
 
 export default ForgeAIPanel
