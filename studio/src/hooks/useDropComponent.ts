@@ -108,6 +108,8 @@ const isProgress = item.type === 'Progress'
 const isCircularProgress =
   item.type === 'CircularProgress'
 const isButton = item.type === 'Button'
+const isInteractiveButton =
+  item.type === 'InteractiveButton'
 const isSelect = item.type === 'Select'
 const isIcon = item.type === 'Icon'
 const isIconButton = item.type === 'IconButton'
@@ -137,27 +139,29 @@ const defaultW = isLed
                     ? 220
                     : isButton
                       ? 120
-                      : isSelect
-                        ? 180
-                        : isSwitch
-                          ? 48
-                          : isCheckbox
-                            ? 28
-                            : isRadio
+                      : isInteractiveButton
+                        ? 160
+                        : isSelect
+                          ? 180
+                          : isSwitch
+                            ? 48
+                            : isCheckbox
                               ? 28
-                              : isSlider
-                                ? 180
-                                : isProgress
+                              : isRadio
+                                ? 28
+                                : isSlider
                                   ? 180
-                                  : isRoller
-                                    ? 120
-                                    : isIcon || isIconButton
-                                      ? 48
-                                      : isDivider
-                                        ? 180
-                                        : isBox
+                                  : isProgress
+                                    ? 180
+                                    : isRoller
+                                      ? 120
+                                      : isIcon || isIconButton
+                                        ? 48
+                                        : isDivider
                                           ? 180
-                                          : 240
+                                          : isBox
+                                            ? 180
+                                            : 240
 
 const defaultH = isLed
   ? 32
@@ -181,27 +185,29 @@ const defaultH = isLed
                     ? 80
                     : isButton
                       ? 40
-                      : isSelect
-                        ? 36
-                        : isSwitch
-                          ? 28
-                          : isCheckbox
+                      : isInteractiveButton
+                        ? 56
+                        : isSelect
+                          ? 36
+                          : isSwitch
                             ? 28
-                            : isRadio
+                            : isCheckbox
                               ? 28
-                              : isSlider
-                                ? 36
-                                : isProgress
-                                  ? 24
-                                  : isRoller
-                                    ? 72
-                                    : isIcon || isIconButton
-                                      ? 48
-                                      : isDivider
-                                        ? 2
-                                        : isBox
-                                          ? 100
-                                          : 120
+                              : isRadio
+                                ? 28
+                                : isSlider
+                                  ? 36
+                                  : isProgress
+                                    ? 24
+                                    : isRoller
+                                      ? 72
+                                      : isIcon || isIconButton
+                                        ? 48
+                                        : isDivider
+                                          ? 2
+                                          : isBox
+                                            ? 100
+                                            : 120
 
 
 

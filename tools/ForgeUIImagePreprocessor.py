@@ -72,11 +72,29 @@ def process_artwork(image: Image.Image) -> Image.Image:
     return output
 
 
+def process_interactive_button(
+    image: Image.Image,
+    width: int,
+    height: int,
+) -> Image.Image:
+    image = image.convert("RGBA")
+
+    if width <= 0 or height <= 0:
+        raise ValueError(
+            "Interactive Button width and height must be greater than zero"
+        )
+
+    return image.resize(
+        (width, height),
+        Image.Resampling.LANCZOS,
+    )
+
+
 def main():
     if len(sys.argv) < 2:
         raise SystemExit(
             "Usage: ForgeUIImagePreprocessor.py "
-            "<image_path> [asset_mode]"
+            "<image_path> [asset_mode] [width] [height]"
         )
 
     image_path = sys.argv[1]
@@ -103,6 +121,29 @@ def main():
         elif asset_mode == "artwork":
             print(">>> ARTWORK BRANCH <<<")
             image = process_artwork(image)
+
+        elif asset_mode == "interactive_button":
+            print(">>> INTERACTIVE BUTTON BRANCH <<<")
+
+            if len(sys.argv) < 5:
+                raise SystemExit(
+                    "Interactive Button mode requires width and height: "
+                    "<image_path> interactive_button <width> <height>"
+                )
+
+            try:
+                width = int(sys.argv[3])
+                height = int(sys.argv[4])
+            except ValueError as error:
+                raise SystemExit(
+                    "Interactive Button width and height must be integers"
+                ) from error
+
+            image = process_interactive_button(
+                image,
+                width,
+                height,
+            )
 
         elif asset_mode == "icon":
             print(">>> ICON BRANCH <<<")

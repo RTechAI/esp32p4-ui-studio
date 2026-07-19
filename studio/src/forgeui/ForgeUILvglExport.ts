@@ -363,8 +363,12 @@ lines.push(
 )
 
 lines.push(
+   `lv_image_set_scale(${varName}_img, 256);`,
+)
+
+lines.push(
   `lv_obj_center(${varName}_img);`,
-)    
+)
 
 lines.push(
   `lv_obj_clear_flag(${varName}_img, LV_OBJ_FLAG_CLICKABLE);`,

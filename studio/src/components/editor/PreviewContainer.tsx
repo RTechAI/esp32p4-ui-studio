@@ -87,17 +87,10 @@ const isSelected =
           topLeft: false,
         }}
        style={{
-        border:
-        enableVisualHelper
-         ? isSelected
-        ? '3px solid #22d3ee'
-        : '1px solid #67e8f9'
-        : 'none',
-       boxShadow: isSelected
-        ? '0 0 16px rgba(34,211,238,0.6)'
-         : 'none',
-        boxSizing: 'border-box',
-      }}
+  border: 'none',
+  boxShadow: 'none',
+  boxSizing: 'border-box',
+}}
         onResizeStop={(_, __, element, ___, position) => {
           dispatch.components.updateProps({
             id: component.id,

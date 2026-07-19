@@ -204,7 +204,7 @@ const [
     [uploadedAssets, pressedAssetId],
   )
 
-    const assignInteractiveAsset = (
+  const assignInteractiveAsset = (
   asset: ForgeUIInteractiveButtonAsset,
 ) => {
   if (
@@ -219,13 +219,34 @@ const [
     asset.id,
   )
 
+  setValue(
+    'w',
+    String(asset.width),
+  )
+
+  setValue(
+    'h',
+    String(asset.height),
+  )
+
   dispatch.components.updateProps({
     id: selectedComponent.id,
     name: 'interactiveAssetId',
     value: asset.id,
   })
-}
-    
+
+  dispatch.components.updateProps({
+    id: selectedComponent.id,
+    name: 'w',
+    value: String(asset.width),
+  })
+
+  dispatch.components.updateProps({
+    id: selectedComponent.id,
+    name: 'h',
+    value: String(asset.height),
+  })
+}    
   const resetDesigner = () => {
     setAssetName('New Interactive Button')
     setButtonLabel('Button')
@@ -293,24 +314,34 @@ const [
     const timestamp = Date.now()
 
     const normalAsset =
-      await generateAIImageAsset({
-        prompt: trimmedPrompt,
-        filePrefix:
-          `ai_button_normal_${timestamp}`,
-        generationMode:
-          'button-normal',
-        assetMode: 'artwork',
-      })
+  await generateAIImageAsset({
+    prompt: trimmedPrompt,
+    filePrefix:
+      `ai_button_normal_${timestamp}`,
+    generationMode:
+      'button-normal',
+    assetMode:
+      'interactive_button',
+    width:
+      buttonWidth,
+    height:
+      buttonHeight,
+  })
 
     const pressedAsset =
-      await generateAIImageAsset({
-        prompt: trimmedPrompt,
-        filePrefix:
-          `ai_button_pressed_${timestamp}`,
-        generationMode:
-          'button-pressed',
-        assetMode: 'artwork',
-      })
+  await generateAIImageAsset({
+    prompt: trimmedPrompt,
+    filePrefix:
+      `ai_button_pressed_${timestamp}`,
+    generationMode:
+      'button-pressed',
+    assetMode:
+      'interactive_button',
+    width:
+      buttonWidth,
+    height:
+      buttonHeight,
+  })
 
     refreshUploadedAssets()
 

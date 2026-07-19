@@ -93,6 +93,53 @@ Natural Language Prompt
 ✓ ESP32-P4 Hardware
 ---
 
+## 🕹️ Interactive Button Asset Pipeline — Physical Hardware Proven
+
+ForgeUI Studio now supports reusable image-based Interactive Buttons with independent Normal and Pressed visual states.
+
+Buttons can be created manually from existing LVGL-ready assets or generated directly with AI.
+
+### Proven Workflow
+
+```text
+Button Description
+        │
+        ▼
+AI Normal State Generation
+        │
+        ▼
+AI Pressed State Generation
+        │
+        ▼
+Requested Width & Height
+        │
+        ▼
+Interactive Button Preprocessor
+        │
+        ▼
+Native-Size PNG Assets
+        │
+        ▼
+LVGL C Asset Generation
+        │
+        ▼
+Interactive Asset Registry
+        │
+        ▼
+Builder Canvas
+        │
+        ▼
+Browser Preview
+        │
+        ▼
+Native LVGL Export
+        │
+        ▼
+Physical ESP32-P4
+
+---
+---
+
 ## ✅ Verified End-to-End Development Workflow
 
 ForgeUI Studio has now been physically verified from Builder to hardware using both the integrated Studio workflow and a completely detached exported project.

@@ -23,6 +23,9 @@ type GenerateAIImageAssetOptions = {
     | 'artwork'
     | 'image'
     | 'icon'
+    | 'interactive_button'
+  width?: number
+  height?: number
 }
 
 type AIImageResponse = {
@@ -53,6 +56,8 @@ export const generateAIImageAsset = async ({
   filePrefix,
   generationMode,
   assetMode,
+  width,
+  height,
 }: GenerateAIImageAssetOptions): Promise<
   ForgeUIUploadedAsset
 > => {
@@ -148,27 +153,30 @@ export const generateAIImageAsset = async ({
   }
 
   const conversionResponse = await fetch(
-    'http://localhost:3030/convert-lvgl-image',
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type':
-          'application/json',
-      },
-      body: JSON.stringify({
-        fileName:
-          uploadedAsset.name,
-
-        symbolName:
-          uploadedAsset.lvgl,
-
-        base64:
-          uploadedAsset.browserSrc,
-
-        assetMode,
-      }),
+  'http://localhost:3030/convert-lvgl-image',
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type':
+        'application/json',
     },
-  )
+    body: JSON.stringify({
+      fileName:
+        uploadedAsset.name,
+
+      symbolName:
+        uploadedAsset.lvgl,
+
+      base64:
+        uploadedAsset.browserSrc,
+
+      assetMode,
+
+      width,
+      height,
+    }),
+  },
+)
 
   const conversionPayload =
     (await conversionResponse.json()) as

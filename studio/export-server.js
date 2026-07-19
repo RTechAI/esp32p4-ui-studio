@@ -603,6 +603,11 @@ app.post('/convert-lvgl-image', (req, res) => {
     const base64 = req.body.base64
     const assetMode =
   req.body.assetMode || 'image'
+  const width =
+  Number(req.body.width || 0)
+
+const height =
+  Number(req.body.height || 0)
   console.log('=== CONVERT REQUEST ===')
   console.log('fileName :', fileName)
   console.log('assetMode:', assetMode)
@@ -660,12 +665,14 @@ app.post('/convert-lvgl-image', (req, res) => {
     console.log('Preprocess input:', inputPath)
 
     const preprocess = spawn(
-      pythonPath,
-      [
-  preprocessorPath,
-  inputPath,
-  assetMode,
-],
+  pythonPath,
+  [
+    preprocessorPath,
+    inputPath,
+    assetMode,
+    String(width),
+    String(height),
+  ],
       {
         cwd: path.resolve(__dirname, '../tools'),
         windowsHide: true,
