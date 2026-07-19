@@ -3,6 +3,10 @@ import { getSelectedComponent } from '~core/selectors/components'
 import { useForm } from '~hooks/useForm'
 import useDispatch from '~hooks/useDispatch'
 
+import {
+  generateAIImageAsset,
+} from '~forgeui/ai/ForgeUIAIImagePipeline'
+
 import React, {
   useEffect,
   useMemo,
@@ -118,14 +122,24 @@ const [assets, setAssets] = useState<
     useState(DEFAULT_HEIGHT)
 
   const [
-    normalAssetId,
-    setNormalAssetId,
-  ] = useState<string | undefined>(undefined)
+  normalAssetId,
+  setNormalAssetId,
+] = useState<string | undefined>(undefined)
 
-  const [
-    pressedAssetId,
-    setPressedAssetId,
-  ] = useState<string | undefined>(undefined)
+const [
+  pressedAssetId,
+  setPressedAssetId,
+] = useState<string | undefined>(undefined)
+
+const [
+  aiPrompt,
+  setAiPrompt,
+] = useState('')
+
+const [
+  isGeneratingAIButton,
+  setIsGeneratingAIButton,
+] = useState(false)
 
   const refreshAssets = () => {
     setAssets(getAllInteractiveAssets())
@@ -261,6 +275,72 @@ const [assets, setAssets] = useState<
 
     setVisualSelectorMode(null)
   }
+
+  const generateAIButton = async () => {
+  const trimmedPrompt =
+    aiPrompt.trim()
+
+  if (
+    !trimmedPrompt ||
+    isGeneratingAIButton
+  ) {
+    return
+  }
+
+  setIsGeneratingAIButton(true)
+
+  try {
+    const timestamp = Date.now()
+
+    const normalAsset =
+      await generateAIImageAsset({
+        prompt: trimmedPrompt,
+        filePrefix:
+          `ai_button_normal_${timestamp}`,
+        generationMode:
+          'button-normal',
+        assetMode: 'artwork',
+      })
+
+    const pressedAsset =
+      await generateAIImageAsset({
+        prompt: trimmedPrompt,
+        filePrefix:
+          `ai_button_pressed_${timestamp}`,
+        generationMode:
+          'button-pressed',
+        assetMode: 'artwork',
+      })
+
+    refreshUploadedAssets()
+
+    setNormalAssetId(normalAsset.id)
+    setPressedAssetId(pressedAsset.id)
+
+    setVisualSelectorMode(null)
+
+    console.log(
+      'AI BUTTON GENERATED:',
+      {
+        normalAsset,
+        pressedAsset,
+      },
+    )
+  } catch (error) {
+    console.error(
+      'AI button generation failed:',
+      error,
+    )
+
+    window.alert(
+      error instanceof Error
+        ? error.message
+        : 'AI button generation failed.',
+    )
+  } finally {
+    setIsGeneratingAIButton(false)
+  }
+}
 
   const saveInteractiveButton = () => {
     const trimmedName = assetName.trim()
@@ -538,7 +618,46 @@ const [assets, setAssets] = useState<
                   the Normal and Pressed states.
                 </Text>
               </Box>
+              <Box
+             borderWidth="1px"
+             borderColor="purple.400"
+             borderRadius="md"
+             bg="purple.900"
+             p={4}
+         >
+          <Heading size="xs">
+            AI Create Button
+          </Heading>
 
+          <Text
+             color="gray.400"
+             fontSize="sm"
+             mt={1}
+             mb={3}
+         >
+            Describe the button you want and AI
+            will generate both Normal and
+            Pressed visuals.
+           </Text>
+
+           <Input
+            value={aiPrompt}
+            onChange={event =>
+            setAiPrompt(event.target.value)
+          }
+            placeholder="Blue Start button with soft glow..."
+            mb={3}
+          />
+
+          <Button
+            colorScheme="purple"
+            isLoading={isGeneratingAIButton}
+            isDisabled={!aiPrompt.trim()}
+            onClick={generateAIButton}
+          >
+             Generate Button
+          </Button>
+          </Box>
               <FormControl isRequired>
                 <FormLabel fontSize="sm">
                   Asset Name

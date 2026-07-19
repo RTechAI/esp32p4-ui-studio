@@ -31,7 +31,23 @@ This document defines:
 # System Overview
 
 ```
-Interactive Asset
+Natural-Language Prompt
+        │
+        ▼
+Shared AI Image Pipeline
+        │
+        ├── Normal Button Image
+        │
+        └── Pressed Button Image
+        │
+        ▼
+Uploaded Image Asset Registry
+        │
+        ▼
+LVGL Image Conversion
+        │
+        ▼
+Interactive Asset Designer
         │
         ▼
 Interactive Asset Registry
@@ -277,6 +293,304 @@ The Interactive Asset Panel listens for this event.
 Do not replace this mechanism.
 
 ---
+
+# 2A. Shared AI Image Pipeline
+
+## File
+
+```text
+ForgeUIAIImagePipeline.ts
+```
+
+This is the shared AI image generation and LVGL preparation helper.
+
+It must be reused by:
+
+- Hero Background generation
+- Artwork generation
+- Interactive Button Normal generation
+- Interactive Button Pressed generation
+- Future AI-generated visual-state assets
+
+Do not create a second upload or conversion pipeline for interactive controls.
+
+---
+
+## Main Function
+
+```ts
+generateAIImageAsset()
+```
+
+Options:
+
+```ts
+type AIImageGenerationMode =
+  | 'hero'
+  | 'artwork'
+  | 'button-normal'
+  | 'button-pressed'
+```
+
+```ts
+type GenerateAIImageAssetOptions = {
+  prompt: string
+  filePrefix: string
+  generationMode: AIImageGenerationMode
+  assetMode:
+    | 'hero'
+    | 'artwork'
+    | 'image'
+    | 'icon'
+}
+```
+
+---
+
+## Generation Request
+
+The helper calls:
+
+```text
+/api/forgeui-ai-hero
+```
+
+Request:
+
+```ts
+body: JSON.stringify({
+  prompt: trimmedPrompt,
+  mode: generationMode,
+})
+```
+
+The existing endpoint name remains for compatibility, but the endpoint now supports multiple generation modes.
+
+Do not assume this endpoint is hero-only.
+
+---
+
+## Asset Creation Flow
+
+```text
+generateAIImageAsset()
+        ↓
+AI API request
+        ↓
+Generated browser image
+        ↓
+Create File
+        ↓
+forgeUICreateUploadedAsset()
+        ↓
+forgeUIAddUploadedAssets()
+        ↓
+LVGL conversion server
+        ↓
+forgeUIUpdateUploadedAsset()
+        ↓
+ForgeUIUploadedAsset returned
+```
+
+---
+
+## LVGL Conversion
+
+The helper calls:
+
+```text
+http://localhost:3030/convert-lvgl-image
+```
+
+Request:
+
+```ts
+body: JSON.stringify({
+  fileName: uploadedAsset.name,
+  symbolName: uploadedAsset.lvgl,
+  base64: uploadedAsset.browserSrc,
+  assetMode,
+})
+```
+
+Successful conversion updates:
+
+```ts
+exportStatus: 'lvgl_ready'
+lvgl: conversionPayload.symbolName
+cFile: conversionPayload.assetSource
+browserSrc:
+  conversionPayload.browserSrc ||
+  uploadedAsset.browserSrc
+```
+
+---
+
+## Generation Mode vs Asset Mode
+
+These are separate responsibilities.
+
+### generationMode
+
+Controls what the AI creates.
+
+```text
+hero
+artwork
+button-normal
+button-pressed
+```
+
+### assetMode
+
+Controls image preprocessing and LVGL conversion.
+
+```text
+hero
+artwork
+image
+icon
+```
+
+For the current Interactive Button implementation:
+
+```ts
+generationMode: 'button-normal'
+assetMode: 'artwork'
+```
+
+and:
+
+```ts
+generationMode: 'button-pressed'
+assetMode: 'artwork'
+```
+
+Do not combine these two concepts.
+
+---
+
+# 3A. AI Interactive Button Designer
+
+The existing file remains:
+
+```text
+ForgeUIInteractiveAssetPanel.tsx
+```
+
+The panel now also owns the AI Interactive Button generation controls.
+
+Additional state:
+
+```ts
+const [
+  aiPrompt,
+  setAiPrompt,
+] = useState('')
+
+const [
+  isGeneratingAIButton,
+  setIsGeneratingAIButton,
+] = useState(false)
+```
+
+---
+
+## AI Generation Handler
+
+```ts
+generateAIButton()
+```
+
+Responsibilities:
+
+1. Validate the prompt.
+2. Enable the generation loading state.
+3. Generate the Normal state.
+4. Generate the Pressed state.
+5. Refresh uploaded assets.
+6. Assign both generated asset IDs.
+7. Close the manual visual selector.
+8. Restore the loading state.
+
+Flow:
+
+```text
+AI Prompt
+    ↓
+generateAIButton()
+    ↓
+generateAIImageAsset(
+  generationMode: 'button-normal'
+)
+    ↓
+Normal ForgeUIUploadedAsset
+    ↓
+generateAIImageAsset(
+  generationMode: 'button-pressed'
+)
+    ↓
+Pressed ForgeUIUploadedAsset
+    ↓
+refreshUploadedAssets()
+    ↓
+setNormalAssetId()
+    ↓
+setPressedAssetId()
+    ↓
+InteractiveButtonPreview refresh
+```
+
+---
+
+## Important Behaviour
+
+The AI generation handler does not directly:
+
+- Save the Interactive Asset
+- Register the Interactive Button
+- Assign it to a component
+- Render the button
+- Implement press behaviour
+
+It only generates and selects the two uploaded visual assets.
+
+The existing designer continues to own:
+
+- Asset name
+- Label
+- Width
+- Height
+- Save
+- Edit
+- Delete
+- Assignment
+- Preview
+
+Do not move existing save logic into the AI generation handler.
+
+---
+
+## Proven AI Generation
+
+Confirmed:
+
+- Prompt accepted
+- Generate Button action runs
+- Loading state works
+- Normal image generated
+- Pressed image generated
+- Both images registered
+- Both images converted to LVGL
+- Both marked `lvgl_ready`
+- Both automatically selected
+- Designer preview refreshes
+- Live press preview works
+- Saved asset works on the canvas
+- Canvas press and release states work
+
+---
+
 
 # 3. Interactive Asset Designer
 
@@ -981,6 +1295,12 @@ Completed
 * Save
 * Normal Picker
 * Pressed Picker
+* AI Button Generator
+* AI Prompt Input
+* Dual-State AI Image Generation
+* Automatic Uploaded Asset Registration
+* Automatic LVGL Conversion
+* Automatic Designer Assignment
 * Live Preview
 * Toolbox
 * Drag & Drop
@@ -994,9 +1314,7 @@ Completed
 * Redux Sync
 * Immediate Refresh
 * Restart Persistence
-
 ---
-
 # 22. Next Phase
 
 ## LVGL Export
