@@ -1941,7 +1941,278 @@ Shared runtime callback
 
 Generated LVGL project
 
-----------------------
+
+-----------------------------------------------------------------------------------
+To Be Added in Later 
+
+---
+
+# Generated User Event Hook Layer
+
+## Purpose
+
+The Generated User Event Hook Layer exposes Interactive Button events to developer-owned application code without requiring modifications to generated LVGL files.
+
+This keeps generated UI code and customer application logic completely separate.
+
+Future interactive controls should reuse this architecture.
+
+---
+
+## Ownership
+
+### ForgeUILvglExport.ts
+
+Primary function:
+
+```
+generateForgeUILvglCode()
+```
+
+Responsibilities:
+
+- Generate unique callback names
+- Collect generated user hooks
+- Export callback metadata
+- Emit runtime callback data
+- Connect Interactive Buttons to generated user events
+
+Returns:
+
+```ts
+{
+    code,
+    assetSources,
+    userEventHooks
+}
+```
+
+This remains the single source of truth for generated UI code.
+
+---
+
+## Interactive Button Export
+
+Inside:
+
+```
+case 'InteractiveButton'
+```
+
+The exporter now:
+
+Resolves:
+
+```
+getInteractiveAsset()
+```
+
+Resolves:
+
+```
+forgeUIGetUploadedAssets()
+```
+
+Generates:
+
+```
+FG_On_Button_Clicked()
+
+FG_On_Button_2_Clicked()
+
+FG_On_Start_Clicked()
+
+...
+```
+
+Duplicate names are automatically prevented.
+
+---
+
+## Frontend Export Pipeline
+
+File
+
+```
+Header.tsx
+```
+
+Every export now sends:
+
+```ts
+{
+    code,
+    assetSources,
+    userEventHooks
+}
+```
+
+to both:
+
+```
+POST /export
+
+POST /export-idf-project
+```
+
+The browser does not generate files.
+
+It only forwards generated hook information.
+
+---
+
+## Export Server
+
+File
+
+```
+server.js
+```
+
+New responsibility:
+
+Generate developer hook files.
+
+Function:
+
+```
+generateUserEventFiles()
+```
+
+Creates:
+
+```
+95_UserEvents.h
+
+95_UserEvents.c
+```
+
+Writes both files into:
+
+```
+Firmware Project
+
+Standalone ESP-IDF Project
+```
+
+No manual file creation is required.
+
+---
+
+## Generated Files
+
+Generated UI
+
+```
+90_Studio_Export.c
+
+90_Studio_Export.h
+```
+
+Generated Developer Hooks
+
+```
+95_UserEvents.c
+
+95_UserEvents.h
+```
+
+These files are generated automatically during every export.
+
+---
+
+## Runtime Integration
+
+90_Studio_Export.c includes:
+
+```c
+#include "95_UserEvents.h"
+```
+
+Each exported Interactive Button contains:
+
+```c
+.clicked_cb = FG_On_Button_Clicked,
+.event_name = "FG_On_Button_Clicked",
+```
+
+The shared runtime callback executes:
+
+```c
+if (data->clicked_cb)
+{
+    data->clicked_cb();
+}
+```
+
+The generated UI never contains application logic.
+
+---
+
+## Generated Hook Files
+
+### 95_UserEvents.h
+
+Owns:
+
+- Public callback declarations
+- C/C++ compatibility
+- Exported developer API
+
+### 95_UserEvents.c
+
+Owns:
+
+- Default callback implementations
+- User application logic
+- Future hardware actions
+- Runtime behaviour
+
+This is the intended location for customer code.
+
+---
+
+## CMake Integration
+
+The export server automatically updates:
+
+```
+main/CMakeLists.txt
+```
+
+to include:
+
+```
+90_Studio_Export.c
+
+95_UserEvents.c
+```
+
+Developer hook files are compiled automatically.
+
+---
+
+## Future Expansion
+
+The Generated User Event Hook Layer is intended to become the common runtime interface for future interactive controls, including:
+
+- Status LEDs
+- Switches
+- Sliders
+- Rotary Encoders
+- Navigation
+- Screen Changes
+- GPIO
+- PWM
+- Sensors
+- Timers
+- Runtime Animations
+- Custom Application Logic
+
+New controls should generate user callbacks through this same architecture rather than introducing separate runtime systems.
+
+---
+--------------------------------------------------------------------
 
 ---
 

@@ -123,14 +123,54 @@ const lv = (v: any, d: any = 0) =>
 const esc = (v: string = '') =>
   String(v).replace(/\\/g, '\\\\').replace(/"/g, '\\"')
 
+const toCIdentifier = (
+  value: string,
+  fallback = 'InteractiveButton',
+) => {
+  const cleaned = String(value || fallback)
+    .trim()
+    .replace(/[^a-zA-Z0-9_]+/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+    .map(part =>
+      part.charAt(0).toUpperCase() +
+      part.slice(1),
+    )
+    .join('')
+    .replace(/^[^a-zA-Z_]/, '_')
+
+  return cleaned || fallback
+}
+
+const createUniqueHookName = (
+  baseName: string,
+  usedHookNames: Set<string>,
+) => {
+  let hookName = `FG_On_${baseName}_Clicked`
+  let suffix = 2
+
+  while (usedHookNames.has(hookName)) {
+    hookName =
+      `FG_On_${baseName}_${suffix}_Clicked`
+
+    suffix++
+  }
+
+  usedHookNames.add(hookName)
+
+  return hookName
+}
+
 const buildLvglBlock = (
   component: IComponent,
   components: IComponents,
   parentVar: string,
   lines: string[],
   counter: { value: number },
-  palette: any,
-  usedAssetSources: Set<string>
+    palette: any,
+  usedAssetSources: Set<string>,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -256,6 +296,21 @@ case 'InteractiveButton': {
           interactiveAssetId,
         )
       : undefined
+        const buttonBaseName =
+    toCIdentifier(
+      interactiveAsset?.label ||
+      child.props.label ||
+      child.props.name ||
+      varName,
+    )
+
+  const clickedHookName =
+    createUniqueHookName(
+      buttonBaseName,
+      usedHookNames,
+    )
+
+  userEventHooks.add(clickedHookName)
 
   const uploadedAssets =
     forgeUIGetUploadedAssets()
@@ -391,6 +446,14 @@ lines.push(
 )
 
 lines.push(
+  `    .clicked_cb = ${clickedHookName},`,
+)
+
+lines.push(
+  `    .event_name = "${clickedHookName}",`,
+)
+
+lines.push(
   `};`,
 )
 
@@ -404,6 +467,10 @@ lines.push(
 
 lines.push(
   `lv_obj_add_event_cb(${varName}, fg_interactive_button_event_cb, LV_EVENT_PRESS_LOST, &${varName}_data);`,
+)
+
+lines.push(
+  `lv_obj_add_event_cb(${varName}, fg_interactive_button_event_cb, LV_EVENT_CLICKED, &${varName}_data);`,
 )
 
 } else {
@@ -1163,14 +1230,16 @@ case 'Chart': {
     
 
         if (child.children?.length) {
-      buildLvglBlock(
+            buildLvglBlock(
         child,
         components,
         varName,
         lines,
         counter,
         palette,
-        usedAssetSources
+        usedAssetSources,
+        usedHookNames,
+        userEventHooks,
       )
     }
   })
@@ -1181,8 +1250,10 @@ export const generateForgeUILvglCode = (
   themeId: string = 'graphite',
   heroBackground?: any,
 ) => {
-  const lines: string[] = []
+   const lines: string[] = []
   const usedAssetSources = new Set<string>()
+  const usedHookNames = new Set<string>()
+  const userEventHooks = new Set<string>()
 
   const previewPalette =
   FG_PREVIEW_PALETTES[themeId as ForgeThemeId] ||
@@ -1251,16 +1322,19 @@ const backgroundMode =
   lines.push(`#include "lvgl.h"`)
   lines.push(`#include "20_RTC.h"`)
   lines.push(`#include "30_WIFI.h"`)
+  lines.push(`#include "95_UserEvents.h"`)
   lines.push(`#include <stdbool.h>`)
   lines.push(`#include <stdio.h>`)
   lines.push(``)
   lines.push(`static lv_obj_t * fg_clock_label = NULL;`)
   lines.push(`static lv_obj_t * fg_wifi_label = NULL;`)
   lines.push(``)
-  lines.push(`typedef struct`)
+    lines.push(`typedef struct`)
   lines.push(`{`)
   lines.push(`    const void * normal_src;`)
   lines.push(`    const void * pressed_src;`)
+  lines.push(`    void (*clicked_cb)(void);`)
+  lines.push(`    const char * event_name;`)
   lines.push(`} fg_interactive_button_data_t;`)
   lines.push(``)
 
@@ -1288,14 +1362,23 @@ const backgroundMode =
   lines.push(`    {`)
   lines.push(`        lv_image_set_src(image, data->pressed_src);`)
   lines.push(`    }`)
-  lines.push(`    else if (`)
-  lines.push(`        code == LV_EVENT_RELEASED ||`)
-  lines.push(`        code == LV_EVENT_PRESS_LOST`)
-  lines.push(`    )`)
-  lines.push(`    {`)
-  lines.push(`        lv_image_set_src(image, data->normal_src);`)
-  lines.push(`    }`)
-  lines.push(`}`)
+ lines.push(`    else if (`)
+lines.push(`        code == LV_EVENT_RELEASED ||`)
+lines.push(`        code == LV_EVENT_PRESS_LOST`)
+lines.push(`    )`)
+lines.push(`    {`)
+lines.push(`        lv_image_set_src(image, data->normal_src);`)
+lines.push(`    }`)
+lines.push(`    else if (code == LV_EVENT_CLICKED)`)
+lines.push(`    {`)
+lines.push(`        printf("[ForgeUI] %s clicked\\n", data->event_name);`)
+lines.push(``)
+lines.push(`        if (data->clicked_cb)`)
+lines.push(`        {`)
+lines.push(`            data->clicked_cb();`)
+lines.push(`        }`)
+lines.push(`    }`)
+lines.push(`}`)
   lines.push(``)
 
   lines.push(`static void fg_clock_tick_cb(lv_timer_t *timer)`)
@@ -1398,14 +1481,16 @@ const backgroundMode =
     Object.values(components)[0]
 
   if (root) {
-    buildLvglBlock(
+        buildLvglBlock(
       root,
       components,
       'parent',
       body,
       { value: 0 },
       palette,
-      usedAssetSources
+      usedAssetSources,
+      usedHookNames,
+      userEventHooks,
     )
   }
 
@@ -1422,8 +1507,9 @@ lines.push(`    lv_timer_create(fg_wifi_tick_cb, 1000, NULL);`)
 
 lines.push(`}`)
 
-  return {
+    return {
     code: lines.join('\n'),
     assetSources: Array.from(usedAssetSources),
+    userEventHooks: Array.from(userEventHooks),
   }
 }

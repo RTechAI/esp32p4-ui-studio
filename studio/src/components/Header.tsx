@@ -312,9 +312,10 @@ const exportToForgeUIOne = async () => {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      code,
-      assetSources: result.assetSources,
-    }),
+  code,
+  assetSources: result.assetSources,
+  userEventHooks: result.userEventHooks,
+}),
   })
 
  await fetch('http://localhost:3030/flash', {
@@ -345,10 +346,11 @@ const exportToForgeUIOne = async () => {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      code,
-      assetSources,
-      projectName: 'ForgeUI_Export',
-    }),
+  code,
+  assetSources,
+  userEventHooks: result.userEventHooks,
+  projectName: 'ForgeUI_Export',
+}),
   })
 
   toast({
@@ -376,9 +378,10 @@ const cleanBuildFlashForgeUIOne = async () => {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      code,
-      assetSources: result.assetSources,
-    }),
+  code,
+  assetSources: result.assetSources,
+  userEventHooks: result.userEventHooks,
+}),
   })
 
   await fetch('http://localhost:3030/clean-flash', {

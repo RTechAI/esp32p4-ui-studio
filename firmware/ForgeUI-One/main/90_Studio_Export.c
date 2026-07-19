@@ -2,6 +2,7 @@
 #include "lvgl.h"
 #include "20_RTC.h"
 #include "30_WIFI.h"
+#include "95_UserEvents.h"
 #include <stdbool.h>
 #include <stdio.h>
 
@@ -12,6 +13,8 @@ typedef struct
 {
     const void * normal_src;
     const void * pressed_src;
+    void (*clicked_cb)(void);
+    const char * event_name;
 } fg_interactive_button_data_t;
 
 static void fg_interactive_button_event_cb(lv_event_t *event)
@@ -44,6 +47,15 @@ static void fg_interactive_button_event_cb(lv_event_t *event)
     )
     {
         lv_image_set_src(image, data->normal_src);
+    }
+    else if (code == LV_EVENT_CLICKED)
+    {
+        printf("[ForgeUI] %s clicked\n", data->event_name);
+
+        if (data->clicked_cb)
+        {
+            data->clicked_cb();
+        }
     }
 }
 
@@ -103,77 +115,59 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_size(bg_texture_0, 1024, 600);
     lv_obj_move_background(bg_texture_0);
 
-    LV_IMAGE_DECLARE(fg_upload_ai_button_normal_1784439468551_1784439487718_3df058ce);
-    LV_IMAGE_DECLARE(fg_upload_ai_button_pressed_1784439468551_1784439510435_2b233f89);
+    LV_IMAGE_DECLARE(fg_upload_ai_button_normal_1784439532374_1784439551627_25c295cc);
+    LV_IMAGE_DECLARE(fg_upload_ai_button_pressed_1784439532374_1784439571494_67480b60);
     lv_obj_t * obj1 = lv_button_create(parent);
-    lv_obj_set_pos(obj1, 68, 482);
-    lv_obj_set_size(obj1, 100, 50);
+    lv_obj_set_pos(obj1, 157, 78);
+    lv_obj_set_size(obj1, 200, 100);
     lv_obj_set_style_radius(obj1, 0, LV_PART_MAIN);
     lv_obj_set_style_border_width(obj1, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(obj1, 0, LV_PART_MAIN);
     lv_obj_set_style_bg_opa(obj1, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_set_style_shadow_width(obj1, 0, LV_PART_MAIN);
     lv_obj_t * obj1_img = lv_image_create(obj1);
-    lv_image_set_src(obj1_img, &fg_upload_ai_button_normal_1784439468551_1784439487718_3df058ce);
+    lv_image_set_src(obj1_img, &fg_upload_ai_button_normal_1784439532374_1784439551627_25c295cc);
     lv_image_set_scale(obj1_img, 256);
     lv_obj_center(obj1_img);
     lv_obj_clear_flag(obj1_img, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_clear_flag(obj1, LV_OBJ_FLAG_SCROLLABLE);
     static fg_interactive_button_data_t obj1_data = {
-        .normal_src = &fg_upload_ai_button_normal_1784439468551_1784439487718_3df058ce,
-        .pressed_src = &fg_upload_ai_button_pressed_1784439468551_1784439510435_2b233f89,
+        .normal_src = &fg_upload_ai_button_normal_1784439532374_1784439551627_25c295cc,
+        .pressed_src = &fg_upload_ai_button_pressed_1784439532374_1784439571494_67480b60,
+        .clicked_cb = FG_On_Button_Clicked,
+        .event_name = "FG_On_Button_Clicked",
     };
     lv_obj_add_event_cb(obj1, fg_interactive_button_event_cb, LV_EVENT_PRESSED, &obj1_data);
     lv_obj_add_event_cb(obj1, fg_interactive_button_event_cb, LV_EVENT_RELEASED, &obj1_data);
     lv_obj_add_event_cb(obj1, fg_interactive_button_event_cb, LV_EVENT_PRESS_LOST, &obj1_data);
+    lv_obj_add_event_cb(obj1, fg_interactive_button_event_cb, LV_EVENT_CLICKED, &obj1_data);
 
-    LV_IMAGE_DECLARE(fg_upload_ai_button_normal_1784439532374_1784439551627_25c295cc);
-    LV_IMAGE_DECLARE(fg_upload_ai_button_pressed_1784439532374_1784439571494_67480b60);
+    LV_IMAGE_DECLARE(fg_upload_ai_button_normal_1784456048422_1784456071708_e635bbab);
+    LV_IMAGE_DECLARE(fg_upload_ai_button_pressed_1784456048422_1784456096221_a6cce689);
     lv_obj_t * obj2 = lv_button_create(parent);
-    lv_obj_set_pos(obj2, 265.99998474121094, 459);
-    lv_obj_set_size(obj2, 200, 93);
+    lv_obj_set_pos(obj2, 48, 219);
+    lv_obj_set_size(obj2, 400, 300);
     lv_obj_set_style_radius(obj2, 0, LV_PART_MAIN);
     lv_obj_set_style_border_width(obj2, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(obj2, 0, LV_PART_MAIN);
     lv_obj_set_style_bg_opa(obj2, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_set_style_shadow_width(obj2, 0, LV_PART_MAIN);
     lv_obj_t * obj2_img = lv_image_create(obj2);
-    lv_image_set_src(obj2_img, &fg_upload_ai_button_normal_1784439532374_1784439551627_25c295cc);
+    lv_image_set_src(obj2_img, &fg_upload_ai_button_normal_1784456048422_1784456071708_e635bbab);
     lv_image_set_scale(obj2_img, 256);
     lv_obj_center(obj2_img);
     lv_obj_clear_flag(obj2_img, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_clear_flag(obj2, LV_OBJ_FLAG_SCROLLABLE);
     static fg_interactive_button_data_t obj2_data = {
-        .normal_src = &fg_upload_ai_button_normal_1784439532374_1784439551627_25c295cc,
-        .pressed_src = &fg_upload_ai_button_pressed_1784439532374_1784439571494_67480b60,
+        .normal_src = &fg_upload_ai_button_normal_1784456048422_1784456071708_e635bbab,
+        .pressed_src = &fg_upload_ai_button_pressed_1784456048422_1784456096221_a6cce689,
+        .clicked_cb = FG_On_Button_2_Clicked,
+        .event_name = "FG_On_Button_2_Clicked",
     };
     lv_obj_add_event_cb(obj2, fg_interactive_button_event_cb, LV_EVENT_PRESSED, &obj2_data);
     lv_obj_add_event_cb(obj2, fg_interactive_button_event_cb, LV_EVENT_RELEASED, &obj2_data);
     lv_obj_add_event_cb(obj2, fg_interactive_button_event_cb, LV_EVENT_PRESS_LOST, &obj2_data);
-
-    LV_IMAGE_DECLARE(fg_upload_ai_button_normal_1784439655817_1784439674734_0b40ebb9);
-    LV_IMAGE_DECLARE(fg_upload_ai_button_pressed_1784439655817_1784439696420_92b6d476);
-    lv_obj_t * obj3 = lv_button_create(parent);
-    lv_obj_set_pos(obj3, 548, 300);
-    lv_obj_set_size(obj3, 400, 300);
-    lv_obj_set_style_radius(obj3, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_width(obj3, 0, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(obj3, 0, LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(obj3, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_shadow_width(obj3, 0, LV_PART_MAIN);
-    lv_obj_t * obj3_img = lv_image_create(obj3);
-    lv_image_set_src(obj3_img, &fg_upload_ai_button_normal_1784439655817_1784439674734_0b40ebb9);
-    lv_image_set_scale(obj3_img, 256);
-    lv_obj_center(obj3_img);
-    lv_obj_clear_flag(obj3_img, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_clear_flag(obj3, LV_OBJ_FLAG_SCROLLABLE);
-    static fg_interactive_button_data_t obj3_data = {
-        .normal_src = &fg_upload_ai_button_normal_1784439655817_1784439674734_0b40ebb9,
-        .pressed_src = &fg_upload_ai_button_pressed_1784439655817_1784439696420_92b6d476,
-    };
-    lv_obj_add_event_cb(obj3, fg_interactive_button_event_cb, LV_EVENT_PRESSED, &obj3_data);
-    lv_obj_add_event_cb(obj3, fg_interactive_button_event_cb, LV_EVENT_RELEASED, &obj3_data);
-    lv_obj_add_event_cb(obj3, fg_interactive_button_event_cb, LV_EVENT_PRESS_LOST, &obj3_data);
+    lv_obj_add_event_cb(obj2, fg_interactive_button_event_cb, LV_EVENT_CLICKED, &obj2_data);
 
 
     fg_clock_tick_cb(NULL);

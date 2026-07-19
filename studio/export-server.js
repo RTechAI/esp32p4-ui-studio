@@ -387,13 +387,23 @@ app.post(
       )
 
       const cTarget = path.join(
-        mainDir,
-        '90_Studio_Export.c'
+       mainDir,
+     '90_Studio_Export.c'
       )
 
       const hTarget = path.join(
-        mainDir,
-        '90_Studio_Export.h'
+      mainDir,
+      '90_Studio_Export.h'
+      )
+
+      const userEventsCTarget = path.join(
+       mainDir,
+       '95_UserEvents.c'
+      )
+
+      const userEventsHTarget = path.join(
+       mainDir,
+       '95_UserEvents.h'
       )
 
       const cmakeTarget = path.join(
@@ -841,10 +851,70 @@ return res.json({
   }
 })
 
+function generateUserEventFiles(userEventHooks) {
+  const uniqueHooks = Array.from(
+    new Set(
+      (Array.isArray(userEventHooks)
+        ? userEventHooks
+        : []
+      )
+        .map((hook) => String(hook || '').trim())
+        .filter((hook) =>
+          /^FG_On_[A-Za-z0-9_]+_Clicked$/.test(hook)
+        )
+    )
+  )
+
+  const declarations = uniqueHooks
+    .map((hook) => `void ${hook}(void);`)
+    .join('\n')
+
+  const definitions = uniqueHooks
+    .map((hook) =>
+`void ${hook}(void)
+{
+    printf("[ForgeUI User Event] ${hook}\\n");
+}`
+    )
+    .join('\n\n')
+
+  const header =
+`#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+${declarations}
+
+#ifdef __cplusplus
+}
+#endif
+`
+
+  const source =
+`#include "95_UserEvents.h"
+#include <stdio.h>
+
+${definitions}
+`
+
+  return {
+    header,
+    source,
+    hooks: uniqueHooks,
+  }
+}
+
 app.post('/export', (req, res) => {
   try {
     const code = req.body.code || ''
-    const assetSources = req.body.assetSources || []
+const assetSources = req.body.assetSources || []
+const userEventHooks =
+  req.body.userEventHooks || []
+
+const userEvents =
+  generateUserEventFiles(userEventHooks)
 
     const iconSourceDir = path.resolve(
   __dirname,
@@ -901,6 +971,11 @@ const mainDir = path.resolve(
 )
     const cTarget = path.join(mainDir, '90_Studio_Export.c')
     const hTarget = path.join(mainDir, '90_Studio_Export.h')
+    const userEventsCTarget =
+  path.join(mainDir, '95_UserEvents.c')
+
+const userEventsHTarget =
+  path.join(mainDir, '95_UserEvents.h')
 
     const cmakeSources = [
   '"main.c"',
@@ -910,6 +985,7 @@ const mainDir = path.resolve(
   '"30_WIFI.c"',
   '"40_SD.c"',
   '"90_Studio_Export.c"',
+  '"95_UserEvents.c"',
   `"${defaultHeroCSource}"`,
 ]
 
@@ -946,30 +1022,72 @@ target_compile_definitions(\${COMPONENT_LIB} PRIVATE
 )`
 
     fs.writeFileSync(cTarget, code, 'utf8')
-    fs.writeFileSync(hTarget, header, 'utf8')
-    const cmakeTarget = path.join(mainDir, 'CMakeLists.txt')
-fs.writeFileSync(cmakeTarget, generatedCMake, 'utf8')
+fs.writeFileSync(hTarget, header, 'utf8')
+
+fs.writeFileSync(
+  userEventsCTarget,
+  userEvents.source,
+  'utf8'
+)
+
+fs.writeFileSync(
+  userEventsHTarget,
+  userEvents.header,
+  'utf8'
+)
+
+const cmakeTarget = path.join(
+  mainDir,
+  'CMakeLists.txt'
+)
+
+fs.writeFileSync(
+  cmakeTarget,
+  generatedCMake,
+  'utf8'
+)
+
 console.log('Generated LIVE CMake:', cmakeTarget)
 
-    console.log('Exported C to:', cTarget)
-    console.log('Exported H to:', hTarget)
+console.log('Exported C to:', cTarget)
+console.log('Exported H to:', hTarget)
+console.log(
+  'Exported User Events C to:',
+  userEventsCTarget
+)
+console.log(
+  'Exported User Events H to:',
+  userEventsHTarget
+)
 
-    res.json({
-      ok: true,
-      cTarget,
-      hTarget,
-    })
+   res.json({
+  ok: true,
+  cTarget,
+  hTarget,
+  userEventsCTarget,
+  userEventsHTarget,
+  userEventHooks: userEvents.hooks,
+})
   } catch (err) {
     console.error(err)
-    res.status(500).json({ ok: false, error: String(err) })
+
+    res.status(500).json({
+      ok: false,
+      error: String(err),
+    })
   }
 })
 
 app.post('/export-idf-project', (req, res) => {
   try {
     const code = req.body.code || ''
-    const assetSources = req.body.assetSources || []
+const assetSources = req.body.assetSources || []
 
+const userEventHooks =
+  req.body.userEventHooks || []
+
+const userEvents =
+  generateUserEventFiles(userEventHooks)
     function safeProjectName(name) {
       return String(name || 'ForgeUI_Export')
         .trim()
@@ -1106,8 +1224,29 @@ void fg_studio_export_create(lv_obj_t *parent);
 #endif
 `
 
-    const cTarget = path.join(exportDir, 'main', '90_Studio_Export.c')
-  const hTarget = path.join(exportDir, 'main', '90_Studio_Export.h')
+   const cTarget = path.join(
+  exportDir,
+  'main',
+  '90_Studio_Export.c'
+)
+
+const hTarget = path.join(
+  exportDir,
+  'main',
+  '90_Studio_Export.h'
+)
+
+const userEventsCTarget = path.join(
+  exportDir,
+  'main',
+  '95_UserEvents.c'
+)
+
+const userEventsHTarget = path.join(
+  exportDir,
+  'main',
+  '95_UserEvents.h'
+)
 
 const cmakeSources = [
   '"main.c"',
@@ -1117,6 +1256,7 @@ const cmakeSources = [
   '"30_WIFI.c"',
   '"40_SD.c"',
   '"90_Studio_Export.c"',
+  '"95_UserEvents.c"',
   `"${defaultHeroCSource}"`,
 ]
 
@@ -1152,10 +1292,35 @@ target_compile_definitions(\${COMPONENT_LIB} PRIVATE
     LV_LVGL_H_INCLUDE_SIMPLE
 )`
 
-    fs.writeFileSync(cTarget, code, 'utf8')
-    fs.writeFileSync(hTarget, header, 'utf8')
+fs.writeFileSync(
+  cTarget,
+  code,
+  'utf8'
+)
 
-    const cmakeTarget = path.join(exportDir, 'main', 'CMakeLists.txt')
+fs.writeFileSync(
+  hTarget,
+  header,
+  'utf8'
+)
+
+fs.writeFileSync(
+  userEventsCTarget,
+  userEvents.source,
+  'utf8'
+)
+
+fs.writeFileSync(
+  userEventsHTarget,
+  userEvents.header,
+  'utf8'
+)
+
+const cmakeTarget = path.join(
+  exportDir,
+  'main',
+  'CMakeLists.txt'
+)
 
 fs.writeFileSync(
   cmakeTarget,
@@ -1163,14 +1328,23 @@ fs.writeFileSync(
   'utf8'
 )
 
-console.log('Generated CMake:', cmakeTarget)
+console.log(
+  'Generated CMake:',
+  cmakeTarget
+)
 
-    console.log('ESP-IDF project exported to:', exportDir)
+console.log(
+  'ESP-IDF project exported to:',
+  exportDir
+)
 
-    res.json({
-      ok: true,
-      exportDir,
-    })
+res.json({
+  ok: true,
+  exportDir,
+  userEventsCTarget,
+  userEventsHTarget,
+  userEventHooks: userEvents.hooks,
+})
   } catch (err) {
     console.error(err)
 
@@ -1185,19 +1359,27 @@ app.post('/open-exports', (req, res) => {
   try {
     const exportsRoot = 'C:\\ForgeUI-Exports'
 
-    fs.mkdirSync(exportsRoot, { recursive: true })
-
-    spawn('powershell.exe', [
-      '-NoProfile',
-      '-ExecutionPolicy',
-      'Bypass',
-      '-Command',
-      `Start-Process explorer.exe "${exportsRoot}"`
-    ], {
-      windowsHide: true,
+    fs.mkdirSync(exportsRoot, {
+      recursive: true,
     })
 
-    res.json({ ok: true })
+    spawn(
+      'powershell.exe',
+      [
+        '-NoProfile',
+        '-ExecutionPolicy',
+        'Bypass',
+        '-Command',
+        `Start-Process explorer.exe "${exportsRoot}"`,
+      ],
+      {
+        windowsHide: true,
+      }
+    )
+
+    res.json({
+      ok: true,
+    })
   } catch (err) {
     console.error(err)
 

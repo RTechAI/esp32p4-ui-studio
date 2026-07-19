@@ -1,3 +1,269 @@
+
+# SAVE POINT
+
+**FORGEUI_V2_4_2__GENERATED_USER_EVENT_HOOK_LAYER__ESP_IDF_EXPORT_PIPELINE_COMPLETE__READY_FOR_PHYSICAL_RUNTIME_PROOF__2026-07-20**
+
+---
+
+# Current Status
+
+ForgeUI Studio now generates a complete developer event hook layer alongside the normal LVGL export.
+
+Interactive Buttons no longer terminate inside generated code.
+
+Instead, every exported Interactive Button automatically generates a stable user callback inside a dedicated user-owned source file.
+
+The generated runtime now separates:
+
+- Generated UI
+- Generated Event Wiring
+- Developer Logic
+
+without requiring edits to generated files.
+
+---
+
+# Proven
+
+## Interactive Button Runtime
+
+✓ Interactive Asset Registry
+
+✓ Interactive Button Designer
+
+✓ Assignment
+
+✓ Browser Preview
+
+✓ Physical Pressed/Released Images
+
+✓ Multi-instance Runtime
+
+✓ Physical Size Parity
+
+✓ Unique callback generation
+
+✓ Callback name generation
+
+✓ Runtime event dispatch
+
+✓ Shared LVGL event callback
+
+✓ Generated callback registration
+
+✓ Duplicate callback avoidance
+
+---
+
+## Generated User Hook Layer
+
+Exporter now generates:
+
+```
+90_Studio_Export.c
+90_Studio_Export.h
+
+95_UserEvents.c
+95_UserEvents.h
+```
+
+Generated UI owns:
+
+- LVGL object creation
+- Image declarations
+- Event registration
+- Runtime callback wiring
+
+User layer owns:
+
+- Application behaviour
+- Click handlers
+- Hardware actions
+- Business logic
+
+---
+
+# Event Flow
+
+```text
+Interactive Button
+        │
+        ▼
+ForgeUILvglExport.ts
+        │
+        ▼
+Generate unique callback names
+        │
+        ▼
+90_Studio_Export.c
+        │
+        ▼
+Shared LVGL Event Callback
+        │
+        ▼
+FG_On_Button_Clicked()
+        │
+        ▼
+95_UserEvents.c
+        │
+        ▼
+Developer Code
+```
+
+---
+
+# Runtime Architecture
+
+Each exported Interactive Button now contains:
+
+```c
+.clicked_cb = FG_On_Button_Clicked
+.event_name = "FG_On_Button_Clicked"
+```
+
+Shared runtime callback:
+
+```text
+LV_EVENT_PRESSED
+LV_EVENT_RELEASED
+LV_EVENT_PRESS_LOST
+LV_EVENT_CLICKED
+```
+
+Only the CLICKED event calls into the user hook.
+
+Pressed/Released continue to manage image swapping.
+
+---
+
+# User Event Generation
+
+Unique hook names are generated automatically.
+
+Example:
+
+```
+FG_On_Button_Clicked
+FG_On_Button_2_Clicked
+FG_On_Start_Clicked
+FG_On_Stop_Clicked
+```
+
+Duplicate names are automatically avoided.
+
+---
+
+# Export Pipeline
+
+ForgeUILvglExport.ts now returns:
+
+```ts
+{
+    code,
+    assetSources,
+    userEventHooks
+}
+```
+
+Header.tsx now forwards:
+
+```
+code
+assetSources
+userEventHooks
+```
+
+to
+
+```
+POST /export
+
+POST /export-idf-project
+```
+
+The Express server now generates:
+
+```
+95_UserEvents.h
+
+95_UserEvents.c
+```
+
+for both Live Firmware and Standalone ESP-IDF exports.
+
+---
+
+# CMake
+
+Generated automatically.
+
+Now includes:
+
+```
+90_Studio_Export.c
+95_UserEvents.c
+```
+
+Developer hooks are compiled automatically.
+
+---
+
+# File Ownership
+
+Generated every export
+
+```
+90_Studio_Export.c
+90_Studio_Export.h
+```
+
+Developer hook layer
+
+```
+95_UserEvents.c
+95_UserEvents.h
+```
+
+Future developer logic belongs only inside 95_UserEvents.*
+
+---
+
+# Remaining Proof
+
+Final physical validation.
+
+Verify:
+
+✓ ESP-IDF compiles cleanly
+
+✓ 95_UserEvents.c compiled
+
+✓ Button click prints
+
+```
+[ForgeUI] FG_On_Button_Clicked clicked
+```
+
+followed by
+
+```
+[ForgeUI User Event] FG_On_Button_Clicked
+```
+
+Repeat for multiple buttons.
+
+Once confirmed, the generated user event hook architecture is considered physically proven.
+
+---
+
+# Next Work
+
+After runtime validation:
+
+- Allow developers to preserve edits to 95_UserEvents on re-export (if desired).
+- Expand hook generation for additional widgets (LEDs, Switches, Sliders, etc.).
+- Begin designing the I/O tab and runtime action system that connects generated callbacks to ESP32-P4 hardware features.
+-------------------------------------------------------------------------------------
 # SPINE
 
 ## Current Save Point
