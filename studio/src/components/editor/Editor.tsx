@@ -1,17 +1,31 @@
-import React, { memo, useRef } from 'react'
+import React, {
+  memo,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
+
 import {
   Box,
   Text,
 } from '@chakra-ui/react'
-import { useDropComponent } from '~hooks/useDropComponent'
+
 import SplitPane from 'react-split-pane'
-import CodePanel from '~components/CodePanel'
 import { useSelector } from 'react-redux'
-import useDispatch from '~hooks/useDispatch'
-import { getComponents } from '~core/selectors/components'
-import { getShowLayout, getShowCode } from '~core/selectors/app'
+
+import CodePanel from '~components/CodePanel'
 import ComponentPreview from '~components/editor/ComponentPreview'
+
+import { getShowCode, getShowLayout } from '~core/selectors/app'
+import { getComponents } from '~core/selectors/components'
+
+import useDispatch from '~hooks/useDispatch'
+import { useDropComponent } from '~hooks/useDropComponent'
+
 import { FORGEUI_ACTIVE_DEVICE } from '~forgeui/ForgeUIDeviceConfig'
+import {
+  reloadInteractiveAssets,
+} from '~forgeui/interactive'
 import { useForgeTheme } from '~forgeui/theme/ForgeThemeContext'
 
 const GRID_SIZE = FORGEUI_ACTIVE_DEVICE.gridSize
@@ -119,6 +133,16 @@ const textureBackgrounds: Record<string, any> = {
 }
 
 const Editor: React.FC = () => {
+  const [
+    interactiveAssetsReady,
+    setInteractiveAssetsReady,
+  ] = useState(false)
+
+  useEffect(() => {
+    reloadInteractiveAssets()
+    setInteractiveAssetsReady(true)
+  }, [])
+
   const showCode = useSelector(getShowCode)
   const showLayout = useSelector(getShowLayout)
   const components = useSelector(getComponents)
@@ -232,9 +256,15 @@ const heroStyle = heroBackground
           </Text>
         )}
 
-        {components.root.children.map((name: string) => (
-          <ComponentPreview key={name} componentName={name} />
-        ))}
+        {interactiveAssetsReady &&
+           components.root.children.map(
+           (name: string) => (
+           <ComponentPreview
+            key={name}
+            componentName={name}
+       />
+      ),
+      )}
       </Box>
     </Box>
   )

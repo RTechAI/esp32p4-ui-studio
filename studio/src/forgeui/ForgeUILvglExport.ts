@@ -2,6 +2,10 @@ import { forgeUIGetUploadedAssets } from './ForgeUIUploadedAssetRegistry'
 import { FORGEUI_IMAGE_ASSETS } from './ForgeUIAssetRegistry'
 
 import {
+  getInteractiveAsset,
+} from './interactive'
+
+import {
   FG_PREVIEW_PALETTES,
   type ForgeThemeId,
 } from './preview/forgeThemeMap'
@@ -241,6 +245,220 @@ case 'WiFi': {
         lines.push(``)
         break
       }
+
+case 'InteractiveButton': {
+  const interactiveAssetId =
+    child.props.interactiveAssetId
+
+  const interactiveAsset =
+    interactiveAssetId
+      ? getInteractiveAsset(
+          interactiveAssetId,
+        )
+      : undefined
+
+  const uploadedAssets =
+    forgeUIGetUploadedAssets()
+
+  const normalAsset =
+    interactiveAsset
+      ? uploadedAssets.find(
+          (asset: any) =>
+            asset.id ===
+            interactiveAsset.normalAssetId,
+        )
+      : undefined
+
+  const pressedAsset =
+    interactiveAsset
+      ? uploadedAssets.find(
+          (asset: any) =>
+            asset.id ===
+            interactiveAsset.pressedAssetId,
+        )
+      : undefined
+
+  const normalReady =
+    normalAsset?.exportStatus ===
+      'lvgl_ready' &&
+    normalAsset?.lvgl
+
+  const pressedReady =
+    pressedAsset?.exportStatus ===
+      'lvgl_ready' &&
+    pressedAsset?.lvgl
+
+  if (
+    normalReady &&
+    pressedReady
+  ) {
+    const normalSymbol =
+      normalAsset.lvgl
+
+    const pressedSymbol =
+      pressedAsset.lvgl
+
+    if (normalAsset.cFile) {
+      usedAssetSources.add(
+        normalAsset.cFile,
+      )
+    }
+
+    if (pressedAsset.cFile) {
+      usedAssetSources.add(
+        pressedAsset.cFile,
+      )
+    }
+
+    lines.push(
+      `LV_IMAGE_DECLARE(${normalSymbol});`,
+    )
+
+    if (
+      pressedSymbol !== normalSymbol
+    ) {
+      lines.push(
+        `LV_IMAGE_DECLARE(${pressedSymbol});`,
+      )
+    }
+
+    lines.push(
+      `lv_obj_t * ${varName} = lv_button_create(${parentVar});`,
+    )
+
+    lines.push(
+      `lv_obj_set_pos(${varName}, ${x}, ${y});`,
+    )
+
+    lines.push(
+      `lv_obj_set_size(${varName}, ${w}, ${h});`,
+    )
+
+    lines.push(
+      `lv_obj_set_style_radius(${varName}, 0, LV_PART_MAIN);`,
+    )
+
+    lines.push(
+      `lv_obj_set_style_border_width(${varName}, 0, LV_PART_MAIN);`,
+    )
+
+    lines.push(
+      `lv_obj_set_style_pad_all(${varName}, 0, LV_PART_MAIN);`,
+    )
+
+    lines.push(
+      `lv_obj_set_style_bg_opa(${varName}, LV_OPA_TRANSP, LV_PART_MAIN);`,
+    )
+
+    lines.push(
+      `lv_obj_set_style_shadow_width(${varName}, 0, LV_PART_MAIN);`,
+    )
+
+    lines.push(
+  `lv_obj_t * ${varName}_img = lv_image_create(${varName});`,
+)
+
+lines.push(
+  `lv_image_set_src(${varName}_img, &${normalSymbol});`,
+)
+
+lines.push(
+  `lv_obj_center(${varName}_img);`,
+)    
+
+lines.push(
+  `lv_obj_clear_flag(${varName}_img, LV_OBJ_FLAG_CLICKABLE);`,
+)
+
+lines.push(
+  `lv_obj_clear_flag(${varName}, LV_OBJ_FLAG_SCROLLABLE);`,
+)
+
+lines.push(
+  `static fg_interactive_button_data_t ${varName}_data = {`,
+)
+
+lines.push(
+  `    .normal_src = &${normalSymbol},`,
+)
+
+lines.push(
+  `    .pressed_src = &${pressedSymbol},`,
+)
+
+lines.push(
+  `};`,
+)
+
+lines.push(
+  `lv_obj_add_event_cb(${varName}, fg_interactive_button_event_cb, LV_EVENT_PRESSED, &${varName}_data);`,
+)
+
+lines.push(
+  `lv_obj_add_event_cb(${varName}, fg_interactive_button_event_cb, LV_EVENT_RELEASED, &${varName}_data);`,
+)
+
+lines.push(
+  `lv_obj_add_event_cb(${varName}, fg_interactive_button_event_cb, LV_EVENT_PRESS_LOST, &${varName}_data);`,
+)
+
+} else {
+  const label = esc(
+    interactiveAsset?.label ||
+      'Interactive Button',
+  )
+    lines.push(
+      `lv_obj_t * ${varName} = lv_button_create(${parentVar});`,
+    )
+
+    lines.push(
+      `lv_obj_set_pos(${varName}, ${x}, ${y});`,
+    )
+
+    lines.push(
+      `lv_obj_set_size(${varName}, ${w}, ${h});`,
+    )
+
+    lines.push(
+      `lv_obj_set_style_radius(${varName}, 12, 0);`,
+    )
+
+    lines.push(
+      `lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), 0);`,
+    )
+
+    lines.push(
+      `lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), 0);`,
+    )
+
+    lines.push(
+      `lv_obj_set_style_border_width(${varName}, 2, 0);`,
+    )
+
+    lines.push(
+      `lv_obj_t * ${varName}_label = lv_label_create(${varName});`,
+    )
+
+    lines.push(
+      `lv_label_set_text(${varName}_label, "${label}\\nMissing Interactive Assets");`,
+    )
+
+    lines.push(
+      `lv_obj_set_style_text_color(${varName}_label, lv_color_hex(${palette.text}), 0);`,
+    )
+
+    lines.push(
+      `lv_obj_set_style_text_align(${varName}_label, LV_TEXT_ALIGN_CENTER, 0);`,
+    )
+
+    lines.push(
+      `lv_obj_center(${varName}_label);`,
+    )
+  }
+
+  lines.push(``)
+  break
+}
 
       case 'IconButton': {
   lines.push(`lv_obj_t * ${varName} = lv_button_create(${parentVar});`)
@@ -1034,6 +1252,46 @@ const backgroundMode =
   lines.push(``)
   lines.push(`static lv_obj_t * fg_clock_label = NULL;`)
   lines.push(`static lv_obj_t * fg_wifi_label = NULL;`)
+  lines.push(``)
+  lines.push(`typedef struct`)
+  lines.push(`{`)
+  lines.push(`    const void * normal_src;`)
+  lines.push(`    const void * pressed_src;`)
+  lines.push(`} fg_interactive_button_data_t;`)
+  lines.push(``)
+
+  lines.push(`static void fg_interactive_button_event_cb(lv_event_t *event)`)
+  lines.push(`{`)
+  lines.push(`    lv_event_code_t code = lv_event_get_code(event);`)
+  lines.push(`    lv_obj_t * button = lv_event_get_target(event);`)
+  lines.push(``)
+  lines.push(`    fg_interactive_button_data_t * data =`)
+  lines.push(`        (fg_interactive_button_data_t *)lv_event_get_user_data(event);`)
+  lines.push(``)
+  lines.push(`    if (!button || !data)`)
+  lines.push(`    {`)
+  lines.push(`        return;`)
+  lines.push(`    }`)
+  lines.push(``)
+  lines.push(`    lv_obj_t * image = lv_obj_get_child(button, 0);`)
+  lines.push(``)
+  lines.push(`    if (!image)`)
+  lines.push(`    {`)
+  lines.push(`        return;`)
+  lines.push(`    }`)
+  lines.push(``)
+  lines.push(`    if (code == LV_EVENT_PRESSED)`)
+  lines.push(`    {`)
+  lines.push(`        lv_image_set_src(image, data->pressed_src);`)
+  lines.push(`    }`)
+  lines.push(`    else if (`)
+  lines.push(`        code == LV_EVENT_RELEASED ||`)
+  lines.push(`        code == LV_EVENT_PRESS_LOST`)
+  lines.push(`    )`)
+  lines.push(`    {`)
+  lines.push(`        lv_image_set_src(image, data->normal_src);`)
+  lines.push(`    }`)
+  lines.push(`}`)
   lines.push(``)
 
   lines.push(`static void fg_clock_tick_cb(lv_timer_t *timer)`)

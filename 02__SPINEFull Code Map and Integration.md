@@ -1,3 +1,230 @@
+# ForgeUI Interactive Assets — Physical Pressed-State Runtime Proven
+
+## Savepoint
+
+`FORGEUI_INTERACTIVE_BUTTON_PHYSICAL_PRESSED_STATE__LVGL_EVENT_RUNTIME_PROVEN`
+
+---
+
+# Overview
+
+The ForgeUI Interactive Button pipeline is now fully operational from Studio through to physical ESP32-P4 hardware.
+
+Interactive Buttons now automatically export their runtime behavior using the existing LVGL exporter.
+
+No duplicate exporter was created.
+
+The existing architecture has been extended without redesign.
+
+---
+
+# Proven Features
+
+- Interactive Asset Definitions
+- Interactive Button Asset Type
+- Registry
+- Persistence
+- Validation
+- ID Generation
+- Designer
+- Create
+- Edit
+- Delete
+- Save
+- Normal Image Picker
+- Pressed Image Picker
+- Live Preview
+- Toolbox
+- Drag & Drop
+- Canvas
+- Browser Preview
+- Selection
+- Borders
+- Multi-Instance
+- Use On Selected
+- Inspector Sync
+- Redux Sync
+- Immediate Refresh
+- Restart Persistence
+- LVGL Export
+- Firmware Build
+- Firmware Flash
+- Physical ESP32-P4 Rendering
+- Physical Pressed State
+- Physical Release State
+
+---
+
+# LVGL Runtime
+
+The existing exporter now automatically generates:
+
+## Shared Runtime Data
+
+```c
+typedef struct
+{
+    const void * normal_src;
+    const void * pressed_src;
+} fg_interactive_button_data_t;
+```
+
+---
+
+## Shared Event Callback
+
+```c
+static void fg_interactive_button_event_cb(lv_event_t *event)
+```
+
+This callback automatically:
+
+- Detects button pressed
+- Swaps to the pressed image
+- Detects release
+- Restores the normal image
+- Handles press-lost events safely
+
+---
+
+# Automatic Export
+
+Each Interactive Button now exports:
+
+- LV Button
+- LV Image
+- Runtime asset data
+- Event callbacks
+- Normal image
+- Pressed image
+
+No manual firmware coding is required.
+
+---
+
+# Automatic Event Wiring
+
+Every generated button is automatically connected to:
+
+- `LV_EVENT_PRESSED`
+- `LV_EVENT_RELEASED`
+- `LV_EVENT_PRESS_LOST`
+
+Each instance maintains its own runtime image state.
+
+Multiple buttons are fully supported.
+
+---
+
+# Existing Export Pipeline Preserved
+
+The implementation continues to reuse:
+
+- `generateForgeUILvglCode()`
+- `getInteractiveAsset()`
+- `forgeUIGetUploadedAssets()`
+- `asset.lvgl`
+- `asset.cFile`
+- `usedAssetSources`
+- `LV_IMAGE_DECLARE()`
+
+No duplicate exporter.
+
+No special runtime.
+
+No firmware changes outside the exporter.
+
+---
+
+# Physical Hardware Validation
+
+Successfully proven on ESP32-P4.
+
+Verified:
+
+- Build
+- Flash
+- Boot
+- Normal image displayed
+- Pressed image displayed while held
+- Normal image restored after release
+- Multiple Interactive Buttons working simultaneously
+
+---
+
+# Architecture Status
+
+The Interactive Button system is now complete through the entire pipeline.
+
+Studio
+
+↓
+
+Registry
+
+↓
+
+Persistence
+
+↓
+
+Canvas
+
+↓
+
+Browser Preview
+
+↓
+
+LVGL Export
+
+↓
+
+Firmware Build
+
+↓
+
+ESP32-P4 Runtime
+
+↓
+
+Touch Events
+
+↓
+
+Pressed Image
+
+↓
+
+Release Image
+
+---
+
+# Next Phase
+
+The next milestone is Interactive Actions.
+
+Instead of only changing appearance, buttons will execute configurable actions.
+
+Examples include:
+
+- Navigate to another screen
+- Show or hide components
+- Toggle visibility
+- Toggle LEDs
+- Update text
+- Start animations
+- Trigger runtime callbacks
+- Execute generated user code
+- Send future hardware events
+
+The visual state system is now complete.
+
+The next stage is connecting Interactive Buttons to runtime behaviour.
+
+--------------------------------------------------------------------------------
+
+
 # ForgeUI Interactive Assets
 
 # Full Code Map & Integration Spine

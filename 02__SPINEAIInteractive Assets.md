@@ -3259,3 +3259,385 @@ Return:
 * full code for each new file
 * any registration edits
 * a short test showing that an Interactive Button can be registered and retrieved
+
+
+
+------------------------------------------------------------------------------------
+
+EXPORTER SIDE 
+
+---
+
+# Interactive Button LVGL Export — Integration Map (Proven)
+
+## Overview
+
+The Interactive Button now exports completely through the existing ForgeUI LVGL exporter.
+
+No second exporter was created.
+
+The implementation extends the existing export pipeline only.
+
+This section documents every integration point so future development does not need to search the project.
+
+---
+
+# Primary Export File
+
+All Interactive Button export logic lives inside:
+
+```
+generateForgeUILvglCode()
+```
+
+within the ForgeUI LVGL exporter.
+
+This remains the single source of truth for firmware generation.
+
+Do not create another exporter.
+
+---
+
+# Imports Added
+
+The exporter now imports:
+
+```ts
+import { getInteractiveAsset } from './interactive'
+
+import { forgeUIGetUploadedAssets }
+from './ForgeUIUploadedAssetRegistry'
+```
+
+Purpose:
+
+- Resolve Interactive Assets
+- Resolve uploaded LVGL-ready assets
+- Locate exported C files
+- Locate LVGL symbol names
+
+---
+
+# Export Flow
+
+Each InteractiveButton component now exports using the following pipeline:
+
+```
+Canvas Component
+
+↓
+
+interactiveAssetId
+
+↓
+
+getInteractiveAsset()
+
+↓
+
+normalAssetId
+
+pressedAssetId
+
+↓
+
+forgeUIGetUploadedAssets()
+
+↓
+
+LVGL Ready Assets
+
+↓
+
+asset.lvgl
+
+asset.cFile
+
+↓
+
+LV_IMAGE_DECLARE()
+
+↓
+
+Generated Runtime Button
+```
+
+---
+
+# InteractiveButton Export Case
+
+A dedicated exporter now exists:
+
+```ts
+case 'InteractiveButton'
+```
+
+Responsibilities:
+
+- Resolve Interactive Asset
+- Resolve Normal asset
+- Resolve Pressed asset
+- Validate LVGL readiness
+- Export runtime button
+- Export runtime image
+- Register event callbacks
+
+---
+
+# Existing Systems Reused
+
+The exporter intentionally reuses the existing infrastructure.
+
+No duplicate asset pipeline exists.
+
+Reused systems:
+
+- generateForgeUILvglCode()
+- getInteractiveAsset()
+- forgeUIGetUploadedAssets()
+- asset.lvgl
+- asset.cFile
+- usedAssetSources
+- LV_IMAGE_DECLARE()
+
+---
+
+# Asset Validation
+
+Before export the following is verified:
+
+```
+Interactive Asset exists
+
+↓
+
+Normal Asset exists
+
+↓
+
+Pressed Asset exists
+
+↓
+
+Both are LVGL Ready
+
+↓
+
+Export images
+
+Else
+
+Generate fallback placeholder button
+```
+
+This prevents broken firmware exports when assets are missing.
+
+---
+
+# Asset Source Collection
+
+The exporter automatically adds required generated C files:
+
+```ts
+usedAssetSources.add(
+    normalAsset.cFile
+)
+
+usedAssetSources.add(
+    pressedAsset.cFile
+)
+```
+
+These become part of the generated firmware build automatically.
+
+---
+
+# LVGL Image Declarations
+
+Each exported button generates:
+
+```c
+LV_IMAGE_DECLARE(normalSymbol);
+
+LV_IMAGE_DECLARE(pressedSymbol);
+```
+
+Duplicate declarations are avoided when both states reference the same image.
+
+---
+
+# Runtime Objects Generated
+
+Each Interactive Button exports:
+
+```
+lv_button
+
+↓
+
+lv_image
+
+↓
+
+Normal image
+
+↓
+
+Runtime data
+
+↓
+
+Event callbacks
+```
+
+No additional runtime object types were introduced.
+
+---
+
+# Runtime Support Added
+
+The exporter now emits one shared runtime structure:
+
+```c
+typedef struct
+{
+    const void * normal_src;
+    const void * pressed_src;
+}
+fg_interactive_button_data_t;
+```
+
+This is generated once for the entire project.
+
+---
+
+# Runtime Event Callback
+
+The exporter also emits one shared callback:
+
+```c
+fg_interactive_button_event_cb()
+```
+
+Responsibilities:
+
+- Handle LV_EVENT_PRESSED
+- Handle LV_EVENT_RELEASED
+- Handle LV_EVENT_PRESS_LOST
+- Swap button artwork
+- Restore normal state
+
+This callback is reused by every exported Interactive Button.
+
+---
+
+# Per Button Runtime Data
+
+Each exported button automatically creates:
+
+```c
+static fg_interactive_button_data_t objX_data
+```
+
+containing:
+
+- Normal image pointer
+- Pressed image pointer
+
+Each button therefore maintains completely independent runtime state.
+
+---
+
+# Automatic Event Wiring
+
+Each exported Interactive Button automatically registers:
+
+```c
+LV_EVENT_PRESSED
+
+LV_EVENT_RELEASED
+
+LV_EVENT_PRESS_LOST
+```
+
+No manual firmware coding is required.
+
+---
+
+# Generated Runtime Behaviour
+
+Physical runtime now behaves as:
+
+```
+Normal
+
+↓
+
+Touch
+
+↓
+
+Pressed Image
+
+↓
+
+Release
+
+↓
+
+Normal Image
+
+↓
+
+Press Lost
+
+↓
+
+Normal Image
+```
+
+---
+
+# Proven Hardware Result
+
+Verified on the physical ESP32-P4:
+
+- Build successful
+- Flash successful
+- Boot successful
+- Normal image displayed
+- Pressed image displayed
+- Release restores normal image
+- Multiple buttons operate independently
+
+---
+
+# Current Export Ownership
+
+Future Interactive Controls should continue extending the existing exporter.
+
+Do not create:
+
+- InteractiveButtonExporter.ts
+- Separate LVGL generator
+- Parallel runtime generator
+
+Everything should continue through:
+
+```
+generateForgeUILvglCode()
+
+↓
+
+case 'InteractiveButton'
+
+↓
+
+Shared runtime callback
+
+↓
+
+Generated LVGL project
+```
+
+This is now the proven architecture for Interactive Asset export.
