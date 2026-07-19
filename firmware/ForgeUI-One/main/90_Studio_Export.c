@@ -118,8 +118,8 @@ void fg_studio_export_create(lv_obj_t *parent)
     LV_IMAGE_DECLARE(fg_upload_ai_button_normal_1784439532374_1784439551627_25c295cc);
     LV_IMAGE_DECLARE(fg_upload_ai_button_pressed_1784439532374_1784439571494_67480b60);
     lv_obj_t * obj1 = lv_button_create(parent);
-    lv_obj_set_pos(obj1, 157, 78);
-    lv_obj_set_size(obj1, 200, 100);
+    lv_obj_set_pos(obj1, 173, 97);
+    lv_obj_set_size(obj1, 200, 301);
     lv_obj_set_style_radius(obj1, 0, LV_PART_MAIN);
     lv_obj_set_style_border_width(obj1, 0, LV_PART_MAIN);
     lv_obj_set_style_pad_all(obj1, 0, LV_PART_MAIN);
@@ -145,7 +145,7 @@ void fg_studio_export_create(lv_obj_t *parent)
     LV_IMAGE_DECLARE(fg_upload_ai_button_normal_1784456048422_1784456071708_e635bbab);
     LV_IMAGE_DECLARE(fg_upload_ai_button_pressed_1784456048422_1784456096221_a6cce689);
     lv_obj_t * obj2 = lv_button_create(parent);
-    lv_obj_set_pos(obj2, 48, 219);
+    lv_obj_set_pos(obj2, 624, 121);
     lv_obj_set_size(obj2, 400, 300);
     lv_obj_set_style_radius(obj2, 0, LV_PART_MAIN);
     lv_obj_set_style_border_width(obj2, 0, LV_PART_MAIN);
