@@ -136,13 +136,21 @@ const Editor: React.FC = () => {
 
   let editorBackgroundProps = {}
 
-  const onSelectBackground = () => {
-    dispatch.components.unselect()
+  const onSelectBackground = (
+  event: React.MouseEvent<HTMLDivElement>,
+) => {
+  // Only unselect when clicking the empty editor background.
+  // Ignore clicks that originated from components inside the canvas.
+  if (event.target !== event.currentTarget) {
+    return
   }
 
-  if (showLayout) {
-    editorBackgroundProps = gridStyles
-  }
+  dispatch.components.unselect()
+}
+
+if (showLayout) {
+  editorBackgroundProps = gridStyles
+}
 
  const textureId = (palette as any).texture
 

@@ -1,16 +1,16 @@
-# ForgeUI Interactive Assets — Phase 1 Integration (Proven)
+# ForgeUI Interactive Assets — Phase 2 Assignment Integration
 
 ## Overview
 
-Phase 1 establishes the complete Interactive Asset infrastructure inside ForgeUI Studio.
+The Interactive Asset infrastructure is fully operational.
 
-The component is now fully registered from the toolbox through to the canvas and browser preview. The only remaining work is assigning an Interactive Asset to the component and exporting it.
+Phase 2 has begun by connecting the Interactive Asset panel to the editor. The assignment UI has been implemented, but selected-component detection is currently preventing assignment.
 
 ---
 
 # 1. Interactive Asset System
 
-Created the core Interactive Asset framework.
+Core Interactive Asset framework completed.
 
 Files:
 
@@ -33,9 +33,9 @@ Responsibilities:
 
 # 2. Interactive Button Preview
 
-Created
+Created:
 
-InteractiveButtonPreview.tsx
+- InteractiveButtonPreview.tsx
 
 Purpose:
 
@@ -43,124 +43,77 @@ Purpose:
 - Displays Normal image
 - Displays Pressed image
 - Mouse down/up preview
-- Contains **no registry logic**
+- No registry logic
 
-This component should remain reusable.
+This component should remain a reusable renderer only.
 
 ---
 
 # 3. Canvas Adapter
 
-Created
+Created:
 
-InteractiveButtonCanvasPreview.tsx
+- InteractiveButtonCanvasPreview.tsx
 
-Purpose:
+Responsibilities:
 
-Resolve everything required by the renderer.
+- Read
 
-Flow:
-
-InteractiveButton Component
-
-↓
-
+```ts
 component.props.interactiveAssetId
+```
 
-↓
+- Lookup Interactive Asset
+- Resolve Normal image
+- Resolve Pressed image
+- Pass assets into:
 
-Interactive Asset Registry
+```tsx
+<InteractiveButtonPreview />
+```
 
-↓
-
-Normal Asset
-Pressed Asset
-
-↓
-
-InteractiveButtonPreview
-
-All registry lookups belong here.
+All registry logic remains here.
 
 ---
 
-# 4. Register New Component Type
+# 4. Component Registration
 
-Added InteractiveButton to:
+InteractiveButton is registered in:
 
 - ComponentType
 - COMPONENTS
 - rootComponents
-
-ForgeUI now recognises InteractiveButton as a native component.
-
----
-
-# 5. Component Preview Registration
-
-Updated
-
-ComponentPreview.tsx
-
-Added:
-
-case 'InteractiveButton'
-
-which renders
-
-InteractiveButtonCanvasPreview
-
----
-
-# 6. Forge Preview Registration
-
-Updated
-
-forgePreviewRenderer.tsx
-
-Added
-
-case 'InteractiveButton'
-
-Browser Preview now supports InteractiveButton exactly like the editor.
-
----
-
-# 7. Sidebar Registration
-
-Added InteractiveButton to
-
-menuItems
-
-This allows the sidebar menu to recognise it.
-
----
-
-# 8. Component List Registration
-
-Added InteractiveButton to
-
-componentsList
-
-The component is now part of the editor component catalogue.
-
----
-
-# 9. Toolbox Registration
-
-Added InteractiveButton to
-
-forgeuiCoreWidgets
+- componentsList
+- menuItems
+- forgeuiCoreWidgets
 
 Result:
 
-InteractiveButton now appears in the left toolbox and can be dragged onto the canvas.
+- Appears in toolbox
+- Drag & Drop works
+- Canvas rendering works
+- Browser preview works
 
 ---
 
-# 10. Registration Pipeline (Proven)
+# 5. Preview Registration
 
-The following pipeline has been completely proven:
+Added to:
+
+- ComponentPreview.tsx
+- forgePreviewRenderer.tsx
+
+Both render:
+
+```tsx
+<InteractiveButtonCanvasPreview component={component} />
+```
+
+---
+
+# 6. Proven Pipeline
+
+The following workflow is now proven:
 
 Sidebar
 
@@ -186,55 +139,132 @@ InteractiveButtonPreview
 
 Status:
 
-✔ Appears in toolbox
-
-✔ Drags correctly
-
-✔ Drops correctly
-
-✔ Renders correctly
-
-✔ Browser preview works
-
-✔ No crashes
+- ✔ Toolbox registration
+- ✔ Drag & Drop
+- ✔ Canvas rendering
+- ✔ Browser Preview
+- ✔ Registry lookup architecture
+- ✔ No runtime crashes
 
 ---
 
-# Current Behaviour
+# 7. Interactive Asset Designer
 
-When dropped onto the canvas the component displays the placeholder message:
+The Interactive Asset panel now supports:
 
-"Select both Normal and Pressed visuals to preview the button."
-
-This is expected because no Interactive Asset has been assigned yet.
-
-The rendering pipeline itself is fully functional.
-
----
-
-# Phase 2 — Asset Assignment
-
-The next milestone is connecting the Interactive Assets panel.
-
-When an InteractiveButton is selected:
-
-- Show Interactive Asset panel
-- Browse Interactive Assets
-- Select one
-
-Write
-
-component.props.interactiveAssetId
-
-to the selected component.
+- Create Interactive Button
+- Edit
+- Delete
+- Save
+- Normal image selection
+- Pressed image selection
+- Live preview
+- Registry persistence
 
 ---
 
-# Live Preview Pipeline
+# 8. Assignment UI Added
 
-Once connected the pipeline becomes:
+The Interactive Asset list now includes:
+
+- **Use on Selected**
+- Edit
+- Delete
+
+Assignment handler added:
+
+```ts
+const assignInteractiveAsset = (
+  asset: ForgeUIInteractiveButtonAsset,
+) => {
+  if (!selectedIsInteractiveButton) {
+    return
+  }
+
+  setValue('interactiveAssetId', asset.id)
+}
+```
+
+The panel now accesses:
+
+```ts
+const selectedComponent =
+  useSelector(getSelectedComponent)
+
+const { setValue } = useForm()
+```
+
+---
+
+# Current Blocker
+
+The assignment button remains disabled.
+
+Current check:
+
+```ts
+const selectedIsInteractiveButton =
+  selectedComponent?.type === 'InteractiveButton'
+```
+
+Even after selecting an InteractiveButton on the canvas, **Use on Selected** remains greyed out.
+
+This indicates one of the following:
+
+- Opening the AI Playground clears the current selection.
+- `getSelectedComponent()` is returning a different object than expected.
+- The Playground is outside the active inspector selection context.
+- The component type is stored differently than expected.
+
+The assignment UI is complete.
+
+The remaining work is resolving selected-component detection.
+
+---
+
+# Next Chat — Start Here
+
+Open:
+
+```
+ForgeUIInteractiveAssetPanel.tsx
+```
+
+Inspect:
+
+```ts
+const selectedComponent =
+  useSelector(getSelectedComponent)
+```
+
+Determine:
+
+- What `selectedComponent` actually contains.
+- Whether opening the Playground clears the selection.
+- Whether another selector should be used.
+- Whether assignment should use the existing Inspector selection API instead.
+
+Do **not** modify:
+
+- InteractiveButtonPreview
+- InteractiveButtonCanvasPreview
+- Registry
+- Persistence
+- Renderer
+
+Those systems are already complete.
+
+---
+
+# Remaining Pipeline
+
+Once selection is detected correctly:
 
 InteractiveButton
+
+↓
+
+Use on Selected
 
 ↓
 
@@ -242,70 +272,41 @@ interactiveAssetId
 
 ↓
 
-Interactive Asset Registry
+InteractiveButtonCanvasPreview
 
 ↓
 
-Normal Asset
-
-Pressed Asset
+Registry lookup
 
 ↓
 
-InteractiveButtonPreview
-
-Result:
-
-- Live Normal state
-- Live Pressed state
-- Instant preview updates
-
----
-
-# Persistence
-
-Ensure
-
-component.props.interactiveAssetId
-
-is:
-
-- Saved inside project JSON
-- Restored when projects reopen
-
----
-
-# Export Pipeline
-
-During LVGL export:
-
-InteractiveButton
+Normal image
 
 ↓
 
-Normal Image
-
-Pressed Image
+Pressed image
 
 ↓
 
-Generated LVGL Objects
+Live canvas preview
 
 ↓
 
-ESP32-P4 Runtime
+Browser preview
 
-This completes the reusable Interactive Asset workflow.
+↓
+
+LVGL export
+
+↓
+
+ESP32-P4 runtime
 
 ---
 
 # Current Milestone
 
-## ✅ Phase 1 Complete
-
-Infrastructure is fully proven.
-
-Completed:
+## ✅ Completed
 
 - Interactive Asset registry
 - Interactive Button renderer
@@ -315,8 +316,23 @@ Completed:
 - Toolbox integration
 - Drag & Drop
 - Canvas rendering
-- Browser Preview integration
+- Browser preview
+- Interactive Asset designer
+- Interactive Asset persistence
+- Assignment UI
 
-## 🚧 Next
+## 🚧 Remaining
 
-Connect the Interactive Assets panel to assign `interactiveAssetId` and complete the live Interactive Button workflow.
+Resolve selected-component detection so **Use on Selected** can write:
+
+```ts
+component.props.interactiveAssetId
+```
+
+After that, verify:
+
+- Live Normal state
+- Live Pressed state
+- Project save/load persistence
+- LVGL export
+- ESP32-P4 runtime integration

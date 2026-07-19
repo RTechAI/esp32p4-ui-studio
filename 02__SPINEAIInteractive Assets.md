@@ -1,5 +1,138 @@
 
+# Spine Update — Interactive Button Assignment & Canvas Refresh Proven
 
+## Status
+
+The Interactive Button workflow has reached another major milestone.
+
+Assignment, selection, persistence and immediate canvas rendering are now fully functioning together.
+
+---
+
+# Completed
+
+## Interactive Asset Assignment
+
+The **Use on Selected** workflow is now complete.
+
+When an Interactive Button asset is assigned:
+
+- Inspector updates
+- Component updates
+- Redux updates immediately
+- Canvas refreshes instantly
+- No move or resize required
+
+This fixes the final delayed refresh issue.
+
+---
+
+## Multi-Instance Support
+
+Verified using multiple Interactive Buttons.
+
+Confirmed:
+
+- each button maintains its own Interactive Asset
+- selecting one no longer affects another
+- assignment always targets the currently selected component
+- immediate redraw occurs for every instance
+
+---
+
+## Canvas Selection
+
+Selection system now behaves correctly.
+
+Verified:
+
+- clicking background clears selection
+- clicking a component selects only that component
+- cyan selection border follows correctly
+- newest component no longer permanently owns selection
+
+---
+
+## Interactive Preview
+
+InteractiveButtonCanvasPreview now correctly renders immediately after assignment.
+
+Normal state artwork appears without requiring:
+
+- movement
+- resize
+- additional canvas interaction
+
+---
+
+## Redux Synchronisation
+
+Interactive Asset assignment is now synchronised with Redux.
+
+Assignment updates:
+
+- Inspector
+- Component props
+- Canvas render
+
+all within the same action.
+
+---
+
+# Current Status
+
+Interactive Button V1 infrastructure is now stable.
+
+Proven systems include:
+
+- Interactive Asset Registry
+- Interactive Asset persistence
+- Interactive Asset editing
+- Interactive Button Designer
+- Normal / Pressed artwork assignment
+- Browser Preview
+- Canvas Preview
+- Multi-instance support
+- Independent selection
+- Immediate assignment refresh
+- Restart persistence
+
+---
+
+# Next Phase
+
+With assignment complete, work can move to the Interactive runtime itself.
+
+Planned work includes:
+
+- Interactive Button export into generated LVGL code
+- Pressed state runtime switching
+- Event / Hook binding system
+- AI-generated Interactive Assets
+- Runtime interaction preview
+- ESP32-P4 physical touch validation
+
+The Interactive Asset framework is now ready to become the foundation for reusable interactive controls throughout ForgeUI Studio.
+
+---------------------------------------------------------------------------------
+
+# ForgeUI Studio V2.4.0 — Interactive Asset Assignment UI Added
+
+**Savepoint:** `FORGEUI_V2_4_0__INTERACTIVE_ASSET_ASSIGNMENT_UI_ADDED__SELECTED_COMPONENT_DETECTION_PENDING__2026-07-19`
+
+## Milestone
+
+The Interactive Asset system can now attempt to assign a saved reusable Interactive Button asset to a selected canvas component.
+
+The Interactive Asset panel now includes:
+
+- Selected-component access through `getSelectedComponent`
+- Existing ForgeUI property update path through `useForm().setValue`
+- `Use on Selected` button on every saved Interactive Button asset
+- Assignment handler writing:
+
+```ts
+setValue('interactiveAssetId', asset.id)
 ----------------------------------------------------------------------------
 
 ## Interactive Assets — Phase 5 Complete (Reusable Live Preview)

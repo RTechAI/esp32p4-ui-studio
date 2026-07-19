@@ -1,9 +1,14 @@
-import React, { FunctionComponent, ComponentClass } from 'react'
+import React, {
+  FunctionComponent,
+  ComponentClass,
+} from 'react'
+import { useSelector } from 'react-redux'
 import { useInteractive } from '~hooks/useInteractive'
 import { Box } from '@chakra-ui/react'
 import { Rnd } from 'react-rnd'
 import { forgeuiPositionProps } from '~forgeui/ForgeUIPositionProps'
 import useDispatch from '~hooks/useDispatch'
+import { getSelectedComponentId } from '~core/selectors/components'
 
 const PreviewContainer: React.FC<{
   component: IComponent
@@ -21,6 +26,12 @@ const PreviewContainer: React.FC<{
 }) => {
   const { props, ref } = useInteractive(component, enableVisualHelper)
   const dispatch = useDispatch()
+  const selectedComponentId = useSelector(
+  getSelectedComponentId,
+)
+
+const isSelected =
+  selectedComponentId === component.id
 
   const childProps =
     props.positionMode === 'absolute'
@@ -75,62 +86,80 @@ const PreviewContainer: React.FC<{
           bottomLeft: false,
           topLeft: false,
         }}
-        style={{
-          border: enableVisualHelper
-            ? '1px solid #67e8f9'
-            : 'none',
-          boxSizing: 'border-box',
-        }}
+       style={{
+        border:
+        enableVisualHelper
+         ? isSelected
+        ? '3px solid #22d3ee'
+        : '1px solid #67e8f9'
+        : 'none',
+       boxShadow: isSelected
+        ? '0 0 16px rgba(34,211,238,0.6)'
+         : 'none',
+        boxSizing: 'border-box',
+      }}
         onResizeStop={(_, __, element, ___, position) => {
           dispatch.components.updateProps({
             id: component.id,
             name: 'w',
-            value: parseInt(element.style.width, 10),
+            value: String(
+            parseInt(element.style.width, 10),
+        ),
           })
 
           dispatch.components.updateProps({
             id: component.id,
             name: 'h',
-            value: parseInt(element.style.height, 10),
+            value: String(
+            parseInt(element.style.height, 10),
+          ),
           })
 
           dispatch.components.updateProps({
             id: component.id,
             name: 'x',
-            value: position.x,
+            value: String(position.x),
           })
 
           dispatch.components.updateProps({
             id: component.id,
             name: 'y',
-            value: position.y,
+            value: String(position.y),
           })
         }}
       >
         <Box
-          ref={ref}
-          position="relative"
-          width="100%"
-          height="100%"
-          overflow="visible"
-        >
-          {children}
-        </Box>
+  ref={ref}
+  position="relative"
+  width="100%"
+  height="100%"
+  overflow="visible"
+  onClick={props.onClick}
+  onDoubleClick={props.onDoubleClick}
+  onMouseOver={props.onMouseOver}
+  onMouseOut={props.onMouseOut}
+>
+  {children}
+</Box>
       </Rnd>
     )
   }
 
   return (
-    <Box
-      ref={ref}
-      position="relative"
-      width="100%"
-      height="100%"
-      overflow="visible"
-    >
-      {children}
-    </Box>
-  )
+  <Box
+    ref={ref}
+    position="relative"
+    width="100%"
+    height="100%"
+    overflow="visible"
+    onClick={props.onClick}
+    onDoubleClick={props.onDoubleClick}
+    onMouseOver={props.onMouseOver}
+    onMouseOut={props.onMouseOut}
+  >
+    {children}
+  </Box>
+)
 }
 
 export default PreviewContainer

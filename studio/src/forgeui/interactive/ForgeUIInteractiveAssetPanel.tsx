@@ -1,6 +1,7 @@
 import { useSelector } from 'react-redux'
 import { getSelectedComponent } from '~core/selectors/components'
 import { useForm } from '~hooks/useForm'
+import useDispatch from '~hooks/useDispatch'
 
 import React, {
   useEffect,
@@ -66,14 +67,21 @@ const ForgeUIInteractiveAssetPanel = () => {
     selectedComponent,
   )
 
-  const { setValue } = useForm()
+  console.log(
+  'INTERACTIVE SELECTED TYPE:',
+  selectedComponent?.type,
+)
 
-  const selectedIsInteractiveButton =
-    selectedComponent?.type === 'InteractiveButton'
+const { setValue } = useForm()
 
-  const [assets, setAssets] = useState<
-    ForgeUIInteractiveButtonAsset[]
-  >([])
+const dispatch = useDispatch()
+
+const selectedIsInteractiveButton =
+  selectedComponent?.type === 'InteractiveButton'
+
+const [assets, setAssets] = useState<
+  ForgeUIInteractiveButtonAsset[]
+>([])
 
   const [
     uploadedAssets,
@@ -124,10 +132,15 @@ const ForgeUIInteractiveAssetPanel = () => {
   }
 
   const refreshUploadedAssets = () => {
-    setUploadedAssets([
-      ...forgeUIGetUploadedAssets(),
-    ])
-  }
+  const assets = forgeUIGetUploadedAssets()
+
+  console.log(
+    'INTERACTIVE UPLOADED ASSETS:',
+    assets,
+  )
+
+  setUploadedAssets([...assets])
+}
 
   useEffect(() => {
     reloadInteractiveAssets()
@@ -178,14 +191,26 @@ const ForgeUIInteractiveAssetPanel = () => {
   )
 
     const assignInteractiveAsset = (
-    asset: ForgeUIInteractiveButtonAsset,
-  ) => {
-    if (!selectedIsInteractiveButton) {
-      return
-    }
-
-    setValue('interactiveAssetId', asset.id)
+  asset: ForgeUIInteractiveButtonAsset,
+) => {
+  if (
+    !selectedIsInteractiveButton ||
+    !selectedComponent
+  ) {
+    return
   }
+
+  setValue(
+    'interactiveAssetId',
+    asset.id,
+  )
+
+  dispatch.components.updateProps({
+    id: selectedComponent.id,
+    name: 'interactiveAssetId',
+    value: asset.id,
+  })
+}
     
   const resetDesigner = () => {
     setAssetName('New Interactive Button')

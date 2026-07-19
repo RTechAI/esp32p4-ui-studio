@@ -65,12 +65,22 @@ export const useInteractive = (
     }
   }
 
-  if (isHovered || isComponentSelected) {
-    props = {
-      ...props,
-      boxShadow: `${focusInput ? '#ffc4c7' : '#4FD1C5'} 0px 0px 0px 2px inset`,
-    }
+  if (isComponentSelected) {
+  props = {
+    ...props,
+    boxShadow: `${
+      focusInput ? '#ffc4c7' : '#22d3ee'
+    } 0px 0px 0px 3px inset`,
   }
+} else if (isHovered) {
+  props = {
+    ...props,
+    boxShadow:
+      '#facc15 0px 0px 0px 1px inset',
+  }
+}
 
-  return { props, ref: drag(ref), drag }
+  drag(ref)
+
+return { props, ref, drag }
 }
