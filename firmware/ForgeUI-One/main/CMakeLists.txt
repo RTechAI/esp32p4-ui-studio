@@ -7,13 +7,6 @@ idf_component_register(
         "30_WIFI.c"
         "40_SD.c"
         "90_Studio_Export.c"
-        "95_UserEvents.c"
-        "assets/defaults/fg_upload_ai_hero_1784342478518_b95a7dc0.c"
-        "assets/uploads/fg_upload_ai_hero_1784436916528_7ffc60f0.c"
-        "assets/uploads/fg_upload_ai_button_normal_1784439532374_1784439551627_25c295cc.c"
-        "assets/uploads/fg_upload_ai_button_pressed_1784439532374_1784439571494_67480b60.c"
-        "assets/uploads/fg_upload_ai_button_normal_1784456048422_1784456071708_e635bbab.c"
-        "assets/uploads/fg_upload_ai_button_pressed_1784456048422_1784456096221_a6cce689.c"
 
     INCLUDE_DIRS
         "."
