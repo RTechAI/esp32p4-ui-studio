@@ -7,7 +7,7 @@ interface IProps {
 }
 
 const SelectPreview = ({ component }: IProps) => {
-  const { icon, ...props } = { ...component.props }
+  const { icon = undefined, ...props } = { ...component.props }
 
   const Icon = useMemo(() => {
     if (!icon) {

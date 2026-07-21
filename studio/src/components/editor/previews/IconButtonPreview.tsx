@@ -7,7 +7,7 @@ interface Props {
 }
 
 const IconButtonPreview = ({ component }: Props) => {
-  const { icon, ...props } = { ...component.props }
+  const { icon = undefined, ...props } = { ...component.props }
 
   if (icon && Object.keys(icons).includes(icon)) {
     const Icon = icons[icon as keyof typeof icons]
