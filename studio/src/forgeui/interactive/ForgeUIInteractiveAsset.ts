@@ -1,3 +1,5 @@
+import type { ForgeUIInteractiveButtonAsset } from './ForgeUIInteractiveButtonAsset'
+
 export const FORGEUI_INTERACTIVE_SCHEMA_VERSION = 1 as const
 
 export type ForgeUIInteractiveAssetKind =
@@ -23,3 +25,11 @@ export type ForgeUIInteractiveAssetBase = {
   createdAt: string
   updatedAt: string
 }
+
+// Extend this union when a new persisted Interactive Asset kind is added.
+export type ForgeUIInteractiveAsset =
+  | ForgeUIInteractiveButtonAsset
+
+export type ForgeUIInteractiveAssetOfKind<
+  Kind extends ForgeUIInteractiveAssetKind,
+> = Extract<ForgeUIInteractiveAsset, { kind: Kind }>

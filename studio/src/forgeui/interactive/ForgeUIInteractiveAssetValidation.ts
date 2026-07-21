@@ -1,5 +1,7 @@
 import {
   FORGEUI_INTERACTIVE_SCHEMA_VERSION,
+  ForgeUIInteractiveAsset,
+  ForgeUIInteractiveAssetBase,
   ForgeUIInteractiveVisualState,
 } from './ForgeUIInteractiveAsset'
 import { ForgeUIInteractiveButtonAsset } from './ForgeUIInteractiveButtonAsset'
@@ -16,10 +18,13 @@ const isFiniteNumber = (
   typeof value === 'number' &&
   Number.isFinite(value)
 
-const validateVisualState = (
+export const validateInteractiveVisualState: (
   state: unknown,
   stateName: string,
-): asserts state is ForgeUIInteractiveVisualState => {
+) => asserts state is ForgeUIInteractiveVisualState = (
+  state: unknown,
+  stateName: string,
+) => {
   if (
     typeof state !== 'object' ||
     state === null
@@ -69,9 +74,11 @@ const validateVisualState = (
   }
 }
 
-export const validateInteractiveButtonAsset = (
+export const validateInteractiveAssetBase: (
   asset: unknown,
-): asserts asset is ForgeUIInteractiveButtonAsset => {
+) => asserts asset is ForgeUIInteractiveAssetBase = (
+  asset: unknown,
+) => {
   if (
     typeof asset !== 'object' ||
     asset === null
@@ -81,11 +88,11 @@ export const validateInteractiveButtonAsset = (
     )
   }
 
-  const button =
-    asset as Partial<ForgeUIInteractiveButtonAsset>
+  const interactiveAsset =
+    asset as Partial<ForgeUIInteractiveAssetBase>
 
   if (
-    button.schemaVersion !==
+    interactiveAsset.schemaVersion !==
     FORGEUI_INTERACTIVE_SCHEMA_VERSION
   ) {
     throw new Error(
@@ -93,17 +100,51 @@ export const validateInteractiveButtonAsset = (
     )
   }
 
-  if (!isNonEmptyString(button.id)) {
+  if (!isNonEmptyString(interactiveAsset.id)) {
     throw new Error(
       'Interactive asset ID is required',
     )
   }
 
-  if (!isNonEmptyString(button.name)) {
+  if (!isNonEmptyString(interactiveAsset.name)) {
     throw new Error(
       'Interactive asset name is required',
     )
   }
+
+  if (!isNonEmptyString(interactiveAsset.kind)) {
+    throw new Error(
+      'Interactive asset kind is required',
+    )
+  }
+
+  if (!isNonEmptyString(interactiveAsset.interactionMode)) {
+    throw new Error(
+      'Interactive asset interactionMode is required',
+    )
+  }
+
+  if (!isNonEmptyString(interactiveAsset.createdAt)) {
+    throw new Error(
+      'createdAt is required',
+    )
+  }
+
+  if (!isNonEmptyString(interactiveAsset.updatedAt)) {
+    throw new Error(
+      'updatedAt is required',
+    )
+  }
+}
+
+export const validateInteractiveButtonAsset: (
+  asset: unknown,
+) => asserts asset is ForgeUIInteractiveButtonAsset = (
+  asset: unknown,
+) => {
+  validateInteractiveAssetBase(asset)
+
+  const button = asset as ForgeUIInteractiveButtonAsset
 
   if (button.kind !== 'button') {
     throw new Error(
@@ -111,9 +152,7 @@ export const validateInteractiveButtonAsset = (
     )
   }
 
-  if (
-    button.interactionMode !== 'momentary'
-  ) {
+  if (button.interactionMode !== 'momentary') {
     throw new Error(
       'Button interaction mode must be momentary',
     )
@@ -143,25 +182,31 @@ export const validateInteractiveButtonAsset = (
     )
   }
 
-  if (!isNonEmptyString(button.createdAt)) {
-    throw new Error(
-      'createdAt is required',
-    )
-  }
-
-  if (!isNonEmptyString(button.updatedAt)) {
-    throw new Error(
-      'updatedAt is required',
-    )
-  }
-
-  validateVisualState(
+  validateInteractiveVisualState(
     button.normal,
     'normal',
   )
 
-  validateVisualState(
+  validateInteractiveVisualState(
     button.pressed,
     'pressed',
   )
+}
+
+export const validateInteractiveAsset: (
+  asset: unknown,
+) => asserts asset is ForgeUIInteractiveAsset = (
+  asset: unknown,
+) => {
+  validateInteractiveAssetBase(asset)
+
+  switch (asset.kind) {
+    case 'button':
+      validateInteractiveButtonAsset(asset)
+      return
+    default:
+      throw new Error(
+        `Unsupported Interactive Asset kind: ${String(asset.kind)}`,
+      )
+  }
 }

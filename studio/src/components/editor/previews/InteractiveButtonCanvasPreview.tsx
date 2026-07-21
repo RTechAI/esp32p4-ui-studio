@@ -3,7 +3,9 @@ import React from 'react'
 import InteractiveButtonPreview from '~forgeui/interactive/InteractiveButtonPreview'
 
 import {
-  getInteractiveAsset,
+  getInteractiveButtonAsset,
+  getInteractiveButtonDimensions,
+  resolveInteractiveButtonVisuals,
 } from '~forgeui/interactive'
 
 import {
@@ -20,39 +22,28 @@ const InteractiveButtonCanvasPreview = ({
 
   const interactiveAsset =
     interactiveAssetId
-      ? getInteractiveAsset(interactiveAssetId)
+      ? getInteractiveButtonAsset(interactiveAssetId)
       : undefined
 
   const uploadedAssets =
     forgeUIGetUploadedAssets()
 
-  const normalAsset =
-    interactiveAsset?.normalAssetId
-      ? uploadedAssets.find(
-          asset =>
-            asset.id ===
-            interactiveAsset.normalAssetId,
-        )
-      : undefined
+  const {
+    normalAsset,
+    pressedAsset,
+  } = resolveInteractiveButtonVisuals(
+    interactiveAsset,
+    uploadedAssets,
+  )
 
-  const pressedAsset =
-    interactiveAsset?.pressedAssetId
-      ? uploadedAssets.find(
-          asset =>
-            asset.id ===
-            interactiveAsset.pressedAssetId,
-        )
-      : undefined
-
-  const width =
-    interactiveAsset?.width ||
-    component.props.w ||
-    120
-
-  const height =
-    interactiveAsset?.height ||
-    component.props.h ||
-    48
+  const { width, height } =
+    getInteractiveButtonDimensions(
+      interactiveAsset,
+      {
+        width: Number(component.props.w || 120),
+        height: Number(component.props.h || 48),
+      },
+    )
 
   return (
     <InteractiveButtonPreview

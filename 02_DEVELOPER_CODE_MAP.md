@@ -2099,25 +2099,26 @@ No manual file creation is required.
 
 ---
 
-## Generated Files
+# Live Firmware vs Standalone Export
 
-Generated UI
+ForgeUI Studio contains a Studio-controlled live firmware project for rapid physical testing on the ESP32-P4. Studio may regenerate, build and flash this internal project whenever the canvas or export changes.
 
-```
-90_Studio_Export.c
+A Manual Standalone Export creates a separate ESP-IDF project under `C:\ForgeUI-Exports`. Once created, that project is developer-owned and is no longer updated or flashed by ForgeUI Studio.
 
-90_Studio_Export.h
-```
+## Ownership Table
 
-Generated Developer Hooks
+| File | Live Studio firmware | Standalone exported project |
+|------|----------------------|-----------------------------|
+| `90_Studio_Export.c/.h` | Generated | Generated |
+| `95_UserEvents.c/.h` | Generated runtime hooks; may be regenerated | Developer-owned application layer |
+| GPIO, I/O and product logic | Do not keep permanently here | Add to `95_UserEvents.c/.h` |
 
-```
-95_UserEvents.c
+## Ownership Rules
 
-95_UserEvents.h
-```
-
-These files are generated automatically during every export.
+- Studio owns and may regenerate the live firmware project, including its `95_UserEvents.c/.h` test hooks.
+- Manual Standalone Export creates an independent project under `C:\ForgeUI-Exports`.
+- After export, the developer owns the standalone project and adds GPIO, I/O, hardware actions and application logic to its `95_UserEvents.c/.h` files.
+- ForgeUI Studio does not continuously update, build or flash the exported project.
 
 ---
 
@@ -2146,29 +2147,6 @@ if (data->clicked_cb)
 ```
 
 The generated UI never contains application logic.
-
----
-
-## Generated Hook Files
-
-### 95_UserEvents.h
-
-Owns:
-
-- Public callback declarations
-- C/C++ compatibility
-- Exported developer API
-
-### 95_UserEvents.c
-
-Owns:
-
-- Default callback implementations
-- User application logic
-- Future hardware actions
-- Runtime behaviour
-
-This is the intended location for customer code.
 
 ---
 
@@ -2210,40 +2188,6 @@ The Generated User Event Hook Layer is intended to become the common runtime int
 - Custom Application Logic
 
 New controls should generate user callbacks through this same architecture rather than introducing separate runtime systems.
-
----
---------------------------------------------------------------------
-
----
-
----
-
-## Generated Hook Layer
-
-Purpose
-
-Expose generated UI controls to user application code.
-
-Generated files
-
-```text
-95_UserEvents.c
-95_UserEvents.h
-
-Responsibilities
-
-Interactive Button callbacks
-Future Status Light control
-Future Widget callbacks
-Customer application behaviour
-
-Rules
-
-Generated UI calls user hooks.
-User hooks never modify generated code.
-User hook files are preserved during re-export.
-
-That section will become the foundation of everything you're about to build.
 
 ---
 

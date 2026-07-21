@@ -33,10 +33,13 @@ import {
   createDefaultInteractiveButtonAsset,
   createInteractiveAssetId,
   getAllInteractiveAssets,
+  getInteractiveButtonComponentProps,
+  findUploadedAssetById,
   registerInteractiveAsset,
   reloadInteractiveAssets,
   removeInteractiveAsset,
   saveInteractiveAssets,
+  resolveInteractiveButtonVisuals,
   updateInteractiveAsset,
 } from '~forgeui/interactive'
 
@@ -189,18 +192,18 @@ const [
   )
 
   const normalAsset = useMemo(
-    () =>
-      uploadedAssets.find(
-        asset => asset.id === normalAssetId,
-      ),
+    () => findUploadedAssetById(
+      uploadedAssets,
+      normalAssetId,
+    ),
     [uploadedAssets, normalAssetId],
   )
 
   const pressedAsset = useMemo(
-    () =>
-      uploadedAssets.find(
-        asset => asset.id === pressedAssetId,
-      ),
+    () => findUploadedAssetById(
+      uploadedAssets,
+      pressedAssetId,
+    ),
     [uploadedAssets, pressedAssetId],
   )
 
@@ -214,38 +217,20 @@ const [
     return
   }
 
-  setValue(
-    'interactiveAssetId',
-    asset.id,
+  const componentProps =
+    getInteractiveButtonComponentProps(asset)
+
+  Object.entries(componentProps).forEach(
+    ([name, value]) => {
+      setValue(name, value)
+
+      dispatch.components.updateProps({
+        id: selectedComponent.id,
+        name,
+        value,
+      })
+    },
   )
-
-  setValue(
-    'w',
-    String(asset.width),
-  )
-
-  setValue(
-    'h',
-    String(asset.height),
-  )
-
-  dispatch.components.updateProps({
-    id: selectedComponent.id,
-    name: 'interactiveAssetId',
-    value: asset.id,
-  })
-
-  dispatch.components.updateProps({
-    id: selectedComponent.id,
-    name: 'w',
-    value: String(asset.width),
-  })
-
-  dispatch.components.updateProps({
-    id: selectedComponent.id,
-    name: 'h',
-    value: String(asset.height),
-  })
 }    
   const resetDesigner = () => {
     setAssetName('New Interactive Button')
@@ -1038,19 +1023,13 @@ const [
             spacing={3}
           >
             {assets.map(asset => {
-              const assetNormalVisual =
-                uploadedAssets.find(
-                  uploadedAsset =>
-                    uploadedAsset.id ===
-                    asset.normalAssetId,
-                )
-
-              const assetPressedVisual =
-                uploadedAssets.find(
-                  uploadedAsset =>
-                    uploadedAsset.id ===
-                    asset.pressedAssetId,
-                )
+              const {
+                normalAsset: assetNormalVisual,
+                pressedAsset: assetPressedVisual,
+              } = resolveInteractiveButtonVisuals(
+                asset,
+                uploadedAssets,
+              )
 
               return (
                 <Box

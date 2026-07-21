@@ -1,11 +1,11 @@
-import { ForgeUIInteractiveButtonAsset } from './ForgeUIInteractiveButtonAsset'
+import type { ForgeUIInteractiveAsset } from './ForgeUIInteractiveAsset'
 
 import {
   exportInteractiveAssets,
   importInteractiveAssets,
 } from './ForgeUIInteractiveAssetRegistry'
 
-const STORAGE_KEY =
+export const FORGEUI_INTERACTIVE_ASSETS_STORAGE_KEY =
   'forgeui_interactive_assets_v1'
 
 export const saveInteractiveAssets =
@@ -15,7 +15,7 @@ export const saveInteractiveAssets =
         exportInteractiveAssets()
 
       localStorage.setItem(
-        STORAGE_KEY,
+        FORGEUI_INTERACTIVE_ASSETS_STORAGE_KEY,
         JSON.stringify(assets),
       )
     } catch (err) {
@@ -30,7 +30,9 @@ export const reloadInteractiveAssets =
   (): void => {
     try {
       const json =
-        localStorage.getItem(STORAGE_KEY)
+        localStorage.getItem(
+          FORGEUI_INTERACTIVE_ASSETS_STORAGE_KEY,
+        )
 
       if (!json) {
         return
@@ -39,7 +41,7 @@ export const reloadInteractiveAssets =
       const assets =
         JSON.parse(
           json,
-        ) as ForgeUIInteractiveButtonAsset[]
+        ) as ForgeUIInteractiveAsset[]
 
       importInteractiveAssets(
         assets,
@@ -55,6 +57,6 @@ export const reloadInteractiveAssets =
 export const clearInteractiveAssetStorage =
   (): void => {
     localStorage.removeItem(
-      STORAGE_KEY,
+      FORGEUI_INTERACTIVE_ASSETS_STORAGE_KEY,
     )
   }

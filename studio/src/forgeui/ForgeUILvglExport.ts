@@ -2,7 +2,9 @@ import { forgeUIGetUploadedAssets } from './ForgeUIUploadedAssetRegistry'
 import { FORGEUI_IMAGE_ASSETS } from './ForgeUIAssetRegistry'
 
 import {
-  getInteractiveAsset,
+  getInteractiveButtonAsset,
+  isLvglReadyUploadedAsset,
+  resolveInteractiveButtonVisuals,
 } from './interactive'
 
 import {
@@ -292,7 +294,7 @@ case 'InteractiveButton': {
 
   const interactiveAsset =
     interactiveAssetId
-      ? getInteractiveAsset(
+      ? getInteractiveButtonAsset(
           interactiveAssetId,
         )
       : undefined
@@ -315,33 +317,19 @@ case 'InteractiveButton': {
   const uploadedAssets =
     forgeUIGetUploadedAssets()
 
-  const normalAsset =
-    interactiveAsset
-      ? uploadedAssets.find(
-          (asset: any) =>
-            asset.id ===
-            interactiveAsset.normalAssetId,
-        )
-      : undefined
-
-  const pressedAsset =
-    interactiveAsset
-      ? uploadedAssets.find(
-          (asset: any) =>
-            asset.id ===
-            interactiveAsset.pressedAssetId,
-        )
-      : undefined
+  const {
+    normalAsset,
+    pressedAsset,
+  } = resolveInteractiveButtonVisuals(
+    interactiveAsset,
+    uploadedAssets,
+  )
 
   const normalReady =
-    normalAsset?.exportStatus ===
-      'lvgl_ready' &&
-    normalAsset?.lvgl
+    isLvglReadyUploadedAsset(normalAsset)
 
   const pressedReady =
-    pressedAsset?.exportStatus ===
-      'lvgl_ready' &&
-    pressedAsset?.lvgl
+    isLvglReadyUploadedAsset(pressedAsset)
 
   if (
     normalReady &&

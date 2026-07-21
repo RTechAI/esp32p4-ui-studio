@@ -1,15 +1,21 @@
-import { ForgeUIInteractiveButtonAsset } from './ForgeUIInteractiveButtonAsset'
-import { validateInteractiveButtonAsset } from './ForgeUIInteractiveAssetValidation'
+import type {
+  ForgeUIInteractiveAsset,
+  ForgeUIInteractiveAssetKind,
+  ForgeUIInteractiveAssetOfKind,
+} from './ForgeUIInteractiveAsset'
+import type { ForgeUIInteractiveButtonAsset } from './ForgeUIInteractiveButtonAsset'
+import { validateInteractiveAsset } from './ForgeUIInteractiveAssetValidation'
 
+// The registry owns the in-memory lifetime of all Interactive Asset kinds.
 const assets = new Map<
   string,
-  ForgeUIInteractiveButtonAsset
+  ForgeUIInteractiveAsset
 >()
 
 export const registerInteractiveAsset = (
-  asset: ForgeUIInteractiveButtonAsset,
-): ForgeUIInteractiveButtonAsset => {
-  validateInteractiveButtonAsset(asset)
+  asset: ForgeUIInteractiveAsset,
+): ForgeUIInteractiveAsset => {
+  validateInteractiveAsset(asset)
 
   if (assets.has(asset.id)) {
     throw new Error(
@@ -24,11 +30,29 @@ export const registerInteractiveAsset = (
 
 export const getInteractiveAsset = (
   id: string,
-): ForgeUIInteractiveButtonAsset | undefined =>
+): ForgeUIInteractiveAsset | undefined =>
   assets.get(id)
 
+export const getInteractiveAssetByKind = <
+  Kind extends ForgeUIInteractiveAssetKind,
+>(
+  id: string,
+  kind: Kind,
+): ForgeUIInteractiveAssetOfKind<Kind> | undefined => {
+  const asset = assets.get(id)
+
+  return asset?.kind === kind
+    ? asset as ForgeUIInteractiveAssetOfKind<Kind>
+    : undefined
+}
+
+export const getInteractiveButtonAsset = (
+  id: string,
+): ForgeUIInteractiveButtonAsset | undefined =>
+  getInteractiveAssetByKind(id, 'button')
+
 export const getAllInteractiveAssets = (
-): ForgeUIInteractiveButtonAsset[] =>
+): ForgeUIInteractiveAsset[] =>
   Array.from(assets.values())
 
 export const updateInteractiveAsset = (
@@ -57,7 +81,7 @@ export const updateInteractiveAsset = (
     updatedAt: new Date().toISOString(),
   }
 
-  validateInteractiveButtonAsset(updated)
+  validateInteractiveAsset(updated)
 
   assets.set(id, updated)
 
@@ -79,16 +103,19 @@ export const clearInteractiveAssetRegistry = (): void => {
  * ============================================================ */
 
 export const exportInteractiveAssets =
-  (): ForgeUIInteractiveButtonAsset[] =>
+  (): ForgeUIInteractiveAsset[] =>
     Array.from(assets.values())
 
 export const importInteractiveAssets = (
-  imported: ForgeUIInteractiveButtonAsset[],
+  imported: ForgeUIInteractiveAsset[],
 ): void => {
+  imported.forEach(asset => {
+    validateInteractiveAsset(asset)
+  })
+
   assets.clear()
 
   imported.forEach(asset => {
-    validateInteractiveButtonAsset(asset)
     assets.set(asset.id, asset)
   })
 }

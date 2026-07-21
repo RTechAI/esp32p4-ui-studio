@@ -81,7 +81,9 @@ const ExportProjectButton = ({
               <PopoverHeader>Export Project</PopoverHeader>
 
               <PopoverBody fontSize="sm">
-                Export a standalone ESP-IDF project or open the exports folder.
+                Creates an independent ESP-IDF project under
+                {' C:\\ForgeUI-Exports'}. After export, add GPIO, I/O and
+                application logic in 95_UserEvents.c.
               </PopoverBody>
 
               <PopoverFooter
