@@ -116,6 +116,8 @@ const InteractiveLightDesigner = ({
 
   useEffect(() => {
     if (newRequestVersion > 0) resetForNew()
+    // The version token intentionally owns new-draft resets.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newRequestVersion])
 
   const edit = (asset: ForgeUIInteractiveLightAsset) => {

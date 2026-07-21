@@ -37,6 +37,9 @@ export const renderForgePreview = ({
   components,
 }: RenderProps): React.ReactNode[] => {
 
+  // This legacy renderer recurses as a plain function. Moving theme lookup
+  // to a component boundary requires architectural review.
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const { palette } = useForgeTheme()
   const output: React.ReactNode[] = []
 

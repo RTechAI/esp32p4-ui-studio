@@ -363,6 +363,7 @@ const iconAssets = [...uploadedAssets]
           >
             <Image
               src={asset.browserSrc}
+              alt=""
               boxSize="120px"
               objectFit="contain"
             />
