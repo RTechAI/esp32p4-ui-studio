@@ -1,4 +1,4 @@
-import { DEFAULT_PROPS } from '~utils/defaultProps'
+import { getPreviewDefaultProps } from '~utils/defaultProps'
 import { generateId } from '~utils/generateId'
 
 type AddNode = {
@@ -32,7 +32,8 @@ class Composer {
     }
     const localRootParentType = rootParentType || this.rootComponentType
 
-    const { form, ...defaultProps } = DEFAULT_PROPS[type] || {}
+    const { form, ...defaultProps } =
+      getPreviewDefaultProps(type) || {}
 
     this.components = {
       ...this.components,

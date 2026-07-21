@@ -71,7 +71,16 @@ import {
 
 import iconsList from '~iconsList'
 
-type PropsWithForm<T> = T & { form?: T }
+type ForgeUICanvasProps = {
+  positionMode?: string
+  x?: number
+  y?: number
+  w?: number
+  h?: number
+  imageScale?: number
+}
+
+type PropsWithForm<T> = T & ForgeUICanvasProps & { form?: T }
 
 type PreviewDefaultProps = {
   Badge?: PropsWithForm<BadgeProps>
@@ -351,6 +360,9 @@ WiFi: {
   Text: { children: 'Text value' },
 }
 
+export const getPreviewDefaultProps = (type: ComponentType) =>
+  DEFAULT_PROPS[type as keyof PreviewDefaultProps]
+
 export const getDefaultFormProps = (type: ComponentType) => {
   // @ts-ignore
   const chakraDefaultProps = Chakra[type]?.defaultProps || {}
@@ -358,6 +370,6 @@ export const getDefaultFormProps = (type: ComponentType) => {
   // @ts-ignore
   return {
     ...chakraDefaultProps,
-    ...DEFAULT_PROPS[type]?.form,
+    ...getPreviewDefaultProps(type)?.form,
   }
 }
