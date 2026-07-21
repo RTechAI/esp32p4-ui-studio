@@ -1,38 +1,48 @@
-ForgeUI_Generated_Export_API_Permanent_Code_Map_RAW.md
+# ForgeUI Generated Export API — Permanent Code Map
 
+## Current proven save point
 
-ForgeUI Generated Export API
-Permanent Code Map
-Purpose
+**FORGEUI_GENERATED_EXPORT_API_V1__BUTTON_INPUT_HOOKS__LIGHT_OUTPUT_SETTER__PHYSICAL_ESP32P4_PROVEN**
 
-This document is the permanent architectural map for the ForgeUI Generated Export API.
+## Purpose and scope
 
-It is not a milestone log, savepoint, roadmap, or development history.
+This document defines the permanent boundary between:
 
-Its purpose is to define the boundary between:
+- ForgeUI-generated UI and runtime code; and
+- developer-owned application code.
 
-ForgeUI Studio-generated UI code
+It is an architectural code map, not a milestone diary, proposal, or roadmap.
 
-and:
+This document remains separate from `02_DEVELOPER_CODE_MAP.md`:
 
-Developer-owned application code
+```text
+02_DEVELOPER_CODE_MAP.md
+  → Whole Studio and Interactive Asset subsystem map
 
-This document should allow a new development session to immediately understand:
+03_ForgeUI_Generated_Export_API_Code_Map.md
+  → Generated firmware API, file ownership, hook, and public-setter boundary
+```
 
-Where generated firmware files are created.
-Which files may be regenerated.
-Which files belong to the developer.
-How Interactive Button hooks are exposed.
-How future controls should expose public APIs.
-How live firmware export and standalone project export remain aligned.
-System Overview
+Use this map to determine:
+
+- where generated firmware code originates;
+- which layer owns API naming and metadata;
+- which files Studio writes;
+- which files become developer-owned after standalone export;
+- how UI input reaches developer code;
+- how developer code updates UI outputs;
+- which responsibilities must not be duplicated.
+
+## System overview
+
+```text
 ForgeUI Canvas
         │
         ▼
 generateForgeUILvglCode()
         │
         ▼
-Generated LVGL Source
+Generated LVGL Source and API Metadata
         │
         ▼
 Export Server
@@ -42,425 +52,545 @@ Export Server
         └── Standalone ESP-IDF Project
         │
         ▼
-Generated UI Files
+Generated UI Runtime
         │
         ├── 90_Studio_Export.c
         │
         └── 90_Studio_Export.h
         │
-        ▼
-User Hook Layer
+        ├──────── Input Path ────────┐
+        │                            ▼
+        │                     95_UserEvents.c/.h
+        │                            │
+        │                            ▼
+        │                 Developer Application Logic
         │
-        ├── 95_UserEvents.c
-        │
-        └── 95_UserEvents.h
-        │
-        ▼
-Developer Application Logic
-        │
-        ▼
-ESP-IDF Build
-        │
-        ▼
-ESP32-P4
-1. LVGL Code Generator
-Primary File
-ForgeUILvglExport.ts
-Primary Function
+        └──────── Output Path ───────┐
+                                     ▼
+                         Generated Public UI APIs
+                                     │
+                                     ▼
+                              LVGL Object Update
+                                     │
+                                     ▼
+                                  ESP32-P4
+```
+
+## Permanent input and output API model
+
+ForgeUI controls cross the generated/developer boundary in one of two directions.
+
+### Input controls: generated UI calls developer code
+
+Input controls originate in the UI runtime and notify application code through generated developer hooks.
+
+Proven example:
+
+```text
+Interactive Button
+        ↓
+LVGL CLICKED event
+        ↓
+Generated runtime callback
+        ↓
+FG_On_Button_Clicked()
+        ↓
+95_UserEvents.c
+        ↓
+Developer application logic
+```
+
+### Output controls: developer code calls generated UI
+
+Output controls expose public functions implemented by generated UI code. Application code calls those functions to change LVGL objects.
+
+Proven example:
+
+```text
+Developer application logic
+        ↓
+FG_Set_Status_Light(true)
+        ↓
+90_Studio_Export.c
+        ↓
+LVGL image source changes
+        ↓
+Physical Light displays ON state
+```
+
+### Permanent rule
+
+> Inputs produce generated developer hooks. Outputs expose generated public UI functions.
+
+Do not implement output controls as fake click hooks. Do not put input-event application logic inside generated UI code.
+
+## LVGL code generator
+
+### Primary file
+
+```text
+studio/src/forgeui/ForgeUILvglExport.ts
+```
+
+### Primary function
+
+```ts
 generateForgeUILvglCode()
-Owns
-LVGL object generation
-Widget creation
-Image declarations
-Asset source collection
-Runtime structures
-Runtime callbacks
-Interactive Button export
-Public generated UI functions
-Calls into user-owned hooks
-Does Not Own
-Writing files to disk
-ESP-IDF project copying
-CMake file writing
-Customer application behaviour
-Hardware-specific customer logic
-2. Component Export Function
-Function
-buildLvglBlock()
-Purpose
+```
 
-Walks the ForgeUI component tree and generates LVGL code for each component.
+This is the only LVGL UI exporter.
 
-Inputs
-component
-components
-parentVar
-lines
-counter
-palette
-usedAssetSources
-Responsibilities
-Walk component children
-Generate unique LVGL object variables
-Read component position and size
-Select the correct component export branch
-Add required assets to usedAssetSources
-Recursively export nested children
-3. Generated Object Naming
+### Owns
 
-Current generated LVGL object names use:
+- LVGL object generation
+- widget creation
+- image declarations
+- uploaded asset-source collection
+- shared runtime structures
+- shared runtime callbacks
+- Interactive Button export
+- Interactive Light export
+- Button hook generation and metadata
+- generated public output APIs and declaration metadata
+- calls from generated runtime code into developer hooks
+- uniqueness of generated hook and setter names
 
-const varName = `obj${counter.value}`
+### Does not own
+
+- writing files to disk
+- ESP-IDF project copying
+- CMake file writing
+- customer hardware behavior
+- developer application logic
+- GPIO, sensors, motors, relays, networking policy, or business logic
+
+Do not create a separate Button exporter, Light exporter, or parallel runtime generator.
+
+## Component export traversal
+
+The exporter walks the ForgeUI component tree and selects the correct component branch. Its traversal owns:
+
+- child traversal
+- unique internal LVGL object names
+- component position and size
+- component-type dispatch
+- asset-source collection
+- recursive export of nested children
+
+Current internal object names such as `obj1`, `obj2`, and `obj3` are implementation details. They are suitable for generated LVGL variables but are not the stable developer API.
+
+Developer-facing hook and setter names are derived separately and made unique within an export.
+
+## Generated export result contract
+
+`generateForgeUILvglCode()` supplies the frontend export flow with:
+
+- generated LVGL `code`;
+- `assetSources` required by the generated UI;
+- `userEventHooks` for Button input callbacks;
+- `publicApiDeclarations` for Light output setters.
+
+The UI export actions in `studio/src/components/Header.tsx` send these values to both export endpoints:
+
+- `POST /export`
+- `POST /export-idf-project`
+
+The frontend owns code generation and metadata collection. It does not write firmware files directly.
+
+## Interactive Button input API
+
+### Export branch
+
+The `InteractiveButton` exporter branch owns:
+
+1. reading `interactiveAssetId`;
+2. resolving the Interactive Button asset by kind;
+3. resolving Normal and Pressed uploaded assets;
+4. validating LVGL readiness;
+5. adding required asset C files;
+6. declaring LVGL images;
+7. creating the parent LVGL button;
+8. creating the child LVGL image;
+9. creating per-button runtime data;
+10. attaching the shared Button event callback;
+11. collecting the unique generated click hook.
+
+### Proven runtime data
+
+```c
+typedef struct
+{
+    const void * normal_src;
+    const void * pressed_src;
+    void (*clicked_cb)(void);
+    const char * event_name;
+} fg_interactive_button_data_t;
+```
+
+Each exported Button instance carries:
+
+- its Normal image source;
+- its Pressed image source;
+- its generated developer callback pointer;
+- its generated event name for runtime diagnostics.
+
+This is implemented behavior, not a proposed extension.
+
+### Shared Button callback
+
+```c
+static void fg_interactive_button_event_cb(lv_event_t *event)
+```
+
+One shared callback serves every exported Interactive Button. Per-instance runtime data supplies the correct images and developer hook.
+
+Behavior:
+
+```text
+LV_EVENT_PRESSED
+  → select Pressed image
+
+LV_EVENT_RELEASED or LV_EVENT_PRESS_LOST
+  → restore Normal image
+
+LV_EVENT_CLICKED
+  → print the generated event name
+  → call clicked_cb when non-null
+```
+
+Do not generate one LVGL callback implementation per Button.
+
+### Instance wiring
+
+Each ready Button instance initializes data equivalent to:
+
+```c
+static fg_interactive_button_data_t obj1_data = {
+    .normal_src = &normal_symbol,
+    .pressed_src = &pressed_symbol,
+    .clicked_cb = FG_On_Button_Clicked,
+    .event_name = "FG_On_Button_Clicked",
+};
+```
+
+It registers the shared callback for:
+
+- `LV_EVENT_PRESSED`
+- `LV_EVENT_RELEASED`
+- `LV_EVENT_PRESS_LOST`
+- `LV_EVENT_CLICKED`
+
+The visual-state runtime and click-hook runtime are parts of the same generated Button implementation.
+
+### Button hook naming
+
+Each exported Interactive Button receives one unique hook using the `FG_On_*_Clicked` contract.
 
 Examples:
 
-obj1
-obj2
-obj3
-
-These names are unique inside one generated export.
-
-They are suitable for internal LVGL object variables.
-
-They should not become the permanent public API presented to developers.
-
-4. Public Code Names
-
-Interactive controls should expose a stable public code name.
-
-Example:
-
-Visible Label:
-Start Pump
-
-Code Name:
-StartPump
-
-Generated hook:
-
-FG_On_StartPump_Clicked()
-
-The visible label and code name have separate responsibilities.
-
-Visible Label
-
-Used for:
-
-Canvas display
-Browser Preview
-Button artwork
-Human-readable UI text
-Code Name
-
-Used for:
-
-Generated C functions
-Callback declarations
-Public control APIs
-Developer integration
-GPT-assisted editing after export
-Rules
-Code names must be valid C identifiers.
-Code names must be unique within the exported project.
-Visible labels may contain spaces and punctuation.
-Changing visible text should not automatically break the public API.
-Duplicate code names must be prevented or automatically resolved.
-5. Interactive Button Export
-Export Branch
-case 'InteractiveButton'
-Existing Responsibilities
-Resolve interactiveAssetId
-Resolve Interactive Button asset
-Resolve Normal image
-Resolve Pressed image
-Validate LVGL readiness
-Add asset C files
-Declare LVGL images
-Create LVGL button
-Create child LVGL image
-Create per-button runtime data
-Register press events
-Existing Events
-LV_EVENT_PRESSED
-LV_EVENT_RELEASED
-LV_EVENT_PRESS_LOST
-Existing Behaviour
-Normal Image
-        │
-        ▼
-Button Pressed
-        │
-        ▼
-Pressed Image
-        │
-        ▼
-Button Released
-        │
-        ▼
-Normal Image
-
-The visual-state runtime must remain unchanged when user hooks are added.
-
-6. Interactive Button Runtime Data
-Current Structure
-typedef struct
-{
-    const void * normal_src;
-    const void * pressed_src;
-} fg_interactive_button_data_t;
-Hook Extension
-
-The structure may be extended with a callback pointer:
-
-typedef void (*fg_interactive_button_click_cb_t)(void);
-
-typedef struct
-{
-    const void * normal_src;
-    const void * pressed_src;
-    fg_interactive_button_click_cb_t clicked_cb;
-} fg_interactive_button_data_t;
-Purpose
-
-Each exported button carries:
-
-Its Normal image.
-Its Pressed image.
-Its unique developer callback.
-7. Shared Interactive Button Callback
-Existing Function
-static void fg_interactive_button_event_cb(
-    lv_event_t *event
-)
-Existing Responsibilities
-Read event code
-Resolve target button
-Resolve runtime data
-Resolve child image
-Swap visual state
-Extended Responsibility
-
-Handle:
-
-LV_EVENT_CLICKED
-
-Example:
-
-if (
-    code == LV_EVENT_CLICKED &&
-    data->clicked_cb
-)
-{
-    data->clicked_cb();
-}
-Rule
-
-Do not create one LVGL callback implementation per button.
-
-Continue using one shared LVGL callback with per-button runtime data.
-
-8. Button Hook Generation
-
-For each exported Interactive Button, generate one unique hook.
-
-Example buttons:
-
-Start Pump
-Stop Pump
-Reset Alarm
-
-Generated declarations:
-
+```c
 void FG_On_StartPump_Clicked(void);
 void FG_On_StopPump_Clicked(void);
 void FG_On_ResetAlarm_Clicked(void);
+```
 
-Generated user stubs:
+The exporter prevents duplicate hook names by adding a suffix when necessary. Generated C identifiers are sanitized; developer code must use the exact emitted hook name.
 
-void FG_On_StartPump_Clicked(void)
+### Button hook metadata path
+
+```text
+InteractiveButton component
+        ↓
+unique FG_On_*_Clicked name
+        ↓
+userEventHooks returned by generateForgeUILvglCode()
+        ↓
+Header export payload
+        ↓
+export-server.js
+        ↓
+generateUserEventFiles()
+        ↓
+95_UserEvents.h declaration
+95_UserEvents.c implementation stub
+```
+
+## Interactive Light output API
+
+### Export preparation and branch
+
+Interactive Light export owns:
+
+1. reading `interactiveAssetId`;
+2. resolving the Interactive Light asset by kind;
+3. resolving OFF and ON uploaded assets;
+4. validating LVGL readiness;
+5. adding required asset C files;
+6. creating a non-clickable LVGL image;
+7. selecting its initial source from saved `initialState`;
+8. creating a unique public setter name;
+9. emitting the setter implementation;
+10. returning its declaration as public API metadata.
+
+### Runtime object behavior
+
+Interactive Light is an output indicator, not an input control.
+
+- It is emitted as an LVGL image.
+- The object remains non-clickable.
+- It has no Button-style event callback.
+- It produces no hook in `95_UserEvents`.
+- Its initial OFF/ON image follows the saved `initialState`.
+
+### Proven public setter
+
+Example declaration:
+
+```c
+void FG_Set_Status_Light(bool enabled);
+```
+
+The generated implementation retains the Light image object and changes its image source:
+
+```c
+void FG_Set_Status_Light(bool enabled)
 {
-    // Add application behaviour here.
+    if (!fg_status_light_image)
+    {
+        return;
+    }
+
+    lv_image_set_src(
+        fg_status_light_image,
+        enabled
+            ? &on_symbol
+            : &off_symbol
+    );
 }
+```
 
-void FG_On_StopPump_Clicked(void)
-{
-    // Add application behaviour here.
-}
+Contract:
 
-void FG_On_ResetAlarm_Clicked(void)
-{
-    // Add application behaviour here.
-}
-9. Generated UI Files
-Files
-90_Studio_Export.c
-90_Studio_Export.h
-Own
-LVGL object creation
-Generated runtime structures
-Generated runtime event callbacks
-Generated component instances
-Generated public UI functions
-Calls into user hooks
-Regeneration Rule
+```text
+false → OFF artwork
+true  → ON artwork
+```
 
-These files may be replaced whenever Studio exports.
+Setter names use `FG_Set_*`. Duplicate API names receive a numeric suffix.
 
-Developer application logic must not be placed inside them.
+### Public declaration metadata path
 
-10. User Hook Files
-Files
-95_UserEvents.c
-95_UserEvents.h
-Own
-Button click implementations
-Application behaviour
-Connections between UI controls
-Calls into runtime services
-Calls into hardware services
-Developer custom code
-Preservation Rule
+```text
+InteractiveLight component
+        ↓
+unique FG_Set_* name
+        ↓
+setter implementation in generated LVGL code
+        ↓
+publicApiDeclarations returned by generateForgeUILvglCode()
+        ↓
+Header export payload
+        ↓
+export-server.js
+        ↓
+generateStudioExportHeader()
+        ↓
+declaration in 90_Studio_Export.h
+```
 
-These files must not be overwritten during normal re-export.
+The export server validates declarations against the supported setter signature before writing them:
 
-11. User Hook Header
-File
-95_UserEvents.h
+```c
+void FG_Set_<Name>(bool enabled);
+```
 
-Example:
+## Generated UI files
 
+### `90_Studio_Export.c`
+
+Owns generated implementation:
+
+- LVGL object creation
+- generated component instances
+- generated runtime structures
+- shared runtime callbacks
+- Button callback wiring
+- calls into Button user hooks
+- Light runtime image references
+- Light public setter implementations
+- `fg_studio_export_create(...)`
+
+It must not contain customer hardware behavior or permanent application logic.
+
+### `90_Studio_Export.h`
+
+Owns generated public declarations:
+
+- `fg_studio_export_create(lv_obj_t *parent)`
+- generated Light `FG_Set_*` APIs
+- required public includes and C/C++ linkage guards
+
+It does not contain user implementations.
+
+### Regeneration rule
+
+`90_Studio_Export.c` and `90_Studio_Export.h` are generated and replaceable whenever Studio exports.
+
+Never place developer application logic in them.
+
+## Generated user hook layer
+
+### `95_UserEvents.h`
+
+Studio generates declarations for collected Button hooks:
+
+```c
 #pragma once
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void FG_On_StartPump_Clicked(void);
-void FG_On_StopPump_Clicked(void);
+void FG_On_Button_Clicked(void);
 
 #ifdef __cplusplus
 }
 #endif
-Purpose
+```
 
-Provides the generated UI with declarations for developer-owned callback implementations.
+The generated UI includes this header only when Interactive Buttons require hooks.
 
-12. User Hook Source
-File
-95_UserEvents.c
+### `95_UserEvents.c`
 
-Example:
+Studio generates Button hook implementations for the current export. The live test implementation prints a confirmation:
 
+```c
 #include "95_UserEvents.h"
-#include "90_Studio_Export.h"
+#include <stdio.h>
 
-void FG_On_StartPump_Clicked(void)
+void FG_On_Button_Clicked(void)
 {
-    // Add application behaviour here.
+    printf("[ForgeUI User Event] FG_On_Button_Clicked\n");
 }
+```
 
-void FG_On_StopPump_Clicked(void)
-{
-    // Add application behaviour here.
-}
-Purpose
+Interactive Light does not add anything to these files.
 
-Provides a safe place for developers or coding assistants to add behaviour after export.
+## Export server
 
-13. Generated Section Headers
+### Primary file
 
-Each exported interactive component should include a small usage header.
+```text
+studio/export-server.js
+```
 
-Example:
+### Owns
 
-//==============================================================
-// ForgeUI Interactive Button
-//==============================================================
-//
-// Display Name:
-//   Start Pump
-//
-// Code Name:
-//   StartPump
-//
-// User Hook:
-//   FG_On_StartPump_Clicked()
-//
-// Add application behaviour in:
-//   95_UserEvents.c
-//
-// Do not place application logic in this generated section.
-//
-//==============================================================
-Purpose
+- receiving generated code and API metadata
+- normalizing supported public declarations
+- generating `90_Studio_Export.h`
+- generating `95_UserEvents.c/.h`
+- writing generated files
+- copying required image assets
+- generating CMake source lists
+- live firmware export
+- standalone ESP-IDF project export
+- project packaging and maintenance operations
 
-Make the exported code self-documenting.
+### Does not own
 
-A developer or coding assistant should be able to understand the integration point without external documentation.
+- LVGL component generation
+- Button or Light runtime behavior
+- hook-name selection
+- Light setter-name selection
+- application logic
+- customer hardware behavior
 
-14. Export Server
-Primary File
-export-server.js
-Owns
-Writing generated files
-Regenerating CMake
-Live firmware export
-Standalone project export
-Asset copying
-Firmware cleanup
-Firmware maintenance
-ESP-IDF project packaging
-Does Not Own
-LVGL component generation
-Button hook naming rules
-Widget runtime behaviour
-Application logic
-15. Live Firmware Export
-Endpoint
+The export server materializes the exporter result; it does not invent widget behavior.
+
+## Live firmware export
+
+### Endpoint
+
+```text
 POST /export
-Current Responsibilities
-Receive generated C source
-Receive asset source list
-Write 90_Studio_Export.c
-Write 90_Studio_Export.h
-Regenerate CMakeLists.txt
-Include required asset C files
-Hook Extension
+```
 
-The endpoint will also need to:
+The endpoint receives:
 
-Receive generated hook declarations or metadata.
-Create 95_UserEvents.c if it does not exist.
-Create 95_UserEvents.h if it does not exist.
-Preserve existing user implementations.
-Add 95_UserEvents.c to CMake.
-Ensure 90_Studio_Export.c can include 95_UserEvents.h.
-16. Standalone ESP-IDF Export
-Endpoint
+- generated C source
+- required asset source paths
+- Button `userEventHooks`
+- Light `publicApiDeclarations`
+
+It generates and writes:
+
+- `firmware/ForgeUI-One/main/90_Studio_Export.c`
+- `firmware/ForgeUI-One/main/90_Studio_Export.h`
+- `firmware/ForgeUI-One/main/95_UserEvents.c`
+- `firmware/ForgeUI-One/main/95_UserEvents.h`
+- `firmware/ForgeUI-One/main/CMakeLists.txt`
+- required generated image assets
+
+The live `95_UserEvents.c/.h` files are Studio-generated test hooks and may be regenerated. They are not manually created and are not the permanent location for product application logic.
+
+## Standalone ESP-IDF export
+
+### Endpoint
+
+```text
 POST /export-idf-project
-Current Responsibilities
-Copy ForgeUI-One baseline
-Remove build and development folders
-Copy only required uploaded assets
-Write generated Studio source
-Write generated Studio header
-Regenerate project CMake
-Create a uniquely named export folder
-Hook Extension
+```
 
-Every standalone project should contain:
+The endpoint creates an independent project under:
 
+```text
+C:\ForgeUI-Exports
+```
+
+The generated project contains:
+
+```text
 main/
 ├── 90_Studio_Export.c
 ├── 90_Studio_Export.h
 ├── 95_UserEvents.c
 ├── 95_UserEvents.h
+├── required generated assets
 └── CMakeLists.txt
+```
 
-Because each standalone export is a new project directory, its user stub files may be created fresh.
+Studio creates all four API-layer files at export time. Once the standalone project exists, its `95_UserEvents.c/.h` copies become the developer-owned integration layer. ForgeUI Studio does not continuously regenerate, build, flash, or synchronize that exported project.
 
-17. CMake Generation
-Current Generated Sources
+## File ownership boundary
+
+| File or concern | Live ForgeUI-One firmware | Standalone exported project |
+|---|---|---|
+| `90_Studio_Export.c` | Studio-generated and replaceable | Generated UI implementation |
+| `90_Studio_Export.h` | Studio-generated and replaceable | Generated public API declarations |
+| `95_UserEvents.c/.h` | Studio-generated test hook layer; may be regenerated | Developer-owned application/hook layer after export |
+| Generated image `.c` files | Studio-managed | Exported project assets |
+| `CMakeLists.txt` | Generated by export server | Generated project build registration |
+| GPIO, I/O, hardware actions | Do not keep permanently here | Add in developer-owned application layer |
+| Product/business logic | Do not keep permanently here | Developer-owned |
+
+### Ownership rules
+
+1. Studio owns the live firmware workspace and may regenerate its generated UI and hook files.
+2. Studio creates the standalone project's initial hook files.
+3. After export, the developer owns the standalone project and its `95_UserEvents.c/.h` application layer.
+4. Generated public UI functions remain declared in `90_Studio_Export.h` and implemented in `90_Studio_Export.c`.
+5. Developer code may include `90_Studio_Export.h` to call output APIs.
+6. Generated UI code includes `95_UserEvents.h` to call input hooks.
+7. Permanent product logic must not be stored in the live Studio firmware copy.
+
+Do not claim that live `95_UserEvents.c/.h` files are manually created or preserved through Studio regeneration. The preservation boundary begins with the independent standalone project after export.
+
+## CMake integration
+
+The export server generates the component source list and includes:
+
+```text
 main.c
 01_FG_Runtime.c
 20_RTC.c
@@ -468,349 +598,177 @@ main.c
 30_WIFI.c
 40_SD.c
 90_Studio_Export.c
-Required Addition
 95_UserEvents.c
+required generated asset sources
+```
 
-Example:
+Both the generated UI runtime and generated/developer hook layer are compiled into the ESP-IDF application.
 
-idf_component_register(
-    SRCS
-        "main.c"
-        "01_FG_Runtime.c"
-        "20_RTC.c"
-        "30_Audio.c"
-        "30_WIFI.c"
-        "40_SD.c"
-        "90_Studio_Export.c"
-        "95_UserEvents.c"
-)
-18. Cleanup Behaviour
-Clean Firmware
+Do not create a separate CMake pipeline for Interactive Assets or public APIs.
 
-Current generated cleanup replaces:
-
-90_Studio_Export.c
-90_Studio_Export.h
-CMakeLists.txt
-Required Rule
-
-A normal generated-code cleanup should not delete developer-owned user event files.
-
-95_UserEvents.c
-95_UserEvents.h
-
-must remain preserved unless the user explicitly requests a destructive reset.
-
-19. Firmware Maintenance
-
-Firmware Maintenance currently removes generated assets and rebuilds the firmware workspace.
-
-The handling of user-owned files must be explicit.
-
-Recommended rule:
-
-Generated assets
-        → removable
-
-Generated Studio export
-        → replaceable
-
-Build directory
-        → removable
-
-User event files
-        → preserved
-
-If a future destructive reset removes user files, the UI must clearly warn the user first.
-
-20. Generated Public Output APIs
-
-Buttons create input hooks.
-
-Future generated output controls should expose public functions.
-
-Status Light
-void FG_StatusLight_On(void);
-void FG_StatusLight_Off(void);
-void FG_StatusLight_Toggle(void);
-void FG_StatusLight_Set(bool on);
-Label
-void FG_StatusLabel_SetText(
-    const char *text
-);
-Progress Bar
-void FG_Progress_SetValue(
-    int value
-);
-Screen
-void FG_Show_SettingsScreen(void);
-Image
-void FG_WarningIcon_Show(void);
-void FG_WarningIcon_Hide(void);
-21. Input and Output Contract
-Input Controls
-
-Generated UI calls user code.
-
-Button
-        ↓
-LVGL Event
-        ↓
-Generated Hook
-        ↓
-95_UserEvents.c
-
-Examples:
-
-Button clicked
-Switch changed
-Slider value changed
-Input submitted
-Dropdown changed
-Output Controls
-
-User code calls generated UI APIs.
-
-Application Logic
-        ↓
-Generated Public Function
-        ↓
-LVGL Object Update
-
-Examples:
-
-Status Light on/off
-Label text update
-Progress value update
-Screen navigation
-Image visibility
-22. Application Boundary
+## Application boundary
 
 ForgeUI owns:
 
-UI structure
-Widget creation
-Visual behaviour
-Public UI API
-Callback entry points
+- UI structure
+- LVGL widget creation
+- visual runtime behavior
+- generated input callback entry points
+- generated public output functions
+- API naming and uniqueness
+- export metadata
+- generated firmware files
 
 Developer code owns:
 
-GPIO
-Sensors
-Wi-Fi application behaviour
-MQTT
-BLE
-Motors
-Relays
-Business logic
-Device-specific actions
+- GPIO
+- sensors
+- Wi-Fi application behavior
+- MQTT and BLE application behavior
+- motors and relays
+- business logic
+- device-specific actions
+- decisions about when to call generated output APIs
 
-Example:
+Example standalone application integration:
 
-void FG_On_StartPump_Clicked(void)
+```c
+#include "90_Studio_Export.h"
+#include "95_UserEvents.h"
+
+void FG_On_Button_Clicked(void)
 {
     pump_start();
-    FG_PumpStatusLight_On();
+    FG_Set_Status_Light(true);
 }
+```
 
-ForgeUI does not need to understand how pump_start() works.
+ForgeUI owns `FG_Set_Status_Light(...)` and the callback signature. The developer owns `pump_start()` and the decision to turn the Light on.
 
-23. Re-Export Contract
-Generated Files
+## Proven physical ESP32-P4 behavior
 
-May be overwritten:
+### Interactive Button input path
 
-90_Studio_Export.c
-90_Studio_Export.h
-CMakeLists.txt
-User Files
+Physically confirmed:
 
-Must be preserved:
+- Normal artwork displayed
+- Pressed artwork displayed on touch
+- release restored Normal artwork
+- physical click detected
+- generated shared callback executed
+- generated user hook executed
 
-95_UserEvents.c
-95_UserEvents.h
-New Hook Behaviour
+Monitor output:
 
-When a new button is added, the exporter should add a new declaration and stub without deleting existing user implementations.
+```text
+[ForgeUI] FG_On_Button_Clicked clicked
+[ForgeUI User Event] FG_On_Button_Clicked
+```
 
-This may require marker-managed sections.
+### Interactive Light output path
 
-Example:
+Physically confirmed:
 
-// FORGEUI GENERATED HOOKS BEGIN
+- OFF and ON image assets exported
+- saved initial ON state displayed
+- `FG_Set_*` public setter generated
+- Light remained non-clickable
+- firmware remained stable
 
-void FG_On_StartPump_Clicked(void);
-void FG_On_StopPump_Clicked(void);
+### System health
 
-// FORGEUI GENERATED HOOKS END
+- Wi-Fi READY
+- IP assigned
+- SD READY
+- no crash after interaction
 
-Developer-owned code must remain outside generated marker sections.
+The Button input-hook path and Light output-setter path are implemented and physically proven.
 
-24. Possible Stub Management Strategies
-Strategy A — Weak Functions
+## Debug map
 
-Generated UI provides weak empty functions.
+| Problem | Start here | Then inspect |
+|---|---|---|
+| Generated LVGL object is wrong | `ForgeUILvglExport.ts` component branch | resolved component props and Interactive Asset |
+| Button hook is absent from export result | `ForgeUILvglExport.ts` Button branch | `userEventHooks` set and hook naming |
+| Button hook name is wrong or duplicated | hook-name helpers in `ForgeUILvglExport.ts` | component name, asset label/name, uniqueness set |
+| Button visual state is wrong | `fg_interactive_button_event_cb` generation | per-instance Normal/Pressed sources |
+| Button CLICKED does not reach hook | Button event registration | `.clicked_cb`, `95_UserEvents.h/.c` |
+| Light setter is missing from C source | Light export preparation in `ForgeUILvglExport.ts` | LVGL readiness and unique API name |
+| Light declaration is missing from header | `publicApiDeclarations` export result | Header payload and `generateStudioExportHeader()` |
+| Light starts in wrong state | Light export branch | saved `initialState` and initial image symbol |
+| Light is clickable or generates a hook | Light export branch | remove Button-style callback/hook behavior |
+| API metadata is absent from request | `Header.tsx` | `/export` and `/export-idf-project` payloads |
+| Generated header is wrong | `generateStudioExportHeader()` | `normalizePublicApiDeclarations()` |
+| Hook files are missing | `generateUserEventFiles()` | received `userEventHooks` and export endpoint |
+| Live files are unexpectedly replaced | live ownership policy | `/export` writes generated live output |
+| Standalone project lacks APIs | `/export-idf-project` | copied/written files and public metadata |
+| CMake cannot find hooks or assets | generated `CMakeLists.txt` | export server source collection |
+| Linker reports missing Button callback | `95_UserEvents.h/.c` | exact generated hook name |
+| Linker reports missing Light setter | `90_Studio_Export.h/.c` | exact generated setter declaration/definition |
+| Physical behavior differs from export | generated C and symbols | LVGL object wiring and copied asset sources |
 
-__attribute__((weak))
-void FG_On_StartPump_Clicked(void)
-{
-}
+## File responsibility summary
 
-Developer code may provide a strong implementation elsewhere.
+### `studio/src/forgeui/ForgeUILvglExport.ts`
 
-Advantages
-Simple
-Export always compiles
-No user file parsing
-Disadvantages
-Less obvious to new developers
-Stubs may still live in generated code
-Developer must create matching implementations
-Strategy B — Preserved User Files
+Owns generated LVGL source, runtime behavior, hook names, setter names, and API metadata. Never writes files directly.
 
-Generate:
+### `studio/src/components/Header.tsx`
 
-95_UserEvents.c
-95_UserEvents.h
+Owns export actions and transport of generated code plus API metadata. Never invents runtime APIs.
 
-and preserve them.
+### `studio/export-server.js`
 
-Advantages
-Clear developer entry point
-Easy for GPT and VS Code
-Self-documenting export
-Clean separation
-Disadvantages
-Requires safe update logic for newly added hooks
-Recommended Direction
+Owns validation of accepted metadata, generated headers/hooks, disk writes, assets, CMake, and project packaging. Never invents widget behavior.
 
-Use preserved user files as the permanent architecture.
+### `90_Studio_Export.c`
 
-Weak generated defaults may be used internally as a temporary safety mechanism if needed.
+Owns generated UI and runtime implementations. Never contains developer product logic.
 
-25. Debug Map
-Problem	Start Here
-Hook not generated	ForgeUILvglExport.ts
-Wrong hook name	Public code-name helper
-Duplicate hook names	Code-name uniqueness logic
-Click does not fire	fg_interactive_button_event_cb()
-Visual state broken	Existing Interactive Button runtime
-Hook file missing	export-server.js
-User file overwritten	Export server preservation logic
-CMake cannot find hook file	Generated CMakeLists.txt
-Standalone project missing hooks	/export-idf-project
-Live firmware missing hooks	/export
-Cleanup deleted user code	Cleanup endpoints
-Linker reports missing callback	Hook declarations and implementations
-26. File Ownership Rules
-ForgeUILvglExport.ts
+### `90_Studio_Export.h`
 
-Owns generated LVGL source and public API design.
+Owns generated public UI declarations. Never contains user implementations.
 
-Never writes files directly.
+### `95_UserEvents.c`
 
-export-server.js
+In live firmware, owns Studio-generated test hook implementations. In a standalone export, becomes the developer-owned callback/application implementation layer.
 
-Owns disk writing and project packaging.
+### `95_UserEvents.h`
 
-Never invents widget behaviour.
+In live firmware, owns Studio-generated hook declarations. In a standalone export, forms part of the developer-owned hook interface while preserving exact generated names used by the UI.
 
-90_Studio_Export.c
+### `CMakeLists.txt`
 
-Owns generated LVGL runtime.
+Owns compilation source registration and is generated by the export server.
 
-Never contains customer application logic.
+## Architectural invariants
 
-90_Studio_Export.h
+Preserve these rules:
 
-Owns generated public UI function declarations.
+1. `generateForgeUILvglCode()` remains the only LVGL UI exporter.
+2. Inputs generate `FG_On_*` developer hooks.
+3. Outputs generate public `FG_Set_*` UI functions.
+4. Button uses one shared LVGL event callback with per-instance data.
+5. Light remains a non-clickable image controlled by a setter.
+6. Button hooks live across `90_Studio_Export.c` and `95_UserEvents.c/.h`.
+7. Light setters are declared and implemented entirely in `90_Studio_Export.h/.c`.
+8. `Header.tsx` transports exporter metadata but does not create APIs.
+9. `export-server.js` writes files but does not define widget behavior.
+10. Live `95_UserEvents.c/.h` files are Studio-generated and replaceable.
+11. Standalone `95_UserEvents.c/.h` files become developer-owned after export.
+12. Customer hardware and business logic never belongs in generated UI files.
 
-Never contains user implementations.
+## Extension rule
 
-95_UserEvents.c
+Future generated APIs must follow the established direction model:
 
-Owns customer callback implementations.
+- a new input control contributes a generated developer hook and hook metadata;
+- a new output control contributes a generated public UI function and declaration metadata.
 
-Must be preserved.
+Future controls must extend the existing exporter, export-result metadata, Header transport, export-server materialization, generated files, and ownership model. They must not introduce a parallel exporter, hook generator, public API generator, or runtime project.
 
-95_UserEvents.h
+## Permanent architecture statement
 
-Owns callback declarations shared with generated UI.
+> ForgeUI generates the interface. ForgeUI exposes the interface. The developer supplies the application.
 
-Generated sections may be managed carefully, but developer additions must be preserved.
-
-CMakeLists.txt
-
-Owns compilation source registration.
-
-Generated by the export server.
-
-27. Integration Flow
-Interactive Button Component
-        │
-        ▼
-Code Name Resolution
-        │
-        ▼
-generateForgeUILvglCode()
-        │
-        ├── LVGL Button Runtime
-        ├── Hook Call
-        └── Public API Metadata
-        │
-        ▼
-export-server.js
-        │
-        ├── 90_Studio_Export.c
-        ├── 90_Studio_Export.h
-        ├── 95_UserEvents.c
-        ├── 95_UserEvents.h
-        └── CMakeLists.txt
-        │
-        ▼
-Developer Opens Project
-        │
-        ▼
-Adds Logic To 95_UserEvents.c
-        │
-        ▼
-Build
-        │
-        ▼
-ESP32-P4
-28. First Implementation Target
-
-The first Generated Export API implementation should support:
-
-One or more Interactive Buttons
-
-Each button receives:
-
-FG_On_<CodeName>_Clicked()
-
-The existing button visual-state runtime remains unchanged.
-
-Validation:
-
-Two Interactive Buttons
-        │
-        ├── Unique hook 1
-        └── Unique hook 2
-        │
-        ▼
-95_UserEvents.c
-        │
-        ▼
-ESP-IDF Build
-        │
-        ▼
-Physical ESP32-P4
-Permanent Architecture Rule
-ForgeUI generates the interface.
-
-ForgeUI exposes the interface.
-
-The developer supplies the application.
-
-This document is the permanent architectural map for the ForgeUI Generated Export API and should be maintained only when ownership or integration boundaries change.
+Maintain this document only when the generated API or ownership boundary changes.

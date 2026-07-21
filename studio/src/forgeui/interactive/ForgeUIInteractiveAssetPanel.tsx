@@ -3,10 +3,6 @@ import { getSelectedComponent } from '~core/selectors/components'
 import { useForm } from '~hooks/useForm'
 import useDispatch from '~hooks/useDispatch'
 
-import {
-  generateAIImageAsset,
-} from '~forgeui/ai/ForgeUIAIImagePipeline'
-
 import React, {
   useEffect,
   useMemo,
@@ -24,7 +20,10 @@ import {
   Input,
   NumberInput,
   NumberInputField,
+  Radio,
+  RadioGroup,
   SimpleGrid,
+  Stack,
   Text,
   VStack,
 } from '@chakra-ui/react'
@@ -44,6 +43,10 @@ import {
 } from '~forgeui/interactive'
 
 import InteractiveButtonPreview from './InteractiveButtonPreview'
+import InteractiveLightDesigner from './InteractiveLightDesigner'
+import InteractiveAssetAIGenerator, {
+  InteractiveAssetEditorKind,
+} from './InteractiveAssetAIGenerator'
 
 import {
   forgeUIGetUploadedAssets,
@@ -56,6 +59,12 @@ import type {
 import type {
   ForgeUIInteractiveButtonAsset,
 } from './ForgeUIInteractiveButtonAsset'
+import type {
+  ForgeUIInteractiveAsset,
+} from './ForgeUIInteractiveAsset'
+import type {
+  ForgeUIInteractiveLightAsset,
+} from './ForgeUIInteractiveLightAsset'
 
 const DEFAULT_WIDTH = 120
 const DEFAULT_HEIGHT = 48
@@ -87,18 +96,30 @@ const selectedIsInteractiveButton =
   selectedComponent?.type === 'InteractiveButton'
 
 const [assets, setAssets] = useState<
-  ForgeUIInteractiveButtonAsset[]
+  ForgeUIInteractiveAsset[]
 >([])
+
+const buttonAssets = assets.filter(
+  (asset): asset is ForgeUIInteractiveButtonAsset =>
+    asset.kind === 'button',
+)
+
+const lightAssets = assets.filter(
+  (asset): asset is ForgeUIInteractiveLightAsset =>
+    asset.kind === 'light',
+)
 
   const [
     uploadedAssets,
     setUploadedAssets,
   ] = useState<ForgeUIUploadedAsset[]>([])
   
-  const [
-    isCreatingButton,
-    setIsCreatingButton,
-  ] = useState(false)
+  const [selectedAssetKind, setSelectedAssetKind] = useState<
+    InteractiveAssetEditorKind
+  >('button')
+  const [isDesignerOpen, setIsDesignerOpen] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [lightNewRequest, setLightNewRequest] = useState(0)
 
   const [
     editingAssetId,
@@ -133,16 +154,6 @@ const [
   pressedAssetId,
   setPressedAssetId,
 ] = useState<string | undefined>(undefined)
-
-const [
-  aiPrompt,
-  setAiPrompt,
-] = useState('')
-
-const [
-  isGeneratingAIButton,
-  setIsGeneratingAIButton,
-] = useState(false)
 
   const refreshAssets = () => {
     setAssets(getAllInteractiveAssets())
@@ -242,10 +253,32 @@ const [
     setVisualSelectorMode(null)
   }
 
-  const openInteractiveButtonDesigner = () => {
-    resetDesigner()
-    setEditingAssetId(null)
-    setIsCreatingButton(true)
+  const openInteractiveAssetDesigner = () => {
+    if (selectedAssetKind === 'button') {
+      resetDesigner()
+      setEditingAssetId(null)
+    } else {
+      setLightNewRequest(request => request + 1)
+    }
+
+    setIsDesignerOpen(true)
+  }
+
+  const changeSelectedAssetKind = (
+    nextKind: InteractiveAssetEditorKind,
+  ) => {
+    if (isGenerating || nextKind === selectedAssetKind) return
+
+    setSelectedAssetKind(nextKind)
+
+    if (!isDesignerOpen) return
+
+    if (nextKind === 'button') {
+      resetDesigner()
+      setEditingAssetId(null)
+    } else {
+      setLightNewRequest(request => request + 1)
+    }
   }
 
   const editInteractiveButton = (
@@ -259,13 +292,14 @@ const [
     setPressedAssetId(asset.pressedAssetId)
     setVisualSelectorMode(null)
     setEditingAssetId(asset.id)
-    setIsCreatingButton(true)
+    setSelectedAssetKind('button')
+    setIsDesignerOpen(true)
   }
 
   const closeInteractiveButtonDesigner = () => {
     resetDesigner()
     setEditingAssetId(null)
-    setIsCreatingButton(false)
+    setIsDesignerOpen(false)
   }
 
   const chooseVisualAsset = (
@@ -281,82 +315,6 @@ const [
 
     setVisualSelectorMode(null)
   }
-
-  const generateAIButton = async () => {
-  const trimmedPrompt =
-    aiPrompt.trim()
-
-  if (
-    !trimmedPrompt ||
-    isGeneratingAIButton
-  ) {
-    return
-  }
-
-  setIsGeneratingAIButton(true)
-
-  try {
-    const timestamp = Date.now()
-
-    const normalAsset =
-  await generateAIImageAsset({
-    prompt: trimmedPrompt,
-    filePrefix:
-      `ai_button_normal_${timestamp}`,
-    generationMode:
-      'button-normal',
-    assetMode:
-      'interactive_button',
-    width:
-      buttonWidth,
-    height:
-      buttonHeight,
-  })
-
-    const pressedAsset =
-  await generateAIImageAsset({
-    prompt: trimmedPrompt,
-    filePrefix:
-      `ai_button_pressed_${timestamp}`,
-    generationMode:
-      'button-pressed',
-    assetMode:
-      'interactive_button',
-    width:
-      buttonWidth,
-    height:
-      buttonHeight,
-  })
-
-    refreshUploadedAssets()
-
-    setNormalAssetId(normalAsset.id)
-    setPressedAssetId(pressedAsset.id)
-
-    setVisualSelectorMode(null)
-
-    console.log(
-      'AI BUTTON GENERATED:',
-      {
-        normalAsset,
-        pressedAsset,
-      },
-    )
-  } catch (error) {
-    console.error(
-      'AI button generation failed:',
-      error,
-    )
-
-    window.alert(
-      error instanceof Error
-        ? error.message
-        : 'AI button generation failed.',
-    )
-  } finally {
-    setIsGeneratingAIButton(false)
-  }
-}
 
   const saveInteractiveButton = () => {
     const trimmedName = assetName.trim()
@@ -599,14 +557,35 @@ const [
             size="sm"
             colorScheme="blue"
             onClick={
-              openInteractiveButtonDesigner
+              openInteractiveAssetDesigner
             }
           >
-            + New Interactive Button
+            + New Interactive Asset
           </Button>
         </HStack>
 
-        {isCreatingButton && (
+        <FormControl>
+          <FormLabel fontSize="sm">Asset Type</FormLabel>
+          <RadioGroup
+            value={selectedAssetKind}
+            onChange={value =>
+              changeSelectedAssetKind(
+                value as InteractiveAssetEditorKind,
+              )
+            }
+          >
+            <Stack direction="row" spacing={5}>
+              <Radio value="button" isDisabled={isGenerating}>
+                Button
+              </Radio>
+              <Radio value="light" isDisabled={isGenerating}>
+                Light
+              </Radio>
+            </Stack>
+          </RadioGroup>
+        </FormControl>
+
+        {isDesignerOpen && selectedAssetKind === 'button' && (
           <Box
             borderWidth="1px"
             borderColor="blue.400"
@@ -634,46 +613,18 @@ const [
                   the Normal and Pressed states.
                 </Text>
               </Box>
-              <Box
-             borderWidth="1px"
-             borderColor="purple.400"
-             borderRadius="md"
-             bg="purple.900"
-             p={4}
-         >
-          <Heading size="xs">
-            AI Create Button
-          </Heading>
-
-          <Text
-             color="gray.400"
-             fontSize="sm"
-             mt={1}
-             mb={3}
-         >
-            Describe the button you want and AI
-            will generate both Normal and
-            Pressed visuals.
-           </Text>
-
-           <Input
-            value={aiPrompt}
-            onChange={event =>
-            setAiPrompt(event.target.value)
-          }
-            placeholder="Blue Start button with soft glow..."
-            mb={3}
-          />
-
-          <Button
-            colorScheme="purple"
-            isLoading={isGeneratingAIButton}
-            isDisabled={!aiPrompt.trim()}
-            onClick={generateAIButton}
-          >
-             Generate Button
-          </Button>
-          </Box>
+              <InteractiveAssetAIGenerator
+                selectedAssetKind={selectedAssetKind}
+                width={buttonWidth}
+                height={buttonHeight}
+                onGenerated={(normalId, pressedId) => {
+                  setNormalAssetId(normalId)
+                  setPressedAssetId(pressedId)
+                  setVisualSelectorMode(null)
+                }}
+                onGeneratingChange={setIsGenerating}
+                onUploadedAssetsChanged={refreshUploadedAssets}
+              />
               <FormControl isRequired>
                 <FormLabel fontSize="sm">
                   Asset Name
@@ -986,12 +937,28 @@ const [
           </Box>
         )}
 
+        <InteractiveLightDesigner
+          assets={lightAssets}
+          uploadedAssets={uploadedAssets}
+          selectedAssetKind={selectedAssetKind}
+          onAssetsChanged={refreshAssets}
+          onUploadedAssetsChanged={refreshUploadedAssets}
+          isActive={isDesignerOpen && selectedAssetKind === 'light'}
+          newRequestVersion={lightNewRequest}
+          onActivate={() => {
+            setSelectedAssetKind('light')
+            setIsDesignerOpen(true)
+          }}
+          onClose={() => setIsDesignerOpen(false)}
+          onGeneratingChange={setIsGenerating}
+        />
+
         <Box
           borderTopWidth="1px"
           borderColor="whiteAlpha.200"
         />
 
-        {assets.length === 0 ? (
+        {buttonAssets.length === 0 ? (
           <Box
             borderWidth="1px"
             borderColor="whiteAlpha.200"
@@ -1005,7 +972,7 @@ const [
               size="xs"
               color="gray.300"
             >
-              No Interactive Assets Yet
+              No Interactive Buttons Yet
             </Heading>
 
             <Text
@@ -1013,8 +980,8 @@ const [
               fontSize="sm"
               mt={2}
             >
-              Create an Interactive Button to begin
-              building the reusable asset library.
+              Create an Interactive Button to add one
+              to the shared asset library.
             </Text>
           </Box>
         ) : (
@@ -1022,7 +989,7 @@ const [
             align="stretch"
             spacing={3}
           >
-            {assets.map(asset => {
+            {buttonAssets.map(asset => {
               const {
                 normalAsset: assetNormalVisual,
                 pressedAsset: assetPressedVisual,

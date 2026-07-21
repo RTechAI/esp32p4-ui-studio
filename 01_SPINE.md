@@ -1,57 +1,329 @@
 # Current Save Point
 
-**FORGEUI_V2_4_2__GENERATED_USER_EVENT_HOOK_LAYER__ESP_IDF_EXPORT_PIPELINE_COMPLETE__READY_FOR_PHYSICAL_RUNTIME_PROOF__2026-07-20**
+**FORGEUI_INTERACTIVE_ASSET_FRAMEWORK_V1__BUTTON_AND_LIGHT__UNIFIED_UI_FLOW__PHYSICAL_ESP32P4_PROVEN**
 
-## Current Platform Capabilities
+## Current Proven Status
 
-- Visual React builder with a fixed ESP32-P4 canvas and browser preview.
-- Native LVGL 9 generation for the live Studio firmware and standalone ESP-IDF projects.
-- AI-assisted layout, theme, hero background, artwork, icon and Interactive Button workflows.
-- Shared uploaded-asset registry with mode-aware Python preprocessing and LVGL C conversion.
-- Canvas, browser preview and physical ESP32-P4 rendering parity proven across the recorded milestones.
-- Deterministic firmware cleanup, regeneration, build, flash and standalone export workflows.
-- Generated Interactive Button callbacks connected to the `95_UserEvents.c/.h` runtime hook layer.
+ForgeUI has a reusable Interactive Asset Framework with two fully implemented asset types:
 
-Detailed architecture and ownership maps live in `02_DEVELOPER_CODE_MAP.md` and `03_ForgeUI_Generated_Export_API_Code_Map.md`.
+- Interactive Button
+- Interactive Light
 
-## Current Milestone Summary
+Both types are proven through Studio creation, AI state-image generation, asset registration, persistence, Canvas rendering, Studio preview, LVGL export, ESP-IDF build, and physical ESP32-P4 runtime.
 
-- **What changed:** Interactive Button export now produces stable callback names and generates `95_UserEvents.c/.h` alongside `90_Studio_Export.c/.h`.
-- **Why it changed:** Exported controls needed a defined path from generated LVGL event wiring to application behavior.
-- **Final architecture:** Canvas components generate hook metadata; the export server writes the live and standalone hook files; generated LVGL callbacks call those hooks.
-- **Proven result:** Hook generation, source inclusion and CMake integration are complete. Physical runtime proof remains the final validation step recorded by this save point.
+The Studio presents both types through one coherent Interactive Assets creation flow. Button and Light share the framework infrastructure while retaining type-specific asset models, designers, state mappings, Canvas behavior, export behavior, and runtime behavior.
 
-## Current Status
+## Interactive Assets UI
 
-ForgeUI Studio generates a complete event-hook layer alongside its normal LVGL export. Interactive Buttons use stable, automatically deduplicated callback names and share the generated LVGL event dispatcher.
+The Interactive Assets panel exposes one creation entry point:
 
-The live Studio firmware remains a Studio-controlled physical test target. A manually exported project under `C:\ForgeUI-Exports` becomes an independent developer-owned ESP-IDF project.
+```text
++ New Interactive Asset
+```
 
-## Proven
+The panel owns the single Asset Type selection:
 
-- Interactive Asset Registry, Interactive Button Designer and Canvas assignment.
-- Browser Preview and physical pressed/released image behavior.
-- Multi-instance runtime behavior and physical size parity.
-- Unique callback naming and duplicate-name avoidance.
-- Shared LVGL event dispatch and callback registration.
-- Generation of `90_Studio_Export.c/.h` and `95_UserEvents.c/.h`.
-- Automatic CMake inclusion of generated UI and user-event sources.
-- Live firmware and standalone ESP-IDF export integration.
+- Button
+- Light
 
-## Remaining Proof
+The parent-owned `selectedAssetKind` controls the active designer, visible type-specific form, AI generation mode, and new-draft initialization. Changing Asset Type switches the displayed designer and its fields. Asset Type switching is disabled while AI generation is in progress so asynchronous results cannot be directed into the wrong designer.
 
-Complete final physical runtime validation:
+Clicking `+ New Interactive Asset` initializes the selected type's draft without creating a registry object. Registration occurs only on Save. Editing an existing asset automatically selects `asset.kind`, opens the correct designer, and loads the correct draft.
 
-- Confirm ESP-IDF compiles the generated `95_UserEvents.c`.
-- Confirm button clicks print the generated event name and user-event message.
-- Repeat with multiple Interactive Buttons.
+There are no separate New Button and New Light creation flows. The Button and Light designers remain separate internally; their models and save logic are not merged.
 
-Once confirmed, the generated user-event hook milestone is physically proven.
+## Shared Interactive Asset Framework
 
-## Next Work
+The shared framework owns:
 
-- Expand hook generation to additional widgets such as LEDs, Switches and Sliders.
-- Design the I/O tab and runtime action system connecting generated callbacks to ESP32-P4 hardware features.
+- Interactive Asset identity and ID generation
+- Discriminated asset kinds
+- Base validation and type-specific validation dispatch
+- The in-memory Interactive Asset registry
+- Local persistence and reload
+- Uploaded state-image references
+- The shared AI image-generation pipeline
+- Canvas asset and dimension resolution
+- Canvas assignment through `interactiveAssetId`
+- LVGL export integration
+
+Shared asset concepts include `schemaVersion`, `id`, `name`, `kind`, `interactionMode`, `createdAt`, `updatedAt`, `width`, `height`, and uploaded asset references for visual states.
+
+The current discriminated kinds are:
+
+```text
+kind: button
+interactionMode: momentary
+
+kind: light
+interactionMode: state
+```
+
+`ForgeUIInteractiveAsset` is the discriminated union of supported models. The common registry and persistence layer store both kinds. Kind-aware lookup and validation prevent an asset from being resolved as the wrong type.
+
+Canvas components store an `interactiveAssetId`. Assignment also propagates the selected asset's width and height. On reload, the Interactive Asset registry and uploaded-asset registry restore the records required for Canvas and export resolution.
+
+## Interactive Button
+
+Interactive Button uses `kind: button` and `interactionMode: momentary`. Its uploaded state-image references are:
+
+- `normalAssetId`
+- `pressedAssetId`
+
+### Studio behavior
+
+- AI generates Normal and Pressed images.
+- Generated results map to `normalAssetId` and `pressedAssetId`.
+- Canvas preview displays Pressed while held and returns to Normal on release.
+- The asset can be assigned to an `InteractiveButton` Canvas component.
+- Assignment writes `interactiveAssetId` and propagates width and height.
+- Assignment persists across Studio restart.
+
+### LVGL runtime behavior
+
+The exporter creates a parent LVGL button object and a child LVGL image object:
+
+- `LV_EVENT_PRESSED` changes to the Pressed image.
+- `LV_EVENT_RELEASED` and `LV_EVENT_PRESS_LOST` restore the Normal image.
+- `LV_EVENT_CLICKED` calls the generated developer hook.
+
+Generated hook example:
+
+```c
+FG_On_Button_Clicked();
+```
+
+Runtime flow:
+
+```text
+Touch
+  ↓
+LVGL Button
+  ↓
+Generated event callback
+  ↓
+FG_On_Button_Clicked()
+  ↓
+95_UserEvents.c
+  ↓
+Developer application logic
+```
+
+## Interactive Light
+
+Interactive Light uses `kind: light`, `interactionMode: state`, and a saved `initialState: off | on`. Its uploaded state-image references are:
+
+- `offAssetId`
+- `onAssetId`
+
+### Studio behavior
+
+- AI generates OFF and ON images.
+- Generated results map to `offAssetId` and `onAssetId`.
+- Canvas click toggles a temporary preview state.
+- Preview toggling does not mutate the saved asset or affect exported firmware.
+- The asset can be assigned to an `InteractiveLight` Canvas component.
+- Assignment writes `interactiveAssetId` and propagates width and height.
+- Assignment persists across Studio restart.
+
+### LVGL runtime behavior
+
+Interactive Light exports as a non-clickable LVGL image. Its initial source uses the saved `initialState`.
+
+- It has no Button-style event callback.
+- It generates no Light hook in `95_UserEvents`.
+- Runtime state is controlled through a generated public setter.
+
+Generated API example:
+
+```c
+void FG_Set_Status_Light(bool enabled);
+```
+
+Setter behavior:
+
+```text
+false → OFF image
+true  → ON image
+```
+
+Runtime flow:
+
+```text
+Developer application logic
+  ↓
+FG_Set_Status_Light(enabled)
+  ↓
+Generated 90_Studio_Export.c
+  ↓
+LVGL image source changes
+  ↓
+Physical indicator state changes
+```
+
+## Shared AI Generation Path
+
+Button and Light use the same request, response, upload, and LVGL conversion pipeline:
+
+```text
+Interactive Asset Designer
+  ↓
+InteractiveAssetAIGenerator
+  ↓
+ForgeUIAIImagePipeline
+  ↓
+POST /api/forgeui-ai-hero
+  ↓
+AI image generation
+  ↓
+Uploaded Asset Registry
+  ↓
+LVGL image conversion
+  ↓
+Asset state IDs returned to designer
+```
+
+Button generation modes:
+
+- `button-normal`
+- `button-pressed`
+
+Light generation modes:
+
+- `light-off`
+- `light-on`
+
+The type-specific differences are prompt mode, prompt template, filename prefix, and result-to-state mapping. The selected parent asset kind determines the modes used by the shared generator.
+
+```text
+Button: first → normalAssetId, second → pressedAssetId
+Light:  first → offAssetId,     second → onAssetId
+```
+
+## File Ownership
+
+### Generated and replaceable UI output
+
+- `90_Studio_Export.c`
+- `90_Studio_Export.h`
+
+Studio regenerates these files. Generated public UI APIs, including Interactive Light setters, are declared in `90_Studio_Export.h` and implemented in `90_Studio_Export.c`. Permanent developer application logic must not be placed in them.
+
+### User event hook layer
+
+- `95_UserEvents.c`
+- `95_UserEvents.h`
+
+Studio currently creates and writes these files when it generates live Studio firmware and when it creates a standalone export. In live Studio firmware they contain regenerated test hooks. After a standalone project is exported, its copies become the developer-owned hook and application-logic layer. Developers add GPIO, I/O, hardware actions, and product behavior to the standalone project's `95_UserEvents.c` while preserving generated hook names.
+
+Interactive Button click hooks cross into this layer. Interactive Light setters remain generated public UI APIs in `90_Studio_Export.h/.c` and do not create Light hooks in `95_UserEvents`.
+
+## Major Files
+
+Paths under `src/` are relative to `studio/`.
+
+### Interactive framework
+
+- `src/forgeui/interactive/ForgeUIInteractiveAsset.ts`
+- `src/forgeui/interactive/ForgeUIInteractiveAssetIds.ts`
+- `src/forgeui/interactive/ForgeUIInteractiveAssetRegistry.ts`
+- `src/forgeui/interactive/ForgeUIInteractiveAssetPersistence.ts`
+- `src/forgeui/interactive/ForgeUIInteractiveAssetValidation.ts`
+- `src/forgeui/interactive/ForgeUIInteractiveAssetResolver.ts`
+- `src/forgeui/interactive/index.ts`
+
+### Button
+
+- `src/forgeui/interactive/ForgeUIInteractiveButtonAsset.ts`
+- `src/forgeui/interactive/InteractiveButtonPreview.tsx`
+- `src/components/editor/previews/InteractiveButtonCanvasPreview.tsx`
+
+### Light
+
+- `src/forgeui/interactive/ForgeUIInteractiveLightAsset.ts`
+- `src/forgeui/interactive/InteractiveLightDesigner.tsx`
+- `src/forgeui/interactive/InteractiveLightPreview.tsx`
+- `src/components/editor/previews/InteractiveLightCanvasPreview.tsx`
+
+### Shared UI and AI
+
+- `src/forgeui/interactive/ForgeUIInteractiveAssetPanel.tsx`
+- `src/forgeui/interactive/InteractiveAssetAIGenerator.tsx`
+- `src/forgeui/ai/ForgeUIAIImagePipeline.ts`
+- `src/pages/api/forgeui-ai-hero.ts`
+
+### Exporter
+
+- `src/forgeui/ForgeUILvglExport.ts`
+- `export-server.js`
+
+### Generated firmware
+
+- `firmware/ForgeUI-One/main/90_Studio_Export.c`
+- `firmware/ForgeUI-One/main/90_Studio_Export.h`
+- `firmware/ForgeUI-One/main/95_UserEvents.c`
+- `firmware/ForgeUI-One/main/95_UserEvents.h`
+
+## Physical ESP32-P4 Proof
+
+### Interactive Button
+
+- Normal image displayed physically.
+- Pressed image displayed on touch.
+- Released state restored the Normal image.
+- Physical click was detected and the generated hook was called.
+- Monitor output confirmed:
+
+```text
+[ForgeUI] FG_On_Button_Clicked clicked
+[ForgeUI User Event] FG_On_Button_Clicked
+```
+
+### Interactive Light
+
+- ON and OFF state artwork exported.
+- The saved initial ON state displayed physically.
+- The public setter was generated.
+- The Light remained non-clickable.
+- Firmware remained stable.
+
+### System health
+
+- Wi-Fi READY
+- Wi-Fi connected
+- IP assigned
+- SD READY
+- No crash after interaction
+
+## Verified Automated Status
+
+- 11 test suites passed.
+- 41 tests passed.
+- 6 focused UI and shared-generator tests passed.
+- `export-server.js` syntax check passed.
+- No implementation diagnostics occurred in the changed files.
+
+One pre-existing TypeScript error remained in `InteractiveLightCanvasPreview.test.tsx`. It was not caused by the unified Interactive Assets UI task.
+
+## Architectural Significance and Extension Pattern
+
+Interactive Button proved the first implementation. Interactive Light proved that the architecture is a reusable framework rather than a Button-specific feature. The unified UI presents both as members of one expandable Interactive Asset system.
+
+A future type should extend the discriminated asset union and provide its type-specific model, validation, designer fields, preview behavior, Canvas behavior, result mapping, export handling, and runtime behavior. It should reuse shared identity, registry, persistence, uploaded assets, AI pipeline, Canvas assignment, and framework-level UI coordination.
+
+Potential future types include:
+
+- Toggle Switch
+- Alarm Indicator
+- Battery Indicator
+- Wi-Fi Indicator
+- Motor State
+- Direction Indicator
+- Multi-state Lamp
+- Gauge
+- Seven-segment display
+
+These are extension examples only; they are not implemented.
 
 # Save Point History
 

@@ -1,11 +1,15 @@
 import {
   clearInteractiveAssetRegistry,
   getInteractiveButtonAsset,
+  getInteractiveLightAsset,
   registerInteractiveAsset,
 } from './ForgeUIInteractiveAssetRegistry'
 import {
   createDefaultInteractiveButtonAsset,
 } from './ForgeUIInteractiveButtonAsset'
+import {
+  createDefaultInteractiveLightAsset,
+} from './ForgeUIInteractiveLightAsset'
 import {
   FORGEUI_INTERACTIVE_ASSETS_STORAGE_KEY,
   reloadInteractiveAssets,
@@ -38,5 +42,25 @@ describe('Interactive Asset persistence', () => {
     reloadInteractiveAssets()
 
     expect(getInteractiveButtonAsset(asset.id)).toEqual(asset)
+  })
+
+  it('round-trips Button and Light assets through the existing v1 key', () => {
+    const button = createDefaultInteractiveButtonAsset('button')
+    const light = {
+      ...createDefaultInteractiveLightAsset('light'),
+      offAssetId: 'off-id',
+      onAssetId: 'on-id',
+      initialState: 'on' as const,
+    }
+
+    registerInteractiveAsset(button)
+    registerInteractiveAsset(light)
+    saveInteractiveAssets()
+
+    clearInteractiveAssetRegistry()
+    reloadInteractiveAssets()
+
+    expect(getInteractiveButtonAsset(button.id)).toEqual(button)
+    expect(getInteractiveLightAsset(light.id)).toEqual(light)
   })
 })

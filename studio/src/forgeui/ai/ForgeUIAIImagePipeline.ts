@@ -13,6 +13,8 @@ type AIImageGenerationMode =
   | 'artwork'
   | 'button-normal'
   | 'button-pressed'
+  | 'light-off'
+  | 'light-on'
 
 type GenerateAIImageAssetOptions = {
   prompt: string

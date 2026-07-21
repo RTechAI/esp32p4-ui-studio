@@ -1,496 +1,651 @@
-# 🛠️ ForgeUI Studio (`esp32p4-ui-studio`)
+# 🛠️ ForgeUI Studio
 
+**ForgeUI Studio is an open-source, AI-assisted visual embedded HMI Studio for ESP32-P4.** It combines drag-and-drop design, natural-language layout generation, native LVGL asset conversion, reusable Interactive Assets, generated firmware APIs, and standalone ESP-IDF export.
 
-### The Open-Source AI-Assisted Embedded HMI Studio for ESP32-P4 that transforms natural language into production-ready LVGL applications, reusable widgets, native assets and standalone ESP-IDF projects.
+ForgeUI converts visual designs and natural-language ideas into native LVGL C that compiles inside ESP-IDF. The complete workflow has been exercised on the Waveshare ESP32-P4-WiFi6-Touch-LCD-7B, including Interactive Button input hooks and Interactive Light output APIs.
 
-### ⭐ Leave a Star!
-If ForgeUI Studio helped accelerate your embedded development, saved you from proprietary ecosystem lock-in, or slashed your interface compilation times, **please leave a GitHub Star!** Stars are our open-source currency—they drive visibility, fund community development, and ensure this framework remains 100% free and subscription-free forever.
-
----
-
-## ⚡ Verified Hardware Performance
-
-Real-world runtime logs captured directly via `idf_monitor.py` on the physical **Waveshare ESP32-P4-WiFi6-Touch-LCD-7B** system hardware platform running intensive vector widgets over full layered 1024x600 alpha-blended high-contrast textures show:
-
-*   **Fluid Visuals**: Fixed, rock-solid **63 FPS** continuous hardware-accelerated rendering loop profiles.
-*   **Minimal Processor Overhead**: Low **2.5% CPU utilization** footprint under active layout rendering passes.
-*   **Sub-Millisecond Drawing Passes**: Ultra-low **2ms to 5ms draw cycle updates** across complex layered geometries.
-*   **Silicon Optimization**: Deep core configuration scripts unlock the high-performance dual-core RISC-V processor straight to its high-speed **360MHz CPU frequency**.
-*   **Expanded Volatile Memory**: Auto-maps a **32MB external Hex-PSRAM bank running at a 200MHz bus clock** for massive volatile canvas allocations.
-
----
-
-
-## ✅ Native Render Parity Achieved
-
-ForgeUI now maintains render parity across:
-
-✓ Builder Canvas
-
-✓ Browser Preview
-
-✓ Generated LVGL Assets
-
-✓ Physical ESP32-P4 Hardware
-
-Images imported into ForgeUI are automatically processed into native device-sized assets ensuring identical rendering throughout the complete development workflow.
-
-## 🖼️ AI Hero Asset Pipeline V2
-
-ForgeUI Studio now supports automatic AI-generated Hero Backgrounds that are converted into native LVGL assets during import.
-
-### Proven Workflow
+Current proven milestone:
 
 ```text
-Natural Language Prompt
-            │
-            ▼
-     OpenAI Image Generation
-            │
-            ▼
-      PNG Import
-            │
-            ▼
- Automatic Device Preprocessing
-            │
-            ▼
- Center Crop
-            │
-            ▼
- Resize To Active Display
-            │
-            ▼
- Native LVGL Asset Generation
-            │
-            ▼
- Theme Manager
-            │
-            ▼
- Builder Canvas
-            │
-            ▼
- Browser Preview
-            │
-            ▼
- ESP-IDF Export
-            │
-            ▼
- Physical ESP32-P4
+FORGEUI_INTERACTIVE_ASSET_FRAMEWORK_V1__BUTTON_AND_LIGHT__UNIFIED_UI_FLOW__PHYSICAL_ESP32P4_PROVEN
 ```
 
-### Verified
+> **Build it. Prove it. Flash it. Improve it. Repeat.**
 
-✓ AI Hero Generation
+If ForgeUI helps your embedded work, consider leaving the project a GitHub star.
 
-✓ Automatic Image Processing
-
-✓ Native LVGL Asset Generation
-
-✓ Builder Rendering
-
-✓ Browser Preview
-
-✓ ESP32-P4 Hardware
 ---
 
-## 🕹️ Interactive Button Asset Pipeline — Physical Hardware Proven
+## ⚡ Core value proposition
 
-ForgeUI Studio now supports reusable image-based Interactive Buttons with independent Normal and Pressed visual states.
+ForgeUI brings the interface workflow into one Studio:
 
-Buttons can be created manually from existing LVGL-ready assets or generated directly with AI.
+- Build screens visually with drag, drop, resize, and property controls.
+- Generate editable layouts from natural-language prompts.
+- Generate hero artwork, standalone artwork, icons, and Interactive Asset state images.
+- Convert image assets into native LVGL C resources.
+- Preview interfaces in the Builder and browser before export.
+- Generate Button input hooks and Light output setters.
+- Build and flash the integrated ESP32-P4 firmware.
+- Export an independent ESP-IDF project for normal application development.
 
-### Proven Workflow
+### Zero-bloat native output
+
+ForgeUI does not deploy its Studio technology to the microcontroller:
+
+- No browser runtime on the device
+- No Electron runtime on the device
+- No HTML, CSS, JavaScript, or Node.js deployed to the device
+- Exported UI compiles as native LVGL C inside ESP-IDF
+
+The visual Studio is a development tool. The ESP32-P4 runs native embedded firmware.
+
+---
+
+## ✅ Physical hardware proof
+
+ForgeUI has been validated on the physical **Waveshare ESP32-P4-WiFi6-Touch-LCD-7B** at 1024×600.
+
+Proven paths include:
+
+- Builder Canvas → Browser Preview → LVGL export → ESP-IDF → ESP32-P4
+- AI layout generation → editable Canvas → native firmware
+- generated/uploaded artwork → LVGL assets → physical display
+- Interactive Button Normal/Pressed runtime behavior
+- Interactive Button generated developer hook
+- Interactive Light OFF/ON export and initial state
+- Interactive Light generated public setter
+- integrated build and flash
+- detached standalone ESP-IDF project build and flash
+
+The current firmware configuration targets ESP32-P4 with a 360 MHz CPU setting, external hex-PSRAM at 200 MHz, and a 16 MB flash layout. Display configuration uses DMA-capable internal buffers with `.buff_dma = true` and `.buff_spiram = false`.
+
+### Interactive Button proof
+
+- Normal artwork displayed.
+- Pressed artwork displayed while touched.
+- Release restored Normal artwork.
+- Multiple Button instances are supported.
+- The generated click callback executed.
+- The generated user hook executed.
+
+Monitor output:
 
 ```text
-Button Description
-        │
-        ▼
-AI Normal State Generation
-        │
-        ▼
-AI Pressed State Generation
-        │
-        ▼
-Requested Width & Height
-        │
-        ▼
-Interactive Button Preprocessor
-        │
-        ▼
-Native-Size PNG Assets
-        │
-        ▼
-LVGL C Asset Generation
-        │
-        ▼
-Interactive Asset Registry
-        │
-        ▼
-Builder Canvas
-        │
-        ▼
-Browser Preview
-        │
-        ▼
-Native LVGL Export
-        │
-        ▼
-Physical ESP32-P4
+[ForgeUI] FG_On_Button_Clicked clicked
+[ForgeUI User Event] FG_On_Button_Clicked
+```
+
+### Interactive Light proof
+
+- OFF and ON artwork exported.
+- The saved initial state displayed physically.
+- The generated setter compiled and controlled runtime state.
+- The Light remained non-clickable.
+- Firmware remained stable after interaction.
+
+During physical validation, Wi-Fi reached READY, an IP address was assigned, SD reached READY, and no crash occurred after interaction.
 
 ---
+
+## ✅ Native render parity
+
+ForgeUI maintains a single asset path across:
+
+- Builder Canvas
+- Browser Preview
+- generated LVGL assets
+- physical ESP32-P4 hardware
+
+Device-aware preprocessing converts imported and AI-generated images into assets appropriate for the active display or requested native asset dimensions. The same uploaded-asset records then participate in preview and export.
+
 ---
 
-## ✅ Verified End-to-End Development Workflow
+## 🤖 ForgeUI AI Studio
 
-ForgeUI Studio has now been physically verified from Builder to hardware using both the integrated Studio workflow and a completely detached exported project.
-
-## 🤖 AI Studio V2 — Verified End-to-End AI Interface Generation
-
-ForgeUI Studio now includes **ForgeUI AI Studio**, allowing developers to describe interfaces using natural language and generate validated ForgeUI layouts that can be immediately edited, exported, compiled and flashed to physical hardware.
-
-### Proven AI Workflow
+ForgeUI AI Studio turns natural-language ideas into validated, editable ForgeUI layouts.
 
 ```text
-Natural Language Prompt
-            │
-            ▼
-   Layout Prompt Helper (Optional)
-            │
-            ▼
-        OpenAI GPT
-            │
-            ▼
-Validated ForgeUI Layout Document
-            │
-            ▼
-Semantic Icon Resolution
-            │
-            ▼
+Natural-language prompt
+        ↓
+Layout Prompt Helper (optional)
+        ↓
+AI layout generation
+        ↓
+Validated ForgeUI layout document
+        ↓
+Semantic icon resolution
+        ↓
 Visual Builder Canvas
-            │
-            ▼
-Live Browser Preview
-            │
-            ▼
-Native LVGL Code Generation
-            │
-            ▼
-Standalone ESP-IDF Project
-            │
-            ▼
-Visual Studio Code
-            │
-            ▼
-ESP-IDF Build
-            │
-            ▼
-Physical ESP32-P4 Hardware
+        ↓
+Browser Preview
+        ↓
+Native LVGL export
+        ↓
+ESP-IDF
+        ↓
+Physical ESP32-P4
 ```
 
-### Verified
+Major AI workflows currently include:
 
-- ✓ AI Layout Prompt Helper
-- ✓ Live GPT integration
-- ✓ Structured ForgeUI layout generation
-- ✓ Automatic JSON validation
-- ✓ Component validation
-- ✓ Semantic icon resolution
-- ✓ Native icon asset generation
-- ✓ One-click Canvas insertion
-- ✓ Live Browser Preview
-- ✓ Native LVGL code generation
-- ✓ Standalone ESP-IDF project generation
-- ✓ Physical ESP32-P4 deployment
+- full layout generation
+- guided Layout Prompt Helper
+- hero background generation
+- standalone artwork generation
+- semantic icon resolution
+- Interactive Button Normal/Pressed generation
+- Interactive Light OFF/ON generation
 
-ForgeUI Studio transforms natural-language interface ideas into fully native LVGL applications while preserving a pure ESP-IDF workflow. Every generated layout remains fully editable before export, giving developers complete control over the final firmware.
+Generated layouts remain editable before export. AI output enters the established ForgeUI component and asset pipelines rather than bypassing the Builder.
 
 ---
 
-## 📦 Proven Development Pipeline
+## 🖼️ AI hero and artwork pipeline
+
+ForgeUI can generate or import visual artwork and promote it into reusable, LVGL-ready assets.
 
 ```text
-ForgeUI Studio
-        │
-        ▼
-Visual Builder / AI Playground
-        │
-        ▼
-Canvas & Live Browser Preview
-        │
-        ▼
-Native LVGL Code Generation
-        │
-        ▼
-Standalone ESP-IDF Export
-        │
-        ▼
-Visual Studio Code
-        │
-        ▼
-ESP-IDF Build System
-        │
-        ▼
-Ninja Toolchain
-        │
-        ▼
-ESP32-P4 Hardware
+Prompt or imported image
+        ↓
+Device-aware preprocessing
+        ↓
+Uploaded Asset Registry
+        ↓
+LVGL image conversion
+        ↓
+Theme Manager / Asset Library
+        ↓
+Builder and Browser Preview
+        ↓
+Native export
 ```
 
-### Build Status
-
-- ✓ Visual Builder and Canvas
-- ✓ AI Layout Generation
-- ✓ Layout Prompt Helper
-- ✓ Semantic Icon Pipeline
-- ✓ Browser Preview
-- ✓ Native LVGL Code Generation
-- ✓ Standalone ESP-IDF Export
-- ✓ Independent Visual Studio Code Build
-- ✓ ESP-IDF v5.5 Compatibility
-- ✓ Physical ESP32-P4 Flash Validation
+Hero backgrounds are center-cropped and resized for the active display. Other artwork, icons, and Interactive Asset images use their appropriate preprocessing modes instead of the full-screen hero path.
 
 ---
 
-# 🧹 Firmware Maintenance
+## 🕹️ Interactive Asset Framework — physical hardware proven
 
-ForgeUI Studio now includes built-in firmware maintenance tools to keep generated projects clean during rapid AI iteration.
+ForgeUI supports reusable visual assets with multiple runtime states.
 
-### Clean Firmware
+Currently implemented:
 
-Regenerates the generated project while preserving user assets.
+- **Interactive Button**
+- **Interactive Light**
 
-Rebuilds:
+The Studio presents both through one creation flow:
 
-- `main/CMakeLists.txt`
+```text
+Interactive Assets
+        ↓
++ New Interactive Asset
+        ↓
+Choose Asset Type
+        ├── Button
+        └── Light
+        ↓
+Select or generate state artwork
+        ↓
+Assign to Canvas component
+        ↓
+Preview
+        ↓
+Export
+        ↓
+Physical ESP32-P4
+```
+
+The selected Asset Type controls the active designer, visible form, draft initialization, and AI generation mode. Editing an existing asset automatically opens the correct type.
+
+Button and Light share:
+
+- Interactive Asset Registry
+- validation
+- persistence
+- AI image pipeline
+- Uploaded Asset Registry
+- LVGL image conversion
+- Canvas assignment
+- LVGL export integration
+
+Their saved models, designer fields, preview behavior, and firmware runtime behavior remain type-specific.
+
+### Interactive Button
+
+Interactive Button is a reusable image-based input control with:
+
+- Normal artwork
+- Pressed artwork
+- manual LVGL-ready asset selection or AI generation
+- preserved width and height
+- Canvas state preview
+- Browser Preview
+- native LVGL export
+- physical Pressed and released states
+
+Runtime behavior:
+
+```text
+Normal
+  ↓
+Touch
+  ↓
+Pressed artwork
+  ↓
+Release or Press Lost
+  ↓
+Normal artwork
+```
+
+Each exported Button receives a generated developer hook, for example:
+
+```c
+void FG_On_StartPump_Clicked(void);
+```
+
+The standalone project's hook implementation belongs in:
+
+```text
+95_UserEvents.c
+```
+
+Developers do not add application logic to generated `90_Studio_Export.c`.
+
+### Interactive Light
+
+Interactive Light is a reusable output indicator with:
+
+- OFF artwork
+- ON artwork
+- manual LVGL-ready asset selection or AI generation
+- saved initial OFF/ON state
+- temporary Canvas preview toggling
+- native LVGL export
+- physical ESP32-P4 proof
+
+Canvas clicks toggle only the temporary Studio preview. They do not mutate the saved asset and are not exported as firmware interaction.
+
+In firmware, Light is a non-clickable LVGL image controlled through a generated public API:
+
+```c
+FG_Set_Status_Light(true);
+FG_Set_Status_Light(false);
+```
+
+- `true` selects ON artwork.
+- `false` selects OFF artwork.
+- Light does not generate a click hook.
+- Application code decides when to call the generated setter.
+
+### Interactive Asset AI flow
+
+```text
+Asset description
+        ↓
+Select Button or Light
+        ↓
+AI state-artwork generation
+        ↓
+Uploaded Asset Registry
+        ↓
+Native LVGL conversion
+        ↓
+Interactive Asset Designer
+        ↓
+Canvas
+        ↓
+Export
+        ↓
+Physical ESP32-P4
+```
+
+Button generation creates Normal and Pressed images. Light generation creates OFF and ON images. This does not imply support for unimplemented future Interactive Asset types.
+
+---
+
+## 🔌 Generated Developer API
+
+ForgeUI provides two directions across the generated UI/application boundary.
+
+### Input controls
+
+Generated UI calls developer code:
+
+```text
+Button touch
+        ↓
+Generated LVGL callback
+        ↓
+FG_On_StartPump_Clicked()
+        ↓
+95_UserEvents.c
+        ↓
+Developer logic
+```
+
+### Output controls
+
+Developer code calls generated UI APIs:
+
+```text
+Application logic
+        ↓
+FG_Set_Status_Light(true)
+        ↓
+Generated LVGL runtime
+        ↓
+ON artwork
+```
+
+Permanent rule:
+
+> Input controls produce generated developer hooks. Output controls expose generated public UI functions.
+
+### File boundary
+
+Generated and replaceable:
+
 - `90_Studio_Export.c`
 - `90_Studio_Export.h`
 
-Preserves:
+Generated user-event/application boundary:
 
-- Uploaded assets
-- AI-generated themes
-- Generated icons
+- `95_UserEvents.c`
+- `95_UserEvents.h`
 
----
+Studio creates the user-event files during live firmware generation and standalone export. In the Studio-controlled live firmware they are replaceable test hooks. In an exported standalone project, their copies become the developer integration layer.
 
-### Clean Build & Flash
+Generated public Light APIs are declared in `90_Studio_Export.h` and implemented in `90_Studio_Export.c`. Hardware and product logic belongs in the standalone application layer, not in generated UI files.
 
-Performs a complete firmware cleanup before rebuilding.
-
-Actions:
-
-- Removes temporary build files
-- Clears ESP-IDF build output
-- Regenerates CMake
-- Regenerates Studio export files
-- Performs a clean rebuild
-- Flashes the physical ESP32-P4
-
-This eliminates stale generated files, historical assets and cached build artefacts, ensuring every deployment is produced from a clean project state.
-## 🚀 Core Philosophy: Zero-Bloat Native Output
-
-ForgeUI Studio completely removes the engineering overhead of setting up modern embedded display architectures:
-
-```text
-[Eliminated Workspace Overhead]         [Preserved Native Low-Level Control]
-Manual coordinate calculations    ───►  Pure Native C Code Syntax Structures
-Monolithic UI programming         ───►  Standard ESP-IDF Toolchain Optimization
-Manual graphic file formatting    ───►  Raw 2D-DMA Hardware Acceleration Loops
-Complex CMake script management   ───►  Zero Web Runtimes Ever Deployed to Flash
-```
-
-**No HTML, CSS, JavaScript, Node.js, or browser runtimes ever deploy onto the microcontroller. Everything compiles down into pure embedded firmware.**
+For the permanent ownership and API map, see [03_ForgeUI_Generated_Export_API_Code_Map.md](03_ForgeUI_Generated_Export_API_Code_Map.md).
 
 ---
 
-## 🛠️ Complete Feature Matrix
+## 📦 Native asset pipeline
 
-### 1. Visual Builder & Design Studio
+ForgeUI's local asset pipeline supports:
 
-* **Visual Canvas** — Drag, drop, resize and configure LVGL components including Buttons, Text, Images, Charts, Arcs, Bars, Scales, LEDs, Calendars, Rollers, Switches and many more.
+- device-aware hero preprocessing
+- native-size artwork and icon processing
+- Interactive Button Normal/Pressed assets
+- Interactive Light OFF/ON assets
+- uploaded image registration and persistence
+- automatic LVGL C conversion
+- generated symbol and source-path tracking
+- automatic asset-source integration into CMake
+- Canvas and Browser Preview resolution
 
-* **AI Layout Designer** — Generate complete embedded HMI layouts from natural language using the integrated ForgeUI AI Playground.
-
-* **AI Layout Prompt Helper** — Guided prompt builder for creating structured industrial dashboards and embedded interfaces.
-
-* **AI Asset Designer** — Generate reusable ForgeUI widgets and standalone industrial artwork using AI.
-
-* **Forge Asset Library** — Save, organise, reuse and insert AI-generated widgets and artwork across projects.
-
-* **Dynamic Theme Manager V2** — Includes 25+ built-in industrial themes with persistent hero backgrounds and custom asset support.
-
-* **Semantic Icon Browser** — Search and use over 9,500 React Icons. AI-generated icon requests are automatically resolved into native LVGL-ready assets.
-
-* **Live Browser Preview** — Instantly preview layouts, widgets, themes and assets before exporting or flashing hardware.
+The local conversion workflow uses `tools/lvgl/LVGLImage.py` and the Studio export server. No image conversion runtime is deployed to the ESP32-P4.
 
 ---
 
-### 2. Native Asset Pipeline
-
-* **Device-Aware Image Processing** — Automatically preprocesses imported artwork and AI-generated images for the active display resolution.
-
-* **Native LVGL Asset Generation** — Converts PNG, JPG and SVG assets into optimized LVGL image resources using the local `LVGLImage.py` pipeline.
-
-* **Automatic Asset Registry** — Manages uploaded images, icons, AI artwork and generated assets with automatic LVGL conversion and project integration.
-
-* **Theme & Hero Pipeline** — AI-generated hero backgrounds integrate directly into the Theme Manager, Builder Canvas and Browser Preview.
-
----
-
-### 3. Build & Deployment
-
-* **One-Click Build & Flash** — Build, deploy and monitor firmware directly from ForgeUI Studio.
-
-* **Clean Build & Flash** — Regenerates project files, refreshes CMake, performs a clean ESP-IDF build and flashes the physical device.
-
-* **Inline Flash Console** — Streams live build output, firmware logs and deployment status directly inside the Studio.
-
-* **Standalone ESP-IDF Export** — Generate fully independent ESP-IDF projects that build directly in Visual Studio Code without requiring ForgeUI Studio.
-
-* **Native ESP32-P4 Workflow** — Zero cloud runtime, zero embedded web technologies. Every interface compiles into pure native LVGL C running on physical ESP32-P4 hardware.
-
-### AI Capabilities
-
-- AI Layout Generation
-- AI Layout Prompt Helper
-- AI Hero Background Generation
-- AI Asset Designer
-- AI Artwork Generation
-- Forge Asset Library
-- Reusable Widget Library
-- Semantic Icon Resolution
-- Native Icon Asset Generation
-- Device-Aware Image Processing
-- Native LVGL Asset Generation
-- Theme Manager Integration
-- Asset Manager Integration
-
----
-
-### Proven Pipeline
-AI Artwork / Hero Prompt
-            │
-            ▼
-    OpenAI Image Generation
-            │
-            ▼
-     ForgeUI Asset Import
-            │
-            ▼
-Automatic Device Preprocessing
-            │
-            ▼
-  Native 1024×600 Processing
-            │
-            ▼
-      LVGLImage.py
-            │
-            ▼
-   Generated LVGL C Asset
-            │
-            ▼
- ForgeUI Asset Registry
-            │
-            ▼
- Theme Manager / Asset Library
-            │
-            ▼
-     Builder Canvas
-            │
-            ▼
-    Live Browser Preview
-            │
-            ▼
- Native LVGL Code Export
-            │
-            ▼
- Standalone ESP-IDF Project
-            │
-            ▼
-      Build & Flash
-            │
-            ▼
- Physical ESP32-P4
-
-## 📁 Decoupled Workspace Architecture
-
-Clicking **Export Standalone Project** completely decouples ForgeUI Studio from the generated firmware, producing a fully independent ESP-IDF workspace that can be built, flashed, version controlled, and shared without requiring ForgeUI Studio.
-
-The exported project has been physically verified by:
-*   ✓ Opening directly in Visual Studio Code
-*   ✓ Building with the Espressif ESP-IDF Extension
-*   ✓ Flashing to a physical ESP32-P4
-*   ✓ Running independently of ForgeUI Studio
+## 📦 Proven development pipeline
 
 ```text
 ForgeUI Studio
-        │
-        ▼
-   Export Standalone Project
-        │
-        ▼
- Independent ESP-IDF Workspace
-        │
-        ▼
-   Visual Studio Code Workspace
-        │
-        ▼
-   Official ESP-IDF Extension Build
-        │
-        ▼
-   Ninja Toolchain Binary Flash
-        │
-        ▼
- Physical ESP32-P4 Hardware Run
+        ↓
+Visual Builder / AI Studio
+        ↓
+Canvas and Browser Preview
+        ↓
+Native LVGL code and assets
+        ↓
+Integrated firmware or standalone export
+        ↓
+ESP-IDF 5.5.4
+        ↓
+Build and flash
+        ↓
+Physical ESP32-P4
 ```
 
-**Example Export Destination Target:**
+Proven deployment capabilities:
+
+- integrated export, build, flash, and monitor flow
+- independent standalone ESP-IDF export
+- standalone Visual Studio Code and Espressif extension workflow
+- native LVGL 9 firmware
+- physical ESP32-P4 validation
+
+---
+
+## 🛠️ Feature matrix
+
+### Visual Builder and Design Studio
+
+- Drag-and-drop Canvas with resize and property editing
+- Broad LVGL widget catalog
+- AI layout generation
+- Layout Prompt Helper
+- Browser Preview
+- Theme Manager with 25 configured themes
+- hero background support
+- semantic icon browsing and resolution through the React Icons dependency
+- uploaded asset management
+- unified Interactive Assets panel
+- Interactive Button designer
+- Interactive Light designer
+- AI state-artwork generation
+- live state previews
+- reusable asset assignment
+- persistent Interactive Asset Registry
+
+### AI capabilities
+
+- full layout generation
+- guided layout prompting
+- hero background generation
+- artwork generation
+- reusable asset generation
+- semantic icon resolution
+- native icon generation
+- Button Normal/Pressed generation
+- Light OFF/ON generation
+
+### Native asset pipeline
+
+- device-aware image preprocessing
+- native-size artwork processing
+- Button Normal/Pressed assets
+- Light OFF/ON assets
+- Uploaded Asset Registry
+- automatic LVGL C conversion
+- generated source integration into CMake
+
+### Build and deployment
+
+- native LVGL code generation
+- integrated build and flash
+- inline flash console
+- standalone ESP-IDF export
+- generated Button hooks
+- generated Light setter APIs
+- generated `95_UserEvents` layer
+- developer-owned standalone integration layer
+- physical Button and Light validation
+
+---
+
+## 📁 Standalone ESP-IDF export
+
+**Export Standalone Project** creates an independent ESP-IDF workspace under `C:\ForgeUI-Exports`. The exported project can be built, flashed, version-controlled, and shared without ForgeUI Studio.
+
+The standalone path has been verified by:
+
+- opening the project directly in Visual Studio Code;
+- building with the Espressif ESP-IDF extension;
+- flashing a physical ESP32-P4;
+- running independently from Studio.
+
+Example destination:
+
 ```text
 C:\ForgeUI-Exports\ForgeUI_Export_003
 ```
 
-**Project Structural Workspace Directory Tree:**
+Key project structure, using files present in the current firmware baseline:
+
 ```text
-esp32p4-ui-studio/
-├── studio/                     # React / Next.js visual builder workspace
-├── tools/lvgl/LVGLImage.py     # Local offline raw LVGL asset asset converter
-└── firmware/ForgeUI-One/       # Standalone ESP-IDF reference deployment target
-    ├── .vscode/                # Pre-configured editor workspace files
-    ├── partitions.csv          # Linear flash partition memory layouts
-    ├── sdkconfig.defaults      # Default optimization settings and frequency parameters
-    ├── sdkconfig               # Actively generated target compilation properties
-    ├── CMakeLists.txt          # Top-level project build declaration file
-    └── main/
-        ├── assets/uploads/     # Auto-converted target image data structs (.c)
-        ├── 00_ForgeUI_Config.h # Global canvas pin constraints and geometric definitions
-        ├── 01_FG_Runtime.c/.h  # Threaded interface redraw hooks and execution timers
-        ├── 20_RTC.c/.h         # Native I2C real-time system clock drivers (DS3231)
-        ├── 30_Audio.c/.h       # Asynchronous MP3 / WAV hardware decoding runtimes
-        ├── 30_WIFI.c/.h        # Hosted SDIO Wi-Fi wireless co-processor management (ESP32-C6)
-        ├── 40_SD.c/.h          # FATFS system memory interface drivers
-        └── 90_Studio_Export.c  # Clean native generated LVGL 9 application source code
+ForgeUI_Export_003/
+├── CMakeLists.txt
+├── partitions.csv
+├── sdkconfig.defaults
+└── main/
+    ├── assets/
+    │   └── uploads/
+    ├── 00_ForgeUI_Config.h
+    ├── 01_FG_Runtime.c
+    ├── 01_FG_Runtime.h
+    ├── 20_RTC.c
+    ├── 20_RTC.h
+    ├── 30_Audio.c
+    ├── 30_Audio.h
+    ├── 30_WIFI.c
+    ├── 30_WIFI.h
+    ├── 40_SD.c
+    ├── 40_SD.h
+    ├── 40_SIDEBAR.c
+    ├── 40_SIDEBAR.h
+    ├── 90_Studio_Export.c
+    ├── 90_Studio_Export.h
+    ├── 95_UserEvents.c
+    ├── 95_UserEvents.h
+    ├── CMakeLists.txt
+    └── main.c
 ```
 
-### Standalone Export Philosophy
-ForgeUI Studio maintains absolute ownership over visual project generation layouts, while ESP-IDF maintains total ownership over low-level code compilation and hardware deployment. 
-
-Following export, the directory acts as an independent application. Developers are completely free to track progress inside isolated Git repositories and integrate backend modifications without vendor lock-in.
+`90_Studio_Export.c/.h` contains generated UI, runtime support, and public APIs. `95_UserEvents.c/.h` is created by Studio and becomes the developer integration layer in the standalone project. Do not put hardware or product logic in `90_Studio_Export.c`.
 
 ---
 
-## 💾 Optimized Flash Partition & Memory Map
+## 🧹 Firmware maintenance
 
-Your exported code incorporates a high-capacity custom allocation scheme designed to prevent memory overflows when managing dense layout interface assets:
+The Studio exposes three distinct operations. Their names do not imply identical cleanup scope.
 
-### 1. Flash Partition Allocations (`partitions.csv`)
-*   **`factory` (8 MB / `0x10000, 8M`)**: Massive linear code space window allocated exclusively for user runtime firmware logic, application states, and UI layouts.
-*   **`storage` (7 MB / `0x810000, 7M`)**: High-capacity dedicated local SPIFFS partition block ensuring static background structures and image file array matrices remain safe from software layer collisions.
+### Clean Firmware
 
-### 2. Low-Level Silicon Optimization Settings
-*   **Direct 2D-DMA Tunneling**: The display refresh configuration parameters (`bsp_display_cfg_t`) lock pixel allocation pathways directly to active DMA engines (`.buff_dma = true`) while enforcing direct internal RAM layout tracking (`.buff_spiram = false`). This completely eliminates frame rendering transmission latency over slower external memory lanes.
-*   **Thread-Safe Graphics Handshaking**: Visual initialization calls inside `main.c` are fully encapsulated within native Espressif display locks (`bsp_display_lock(0)`), ensuring your graphic compositions update with complete structural integrity across multi-core task switches.
+`Clean Firmware` calls the targeted generated-file reset endpoint. It:
 
-## ForgeUI Philosophy
+- rewrites `main/CMakeLists.txt` to a clean baseline;
+- rewrites `90_Studio_Export.c` and `90_Studio_Export.h` to minimal baseline files;
+- does not delete the ESP-IDF build directory;
+- does not delete generated icon, theme, or upload directories;
+- does not delete `95_UserEvents.c/.h`.
+
+### Firmware Maintenance
+
+`Firmware Maintenance` is the destructive generated-workspace sweep. It:
+
+- empties generated firmware icon, theme, and upload directories;
+- removes cached upload input files;
+- removes the ESP-IDF `build` directory;
+- resets `main/CMakeLists.txt`;
+- resets `90_Studio_Export.c/.h`;
+- clears the Studio Canvas and uploaded-asset registry;
+- resets active theme state and restores the default hero;
+- leaves `95_UserEvents.c/.h` in place.
+
+The UI warns that generated assets and the build cache are removed and instructs the user to restart Studio afterward.
+
+### Clean Build & Flash
+
+The current `Clean Build & Flash` action:
+
+1. exports the current Canvas and generated API metadata to the live firmware;
+2. invokes the configured ESP-IDF 5.5.4 build/flash script;
+3. runs `idf.py build flash`.
+
+The current script does not explicitly delete the build directory or invoke `idf.py fullclean`. Use `Firmware Maintenance` when a destructive build-cache and generated-asset sweep is required.
+
+---
+
+## 💾 Current firmware configuration
+
+Repository-backed configuration includes:
+
+- ESP-IDF 5.5.4 defaults
+- ESP32-P4 target
+- 360 MHz CPU setting
+- 16 MB flash setting
+- external hex-PSRAM enabled at 200 MHz
+- PSRAM XIP disabled for the hosted Wi-Fi build
+- DMA-capable internal display buffers
+
+Current `partitions.csv`:
+
+| Partition | Type | Size |
+|---|---|---:|
+| `nvs` | NVS data | `0x6000` |
+| `phy_init` | PHY data | `0x1000` |
+| `factory` | Factory application | 14 MB |
+| `storage` | SPIFFS data | 1 MB |
+
+These values replace older README figures that no longer matched the repository.
+
+---
+
+## 🗂️ Repository structure
+
+```text
+esp32p4-ui-studio/
+├── studio/                       # React / Next.js visual and AI Studio
+├── firmware/ForgeUI-One/         # ESP-IDF reference and live firmware workspace
+├── tools/lvgl/LVGLImage.py       # Local LVGL image conversion tool
+├── docs/                         # Supporting and historical documentation
+├── 01_SPINE.md                   # Current architecture spine
+├── 02_DEVELOPER_CODE_MAP.md      # Studio and Interactive Asset subsystem map
+├── 03_ForgeUI_Generated_Export_API_Code_Map.md
+└── README.md
+```
+
+Detailed subsystem ownership and debugging information belongs in the code maps, not in this README:
+
+- [02_DEVELOPER_CODE_MAP.md](02_DEVELOPER_CODE_MAP.md)
+- [03_ForgeUI_Generated_Export_API_Code_Map.md](03_ForgeUI_Generated_Export_API_Code_Map.md)
+
+---
+
+## ✅ Current development status
+
+ForgeUI Studio has proven:
+
+- ✓ Visual Builder and Canvas
+- ✓ AI layout generation
+- ✓ Layout Prompt Helper
+- ✓ AI hero background generation
+- ✓ AI artwork generation
+- ✓ reusable asset library
+- ✓ semantic icon pipeline
+- ✓ native icon asset generation
+- ✓ device-aware asset pipeline
+- ✓ automatic image preprocessing
+- ✓ native LVGL asset generation
+- ✓ Theme Manager integration
+- ✓ Interactive Asset Framework
+- ✓ unified Interactive Asset creation flow
+- ✓ Interactive Button
+- ✓ Interactive Light
+- ✓ AI Button state generation
+- ✓ AI Light state generation
+- ✓ Interactive Asset persistence
+- ✓ Canvas state preview
+- ✓ Browser Preview parity
+- ✓ generated Button user hooks
+- ✓ generated Light setter APIs
+- ✓ generated `95_UserEvents` layer
+- ✓ native LVGL export
+- ✓ standalone developer-owned ESP-IDF project
+- ✓ independent Visual Studio Code build
+- ✓ integrated build and flash
+- ✓ physical Button pressed/released validation
+- ✓ physical Light ON/OFF validation
+- ✓ physical ESP32-P4 deployment
+
+---
+
+## ForgeUI philosophy
+
 Build it.
 
 Prove it.
@@ -501,67 +656,25 @@ Improve it.
 
 Repeat.
 
-## Current Development Status
-
-ForgeUI Studio has now proven:
-
-✓ Visual Builder
-
-✓ AI Layout Generation
-
-✓ AI Layout Prompt Helper
-
-✓ AI Hero Background Generation
-
-✓ AI Asset Designer
-
-✓ AI Artwork Generation
-
-✓ Forge Asset Library
-
-✓ Reusable Widget Library
-
-✓ Semantic Icon Pipeline
-
-✓ Native Icon Asset Generation
-
-✓ Device-Aware Asset Pipeline
-
-✓ Automatic Image Preprocessing
-
-✓ Native LVGL Asset Generation
-
-✓ Theme Manager Integration
-
-✓ Browser Preview
-
-✓ Native LVGL Export
-
-✓ Standalone ESP-IDF Export
-
-✓ Independent Visual Studio Code Build
-
-✓ One-Click Build & Flash
-
-✓ Physical ESP32-P4 Validation
+---
 
 # About the Creator
 
-Hi, I'm **Scott Forster** from New Zealand.
+Hi, I'm **Scott Forster** from New Zealand, creator of **ForgeUI Studio**.
 
-ForgeUI Studio began as a personal project to make embedded HMI development easier, faster and more enjoyable. As someone who enjoys solving real engineering problems, I wanted a tool that could take an idea from a simple prompt all the way through to a working interface running on physical ESP32 hardware.
+ForgeUI began as a personal project with a simple goal: make professional embedded HMI development faster, more approachable and more enjoyable. I wanted a tool that could take an idea—from a rough sketch or a natural-language prompt—all the way through to a working interface running on real ESP32-P4 hardware.
 
-Every feature in ForgeUI is developed with a simple philosophy:
+Today, ForgeUI Studio combines visual design, AI-assisted layout generation, native LVGL code generation, reusable Interactive Assets and standalone ESP-IDF export into a single development workflow. Every major feature is developed against physical hardware, with new capabilities only considered complete once they have been built, exported, compiled, flashed and verified on an ESP32-P4.
+
+My development philosophy remains simple:
 
 > **Build it. Prove it. Flash it. Improve it.**
 
-The project has grown into an open-source AI-assisted embedded UI platform combining visual design, AI-powered generation, LVGL, and ESP-IDF into a single workflow.
+ForgeUI is developed using modern AI-assisted engineering practices. I define the product vision, architecture, hardware validation and engineering direction, while AI coding tools—including **ChatGPT** and **Codex**—assist with implementation, refactoring, testing, documentation and design reviews. Every change is reviewed and validated before becoming part of the project.
 
-ForgeUI Studio is developed in collaboration with ChatGPT, which serves as a coding assistant, architectural sounding board and rapid prototyping partner. While I define the vision, validate the hardware and direct the engineering, ChatGPT helps accelerate implementation, refactoring and documentation., which has been an invaluable coding assistant, sounding board and development partner throughout the project. While I design the architecture, test the hardware and drive the vision, ChatGPT has helped accelerate development by assisting with implementation, refactoring and documentation.
+The goal is not simply to build another UI designer, but to create an open, native-first embedded development platform that removes repetitive engineering work while preserving complete control of the generated firmware.
 
-This project is shared with the community in the hope that it makes embedded development more accessible and inspires others to build amazing products.
-
-I welcome feedback, ideas and contributions from developers around the world.
+ForgeUI Studio is open source because I believe powerful embedded development tools should be accessible to everyone. I hope it helps engineers, students, makers and companies build better products more quickly, and I welcome ideas, feedback and contributions from the community.
 
 ---
 

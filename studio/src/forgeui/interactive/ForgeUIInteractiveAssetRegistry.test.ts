@@ -2,13 +2,18 @@ import {
   clearInteractiveAssetRegistry,
   exportInteractiveAssets,
   getInteractiveButtonAsset,
+  getInteractiveLightAsset,
   importInteractiveAssets,
   registerInteractiveAsset,
   updateInteractiveAsset,
+  updateInteractiveAssetByKind,
 } from './ForgeUIInteractiveAssetRegistry'
 import {
   createDefaultInteractiveButtonAsset,
 } from './ForgeUIInteractiveButtonAsset'
+import {
+  createDefaultInteractiveLightAsset,
+} from './ForgeUIInteractiveLightAsset'
 
 describe('Interactive Asset registry', () => {
   beforeEach(() => {
@@ -54,6 +59,42 @@ describe('Interactive Asset registry', () => {
         },
       ]),
     ).toThrow('Interactive asset ID is required')
+
+    expect(exportInteractiveAssets()).toEqual([existing])
+  })
+
+  it('stores, looks up, updates, and exports mixed asset kinds', () => {
+    const button = createDefaultInteractiveButtonAsset('button')
+    const light = createDefaultInteractiveLightAsset('light')
+
+    registerInteractiveAsset(button)
+    registerInteractiveAsset(light)
+
+    const updatedLight = updateInteractiveAssetByKind(
+      light.id,
+      'light',
+      { initialState: 'on' },
+    )
+
+    expect(getInteractiveButtonAsset(button.id)).toEqual(button)
+    expect(getInteractiveLightAsset(light.id)).toEqual(updatedLight)
+    expect(getInteractiveButtonAsset(light.id)).toBeUndefined()
+    expect(exportInteractiveAssets()).toEqual([button, updatedLight])
+  })
+
+  it('rejects duplicate imported IDs before changing registry state', () => {
+    const existing = createDefaultInteractiveButtonAsset('existing')
+    const duplicateButton = createDefaultInteractiveButtonAsset('duplicate')
+    const duplicateLight = {
+      ...createDefaultInteractiveLightAsset('duplicate'),
+      id: duplicateButton.id,
+    }
+
+    registerInteractiveAsset(existing)
+
+    expect(() =>
+      importInteractiveAssets([duplicateButton, duplicateLight]),
+    ).toThrow('Duplicate Interactive asset ID: duplicate')
 
     expect(exportInteractiveAssets()).toEqual([existing])
   })

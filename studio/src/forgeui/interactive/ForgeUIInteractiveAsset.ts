@@ -1,12 +1,15 @@
 import type { ForgeUIInteractiveButtonAsset } from './ForgeUIInteractiveButtonAsset'
+import type { ForgeUIInteractiveLightAsset } from './ForgeUIInteractiveLightAsset'
 
 export const FORGEUI_INTERACTIVE_SCHEMA_VERSION = 1 as const
 
 export type ForgeUIInteractiveAssetKind =
   | 'button'
+  | 'light'
 
 export type ForgeUIInteractiveInteractionMode =
   | 'momentary'
+  | 'state'
 
 export type ForgeUIInteractiveVisualState = {
   backgroundColor: string
@@ -29,6 +32,7 @@ export type ForgeUIInteractiveAssetBase = {
 // Extend this union when a new persisted Interactive Asset kind is added.
 export type ForgeUIInteractiveAsset =
   | ForgeUIInteractiveButtonAsset
+  | ForgeUIInteractiveLightAsset
 
 export type ForgeUIInteractiveAssetOfKind<
   Kind extends ForgeUIInteractiveAssetKind,

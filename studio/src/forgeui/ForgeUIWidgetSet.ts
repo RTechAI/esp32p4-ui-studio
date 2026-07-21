@@ -25,6 +25,7 @@ export const forgeuiCoreWidgets = [
   // Basic ForgeUI Controls
   'Button',
   'InteractiveButton',
+  'InteractiveLight',
   'Text',
   'Heading',
   'Clock',

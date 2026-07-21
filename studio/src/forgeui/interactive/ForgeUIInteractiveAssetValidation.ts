@@ -5,6 +5,7 @@ import {
   ForgeUIInteractiveVisualState,
 } from './ForgeUIInteractiveAsset'
 import { ForgeUIInteractiveButtonAsset } from './ForgeUIInteractiveButtonAsset'
+import { ForgeUIInteractiveLightAsset } from './ForgeUIInteractiveLightAsset'
 
 const isNonEmptyString = (
   value: unknown,
@@ -193,6 +194,57 @@ export const validateInteractiveButtonAsset: (
   )
 }
 
+export const validateInteractiveLightAsset: (
+  asset: unknown,
+) => asserts asset is ForgeUIInteractiveLightAsset = (
+  asset: unknown,
+) => {
+  validateInteractiveAssetBase(asset)
+
+  const light = asset as ForgeUIInteractiveLightAsset
+
+  if (light.kind !== 'light') {
+    throw new Error('Interactive asset kind must be light')
+  }
+
+  if (light.interactionMode !== 'state') {
+    throw new Error('Light interaction mode must be state')
+  }
+
+  if (!isNonEmptyString(light.label)) {
+    throw new Error('Light label is required')
+  }
+
+  if (!isFiniteNumber(light.width) || light.width <= 0) {
+    throw new Error('Light width must be greater than zero')
+  }
+
+  if (!isFiniteNumber(light.height) || light.height <= 0) {
+    throw new Error('Light height must be greater than zero')
+  }
+
+  if (
+    light.offAssetId !== undefined &&
+    !isNonEmptyString(light.offAssetId)
+  ) {
+    throw new Error('Light offAssetId must be a non-empty string')
+  }
+
+  if (
+    light.onAssetId !== undefined &&
+    !isNonEmptyString(light.onAssetId)
+  ) {
+    throw new Error('Light onAssetId must be a non-empty string')
+  }
+
+  if (
+    light.initialState !== 'off' &&
+    light.initialState !== 'on'
+  ) {
+    throw new Error('Light initialState must be off or on')
+  }
+}
+
 export const validateInteractiveAsset: (
   asset: unknown,
 ) => asserts asset is ForgeUIInteractiveAsset = (
@@ -203,6 +255,9 @@ export const validateInteractiveAsset: (
   switch (asset.kind) {
     case 'button':
       validateInteractiveButtonAsset(asset)
+      return
+    case 'light':
+      validateInteractiveLightAsset(asset)
       return
     default:
       throw new Error(

@@ -317,6 +317,7 @@ const exportToForgeUIOne = async () => {
   code,
   assetSources: result.assetSources,
   userEventHooks: result.userEventHooks,
+  publicApiDeclarations: result.publicApiDeclarations,
 }),
   })
 
@@ -351,6 +352,7 @@ const exportToForgeUIOne = async () => {
   code,
   assetSources,
   userEventHooks: result.userEventHooks,
+  publicApiDeclarations: result.publicApiDeclarations,
   projectName: 'ForgeUI_Export',
 }),
   })
@@ -383,6 +385,7 @@ const cleanBuildFlashForgeUIOne = async () => {
   code,
   assetSources: result.assetSources,
   userEventHooks: result.userEventHooks,
+  publicApiDeclarations: result.publicApiDeclarations,
 }),
   })
 

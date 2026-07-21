@@ -3,8 +3,11 @@ import { FORGEUI_IMAGE_ASSETS } from './ForgeUIAssetRegistry'
 
 import {
   getInteractiveButtonAsset,
+  getInteractiveLightAsset,
+  getInteractiveLightInitialState,
   isLvglReadyUploadedAsset,
   resolveInteractiveButtonVisuals,
+  resolveInteractiveLightVisuals,
 } from './interactive'
 
 import {
@@ -163,6 +166,79 @@ const createUniqueHookName = (
   return hookName
 }
 
+type InteractiveLightExport = {
+  apiName: string
+  runtimeImageName: string
+  offSymbol?: string
+  onSymbol?: string
+  initialState: 'off' | 'on'
+  ready: boolean
+}
+
+const createInteractiveLightExports = (
+  components: IComponents,
+  usedAssetSources: Set<string>,
+): Map<string, InteractiveLightExport> => {
+  const exportsByComponent = new Map<string, InteractiveLightExport>()
+  const usedApiNames = new Set<string>()
+  const uploadedAssets = forgeUIGetUploadedAssets()
+
+  Object.values(components)
+    .filter(component => component.type === 'InteractiveLight')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const asset = component.props.interactiveAssetId
+        ? getInteractiveLightAsset(component.props.interactiveAssetId)
+        : undefined
+      const baseName = toCIdentifier(
+        component.componentName ||
+        asset?.label ||
+        asset?.name ||
+        component.id,
+        'InteractiveLight',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+
+      let apiName = `FG_Set_${baseName}`
+      let suffix = 2
+
+      while (usedApiNames.has(apiName)) {
+        apiName = `FG_Set_${baseName}_${suffix}`
+        suffix++
+      }
+      usedApiNames.add(apiName)
+
+      const runtimeStem = apiName
+        .replace(/^FG_Set_/, '')
+        .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+        .toLowerCase()
+      const { offAsset, onAsset } = resolveInteractiveLightVisuals(
+        asset,
+        uploadedAssets,
+      )
+      const ready =
+        isLvglReadyUploadedAsset(offAsset) &&
+        isLvglReadyUploadedAsset(onAsset) &&
+        Boolean(offAsset?.lvgl) &&
+        Boolean(onAsset?.lvgl)
+
+      if (ready) {
+        if (offAsset.cFile) usedAssetSources.add(offAsset.cFile)
+        if (onAsset.cFile) usedAssetSources.add(onAsset.cFile)
+      }
+
+      exportsByComponent.set(component.id, {
+        apiName,
+        runtimeImageName: `fg_${runtimeStem}_image`,
+        offSymbol: ready ? offAsset?.lvgl : undefined,
+        onSymbol: ready ? onAsset?.lvgl : undefined,
+        initialState: getInteractiveLightInitialState(asset),
+        ready,
+      })
+    })
+
+  return exportsByComponent
+}
+
 const buildLvglBlock = (
   component: IComponent,
   components: IComponents,
@@ -173,6 +249,7 @@ const buildLvglBlock = (
   usedAssetSources: Set<string>,
   usedHookNames: Set<string>,
   userEventHooks: Set<string>,
+  lightExports: Map<string, InteractiveLightExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -513,6 +590,61 @@ lines.push(
     lines.push(
       `lv_obj_center(${varName}_label);`,
     )
+  }
+
+  lines.push(``)
+  break
+}
+
+case 'InteractiveLight': {
+  const lightExport = lightExports.get(child.id)
+  const lightWidth = Number(w)
+  const lightHeight = Number(h)
+  const safeLightWidth =
+    Number.isFinite(lightWidth) && lightWidth > 0
+      ? lightWidth
+      : 32
+  const safeLightHeight =
+    Number.isFinite(lightHeight) && lightHeight > 0
+      ? lightHeight
+      : 32
+
+  if (
+    lightExport?.ready &&
+    lightExport.offSymbol &&
+    lightExport.onSymbol
+  ) {
+    const initialSymbol = lightExport.initialState === 'on'
+      ? lightExport.onSymbol
+      : lightExport.offSymbol
+
+    lines.push(
+      `${lightExport.runtimeImageName} = lv_image_create(${parentVar});`,
+    )
+    lines.push(
+      `lv_image_set_src(${lightExport.runtimeImageName}, &${initialSymbol});`,
+    )
+    lines.push(
+      `lv_obj_set_pos(${lightExport.runtimeImageName}, ${x}, ${y});`,
+    )
+    lines.push(
+      `lv_obj_set_size(${lightExport.runtimeImageName}, ${safeLightWidth}, ${safeLightHeight});`,
+    )
+    lines.push(
+      `lv_obj_clear_flag(${lightExport.runtimeImageName}, LV_OBJ_FLAG_CLICKABLE);`,
+    )
+    lines.push(
+      `lv_obj_clear_flag(${lightExport.runtimeImageName}, LV_OBJ_FLAG_SCROLLABLE);`,
+    )
+  } else {
+    lines.push(`lv_obj_t * ${varName} = lv_label_create(${parentVar});`)
+    lines.push(
+      `lv_label_set_text(${varName}, "Missing Interactive Light Assets");`,
+    )
+    lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
+    lines.push(`lv_obj_set_size(${varName}, ${safeLightWidth}, ${safeLightHeight});`)
+    lines.push(`lv_obj_clear_flag(${varName}, LV_OBJ_FLAG_CLICKABLE);`)
+    lines.push(`lv_obj_clear_flag(${varName}, LV_OBJ_FLAG_SCROLLABLE);`)
   }
 
   lines.push(``)
@@ -1228,6 +1360,7 @@ case 'Chart': {
         usedAssetSources,
         usedHookNames,
         userEventHooks,
+        lightExports,
       )
     }
   })
@@ -1242,6 +1375,13 @@ export const generateForgeUILvglCode = (
   const usedAssetSources = new Set<string>()
   const usedHookNames = new Set<string>()
   const userEventHooks = new Set<string>()
+  const hasInteractiveButtons = Object.values(components).some(
+    component => component.type === 'InteractiveButton',
+  )
+  const lightExports = createInteractiveLightExports(
+    components,
+    usedAssetSources,
+  )
 
   const previewPalette =
   FG_PREVIEW_PALETTES[themeId as ForgeThemeId] ||
@@ -1310,13 +1450,66 @@ const backgroundMode =
   lines.push(`#include "lvgl.h"`)
   lines.push(`#include "20_RTC.h"`)
   lines.push(`#include "30_WIFI.h"`)
-  lines.push(`#include "95_UserEvents.h"`)
+  if (hasInteractiveButtons) {
+    lines.push(`#include "95_UserEvents.h"`)
+  }
   lines.push(`#include <stdbool.h>`)
   lines.push(`#include <stdio.h>`)
   lines.push(``)
   lines.push(`static lv_obj_t * fg_clock_label = NULL;`)
   lines.push(`static lv_obj_t * fg_wifi_label = NULL;`)
   lines.push(``)
+
+  const declaredLightSymbols = new Set<string>()
+
+  lightExports.forEach(lightExport => {
+    if (
+      !lightExport.ready ||
+      !lightExport.offSymbol ||
+      !lightExport.onSymbol
+    ) {
+      return
+    }
+
+    ;[lightExport.offSymbol, lightExport.onSymbol].forEach(symbol => {
+      if (!declaredLightSymbols.has(symbol)) {
+        lines.push(`LV_IMAGE_DECLARE(${symbol});`)
+        declaredLightSymbols.add(symbol)
+      }
+    })
+    lines.push(
+      `static lv_obj_t * ${lightExport.runtimeImageName} = NULL;`,
+    )
+  })
+
+  if (declaredLightSymbols.size > 0) lines.push(``)
+
+  lightExports.forEach(lightExport => {
+    if (
+      !lightExport.ready ||
+      !lightExport.offSymbol ||
+      !lightExport.onSymbol
+    ) {
+      return
+    }
+
+    lines.push(`void ${lightExport.apiName}(bool enabled)`)
+    lines.push(`{`)
+    lines.push(`    if (!${lightExport.runtimeImageName})`)
+    lines.push(`    {`)
+    lines.push(`        return;`)
+    lines.push(`    }`)
+    lines.push(``)
+    lines.push(`    lv_image_set_src(`)
+    lines.push(`        ${lightExport.runtimeImageName},`)
+    lines.push(`        enabled`)
+    lines.push(`            ? &${lightExport.onSymbol}`)
+    lines.push(`            : &${lightExport.offSymbol}`)
+    lines.push(`    );`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+  if (hasInteractiveButtons) {
     lines.push(`typedef struct`)
   lines.push(`{`)
   lines.push(`    const void * normal_src;`)
@@ -1368,6 +1561,7 @@ lines.push(`        }`)
 lines.push(`    }`)
 lines.push(`}`)
   lines.push(``)
+  }
 
   lines.push(`static void fg_clock_tick_cb(lv_timer_t *timer)`)
   lines.push(`{`)
@@ -1478,8 +1672,9 @@ lines.push(`}`)
       palette,
       usedAssetSources,
       usedHookNames,
-      userEventHooks,
-    )
+        userEventHooks,
+        lightExports,
+      )
   }
 
   body.forEach(line => {
@@ -1499,5 +1694,10 @@ lines.push(`}`)
     code: lines.join('\n'),
     assetSources: Array.from(usedAssetSources),
     userEventHooks: Array.from(userEventHooks),
+    publicApiDeclarations: Array.from(lightExports.values())
+      .filter(lightExport => lightExport.ready)
+      .map(lightExport =>
+        `void ${lightExport.apiName}(bool enabled);`,
+      ),
   }
 }

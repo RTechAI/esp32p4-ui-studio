@@ -957,6 +957,41 @@ If using ChatGPT or another AI assistant:
 `
 }
 
+function normalizePublicApiDeclarations(declarations) {
+  return Array.from(
+    new Set(
+      (Array.isArray(declarations) ? declarations : [])
+        .map((declaration) => String(declaration || '').trim())
+        .filter((declaration) =>
+          /^void FG_Set_[A-Za-z0-9_]+\(bool enabled\);$/.test(declaration)
+        )
+    )
+  )
+}
+
+function generateStudioExportHeader(publicApiDeclarations) {
+  const declarations = normalizePublicApiDeclarations(
+    publicApiDeclarations
+  )
+
+  return `#pragma once
+
+#include "lvgl.h"
+#include <stdbool.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void fg_studio_export_create(lv_obj_t *parent);
+${declarations.join('\n')}
+
+#ifdef __cplusplus
+}
+#endif
+`
+}
+
 function generateUserEventFiles(userEventHooks) {
   const uniqueHooks = Array.from(
     new Set(
@@ -1048,6 +1083,9 @@ app.post('/export', (req, res) => {
 const assetSources = req.body.assetSources || []
 const userEventHooks =
   req.body.userEventHooks || []
+const publicApiDeclarations = normalizePublicApiDeclarations(
+  req.body.publicApiDeclarations
+)
 
 const userEvents =
   generateUserEventFiles(userEventHooks)
@@ -1088,21 +1126,9 @@ assetSources.forEach((src) => {
   }
 })
 
-    const header =
-`#pragma once
-
-#include "lvgl.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-void fg_studio_export_create(lv_obj_t *parent);
-
-#ifdef __cplusplus
-}
-#endif
-`
+    const header = generateStudioExportHeader(
+      publicApiDeclarations
+    )
    
 const mainDir = path.resolve(
   __dirname,
@@ -1244,6 +1270,9 @@ const assetSources = req.body.assetSources || []
 
 const userEventHooks =
   req.body.userEventHooks || []
+const publicApiDeclarations = normalizePublicApiDeclarations(
+  req.body.publicApiDeclarations
+)
 
 const userEvents =
   generateUserEventFiles(userEventHooks)
@@ -1371,21 +1400,9 @@ assetSources.forEach((src) => {
   )
 })
 
-    const header =
-`#pragma once
-
-#include "lvgl.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-void fg_studio_export_create(lv_obj_t *parent);
-
-#ifdef __cplusplus
-}
-#endif
-`
+    const header = generateStudioExportHeader(
+      publicApiDeclarations
+    )
 
    const cTarget = path.join(
   exportDir,
@@ -1644,6 +1661,14 @@ app.post('/shutdown', (req, res) => {
   }, 500)
 })
 
-app.listen(3030, () => {
-  console.log('ForgeUI export server alive on :3030')
-})
+if (require.main === module) {
+  app.listen(3030, () => {
+    console.log('ForgeUI export server alive on :3030')
+  })
+}
+
+module.exports = {
+  generateStudioExportHeader,
+  generateUserEventFiles,
+  normalizePublicApiDeclarations,
+}

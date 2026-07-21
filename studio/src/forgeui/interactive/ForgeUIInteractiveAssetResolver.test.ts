@@ -6,10 +6,17 @@ import {
   createDefaultInteractiveButtonAsset,
 } from './ForgeUIInteractiveButtonAsset'
 import {
+  createDefaultInteractiveLightAsset,
+} from './ForgeUIInteractiveLightAsset'
+import {
   getInteractiveButtonComponentProps,
   getInteractiveButtonDimensions,
   isLvglReadyUploadedAsset,
   resolveInteractiveButtonVisuals,
+  getInteractiveLightComponentProps,
+  getInteractiveLightDimensions,
+  getInteractiveLightInitialState,
+  resolveInteractiveLightVisuals,
 } from './ForgeUIInteractiveAssetResolver'
 
 const createUploadedAsset = (
@@ -79,5 +86,49 @@ describe('Interactive Asset resolution', () => {
         createUploadedAsset('pending', 'pending_conversion'),
       ),
     ).toBe(false)
+  })
+
+  it('resolves Light visuals, dimensions, assignment, and initial state', () => {
+    const light = {
+      ...createDefaultInteractiveLightAsset('light'),
+      width: 32,
+      height: 32,
+      offAssetId: normalAsset.id,
+      onAssetId: pressedAsset.id,
+      initialState: 'on' as const,
+    }
+
+    expect(
+      resolveInteractiveLightVisuals(
+        light,
+        [normalAsset, pressedAsset],
+      ),
+    ).toEqual({
+      offAsset: normalAsset,
+      onAsset: pressedAsset,
+    })
+    expect(getInteractiveLightDimensions(light, {
+      width: 10,
+      height: 10,
+    })).toEqual({ width: 32, height: 32 })
+    expect(getInteractiveLightComponentProps(light)).toEqual({
+      interactiveAssetId: 'light',
+      w: '32',
+      h: '32',
+    })
+    expect(getInteractiveLightInitialState(light)).toBe('on')
+  })
+
+  it('handles missing Light visuals and defaults invalid state to off', () => {
+    const light = {
+      ...createDefaultInteractiveLightAsset('light'),
+      initialState: 'invalid' as any,
+    }
+
+    expect(resolveInteractiveLightVisuals(light, [])).toEqual({
+      offAsset: undefined,
+      onAsset: undefined,
+    })
+    expect(getInteractiveLightInitialState(light)).toBe('off')
   })
 })

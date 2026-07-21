@@ -4,6 +4,7 @@ import type {
   ForgeUIInteractiveAssetOfKind,
 } from './ForgeUIInteractiveAsset'
 import type { ForgeUIInteractiveButtonAsset } from './ForgeUIInteractiveButtonAsset'
+import type { ForgeUIInteractiveLightAsset } from './ForgeUIInteractiveLightAsset'
 import { validateInteractiveAsset } from './ForgeUIInteractiveAssetValidation'
 
 // The registry owns the in-memory lifetime of all Interactive Asset kinds.
@@ -51,6 +52,11 @@ export const getInteractiveButtonAsset = (
 ): ForgeUIInteractiveButtonAsset | undefined =>
   getInteractiveAssetByKind(id, 'button')
 
+export const getInteractiveLightAsset = (
+  id: string,
+): ForgeUIInteractiveLightAsset | undefined =>
+  getInteractiveAssetByKind(id, 'light')
+
 export const getAllInteractiveAssets = (
 ): ForgeUIInteractiveAsset[] =>
   Array.from(assets.values())
@@ -72,6 +78,12 @@ export const updateInteractiveAsset = (
     )
   }
 
+  if (current.kind !== 'button') {
+    throw new Error(
+      `Interactive button asset not found: ${id}`,
+    )
+  }
+
   const updated: ForgeUIInteractiveButtonAsset = {
     ...current,
     ...updates,
@@ -83,6 +95,42 @@ export const updateInteractiveAsset = (
 
   validateInteractiveAsset(updated)
 
+  assets.set(id, updated)
+
+  return updated
+}
+
+export const updateInteractiveAssetByKind = <
+  Kind extends ForgeUIInteractiveAssetKind,
+>(
+  id: string,
+  kind: Kind,
+  updates: Partial<
+    Omit<
+      ForgeUIInteractiveAssetOfKind<Kind>,
+      'id' | 'schemaVersion' | 'kind' | 'interactionMode'
+    >
+  >,
+): ForgeUIInteractiveAssetOfKind<Kind> => {
+  const current = getInteractiveAssetByKind(id, kind)
+
+  if (!current) {
+    throw new Error(
+      `Interactive ${kind} asset not found: ${id}`,
+    )
+  }
+
+  const updated = {
+    ...current,
+    ...updates,
+    id: current.id,
+    schemaVersion: current.schemaVersion,
+    kind: current.kind,
+    interactionMode: current.interactionMode,
+    updatedAt: new Date().toISOString(),
+  } as ForgeUIInteractiveAssetOfKind<Kind>
+
+  validateInteractiveAsset(updated)
   assets.set(id, updated)
 
   return updated
@@ -109,8 +157,18 @@ export const exportInteractiveAssets =
 export const importInteractiveAssets = (
   imported: ForgeUIInteractiveAsset[],
 ): void => {
+  const importedIds = new Set<string>()
+
   imported.forEach(asset => {
     validateInteractiveAsset(asset)
+
+    if (importedIds.has(asset.id)) {
+      throw new Error(
+        `Duplicate Interactive asset ID: ${asset.id}`,
+      )
+    }
+
+    importedIds.add(asset.id)
   })
 
   assets.clear()

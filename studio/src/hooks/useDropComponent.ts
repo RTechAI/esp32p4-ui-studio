@@ -110,6 +110,8 @@ const isCircularProgress =
 const isButton = item.type === 'Button'
 const isInteractiveButton =
   item.type === 'InteractiveButton'
+const isInteractiveLight =
+  item.type === 'InteractiveLight'
 const isSelect = item.type === 'Select'
 const isIcon = item.type === 'Icon'
 const isIconButton = item.type === 'IconButton'
@@ -141,6 +143,8 @@ const defaultW = isLed
                       ? 120
                       : isInteractiveButton
                         ? 160
+                        : isInteractiveLight
+                          ? 32
                         : isSelect
                           ? 180
                           : isSwitch
@@ -187,6 +191,8 @@ const defaultH = isLed
                       ? 40
                       : isInteractiveButton
                         ? 56
+                        : isInteractiveLight
+                          ? 32
                         : isSelect
                           ? 36
                           : isSwitch

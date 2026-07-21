@@ -10,6 +10,8 @@ type GenerationMode =
   | 'artwork'
   | 'button-normal'
   | 'button-pressed'
+  | 'light-off'
+  | 'light-on'
 
 type ApiResponse =
   | {
@@ -77,6 +79,44 @@ Requirements:
 `
   }
 
+  if (mode === 'light-off') {
+    return `
+Create the OFF visual state for an embedded HMI status light or indicator.
+
+User request:
+${prompt}
+
+Requirements:
+- create one isolated status light, warning lamp or indicator
+- clearly inactive, unlit or powered-off appearance
+- front-facing view and centered composition
+- no surrounding dashboard, device mockup, hands or extra objects
+- no text, letters, numbers or logos
+- transparent or plain neutral background
+- preserve the requested visual design for a matching ON state
+- suitable for resizing to the requested indicator dimensions
+`
+  }
+
+  if (mode === 'light-on') {
+    return `
+Create the ON visual state for an embedded HMI status light or indicator.
+
+User request:
+${prompt}
+
+Requirements:
+- create one isolated status light, warning lamp or indicator
+- clearly active, illuminated or glowing appearance
+- front-facing view and centered composition
+- no surrounding dashboard, device mockup, hands or extra objects
+- no text, letters, numbers or logos
+- transparent or plain neutral background
+- preserve the requested visual design for a matching OFF state
+- suitable for resizing to the requested indicator dimensions
+`
+  }
+
   if (mode === 'artwork') {
     return `
 Create professional embedded HMI interface artwork.
@@ -138,6 +178,8 @@ export default async function handler(
     'artwork',
     'button-normal',
     'button-pressed',
+    'light-off',
+    'light-on',
   ]
 
   const mode: GenerationMode =

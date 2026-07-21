@@ -25,6 +25,7 @@ type ComponentType =
   | 'BreadcrumbLink'
   | 'Button'
   | 'InteractiveButton'
+  | 'InteractiveLight'
   | 'Center'
   | 'Checkbox'
   | 'CircularProgress'

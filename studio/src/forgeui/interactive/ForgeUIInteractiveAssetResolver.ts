@@ -5,10 +5,19 @@ import type {
 import type {
   ForgeUIInteractiveButtonAsset,
 } from './ForgeUIInteractiveButtonAsset'
+import type {
+  ForgeUIInteractiveLightAsset,
+  ForgeUIInteractiveLightState,
+} from './ForgeUIInteractiveLightAsset'
 
 export type ForgeUIInteractiveButtonVisuals = {
   normalAsset?: ForgeUIUploadedAsset
   pressedAsset?: ForgeUIUploadedAsset
+}
+
+export type ForgeUIInteractiveLightVisuals = {
+  offAsset?: ForgeUIUploadedAsset
+  onAsset?: ForgeUIUploadedAsset
 }
 
 export const findUploadedAssetById = (
@@ -33,6 +42,20 @@ export const resolveInteractiveButtonVisuals = (
   ),
 })
 
+export const resolveInteractiveLightVisuals = (
+  asset: ForgeUIInteractiveLightAsset | undefined,
+  uploadedAssets: ForgeUIUploadedAsset[],
+): ForgeUIInteractiveLightVisuals => ({
+  offAsset: findUploadedAssetById(
+    uploadedAssets,
+    asset?.offAssetId,
+  ),
+  onAsset: findUploadedAssetById(
+    uploadedAssets,
+    asset?.onAssetId,
+  ),
+})
+
 export const isLvglReadyUploadedAsset = (
   asset: ForgeUIUploadedAsset | undefined,
 ): asset is ForgeUIUploadedAsset =>
@@ -54,3 +77,24 @@ export const getInteractiveButtonComponentProps = (
   w: String(asset.width),
   h: String(asset.height),
 })
+
+export const getInteractiveLightDimensions = (
+  asset: ForgeUIInteractiveLightAsset | undefined,
+  fallback: { width: number; height: number },
+) => ({
+  width: asset?.width || fallback.width,
+  height: asset?.height || fallback.height,
+})
+
+export const getInteractiveLightComponentProps = (
+  asset: ForgeUIInteractiveLightAsset,
+) => ({
+  interactiveAssetId: asset.id,
+  w: String(asset.width),
+  h: String(asset.height),
+})
+
+export const getInteractiveLightInitialState = (
+  asset: ForgeUIInteractiveLightAsset | undefined,
+): ForgeUIInteractiveLightState =>
+  asset?.initialState === 'on' ? 'on' : 'off'

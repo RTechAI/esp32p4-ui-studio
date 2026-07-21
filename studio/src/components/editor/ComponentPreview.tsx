@@ -30,6 +30,7 @@ import HighlightPreview from './previews/HighlightPreview'
 import SliderPreview from '~components/editor/previews/SliderPreview'
 import ProgressPreview from '~components/editor/previews/ProgressPreview'
 import InteractiveButtonCanvasPreview from './previews/InteractiveButtonCanvasPreview'
+import InteractiveLightCanvasPreview from './previews/InteractiveLightCanvasPreview'
 import CircularProgressPreview from '~components/editor/previews/CircularProgressPreview'
 import ImagePreview from '~components/editor/previews/ImagePreview'
 import StatGroupPreview, {
@@ -275,6 +276,17 @@ case 'AspectRatio':
       <InteractiveButtonCanvasPreview
         component={component}
       />
+    </PreviewContainer>
+  )
+
+  case 'InteractiveLight':
+  return (
+    <PreviewContainer
+      component={component}
+      enableVisualHelper
+      {...forwardedProps}
+    >
+      <InteractiveLightCanvasPreview component={component} />
     </PreviewContainer>
   )
 
