@@ -218,4 +218,60 @@ describe('Interactive Button LVGL export compatibility', () => {
     ])
     expect(result.code).toContain('fg_interactive_button_event_cb')
   })
+
+  it('deduplicates a shared declaration without removing image uses', () => {
+    const shared = createUploadedAsset('shared')
+    forgeUIAddUploadedAssets([shared])
+    const button = {
+      ...createDefaultInteractiveButtonAsset('button'),
+      label: 'Shared',
+      normalAssetId: shared.id,
+      pressedAssetId: shared.id,
+    }
+    const light = {
+      ...createDefaultInteractiveLightAsset('light'),
+      offAssetId: shared.id,
+      onAssetId: shared.id,
+    }
+    registerInteractiveAsset(button)
+    registerInteractiveAsset(light)
+
+    const result = generateForgeUILvglCode({
+      root: { id: 'root', parent: 'root', type: 'Box', props: {},
+        children: ['button', 'light', 'icon'] },
+      button: { id: 'button', parent: 'root', type: 'InteractiveButton',
+        props: { interactiveAssetId: button.id, w: 120, h: 48 }, children: [] },
+      light: { id: 'light', parent: 'root', type: 'InteractiveLight',
+        componentName: 'SharedLight',
+        props: { interactiveAssetId: light.id, w: 32, h: 32 }, children: [] },
+      icon: { id: 'icon', parent: 'root', type: 'Icon',
+        props: { uploadedAssetId: shared.id, w: 32, h: 32 }, children: [] },
+    }, 'graphite', shared)
+
+    expect(result.code.match(
+      /LV_IMAGE_DECLARE\(fg_upload_shared\)/g,
+    )).toHaveLength(1)
+    expect(result.code).toContain(
+      'lv_image_set_src(obj1_img, &fg_upload_shared);',
+    )
+    expect(result.code).toContain(
+      '.normal_src = &fg_upload_shared,',
+    )
+    expect(result.code).toContain(
+      '.pressed_src = &fg_upload_shared,',
+    )
+    expect(result.code).toContain(
+      'lv_image_set_src(fg_shared_light_image, &fg_upload_shared);',
+    )
+    expect(result.code).toContain(
+      'lv_image_set_src(obj3, &fg_upload_shared);',
+    )
+    expect(result.code).toContain(
+      'lv_image_set_src(bg_texture_0, &fg_upload_shared);',
+    )
+    expect(result.code).toContain(
+      'lv_obj_add_event_cb(obj1, fg_interactive_button_event_cb, LV_EVENT_CLICKED, &obj1_data);',
+    )
+    expect(result.assetSources).toEqual([shared.cFile])
+  })
 })

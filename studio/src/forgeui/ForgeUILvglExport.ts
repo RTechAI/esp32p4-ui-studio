@@ -1672,8 +1672,19 @@ lines.push(`    lv_timer_create(fg_wifi_tick_cb, 1000, NULL);`)
 
 lines.push(`}`)
 
+  const declaredImages = new Set<string>()
+  const code = lines.filter(line => {
+    const declaration = line.match(
+      /LV_IMAGE_DECLARE\(([A-Za-z_][A-Za-z0-9_]*)\)/,
+    )
+    if (!declaration) return true
+    if (declaredImages.has(declaration[1])) return false
+    declaredImages.add(declaration[1])
+    return true
+  }).join('\n')
+
     return {
-    code: lines.join('\n'),
+    code,
     assetSources: Array.from(usedAssetSources),
     userEventHooks: Array.from(userEventHooks),
     publicApiDeclarations: Array.from(lightExports.values())

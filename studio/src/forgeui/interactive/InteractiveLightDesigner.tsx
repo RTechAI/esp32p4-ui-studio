@@ -18,7 +18,11 @@ import {
   VStack,
 } from '@chakra-ui/react'
 
-import { getSelectedComponent } from '~core/selectors/components'
+import { getComponents, getSelectedComponent } from '~core/selectors/components'
+import {
+  findInteractiveAssetReferences,
+  formatAssetReferences,
+} from '~forgeui/ForgeUIReferenceProtection'
 import useDispatch from '~hooks/useDispatch'
 import { useForm } from '~hooks/useForm'
 import type {
@@ -68,6 +72,7 @@ const InteractiveLightDesigner = ({
   onClose,
   onGeneratingChange,
 }: InteractiveLightDesignerProps) => {
+  const components = useSelector(getComponents)
   const selectedComponent = useSelector(getSelectedComponent)
   const selectedIsInteractiveLight =
     selectedComponent?.type === 'InteractiveLight'
@@ -196,6 +201,11 @@ const InteractiveLightDesigner = ({
   }
 
   const remove = (assetId: string) => {
+    const references = findInteractiveAssetReferences(assetId, components)
+    if (references.length > 0) {
+      window.alert(formatAssetReferences(references))
+      return
+    }
     removeInteractiveAsset(assetId)
     saveInteractiveAssets()
     onAssetsChanged()

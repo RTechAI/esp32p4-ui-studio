@@ -14,6 +14,11 @@ import React, { memo, useEffect, useRef, useState } from 'react'
 import DevicePreview from '~forgeui/preview/DevicePreview'
 import { ForgeUIAssetManager } from '~forgeui/assets/ForgeUIAssetManager'
 import { generateForgeUILvglCode } from '~forgeui/ForgeUILvglExport'
+import {
+  assertForgeUIExportValid,
+  ForgeUIExportValidationError,
+} from '~forgeui/ForgeUIExportValidation'
+import { getAllInteractiveAssets } from '~forgeui/interactive'
 import { useForgeTheme } from '~forgeui/theme/ForgeThemeContext'
 import { FG_PREVIEW_PALETTES } from '~forgeui/preview/forgeThemeMap'
 import ForgeAIPanel from '~forgeui/ai/ForgeAIPanel'
@@ -290,18 +295,29 @@ useEffect(() => {
 }, [])
 
 const exportToForgeUIOne = async () => {
-  const result = generateForgeUILvglCode(
-  components,
-  themeId,
-  selectedHeroAsset,
-)
+  let result
+  try {
+    result = assertForgeUIExportValid(
+      components,
+      getAllInteractiveAssets(),
+      forgeUIGetUploadedAssets(),
+      generateForgeUILvglCode(components, themeId, selectedHeroAsset),
+    )
+  } catch (error) {
+    const message = error instanceof ForgeUIExportValidationError
+      ? error.message
+      : String(error)
+    toast({ title: 'Export Validation Failed', description: message,
+      status: 'error', duration: 12000, isClosable: true })
+    return
+  }
 
   const code = result.code
 
   setFlashPanelOpen(true)
   setFlashLog('Starting Build & Flash...\n')
 
-  await fetch('http://localhost:3030/export', {
+  const response = await fetch('http://localhost:3030/export', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -311,6 +327,13 @@ const exportToForgeUIOne = async () => {
   publicApiDeclarations: result.publicApiDeclarations,
 }),
   })
+  if (!response.ok) {
+    const failure = await response.json()
+    toast({ title: 'Export Validation Failed',
+      description: failure.error || 'Live export validation failed',
+      status: 'error', duration: 12000, isClosable: true })
+    return
+  }
 
  await fetch('http://localhost:3030/flash', {
   method: 'POST',
@@ -319,24 +342,27 @@ const exportToForgeUIOne = async () => {
 
 
   const exportEspIdfProject = async () => {
-  const result = generateForgeUILvglCode(
-    components,
-    themeId,
-    selectedHeroAsset,
-  )
+  let result
+  try {
+    result = assertForgeUIExportValid(
+      components,
+      getAllInteractiveAssets(),
+      forgeUIGetUploadedAssets(),
+      generateForgeUILvglCode(components, themeId, selectedHeroAsset),
+    )
+  } catch (error) {
+    const message = error instanceof ForgeUIExportValidationError
+      ? error.message
+      : String(error)
+    toast({ title: 'Export Validation Failed', description: message,
+      status: 'error', duration: 12000, isClosable: true })
+    return
+  }
 
   const code = result.code
   const assetSources = result.assetSources
 
-  setFlashPanelOpen(false)
-  setFlashLog(
-    'Standalone ESP-IDF project exported successfully.\n' +
-      'Export location: C:\\ForgeUI-Exports\n' +
-      'Open the exported project in ESP-IDF.\n' +
-      'Close this window when finished.\n',
-  )
-
-  await fetch('http://localhost:3030/export-idf-project', {
+  const response = await fetch('http://localhost:3030/export-idf-project', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -347,6 +373,21 @@ const exportToForgeUIOne = async () => {
   projectName: 'ForgeUI_Export',
 }),
   })
+  if (!response.ok) {
+    const failure = await response.json()
+    toast({ title: 'Export Validation Failed',
+      description: failure.error || 'Standalone export validation failed',
+      status: 'error', duration: 12000, isClosable: true })
+    return
+  }
+
+  setFlashPanelOpen(false)
+  setFlashLog(
+    'Standalone ESP-IDF project exported successfully.\n' +
+      'Export location: C:\\ForgeUI-Exports\n' +
+      'Open the exported project in ESP-IDF.\n' +
+      'Close this window when finished.\n',
+  )
 
   toast({
     title: 'Standalone ESP-IDF Project Exported',
@@ -358,18 +399,29 @@ const exportToForgeUIOne = async () => {
 }
 
 const cleanBuildFlashForgeUIOne = async () => {
-  const result = generateForgeUILvglCode(
-    components,
-    themeId,
-    selectedHeroAsset,
-  )
+  let result
+  try {
+    result = assertForgeUIExportValid(
+      components,
+      getAllInteractiveAssets(),
+      forgeUIGetUploadedAssets(),
+      generateForgeUILvglCode(components, themeId, selectedHeroAsset),
+    )
+  } catch (error) {
+    const message = error instanceof ForgeUIExportValidationError
+      ? error.message
+      : String(error)
+    toast({ title: 'Export Validation Failed', description: message,
+      status: 'error', duration: 12000, isClosable: true })
+    return
+  }
 
   const code = result.code
 
   setFlashPanelOpen(true)
   setFlashLog('Starting Clean Build & Flash...\n')
 
-  await fetch('http://localhost:3030/export', {
+  const response = await fetch('http://localhost:3030/export', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -379,6 +431,13 @@ const cleanBuildFlashForgeUIOne = async () => {
   publicApiDeclarations: result.publicApiDeclarations,
 }),
   })
+  if (!response.ok) {
+    const failure = await response.json()
+    toast({ title: 'Export Validation Failed',
+      description: failure.error || 'Clean export validation failed',
+      status: 'error', duration: 12000, isClosable: true })
+    return
+  }
 
   await fetch('http://localhost:3030/clean-flash', {
     method: 'POST',

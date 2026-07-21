@@ -969,6 +969,81 @@ function normalizePublicApiDeclarations(declarations) {
   )
 }
 
+function validateExportPayload(payload, options = {}) {
+  const code = typeof payload.code === 'string' ? payload.code : ''
+  const rawSources = Array.isArray(payload.assetSources)
+    ? payload.assetSources
+    : []
+  const diagnostics = []
+  const seenSources = new Set()
+  const seenSymbols = new Set()
+  const mainDir = path.resolve(
+    options.mainDir || path.resolve(__dirname, '../firmware/ForgeUI-One/main')
+  )
+  const assetSources = []
+
+  if (!code.trim()) diagnostics.push('Generated C code is empty')
+
+  rawSources.forEach(rawSource => {
+    const source = String(rawSource)
+    const normalized = source.replace(/\\/g, '/')
+    if (
+      source !== normalized ||
+      path.posix.isAbsolute(normalized) ||
+      /^[A-Za-z]:/.test(normalized) ||
+      normalized.split('/').includes('..') ||
+      !normalized.endsWith('.c')
+    ) {
+      diagnostics.push(`Invalid asset source: ${source}`)
+      return
+    }
+    if (seenSources.has(normalized)) {
+      diagnostics.push(`Duplicate asset source: ${normalized}`)
+      return
+    }
+    seenSources.add(normalized)
+
+    const sourcePath = path.resolve(mainDir, normalized)
+    if (!sourcePath.startsWith(`${mainDir}${path.sep}`)) {
+      diagnostics.push(`Asset source escapes firmware main: ${normalized}`)
+      return
+    }
+    if (!fs.existsSync(sourcePath) || !fs.statSync(sourcePath).isFile()) {
+      diagnostics.push(`Generated C file missing: ${normalized}`)
+      return
+    }
+
+    const symbol = path.basename(normalized, '.c')
+    if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(symbol)) {
+      diagnostics.push(`Invalid generated symbol: ${symbol}`)
+      return
+    }
+    if (seenSymbols.has(symbol)) {
+      diagnostics.push(`Duplicate generated symbol: ${symbol}`)
+      return
+    }
+    seenSymbols.add(symbol)
+
+    const sourceText = fs.readFileSync(sourcePath, 'utf8')
+    if (!sourceText.includes(symbol)) {
+      diagnostics.push(`Symbol ${symbol} is missing from ${normalized}`)
+    }
+    if (!code.includes(symbol)) {
+      diagnostics.push(`Asset source is not referenced by generated code: ${normalized}`)
+    }
+    assetSources.push(normalized)
+  })
+
+  if (diagnostics.length > 0) {
+    const error = new Error(
+      ['Export Validation Failed', 'Asset Sources', ...diagnostics].join('\n')
+    )
+    error.diagnostics = diagnostics
+    throw error
+  }
+  return { code, assetSources }
+}
+
 function generateStudioExportHeader(publicApiDeclarations) {
   const declarations = normalizePublicApiDeclarations(
     publicApiDeclarations
@@ -1079,8 +1154,9 @@ ${definitions}
 
 app.post('/export', (req, res) => {
   try {
-    const code = req.body.code || ''
-const assetSources = req.body.assetSources || []
+    const validated = validateExportPayload(req.body || {})
+    const code = validated.code
+const assetSources = validated.assetSources
 const userEventHooks =
   req.body.userEventHooks || []
 const publicApiDeclarations = normalizePublicApiDeclarations(
@@ -1265,8 +1341,9 @@ console.log(
 
 app.post('/export-idf-project', (req, res) => {
   try {
-    const code = req.body.code || ''
-const assetSources = req.body.assetSources || []
+    const validated = validateExportPayload(req.body || {})
+    const code = validated.code
+const assetSources = validated.assetSources
 
 const userEventHooks =
   req.body.userEventHooks || []
@@ -1671,4 +1748,5 @@ module.exports = {
   generateStudioExportHeader,
   generateUserEventFiles,
   normalizePublicApiDeclarations,
+  validateExportPayload,
 }

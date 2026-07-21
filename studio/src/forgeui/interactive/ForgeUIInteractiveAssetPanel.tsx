@@ -1,5 +1,9 @@
 import { useSelector } from 'react-redux'
-import { getSelectedComponent } from '~core/selectors/components'
+import { getComponents, getSelectedComponent } from '~core/selectors/components'
+import {
+  findInteractiveAssetReferences,
+  formatAssetReferences,
+} from '~forgeui/ForgeUIReferenceProtection'
 import { useForm } from '~hooks/useForm'
 import useDispatch from '~hooks/useDispatch'
 
@@ -75,8 +79,9 @@ type VisualSelectorMode =
   | null
  
 const ForgeUIInteractiveAssetPanel = () => {
-  const selectedComponent =
+const selectedComponent =
     useSelector(getSelectedComponent)
+const components = useSelector(getComponents)
 
 const { setValue } = useForm()
 
@@ -353,6 +358,11 @@ const [
   const deleteInteractiveAsset = (
     assetId: ForgeUIInteractiveButtonAsset['id'],
   ) => {
+    const references = findInteractiveAssetReferences(assetId, components)
+    if (references.length > 0) {
+      window.alert(formatAssetReferences(references))
+      return
+    }
     removeInteractiveAsset(assetId)
     saveInteractiveAssets()
     refreshAssets()

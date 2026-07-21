@@ -1,5 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { Box, Button, HStack, Text, VStack } from '@chakra-ui/react'
+import { getAllInteractiveAssets } from '../interactive'
+import {
+  findUploadedAssetReferences,
+  formatAssetReferences,
+} from '../ForgeUIReferenceProtection'
+import { useForgeTheme } from '../theme/ForgeThemeContext'
 import { useDropzone } from 'react-dropzone'
 import {
   ForgeUIUploadedAsset,
@@ -35,6 +41,7 @@ const fileToBase64 = (file: File) =>
 export function ForgeUIAssetManager({
   onClose,
 }: ForgeUIAssetManagerProps) {
+  const { heroBackground } = useForgeTheme()
   const [assets, setAssets] = useState<ForgeUIUploadedAsset[]>(
     forgeUIGetUploadedAssets(),
   )
@@ -230,6 +237,18 @@ export function ForgeUIAssetManager({
                   size="sm"
                   colorScheme="red"
                   onClick={async () => {
+                   const themeAsset = forgeUIGetUploadedAssets().find(
+                     item => item.browserSrc === heroBackground,
+                   )
+                   const references = findUploadedAssetReferences(
+                     asset.id,
+                     getAllInteractiveAssets(),
+                     themeAsset?.id,
+                   )
+                   if (references.length > 0) {
+                     window.alert(formatAssetReferences(references))
+                     return
+                   }
                    const nextAssets =
                    await forgeUIDeleteUploadedAsset(asset.id)
 

@@ -1,0 +1,155 @@
+import { validateForgeUIExport } from './ForgeUIExportValidation'
+
+const uploaded = (id: string, overrides: Record<string, unknown> = {}) => ({
+  id, name: `${id}.png`, type: 'image/png', size: 1,
+  createdAt: 1, browserSrc: `/assets/${id}.png`, kind: 'uploaded' as const,
+  exportStatus: 'lvgl_ready' as const, lvgl: `fg_${id}`,
+  cFile: `assets/uploads/fg_${id}.c`, ...overrides,
+})
+
+const interactive = (kind: 'button' | 'light', id = `${kind}-asset`) => ({
+  schemaVersion: 1 as const, id, name: `${kind} asset`, kind,
+  interactionMode: kind === 'button' ? 'momentary' as const : 'state' as const,
+  label: kind, width: 32, height: 32, createdAt: 'now', updatedAt: 'now',
+  ...(kind === 'button'
+    ? { normalAssetId: 'normal', pressedAssetId: 'pressed',
+        normal: { backgroundColor: '#000', borderColor: '#000', textColor: '#fff', borderWidth: 0, borderRadius: 0 },
+        pressed: { backgroundColor: '#000', borderColor: '#000', textColor: '#fff', borderWidth: 0, borderRadius: 0 } }
+    : { offAssetId: 'off', onAssetId: 'on', initialState: 'off' as const }),
+})
+
+const component = (type: 'InteractiveButton' | 'InteractiveLight', id: string, assetId: string) => ({
+  id, type, componentName: id, parent: 'root', children: [],
+  props: { interactiveAssetId: assetId, w: 32, h: 32 },
+})
+
+const generate = (assets: ReturnType<typeof uploaded>[], hooks: string[] = [], setters: string[] = []) => ({
+  code: assets.map(asset => asset.lvgl).join('\n'),
+  assetSources: assets.map(asset => asset.cFile),
+  userEventHooks: hooks,
+  publicApiDeclarations: setters,
+})
+
+describe('ForgeUI export preflight', () => {
+  const canvas = (props: Record<string, unknown>) => ({
+    root: { id: 'root', type: 'Box', parent: 'root', children: ['text'], props: {} },
+    text: { id: 'text-id', type: 'Text', componentName: 'Status Text',
+      parent: 'root', children: [], props },
+  })
+
+  it('accepts valid dimensions on a non-interactive Canvas component', () => {
+    expect(validateForgeUIExport(
+      canvas({ w: '120', h: 40 }) as any, [], [], generate([]),
+    ).ok).toBe(true)
+  })
+
+  it.each([
+    [{ h: 40 }, 'width', 'undefined'],
+    [{ w: 120 }, 'height', 'undefined'],
+    [{ w: 0, h: 40 }, 'width', '0'],
+    [{ w: 120, h: -1 }, 'height', '-1'],
+    [{ w: 'wide', h: 40 }, 'width', 'wide'],
+    [{ w: 120, h: Number.POSITIVE_INFINITY }, 'height', 'Infinity'],
+  ])('rejects invalid general Canvas dimensions %#', (props, dimension, value) => {
+    const result = validateForgeUIExport(
+      canvas(props) as any, [], [], generate([]),
+    )
+    expect(result.diagnostics).toContainEqual(expect.objectContaining({
+      category: 'Canvas',
+      subject: 'Status Text (text-id)',
+      message: `Component \"Status Text\" (text-id) has an invalid ${dimension}: ${value}`,
+    }))
+  })
+
+  it('reports a missing Interactive Asset and wrong kind', () => {
+    const button = interactive('button')
+    const result = validateForgeUIExport({
+      a: component('InteractiveButton', 'a', 'missing'),
+      b: component('InteractiveLight', 'b', button.id),
+    } as any, [button] as any, [uploaded('normal'), uploaded('pressed')],
+    generate([uploaded('normal'), uploaded('pressed')], ['FG_On_Button_Clicked']))
+    expect(result.diagnostics.map(item => item.message)).toEqual(expect.arrayContaining([
+      'Interactive Asset reference no longer exists', 'Interactive Asset kind must be light',
+    ]))
+  })
+
+  it('reports missing uploads, LVGL source, and generated C path', () => {
+    const button = interactive('button')
+    const broken = uploaded('normal', { exportStatus: 'pending_conversion', lvgl: '', cFile: '' })
+    const result = validateForgeUIExport({
+      a: component('InteractiveButton', 'a', button.id),
+    } as any, [button] as any, [broken], generate([]))
+    const messages = result.diagnostics.map(item => item.message)
+    expect(messages).toEqual(expect.arrayContaining([
+      'LVGL conversion is not complete', 'Generated C source is missing or invalid',
+      'LVGL symbol is missing or invalid', 'Referenced by button asset but does not exist',
+    ]))
+  })
+
+  it('rejects duplicate hooks, setters, symbols, and invalid assetSources', () => {
+    const button = interactive('button')
+    const light = interactive('light')
+    const assets = [uploaded('normal'), uploaded('pressed'), uploaded('off'),
+      uploaded('on', { lvgl: 'fg_off', cFile: '../bad.c' })]
+    const result = validateForgeUIExport({
+      a: component('InteractiveButton', 'a', button.id),
+      b: component('InteractiveButton', 'b', button.id),
+      c: component('InteractiveLight', 'same', light.id),
+      d: component('InteractiveLight', 'same', light.id),
+    } as any, [button, light] as any, assets, generate(assets, ['FG_On_Button_Clicked'], [
+      'void FG_Set_Same(bool enabled);',
+    ]))
+    expect(result.diagnostics.some(item => item.message.includes('Duplicate Button hook'))).toBe(true)
+    expect(result.diagnostics.some(item => item.message.includes('Duplicate Light setter'))).toBe(true)
+    expect(result.diagnostics.some(item => item.message === 'Duplicate generated image symbol')).toBe(true)
+    expect(result.diagnostics.some(item => item.message === 'Invalid relative C source path')).toBe(true)
+  })
+
+  it('rejects duplicate component IDs', () => {
+    const result = validateForgeUIExport({
+      first: { id: 'duplicate', type: 'Text', parent: 'root', children: [],
+        props: { w: 10, h: 10 } },
+      second: { id: 'duplicate', type: 'Icon', parent: 'root', children: [],
+        props: { w: 10, h: 10 } },
+    } as any, [], [], generate([]))
+    expect(result.diagnostics).toContainEqual({
+      category: 'Canvas', subject: 'duplicate', message: 'Duplicate component ID',
+    })
+  })
+
+  it.each([
+    ['InteractiveButton', 'button', { w: 0, h: 32 }, 'width', '0'],
+    ['InteractiveLight', 'light', { w: 32, h: -2 }, 'height', '-2'],
+  ] as const)(
+    'rejects invalid %s Canvas dimensions',
+    (type, kind, dimensions, failedDimension, value) => {
+      const asset = interactive(kind)
+      const images = kind === 'button'
+        ? [uploaded('normal'), uploaded('pressed')]
+        : [uploaded('off'), uploaded('on')]
+      const item = component(type, `${kind}-component`, asset.id)
+      item.props = { ...item.props, ...dimensions }
+      const result = validateForgeUIExport(
+        { item } as any, [asset] as any, images,
+        generate(images,
+          kind === 'button' ? ['FG_On_Button_Clicked'] : [],
+          kind === 'light' ? ['void FG_Set_LightComponent(bool enabled);'] : [],
+        ),
+      )
+      expect(result.diagnostics).toContainEqual(expect.objectContaining({
+        category: 'Canvas',
+        message: expect.stringContaining(`invalid ${failedDimension}: ${value}`),
+      }))
+    },
+  )
+
+  it('rejects duplicate image declarations', () => {
+    const result = validateForgeUIExport({} as any, [], [], {
+      code: 'LV_IMAGE_DECLARE(fg_same);\nLV_IMAGE_DECLARE(fg_same);',
+      assetSources: [], userEventHooks: [], publicApiDeclarations: [],
+    })
+    expect(result.diagnostics).toContainEqual(expect.objectContaining({
+      message: 'Duplicate image declaration', subject: 'fg_same',
+    }))
+  })
+})
