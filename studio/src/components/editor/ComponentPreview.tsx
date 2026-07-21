@@ -51,8 +51,6 @@ const ComponentPreview: React.FC<{
   }
 
   const type = (component && component.type) || null
-  console.log('COMPONENT TYPE:', type)
-
   switch (type) {
     // Simple components
     case 'Kbd':

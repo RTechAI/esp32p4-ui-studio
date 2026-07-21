@@ -670,12 +670,6 @@ case 'InteractiveLight': {
 }
 
 case 'Icon': {
-  console.log('LVGL ICON EXPORT DEBUG', {
-    id: child.id,
-    icon: child.props.icon,
-    iconName: child.props.iconName,
-    props: child.props,
-  })
 
   const src =
     child.props.src ||
@@ -704,11 +698,6 @@ case 'Icon': {
     const imageScale = Number(
       child.props.imageScale || 256,
     )
-console.log('EXPORT ICON', {
-  assetName: uploadedAsset?.name,
-  lvgl: uploadedAsset?.lvgl,
-  cFile: uploadedAsset?.cFile,
-})
 
     lines.push(`LV_IMAGE_DECLARE(${symbol});`)
     lines.push(
@@ -874,13 +863,6 @@ console.log('EXPORT ICON', {
 case 'Image': {
   const src = child.props.src || ''
   const uploadedAssets = forgeUIGetUploadedAssets()
-
-  console.log('LVGL EXPORT IMAGE DEBUG', {
-  src,
-  alt: child.props.alt,
-  assetName: child.props.assetName,
-  uploadedAssets,
-})
 
   const presetAsset = FORGEUI_IMAGE_ASSETS.find(
     (a: any) => a.src === src

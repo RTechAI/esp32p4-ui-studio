@@ -131,9 +131,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ApiResponse>
 ) {
-  console.log('HANDLER ENTERED:', req.method)
-  console.log('BODY:', req.body)
-
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
 
@@ -163,18 +160,11 @@ export default async function handler(
   }
 
   try {
-  console.log('=== ForgeUI AI Request ===')
-  console.log('Prompt:', prompt)
-  console.log('Creating OpenAI client...')
-
   const openai = new OpenAI({
   apiKey,
   timeout: 90000,
   maxRetries: 0,
 })
-
-  console.log('Client created')
-  console.log('Calling Responses API...')
 
   const controller = new AbortController()
 
@@ -200,9 +190,6 @@ try {
 }
 
 
-
-  console.log('Responses API returned')
-  console.log(response)
 
     const outputText = stripCodeFence(response.output_text || '')
 

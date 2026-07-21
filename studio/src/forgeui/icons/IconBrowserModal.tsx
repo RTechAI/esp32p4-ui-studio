@@ -129,11 +129,6 @@ const IconBrowserModal = ({
   const handleUseSelectedIcon = async (
   iconName: string,
 ) => {
-  console.log(
-    'Use As Icon Widget clicked:',
-    iconName,
-  )
-
   const file = await iconNameToPngFile(iconName)
 
   if (!file) {
@@ -277,11 +272,6 @@ const IconBrowserModal = ({
 
         continue
       }
-
-      console.log(
-        'LVGL icon conversion OK:',
-        data,
-      )
 
       forgeUIUpdateUploadedAsset(asset.id, {
         exportStatus: 'lvgl_ready',

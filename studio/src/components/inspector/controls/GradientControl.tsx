@@ -64,8 +64,7 @@ const GradientControl = (props: GradientControlPropsType) => {
         colorArray[0] = colorArray[0].split(' ')[1]
         setDirectionValue(actualDirection)
         setGradientColor(colorArray)
-      } catch (e) {
-        console.log(e)
+      } catch {
       }
     }
   }, [gradient])

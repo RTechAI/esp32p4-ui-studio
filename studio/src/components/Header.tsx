@@ -190,18 +190,7 @@ const selectedHeroAsset =
         items,
       )
 
-    console.log(
-      'Resolved AI layout:',
-      resolvedItems,
-    )
-
     resolvedItems.forEach(item => {
-      console.log(
-        'Adding component:',
-        item.type,
-        item.props,
-      )
-
       dispatch.components.addComponent({
         parentName: 'root',
         type: item.type as any,

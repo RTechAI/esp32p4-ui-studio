@@ -78,16 +78,6 @@ const ForgeUIInteractiveAssetPanel = () => {
   const selectedComponent =
     useSelector(getSelectedComponent)
 
-  console.log(
-    'INTERACTIVE SELECTED COMPONENT:',
-    selectedComponent,
-  )
-
-  console.log(
-  'INTERACTIVE SELECTED TYPE:',
-  selectedComponent?.type,
-)
-
 const { setValue } = useForm()
 
 const dispatch = useDispatch()
@@ -161,11 +151,6 @@ const [
 
   const refreshUploadedAssets = () => {
   const assets = forgeUIGetUploadedAssets()
-
-  console.log(
-    'INTERACTIVE UPLOADED ASSETS:',
-    assets,
-  )
 
   setUploadedAssets([...assets])
 }
