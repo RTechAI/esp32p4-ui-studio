@@ -2,7 +2,7 @@
 
 ## Current proven save point
 
-**FORGEUI_GENERATED_EXPORT_API_V1__BUTTON_INPUT_HOOKS__LIGHT_OUTPUT_SETTER__PHYSICAL_ESP32P4_PROVEN**
+**FORGEUI_PROJECT_HEALTH_PHASE2__GENERATED_EXPORT_API__VALIDATED_EXPORT_PIPELINE__PHYSICAL_ESP32P4_PROVEN__2026-07-22**
 
 ## Purpose and scope
 
@@ -42,39 +42,73 @@ ForgeUI Canvas
 generateForgeUILvglCode()
         │
         ▼
-Generated LVGL Source and API Metadata
+Generated LVGL Source
+Generated API Metadata
+Generated Asset Source List
+        │
+        ▼
+Client Export Preflight
+        │
+        ▼
+POST /export
+        │
+        ▼
+Server Export Validation
+        │
+        ▼
+Validated Asset Sources
         │
         ▼
 Export Server
         │
-        ├── Live ForgeUI-One Firmware
-        │
-        └── Standalone ESP-IDF Project
+        ▼
+Generated Firmware Files
         │
         ▼
-Generated UI Runtime
+ESP-IDF Build
         │
-        ├── 90_Studio_Export.c
-        │
-        └── 90_Studio_Export.h
-        │
-        ├──────── Input Path ────────┐
-        │                            ▼
-        │                     95_UserEvents.c/.h
-        │                            │
-        │                            ▼
-        │                 Developer Application Logic
-        │
-        └──────── Output Path ───────┐
-                                     ▼
-                         Generated Public UI APIs
-                                     │
-                                     ▼
-                              LVGL Object Update
-                                     │
-                                     ▼
-                                  ESP32-P4
+        ▼
+ESP32-P4
 ```
+
+## Export Validation Ownership
+
+Export validation is a permanent two-boundary responsibility. It validates the exporter result before materialization without moving runtime generation out of the exporter.
+
+### Client Validation
+
+#### `studio/src/forgeui/ForgeUIExportValidation.ts`
+
+Owns:
+
+- Canvas validation
+- Interactive Asset validation
+- dimension validation
+- duplicate component-ID detection
+- uploaded-asset and LVGL-readiness validation
+- generated Button-hook and Light-setter API validation
+- generated asset-source validation
+- structured, ownership-grouped diagnostics
+
+It validates. It does not generate LVGL, firmware, hooks, setters, CMake, or runtime behavior.
+
+Client validation runs after candidate source and metadata generation and before the request is sent to the export server. A failure cancels export before server submission.
+
+### Server Validation
+
+#### `studio/export-server.js`
+
+In addition to materialization, the server owns:
+
+- payload validation
+- generated C-source validation
+- physical generated-source existence checks
+- relative path validation
+- expected-symbol and generated-code reference checks
+- construction of the validated asset-source list
+- validation before filesystem mutation
+
+The server does not trust client validation. No generated firmware files are written before server validation succeeds.
 
 ## Permanent input and output API model
 
@@ -140,6 +174,8 @@ generateForgeUILvglCode()
 
 This is the only LVGL UI exporter.
 
+Runtime generation assumes that its candidate result will pass the dedicated client and server validation boundaries before materialization. Validation policy is not mixed into runtime generation.
+
 ### Owns
 
 - LVGL object generation
@@ -186,16 +222,30 @@ Developer-facing hook and setter names are derived separately and made unique wi
 `generateForgeUILvglCode()` supplies the frontend export flow with:
 
 - generated LVGL `code`;
-- `assetSources` required by the generated UI;
+- generated asset-source metadata required by the generated UI;
 - `userEventHooks` for Button input callbacks;
 - `publicApiDeclarations` for Light output setters.
+
+These four values form the generated export contract: generated code, validated asset-source metadata, Button hook metadata, and Light public API metadata. The exporter collects the candidate metadata; the validation layers approve it before firmware materialization.
 
 The UI export actions in `studio/src/components/Header.tsx` send these values to both export endpoints:
 
 - `POST /export`
 - `POST /export-idf-project`
 
-The frontend owns code generation and metadata collection. It does not write firmware files directly.
+The frontend owns code generation, metadata collection, client preflight, and transport. It does not write firmware files directly. Validation occurs before materialization.
+
+## Generated Asset Source Contract
+
+Every generated asset source included in an export must have:
+
+- a valid relative path under the firmware source boundary;
+- an existing generated C file;
+- the expected LVGL symbol in that source;
+- one unique source and symbol registration;
+- successful validation before CMake generation.
+
+Built-in Theme assets participate in this same contract. They are permanent generated firmware assets, not validation-exempt resources.
 
 ## Interactive Button input API
 
@@ -206,7 +256,7 @@ The `InteractiveButton` exporter branch owns:
 1. reading `interactiveAssetId`;
 2. resolving the Interactive Button asset by kind;
 3. resolving Normal and Pressed uploaded assets;
-4. validating LVGL readiness;
+4. using the preflight-validated Normal and Pressed image metadata;
 5. adding required asset C files;
 6. declaring LVGL images;
 7. creating the parent LVGL button;
@@ -214,6 +264,8 @@ The `InteractiveButton` exporter branch owns:
 9. creating per-button runtime data;
 10. attaching the shared Button event callback;
 11. collecting the unique generated click hook.
+
+Button runtime generation assumes validated image assets. It does not perform late export validation while emitting runtime code.
 
 ### Proven runtime data
 
@@ -324,13 +376,15 @@ Interactive Light export owns:
 1. reading `interactiveAssetId`;
 2. resolving the Interactive Light asset by kind;
 3. resolving OFF and ON uploaded assets;
-4. validating LVGL readiness;
+4. using the preflight-validated OFF and ON image metadata;
 5. adding required asset C files;
 6. creating a non-clickable LVGL image;
 7. selecting its initial source from saved `initialState`;
 8. creating a unique public setter name;
 9. emitting the setter implementation;
 10. returning its declaration as public API metadata.
+
+Light runtime generation likewise assumes validated image assets and API metadata. It does not perform late export validation while emitting runtime code.
 
 ### Runtime object behavior
 
@@ -438,6 +492,25 @@ It does not contain user implementations.
 
 Never place developer application logic in them.
 
+## Export Safety Boundary
+
+Failed client or server validation preserves the previous generated state:
+
+- `90_Studio_Export.c`
+- `90_Studio_Export.h`
+- `95_UserEvents.c`
+- `95_UserEvents.h`
+- generated asset sources
+- generated `CMakeLists.txt`
+
+These files remain unchanged until a successful export replaces them. Preservation on failed validation is part of the generated export API contract, not merely an implementation convenience.
+
+## Default Theme Validation
+
+Built-in generated Theme assets participate in validation exactly like uploaded assets. A missing built-in generated C file correctly stops export before firmware mutation.
+
+The physical Build & Flash regression exposed missing Neural Core and Carbon Fiber sources. It was resolved by restoring the legitimate generated firmware assets and verifying their expected LVGL symbols. Validation was strengthened and retained; it was not bypassed or weakened.
+
 ## Generated user hook layer
 
 ### `95_UserEvents.h`
@@ -476,6 +549,22 @@ void FG_On_Button_Clicked(void)
 
 Interactive Light does not add anything to these files.
 
+## Header Ownership
+
+### `studio/src/components/Header.tsx`
+
+Coordinates:
+
+- Build & Flash
+- Clean Build & Flash
+- standalone ESP-IDF project export
+- client preflight before export submission
+- transport of validated exporter metadata
+- transport of Button hook metadata
+- transport of Light setter metadata
+
+Header coordinates export and starts flashing only after export succeeds. It does not validate generated firmware files itself, invent hooks or setters, materialize files, or define runtime behavior.
+
 ## Export server
 
 ### Primary file
@@ -486,7 +575,9 @@ studio/export-server.js
 
 ### Owns
 
-- receiving generated code and API metadata
+- receiving and validating generated code and API metadata
+- validating payloads, paths, generated C sources, physical source existence, symbols, and source references
+- producing the validated asset-source list
 - normalizing supported public declarations
 - generating `90_Studio_Export.h`
 - generating `95_UserEvents.c/.h`
@@ -506,7 +597,7 @@ studio/export-server.js
 - application logic
 - customer hardware behavior
 
-The export server materializes the exporter result; it does not invent widget behavior.
+The server owns validation, materialization, generated headers, generated hooks, generated CMake, generated assets, and project copying. The export server materializes validated exporter results; it does not invent runtime or widget behavior.
 
 ## Live firmware export
 
@@ -602,7 +693,7 @@ main.c
 required generated asset sources
 ```
 
-Both the generated UI runtime and generated/developer hook layer are compiled into the ESP-IDF application.
+Only server-validated asset sources are admitted to the generated CMake list. Both the generated UI runtime and generated/developer hook layer are compiled into the ESP-IDF application.
 
 Do not create a separate CMake pipeline for Interactive Assets or public APIs.
 
@@ -647,6 +738,10 @@ ForgeUI owns `FG_Set_Status_Light(...)` and the callback signature. The develope
 
 ## Proven physical ESP32-P4 behavior
 
+The validated pipeline successfully exports Hero artwork, the Industrial Carbon Theme, Interactive Button, and Interactive Light together. Their layout and artwork align across the Canvas, Browser Preview, and physical ESP32-P4 output.
+
+The generated firmware retains the complete exported UI and no longer falls back to an empty `fg_studio_export_create()`. Button runtime, Light runtime, generated hooks, public setters, asset sources, generated headers, and generated CMake participate in the same successful export.
+
 ### Interactive Button input path
 
 Physically confirmed:
@@ -684,6 +779,23 @@ Physically confirmed:
 
 The Button input-hook path and Light output-setter path are implemented and physically proven.
 
+## Automated Validation
+
+### Full validation
+
+- 17 test suites passed
+- 111 tests passed
+- 1 test skipped as the documented legacy icon-export baseline
+- zero TypeScript diagnostics
+- zero ESLint warnings or errors
+
+### Targeted default-theme regression
+
+- 3 test suites passed
+- 26 tests passed
+
+The targeted run validates only the narrow default-theme export regression and its related exporter/server paths. It is separate from, and must not be added to, the full validation totals.
+
 ## Debug map
 
 | Problem | Start here | Then inspect |
@@ -697,6 +809,12 @@ The Button input-hook path and Light output-setter path are implemented and phys
 | Light declaration is missing from header | `publicApiDeclarations` export result | Header payload and `generateStudioExportHeader()` |
 | Light starts in wrong state | Light export branch | saved `initialState` and initial image symbol |
 | Light is clickable or generates a hook | Light export branch | remove Button-style callback/hook behavior |
+| Export rejected before files are written | `ForgeUIExportValidation.ts` | `export-server.js` |
+| Missing generated C source | `export-server.js` | Uploaded Asset Registry |
+| Invalid generated asset source | `ForgeUIExportValidation.ts` | exporter asset collection |
+| Duplicate generated API | `ForgeUIExportValidation.ts` | `ForgeUILvglExport.ts` |
+| Duplicate `LV_IMAGE_DECLARE` | `ForgeUILvglExport.ts` | export validation |
+| Theme asset validation failure | `export-server.js` | built-in Theme assets |
 | API metadata is absent from request | `Header.tsx` | `/export` and `/export-idf-project` payloads |
 | Generated header is wrong | `generateStudioExportHeader()` | `normalizePublicApiDeclarations()` |
 | Hook files are missing | `generateUserEventFiles()` | received `userEventHooks` and export endpoint |
@@ -715,7 +833,7 @@ Owns generated LVGL source, runtime behavior, hook names, setter names, and API 
 
 ### `studio/src/components/Header.tsx`
 
-Owns export actions and transport of generated code plus API metadata. Never invents runtime APIs.
+Coordinates Build & Flash, Clean Build & Flash, standalone export, client preflight, and transport of validated code, asset metadata, Button hooks, and Light setters. Never invents runtime APIs or validates materialized firmware files.
 
 ### `studio/export-server.js`
 
@@ -757,6 +875,12 @@ Preserve these rules:
 10. Live `95_UserEvents.c/.h` files are Studio-generated and replaceable.
 11. Standalone `95_UserEvents.c/.h` files become developer-owned after export.
 12. Customer hardware and business logic never belongs in generated UI files.
+13. Client validation occurs before export submission.
+14. Server validation occurs before filesystem mutation.
+15. Only validated asset sources are written to CMake.
+16. Built-in Theme assets participate in validation.
+17. Generated runtime assumes validated inputs.
+18. Failed validation preserves the previous generated firmware.
 
 ## Extension rule
 

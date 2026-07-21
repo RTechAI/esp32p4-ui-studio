@@ -1,6 +1,6 @@
 # Current Save Point
 
-**FORGEUI_INTERACTIVE_ASSET_FRAMEWORK_V1__BUTTON_AND_LIGHT__UNIFIED_UI_FLOW__PHYSICAL_ESP32P4_PROVEN**
+**FORGEUI_PROJECT_HEALTH_PHASES_1_AND_2__CLEAN_TYPES_LINT_AND_TESTS__SAFE_EXPORT_PREFLIGHT__INTERACTIVE_ASSETS_PHYSICAL_ESP32P4_PROVEN__2026-07-22**
 
 ## Current Proven Status
 
@@ -12,6 +12,49 @@ ForgeUI has a reusable Interactive Asset Framework with two fully implemented as
 Both types are proven through Studio creation, AI state-image generation, asset registration, persistence, Canvas rendering, Studio preview, LVGL export, ESP-IDF build, and physical ESP32-P4 runtime.
 
 The Studio presents both types through one coherent Interactive Assets creation flow. Button and Light share the framework infrastructure while retaining type-specific asset models, designers, state mappings, Canvas behavior, export behavior, and runtime behavior.
+
+Project Health Phases 1 and 2 are complete. The repository now has clean TypeScript and ESLint baselines, a fully passing automated test suite, protected asset references, and client- and server-side export validation before generated firmware files are written. The Interactive Button and Interactive Light physical proof remains the hardware baseline underneath this health work.
+
+## Project Health Phase 1 — Clean Baseline
+
+Phase 1 removed accumulated development noise and established a measurable clean project baseline without changing the proven product architecture.
+
+Completed work:
+
+- Removed obsolete debug logging and workshop artifacts.
+- Consolidated the duplicate icon registry into one ownership path.
+- Corrected optional preview-icon defaults and local component property contracts.
+- Added the missing ForgeUI Canvas default-property types.
+- Cleared the remaining TypeScript diagnostics.
+- Established a clean ESLint baseline with no warnings or errors.
+- Preserved the known legacy icon export expectation as an explicitly skipped test pending separate architectural review.
+
+Phase 1 did not redesign the Interactive Asset Framework, exporter, Canvas model, or firmware runtime. It made the existing system cleanly checkable and left the one deliberately deferred legacy behavior visible rather than hiding it.
+
+## Project Health Phase 2 — Safe Export Boundary
+
+Phase 2 added a fail-closed validation boundary around all three Studio export paths:
+
+- Build & Flash live firmware export
+- Standalone ESP-IDF project export
+- Clean Firmware regeneration
+
+Validation now runs before filesystem writes. A failed preflight reports grouped diagnostics and prevents partial generated-firmware mutation.
+
+The client-side preflight validates:
+
+- Interactive Button and Interactive Light dimensions and state images
+- uploaded-asset existence and LVGL conversion readiness
+- generated C source paths and LVGL symbols
+- Canvas dimensions, duplicate component IDs, missing references, and wrong asset kinds
+- duplicate Button hooks, Light setters, image symbols, and image declarations
+- generated hooks, public setter declarations, and referenced asset-source coverage
+
+The server independently validates the generated payload and does not trust the browser boundary. It rejects empty code, unsafe or duplicate source paths, missing generated C files, invalid or duplicate symbols, symbols absent from their source files, and asset sources not referenced by the generated code.
+
+Deletion is also reference-aware. Uploaded assets used by Buttons, Lights, or the active Theme, and Interactive Assets assigned to Canvas components, are reported and protected before registry, persistence, Canvas, theme, blob-URL, or disk mutation occurs.
+
+The physical Build & Flash check correctly exposed active built-in theme sources that validation found missing from firmware. The exact Neural Core and Carbon Fiber generated C sources were restored, their symbols were verified, and the server regression suite now validates those real firmware assets. Validation remains strict; the missing inputs were fixed instead of bypassing the safety boundary.
 
 ## Interactive Assets UI
 
@@ -297,13 +340,15 @@ Paths under `src/` are relative to `studio/`.
 
 ## Verified Automated Status
 
-- 11 test suites passed.
-- 41 tests passed.
-- 6 focused UI and shared-generator tests passed.
+- 17 test suites passed.
+- 112 tests passed and 1 documented legacy test is skipped.
+- TypeScript completed with zero diagnostics using `tsc --noEmit`.
+- ESLint completed with no warnings or errors.
 - `export-server.js` syntax check passed.
-- No implementation diagnostics occurred in the changed files.
+- Export validation and reference-protection suites passed.
+- The built-in Neural Core and Carbon Fiber firmware sources passed real server-side source and symbol validation.
 
-One pre-existing TypeScript error remained in `InteractiveLightCanvasPreview.test.tsx`. It was not caused by the unified Interactive Assets UI task.
+The former `InteractiveLightCanvasPreview.test.tsx` TypeScript baseline error is resolved. The only non-passing test status is the intentional legacy icon-export skip documented during Phase 1.
 
 ## Architectural Significance and Extension Pattern
 
@@ -328,6 +373,13 @@ These are extension examples only; they are not implemented.
 # Save Point History
 
 Save points are ordered newest to oldest. Detailed subsystem engineering is maintained in the Developer Code Maps.
+
+## FORGEUI_INTERACTIVE_ASSET_FRAMEWORK_V1__BUTTON_AND_LIGHT__UNIFIED_UI_FLOW__PHYSICAL_ESP32P4_PROVEN
+
+- **What changed:** Unified Interactive Button and Interactive Light creation under one framework-level UI flow while preserving separate type-specific models and behavior.
+- **Why it changed:** The second Interactive Asset type needed to prove the architecture was reusable and the Studio needed one coherent creation entry point.
+- **Final architecture:** Shared identity, registry, persistence, AI generation, Canvas assignment, and export infrastructure coordinate discriminated Button and Light implementations.
+- **Proven result:** Both types passed Studio, export, ESP-IDF, and physical ESP32-P4 runtime validation, including Button touch hooks and the non-clickable Light public setter.
 
 ## FORGEUI_V2_4_1__AI_ARTWORK_NATIVE_PIPELINE__MULTI_MODE_IMAGE_PREPROCESSOR__PHYSICAL_ESP32P4_PROVEN__2026-07-17
 

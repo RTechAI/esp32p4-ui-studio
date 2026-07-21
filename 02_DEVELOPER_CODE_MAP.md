@@ -2,7 +2,7 @@
 
 ## Current save point
 
-**FORGEUI_INTERACTIVE_ASSET_FRAMEWORK_V1__BUTTON_AND_LIGHT__UNIFIED_UI_FLOW__PHYSICAL_ESP32P4_PROVEN**
+**FORGEUI_PROJECT_HEALTH_PHASE2__EXPORT_VALIDATION__REFERENCE_PROTECTION__BUTTON_LIGHT_THEME__PHYSICAL_ESP32P4_PROVEN__2026-07-22**
 
 ## Purpose
 
@@ -74,6 +74,80 @@ Interactive Assets panel
       generated firmware
         ↓
       physical ESP32-P4 runtime
+```
+
+## Project Health Architecture
+
+ForgeUI has two permanent project-health layers. They protect the maintainability of the Studio and the integrity of generated firmware without replacing any Interactive Asset ownership boundary documented below.
+
+### Phase 1 — Behaviour-preserving maintenance
+
+Phase 1 established the project baseline:
+
+- TypeScript compiles with zero diagnostics.
+- ESLint completes with zero warnings and zero errors.
+- The Jest baseline is explicit and repeatable.
+- Duplicate implementation and registry paths were consolidated.
+- Local property contracts and Canvas default-property types were corrected.
+- Obsolete debug logging and workshop artifacts were removed.
+
+No runtime behaviour changed. Phase 1 made the existing architecture cleanly type-checkable, lintable, testable, and easier to debug.
+
+### Phase 2 — Permanent export safety
+
+Phase 2 adds validation and reference protection around the established Canvas, Interactive Asset, uploaded-asset, exporter, and firmware-generation paths.
+
+#### Client Export Preflight
+
+The client preflight owns validation of:
+
+- Canvas component identity and dimensions
+- Interactive Asset existence, kind, dimensions, and required state images
+- uploaded-asset existence and LVGL readiness
+- generated Button hooks and Light public APIs
+- duplicate component IDs, APIs, symbols, and declarations
+- relative generated asset-source paths and referenced-source coverage
+
+If client validation fails, export is cancelled before server submission. Diagnostics are grouped by the ownership area that must be repaired.
+
+#### Server Export Validation
+
+`export-server.js` independently owns:
+
+- export payload validation
+- generated C-source validation
+- relative path validation
+- generated source existence validation
+- symbol and source-reference validation
+- production of the validated asset-source list
+- validation before any filesystem write
+
+The server does not trust client validation. No generated firmware or CMake mutation occurs before server validation succeeds.
+
+#### Export Pipeline
+
+```text
+Canvas
+    ↓
+Interactive Asset Resolution
+    ↓
+Client Export Preflight
+    ↓
+POST /export
+    ↓
+Server Export Validation
+    ↓
+Validated Asset Sources
+    ↓
+Generate LVGL
+    ↓
+Generate CMake
+    ↓
+ESP-IDF Build
+    ↓
+Flash
+    ↓
+ESP32-P4
 ```
 
 ## Core data model
@@ -336,6 +410,36 @@ Interactive Assets store uploaded asset IDs, not image blobs or generated C sour
 - uploaded-asset persistence
 
 Do not copy uploaded image data into an Interactive Asset record.
+
+### Reference protection
+
+#### `src/forgeui/ForgeUIReferenceProtection.ts`
+
+Owns reference discovery before deletion:
+
+- uploaded asset references
+- Interactive Button Normal and Pressed references
+- Interactive Light OFF and ON references
+- active Theme references
+- Canvas `interactiveAssetId` references
+- deletion-cancellation diagnostics
+
+Deletion occurs only when no active references remain. The owning panel or asset manager asks this module for references before mutating the registry, persistence, Canvas, Theme state, browser URL, or generated file. This file discovers references; it does not own the registries it protects.
+
+### Export validation
+
+#### `src/forgeui/ForgeUIExportValidation.ts`
+
+Owns client export validation and diagnostic reporting:
+
+- Canvas validation
+- Interactive Asset validation
+- generated API validation
+- duplicate detection
+- generated asset-source validation
+- grouped export diagnostics
+
+This file owns validation only. It does not generate LVGL, firmware files, CMake, or runtime behavior.
 
 ## Interactive Button map
 
@@ -605,9 +709,12 @@ generateForgeUILvglCode()
 
 This remains the only LVGL UI exporter.
 
+It assumes input has passed `ForgeUIExportValidation.ts`. Validation is not an exporter responsibility and must not be mixed into generation logic. Exporter-side resolution remains defensive, but the permanent validation policy belongs to the client preflight and server boundary.
+
 It owns:
 
 - traversal of the Canvas component tree
+- LVGL UI and runtime generation
 - type-specific `InteractiveButton` generation
 - type-specific `InteractiveLight` generation
 - kind-aware Interactive Asset lookup
@@ -616,6 +723,7 @@ It owns:
 - used asset-source collection
 - Button event hook collection
 - Light public setter generation
+- public API collection
 - generated runtime support
 
 Do not create:
@@ -660,12 +768,20 @@ No Light event hook is added.
 
 #### `src/components/Header.tsx`
 
-Owns Studio export actions and sends the generated export payload to:
+Coordinates:
+
+- Build & Flash
+- Clean Build & Flash
+- standalone ESP-IDF project export
+
+For every path, Header generates the candidate export, runs the client preflight, and submits only validated output. Export must succeed before a flash begins.
+
+It sends generated export payloads to:
 
 - `POST /export`
 - `POST /export-idf-project`
 
-The frontend generates the LVGL code through the single exporter and forwards code, asset sources, and generated Button hook metadata. It does not write firmware files directly.
+The frontend generates LVGL code through the single exporter and forwards code, validated asset sources, generated Button hook metadata, and public API declarations. It does not write firmware files directly.
 
 ### Export server
 
@@ -673,12 +789,17 @@ The frontend generates the LVGL code through the single exporter and forwards co
 
 Owns filesystem-side export work:
 
+- validating the export payload before writes
+- validating generated C sources, paths, existence, expected symbols, and code references
+- returning the validated asset-source list to filesystem-side generation
 - writing generated UI source and header
 - writing the Studio-generated user hook layer
 - copying generated image sources
 - creating CMake source lists
 - live firmware export
 - standalone ESP-IDF project export
+
+No firmware mutation occurs before validation succeeds. The server validation boundary is independent of the client preflight.
 
 The server writes:
 
@@ -691,7 +812,24 @@ The server writes:
 
 Do not describe this file as `server.js`; its current project path is `studio/export-server.js`.
 
+### Default Theme ownership
+
+Built-in theme assets are permanent generated firmware assets. They participate in export validation exactly like uploaded assets and are not exempt from either validation boundary.
+
+The active Theme contributes its required generated C source to the export. Validation confirms that the source exists, follows the permitted relative-path contract, contains the expected LVGL symbol, and is referenced by generated code. Missing built-in assets are repaired at their firmware-asset ownership boundary; validation must not be weakened to allow them through.
+
 ## Generated firmware ownership
+
+Validation is transactional at the export boundary. Failed validation preserves the previous generated firmware state:
+
+- `90_Studio_Export.c`
+- `90_Studio_Export.h`
+- `95_UserEvents.c`
+- `95_UserEvents.h`
+- generated asset sources
+- generated `CMakeLists.txt`
+
+Only a successful export may replace these outputs. Debug validation at the client or server ownership boundary before inspecting filesystem-writing logic.
 
 ### `90_Studio_Export.c` and `90_Studio_Export.h`
 
@@ -798,21 +936,20 @@ Physical Button state behavior and Light initial-state behavior are proven. They
 
 ## Verified automated status
 
-Unified UI verification completed with:
+### Full validation
 
-- 11 test suites passed
-- 41 tests passed
-- 6 focused UI and shared-generator tests passed
-- `export-server.js` syntax check passed
-- no implementation diagnostics in the changed files
+- 17 test suites passed
+- 111 tests passed
+- 1 test skipped as the documented legacy icon-export baseline
+- zero TypeScript diagnostics
+- zero ESLint warnings or errors
 
-One pre-existing TypeScript error remains in:
+### Targeted default-theme regression
 
-```text
-src/components/editor/previews/InteractiveLightCanvasPreview.test.tsx
-```
+- 3 test suites passed
+- 26 tests passed
 
-That diagnostic was not caused by the unified UI change.
+The targeted run covers the narrow default-theme export regression and its related exporter/server validation paths. It is not another full-project total and must not be added to the full validation figures.
 
 ## Debugging map
 
@@ -837,6 +974,12 @@ Start at the ownership boundary matching the symptom.
 | Light export/setter is wrong | `ForgeUILvglExport.ts` Light export map/branch | `initialState`, API naming, uploaded assets |
 | Button hook is missing | `ForgeUILvglExport.ts` | `Header.tsx`, `export-server.js`, `95_UserEvents.*` |
 | Light unexpectedly has a click hook | `ForgeUILvglExport.ts` | ensure Light remains image/setter based |
+| Export rejected before flash | `ForgeUIExportValidation.ts` | `Header.tsx`, `export-server.js` |
+| Missing generated C source | `export-server.js` | Uploaded Asset Registry, Theme ownership |
+| Asset cannot be deleted | `ForgeUIReferenceProtection.ts` | Interactive Asset Registry |
+| Duplicate API failure | `ForgeUIExportValidation.ts` | `ForgeUILvglExport.ts` |
+| Duplicate `LV_IMAGE_DECLARE` | `ForgeUILvglExport.ts` | export validation |
+| Flash never starts | `Header.tsx` | `export-server.js` |
 | Generated files are missing | `export-server.js` | export payload and generated CMake list |
 | Physical state differs from Canvas | exporter branch | resolved uploaded symbols, generated C source, component dimensions |
 
@@ -863,9 +1006,17 @@ Start at the ownership boundary matching the symptom.
 
 ### Export path
 
+- `src/forgeui/ForgeUIExportValidation.ts`
 - `src/forgeui/ForgeUILvglExport.ts`
 - `src/components/Header.tsx`
 - `export-server.js`
+
+### Reference-protection path
+
+- `src/forgeui/ForgeUIReferenceProtection.ts`
+- `src/forgeui/ForgeUIUploadedAssetRegistry.ts`
+- `src/forgeui/interactive/ForgeUIInteractiveAssetRegistry.ts`
+- owning Asset Manager or Interactive Assets panel
 
 ## Architectural invariants
 
@@ -883,6 +1034,11 @@ Preserve these rules:
 10. Generated UI APIs live in `90_Studio_Export.h/.c`.
 11. Live `95_UserEvents.*` files are Studio-generated, not manually created.
 12. Standalone exported `95_UserEvents.*` files become developer-owned after export.
+13. Export validation always occurs before filesystem mutation.
+14. Reference protection prevents deletion of in-use assets.
+15. `ForgeUILvglExport.ts` generates code only from validated inputs.
+16. Built-in Theme assets participate in validation.
+17. Failed validation preserves the previous generated firmware.
 
 ## Framework extension pattern
 
