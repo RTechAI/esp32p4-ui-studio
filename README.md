@@ -608,7 +608,7 @@ Detailed subsystem ownership and debugging information belongs in the code maps,
 
 ## ✅ Current development status
 
-ForgeUI Studio has proven:
+ForgeUI Studio has proven:....
 
 - ✓ Visual Builder and Canvas
 - ✓ AI layout generation
