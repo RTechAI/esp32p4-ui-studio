@@ -10,7 +10,7 @@ type SizeControlPropsType = {
   name?: string
   label?: string | ReactNode
   value: string
-  options?: Size[]
+  options?: string[]
 }
 
 const options = ['xs', 'sm', 'md', 'lg']
@@ -25,8 +25,8 @@ const SizeControl = (props: SizeControlPropsType) => {
         {...forgeuiInputStyle}
         color="#e5e7eb"
         textColor="#e5e7eb"
-        WebkitTextFillColor="#e5e7eb"
         sx={{
+          WebkitTextFillColor: '#e5e7eb',
           option: {
             background: '#0f172a',
             color: '#e5e7eb',

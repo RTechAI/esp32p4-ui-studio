@@ -76,7 +76,7 @@ const validateLayoutItem = (
     throw new Error(`layout[${index}].props must be an object`)
   }
 
-  const normalizedProps = {
+  const normalizedProps: Record<string, unknown> = {
     ...(candidate.props as Record<string, unknown>),
     positionMode: 'absolute',
   }

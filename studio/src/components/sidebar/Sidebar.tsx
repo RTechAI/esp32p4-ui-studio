@@ -12,7 +12,7 @@ import { CloseIcon, SearchIcon } from '@chakra-ui/icons'
 
 import DragItem from './DragItem'
 
-import { menuItems, MenuItem, ComponentType } from '~componentsList'
+import { menuItems, MenuItem } from '~componentsList'
 import { forgeuiCoreWidgets } from '~forgeui/ForgeUIWidgetSet'
 
 const Menu = () => {

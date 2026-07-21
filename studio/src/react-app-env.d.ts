@@ -137,6 +137,8 @@ interface ComponentItemProps {
   label: string
   type: ComponentType
   isMoved?: boolean
+  w?: string | number
+  h?: string | number
   isChild?: boolean
   isMeta?: boolean
   soon?: boolean

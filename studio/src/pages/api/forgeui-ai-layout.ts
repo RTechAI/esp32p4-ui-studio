@@ -236,7 +236,10 @@ try {
     console.error('Status:', error.status)
     console.error('Code:', error.code)
     console.error('Type:', error.type)
-    console.error('Request ID:', error.request_id)
+    console.error(
+      'Request ID:',
+      (error as { request_id?: string }).request_id,
+    )
   }
 
   const message =
