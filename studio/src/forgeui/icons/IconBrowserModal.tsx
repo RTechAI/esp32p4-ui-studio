@@ -15,7 +15,7 @@ import {
   Button,
 } from '@chakra-ui/react'
 
-import iconsList, { ICON_COUNT, ICON_NAMES } from '~forgeui/iconsList'
+import iconsList, { ICON_COUNT, ICON_NAMES } from '~iconsList'
 
 import {
   forgeUICreateUploadedAsset,

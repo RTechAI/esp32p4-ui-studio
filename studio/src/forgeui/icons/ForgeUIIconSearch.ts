@@ -1,4 +1,4 @@
-import { ICON_NAMES } from '~forgeui/iconsList'
+import { ICON_NAMES } from '~iconsList'
 
 export const searchForgeUIIcons = (
   query: string,

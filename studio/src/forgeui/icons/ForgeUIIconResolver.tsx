@@ -5,7 +5,7 @@ import {
 
 import iconsList, {
   ICON_NAMES,
-} from '~forgeui/iconsList'
+} from '~iconsList'
 
 import {
   searchForgeUIIcons,
