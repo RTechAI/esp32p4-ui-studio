@@ -27,5 +27,5 @@ export function forgeuiPositionProps(props: any) {
   boxSizing: 'border-box',
 
   zIndex: 1,
-}
+} as const
 }

@@ -219,7 +219,9 @@ const selectedHeroAsset =
 
 
 
-  const flashLogRef = useRef<HTMLPreElement | null>(null)
+  const flashLogRef = useRef<
+    HTMLDivElement & HTMLPreElement
+  >(null)
 
 useEffect(() => {
   if (!flashLogRef.current) return

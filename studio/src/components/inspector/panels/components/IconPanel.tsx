@@ -11,7 +11,7 @@ import IconBrowserModal from '~forgeui/icons/IconBrowserModal'
 
 const IconPanel = () => {
   const [iconBrowserOpen, setIconBrowserOpen] = useState(false)
-    const { setValueFromEvent } = useForm()
+  const { setValue, setValueFromEvent } = useForm()
 
   useEffect(() => {
     const openIconBrowser = () => {
@@ -52,33 +52,10 @@ const IconPanel = () => {
         isOpen={iconBrowserOpen}
         onClose={() => setIconBrowserOpen(false)}
         onSelect={selection => {
-          setValueFromEvent({
-            target: {
-              name: 'icon',
-              value: selection.iconName,
-            },
-          })
-
-          setValueFromEvent({
-            target: {
-              name: 'src',
-              value: selection.src,
-            },
-          })
-
-          setValueFromEvent({
-            target: {
-              name: 'uploadedAssetId',
-              value: selection.uploadedAssetId,
-            },
-          })
-
-          setValueFromEvent({
-            target: {
-              name: 'assetName',
-              value: selection.assetName,
-            },
-          })
+          setValue('icon', selection.iconName)
+          setValue('src', selection.src)
+          setValue('uploadedAssetId', selection.uploadedAssetId)
+          setValue('assetName', selection.assetName)
         }}
       />
 

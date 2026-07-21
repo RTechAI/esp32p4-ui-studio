@@ -12,6 +12,10 @@ import Editor from '~components/editor/Editor'
 import { InspectorProvider } from '~contexts/inspector-context'
 import Inspector from '~components/inspector/Inspector'
 
+const DndProviderWithChildren = DndProvider as React.ComponentType<
+  React.PropsWithChildren<React.ComponentProps<typeof DndProvider>>
+>
+
 const App = () => {
   useShortcuts()
 
@@ -24,7 +28,7 @@ const App = () => {
       />
       <Metadata />
       <Header />
-      <DndProvider backend={HTML5Backend}>
+      <DndProviderWithChildren backend={HTML5Backend}>
         <Flex h="calc(100vh - 3rem)">
           <Sidebar />
           <EditorErrorBoundary>
@@ -46,7 +50,7 @@ const App = () => {
             </InspectorProvider>
           </Box>
         </Flex>
-      </DndProvider>
+      </DndProviderWithChildren>
     </>
   )
 }

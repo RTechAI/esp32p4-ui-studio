@@ -1,4 +1,4 @@
-export const forgeuiCoreWidgets = [
+export const forgeuiCoreWidgets: ComponentType[] = [
   // LVGL First
   'Led',
   'Bar',

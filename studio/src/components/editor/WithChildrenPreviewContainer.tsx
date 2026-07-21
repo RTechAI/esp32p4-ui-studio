@@ -104,7 +104,7 @@ const WithChildrenPreviewContainer: React.FC<{
         }}
       >
         <Box
-          ref={drop(ref)}
+          ref={drop(ref) as unknown as React.Ref<HTMLDivElement>}
           bg={isOver ? 'teal.50' : undefined}
           position="relative"
           width="100%"
@@ -118,7 +118,7 @@ const WithChildrenPreviewContainer: React.FC<{
 
   return (
     <Box
-      ref={drop(ref)}
+      ref={drop(ref) as unknown as React.Ref<HTMLDivElement>}
       {...forgeuiPositionProps(props)}
       bg={isOver ? 'teal.50' : undefined}
       position="relative"

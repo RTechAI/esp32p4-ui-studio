@@ -60,7 +60,7 @@ const components = createModel({
     },
     updateProps(
       state: ComponentsState,
-      payload: { id: string; name: string; value: string },
+      payload: { id: string; name: string; value: unknown },
     ) {
       return produce(state, (draftState: ComponentsState) => {
         draftState.components[payload.id].props[payload.name] = payload.value

@@ -25,9 +25,9 @@ import * as persistence from '~forgeui/interactive/ForgeUIInteractiveAssetPersis
 jest.mock(
   '~forgeui/interactive/ForgeUIInteractiveAssetPersistence',
   () => ({
-    ...jest.requireActual(
+    ...(jest.requireActual(
       '~forgeui/interactive/ForgeUIInteractiveAssetPersistence',
-    ),
+    ) as object),
     saveInteractiveAssets: jest.fn(),
   }),
 )

@@ -10,6 +10,10 @@ import theme from '@chakra-ui/theme'
 import ComponentPreview from './ComponentPreview'
 import { storeConfig } from '~core/store'
 
+const DndProviderWithChildren = DndProvider as React.ComponentType<
+  React.PropsWithChildren<React.ComponentProps<typeof DndProvider>>
+>
+
 function renderWithRedux(
   components: React.ReactNode,
   {
@@ -22,9 +26,9 @@ function renderWithRedux(
   return {
     ...render(
       <ChakraProvider resetCSS theme={theme}>
-        <DndProvider backend={HTML5Backend}>
+        <DndProviderWithChildren backend={HTML5Backend}>
           <Provider store={store}>{components}</Provider>
-        </DndProvider>
+        </DndProviderWithChildren>
       </ChakraProvider>,
     ),
     // adding `store` to the returned utilities to allow us
