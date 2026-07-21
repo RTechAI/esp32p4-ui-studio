@@ -1,9 +1,0 @@
-[33mcommit f8ebc330754182987b1aeb4650359d15a878fb88[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
-Author: Scotty <papamoascotty@gmail.com>
-Date:   Sun Jul 12 10:45:45 2026 +1200
-
-    security: stop tracking local environment secrets
-
- studio/.env       | 2 [31m--[m
- studio/.gitignore | 1 [32m+[m
- 2 files changed, 1 insertion(+), 2 deletions(-)
