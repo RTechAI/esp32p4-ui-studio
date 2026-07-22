@@ -10,19 +10,31 @@ echo ============================================================
 echo               FORGEUI STUDIO FIRST TIME SETUP
 echo ============================================================
 echo.
-echo This checks ForgeUI dependencies and offers safe repairs.
+echo This tool verifies your ForgeUI Studio installation and
+echo automatically repairs project dependencies where possible.
 echo.
-echo It may install:
+echo It checks:
+echo   - Project structure
+echo   - Node.js and npm
+echo   - Python
+echo   - ESP-IDF
+echo   - OpenAI configuration
+echo   - Required network ports
+echo.
+echo It may automatically install or repair:
 echo   - Studio npm packages
 echo   - Pillow
 echo   - pypng
 echo   - lz4
 echo.
-echo It will NOT automatically install:
-echo   - Node.js
-echo   - Python
-echo   - ESP-IDF
-echo   - USB drivers
+echo The following must already be installed:
+echo   - Git for Windows
+echo   - Node.js 20 LTS
+echo   - Python 3.11 (or ESP-IDF bundled Python)
+echo   - ESP-IDF 5.5.x
+echo.
+echo If any required software is missing,
+echo this tool will explain exactly how to install it.
 echo.
 pause
 
