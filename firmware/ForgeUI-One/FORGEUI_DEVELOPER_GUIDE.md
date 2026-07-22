@@ -45,6 +45,7 @@ main/90_Studio_Export.h
 
 - `FG_On_GreenButton_Clicked()`
 - `FG_On_RedButton_Clicked()`
+- `FG_On_Button_Clicked()`
 
 ---
 
@@ -52,6 +53,7 @@ main/90_Studio_Export.h
 |-----------|-------|------|
 | GreenButton | Click | `FG_On_GreenButton_Clicked()` |
 | RedButton | Click | `FG_On_RedButton_Clicked()` |
+| Button | Click | `FG_On_Button_Clicked()` |
 
 ---
 

@@ -13,6 +13,8 @@ LV_IMAGE_DECLARE(fg_upload_ai_light_off_1784677420538_1784677443359_cd0a7737);
 LV_IMAGE_DECLARE(fg_upload_ai_light_on_1784677420538_1784677467382_7cc4b1f8);
 LV_IMAGE_DECLARE(fg_upload_ai_light_off_1784677508462_1784677530750_9b68369e);
 LV_IMAGE_DECLARE(fg_upload_ai_light_on_1784677508462_1784677552965_a4060f3c);
+LV_IMAGE_DECLARE(fg_upload_ai_light_off_1784678975755_1784679000762_85a1e4d7);
+LV_IMAGE_DECLARE(fg_upload_ai_light_on_1784678975755_1784679024330_3cbb5034);
 
 typedef struct
 {
@@ -53,6 +55,13 @@ static fg_binary_output_t fg_status_light_2_output = {
     .enabled = true,
 };
 
+static fg_binary_output_t fg_status_light_3_output = {
+    .image = NULL,
+    .off_src = &fg_upload_ai_light_off_1784678975755_1784679000762_85a1e4d7,
+    .on_src = &fg_upload_ai_light_on_1784678975755_1784679024330_3cbb5034,
+    .enabled = true,
+};
+
 void FG_Set_Status_Light(bool enabled)
 {
     fg_binary_output_set(&fg_status_light_output, enabled);
@@ -61,6 +70,11 @@ void FG_Set_Status_Light(bool enabled)
 void FG_Set_Status_Light_2(bool enabled)
 {
     fg_binary_output_set(&fg_status_light_2_output, enabled);
+}
+
+void FG_Set_Status_Light_3(bool enabled)
+{
+    fg_binary_output_set(&fg_status_light_3_output, enabled);
 }
 
 typedef struct
@@ -199,7 +213,7 @@ void fg_studio_export_create(lv_obj_t *parent)
     LV_IMAGE_DECLARE(fg_upload_ai_button_normal_1784677321403_1784677340179_f471c4db);
     LV_IMAGE_DECLARE(fg_upload_ai_button_pressed_1784677321403_1784677360790_3c1521ce);
     lv_obj_t * obj2 = lv_button_create(parent);
-    lv_obj_set_pos(obj2, 617, 227);
+    lv_obj_set_pos(obj2, 0, 0);
     lv_obj_set_size(obj2, 400, 300);
     lv_obj_set_style_radius(obj2, 0, LV_PART_MAIN);
     lv_obj_set_style_border_width(obj2, 0, LV_PART_MAIN);
@@ -225,17 +239,51 @@ void fg_studio_export_create(lv_obj_t *parent)
 
     fg_status_light_output.image = lv_image_create(parent);
     fg_binary_output_set(&fg_status_light_output, true);
-    lv_obj_set_pos(fg_status_light_output.image, 291, 22);
+    lv_obj_set_pos(fg_status_light_output.image, 624, 244);
     lv_obj_set_size(fg_status_light_output.image, 400, 300);
     lv_obj_clear_flag(fg_status_light_output.image, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_clear_flag(fg_status_light_output.image, LV_OBJ_FLAG_SCROLLABLE);
 
     fg_status_light_2_output.image = lv_image_create(parent);
     fg_binary_output_set(&fg_status_light_2_output, true);
-    lv_obj_set_pos(fg_status_light_2_output.image, 356, 295);
+    lv_obj_set_pos(fg_status_light_2_output.image, 6, 236);
     lv_obj_set_size(fg_status_light_2_output.image, 400, 300);
     lv_obj_clear_flag(fg_status_light_2_output.image, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_clear_flag(fg_status_light_2_output.image, LV_OBJ_FLAG_SCROLLABLE);
+
+    LV_IMAGE_DECLARE(fg_upload_ai_button_normal_1784678892980_1784678916596_c921e640);
+    LV_IMAGE_DECLARE(fg_upload_ai_button_pressed_1784678892980_1784678941099_8de82729);
+    lv_obj_t * obj5 = lv_button_create(parent);
+    lv_obj_set_pos(obj5, 330, 2);
+    lv_obj_set_size(obj5, 508, 300);
+    lv_obj_set_style_radius(obj5, 0, LV_PART_MAIN);
+    lv_obj_set_style_border_width(obj5, 0, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(obj5, 0, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(obj5, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_set_style_shadow_width(obj5, 0, LV_PART_MAIN);
+    lv_obj_t * obj5_img = lv_image_create(obj5);
+    lv_image_set_src(obj5_img, &fg_upload_ai_button_normal_1784678892980_1784678916596_c921e640);
+    lv_image_set_scale(obj5_img, 256);
+    lv_obj_center(obj5_img);
+    lv_obj_clear_flag(obj5_img, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(obj5, LV_OBJ_FLAG_SCROLLABLE);
+    static fg_interactive_button_data_t obj5_data = {
+        .normal_src = &fg_upload_ai_button_normal_1784678892980_1784678916596_c921e640,
+        .pressed_src = &fg_upload_ai_button_pressed_1784678892980_1784678941099_8de82729,
+        .clicked_cb = FG_On_Button_Clicked,
+        .event_name = "FG_On_Button_Clicked",
+    };
+    lv_obj_add_event_cb(obj5, fg_interactive_button_event_cb, LV_EVENT_PRESSED, &obj5_data);
+    lv_obj_add_event_cb(obj5, fg_interactive_button_event_cb, LV_EVENT_RELEASED, &obj5_data);
+    lv_obj_add_event_cb(obj5, fg_interactive_button_event_cb, LV_EVENT_PRESS_LOST, &obj5_data);
+    lv_obj_add_event_cb(obj5, fg_interactive_button_event_cb, LV_EVENT_CLICKED, &obj5_data);
+
+    fg_status_light_3_output.image = lv_image_create(parent);
+    fg_binary_output_set(&fg_status_light_3_output, true);
+    lv_obj_set_pos(fg_status_light_3_output.image, 342, 291);
+    lv_obj_set_size(fg_status_light_3_output.image, 300, 200);
+    lv_obj_clear_flag(fg_status_light_3_output.image, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(fg_status_light_3_output.image, LV_OBJ_FLAG_SCROLLABLE);
 
 
     fg_clock_tick_cb(NULL);

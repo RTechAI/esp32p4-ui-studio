@@ -27,3 +27,8 @@ void FG_On_RedButton_Clicked(void)
 {
     printf("[ForgeUI User Event] FG_On_RedButton_Clicked\n");
 }
+
+void FG_On_Button_Clicked(void)
+{
+    printf("[ForgeUI User Event] FG_On_Button_Clicked\n");
+}

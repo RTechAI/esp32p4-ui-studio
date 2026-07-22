@@ -13,11 +13,15 @@ idf_component_register(
         "assets/uploads/fg_upload_ai_light_on_1784677420538_1784677467382_7cc4b1f8.c"
         "assets/uploads/fg_upload_ai_light_off_1784677508462_1784677530750_9b68369e.c"
         "assets/uploads/fg_upload_ai_light_on_1784677508462_1784677552965_a4060f3c.c"
+        "assets/uploads/fg_upload_ai_light_off_1784678975755_1784679000762_85a1e4d7.c"
+        "assets/uploads/fg_upload_ai_light_on_1784678975755_1784679024330_3cbb5034.c"
         "assets/uploads/fg_upload_ai_hero_1784677195962_931ea33e.c"
         "assets/uploads/fg_upload_ai_button_normal_1784677240652_1784677263363_f19e1afc.c"
         "assets/uploads/fg_upload_ai_button_pressed_1784677240652_1784677288928_db03b335.c"
         "assets/uploads/fg_upload_ai_button_normal_1784677321403_1784677340179_f471c4db.c"
         "assets/uploads/fg_upload_ai_button_pressed_1784677321403_1784677360790_3c1521ce.c"
+        "assets/uploads/fg_upload_ai_button_normal_1784678892980_1784678916596_c921e640.c"
+        "assets/uploads/fg_upload_ai_button_pressed_1784678892980_1784678941099_8de82729.c"
 
     INCLUDE_DIRS
         "."
