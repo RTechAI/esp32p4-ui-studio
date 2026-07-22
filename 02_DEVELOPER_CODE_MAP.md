@@ -2,7 +2,7 @@
 
 ## Current save point
 
-**FORGEUI_PROJECT_HEALTH_PHASE2__EXPORT_VALIDATION__REFERENCE_PROTECTION__BUTTON_LIGHT_THEME__PHYSICAL_ESP32P4_PROVEN__2026-07-22**
+**FORGEUI_PROJECT_HEALTH_PHASE2__EXPORT_VALIDATION__REFERENCE_PROTECTION__BUTTON_LIGHT_STATUS_INDICATOR__BINARY_OUTPUT_RUNTIME__THEME__PHYSICAL_ESP32P4_PROVEN__2026-07-22**
 
 ## Purpose
 
@@ -19,15 +19,16 @@ Use this document to answer:
 
 ## Proven system status
 
-The framework currently has two implemented asset types:
+The framework currently has three implemented asset types:
 
 ```text
 Shared Interactive Asset Framework
 ├── Interactive Button
-└── Interactive Light
+├── Interactive Light
+└── Interactive Status Indicator
 ```
 
-Both types are proven through:
+The shared framework is proven through:
 
 - Studio creation and editing
 - AI state-image generation
@@ -40,7 +41,9 @@ Both types are proven through:
 - ESP-IDF build
 - physical ESP32-P4 runtime
 
-Interactive Button and Interactive Light are separate discriminated models inside one framework. They share infrastructure, but they do not share type-specific state, save logic, Canvas behavior, exporter branches, or runtime behavior.
+The Physical ESP32-P4 proof section records the physically validated Button and Light behaviors. Status Indicator proves reuse of the same Binary Output Runtime through its model, Studio, Canvas, persistence, validation, preview, multi-instance, coexistence, and exporter contracts.
+
+Interactive Button, Interactive Light and Interactive Status Indicator are separate discriminated models inside one framework. They share infrastructure. Interactive Button belongs to the Interactive Input Runtime; Interactive Light and Interactive Status Indicator belong to the Binary Output Runtime and deliberately share its runtime behavior.
 
 ## System architecture
 
@@ -48,8 +51,9 @@ Interactive Button and Interactive Light are separate discriminated models insid
 Interactive Assets panel
   │
   ├── parent-owned selectedAssetKind
-  │     ├── button → Button designer
-  │     └── light  → Light designer
+  │     ├── button          → Button designer
+  │     ├── light           → Light designer
+  │     └── statusIndicator → Status Indicator designer
   │
   ├── shared AI generator
   │     ↓
@@ -104,7 +108,7 @@ The client preflight owns validation of:
 - Canvas component identity and dimensions
 - Interactive Asset existence, kind, dimensions, and required state images
 - uploaded-asset existence and LVGL readiness
-- generated Button hooks and Light public APIs
+- generated Button hooks and Binary Output public setter APIs
 - duplicate component IDs, APIs, symbols, and declarations
 - relative generated asset-source paths and referenced-source coverage
 
@@ -177,9 +181,12 @@ interactionMode: momentary
 
 kind: light
 interactionMode: state
+
+kind: statusIndicator
+interactionMode: state
 ```
 
-Do not flatten Button and Light into one state model. Add another member to the discriminated union when a new persisted type is implemented.
+Do not flatten Button, Light and Status Indicator into one state model. Add another member to the discriminated union when a new persisted type is implemented.
 
 ## Source map and ownership
 
@@ -204,7 +211,7 @@ Extend this union when adding a persisted Interactive Asset kind.
 
 Owns Interactive Asset ID creation through `createInteractiveAssetId()`.
 
-Do not introduce a type-specific Button or Light ID generator.
+Do not introduce a type-specific Button, Light or Status Indicator ID generator.
 
 #### `src/forgeui/interactive/ForgeUIInteractiveAssetRegistry.ts`
 
@@ -228,13 +235,14 @@ Important APIs include:
 - `getInteractiveAssetByKind()`
 - `getInteractiveButtonAsset()`
 - `getInteractiveLightAsset()`
+- `getInteractiveStatusIndicatorAsset()`
 - `getAllInteractiveAssets()`
 - `updateInteractiveAssetByKind()`
 - `removeInteractiveAsset()`
 - `importInteractiveAssets()`
 - `exportInteractiveAssets()`
 
-Validation occurs at registry boundaries. Kind-aware access prevents a Button asset from resolving as a Light and vice versa.
+Validation occurs at registry boundaries. Kind-aware access prevents a Button, Light or Status Indicator asset from resolving as another kind.
 
 Do not create a parallel registry for another Interactive Asset type.
 
@@ -254,7 +262,7 @@ Key APIs:
 - `reloadInteractiveAssets()`
 - `clearInteractiveAssetStorage()`
 
-Both Button and Light records are stored under the same versioned key. Do not introduce a separate persistence store for each kind.
+Button, Light and Status Indicator records are stored under the same versioned key. Do not introduce a separate persistence store for each kind.
 
 #### `src/forgeui/interactive/ForgeUIInteractiveAssetValidation.ts`
 
@@ -263,6 +271,7 @@ Owns:
 - shared base validation
 - Button validation
 - Light validation
+- Status Indicator validation
 - discriminated dispatch through `validateInteractiveAsset()`
 
 New kinds should add type-specific validation and join the existing dispatch. Validation must remain centralized at framework boundaries.
@@ -274,12 +283,14 @@ Owns pure resolution and component-assignment helpers:
 - uploaded asset lookup by ID
 - Button Normal/Pressed resolution
 - Light OFF/ON resolution
+- Status Indicator OFF/ON resolution
 - LVGL-ready checks
 - kind-specific dimensions
 - component property mapping
 - Light initial-state fallback
+- Status Indicator initial-state fallback
 
-Both Canvas assignment helpers write:
+All Canvas assignment helpers write:
 
 ```text
 interactiveAssetId
@@ -311,6 +322,7 @@ Owns the framework-level Studio experience:
 - initializing the selected draft
 - Button draft and save behavior
 - coordinating the Light designer
+- coordinating the Status Indicator designer
 - editing existing Button assets
 - Button `Use on Selected`
 
@@ -322,6 +334,7 @@ The UI is:
 Asset Type
 ○ Button
 ○ Light
+○ Status Indicator
 ```
 
 `selectedAssetKind` is the single source of truth for:
@@ -331,15 +344,15 @@ Asset Type
 - AI generation mode
 - visible form
 
-Editing an existing Button selects `button`, opens the Button designer, and loads the Button draft. Editing an existing Light selects `light`, opens the Light designer, and loads the Light draft.
+Editing an existing asset selects its `button`, `light`, or `statusIndicator` kind, opens the owning designer, and loads that kind's draft.
 
-Type selection is disabled while AI generation is in progress. This prevents an asynchronous Button result from being mapped into a Light draft or the reverse.
+Type selection is disabled while AI generation is in progress. This prevents an asynchronous result for one kind from being mapped into another kind's draft.
 
 The panel coordinates the designers; it does not merge their models or save logic.
 
 #### `src/forgeui/interactive/InteractiveLightDesigner.tsx`
 
-Owns Light-specific Studio behavior:
+Owns the shared two-state Studio designer behavior used by Light and Status Indicator:
 
 - Light draft state
 - Light edit loading
@@ -349,6 +362,7 @@ Owns Light-specific Studio behavior:
 - Light Save and Delete
 - Light `Use on Selected`
 - Light asset-list cards
+- Status Indicator draft, edit, Save, Delete, assignment, preview controls, and asset-list cards
 
 It receives the parent-selected kind for AI generation. It does not own an independent Asset Type selector.
 
@@ -381,7 +395,7 @@ Owns the common generated-image lifecycle:
 7. update the uploaded asset to `lvgl_ready`.
 8. return the completed uploaded-asset record.
 
-Both Button and Light use this same pipeline.
+Button, Light and Status Indicator use this same pipeline.
 
 #### `src/pages/api/forgeui-ai-hero.ts`
 
@@ -614,6 +628,123 @@ lv_image_set_src(...)
 Physical indicator state
 ```
 
+## Binary Output Runtime
+
+The Binary Output Runtime is the reusable runtime family for two-state, setter-controlled Interactive Assets.
+
+It owns the generated C runtime primitives:
+
+```c
+fg_binary_output_t
+fg_binary_output_set()
+```
+
+Interactive Light introduced this runtime. Interactive Status Indicator proves that it is shared infrastructure rather than a Light-specific implementation.
+
+The exporter generates the Binary Output Runtime implementation once per export. Each Light or Status Indicator instance contributes only:
+
+- its own `fg_binary_output_t` runtime record
+- its OFF and ON artwork references
+- its saved initial state
+- its deterministic `FG_Set_*` public setter
+
+Every generated setter delegates to `fg_binary_output_set()`. Runtime records and setter APIs are unique per Canvas instance; the runtime structure and state-switching function are not duplicated.
+
+Runtime ownership:
+
+```text
+Binary Output Runtime (generated once)
+  ├── Interactive Light instance records and setters
+  └── Interactive Status Indicator instance records and setters
+```
+
+Future Binary Output Interactive Assets must create their own export descriptors and per-instance records while reusing `fg_binary_output_t` and `fg_binary_output_set()`. Do not generate another implementation of binary state switching.
+
+## Interactive Status Indicator map
+
+### Model
+
+#### `src/forgeui/interactive/ForgeUIInteractiveStatusIndicatorAsset.ts`
+
+Owns the Status Indicator type and its defaults.
+
+```text
+kind: statusIndicator
+interactionMode: state
+initialState: off | on
+```
+
+State-image references:
+
+- `offAssetId`
+- `onAssetId`
+
+Semantics come from the OFF and ON artwork. The model contains no Wi-Fi, Bluetooth, MQTT, alarm, warning, running, ready, busy, or connected-specific runtime logic.
+
+### Studio behavior
+
+- AI generation produces matching OFF and ON artwork.
+- The first result maps to `offAssetId`.
+- The second result maps to `onAssetId`.
+- The designer supports name, label, width, height, artwork selection, and `initialState`.
+- Browser Preview switches between OFF and ON with the same binary state contract as Light.
+- `Use on Selected` is enabled only for an `InteractiveStatusIndicator` component.
+- Assignment writes `interactiveAssetId`, width, and height.
+- Registry and uploaded-asset persistence restore the Status Indicator after Studio restart.
+
+### Preview and Canvas rendering
+
+#### `src/forgeui/interactive/InteractiveStatusIndicatorPreview.tsx`
+
+Owns Status Indicator OFF/ON browser presentation and optional designer preview controls.
+
+#### `src/components/editor/previews/InteractiveStatusIndicatorCanvasPreview.tsx`
+
+Owns Canvas integration for `InteractiveStatusIndicator`:
+
+- reads the component's `interactiveAssetId`
+- performs kind-aware Status Indicator lookup
+- resolves OFF and ON uploaded assets
+- resolves width, height, and saved initial state
+- renders `InteractiveStatusIndicatorPreview`
+- does not add click behavior or mutate saved state
+
+### Runtime behavior
+
+The exporter emits each Status Indicator as a non-clickable LVGL image backed by its own `fg_binary_output_t` record:
+
+- initial artwork follows the saved `initialState`
+- `false` selects OFF artwork
+- `true` selects ON artwork
+- no click callback is registered
+- no event hook is generated in `95_UserEvents`
+- a deterministic public setter controls the instance
+- multiple instances remain independent even when they reuse the same artwork
+
+Example generated APIs:
+
+```c
+void FG_Set_WiFi_Status(bool enabled);
+void FG_Set_MQTT_Status(bool enabled);
+void FG_Set_Alarm(bool enabled);
+```
+
+Runtime path:
+
+```text
+Developer application logic
+  ↓
+FG_Set_<IndicatorName>(enabled)
+  ↓
+per-instance fg_binary_output_t record
+  ↓
+shared fg_binary_output_set()
+  ↓
+OFF or ON artwork
+```
+
+Interactive Status Indicator consumes the Binary Output Runtime. It does not own or generate another runtime implementation.
+
 ## Shared AI generation map
 
 ```text
@@ -652,6 +783,11 @@ Light mapping:
 - first result → `offAssetId`
 - second result → `onAssetId`
 
+Status Indicator generation reuses the two-state OFF/ON generation modes and maps:
+
+- first result → `offAssetId`
+- second result → `onAssetId`
+
 The request and response pipeline is shared. Type-specific differences are limited to:
 
 - generation mode
@@ -679,13 +815,14 @@ The relevant integration points include:
 ```text
 InteractiveButton → InteractiveButtonCanvasPreview
 InteractiveLight  → InteractiveLightCanvasPreview
+InteractiveStatusIndicator → InteractiveStatusIndicatorCanvasPreview
 ```
 
 Canvas components keep only the Interactive Asset reference and component dimensions. Visual records remain in the Interactive Asset and uploaded-asset registries.
 
 ### Assignment contract
 
-Both designers use kind-specific resolver helpers to assign:
+All designers use kind-specific resolver helpers to assign:
 
 ```text
 interactiveAssetId
@@ -717,19 +854,23 @@ It owns:
 - LVGL UI and runtime generation
 - type-specific `InteractiveButton` generation
 - type-specific `InteractiveLight` generation
+- type-specific `InteractiveStatusIndicator` generation
 - kind-aware Interactive Asset lookup
 - uploaded image resolution
 - `LV_IMAGE_DECLARE(...)` emission
 - used asset-source collection
 - Button event hook collection
-- Light public setter generation
+- shared Binary Output setter generation
+- per-instance Binary Output runtime records
 - public API collection
 - generated runtime support
+- single shared Binary Output Runtime generation
 
 Do not create:
 
 - a separate Interactive Button exporter
 - a separate Interactive Light exporter
+- a separate Interactive Status Indicator exporter
 - a parallel runtime generator
 
 New Interactive Asset export logic must extend `generateForgeUILvglCode()` and reuse its asset-source and generated-code ownership model.
@@ -763,6 +904,22 @@ Light export preparation and the `InteractiveLight` branch:
 9. switch OFF/ON source inside that setter.
 
 No Light event hook is added.
+
+### Status Indicator export branch
+
+Status Indicator export preparation and the `InteractiveStatusIndicator` branch:
+
+1. read `interactiveAssetId`;
+2. perform kind-aware Status Indicator lookup;
+3. resolve OFF and ON uploaded assets;
+4. confirm both are LVGL-ready;
+5. add their C sources to `usedAssetSources` without duplicating reused artwork;
+6. create a Binary Output export descriptor;
+7. generate a non-clickable LVGL image backed by a per-instance runtime record;
+8. select the initial source from `initialState`;
+9. generate a unique public `FG_Set_*` API that calls `fg_binary_output_set()`.
+
+No Status Indicator event hook is added. Light and Status Indicator descriptors feed the same Binary Output Runtime and setter-generation path.
 
 ### Frontend export transport
 
@@ -851,7 +1008,7 @@ Do not place permanent product logic in these files.
 
 Studio creates these as the generated user hook layer. They are not manually created in the live firmware workflow.
 
-Interactive Button hooks are declared and stubbed here. Interactive Light does not generate an event hook because Light is controlled through its public setter.
+Interactive Button hooks are declared and stubbed here. Interactive Light and Interactive Status Indicator do not generate event hooks because Binary Output assets are controlled through public setters.
 
 ### Live Studio firmware versus standalone export
 
@@ -883,7 +1040,7 @@ Two coordinated stores participate:
 
 | Store | Owns |
 |---|---|
-| Interactive Asset persistence | Button/Light model records and uploaded-asset IDs |
+| Interactive Asset persistence | Button, Light and Status Indicator model records and uploaded-asset IDs |
 | Uploaded Asset Registry persistence | image metadata, LVGL symbols, generated source paths, browser source restoration |
 
 At Studio startup:
@@ -964,14 +1121,20 @@ Start at the ownership boundary matching the symptom.
 | Button Normal/Pressed preview is wrong | `InteractiveButtonPreview.tsx` | `InteractiveButtonCanvasPreview.tsx`, resolver |
 | Light OFF/ON preview is wrong | `InteractiveLightPreview.tsx` | `InteractiveLightCanvasPreview.tsx`, resolver |
 | Light preview changes saved/exported state | `InteractiveLightCanvasPreview.tsx` | local preview state and `initialState` resolution |
+| Status Indicator OFF/ON Browser Preview is wrong | `InteractiveStatusIndicatorPreview.tsx` | Status Indicator model and resolver |
+| Status Indicator Canvas Preview is wrong | `InteractiveStatusIndicatorCanvasPreview.tsx` | kind-aware lookup, uploaded assets, `initialState` |
 | AI uses the wrong state modes | `InteractiveAssetAIGenerator.tsx` | parent `selectedAssetKind` |
 | AI request/image conversion fails | `ForgeUIAIImagePipeline.ts` | `/api/forgeui-ai-hero`, `export-server.js` conversion route |
 | Generated image is missing after restart | `ForgeUIUploadedAssetRegistry.ts` | uploaded localStorage record and generated file path |
 | Interactive Asset is missing after restart | `ForgeUIInteractiveAssetPersistence.ts` | registry import and validation |
 | `Use on Selected` does nothing | owning designer/panel | selected component type, resolver component props, Redux update |
-| Canvas resolves the wrong kind | kind-specific Canvas preview | `getInteractiveButtonAsset()` / `getInteractiveLightAsset()` |
+| Canvas resolves the wrong kind | kind-specific Canvas preview | `getInteractiveButtonAsset()` / `getInteractiveLightAsset()` / `getInteractiveStatusIndicatorAsset()` |
 | Button export is wrong | `ForgeUILvglExport.ts` Button branch | uploaded LVGL readiness and asset-source collection |
 | Light export/setter is wrong | `ForgeUILvglExport.ts` Light export map/branch | `initialState`, API naming, uploaded assets |
+| Status Indicator export/setter is wrong | `ForgeUILvglExport.ts` Binary Output export map/branch | Status Indicator lookup, `initialState`, API naming, uploaded assets |
+| Binary Output Runtime is duplicated or missing | `ForgeUILvglExport.ts` | shared `fg_binary_output_t` / `fg_binary_output_set()` emission guard |
+| Generated Setter API is wrong | `ForgeUILvglExport.ts` | deterministic output API allocation and export validation |
+| Shared Binary Output Runtime switches the wrong artwork | generated `fg_binary_output_set()` inputs | per-instance runtime record and OFF/ON symbols |
 | Button hook is missing | `ForgeUILvglExport.ts` | `Header.tsx`, `export-server.js`, `95_UserEvents.*` |
 | Light unexpectedly has a click hook | `ForgeUILvglExport.ts` | ensure Light remains image/setter based |
 | Export rejected before flash | `ForgeUIExportValidation.ts` | `Header.tsx`, `export-server.js` |
@@ -997,6 +1160,17 @@ Start at the ownership boundary matching the symptom.
 
 - `src/forgeui/interactive/InteractiveLightPreview.tsx`
 - `src/components/editor/previews/InteractiveLightCanvasPreview.tsx`
+
+### Status Indicator rendering paths
+
+- `src/forgeui/interactive/InteractiveStatusIndicatorPreview.tsx`
+- `src/components/editor/previews/InteractiveStatusIndicatorCanvasPreview.tsx`
+
+### Binary Output Runtime paths
+
+- `src/forgeui/ForgeUILvglExport.ts`
+- generated `90_Studio_Export.c` runtime records and setters
+- generated `90_Studio_Export.h` public setter declarations
 
 ### AI generation paths
 
@@ -1029,8 +1203,8 @@ Preserve these rules:
 5. `selectedAssetKind` is parent-owned; the AI generator has no independent type selector.
 6. Canvas assignment uses `interactiveAssetId`, width, and height through normal component updates.
 7. Canvas resolution is kind-aware.
-8. Button and Light keep separate data models and runtime behavior.
-9. Button clicks use generated hooks; Light runtime state uses a generated public setter.
+8. Button, Light and Status Indicator keep separate discriminated data models.
+9. Button clicks use generated hooks; Light and Status Indicator runtime state uses generated public setters.
 10. Generated UI APIs live in `90_Studio_Export.h/.c`.
 11. Live `95_UserEvents.*` files are Studio-generated, not manually created.
 12. Standalone exported `95_UserEvents.*` files become developer-owned after export.
@@ -1039,8 +1213,22 @@ Preserve these rules:
 15. `ForgeUILvglExport.ts` generates code only from validated inputs.
 16. Built-in Theme assets participate in validation.
 17. Failed validation preserves the previous generated firmware.
+18. Binary Output Runtime is generated once per export and shared by every Binary Output Interactive Asset.
 
 ## Framework extension pattern
+
+Extend the framework by runtime family first, then by asset-specific model and artwork semantics.
+
+Current runtime families:
+
+```text
+Interactive Input Runtime
+  └── Interactive Button
+
+Binary Output Runtime
+  ├── Interactive Light
+  └── Interactive Status Indicator
+```
 
 A future Interactive Asset type should reuse:
 
@@ -1053,7 +1241,7 @@ A future Interactive Asset type should reuse:
 - Uploaded Asset Registry
 - Canvas assignment through `interactiveAssetId`
 - the single LVGL exporter
-- generated-file and runtime ownership model
+- generated-file ownership and the appropriate existing runtime family
 
 It should add only the type-specific pieces it needs:
 
@@ -1065,19 +1253,27 @@ It should add only the type-specific pieces it needs:
 - preview behavior
 - Canvas component/preview behavior
 - branch inside `generateForgeUILvglCode()`
-- generated runtime API or hook behavior appropriate to the type
+- an export descriptor, runtime record, generated API, or hook appropriate to its runtime family
 - tests covering registry, persistence, Canvas, export, and runtime contract
 
-Possible future examples:
+Future Binary Output assets should reuse `fg_binary_output_t`, `fg_binary_output_set()`, shared runtime emission, and shared setter generation rather than generating a new runtime implementation.
 
-- Toggle Switch
+Potential Binary Output assets:
+
 - Alarm Indicator
 - Battery Indicator
+- Bluetooth Indicator
 - Wi-Fi Indicator
 - Motor State
-- Gauge
-- Seven Segment Display
+- Direction Indicator
+- Multi-state Lamp
+
+Potential future runtime families:
+
+- Gauge Runtime
+- Numeric Display Runtime
+- Progress Runtime
 
 These are examples only and are not implemented.
 
-Do not create a new registry, persistence system, AI pipeline, uploaded-asset store, exporter, or runtime generator for a future type.
+Do not create a new registry, persistence system, AI pipeline, uploaded-asset store, exporter, or duplicate runtime generator for a future type. Create a new runtime family only when the state and API contract cannot be represented by an existing family.

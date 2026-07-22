@@ -14,6 +14,7 @@ import {
 export type InteractiveAssetEditorKind =
   | 'button'
   | 'light'
+  | 'statusIndicator'
 
 type InteractiveAssetAIGeneratorProps = {
   selectedAssetKind: InteractiveAssetEditorKind
@@ -46,11 +47,14 @@ const InteractiveAssetAIGenerator = ({
     try {
       const timestamp = Date.now()
       const isButton = selectedAssetKind === 'button'
+      const outputPrefix = selectedAssetKind === 'statusIndicator'
+        ? 'ai_status_indicator'
+        : 'ai_light'
       const first = await generateAIImageAsset({
         prompt: trimmedPrompt,
         filePrefix: isButton
           ? `ai_button_normal_${timestamp}`
-          : `ai_light_off_${timestamp}`,
+          : `${outputPrefix}_off_${timestamp}`,
         generationMode: isButton ? 'button-normal' : 'light-off',
         assetMode: 'interactive_button',
         width,
@@ -60,7 +64,7 @@ const InteractiveAssetAIGenerator = ({
         prompt: trimmedPrompt,
         filePrefix: isButton
           ? `ai_button_pressed_${timestamp}`
-          : `ai_light_on_${timestamp}`,
+          : `${outputPrefix}_on_${timestamp}`,
         generationMode: isButton ? 'button-pressed' : 'light-on',
         assetMode: 'interactive_button',
         width,

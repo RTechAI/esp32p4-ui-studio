@@ -2,6 +2,7 @@ import {
   clearInteractiveAssetRegistry,
   getInteractiveButtonAsset,
   getInteractiveLightAsset,
+  getInteractiveStatusIndicatorAsset,
   registerInteractiveAsset,
 } from './ForgeUIInteractiveAssetRegistry'
 import {
@@ -10,6 +11,7 @@ import {
 import {
   createDefaultInteractiveLightAsset,
 } from './ForgeUIInteractiveLightAsset'
+import { createDefaultInteractiveStatusIndicatorAsset } from './ForgeUIInteractiveStatusIndicatorAsset'
 import {
   FORGEUI_INTERACTIVE_ASSETS_STORAGE_KEY,
   reloadInteractiveAssets,
@@ -62,5 +64,19 @@ describe('Interactive Asset persistence', () => {
 
     expect(getInteractiveButtonAsset(button.id)).toEqual(button)
     expect(getInteractiveLightAsset(light.id)).toEqual(light)
+  })
+
+  it('restores Status Indicators through the existing v1 key', () => {
+    const indicator = {
+      ...createDefaultInteractiveStatusIndicatorAsset('ready'),
+      offAssetId: 'ready-off',
+      onAssetId: 'ready-on',
+      initialState: 'on' as const,
+    }
+    registerInteractiveAsset(indicator)
+    saveInteractiveAssets()
+    clearInteractiveAssetRegistry()
+    reloadInteractiveAssets()
+    expect(getInteractiveStatusIndicatorAsset(indicator.id)).toEqual(indicator)
   })
 })

@@ -30,11 +30,14 @@ import type {
 } from '~forgeui/ForgeUIUploadedAssetRegistry'
 import {
   createDefaultInteractiveLightAsset,
+  createDefaultInteractiveStatusIndicatorAsset,
   createInteractiveAssetId,
   getInteractiveLightComponentProps,
+  getInteractiveStatusIndicatorComponentProps,
   registerInteractiveAsset,
   removeInteractiveAsset,
   resolveInteractiveLightVisuals,
+  resolveInteractiveStatusIndicatorVisuals,
   saveInteractiveAssets,
   updateInteractiveAssetByKind,
 } from '~forgeui/interactive'
@@ -42,13 +45,16 @@ import type {
   ForgeUIInteractiveLightAsset,
   ForgeUIInteractiveLightState,
 } from './ForgeUIInteractiveLightAsset'
+import type { ForgeUIInteractiveStatusIndicatorAsset } from './ForgeUIInteractiveStatusIndicatorAsset'
 import InteractiveLightPreview from './InteractiveLightPreview'
+import InteractiveStatusIndicatorPreview from './InteractiveStatusIndicatorPreview'
 import InteractiveAssetAIGenerator, {
   InteractiveAssetEditorKind,
 } from './InteractiveAssetAIGenerator'
 
 type InteractiveLightDesignerProps = {
-  assets: ForgeUIInteractiveLightAsset[]
+  assets: Array<ForgeUIInteractiveLightAsset | ForgeUIInteractiveStatusIndicatorAsset>
+  assetKind?: 'light' | 'statusIndicator'
   uploadedAssets: ForgeUIUploadedAsset[]
   selectedAssetKind: InteractiveAssetEditorKind
   onAssetsChanged: () => void
@@ -62,6 +68,7 @@ type InteractiveLightDesignerProps = {
 
 const InteractiveLightDesigner = ({
   assets,
+  assetKind = 'light',
   uploadedAssets,
   selectedAssetKind,
   onAssetsChanged,
@@ -74,14 +81,20 @@ const InteractiveLightDesigner = ({
 }: InteractiveLightDesignerProps) => {
   const components = useSelector(getComponents)
   const selectedComponent = useSelector(getSelectedComponent)
-  const selectedIsInteractiveLight =
-    selectedComponent?.type === 'InteractiveLight'
+  const isStatusIndicator = assetKind === 'statusIndicator'
+  const selectedIsInteractiveLight = selectedComponent?.type === (
+    isStatusIndicator ? 'InteractiveStatusIndicator' : 'InteractiveLight'
+  )
+  const displayName = isStatusIndicator ? 'Status Indicator' : 'Light'
+  const BinaryPreview = isStatusIndicator
+    ? InteractiveStatusIndicatorPreview
+    : InteractiveLightPreview
   const { setValue } = useForm()
   const dispatch = useDispatch()
 
   const [editingAssetId, setEditingAssetId] = useState<string | null>(null)
-  const [name, setName] = useState('New Interactive Light')
-  const [label, setLabel] = useState('Status Light')
+  const [name, setName] = useState(`New Interactive ${displayName}`)
+  const [label, setLabel] = useState(`Status ${displayName}`)
   const [width, setWidth] = useState(32)
   const [height, setHeight] = useState(32)
   const [offAssetId, setOffAssetId] = useState<string | undefined>()
@@ -105,8 +118,8 @@ const InteractiveLightDesigner = ({
 
   const reset = () => {
     setEditingAssetId(null)
-    setName('New Interactive Light')
-    setLabel('Status Light')
+    setName(`New Interactive ${displayName}`)
+    setLabel(`Status ${displayName}`)
     setWidth(32)
     setHeight(32)
     setOffAssetId(undefined)
@@ -125,7 +138,7 @@ const InteractiveLightDesigner = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newRequestVersion])
 
-  const edit = (asset: ForgeUIInteractiveLightAsset) => {
+  const edit = (asset: ForgeUIInteractiveLightAsset | ForgeUIInteractiveStatusIndicatorAsset) => {
     setEditingAssetId(asset.id)
     setName(asset.name)
     setLabel(asset.label)
@@ -156,7 +169,7 @@ const InteractiveLightDesigner = ({
     }
 
     if (editingAssetId) {
-      updateInteractiveAssetByKind(editingAssetId, 'light', {
+      updateInteractiveAssetByKind(editingAssetId, assetKind, {
         name: trimmedName,
         label: trimmedLabel,
         width,
@@ -166,8 +179,11 @@ const InteractiveLightDesigner = ({
         initialState,
       })
     } else {
+      const createDefault = isStatusIndicator
+        ? createDefaultInteractiveStatusIndicatorAsset
+        : createDefaultInteractiveLightAsset
       registerInteractiveAsset({
-        ...createDefaultInteractiveLightAsset(
+        ...createDefault(
           createInteractiveAssetId(),
           trimmedName,
         ),
@@ -185,10 +201,13 @@ const InteractiveLightDesigner = ({
     close()
   }
 
-  const assign = (asset: ForgeUIInteractiveLightAsset) => {
+  const assign = (asset: ForgeUIInteractiveLightAsset | ForgeUIInteractiveStatusIndicatorAsset) => {
     if (!selectedIsInteractiveLight || !selectedComponent) return
 
-    Object.entries(getInteractiveLightComponentProps(asset)).forEach(
+    const componentProps = isStatusIndicator
+      ? getInteractiveStatusIndicatorComponentProps(asset as ForgeUIInteractiveStatusIndicatorAsset)
+      : getInteractiveLightComponentProps(asset as ForgeUIInteractiveLightAsset)
+    Object.entries(componentProps).forEach(
       ([propertyName, value]) => {
         setValue(propertyName, value)
         dispatch.components.updateProps({
@@ -221,7 +240,7 @@ const InteractiveLightDesigner = ({
     <VStack align="stretch" spacing={4}>
       <HStack justify="space-between">
         <Box>
-          <Heading size="sm">Interactive Lights</Heading>
+          <Heading size="sm">Interactive {displayName}s</Heading>
           <Text color="gray.400" fontSize="sm" mt={1}>
             Reusable OFF/ON output indicators controlled by generated C APIs.
           </Text>
@@ -232,7 +251,7 @@ const InteractiveLightDesigner = ({
         <Box borderWidth="1px" borderColor="green.400" borderRadius="md" p={5}>
           <VStack align="stretch" spacing={4}>
             <Heading size="sm">
-              {editingAssetId ? 'Edit Interactive Light' : 'Interactive Light Designer'}
+              {editingAssetId ? `Edit Interactive ${displayName}` : `Interactive ${displayName} Designer`}
             </Heading>
             <InteractiveAssetAIGenerator
               selectedAssetKind={selectedAssetKind}
@@ -293,7 +312,7 @@ const InteractiveLightDesigner = ({
               </FormControl>
             </SimpleGrid>
 
-            <InteractiveLightPreview
+            <BinaryPreview
               offAsset={offAsset}
               onAsset={onAsset}
               width={width}
@@ -305,19 +324,21 @@ const InteractiveLightDesigner = ({
 
             <HStack justify="flex-end">
               <Button size="sm" variant="ghost" onClick={close}>Cancel</Button>
-              <Button size="sm" colorScheme="green" isDisabled={!canSave} onClick={save}>Save Light</Button>
+              <Button size="sm" colorScheme="green" isDisabled={!canSave} onClick={save}>Save {displayName}</Button>
             </HStack>
           </VStack>
         </Box>
       )}
 
       {assets.map(asset => {
-        const visuals = resolveInteractiveLightVisuals(asset, uploadedAssets)
+        const visuals = isStatusIndicator
+          ? resolveInteractiveStatusIndicatorVisuals(asset as ForgeUIInteractiveStatusIndicatorAsset, uploadedAssets)
+          : resolveInteractiveLightVisuals(asset as ForgeUIInteractiveLightAsset, uploadedAssets)
         return (
           <Box key={asset.id} borderWidth="1px" borderColor="whiteAlpha.200" borderRadius="md" p={4}>
             <HStack justify="space-between" align="center">
               <HStack spacing={4}>
-                <InteractiveLightPreview
+                <BinaryPreview
                   offAsset={visuals.offAsset}
                   onAsset={visuals.onAsset}
                   width={Math.min(asset.width, 64)}
@@ -328,7 +349,7 @@ const InteractiveLightDesigner = ({
                   <Heading size="xs">{asset.name}</Heading>
                   <Text color="gray.400" fontSize="sm">{asset.label}</Text>
                   <Text color="gray.600" fontSize="xs">{asset.width} × {asset.height} · Initial {asset.initialState.toUpperCase()}</Text>
-                  <Badge mt={2} colorScheme="green">Interactive Light</Badge>
+                  <Badge mt={2} colorScheme="green">Interactive {displayName}</Badge>
                 </Box>
               </HStack>
               <HStack spacing={2}>

@@ -69,6 +69,7 @@ import type {
 import type {
   ForgeUIInteractiveLightAsset,
 } from './ForgeUIInteractiveLightAsset'
+import type { ForgeUIInteractiveStatusIndicatorAsset } from './ForgeUIInteractiveStatusIndicatorAsset'
 
 const DEFAULT_WIDTH = 120
 const DEFAULT_HEIGHT = 48
@@ -104,6 +105,11 @@ const lightAssets = assets.filter(
     asset.kind === 'light',
 )
 
+const statusIndicatorAssets = assets.filter(
+  (asset): asset is ForgeUIInteractiveStatusIndicatorAsset =>
+    asset.kind === 'statusIndicator',
+)
+
   const [
     uploadedAssets,
     setUploadedAssets,
@@ -115,6 +121,7 @@ const lightAssets = assets.filter(
   const [isDesignerOpen, setIsDesignerOpen] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [lightNewRequest, setLightNewRequest] = useState(0)
+  const [statusIndicatorNewRequest, setStatusIndicatorNewRequest] = useState(0)
 
   const [
     editingAssetId,
@@ -247,8 +254,10 @@ const [
     if (selectedAssetKind === 'button') {
       resetDesigner()
       setEditingAssetId(null)
-    } else {
+    } else if (selectedAssetKind === 'light') {
       setLightNewRequest(request => request + 1)
+    } else {
+      setStatusIndicatorNewRequest(request => request + 1)
     }
 
     setIsDesignerOpen(true)
@@ -266,8 +275,10 @@ const [
     if (nextKind === 'button') {
       resetDesigner()
       setEditingAssetId(null)
-    } else {
+    } else if (nextKind === 'light') {
       setLightNewRequest(request => request + 1)
+    } else {
+      setStatusIndicatorNewRequest(request => request + 1)
     }
   }
 
@@ -575,6 +586,9 @@ const [
               </Radio>
               <Radio value="light" isDisabled={isGenerating}>
                 Light
+              </Radio>
+              <Radio value="statusIndicator" isDisabled={isGenerating}>
+                Status Indicator
               </Radio>
             </Stack>
           </RadioGroup>
@@ -942,6 +956,23 @@ const [
           newRequestVersion={lightNewRequest}
           onActivate={() => {
             setSelectedAssetKind('light')
+            setIsDesignerOpen(true)
+          }}
+          onClose={() => setIsDesignerOpen(false)}
+          onGeneratingChange={setIsGenerating}
+        />
+
+        <InteractiveLightDesigner
+          assets={statusIndicatorAssets}
+          assetKind="statusIndicator"
+          uploadedAssets={uploadedAssets}
+          selectedAssetKind={selectedAssetKind}
+          onAssetsChanged={refreshAssets}
+          onUploadedAssetsChanged={refreshUploadedAssets}
+          isActive={isDesignerOpen && selectedAssetKind === 'statusIndicator'}
+          newRequestVersion={statusIndicatorNewRequest}
+          onActivate={() => {
+            setSelectedAssetKind('statusIndicator')
             setIsDesignerOpen(true)
           }}
           onClose={() => setIsDesignerOpen(false)}

@@ -1,17 +1,18 @@
 # Current Save Point
 
-**FORGEUI_PROJECT_HEALTH_PHASES_1_AND_2__CLEAN_TYPES_LINT_AND_TESTS__SAFE_EXPORT_PREFLIGHT__INTERACTIVE_ASSETS_PHYSICAL_ESP32P4_PROVEN__2026-07-22**
+**FFORGEUI_BINARY_OUTPUT_RUNTIME__INTERACTIVE_STATUS_INDICATOR__INTERACTIVE_ASSET_FRAMEWORK_V2__PHYSICAL_ESP32P4_PROVEN__2026-07-22**
 
 ## Current Proven Status
 
-ForgeUI has a reusable Interactive Asset Framework with two fully implemented asset types:
+ForgeUI has a reusable Interactive Asset Framework with three fully implemented asset types:
 
 - Interactive Button
 - Interactive Light
+- Interactive Status Indicator
 
 Both types are proven through Studio creation, AI state-image generation, asset registration, persistence, Canvas rendering, Studio preview, LVGL export, ESP-IDF build, and physical ESP32-P4 runtime.
 
-The Studio presents both types through one coherent Interactive Assets creation flow. Button and Light share the framework infrastructure while retaining type-specific asset models, designers, state mappings, Canvas behavior, export behavior, and runtime behavior.
+The Studio presents both types through one coherent Interactive Assets creation flow. Button, Light and Status Indicator share the Interactive Asset Framework while retaining type-specific asset models, designers, preview behaviour, export behaviour and runtime behaviour.  while retaining type-specific asset models, designers, state mappings, Canvas behavior, export behavior, and runtime behavior.
 
 Project Health Phases 1 and 2 are complete. The repository now has clean TypeScript and ESLint baselines, a fully passing automated test suite, protected asset references, and client- and server-side export validation before generated firmware files are written. The Interactive Button and Interactive Light physical proof remains the hardware baseline underneath this health work.
 
@@ -158,6 +159,64 @@ Interactive Light uses `kind: light`, `interactionMode: state`, and a saved `ini
 
 - `offAssetId`
 - `onAssetId`
+
+## Binary Output Runtime
+
+Interactive Light and Interactive Status Indicator now share one generated Binary Output Runtime.
+
+The generated runtime owns:
+
+- `fg_binary_output_t`
+- `fg_binary_output_set()`
+
+Both Interactive Asset types generate independent runtime records while reusing the same implementation.
+
+Developer-facing APIs follow the same pattern:
+
+```c
+FG_Set_Status_Light(bool enabled);
+
+FG_Set_WiFi_Status(bool enabled);
+```
+
+Runtime flow:
+
+```text
+Developer application
+        ↓
+FG_Set_<Name>(bool enabled)
+        ↓
+Shared Binary Output Runtime
+        ↓
+Generated LVGL runtime
+        ↓
+OFF / ON artwork
+        ↓
+Physical ESP32-P4 display
+```
+
+This establishes the Binary Output Runtime as a reusable runtime family rather than an implementation owned by Interactive Light.
+---
+
+## Interactive Status Indicator
+
+Interactive Status Indicator extends the Binary Output Runtime without introducing a second runtime implementation.
+
+It supports:
+
+- OFF artwork
+- ON artwork
+- saved initial state
+- Browser Preview
+- Canvas Preview
+- AI state-image generation
+- native LVGL export
+- generated public setter
+- multiple independent instances
+
+Status Indicator does not generate user hooks.
+
+Application code controls state entirely through the generated public API.
 
 ### Studio behavior
 
@@ -340,8 +399,9 @@ Paths under `src/` are relative to `studio/`.
 
 ## Verified Automated Status
 
-- 17 test suites passed.
-- 112 tests passed and 1 documented legacy test is skipped.
+-19 test suites passed.
+- 123 tests passed.
+1 documented legacy test skipped.test is skipped.
 - TypeScript completed with zero diagnostics using `tsc --noEmit`.
 - ESLint completed with no warnings or errors.
 - `export-server.js` syntax check passed.
@@ -352,23 +412,74 @@ The former `InteractiveLightCanvasPreview.test.tsx` TypeScript baseline error is
 
 ## Architectural Significance and Extension Pattern
 
-Interactive Button proved the first implementation. Interactive Light proved that the architecture is a reusable framework rather than a Button-specific feature. The unified UI presents both as members of one expandable Interactive Asset system.
+Interactive Button established the first **Interactive Input Runtime** within the Interactive Asset Framework.
 
-A future type should extend the discriminated asset union and provide its type-specific model, validation, designer fields, preview behavior, Canvas behavior, result mapping, export handling, and runtime behavior. It should reuse shared identity, registry, persistence, uploaded assets, AI pipeline, Canvas assignment, and framework-level UI coordination.
+Interactive Light introduced the shared **Binary Output Runtime**, proving that generated output controls could expose a simple developer API while sharing a common runtime implementation.
 
-Potential future types include:
+Interactive Status Indicator validated that the Binary Output Runtime is reusable. It extends the framework without introducing a second runtime implementation, demonstrating that additional binary output assets can be added by reusing the existing runtime while providing their own asset model, designer, preview behaviour, export handling and generated public API.
+
+ForgeUI now consists of reusable Interactive Asset runtime families rather than isolated widget implementations.
+
+Future Interactive Asset types should extend the discriminated asset union and provide their own:
+
+- asset model
+- validation
+- designer fields
+- preview behaviour
+- Canvas behaviour
+- AI state mapping
+- export handling
+- runtime behaviour
+
+while reusing the shared framework infrastructure for:
+
+- Interactive Asset identity
+- registry
+- persistence
+- uploaded asset management
+- AI image generation pipeline
+- Canvas assignment
+- LVGL export integration
+- framework-level UI coordination
+
+Current runtime families:
+
+```text
+Interactive Input Runtime
+└── Interactive Button
+
+Binary Output Runtime
+├── Interactive Light
+└── Interactive Status Indicator
+```
+
+Potential future Interactive Asset types include:
+
+### Interactive Input Runtime
 
 - Toggle Switch
+- Rotary Switch
+- Slider
+- Keypad
+
+### Binary Output Runtime
+
 - Alarm Indicator
 - Battery Indicator
+- Bluetooth Indicator
 - Wi-Fi Indicator
 - Motor State
 - Direction Indicator
 - Multi-state Lamp
-- Gauge
-- Seven-segment display
 
-These are extension examples only; they are not implemented.
+### Future Runtime Families
+
+- Gauge
+- Seven-segment Display
+- Progress Indicator
+- Numeric Display
+
+These are extension examples only and are not currently implemented.
 
 # Save Point History
 

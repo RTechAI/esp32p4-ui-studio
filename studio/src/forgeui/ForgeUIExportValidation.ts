@@ -5,6 +5,7 @@ import { allocateUniqueOutputApiName } from './ForgeUIGeneratedApiNames'
 export type ForgeUIExportDiagnosticCategory =
   | 'Interactive Button'
   | 'Interactive Light'
+  | 'Interactive Status Indicator'
   | 'Uploaded Assets'
   | 'Canvas'
   | 'Public API'
@@ -107,7 +108,7 @@ export const validateForgeUIExport = (
   const referencedUploadedIds = new Set<string>()
 
   const validateImage = (
-    category: 'Interactive Button' | 'Interactive Light',
+    category: 'Interactive Button' | 'Interactive Light' | 'Interactive Status Indicator',
     subject: string,
     state: string,
     assetId: string | undefined,
@@ -136,7 +137,9 @@ export const validateForgeUIExport = (
   interactiveAssets.forEach(asset => {
     const category = asset.kind === 'button'
       ? 'Interactive Button'
-      : 'Interactive Light'
+      : asset.kind === 'statusIndicator'
+        ? 'Interactive Status Indicator'
+        : 'Interactive Light'
     const subject = asset.name || asset.id
 
     if (!validDimension(asset.width) || !validDimension(asset.height)) {
@@ -154,27 +157,36 @@ export const validateForgeUIExport = (
   const componentIds = new Set<string>()
   const hookNames = new Map<string, string>()
   const setterNames = new Map<string, string>()
-  const lightSetterByComponent = new Map<IComponent, string>()
+  const binarySetterByComponent = new Map<IComponent, string>()
   const usedOutputApiNames = new Set<string>()
 
   Object.values(components)
-    .filter(component => component.type === 'InteractiveLight')
+    .filter(component =>
+      component.type === 'InteractiveLight' ||
+      component.type === 'InteractiveStatusIndicator',
+    )
     .sort((left, right) => left.id.localeCompare(right.id))
     .forEach(component => {
       const assetId = component.props.interactiveAssetId
       const asset = typeof assetId === 'string'
         ? interactiveById.get(assetId)
         : undefined
-      const lightAsset = asset?.kind === 'light' ? asset : undefined
+      const expectedKind = component.type === 'InteractiveStatusIndicator'
+        ? 'statusIndicator'
+        : 'light'
+      const outputAsset = asset?.kind === expectedKind ? asset : undefined
       const base = toCIdentifier(
         component.componentName ||
-        lightAsset?.label ||
-        lightAsset?.name ||
+        outputAsset?.label ||
+        outputAsset?.name ||
         component.id,
-        'InteractiveLight',
-      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+        component.type,
+      )
+        .replace(/WiFi/g, 'Wizfi')
+        .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+        .replace(/Wizfi/g, 'WiFi')
 
-      lightSetterByComponent.set(
+      binarySetterByComponent.set(
         component,
         allocateUniqueOutputApiName(base, usedOutputApiNames),
       )
@@ -205,10 +217,18 @@ export const validateForgeUIExport = (
       })
     }
 
-    if (component.type !== 'InteractiveButton' && component.type !== 'InteractiveLight') {
+    if (
+      component.type !== 'InteractiveButton' &&
+      component.type !== 'InteractiveLight' &&
+      component.type !== 'InteractiveStatusIndicator'
+    ) {
       return
     }
-    const expectedKind = component.type === 'InteractiveButton' ? 'button' : 'light'
+    const expectedKind = component.type === 'InteractiveButton'
+      ? 'button'
+      : component.type === 'InteractiveStatusIndicator'
+        ? 'statusIndicator'
+        : 'light'
     const assetId = component.props.interactiveAssetId
     const asset = typeof assetId === 'string' ? interactiveById.get(assetId) : undefined
     const subject = component.componentName || component.id
@@ -230,7 +250,7 @@ export const validateForgeUIExport = (
       if (previous) add('Public API', name, `Duplicate Button hook for ${previous} and ${subject}`)
       else hookNames.set(name, subject)
     } else {
-      const name = lightSetterByComponent.get(component)
+      const name = binarySetterByComponent.get(component)
       if (name) setterNames.set(name, subject)
     }
   })

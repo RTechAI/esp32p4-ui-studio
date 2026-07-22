@@ -15,9 +15,7 @@
 extern "C" {
 #endif
 
-void FG_On_GreenButton_Clicked(void);
-void FG_On_RedButton_Clicked(void);
-void FG_On_Button_Clicked(void);
+
 
 #ifdef __cplusplus
 }

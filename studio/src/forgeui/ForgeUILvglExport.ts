@@ -6,9 +6,12 @@ import {
   getInteractiveButtonAsset,
   getInteractiveLightAsset,
   getInteractiveLightInitialState,
+  getInteractiveStatusIndicatorAsset,
+  getInteractiveStatusIndicatorInitialState,
   isLvglReadyUploadedAsset,
   resolveInteractiveButtonVisuals,
   resolveInteractiveLightVisuals,
+  resolveInteractiveStatusIndicatorVisuals,
 } from './interactive'
 
 import {
@@ -176,7 +179,7 @@ type BinaryOutputExport = {
   ready: boolean
 }
 
-const createInteractiveLightExports = (
+const createBinaryOutputExports = (
   components: IComponents,
   usedAssetSources: Set<string>,
 ): Map<string, BinaryOutputExport> => {
@@ -185,19 +188,28 @@ const createInteractiveLightExports = (
   const uploadedAssets = forgeUIGetUploadedAssets()
 
   Object.values(components)
-    .filter(component => component.type === 'InteractiveLight')
+    .filter(component =>
+      component.type === 'InteractiveLight' ||
+      component.type === 'InteractiveStatusIndicator',
+    )
     .sort((left, right) => left.id.localeCompare(right.id))
     .forEach(component => {
+      const isStatusIndicator = component.type === 'InteractiveStatusIndicator'
       const asset = component.props.interactiveAssetId
-        ? getInteractiveLightAsset(component.props.interactiveAssetId)
+        ? isStatusIndicator
+          ? getInteractiveStatusIndicatorAsset(component.props.interactiveAssetId)
+          : getInteractiveLightAsset(component.props.interactiveAssetId)
         : undefined
       const baseName = toCIdentifier(
         component.componentName ||
         asset?.label ||
         asset?.name ||
         component.id,
-        'InteractiveLight',
-      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+        isStatusIndicator ? 'InteractiveStatusIndicator' : 'InteractiveLight',
+      )
+        .replace(/WiFi/g, 'Wizfi')
+        .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+        .replace(/Wizfi/g, 'WiFi')
 
       const apiName = allocateUniqueOutputApiName(
         baseName,
@@ -208,10 +220,9 @@ const createInteractiveLightExports = (
         .replace(/^FG_Set_/, '')
         .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
         .toLowerCase()
-      const { offAsset, onAsset } = resolveInteractiveLightVisuals(
-        asset,
-        uploadedAssets,
-      )
+      const { offAsset, onAsset } = isStatusIndicator
+        ? resolveInteractiveStatusIndicatorVisuals(asset, uploadedAssets)
+        : resolveInteractiveLightVisuals(asset, uploadedAssets)
       const ready =
         isLvglReadyUploadedAsset(offAsset) &&
         isLvglReadyUploadedAsset(onAsset) &&
@@ -228,7 +239,9 @@ const createInteractiveLightExports = (
         runtimeName: `fg_${runtimeStem}_output`,
         offSymbol: ready ? offAsset?.lvgl : undefined,
         onSymbol: ready ? onAsset?.lvgl : undefined,
-        initialState: getInteractiveLightInitialState(asset),
+        initialState: isStatusIndicator
+          ? getInteractiveStatusIndicatorInitialState(asset)
+          : getInteractiveLightInitialState(asset),
         ready,
       })
     })
@@ -246,7 +259,7 @@ const buildLvglBlock = (
   usedAssetSources: Set<string>,
   usedHookNames: Set<string>,
   userEventHooks: Set<string>,
-  lightExports: Map<string, BinaryOutputExport>,
+  binaryOutputExports: Map<string, BinaryOutputExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -593,8 +606,9 @@ lines.push(
   break
 }
 
-case 'InteractiveLight': {
-  const lightExport = lightExports.get(child.id)
+case 'InteractiveLight':
+case 'InteractiveStatusIndicator': {
+  const lightExport = binaryOutputExports.get(child.id)
   const lightWidth = Number(w)
   const lightHeight = Number(h)
   const safeLightWidth =
@@ -632,7 +646,7 @@ case 'InteractiveLight': {
   } else {
     lines.push(`lv_obj_t * ${varName} = lv_label_create(${parentVar});`)
     lines.push(
-      `lv_label_set_text(${varName}, "Missing Interactive Light Assets");`,
+      `lv_label_set_text(${varName}, "Missing Interactive Binary Output Assets");`,
     )
     lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
     lines.push(`lv_obj_set_size(${varName}, ${safeLightWidth}, ${safeLightHeight});`)
@@ -1335,7 +1349,7 @@ case 'Chart': {
         usedAssetSources,
         usedHookNames,
         userEventHooks,
-        lightExports,
+        binaryOutputExports,
       )
     }
   })
@@ -1353,7 +1367,7 @@ export const generateForgeUILvglCode = (
   const hasInteractiveButtons = Object.values(components).some(
     component => component.type === 'InteractiveButton',
   )
-  const lightExports = createInteractiveLightExports(
+  const binaryOutputExports = createBinaryOutputExports(
     components,
     usedAssetSources,
   )
@@ -1437,7 +1451,7 @@ const backgroundMode =
 
   const declaredLightSymbols = new Set<string>()
 
-  lightExports.forEach(lightExport => {
+  binaryOutputExports.forEach(lightExport => {
     if (
       !lightExport.ready ||
       !lightExport.offSymbol ||
@@ -1483,7 +1497,7 @@ const backgroundMode =
     lines.push(``)
   }
 
-  lightExports.forEach(lightExport => {
+  binaryOutputExports.forEach(lightExport => {
     if (
       !lightExport.ready ||
       !lightExport.offSymbol ||
@@ -1501,7 +1515,7 @@ const backgroundMode =
     lines.push(``)
   })
 
-  lightExports.forEach(lightExport => {
+  binaryOutputExports.forEach(lightExport => {
     if (
       !lightExport.ready ||
       !lightExport.offSymbol ||
@@ -1680,7 +1694,7 @@ lines.push(`}`)
       usedAssetSources,
       usedHookNames,
         userEventHooks,
-        lightExports,
+        binaryOutputExports,
       )
   }
 
@@ -1712,7 +1726,7 @@ lines.push(`}`)
     code,
     assetSources: Array.from(usedAssetSources),
     userEventHooks: Array.from(userEventHooks),
-    publicApiDeclarations: Array.from(lightExports.values())
+    publicApiDeclarations: Array.from(binaryOutputExports.values())
       .filter(lightExport => lightExport.ready)
       .map(lightExport =>
         `void ${lightExport.apiName}(bool enabled);`,

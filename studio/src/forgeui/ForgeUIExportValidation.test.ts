@@ -7,7 +7,7 @@ const uploaded = (id: string, overrides: Record<string, unknown> = {}) => ({
   cFile: `assets/uploads/fg_${id}.c`, ...overrides,
 })
 
-const interactive = (kind: 'button' | 'light', id = `${kind}-asset`) => ({
+const interactive = (kind: 'button' | 'light' | 'statusIndicator', id = `${kind}-asset`) => ({
   schemaVersion: 1 as const, id, name: `${kind} asset`, kind,
   interactionMode: kind === 'button' ? 'momentary' as const : 'state' as const,
   label: kind, width: 32, height: 32, createdAt: 'now', updatedAt: 'now',
@@ -18,7 +18,7 @@ const interactive = (kind: 'button' | 'light', id = `${kind}-asset`) => ({
     : { offAssetId: 'off', onAssetId: 'on', initialState: 'off' as const }),
 })
 
-const component = (type: 'InteractiveButton' | 'InteractiveLight', id: string, assetId: string) => ({
+const component = (type: 'InteractiveButton' | 'InteractiveLight' | 'InteractiveStatusIndicator', id: string, assetId: string) => ({
   id, type, componentName: id, parent: 'root', children: [],
   props: { interactiveAssetId: assetId, w: 32, h: 32 },
 })
@@ -125,6 +125,27 @@ describe('ForgeUI export preflight', () => {
 
     expect(result.ok).toBe(true)
     expect(result.diagnostics).toEqual([])
+  })
+
+  it('accepts multiple Status Indicators and a coexisting Light', () => {
+    const indicator = interactive('statusIndicator')
+    const light = interactive('light')
+    const assets = [uploaded('off'), uploaded('on')]
+    const result = validateForgeUIExport(
+      {
+        first: { ...component('InteractiveStatusIndicator', 'first', indicator.id), componentName: 'Ready' },
+        second: { ...component('InteractiveStatusIndicator', 'second', indicator.id), componentName: 'Ready' },
+        light: { ...component('InteractiveLight', 'light', light.id), componentName: 'Alarm' },
+      } as any,
+      [indicator, light] as any,
+      assets,
+      generate(assets, [], [
+        'void FG_Set_Ready(bool enabled);',
+        'void FG_Set_Ready_2(bool enabled);',
+        'void FG_Set_Alarm(bool enabled);',
+      ]),
+    )
+    expect(result.ok).toBe(true)
   })
 
   it('rejects genuinely duplicated final public declarations', () => {

@@ -2,7 +2,7 @@
 
 ## Current proven save point
 
-**FORGEUI_PROJECT_HEALTH_PHASE2__GENERATED_EXPORT_API__VALIDATED_EXPORT_PIPELINE__PHYSICAL_ESP32P4_PROVEN__2026-07-22**
+**FORGEUI_PROJECT_HEALTH_PHASE2__GENERATED_EXPORT_API__BINARY_OUTPUT_RUNTIME__INTERACTIVE_STATUS_INDICATOR__VALIDATED_EXPORT_PIPELINE__PHYSICAL_ESP32P4_PROVEN__2026-07-22**
 
 ## Purpose and scope
 
@@ -34,6 +34,12 @@ Use this map to determine:
 - which responsibilities must not be duplicated.
 
 ## System overview
+
+The generated export layer supports three proven Interactive Asset types:
+
+- Interactive Button in the Interactive Input Runtime
+- Interactive Light in the Binary Output Runtime
+- Interactive Status Indicator in the Binary Output Runtime
 
 ```text
 ForgeUI Canvas
@@ -71,6 +77,22 @@ ESP-IDF Build
 ESP32-P4
 ```
 
+The generated output-control path is:
+
+```text
+Developer application logic
+        ↓
+Generated FG_Set_* public APIs
+        ↓
+Shared Binary Output Runtime
+        ↓
+Generated LVGL Runtime
+        ↓
+ESP32-P4 Display
+```
+
+Interactive Light and Interactive Status Indicator both use this path. The output runtime is no longer a Light-only implementation.
+
 ## Export Validation Ownership
 
 Export validation is a permanent two-boundary responsibility. It validates the exporter result before materialization without moving runtime generation out of the exporter.
@@ -86,7 +108,7 @@ Owns:
 - dimension validation
 - duplicate component-ID detection
 - uploaded-asset and LVGL-readiness validation
-- generated Button-hook and Light-setter API validation
+- generated Button-hook and Binary Output setter API validation
 - generated asset-source validation
 - structured, ownership-grouped diagnostics
 
@@ -118,7 +140,7 @@ ForgeUI controls cross the generated/developer boundary in one of two directions
 
 Input controls originate in the UI runtime and notify application code through generated developer hooks.
 
-Proven example:
+Proven examples:
 
 ```text
 Interactive Button
@@ -145,12 +167,19 @@ Developer application logic
         ↓
 FG_Set_Status_Light(true)
         ↓
-90_Studio_Export.c
+Shared Binary Output Runtime
         ↓
 LVGL image source changes
         ↓
 Physical Light displays ON state
 ```
+
+```c
+FG_Set_Status_Light(true);
+FG_Set_WiFi_Status(true);
+```
+
+Both public APIs are implemented in generated UI code and delegate to the same generated Binary Output Runtime.
 
 ### Permanent rule
 
@@ -184,8 +213,14 @@ Runtime generation assumes that its candidate result will pass the dedicated cli
 - uploaded asset-source collection
 - shared runtime structures
 - shared runtime callbacks
+- shared Binary Output Runtime
+- generated Binary Output runtime records
 - Interactive Button export
 - Interactive Light export
+- Interactive Status Indicator export
+- shared Binary Output Runtime generation
+- shared Binary Output setter generation
+- per-instance Binary Output runtime record generation
 - Button hook generation and metadata
 - generated public output APIs and declaration metadata
 - calls from generated runtime code into developer hooks
@@ -200,7 +235,9 @@ Runtime generation assumes that its candidate result will pass the dedicated cli
 - developer application logic
 - GPIO, sensors, motors, relays, networking policy, or business logic
 
-Do not create a separate Button exporter, Light exporter, or parallel runtime generator.
+Interactive Light introduced the Binary Output Runtime. Interactive Status Indicator reuses it through the same export descriptor, runtime-record, and setter-generation path.
+
+Do not create a separate Button exporter, Light exporter, Status Indicator exporter, or parallel runtime generator.
 
 ## Component export traversal
 
@@ -224,9 +261,9 @@ Developer-facing hook and setter names are derived separately and made unique wi
 - generated LVGL `code`;
 - generated asset-source metadata required by the generated UI;
 - `userEventHooks` for Button input callbacks;
-- `publicApiDeclarations` for Light output setters.
+- `publicApiDeclarations` for Binary Output setters, including Interactive Light and Interactive Status Indicator.
 
-These four values form the generated export contract: generated code, validated asset-source metadata, Button hook metadata, and Light public API metadata. The exporter collects the candidate metadata; the validation layers approve it before firmware materialization.
+These four values form the generated export contract: generated code, validated asset-source metadata, Button hook metadata, and Binary Output public API metadata. Every Binary Output asset contributes its generated setter declaration metadata, including Interactive Light and Interactive Status Indicator instances. The exporter collects the candidate metadata; the validation layers approve it before firmware materialization.
 
 The UI export actions in `studio/src/components/Header.tsx` send these values to both export endpoints:
 
@@ -404,22 +441,12 @@ Example declaration:
 void FG_Set_Status_Light(bool enabled);
 ```
 
-The generated implementation retains the Light image object and changes its image source:
+The generated implementation delegates to the Light instance's Binary Output runtime record:
 
 ```c
 void FG_Set_Status_Light(bool enabled)
 {
-    if (!fg_status_light_image)
-    {
-        return;
-    }
-
-    lv_image_set_src(
-        fg_status_light_image,
-        enabled
-            ? &on_symbol
-            : &off_symbol
-    );
+    fg_binary_output_set(&fg_status_light_output, enabled);
 }
 ```
 
@@ -432,10 +459,10 @@ true  → ON artwork
 
 Setter names use `FG_Set_*`. Duplicate API names receive a numeric suffix.
 
-### Public declaration metadata path
+### Binary Output public declaration metadata path
 
 ```text
-InteractiveLight component
+InteractiveLight or InteractiveStatusIndicator component
         ↓
 unique FG_Set_* name
         ↓
@@ -458,6 +485,96 @@ The export server validates declarations against the supported setter signature 
 void FG_Set_<Name>(bool enabled);
 ```
 
+## Binary Output Runtime
+
+The generated Binary Output Runtime is the permanent implementation family for two-state output assets.
+
+Generated runtime structure:
+
+```c
+typedef struct
+{
+    lv_obj_t * image;
+    const void * off_src;
+    const void * on_src;
+    bool enabled;
+} fg_binary_output_t;
+```
+
+Generated state-change function:
+
+```c
+static void fg_binary_output_set(
+    fg_binary_output_t * output,
+    bool enabled
+)
+{
+    if (!output || !output->image)
+    {
+        return;
+    }
+
+    output->enabled = enabled;
+    lv_image_set_src(
+        output->image,
+        enabled ? output->on_src : output->off_src
+    );
+}
+```
+
+This structure and function are generated once per export. Interactive Light introduced them; Interactive Status Indicator reuses them unchanged.
+
+Every exported Binary Output instance creates its own `fg_binary_output_t` record containing its LVGL image, OFF source, ON source, and saved state. Multiple records remain independent even when instances reuse the same artwork.
+
+Every generated Binary Output setter calls `fg_binary_output_set()` with its own record. Future Binary Output assets must reuse this implementation rather than emit another binary state structure or switching function.
+
+## Interactive Status Indicator output API
+
+### Export preparation and branch
+
+Interactive Status Indicator export owns:
+
+1. reading `interactiveAssetId`;
+2. resolving the Interactive Status Indicator asset by kind;
+3. resolving OFF and ON uploaded artwork;
+4. using the preflight-validated OFF and ON image metadata;
+5. adding required asset C files without duplicating reused artwork sources;
+6. creating a Binary Output export descriptor;
+7. creating a non-clickable LVGL image;
+8. selecting its initial source from saved `initialState`;
+9. creating a unique `fg_binary_output_t` runtime record;
+10. creating a deterministic public setter name;
+11. emitting a setter that delegates to `fg_binary_output_set()`;
+12. returning its declaration as public API metadata.
+
+### Runtime behavior
+
+- OFF artwork is stored in `off_src`.
+- ON artwork is stored in `on_src`.
+- the saved initial state initializes the instance independently.
+- `false` selects OFF and `true` selects ON.
+- multiple Status Indicator and Light records can coexist.
+- no click callback is registered.
+- no event hook or metadata is generated for `95_UserEvents.c/.h`.
+
+Example generated record and setter:
+
+```c
+static fg_binary_output_t fg_wifi_status_output = {
+    .image = NULL,
+    .off_src = &wifi_status_off,
+    .on_src = &wifi_status_on,
+    .enabled = false,
+};
+
+void FG_Set_WiFi_Status(bool enabled)
+{
+    fg_binary_output_set(&fg_wifi_status_output, enabled);
+}
+```
+
+Interactive Status Indicator contributes its setter declaration through `publicApiDeclarations`, exactly like Interactive Light. Only its per-instance record, artwork references, initial state, and setter name are unique; the Binary Output Runtime implementation remains shared.
+
 ## Generated UI files
 
 ### `90_Studio_Export.c`
@@ -470,8 +587,9 @@ Owns generated implementation:
 - shared runtime callbacks
 - Button callback wiring
 - calls into Button user hooks
-- Light runtime image references
+- Binary Output OFF/ON runtime image references
 - Light public setter implementations
+- Interactive Status Indicator public setter implementations
 - `fg_studio_export_create(...)`
 
 It must not contain customer hardware behavior or permanent application logic.
@@ -481,10 +599,12 @@ It must not contain customer hardware behavior or permanent application logic.
 Owns generated public declarations:
 
 - `fg_studio_export_create(lv_obj_t *parent)`
-- generated Light `FG_Set_*` APIs
+- generated Binary Output `FG_Set_*` APIs for Light and Status Indicator
 - required public includes and C/C++ linkage guards
 
 It does not contain user implementations.
+
+All Binary Output public APIs are declared in `90_Studio_Export.h` and implemented in `90_Studio_Export.c`. Binary Output assets never place setter implementations or event hooks in `95_UserEvents.c`.
 
 ### Regeneration rule
 
@@ -547,7 +667,7 @@ void FG_On_Button_Clicked(void)
 }
 ```
 
-Interactive Light does not add anything to these files.
+Interactive Light and Interactive Status Indicator do not add anything to these files. No Binary Output asset generates a hook in `95_UserEvents.c/.h`.
 
 ## Header Ownership
 
@@ -561,7 +681,7 @@ Coordinates:
 - client preflight before export submission
 - transport of validated exporter metadata
 - transport of Button hook metadata
-- transport of Light setter metadata
+- transport of Binary Output setter metadata, including Light and Status Indicator
 
 Header coordinates export and starts flashing only after export succeeds. It does not validate generated firmware files itself, invent hooks or setters, materialize files, or define runtime behavior.
 
@@ -591,7 +711,7 @@ studio/export-server.js
 ### Does not own
 
 - LVGL component generation
-- Button or Light runtime behavior
+- Button, Light, or Status Indicator runtime behavior
 - hook-name selection
 - Light setter-name selection
 - application logic
@@ -738,9 +858,9 @@ ForgeUI owns `FG_Set_Status_Light(...)` and the callback signature. The develope
 
 ## Proven physical ESP32-P4 behavior
 
-The validated pipeline successfully exports Hero artwork, the Industrial Carbon Theme, Interactive Button, and Interactive Light together. Their layout and artwork align across the Canvas, Browser Preview, and physical ESP32-P4 output.
+The validated pipeline successfully exports Hero artwork, the Industrial Carbon Theme, Interactive Button, Interactive Light, and Interactive Status Indicator together. Their layout and artwork align across the Canvas, Browser Preview, and physical ESP32-P4 output.
 
-The generated firmware retains the complete exported UI and no longer falls back to an empty `fg_studio_export_create()`. Button runtime, Light runtime, generated hooks, public setters, asset sources, generated headers, and generated CMake participate in the same successful export.
+The generated firmware retains the complete exported UI and no longer falls back to an empty `fg_studio_export_create()`. Button runtime, the shared Binary Output Runtime, generated hooks, public setters, per-instance runtime records, asset sources, generated headers, and generated CMake participate in the same successful export.
 
 ### Interactive Button input path
 
@@ -770,6 +890,18 @@ Physically confirmed:
 - Light remained non-clickable
 - firmware remained stable
 
+### Interactive Status Indicator output path
+
+Physically confirmed:
+
+- OFF and ON artwork exported through the Binary Output path
+- saved initial state displayed
+- generated `FG_Set_*` API controlled the Status Indicator
+- Status Indicator remained non-clickable and generated no event hook
+- Interactive Light and Status Indicator consumed the same `fg_binary_output_t` / `fg_binary_output_set()` implementation
+- multiple Binary Output instance records remained independent
+- generated setter APIs addressed the correct instances
+
 ### System health
 
 - Wi-Fi READY
@@ -777,7 +909,7 @@ Physically confirmed:
 - SD READY
 - no crash after interaction
 
-The Button input-hook path and Light output-setter path are implemented and physically proven.
+The Button input-hook path and the shared Light/Status Indicator Binary Output setter path are implemented and physically proven.
 
 ## Automated Validation
 
@@ -809,6 +941,10 @@ The targeted run validates only the narrow default-theme export regression and i
 | Light declaration is missing from header | `publicApiDeclarations` export result | Header payload and `generateStudioExportHeader()` |
 | Light starts in wrong state | Light export branch | saved `initialState` and initial image symbol |
 | Light is clickable or generates a hook | Light export branch | remove Button-style callback/hook behavior |
+| Status Indicator setter is missing | Binary Output export preparation in `ForgeUILvglExport.ts` | kind-aware lookup, LVGL readiness, and unique API name |
+| Status Indicator starts in wrong state | Status Indicator export branch | saved `initialState` and per-instance runtime record |
+| Binary Output instances affect each other | generated runtime records | setter-to-record mapping and unique runtime names |
+| Binary Output Runtime is duplicated | runtime emission in `ForgeUILvglExport.ts` | shared `fg_binary_output_t` and `fg_binary_output_set()` generation |
 | Export rejected before files are written | `ForgeUIExportValidation.ts` | `export-server.js` |
 | Missing generated C source | `export-server.js` | Uploaded Asset Registry |
 | Invalid generated asset source | `ForgeUIExportValidation.ts` | exporter asset collection |
@@ -822,18 +958,18 @@ The targeted run validates only the narrow default-theme export regression and i
 | Standalone project lacks APIs | `/export-idf-project` | copied/written files and public metadata |
 | CMake cannot find hooks or assets | generated `CMakeLists.txt` | export server source collection |
 | Linker reports missing Button callback | `95_UserEvents.h/.c` | exact generated hook name |
-| Linker reports missing Light setter | `90_Studio_Export.h/.c` | exact generated setter declaration/definition |
+| Linker reports missing Binary Output setter | `90_Studio_Export.h/.c` | exact Light or Status Indicator setter declaration/definition |
 | Physical behavior differs from export | generated C and symbols | LVGL object wiring and copied asset sources |
 
 ## File responsibility summary
 
 ### `studio/src/forgeui/ForgeUILvglExport.ts`
 
-Owns generated LVGL source, runtime behavior, hook names, setter names, and API metadata. Never writes files directly.
+Owns generated LVGL source, Interactive Button export, Light export, Status Indicator export, shared Binary Output Runtime generation, per-instance Binary Output records, hook names, setter names, and API metadata. Never writes files directly.
 
 ### `studio/src/components/Header.tsx`
 
-Coordinates Build & Flash, Clean Build & Flash, standalone export, client preflight, and transport of validated code, asset metadata, Button hooks, and Light setters. Never invents runtime APIs or validates materialized firmware files.
+Coordinates Build & Flash, Clean Build & Flash, standalone export, client preflight, and transport of validated code, asset metadata, Button hooks, and Binary Output setters. Never invents runtime APIs or validates materialized firmware files.
 
 ### `studio/export-server.js`
 
@@ -841,11 +977,11 @@ Owns validation of accepted metadata, generated headers/hooks, disk writes, asse
 
 ### `90_Studio_Export.c`
 
-Owns generated UI and runtime implementations. Never contains developer product logic.
+Owns generated UI and runtime implementations, the shared Binary Output Runtime, per-instance Binary Output records, and Light/Status Indicator setter implementations. Never contains developer product logic.
 
 ### `90_Studio_Export.h`
 
-Owns generated public UI declarations. Never contains user implementations.
+Owns generated public UI declarations, including every Binary Output `FG_Set_*` API. Never contains user implementations.
 
 ### `95_UserEvents.c`
 
@@ -867,9 +1003,9 @@ Preserve these rules:
 2. Inputs generate `FG_On_*` developer hooks.
 3. Outputs generate public `FG_Set_*` UI functions.
 4. Button uses one shared LVGL event callback with per-instance data.
-5. Light remains a non-clickable image controlled by a setter.
+5. Light and Status Indicator remain non-clickable images controlled by setters.
 6. Button hooks live across `90_Studio_Export.c` and `95_UserEvents.c/.h`.
-7. Light setters are declared and implemented entirely in `90_Studio_Export.h/.c`.
+7. All Binary Output setters are declared and implemented entirely in `90_Studio_Export.h/.c`.
 8. `Header.tsx` transports exporter metadata but does not create APIs.
 9. `export-server.js` writes files but does not define widget behavior.
 10. Live `95_UserEvents.c/.h` files are Studio-generated and replaceable.
@@ -881,13 +1017,29 @@ Preserve these rules:
 16. Built-in Theme assets participate in validation.
 17. Generated runtime assumes validated inputs.
 18. Failed validation preserves the previous generated firmware.
+19. The Binary Output Runtime is generated once per export.
+20. Every Binary Output Interactive Asset reuses the shared runtime implementation.
+21. Future Binary Output assets extend the existing runtime rather than generating new runtime implementations.
 
 ## Extension rule
+
+Current proven runtime families:
+
+```text
+Interactive Input Runtime
+  └── Interactive Button
+
+Binary Output Runtime
+  ├── Interactive Light
+  └── Interactive Status Indicator
+```
 
 Future generated APIs must follow the established direction model:
 
 - a new input control contributes a generated developer hook and hook metadata;
-- a new output control contributes a generated public UI function and declaration metadata.
+- a new output control contributes a generated `FG_Set_*` public UI function, declaration metadata, and a per-instance Binary Output runtime record.
+
+Future output controls should extend the Binary Output Runtime and expose generated `FG_Set_*` APIs without duplicating `fg_binary_output_t`, `fg_binary_output_set()`, or shared setter generation.
 
 Future controls must extend the existing exporter, export-result metadata, Header transport, export-server materialization, generated files, and ownership model. They must not introduce a parallel exporter, hook generator, public API generator, or runtime project.
 

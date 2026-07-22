@@ -7,7 +7,7 @@ ForgeUI converts visual designs and natural-language ideas into native LVGL C th
 Current proven milestone:
 
 ```text
-FORGEUI_INTERACTIVE_ASSET_FRAMEWORK_V1__BUTTON_AND_LIGHT__UNIFIED_UI_FLOW__PHYSICAL_ESP32P4_PROVEN
+FORGEUI_INTERACTIVE_ASSET_FRAMEWORK_V2__SHARED_BINARY_OUTPUT_RUNTIME__BUTTON__LIGHT__STATUS_INDICATOR__PHYSICAL_ESP32P4_PROVEN
 ```
 
 > **Build it. Prove it. Flash it. Improve it. Repeat.**
@@ -173,6 +173,7 @@ Currently implemented:
 
 - **Interactive Button**
 - **Interactive Light**
+- **Interactive Status Indicator**
 
 The Studio presents both through one creation flow:
 
@@ -198,7 +199,7 @@ Physical ESP32-P4
 
 The selected Asset Type controls the active designer, visible form, draft initialization, and AI generation mode. Editing an existing asset automatically opens the correct type.
 
-Button and Light share:
+Button, Light and Status Indicator share:
 
 - Interactive Asset Registry
 - validation
@@ -278,6 +279,40 @@ FG_Set_Status_Light(false);
 - Light does not generate a click hook.
 - Application code decides when to call the generated setter.
 
+### Interactive Status Indicator
+
+Interactive Status Indicator is a reusable binary output indicator built on the shared Binary Output Runtime.
+
+It supports:
+
+- OFF artwork
+- ON artwork
+- manual LVGL-ready asset selection or AI generation
+- saved initial OFF/ON state
+- temporary Canvas preview toggling
+- native LVGL export
+- multiple independent instances
+- generated public setter API
+
+Canvas clicks toggle only the temporary Studio preview. They do not modify the saved asset and are not exported as firmware interaction.
+
+In firmware, Status Indicator is a non-clickable LVGL image controlled through a generated public API:
+
+```c
+FG_Set_WiFi_Status(true);
+FG_Set_WiFi_Status(false);
+```
+
+or
+
+```c
+FG_Set_Status_Indicator(true);
+```
+
+depending on the assigned asset name.
+
+Status Indicator reuses the shared Binary Output Runtime introduced for Interactive Light. No additional runtime implementation is generated.
+
 ### Interactive Asset AI flow
 
 ```text
@@ -313,15 +348,19 @@ ForgeUI provides two directions across the generated UI/application boundary.
 Generated UI calls developer code:
 
 ```text
-Button touch
+Application logic
         ↓
-Generated LVGL callback
+FG_Set_Status_Light(true)
+
+or
+
+FG_Set_WiFi_Status(true)
         ↓
-FG_On_StartPump_Clicked()
+Shared Binary Output Runtime
         ↓
-95_UserEvents.c
+Generated LVGL runtime
         ↓
-Developer logic
+ON artwork
 ```
 
 ### Output controls
@@ -430,6 +469,7 @@ Proven deployment capabilities:
 - live state previews
 - reusable asset assignment
 - persistent Interactive Asset Registry
+- Interactive Status Indicator designer
 
 ### AI capabilities
 
@@ -442,6 +482,7 @@ Proven deployment capabilities:
 - native icon generation
 - Button Normal/Pressed generation
 - Light OFF/ON generation
+- Status Indicator OFF/ON generation
 
 ### Native asset pipeline
 
@@ -452,6 +493,7 @@ Proven deployment capabilities:
 - Uploaded Asset Registry
 - automatic LVGL C conversion
 - generated source integration into CMake
+- Status Indicator OFF/ON assets
 
 ### Build and deployment
 
@@ -464,6 +506,7 @@ Proven deployment capabilities:
 - generated `95_UserEvents` layer
 - developer-owned standalone integration layer
 - physical Button and Light validation
+- generated Light setter APIs
 
 ---
 
@@ -641,6 +684,10 @@ ForgeUI Studio has proven:....
 - ✓ physical Button pressed/released validation
 - ✓ physical Light ON/OFF validation
 - ✓ physical ESP32-P4 deployment
+- ✓ Interactive Status Indicator
+- ✓ Binary Output Runtime
+- ✓ generated Status Indicator setter APIs
+- ✓ shared Binary Output Runtime
 
 ---
 

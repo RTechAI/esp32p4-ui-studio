@@ -1,11 +1,13 @@
 import type { ForgeUIInteractiveButtonAsset } from './ForgeUIInteractiveButtonAsset'
 import type { ForgeUIInteractiveLightAsset } from './ForgeUIInteractiveLightAsset'
+import type { ForgeUIInteractiveStatusIndicatorAsset } from './ForgeUIInteractiveStatusIndicatorAsset'
 
 export const FORGEUI_INTERACTIVE_SCHEMA_VERSION = 1 as const
 
 export type ForgeUIInteractiveAssetKind =
   | 'button'
   | 'light'
+  | 'statusIndicator'
 
 export type ForgeUIInteractiveInteractionMode =
   | 'momentary'
@@ -33,6 +35,7 @@ export type ForgeUIInteractiveAssetBase = {
 export type ForgeUIInteractiveAsset =
   | ForgeUIInteractiveButtonAsset
   | ForgeUIInteractiveLightAsset
+  | ForgeUIInteractiveStatusIndicatorAsset
 
 export type ForgeUIInteractiveAssetOfKind<
   Kind extends ForgeUIInteractiveAssetKind,

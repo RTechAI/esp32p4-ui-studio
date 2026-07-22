@@ -2,19 +2,16 @@
 #include "lvgl.h"
 #include "20_RTC.h"
 #include "30_WIFI.h"
-#include "95_UserEvents.h"
 #include <stdbool.h>
 #include <stdio.h>
 
 static lv_obj_t * fg_clock_label = NULL;
 static lv_obj_t * fg_wifi_label = NULL;
 
-LV_IMAGE_DECLARE(fg_upload_ai_light_off_1784677420538_1784677443359_cd0a7737);
-LV_IMAGE_DECLARE(fg_upload_ai_light_on_1784677420538_1784677467382_7cc4b1f8);
-LV_IMAGE_DECLARE(fg_upload_ai_light_off_1784677508462_1784677530750_9b68369e);
-LV_IMAGE_DECLARE(fg_upload_ai_light_on_1784677508462_1784677552965_a4060f3c);
-LV_IMAGE_DECLARE(fg_upload_ai_light_off_1784678975755_1784679000762_85a1e4d7);
-LV_IMAGE_DECLARE(fg_upload_ai_light_on_1784678975755_1784679024330_3cbb5034);
+LV_IMAGE_DECLARE(fg_upload_ai_status_indicator_off_1784682697093_1784682720049_7d915498);
+LV_IMAGE_DECLARE(fg_upload_ai_status_indicator_on_1784682697093_1784682745545_91d4e231);
+LV_IMAGE_DECLARE(fg_upload_ai_status_indicator_off_1784682803488_1784682823685_bac02494);
+LV_IMAGE_DECLARE(fg_upload_ai_status_indicator_on_1784682803488_1784682850209_47290330);
 
 typedef struct
 {
@@ -41,90 +38,28 @@ static void fg_binary_output_set(
     );
 }
 
-static fg_binary_output_t fg_status_light_output = {
+static fg_binary_output_t fg_green_power_light_on1_output = {
     .image = NULL,
-    .off_src = &fg_upload_ai_light_off_1784677420538_1784677443359_cd0a7737,
-    .on_src = &fg_upload_ai_light_on_1784677420538_1784677467382_7cc4b1f8,
+    .off_src = &fg_upload_ai_status_indicator_off_1784682697093_1784682720049_7d915498,
+    .on_src = &fg_upload_ai_status_indicator_on_1784682697093_1784682745545_91d4e231,
     .enabled = true,
 };
 
-static fg_binary_output_t fg_status_light_2_output = {
+static fg_binary_output_t fg_red_power_light_off1_output = {
     .image = NULL,
-    .off_src = &fg_upload_ai_light_off_1784677508462_1784677530750_9b68369e,
-    .on_src = &fg_upload_ai_light_on_1784677508462_1784677552965_a4060f3c,
-    .enabled = true,
+    .off_src = &fg_upload_ai_status_indicator_off_1784682803488_1784682823685_bac02494,
+    .on_src = &fg_upload_ai_status_indicator_on_1784682803488_1784682850209_47290330,
+    .enabled = false,
 };
 
-static fg_binary_output_t fg_status_light_3_output = {
-    .image = NULL,
-    .off_src = &fg_upload_ai_light_off_1784678975755_1784679000762_85a1e4d7,
-    .on_src = &fg_upload_ai_light_on_1784678975755_1784679024330_3cbb5034,
-    .enabled = true,
-};
-
-void FG_Set_Status_Light(bool enabled)
+void FG_Set_Green_Power_Light_On1(bool enabled)
 {
-    fg_binary_output_set(&fg_status_light_output, enabled);
+    fg_binary_output_set(&fg_green_power_light_on1_output, enabled);
 }
 
-void FG_Set_Status_Light_2(bool enabled)
+void FG_Set_Red_Power_Light_Off1(bool enabled)
 {
-    fg_binary_output_set(&fg_status_light_2_output, enabled);
-}
-
-void FG_Set_Status_Light_3(bool enabled)
-{
-    fg_binary_output_set(&fg_status_light_3_output, enabled);
-}
-
-typedef struct
-{
-    const void * normal_src;
-    const void * pressed_src;
-    void (*clicked_cb)(void);
-    const char * event_name;
-} fg_interactive_button_data_t;
-
-static void fg_interactive_button_event_cb(lv_event_t *event)
-{
-    lv_event_code_t code = lv_event_get_code(event);
-    lv_obj_t * button = lv_event_get_target(event);
-
-    fg_interactive_button_data_t * data =
-        (fg_interactive_button_data_t *)lv_event_get_user_data(event);
-
-    if (!button || !data)
-    {
-        return;
-    }
-
-    lv_obj_t * image = lv_obj_get_child(button, 0);
-
-    if (!image)
-    {
-        return;
-    }
-
-    if (code == LV_EVENT_PRESSED)
-    {
-        lv_image_set_src(image, data->pressed_src);
-    }
-    else if (
-        code == LV_EVENT_RELEASED ||
-        code == LV_EVENT_PRESS_LOST
-    )
-    {
-        lv_image_set_src(image, data->normal_src);
-    }
-    else if (code == LV_EVENT_CLICKED)
-    {
-        printf("[ForgeUI] %s clicked\n", data->event_name);
-
-        if (data->clicked_cb)
-        {
-            data->clicked_cb();
-        }
-    }
+    fg_binary_output_set(&fg_red_power_light_off1_output, enabled);
 }
 
 static void fg_clock_tick_cb(lv_timer_t *timer)
@@ -183,107 +118,19 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_size(bg_texture_0, 1024, 600);
     lv_obj_move_background(bg_texture_0);
 
-    LV_IMAGE_DECLARE(fg_upload_ai_button_normal_1784677240652_1784677263363_f19e1afc);
-    LV_IMAGE_DECLARE(fg_upload_ai_button_pressed_1784677240652_1784677288928_db03b335);
-    lv_obj_t * obj1 = lv_button_create(parent);
-    lv_obj_set_pos(obj1, 624, 0);
-    lv_obj_set_size(obj1, 400, 300);
-    lv_obj_set_style_radius(obj1, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_width(obj1, 0, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(obj1, 0, LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(obj1, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_shadow_width(obj1, 0, LV_PART_MAIN);
-    lv_obj_t * obj1_img = lv_image_create(obj1);
-    lv_image_set_src(obj1_img, &fg_upload_ai_button_normal_1784677240652_1784677263363_f19e1afc);
-    lv_image_set_scale(obj1_img, 256);
-    lv_obj_center(obj1_img);
-    lv_obj_clear_flag(obj1_img, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_clear_flag(obj1, LV_OBJ_FLAG_SCROLLABLE);
-    static fg_interactive_button_data_t obj1_data = {
-        .normal_src = &fg_upload_ai_button_normal_1784677240652_1784677263363_f19e1afc,
-        .pressed_src = &fg_upload_ai_button_pressed_1784677240652_1784677288928_db03b335,
-        .clicked_cb = FG_On_GreenButton_Clicked,
-        .event_name = "FG_On_GreenButton_Clicked",
-    };
-    lv_obj_add_event_cb(obj1, fg_interactive_button_event_cb, LV_EVENT_PRESSED, &obj1_data);
-    lv_obj_add_event_cb(obj1, fg_interactive_button_event_cb, LV_EVENT_RELEASED, &obj1_data);
-    lv_obj_add_event_cb(obj1, fg_interactive_button_event_cb, LV_EVENT_PRESS_LOST, &obj1_data);
-    lv_obj_add_event_cb(obj1, fg_interactive_button_event_cb, LV_EVENT_CLICKED, &obj1_data);
+    fg_green_power_light_on1_output.image = lv_image_create(parent);
+    fg_binary_output_set(&fg_green_power_light_on1_output, true);
+    lv_obj_set_pos(fg_green_power_light_on1_output.image, 624, 41);
+    lv_obj_set_size(fg_green_power_light_on1_output.image, 400, 300);
+    lv_obj_clear_flag(fg_green_power_light_on1_output.image, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(fg_green_power_light_on1_output.image, LV_OBJ_FLAG_SCROLLABLE);
 
-    LV_IMAGE_DECLARE(fg_upload_ai_button_normal_1784677321403_1784677340179_f471c4db);
-    LV_IMAGE_DECLARE(fg_upload_ai_button_pressed_1784677321403_1784677360790_3c1521ce);
-    lv_obj_t * obj2 = lv_button_create(parent);
-    lv_obj_set_pos(obj2, 0, 0);
-    lv_obj_set_size(obj2, 400, 300);
-    lv_obj_set_style_radius(obj2, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_width(obj2, 0, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(obj2, 0, LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(obj2, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_shadow_width(obj2, 0, LV_PART_MAIN);
-    lv_obj_t * obj2_img = lv_image_create(obj2);
-    lv_image_set_src(obj2_img, &fg_upload_ai_button_normal_1784677321403_1784677340179_f471c4db);
-    lv_image_set_scale(obj2_img, 256);
-    lv_obj_center(obj2_img);
-    lv_obj_clear_flag(obj2_img, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_clear_flag(obj2, LV_OBJ_FLAG_SCROLLABLE);
-    static fg_interactive_button_data_t obj2_data = {
-        .normal_src = &fg_upload_ai_button_normal_1784677321403_1784677340179_f471c4db,
-        .pressed_src = &fg_upload_ai_button_pressed_1784677321403_1784677360790_3c1521ce,
-        .clicked_cb = FG_On_RedButton_Clicked,
-        .event_name = "FG_On_RedButton_Clicked",
-    };
-    lv_obj_add_event_cb(obj2, fg_interactive_button_event_cb, LV_EVENT_PRESSED, &obj2_data);
-    lv_obj_add_event_cb(obj2, fg_interactive_button_event_cb, LV_EVENT_RELEASED, &obj2_data);
-    lv_obj_add_event_cb(obj2, fg_interactive_button_event_cb, LV_EVENT_PRESS_LOST, &obj2_data);
-    lv_obj_add_event_cb(obj2, fg_interactive_button_event_cb, LV_EVENT_CLICKED, &obj2_data);
-
-    fg_status_light_output.image = lv_image_create(parent);
-    fg_binary_output_set(&fg_status_light_output, true);
-    lv_obj_set_pos(fg_status_light_output.image, 624, 244);
-    lv_obj_set_size(fg_status_light_output.image, 400, 300);
-    lv_obj_clear_flag(fg_status_light_output.image, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_clear_flag(fg_status_light_output.image, LV_OBJ_FLAG_SCROLLABLE);
-
-    fg_status_light_2_output.image = lv_image_create(parent);
-    fg_binary_output_set(&fg_status_light_2_output, true);
-    lv_obj_set_pos(fg_status_light_2_output.image, 6, 236);
-    lv_obj_set_size(fg_status_light_2_output.image, 400, 300);
-    lv_obj_clear_flag(fg_status_light_2_output.image, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_clear_flag(fg_status_light_2_output.image, LV_OBJ_FLAG_SCROLLABLE);
-
-    LV_IMAGE_DECLARE(fg_upload_ai_button_normal_1784678892980_1784678916596_c921e640);
-    LV_IMAGE_DECLARE(fg_upload_ai_button_pressed_1784678892980_1784678941099_8de82729);
-    lv_obj_t * obj5 = lv_button_create(parent);
-    lv_obj_set_pos(obj5, 330, 2);
-    lv_obj_set_size(obj5, 508, 300);
-    lv_obj_set_style_radius(obj5, 0, LV_PART_MAIN);
-    lv_obj_set_style_border_width(obj5, 0, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(obj5, 0, LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(obj5, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_shadow_width(obj5, 0, LV_PART_MAIN);
-    lv_obj_t * obj5_img = lv_image_create(obj5);
-    lv_image_set_src(obj5_img, &fg_upload_ai_button_normal_1784678892980_1784678916596_c921e640);
-    lv_image_set_scale(obj5_img, 256);
-    lv_obj_center(obj5_img);
-    lv_obj_clear_flag(obj5_img, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_clear_flag(obj5, LV_OBJ_FLAG_SCROLLABLE);
-    static fg_interactive_button_data_t obj5_data = {
-        .normal_src = &fg_upload_ai_button_normal_1784678892980_1784678916596_c921e640,
-        .pressed_src = &fg_upload_ai_button_pressed_1784678892980_1784678941099_8de82729,
-        .clicked_cb = FG_On_Button_Clicked,
-        .event_name = "FG_On_Button_Clicked",
-    };
-    lv_obj_add_event_cb(obj5, fg_interactive_button_event_cb, LV_EVENT_PRESSED, &obj5_data);
-    lv_obj_add_event_cb(obj5, fg_interactive_button_event_cb, LV_EVENT_RELEASED, &obj5_data);
-    lv_obj_add_event_cb(obj5, fg_interactive_button_event_cb, LV_EVENT_PRESS_LOST, &obj5_data);
-    lv_obj_add_event_cb(obj5, fg_interactive_button_event_cb, LV_EVENT_CLICKED, &obj5_data);
-
-    fg_status_light_3_output.image = lv_image_create(parent);
-    fg_binary_output_set(&fg_status_light_3_output, true);
-    lv_obj_set_pos(fg_status_light_3_output.image, 342, 291);
-    lv_obj_set_size(fg_status_light_3_output.image, 300, 200);
-    lv_obj_clear_flag(fg_status_light_3_output.image, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_clear_flag(fg_status_light_3_output.image, LV_OBJ_FLAG_SCROLLABLE);
+    fg_red_power_light_off1_output.image = lv_image_create(parent);
+    fg_binary_output_set(&fg_red_power_light_off1_output, false);
+    lv_obj_set_pos(fg_red_power_light_off1_output.image, 219, 41);
+    lv_obj_set_size(fg_red_power_light_off1_output.image, 400, 300);
+    lv_obj_clear_flag(fg_red_power_light_off1_output.image, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(fg_red_power_light_off1_output.image, LV_OBJ_FLAG_SCROLLABLE);
 
 
     fg_clock_tick_cb(NULL);

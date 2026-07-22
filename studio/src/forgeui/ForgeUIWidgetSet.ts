@@ -26,6 +26,7 @@ export const forgeuiCoreWidgets: ComponentType[] = [
   'Button',
   'InteractiveButton',
   'InteractiveLight',
+  'InteractiveStatusIndicator',
   'Text',
   'Heading',
   'Clock',

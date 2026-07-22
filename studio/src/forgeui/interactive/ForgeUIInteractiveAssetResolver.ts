@@ -9,6 +9,10 @@ import type {
   ForgeUIInteractiveLightAsset,
   ForgeUIInteractiveLightState,
 } from './ForgeUIInteractiveLightAsset'
+import type {
+  ForgeUIInteractiveStatusIndicatorAsset,
+  ForgeUIInteractiveStatusIndicatorState,
+} from './ForgeUIInteractiveStatusIndicatorAsset'
 
 export type ForgeUIInteractiveButtonVisuals = {
   normalAsset?: ForgeUIUploadedAsset
@@ -19,6 +23,8 @@ export type ForgeUIInteractiveLightVisuals = {
   offAsset?: ForgeUIUploadedAsset
   onAsset?: ForgeUIUploadedAsset
 }
+
+export type ForgeUIInteractiveStatusIndicatorVisuals = ForgeUIInteractiveLightVisuals
 
 export const findUploadedAssetById = (
   uploadedAssets: ForgeUIUploadedAsset[],
@@ -43,7 +49,7 @@ export const resolveInteractiveButtonVisuals = (
 })
 
 export const resolveInteractiveLightVisuals = (
-  asset: ForgeUIInteractiveLightAsset | undefined,
+  asset: ForgeUIInteractiveLightAsset | ForgeUIInteractiveStatusIndicatorAsset | undefined,
   uploadedAssets: ForgeUIUploadedAsset[],
 ): ForgeUIInteractiveLightVisuals => ({
   offAsset: findUploadedAssetById(
@@ -54,6 +60,14 @@ export const resolveInteractiveLightVisuals = (
     uploadedAssets,
     asset?.onAssetId,
   ),
+})
+
+export const resolveInteractiveStatusIndicatorVisuals = (
+  asset: ForgeUIInteractiveStatusIndicatorAsset | ForgeUIInteractiveLightAsset | undefined,
+  uploadedAssets: ForgeUIUploadedAsset[],
+): ForgeUIInteractiveStatusIndicatorVisuals => ({
+  offAsset: findUploadedAssetById(uploadedAssets, asset?.offAssetId),
+  onAsset: findUploadedAssetById(uploadedAssets, asset?.onAssetId),
 })
 
 export const isLvglReadyUploadedAsset = (
@@ -95,6 +109,27 @@ export const getInteractiveLightComponentProps = (
 })
 
 export const getInteractiveLightInitialState = (
-  asset: ForgeUIInteractiveLightAsset | undefined,
+  asset: ForgeUIInteractiveLightAsset | ForgeUIInteractiveStatusIndicatorAsset | undefined,
 ): ForgeUIInteractiveLightState =>
+  asset?.initialState === 'on' ? 'on' : 'off'
+
+export const getInteractiveStatusIndicatorDimensions = (
+  asset: ForgeUIInteractiveStatusIndicatorAsset | undefined,
+  fallback: { width: number; height: number },
+) => ({
+  width: asset?.width || fallback.width,
+  height: asset?.height || fallback.height,
+})
+
+export const getInteractiveStatusIndicatorComponentProps = (
+  asset: ForgeUIInteractiveStatusIndicatorAsset,
+) => ({
+  interactiveAssetId: asset.id,
+  w: String(asset.width),
+  h: String(asset.height),
+})
+
+export const getInteractiveStatusIndicatorInitialState = (
+  asset: ForgeUIInteractiveStatusIndicatorAsset | ForgeUIInteractiveLightAsset | undefined,
+): ForgeUIInteractiveStatusIndicatorState =>
   asset?.initialState === 'on' ? 'on' : 'off'

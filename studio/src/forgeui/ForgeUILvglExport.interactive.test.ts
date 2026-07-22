@@ -5,6 +5,7 @@ import {
   clearInteractiveAssetRegistry,
   createDefaultInteractiveButtonAsset,
   createDefaultInteractiveLightAsset,
+  createDefaultInteractiveStatusIndicatorAsset,
   registerInteractiveAsset,
 } from './interactive'
 import {
@@ -34,6 +35,50 @@ describe('Interactive Button LVGL export compatibility', () => {
   beforeEach(() => {
     clearInteractiveAssetRegistry()
     forgeUIClearUploadedAssets()
+  })
+
+  it('exports multiple Status Indicators beside a Light through one Binary Output Runtime', () => {
+    const offAsset = createUploadedAsset('shared_off')
+    const onAsset = createUploadedAsset('shared_on')
+    forgeUIAddUploadedAssets([offAsset, onAsset])
+    const createIndicator = (id: string, label: string) => ({
+      ...createDefaultInteractiveStatusIndicatorAsset(id),
+      label,
+      offAssetId: offAsset.id,
+      onAssetId: onAsset.id,
+    })
+    const wifi = createIndicator('wifi', 'WiFi Status')
+    const mqtt = createIndicator('mqtt', 'MQTT Status')
+    const light = {
+      ...createDefaultInteractiveLightAsset('light'),
+      label: 'Alarm', offAssetId: offAsset.id, onAssetId: onAsset.id,
+    }
+    ;[wifi, mqtt, light].forEach(registerInteractiveAsset)
+    const components: IComponents = {
+      root: { id: 'root', parent: 'root', type: 'Box', props: {}, children: ['wifi', 'mqtt', 'alarm'] },
+      wifi: { id: 'wifi', parent: 'root', type: 'InteractiveStatusIndicator', componentName: 'WiFi_Status', props: { interactiveAssetId: wifi.id, w: 32, h: 32 }, children: [] },
+      mqtt: { id: 'mqtt', parent: 'root', type: 'InteractiveStatusIndicator', componentName: 'MQTT_Status', props: { interactiveAssetId: mqtt.id, w: 32, h: 32 }, children: [] },
+      alarm: { id: 'alarm', parent: 'root', type: 'InteractiveLight', componentName: 'Alarm', props: { interactiveAssetId: light.id, w: 32, h: 32 }, children: [] },
+    }
+
+    const first = generateForgeUILvglCode(components)
+    const second = generateForgeUILvglCode(components)
+
+    expect(second.code).toBe(first.code)
+    expect(first.code.match(/typedef struct/g)).toHaveLength(1)
+    expect(first.code.match(/static void fg_binary_output_set\(/g)).toHaveLength(1)
+    expect(first.code.match(/static fg_binary_output_t fg_/g)).toHaveLength(3)
+    expect(first.publicApiDeclarations).toEqual([
+      'void FG_Set_Alarm(bool enabled);',
+      'void FG_Set_MQTT_Status(bool enabled);',
+      'void FG_Set_WiFi_Status(bool enabled);',
+    ])
+    expect(first.assetSources).toEqual(expect.arrayContaining([
+      offAsset.cFile,
+      onAsset.cFile,
+    ]))
+    expect(first.assetSources.filter(source => source === offAsset.cFile)).toHaveLength(1)
+    expect(first.assetSources.filter(source => source === onAsset.cFile)).toHaveLength(1)
   })
 
   it('preserves generated callback names and fallback wiring', () => {

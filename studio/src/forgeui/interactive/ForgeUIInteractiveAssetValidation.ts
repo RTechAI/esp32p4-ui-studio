@@ -6,6 +6,7 @@ import {
 } from './ForgeUIInteractiveAsset'
 import { ForgeUIInteractiveButtonAsset } from './ForgeUIInteractiveButtonAsset'
 import { ForgeUIInteractiveLightAsset } from './ForgeUIInteractiveLightAsset'
+import { ForgeUIInteractiveStatusIndicatorAsset } from './ForgeUIInteractiveStatusIndicatorAsset'
 
 const isNonEmptyString = (
   value: unknown,
@@ -245,6 +246,38 @@ export const validateInteractiveLightAsset: (
   }
 }
 
+export const validateInteractiveStatusIndicatorAsset: (
+  asset: unknown,
+) => asserts asset is ForgeUIInteractiveStatusIndicatorAsset = asset => {
+  validateInteractiveAssetBase(asset)
+  const indicator = asset as ForgeUIInteractiveStatusIndicatorAsset
+
+  if (indicator.kind !== 'statusIndicator') {
+    throw new Error('Interactive asset kind must be statusIndicator')
+  }
+  if (indicator.interactionMode !== 'state') {
+    throw new Error('Status Indicator interaction mode must be state')
+  }
+  if (!isNonEmptyString(indicator.label)) {
+    throw new Error('Status Indicator label is required')
+  }
+  if (!isFiniteNumber(indicator.width) || indicator.width <= 0) {
+    throw new Error('Status Indicator width must be greater than zero')
+  }
+  if (!isFiniteNumber(indicator.height) || indicator.height <= 0) {
+    throw new Error('Status Indicator height must be greater than zero')
+  }
+  if (indicator.offAssetId !== undefined && !isNonEmptyString(indicator.offAssetId)) {
+    throw new Error('Status Indicator offAssetId must be a non-empty string')
+  }
+  if (indicator.onAssetId !== undefined && !isNonEmptyString(indicator.onAssetId)) {
+    throw new Error('Status Indicator onAssetId must be a non-empty string')
+  }
+  if (indicator.initialState !== 'off' && indicator.initialState !== 'on') {
+    throw new Error('Status Indicator initialState must be off or on')
+  }
+}
+
 export const validateInteractiveAsset: (
   asset: unknown,
 ) => asserts asset is ForgeUIInteractiveAsset = (
@@ -258,6 +291,9 @@ export const validateInteractiveAsset: (
       return
     case 'light':
       validateInteractiveLightAsset(asset)
+      return
+    case 'statusIndicator':
+      validateInteractiveStatusIndicatorAsset(asset)
       return
     default:
       throw new Error(
