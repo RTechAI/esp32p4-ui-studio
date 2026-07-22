@@ -7,6 +7,7 @@ import type { ForgeUIInteractiveButtonAsset } from './ForgeUIInteractiveButtonAs
 import type { ForgeUIInteractiveLightAsset } from './ForgeUIInteractiveLightAsset'
 import type { ForgeUIInteractiveStatusIndicatorAsset } from './ForgeUIInteractiveStatusIndicatorAsset'
 import type { ForgeUIInteractiveToggleSwitchAsset } from './ForgeUIInteractiveToggleSwitchAsset'
+import type { ForgeUIInteractiveThreePositionToggleAsset } from './ForgeUIInteractiveThreePositionToggleAsset'
 import { validateInteractiveAsset } from './ForgeUIInteractiveAssetValidation'
 
 // The registry owns the in-memory lifetime of all Interactive Asset kinds.
@@ -68,6 +69,11 @@ export const getInteractiveToggleSwitchAsset = (
   id: string,
 ): ForgeUIInteractiveToggleSwitchAsset | undefined =>
   getInteractiveAssetByKind(id, 'toggleSwitch')
+
+export const getInteractiveThreePositionToggleAsset = (
+  id: string,
+): ForgeUIInteractiveThreePositionToggleAsset | undefined =>
+  getInteractiveAssetByKind(id, 'threePositionToggle')
 
 export const getAllInteractiveAssets = (
 ): ForgeUIInteractiveAsset[] =>

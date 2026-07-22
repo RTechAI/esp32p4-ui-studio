@@ -8,6 +8,7 @@ import { ForgeUIInteractiveButtonAsset } from './ForgeUIInteractiveButtonAsset'
 import { ForgeUIInteractiveLightAsset } from './ForgeUIInteractiveLightAsset'
 import { ForgeUIInteractiveStatusIndicatorAsset } from './ForgeUIInteractiveStatusIndicatorAsset'
 import { ForgeUIInteractiveToggleSwitchAsset } from './ForgeUIInteractiveToggleSwitchAsset'
+import { ForgeUIInteractiveThreePositionToggleAsset } from './ForgeUIInteractiveThreePositionToggleAsset'
 
 const isNonEmptyString = (
   value: unknown,
@@ -294,6 +295,22 @@ export const validateInteractiveToggleSwitchAsset: (
   if (toggle.initialState !== 'off' && toggle.initialState !== 'on') throw new Error('Toggle Switch initialState must be off or on')
 }
 
+export const validateInteractiveThreePositionToggleAsset: (
+  asset: unknown,
+) => asserts asset is ForgeUIInteractiveThreePositionToggleAsset = asset => {
+  validateInteractiveAssetBase(asset)
+  const toggle = asset as ForgeUIInteractiveThreePositionToggleAsset
+  if (toggle.kind !== 'threePositionToggle') throw new Error('Interactive asset kind must be threePositionToggle')
+  if (toggle.interactionMode !== 'state') throw new Error('Three-Position Toggle interaction mode must be state')
+  if (!isNonEmptyString(toggle.label)) throw new Error('Three-Position Toggle label is required')
+  if (!isFiniteNumber(toggle.width) || toggle.width <= 0) throw new Error('Three-Position Toggle width must be greater than zero')
+  if (!isFiniteNumber(toggle.height) || toggle.height <= 0) throw new Error('Three-Position Toggle height must be greater than zero')
+  ;(['leftAssetId', 'centerAssetId', 'rightAssetId'] as const).forEach(key => {
+    if (toggle[key] !== undefined && !isNonEmptyString(toggle[key])) throw new Error(`Three-Position Toggle ${key} must be a non-empty string`)
+  })
+  if (!['left', 'center', 'right'].includes(toggle.initialState)) throw new Error('Three-Position Toggle initialState must be left, center, or right')
+}
+
 export const validateInteractiveAsset: (
   asset: unknown,
 ) => asserts asset is ForgeUIInteractiveAsset = (
@@ -313,6 +330,9 @@ export const validateInteractiveAsset: (
       return
     case 'toggleSwitch':
       validateInteractiveToggleSwitchAsset(asset)
+      return
+    case 'threePositionToggle':
+      validateInteractiveThreePositionToggleAsset(asset)
       return
     default:
       throw new Error(

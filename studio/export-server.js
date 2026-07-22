@@ -1077,7 +1077,7 @@ function generateUserEventFiles(userEventHooks) {
       )
         .map((hook) => String(hook || '').trim())
         .filter((hook) =>
-          /^FG_On_[A-Za-z0-9_]+_(Clicked|Toggled)$/.test(hook)
+          /^FG_On_[A-Za-z0-9_]+_(Clicked|Toggled|Changed)$/.test(hook)
         )
     )
   )
@@ -1087,7 +1087,7 @@ function generateUserEventFiles(userEventHooks) {
   const declarations = uniqueHooks
     .map((hook) => hook.endsWith('_Toggled')
       ? `void ${hook}(bool enabled);`
-      : `void ${hook}(void);`)
+      : hook.endsWith('_Changed') ? `void ${hook}(fg_three_way_state_t state);` : `void ${hook}(void);`)
     .join('\n')
 
   const definitions = uniqueHooks
@@ -1096,7 +1096,11 @@ function generateUserEventFiles(userEventHooks) {
 {
     printf("[ForgeUI User Event] ${hook}: %s\\n", enabled ? "ON" : "OFF");
 }`
-      : `void ${hook}(void)
+      : hook.endsWith('_Changed') ? `void ${hook}(fg_three_way_state_t state)
+{
+    const char * text = state == FG_THREE_WAY_LEFT ? "LEFT" : state == FG_THREE_WAY_RIGHT ? "RIGHT" : "CENTER";
+    printf("[ForgeUI User Event] ${hook}: %s\\n", text);
+}` : `void ${hook}(void)
 {
     printf("[ForgeUI User Event] ${hook}\\n");
 }`
@@ -1118,6 +1122,13 @@ function generateUserEventFiles(userEventHooks) {
 #pragma once
 
 #include <stdbool.h>
+
+typedef enum
+{
+    FG_THREE_WAY_LEFT = -1,
+    FG_THREE_WAY_CENTER = 0,
+    FG_THREE_WAY_RIGHT = 1
+} fg_three_way_state_t;
 
 #ifdef __cplusplus
 extern "C" {

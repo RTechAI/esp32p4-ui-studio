@@ -4,6 +4,7 @@ import {
   getInteractiveLightAsset,
   getInteractiveStatusIndicatorAsset,
   getInteractiveToggleSwitchAsset,
+  getInteractiveThreePositionToggleAsset,
   registerInteractiveAsset,
 } from './ForgeUIInteractiveAssetRegistry'
 import {
@@ -14,6 +15,7 @@ import {
 } from './ForgeUIInteractiveLightAsset'
 import { createDefaultInteractiveStatusIndicatorAsset } from './ForgeUIInteractiveStatusIndicatorAsset'
 import { createDefaultInteractiveToggleSwitchAsset } from './ForgeUIInteractiveToggleSwitchAsset'
+import { createDefaultInteractiveThreePositionToggleAsset } from './ForgeUIInteractiveThreePositionToggleAsset'
 import {
   FORGEUI_INTERACTIVE_ASSETS_STORAGE_KEY,
   reloadInteractiveAssets,
@@ -86,5 +88,8 @@ describe('Interactive Asset persistence', () => {
     const toggle = { ...createDefaultInteractiveToggleSwitchAsset('power'), offAssetId: 'off', onAssetId: 'on', initialState: 'on' as const }
     registerInteractiveAsset(toggle); saveInteractiveAssets(); clearInteractiveAssetRegistry(); reloadInteractiveAssets()
     expect(getInteractiveToggleSwitchAsset(toggle.id)).toEqual(toggle)
+  })
+  it('round-trips all three artwork references and state through the existing v1 key', () => {
+    const toggle={...createDefaultInteractiveThreePositionToggleAsset('mode'),leftAssetId:'left',centerAssetId:'center',rightAssetId:'right',initialState:'right' as const};registerInteractiveAsset(toggle);saveInteractiveAssets();clearInteractiveAssetRegistry();reloadInteractiveAssets();expect(getInteractiveThreePositionToggleAsset(toggle.id)).toEqual(toggle)
   })
 })

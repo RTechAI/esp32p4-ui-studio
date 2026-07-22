@@ -14,6 +14,7 @@ import type {
   ForgeUIInteractiveStatusIndicatorState,
 } from './ForgeUIInteractiveStatusIndicatorAsset'
 import type { ForgeUIInteractiveToggleSwitchAsset, ForgeUIInteractiveToggleSwitchState } from './ForgeUIInteractiveToggleSwitchAsset'
+import type { ForgeUIInteractiveThreePositionToggleAsset, ForgeUIInteractiveThreePositionState } from './ForgeUIInteractiveThreePositionToggleAsset'
 
 export type ForgeUIInteractiveButtonVisuals = {
   normalAsset?: ForgeUIUploadedAsset
@@ -27,6 +28,7 @@ export type ForgeUIInteractiveLightVisuals = {
 
 export type ForgeUIInteractiveStatusIndicatorVisuals = ForgeUIInteractiveLightVisuals
 export type ForgeUIInteractiveToggleSwitchVisuals = ForgeUIInteractiveLightVisuals
+export type ForgeUIInteractiveThreePositionVisuals = { leftAsset?: ForgeUIUploadedAsset; centerAsset?: ForgeUIUploadedAsset; rightAsset?: ForgeUIUploadedAsset }
 
 export const findUploadedAssetById = (
   uploadedAssets: ForgeUIUploadedAsset[],
@@ -153,3 +155,21 @@ export const getInteractiveToggleSwitchComponentProps = (
 export const getInteractiveToggleSwitchInitialState = (
   asset: ForgeUIInteractiveToggleSwitchAsset | undefined,
 ): ForgeUIInteractiveToggleSwitchState => asset?.initialState === 'on' ? 'on' : 'off'
+
+export const resolveInteractiveThreePositionVisuals = (
+  asset: ForgeUIInteractiveThreePositionToggleAsset | undefined,
+  uploadedAssets: ForgeUIUploadedAsset[],
+): ForgeUIInteractiveThreePositionVisuals => ({
+  leftAsset: findUploadedAssetById(uploadedAssets, asset?.leftAssetId),
+  centerAsset: findUploadedAssetById(uploadedAssets, asset?.centerAssetId),
+  rightAsset: findUploadedAssetById(uploadedAssets, asset?.rightAssetId),
+})
+
+export const getInteractiveThreePositionDimensions = (asset: ForgeUIInteractiveThreePositionToggleAsset | undefined, fallback: { width: number; height: number }) =>
+  ({ width: asset?.width || fallback.width, height: asset?.height || fallback.height })
+
+export const getInteractiveThreePositionComponentProps = (asset: ForgeUIInteractiveThreePositionToggleAsset) =>
+  ({ interactiveAssetId: asset.id, w: String(asset.width), h: String(asset.height) })
+
+export const getInteractiveThreePositionInitialState = (asset: ForgeUIInteractiveThreePositionToggleAsset | undefined): ForgeUIInteractiveThreePositionState =>
+  asset && ['left', 'center', 'right'].includes(asset.initialState) ? asset.initialState : 'center'

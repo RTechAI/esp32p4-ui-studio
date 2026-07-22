@@ -7,6 +7,7 @@ export type ForgeUIExportDiagnosticCategory =
   | 'Interactive Light'
   | 'Interactive Status Indicator'
   | 'Interactive Toggle Switch'
+  | 'Interactive Three-Position Toggle Switch'
   | 'Uploaded Assets'
   | 'Canvas'
   | 'Public API'
@@ -109,7 +110,7 @@ export const validateForgeUIExport = (
   const referencedUploadedIds = new Set<string>()
 
   const validateImage = (
-    category: 'Interactive Button' | 'Interactive Light' | 'Interactive Status Indicator' | 'Interactive Toggle Switch',
+    category: 'Interactive Button' | 'Interactive Light' | 'Interactive Status Indicator' | 'Interactive Toggle Switch' | 'Interactive Three-Position Toggle Switch',
     subject: string,
     state: string,
     assetId: string | undefined,
@@ -142,6 +143,8 @@ export const validateForgeUIExport = (
         ? 'Interactive Status Indicator'
         : asset.kind === 'toggleSwitch'
           ? 'Interactive Toggle Switch'
+        : asset.kind === 'threePositionToggle'
+          ? 'Interactive Three-Position Toggle Switch'
         : 'Interactive Light'
     const subject = asset.name || asset.id
 
@@ -151,6 +154,11 @@ export const validateForgeUIExport = (
     if (asset.kind === 'button') {
       validateImage(category, subject, 'Normal', asset.normalAssetId)
       validateImage(category, subject, 'Pressed', asset.pressedAssetId)
+    } else if (asset.kind === 'threePositionToggle') {
+      validateImage(category, subject, 'LEFT', asset.leftAssetId)
+      validateImage(category, subject, 'CENTER', asset.centerAssetId)
+      validateImage(category, subject, 'RIGHT', asset.rightAssetId)
+      if (!['left', 'center', 'right'].includes(asset.initialState)) add(category, subject, 'Initial state must be left, center, or right')
     } else {
       validateImage(category, subject, 'OFF', asset.offAssetId)
       validateImage(category, subject, 'ON', asset.onAssetId)
@@ -225,6 +233,7 @@ export const validateForgeUIExport = (
       component.type !== 'InteractiveLight' &&
       component.type !== 'InteractiveStatusIndicator'
       && component.type !== 'InteractiveToggleSwitch'
+      && component.type !== 'InteractiveThreePositionToggleSwitch'
     ) {
       return
     }
@@ -234,6 +243,8 @@ export const validateForgeUIExport = (
         ? 'statusIndicator'
         : component.type === 'InteractiveToggleSwitch'
           ? 'toggleSwitch'
+        : component.type === 'InteractiveThreePositionToggleSwitch'
+          ? 'threePositionToggle'
         : 'light'
     const assetId = component.props.interactiveAssetId
     const asset = typeof assetId === 'string' ? interactiveById.get(assetId) : undefined
@@ -246,14 +257,14 @@ export const validateForgeUIExport = (
     if (asset.kind !== expectedKind) {
       add('Canvas', subject, `Interactive Asset kind must be ${expectedKind}`)
     }
-    if (expectedKind === 'button' || expectedKind === 'toggleSwitch') {
+    if (expectedKind === 'button' || expectedKind === 'toggleSwitch' || expectedKind === 'threePositionToggle') {
       const base = toCIdentifier(
-        expectedKind === 'toggleSwitch'
+        expectedKind === 'toggleSwitch' || expectedKind === 'threePositionToggle'
           ? component.componentName || ('label' in asset ? asset.label : component.id)
           : 'label' in asset ? asset.label : component.props.label,
-        expectedKind === 'toggleSwitch' ? 'InteractiveToggleSwitch' : 'InteractiveButton',
+        expectedKind === 'toggleSwitch' ? 'InteractiveToggleSwitch' : expectedKind === 'threePositionToggle' ? 'InteractiveThreePositionToggle' : 'InteractiveButton',
       )
-      const name = `FG_On_${base}_${expectedKind === 'toggleSwitch' ? 'Toggled' : 'Clicked'}`
+      const name = `FG_On_${base}_${expectedKind === 'toggleSwitch' ? 'Toggled' : expectedKind === 'threePositionToggle' ? 'Changed' : 'Clicked'}`
       const previous = hookNames.get(name)
       if (previous) add('Public API', name, expectedKind === 'button'
         ? `Duplicate Button hook for ${previous} and ${subject}`

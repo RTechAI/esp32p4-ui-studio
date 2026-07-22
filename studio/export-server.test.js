@@ -44,6 +44,15 @@ describe('generated public UI API headers', () => {
     expect(files.header).toContain('void FG_On_Main_Power_Toggled(bool enabled);')
     expect(files.source).toContain('void FG_On_Main_Power_Toggled(bool enabled)')
   })
+
+  it('generates Three-Position changed hooks with the shared enum and readable states', () => {
+    const files = generateUserEventFiles(['FG_On_ModeSelector_Changed'])
+    expect(files.header).toContain('FG_THREE_WAY_LEFT = -1')
+    expect(files.header).toContain('void FG_On_ModeSelector_Changed(fg_three_way_state_t state);')
+    expect(files.source).toContain('"LEFT"')
+    expect(files.source).toContain('"CENTER"')
+    expect(files.source).toContain('"RIGHT"')
+  })
 })
 
 describe('server export preflight', () => {

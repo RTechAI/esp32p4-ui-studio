@@ -15,6 +15,9 @@ import {
   resolveInteractiveLightVisuals,
   resolveInteractiveStatusIndicatorVisuals,
   resolveInteractiveToggleSwitchVisuals,
+  getInteractiveThreePositionToggleAsset,
+  getInteractiveThreePositionInitialState,
+  resolveInteractiveThreePositionVisuals,
 } from './interactive'
 
 import {
@@ -226,6 +229,19 @@ const createToggleInputExports = (
   return result
 }
 
+type ThreeWayInputExport = { hookName: string; runtimeName: string; leftSymbol?: string; centerSymbol?: string; rightSymbol?: string; initialState: 'left'|'center'|'right'; ready: boolean }
+const createThreeWayInputExports = (components: IComponents, usedAssetSources: Set<string>, usedHookNames: Set<string>, userEventHooks: Set<string>) => {
+  const result = new Map<string, ThreeWayInputExport>(); const uploaded = forgeUIGetUploadedAssets()
+  Object.values(components).filter(c => c.type === 'InteractiveThreePositionToggleSwitch').sort((a,b)=>a.id.localeCompare(b.id)).forEach(component => {
+    const asset = component.props.interactiveAssetId ? getInteractiveThreePositionToggleAsset(component.props.interactiveAssetId) : undefined
+    const base = toCIdentifier(component.componentName || asset?.label || asset?.name || component.id, 'ThreePositionToggle')
+    let hookName = `FG_On_${base}_Changed`; let suffix=2; while(usedHookNames.has(hookName)) hookName=`FG_On_${base}_${suffix++}_Changed`; usedHookNames.add(hookName); userEventHooks.add(hookName)
+    const {leftAsset,centerAsset,rightAsset}=resolveInteractiveThreePositionVisuals(asset,uploaded); const ready=[leftAsset,centerAsset,rightAsset].every(isLvglReadyUploadedAsset)
+    if(ready) [leftAsset,centerAsset,rightAsset].forEach(a=>{if(a?.cFile)usedAssetSources.add(a.cFile)})
+    result.set(component.id,{hookName,runtimeName:`fg_${component.id.replace(/[^A-Za-z0-9_]/g,'_')}_three_way`,leftSymbol:ready?leftAsset?.lvgl:undefined,centerSymbol:ready?centerAsset?.lvgl:undefined,rightSymbol:ready?rightAsset?.lvgl:undefined,initialState:getInteractiveThreePositionInitialState(asset),ready})
+  }); return result
+}
+
 type BinaryOutputExport = {
   apiName: string
   runtimeName: string
@@ -317,6 +333,7 @@ const buildLvglBlock = (
   userEventHooks: Set<string>,
   binaryOutputExports: Map<string, BinaryOutputExport>,
   toggleInputExports: Map<string, ToggleInputExport>,
+  threeWayInputExports: Map<string, ThreeWayInputExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -736,6 +753,25 @@ case 'InteractiveToggleSwitch': {
   }
   lines.push(``)
   break
+}
+
+case 'InteractiveThreePositionToggleSwitch': {
+  const input = threeWayInputExports.get(child.id)
+  if (input?.ready && input.leftSymbol && input.centerSymbol && input.rightSymbol) {
+    lines.push(`${input.runtimeName}.button = lv_button_create(${parentVar});`)
+    lines.push(`lv_obj_set_pos(${input.runtimeName}.button, ${x}, ${y});`)
+    lines.push(`lv_obj_set_size(${input.runtimeName}.button, ${w}, ${h});`)
+    lines.push(`lv_obj_add_flag(${input.runtimeName}.button, LV_OBJ_FLAG_CLICKABLE);`)
+    lines.push(`lv_obj_clear_flag(${input.runtimeName}.button, LV_OBJ_FLAG_SCROLLABLE);`)
+    lines.push(`lv_obj_set_style_pad_all(${input.runtimeName}.button, 0, 0);`)
+    lines.push(`${input.runtimeName}.image = lv_image_create(${input.runtimeName}.button);`)
+    lines.push(`lv_obj_clear_flag(${input.runtimeName}.image, LV_OBJ_FLAG_CLICKABLE);`)
+    lines.push(`lv_obj_clear_flag(${input.runtimeName}.image, LV_OBJ_FLAG_SCROLLABLE);`)
+    lines.push(`lv_obj_center(${input.runtimeName}.image);`)
+    lines.push(`fg_three_way_input_set(&${input.runtimeName}, ${input.initialState === 'left' ? 'FG_THREE_WAY_LEFT' : input.initialState === 'right' ? 'FG_THREE_WAY_RIGHT' : 'FG_THREE_WAY_CENTER'}, false);`)
+    lines.push(`lv_obj_add_event_cb(${input.runtimeName}.button, fg_three_way_input_event_cb, LV_EVENT_CLICKED, &${input.runtimeName});`)
+  } else { lines.push(`lv_obj_t * ${varName} = lv_label_create(${parentVar});`); lines.push(`lv_label_set_text(${varName}, "Missing Three-Position Toggle Assets");`); lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`); lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`) }
+  lines.push(``); break
 }
 
       case 'IconButton': {
@@ -1431,6 +1467,7 @@ case 'Chart': {
         userEventHooks,
         binaryOutputExports,
         toggleInputExports,
+        threeWayInputExports,
       )
     }
   })
@@ -1455,6 +1492,7 @@ export const generateForgeUILvglCode = (
   const toggleInputExports = createToggleInputExports(
     components, usedAssetSources, usedHookNames, userEventHooks,
   )
+  const threeWayInputExports = createThreeWayInputExports(components, usedAssetSources, usedHookNames, userEventHooks)
 
   const previewPalette =
   FG_PREVIEW_PALETTES[themeId as ForgeThemeId] ||
@@ -1523,7 +1561,7 @@ const backgroundMode =
   lines.push(`#include "lvgl.h"`)
   lines.push(`#include "20_RTC.h"`)
   lines.push(`#include "30_WIFI.h"`)
-  if (hasInteractiveButtons || toggleInputExports.size > 0) {
+  if (hasInteractiveButtons || toggleInputExports.size > 0 || threeWayInputExports.size > 0) {
     lines.push(`#include "95_UserEvents.h"`)
   }
   lines.push(`#include <stdbool.h>`)
@@ -1562,6 +1600,38 @@ const backgroundMode =
       }
     })
   })
+  const declaredThreeWaySymbols = new Set<string>()
+  threeWayInputExports.forEach(input => { if (!input.ready) return; [input.leftSymbol,input.centerSymbol,input.rightSymbol].forEach(symbol=>{if(symbol&&!declaredThreeWaySymbols.has(symbol)){lines.push(`LV_IMAGE_DECLARE(${symbol});`);declaredThreeWaySymbols.add(symbol)}}) })
+  if (declaredThreeWaySymbols.size) {
+    lines.push(`typedef struct { lv_obj_t * button; lv_obj_t * image; const void * left_src; const void * center_src; const void * right_src; fg_three_way_state_t state; void (*changed_cb)(fg_three_way_state_t state); } fg_three_way_input_t;`)
+    lines.push(`static void fg_three_way_input_set(fg_three_way_input_t * input, fg_three_way_state_t state, bool notify)`)
+    lines.push(`{`); lines.push(`    if (!input || (state != FG_THREE_WAY_LEFT && state != FG_THREE_WAY_CENTER && state != FG_THREE_WAY_RIGHT)) return;`); lines.push(`    input->state = state;`); lines.push(`    const void * src = state == FG_THREE_WAY_LEFT ? input->left_src : state == FG_THREE_WAY_RIGHT ? input->right_src : input->center_src;`); lines.push(`    if (input->image) lv_image_set_src(input->image, src);`); lines.push(`    if (notify && input->changed_cb) input->changed_cb(state);`); lines.push(`}`)
+    lines.push(`static void fg_three_way_input_event_cb(lv_event_t * event)`)
+    lines.push(`{`)
+    lines.push(`    fg_three_way_input_t * input = (fg_three_way_input_t *)lv_event_get_user_data(event);`)
+    lines.push(`    lv_obj_t * button = lv_event_get_target(event);`)
+    lines.push(`    lv_indev_t * indev = lv_indev_active();`)
+    lines.push(`    if (!input || !button || !indev) return;`)
+    lines.push(``)
+    lines.push(`    lv_point_t point;`)
+    lines.push(`    lv_area_t button_coords;`)
+    lines.push(`    lv_indev_get_point(indev, &point);`)
+    lines.push(`    lv_obj_get_coords(button, &button_coords);`)
+    lines.push(``)
+    lines.push(`    int32_t width = lv_area_get_width(&button_coords);`)
+    lines.push(`    int32_t local_x = point.x - button_coords.x1;`)
+    lines.push(`    if (width <= 0 || local_x < 0 || local_x >= width) return;`)
+    lines.push(``)
+    lines.push(`    fg_three_way_state_t state = local_x < width / 3`)
+    lines.push(`        ? FG_THREE_WAY_LEFT`)
+    lines.push(`        : local_x < (width * 2) / 3`)
+    lines.push(`            ? FG_THREE_WAY_CENTER`)
+    lines.push(`            : FG_THREE_WAY_RIGHT;`)
+    lines.push(`    fg_three_way_input_set(input, state, true);`)
+    lines.push(`}`)
+    lines.push(``)
+  }
+  threeWayInputExports.forEach(input=>{if(!input.ready||!input.leftSymbol||!input.centerSymbol||!input.rightSymbol)return;lines.push(`static fg_three_way_input_t ${input.runtimeName} = {`);lines.push(`    .button = NULL, .image = NULL, .left_src = &${input.leftSymbol}, .center_src = &${input.centerSymbol}, .right_src = &${input.rightSymbol},`);lines.push(`    .state = ${input.initialState==='left'?'FG_THREE_WAY_LEFT':input.initialState==='right'?'FG_THREE_WAY_RIGHT':'FG_THREE_WAY_CENTER'}, .changed_cb = ${input.hookName},`);lines.push(`};`);lines.push(``)})
   if (declaredToggleSymbols.size > 0) {
     lines.push(`typedef struct { lv_obj_t * button; lv_obj_t * image; const void * off_src; const void * on_src; bool enabled; void (*toggled_cb)(bool); } fg_toggle_input_t;`)
     lines.push(`static void fg_toggle_input_set(fg_toggle_input_t * toggle, bool enabled, bool notify)`)
@@ -1816,6 +1886,7 @@ lines.push(`}`)
         userEventHooks,
         binaryOutputExports,
         toggleInputExports,
+        threeWayInputExports,
       )
   }
 

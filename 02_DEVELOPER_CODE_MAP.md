@@ -2,7 +2,7 @@
 
 ## Current save point
 
-**FORGEUI_PROJECT_HEALTH_PHASE2__EXPORT_VALIDATION__REFERENCE_PROTECTION__BUTTON_LIGHT_STATUS_INDICATOR__BINARY_OUTPUT_RUNTIME__THEME__PHYSICAL_ESP32P4_PROVEN__2026-07-22**
+**FORGEUI_FIVE_INTERACTIVE_ASSETS__THREE_RUNTIME_FAMILIES__PROJECT_HEALTH_PHASE2__TOGGLE_PHYSICAL_VALIDATION_PENDING__2026-07-22**
 
 ## Purpose
 
@@ -19,11 +19,13 @@ Use this document to answer:
 
 ## Proven system status
 
-The framework currently has four implemented asset types:
+The framework currently has five implemented asset types:
 
 ```text
 Shared Interactive Asset Framework
 ├── Interactive Button
+├── Interactive Toggle Switch
+├── Interactive Three-Position Toggle Switch
 ├── Interactive Light
 └── Interactive Status Indicator
 ```
@@ -39,11 +41,11 @@ The shared framework is proven through:
 - Studio preview
 - LVGL export
 - ESP-IDF build
-- physical ESP32-P4 runtime
+- physical ESP32-P4 runtime where recorded below
 
-The Physical ESP32-P4 proof section records the physically validated Button and Light behaviors. Status Indicator proves reuse of the same Binary Output Runtime through its model, Studio, Canvas, persistence, validation, preview, multi-instance, coexistence, and exporter contracts.
+The Physical ESP32-P4 proof section records the physically validated Button and Light behaviors. Toggle Switch and Three-Position Toggle are implementation- and host-validation complete, but their current physical ESP32-P4 validation remains pending. Status Indicator proves reuse of the same Binary Output Runtime through its model, Studio, Canvas, persistence, validation, preview, multi-instance, coexistence, and exporter contracts.
 
-Interactive Button, Interactive Light and Interactive Status Indicator are separate discriminated models inside one framework. They share infrastructure. Interactive Button belongs to the Interactive Input Runtime; Interactive Light and Interactive Status Indicator belong to the Binary Output Runtime and deliberately share its runtime behavior.
+All five controls are separate discriminated models inside one framework. They share infrastructure. Interactive Button and Interactive Toggle Switch belong to the Interactive Input Runtime, Interactive Three-Position Toggle Switch owns the Three-Position Input Runtime, and Interactive Light and Interactive Status Indicator belong to the Binary Output Runtime.
 
 ## System architecture
 
@@ -52,6 +54,8 @@ Interactive Assets panel
   │
   ├── parent-owned selectedAssetKind
   │     ├── button          → Button designer
+  │     ├── toggleSwitch    → shared OFF/ON designer
+  │     ├── threePositionToggle → Three-Position designer
   │     ├── light           → Light designer
   │     └── statusIndicator → Status Indicator designer
   │
@@ -109,6 +113,7 @@ The client preflight owns validation of:
 - Interactive Asset existence, kind, dimensions, and required state images
 - uploaded-asset existence and LVGL readiness
 - generated Button hooks and Binary Output public setter APIs
+- generated Toggle hooks, Three-Position hooks, enum and runtime contracts
 - duplicate component IDs, APIs, symbols, and declarations
 - relative generated asset-source paths and referenced-source coverage
 
@@ -184,9 +189,15 @@ interactionMode: state
 
 kind: statusIndicator
 interactionMode: state
+
+kind: toggleSwitch
+interactionMode: state
+
+kind: threePositionToggle
+interactionMode: state
 ```
 
-Do not flatten Button, Light and Status Indicator into one state model. Add another member to the discriminated union when a new persisted type is implemented.
+Do not flatten momentary, binary input, three-position input and binary output assets into one state model. Add another discriminated-union member only when a new persisted type is implemented.
 
 ## Source map and ownership
 
@@ -211,7 +222,7 @@ Extend this union when adding a persisted Interactive Asset kind.
 
 Owns Interactive Asset ID creation through `createInteractiveAssetId()`.
 
-Do not introduce a type-specific Button, Light or Status Indicator ID generator.
+Do not introduce a type-specific ID generator for any current Interactive Asset kind.
 
 #### `src/forgeui/interactive/ForgeUIInteractiveAssetRegistry.ts`
 
@@ -236,13 +247,15 @@ Important APIs include:
 - `getInteractiveButtonAsset()`
 - `getInteractiveLightAsset()`
 - `getInteractiveStatusIndicatorAsset()`
+- `getInteractiveToggleSwitchAsset()`
+- `getInteractiveThreePositionToggleAsset()`
 - `getAllInteractiveAssets()`
 - `updateInteractiveAssetByKind()`
 - `removeInteractiveAsset()`
 - `importInteractiveAssets()`
 - `exportInteractiveAssets()`
 
-Validation occurs at registry boundaries. Kind-aware access prevents a Button, Light or Status Indicator asset from resolving as another kind.
+Validation occurs at registry boundaries. Kind-aware access prevents any of the five asset models from resolving as another kind.
 
 Do not create a parallel registry for another Interactive Asset type.
 
@@ -262,7 +275,7 @@ Key APIs:
 - `reloadInteractiveAssets()`
 - `clearInteractiveAssetStorage()`
 
-Button, Light and Status Indicator records are stored under the same versioned key. Do not introduce a separate persistence store for each kind.
+Button, Toggle Switch, Three-Position Toggle, Light and Status Indicator records are stored under the same versioned key. Do not introduce a separate persistence store for each kind.
 
 #### `src/forgeui/interactive/ForgeUIInteractiveAssetValidation.ts`
 
@@ -272,7 +285,11 @@ Owns:
 - Button validation
 - Light validation
 - Status Indicator validation
+- Toggle Switch validation
+- Three-Position Toggle validation
 - discriminated dispatch through `validateInteractiveAsset()`
+
+Exact type validators include `validateInteractiveToggleSwitchAsset()` and `validateInteractiveThreePositionToggleAsset()`.
 
 New kinds should add type-specific validation and join the existing dispatch. Validation must remain centralized at framework boundaries.
 
@@ -284,11 +301,30 @@ Owns pure resolution and component-assignment helpers:
 - Button Normal/Pressed resolution
 - Light OFF/ON resolution
 - Status Indicator OFF/ON resolution
+- Toggle Switch OFF/ON resolution
+- Three-Position LEFT/CENTER/RIGHT resolution
 - LVGL-ready checks
 - kind-specific dimensions
 - component property mapping
 - Light initial-state fallback
 - Status Indicator initial-state fallback
+- Toggle Switch initial-state fallback
+- Three-Position initial-state fallback
+- dimensions and assignment mapping for all five kinds
+
+Exact Toggle helpers include:
+
+- `resolveInteractiveToggleSwitchVisuals()`
+- `getInteractiveToggleSwitchInitialState()`
+- `getInteractiveToggleSwitchDimensions()`
+- `getInteractiveToggleSwitchComponentProps()`
+
+Exact Three-Position helpers include:
+
+- `resolveInteractiveThreePositionVisuals()`
+- `getInteractiveThreePositionInitialState()`
+- `getInteractiveThreePositionDimensions()`
+- `getInteractiveThreePositionComponentProps()`
 
 All Canvas assignment helpers write:
 
@@ -323,6 +359,8 @@ Owns the framework-level Studio experience:
 - Button draft and save behavior
 - coordinating the Light designer
 - coordinating the Status Indicator designer
+- coordinating the Toggle Switch path through the shared OFF/ON designer
+- coordinating the dedicated Three-Position Toggle designer
 - editing existing Button assets
 - Button `Use on Selected`
 
@@ -333,6 +371,8 @@ The UI is:
 
 Asset Type
 ○ Button
+○ Toggle Switch
+○ Three-Position Toggle
 ○ Light
 ○ Status Indicator
 ```
@@ -344,7 +384,7 @@ Asset Type
 - AI generation mode
 - visible form
 
-Editing an existing asset selects its `button`, `light`, or `statusIndicator` kind, opens the owning designer, and loads that kind's draft.
+Editing an existing asset selects its `button`, `toggleSwitch`, `threePositionToggle`, `light`, or `statusIndicator` kind, opens the owning designer, and loads that kind's draft.
 
 Type selection is disabled while AI generation is in progress. This prevents an asynchronous result for one kind from being mapped into another kind's draft.
 
@@ -352,7 +392,7 @@ The panel coordinates the designers; it does not merge their models or save logi
 
 #### `src/forgeui/interactive/InteractiveLightDesigner.tsx`
 
-Owns the shared two-state Studio designer behavior used by Light and Status Indicator:
+Owns the shared two-state Studio designer behavior used by Light, Status Indicator and Toggle Switch:
 
 - Light draft state
 - Light edit loading
@@ -363,8 +403,13 @@ Owns the shared two-state Studio designer behavior used by Light and Status Indi
 - Light `Use on Selected`
 - Light asset-list cards
 - Status Indicator draft, edit, Save, Delete, assignment, preview controls, and asset-list cards
+- Toggle Switch draft, edit, Save, Delete, assignment, preview controls, and asset-list cards
 
-It receives the parent-selected kind for AI generation. It does not own an independent Asset Type selector.
+It receives the parent-selected kind for AI generation. It does not own an independent Asset Type selector. There is no separate `InteractiveToggleSwitchDesigner.tsx` in the current implementation.
+
+#### `src/forgeui/interactive/InteractiveThreePositionToggleDesigner.tsx`
+
+Owns Three-Position Toggle draft, LEFT/CENTER/RIGHT artwork selectors, three-image AI orchestration, initial-state selection, designer-only zone overlay, create/edit/delete/save behavior, persistence coordination, asset cards and `Use on Selected` assignment.
 
 #### `src/forgeui/interactive/InteractiveAssetAIGenerator.tsx`
 
@@ -372,10 +417,10 @@ Owns shared interactive image-generation UI and orchestration:
 
 - prompt input
 - generation loading state
-- two sequential state-image requests
+- two or three sequential state-image requests according to asset kind
 - kind-to-generation-mode mapping
 - file-prefix selection
-- returning the two generated uploaded-asset IDs
+- returning the generated uploaded-asset IDs
 - reporting generation state to the parent
 
 It receives `selectedAssetKind`; it does not own or render another Asset Type selector.
@@ -395,7 +440,7 @@ Owns the common generated-image lifecycle:
 7. update the uploaded asset to `lvgl_ready`.
 8. return the completed uploaded-asset record.
 
-Button, Light and Status Indicator use this same pipeline.
+All five Interactive Asset kinds use this same pipeline.
 
 #### `src/pages/api/forgeui-ai-hero.ts`
 
@@ -434,6 +479,9 @@ Owns reference discovery before deletion:
 - uploaded asset references
 - Interactive Button Normal and Pressed references
 - Interactive Light OFF and ON references
+- Interactive Status Indicator OFF and ON references
+- Interactive Toggle Switch OFF and ON references
+- Interactive Three-Position Toggle LEFT, CENTER and RIGHT references
 - active Theme references
 - Canvas `interactiveAssetId` references
 - deletion-cancellation diagnostics
@@ -449,11 +497,25 @@ Owns client export validation and diagnostic reporting:
 - Canvas validation
 - Interactive Asset validation
 - generated API validation
+- Toggle and Three-Position callback validation
+- Three-Position enum and runtime-contract validation
 - duplicate detection
 - generated asset-source validation
 - grouped export diagnostics
 
 This file owns validation only. It does not generate LVGL, firmware files, CMake, or runtime behavior.
+
+## Interactive Input Runtime
+
+The Interactive Input Runtime family contains controls that originate developer events:
+
+```text
+Interactive Input Runtime
+├── Interactive Button         momentary, FG_On_*_Clicked(void)
+└── Interactive Toggle Switch  persistent binary, FG_On_*_Toggled(bool enabled)
+```
+
+Button and Toggle share the common Interactive Asset Framework but own different generated input runtimes because momentary press behavior and persistent binary state have different contracts.
 
 ## Interactive Button map
 
@@ -544,6 +606,181 @@ FG_On_Button_Clicked()
   ↓
 Developer application logic
 ```
+
+## Interactive Toggle Switch map
+
+### Model
+
+#### `src/forgeui/interactive/ForgeUIInteractiveToggleSwitchAsset.ts`
+
+Owns the persistent binary input model:
+
+```text
+kind: toggleSwitch
+interactionMode: state
+initialState: off | on
+offAssetId
+onAssetId
+```
+
+The default dimensions are `64 × 36`. Toggle state is boolean at the generated callback boundary, but its persisted asset state remains the typed `off | on` model.
+
+### Studio behavior
+
+`InteractiveLightDesigner.tsx` owns the current shared OFF/ON authoring UI for Toggle Switch, Light and Status Indicator. For Toggle Switch it provides:
+
+- OFF and ON artwork selection and AI generation
+- create, edit, delete and Save
+- initial-state selection
+- persistent live OFF/ON preview
+- asset-list cards
+- reference-aware deletion
+- `Use on Selected`
+- persistence through the shared v1 store
+
+Assignment uses `getInteractiveToggleSwitchComponentProps()` and propagates `interactiveAssetId`, width and height through normal form and Redux component updates.
+
+### Preview and Canvas rendering
+
+#### `src/forgeui/interactive/InteractiveToggleSwitchPreview.tsx`
+
+Owns the OFF/ON browser presentation by reusing the binary visual preview contract.
+
+#### `src/components/editor/previews/InteractiveToggleSwitchCanvasPreview.tsx`
+
+Owns kind-aware lookup, uploaded artwork resolution, dimensions, saved initial state and persistent mounted preview state. Each Canvas or Browser Preview instance retains its local OFF/ON state until clicked again; preview interaction does not mutate the persisted asset.
+
+`ComponentPreview.tsx` renders it through `PreviewContainer`, preserving the shared positioned, selectable, draggable and resizable Canvas path.
+
+### Runtime behavior
+
+The exporter emits one shared Toggle Input Runtime per export:
+
+```c
+fg_toggle_input_t
+fg_toggle_input_set()
+fg_toggle_input_event_cb()
+```
+
+Each instance contributes independent OFF/ON symbols, current state, parent button, child image and callback pointer. Initialization calls `fg_toggle_input_set(..., notify=false)`. A click inverts the current state, updates the artwork and notifies:
+
+```c
+FG_On_<Name>_Toggled(bool enabled);
+```
+
+Runtime flow:
+
+```text
+LVGL click
+  ↓
+fg_toggle_input_event_cb()
+  ↓
+fg_toggle_input_set(next_state, true)
+  ├── store independent instance state
+  ├── select OFF or ON artwork
+  └── FG_On_<Name>_Toggled(bool enabled)
+```
+
+The shared runtime implementation is emitted once. Per-instance data and generated hooks remain unique.
+
+## Three-Position Input Runtime
+
+The Three-Position Input Runtime owns persistent `LEFT | CENTER | RIGHT` input state and its strongly typed developer callback. It shares framework infrastructure with every Interactive Asset but is not a boolean Toggle or setter-controlled Binary Output.
+
+## Interactive Three-Position Toggle map
+
+### Model
+
+#### `src/forgeui/interactive/ForgeUIInteractiveThreePositionToggleAsset.ts`
+
+Owns the persistent multi-state input model:
+
+```text
+kind: threePositionToggle
+interactionMode: state
+leftAssetId
+centerAssetId
+rightAssetId
+initialState: left | center | right
+default dimensions: 96 × 36
+```
+
+`ForgeUIInteractiveThreePositionState` is strongly typed as `left | center | right`. It is not represented by a boolean.
+
+### Studio behavior
+
+#### `src/forgeui/interactive/InteractiveThreePositionToggleDesigner.tsx`
+
+Owns:
+
+- LEFT, CENTER and RIGHT artwork selectors
+- dedicated three-image AI generation
+- create, edit, delete and Save
+- LEFT/CENTER/RIGHT initial-state selection
+- designer-only `LEFT | CENTER | RIGHT` zone overlay
+- live direct-zone preview
+- reference-aware deletion
+- `Use on Selected`
+- persistence through the existing v1 store
+
+Assignment uses `getInteractiveThreePositionComponentProps()` and writes `interactiveAssetId`, width and height through the normal component update path.
+
+### Preview and Canvas rendering
+
+#### `src/forgeui/interactive/InteractiveThreePositionTogglePreview.tsx`
+
+Owns direct horizontal three-zone selection across the full rectangular width, local preview state callbacks, optional designer-only zone guidance and the explicit `Missing <STATE> artwork` fallback.
+
+#### `src/components/editor/previews/InteractiveThreePositionToggleCanvasPreview.tsx`
+
+Owns kind-aware asset lookup, LEFT/CENTER/RIGHT uploaded-asset resolution, dimensions, initial-state restoration and persistent local Canvas state.
+
+`ComponentPreview.tsx` wraps the control in `PreviewContainer`, so absolute position, selection, dragging and resizing follow the same shared path as every other Canvas component. `forgePreviewRenderer.tsx` inserts an absolutely positioned browser-preview node; it does not return early from the render loop. Canvas and Browser Preview therefore match the physical three-zone model.
+
+### Runtime behavior
+
+Generated state contract:
+
+```c
+typedef enum
+{
+    FG_THREE_WAY_LEFT = -1,
+    FG_THREE_WAY_CENTER = 0,
+    FG_THREE_WAY_RIGHT = 1
+} fg_three_way_state_t;
+```
+
+Shared runtime:
+
+```c
+fg_three_way_input_t
+fg_three_way_input_set()
+fg_three_way_input_event_cb()
+```
+
+Generated callback:
+
+```c
+FG_On_<Name>_Changed(fg_three_way_state_t state);
+```
+
+The LVGL pointer is in screen space. The event callback obtains the button's absolute coordinates and converts once:
+
+```c
+local_x = point.x - button_coords.x1;
+```
+
+Zone mapping:
+
+```text
+first third  → LEFT
+middle third → CENTER
+last third   → RIGHT
+```
+
+The parent button owns the full rectangular hit area. The child image is non-clickable, and both parent and child are non-scrollable. Transparent image margins do not reduce the clickable bounds. Initialization calls the shared setter with `notify=false`; valid interaction uses `notify=true`.
+
+One shared runtime and event callback are emitted per export. Multiple Canvas instances retain independent runtime records, artwork, state and changed callbacks. Physical ESP32-P4 validation of the current hit-area and artwork revision remains pending.
 
 ## Interactive Light map
 
@@ -773,6 +1010,30 @@ Button mapping:
 - first result → `normalAssetId`
 - second result → `pressedAssetId`
 
+Toggle Switch currently uses the exact implemented binary modes:
+
+- `light-off`
+- `light-on`
+
+Toggle mapping:
+
+- first result → `offAssetId`
+- second result → `onAssetId`
+
+Three-Position Toggle generation modes:
+
+- `three-position-left`
+- `three-position-center`
+- `three-position-right`
+
+Three-Position mapping:
+
+- first result → `leftAssetId`
+- second result → `centerAssetId`
+- third result → `rightAssetId`
+
+The Three-Position prompt requires a horizontal rectangular selector or rocker, consistent body geometry, minimal transparent margins and a clearly visible selected position. It explicitly rejects circular status lamps.
+
 Light generation modes:
 
 - `light-off`
@@ -783,7 +1044,12 @@ Light mapping:
 - first result → `offAssetId`
 - second result → `onAssetId`
 
-Status Indicator generation reuses the two-state OFF/ON generation modes and maps:
+Status Indicator generation reuses the exact implemented two-state modes:
+
+- `light-off`
+- `light-on`
+
+Status Indicator mapping:
 
 - first result → `offAssetId`
 - second result → `onAssetId`
@@ -814,11 +1080,13 @@ The relevant integration points include:
 
 ```text
 InteractiveButton → InteractiveButtonCanvasPreview
+InteractiveToggleSwitch → InteractiveToggleSwitchCanvasPreview
+InteractiveThreePositionToggleSwitch → InteractiveThreePositionToggleCanvasPreview
 InteractiveLight  → InteractiveLightCanvasPreview
 InteractiveStatusIndicator → InteractiveStatusIndicatorCanvasPreview
 ```
 
-Canvas components keep only the Interactive Asset reference and component dimensions. Visual records remain in the Interactive Asset and uploaded-asset registries.
+Canvas components keep only the Interactive Asset reference and component dimensions. Visual records remain in the Interactive Asset and uploaded-asset registries. Every component is rendered through the shared positioning, selection, drag and resize wrapper. Three-Position Toggle follows `PreviewContainer` on Canvas and an explicitly positioned insertion in Browser Preview, preventing origin jumps or early-return omissions.
 
 ### Assignment contract
 
@@ -855,22 +1123,32 @@ It owns:
 - type-specific `InteractiveButton` generation
 - type-specific `InteractiveLight` generation
 - type-specific `InteractiveStatusIndicator` generation
+- type-specific `InteractiveToggleSwitch` generation
+- type-specific `InteractiveThreePositionToggleSwitch` generation
 - kind-aware Interactive Asset lookup
 - uploaded image resolution
 - `LV_IMAGE_DECLARE(...)` emission
 - used asset-source collection
 - Button event hook collection
+- Toggle bool-hook collection
+- Three-Position state-hook collection
 - shared Binary Output setter generation
 - per-instance Binary Output runtime records
 - public API collection
 - generated runtime support
 - single shared Binary Output Runtime generation
+- single shared Toggle Input Runtime generation
+- single shared Three-Position Input Runtime generation
+- Three-Position enum and direct local-zone hit testing
+- unique per-instance input runtime records
 
 Do not create:
 
 - a separate Interactive Button exporter
 - a separate Interactive Light exporter
 - a separate Interactive Status Indicator exporter
+- a separate Interactive Toggle Switch exporter
+- a separate Interactive Three-Position Toggle exporter
 - a parallel runtime generator
 
 New Interactive Asset export logic must extend `generateForgeUILvglCode()` and reuse its asset-source and generated-code ownership model.
@@ -888,6 +1166,36 @@ The `InteractiveButton` branch:
 7. creates per-instance runtime data;
 8. attaches the shared event callback;
 9. records the generated click hook.
+
+### Toggle Switch export branch
+
+Toggle export preparation and the `InteractiveToggleSwitch` branch:
+
+1. read `interactiveAssetId`;
+2. perform kind-aware Toggle Switch lookup;
+3. resolve OFF and ON uploaded assets and collect their C sources;
+4. allocate a unique `FG_On_<Name>_Toggled` hook;
+5. create an independent `fg_toggle_input_t` record;
+6. create the full-size parent button and non-clickable child image;
+7. apply the configured initial state with `notify=false`;
+8. attach the shared `fg_toggle_input_event_cb()`.
+
+The shared structure, setter and event callback are emitted once even when multiple Toggle instances export.
+
+### Three-Position Toggle export branch
+
+Three-Position export preparation and the `InteractiveThreePositionToggleSwitch` branch:
+
+1. read `interactiveAssetId`;
+2. perform kind-aware Three-Position lookup;
+3. resolve LEFT, CENTER and RIGHT assets and collect their C sources;
+4. allocate a unique `FG_On_<Name>_Changed` hook;
+5. create an independent `fg_three_way_input_t` record;
+6. create the full rectangular parent button and non-clickable child image;
+7. apply the configured enum state with `notify=false`;
+8. attach the shared local-coordinate event callback.
+
+The enum contract, runtime structure, setter and event callback are generated through the single exporter. `local_x = point.x - button_coords.x1` makes zone selection independent of screen placement.
 
 ### Light export branch
 
@@ -938,7 +1246,7 @@ It sends generated export payloads to:
 - `POST /export`
 - `POST /export-idf-project`
 
-The frontend generates LVGL code through the single exporter and forwards code, validated asset sources, generated Button hook metadata, and public API declarations. It does not write firmware files directly.
+The frontend generates LVGL code through the single exporter and forwards `code`, validated `assetSources`, `userEventHooks`, and `publicApiDeclarations`. `userEventHooks` carries Button click hooks, Toggle bool hooks and Three-Position state hooks. Binary Output setters travel through `publicApiDeclarations`. It does not write firmware files directly.
 
 ### Export server
 
@@ -998,6 +1306,9 @@ They contain:
 - generated runtime support
 - generated public UI APIs
 - Button runtime callback wiring
+- shared Toggle Input Runtime and per-instance records
+- shared Three-Position Input Runtime, enum-dependent state and per-instance records
+- shared Binary Output Runtime and per-instance records
 - Light setter implementations and declarations
 
 Public APIs are declared in `90_Studio_Export.h` and implemented in `90_Studio_Export.c`.
@@ -1008,7 +1319,9 @@ Do not place permanent product logic in these files.
 
 Studio creates these as the generated user hook layer. They are not manually created in the live firmware workflow.
 
-Interactive Button hooks are declared and stubbed here. Interactive Light and Interactive Status Indicator do not generate event hooks because Binary Output assets are controlled through public setters.
+Interactive Button click hooks, Interactive Toggle Switch bool hooks and Interactive Three-Position Toggle enum-state hooks are declared and stubbed here. The server recognizes the `Clicked`, `Toggled` and `Changed` hook suffixes and generates the corresponding signatures. Interactive Light and Interactive Status Indicator do not generate event hooks because Binary Output assets are controlled through public setters.
+
+`fg_three_way_state_t` and its LEFT/CENTER/RIGHT enum values are generated in `95_UserEvents.h`, which is included by generated Studio export code before the Three-Position runtime structures use that type.
 
 ### Live Studio firmware versus standalone export
 
@@ -1040,7 +1353,7 @@ Two coordinated stores participate:
 
 | Store | Owns |
 |---|---|
-| Interactive Asset persistence | Button, Light and Status Indicator model records and uploaded-asset IDs |
+| Interactive Asset persistence | all five model records, initial states and uploaded state-artwork IDs |
 | Uploaded Asset Registry persistence | image metadata, LVGL symbols, generated source paths, browser source restoration |
 
 At Studio startup:
@@ -1049,6 +1362,8 @@ At Studio startup:
 2. Uploaded assets restore their persistent metadata.
 3. Canvas components retain `interactiveAssetId` in component props.
 4. Kind-aware previews resolve current asset and visual records.
+
+Toggle restart state restores `initialState`, `offAssetId` and `onAssetId`. Three-Position restart state restores `initialState`, `leftAssetId`, `centerAssetId` and `rightAssetId`. Canvas components independently restore their `interactiveAssetId`, width and height references.
 
 When restart persistence fails, debug both stores and the Canvas component reference before changing rendering code.
 
@@ -1082,6 +1397,29 @@ Physically confirmed:
 - Light remained non-clickable
 - firmware remained stable
 
+### Interactive Toggle Switch
+
+Studio, persistence, preview, export, shared runtime and bool-hook generation are host-validated. Current physical ESP32-P4 proof is not recorded here and remains pending.
+
+Expected physical proof includes initial OFF/ON artwork, touch toggling, generated bool callback and readable serial ON/OFF output.
+
+### Interactive Status Indicator
+
+Model, Studio, Canvas, persistence, validation, preview, multi-instance coexistence and shared Binary Output Runtime contracts are automated-test proven. This map does not contain a distinct recorded physical Status Indicator flash result, so no additional hardware proof is claimed.
+
+### Interactive Three-Position Toggle Switch
+
+Studio, persistence, preview, direct local-zone calculation, export and independent-instance contracts are host-validated. Physical ESP32-P4 proof remains pending until the current flash and touch test is completed.
+
+Expected physical proof:
+
+- boot in the configured initial state
+- LEFT third selects LEFT
+- CENTER third selects CENTER
+- RIGHT third selects RIGHT
+- serial output reports the correct enum state
+- independent instances do not interfere
+
 ### System health during interaction
 
 - Wi-Fi READY
@@ -1095,18 +1433,13 @@ Physical Button state behavior and Light initial-state behavior are proven. They
 
 ### Full validation
 
-- 17 test suites passed
-- 111 tests passed
-- 1 test skipped as the documented legacy icon-export baseline
-- zero TypeScript diagnostics
-- zero ESLint warnings or errors
-
-### Targeted default-theme regression
-
-- 3 test suites passed
-- 26 tests passed
-
-The targeted run covers the narrow default-theme export regression and its related exporter/server validation paths. It is not another full-project total and must not be added to the full validation figures.
+- 23 Jest suites passed
+- 137 tests passed
+- 1 intentional legacy icon-export test skipped
+- TypeScript passed with zero diagnostics
+- ESLint passed with no warnings or errors
+- `export-server.js` syntax validation passed
+- `git diff --check` validation passed
 
 ## Debugging map
 
@@ -1118,6 +1451,20 @@ Start at the ownership boundary matching the symptom.
 | Editing opens the wrong kind | `ForgeUIInteractiveAssetPanel.tsx` | asset `kind`, Light `onActivate` path |
 | Button draft/save is wrong | `ForgeUIInteractiveAssetPanel.tsx` | Button model, registry validation |
 | Light draft/save is wrong | `InteractiveLightDesigner.tsx` | Light model, registry validation |
+| Toggle draft/save is wrong | `InteractiveLightDesigner.tsx` | Toggle model, selected `assetKind`, registry validation |
+| Toggle OFF/ON preview is wrong | `InteractiveToggleSwitchPreview.tsx` | Canvas preview, resolver, uploaded assets |
+| Toggle callback is wrong or missing | `ForgeUILvglExport.ts` Toggle branch | `userEventHooks`, `export-server.js`, `95_UserEvents.*` |
+| Toggle state resets unexpectedly | `InteractiveToggleSwitchCanvasPreview.tsx` | mounted local state, asset ID and initial state effect |
+| Three-Position draft/save is wrong | `InteractiveThreePositionToggleDesigner.tsx` | model, registry validation, persistence |
+| Three-Position LEFT/CENTER/RIGHT preview is wrong | `InteractiveThreePositionTogglePreview.tsx` | Canvas preview, resolver, uploaded assets |
+| Three-Position jumps to top-left | `ComponentPreview.tsx` | `PreviewContainer`, `useDropComponent.ts`, component `x/y/w/h` |
+| Three-Position Browser Preview is missing | `forgePreviewRenderer.tsx` | positioned output insertion and Canvas preview component |
+| Three-Position is hard to click | `ForgeUILvglExport.ts` Three-Position branch | full parent bounds, child flags, artwork transparent margins |
+| Three-Position selects the wrong zone | generated `fg_three_way_input_event_cb()` | `local_x`, button coordinates and configured width |
+| Three-Position has stale artwork references | `ForgeUIInteractiveAssetResolver.ts` | Uploaded Asset Registry, persistence, reference protection |
+| Three-Position enum/callback is missing | `ForgeUILvglExport.ts` | `userEventHooks`, `export-server.js`, `95_UserEvents.*` |
+| Shared Toggle Runtime is duplicated or missing | `ForgeUILvglExport.ts` | `fg_toggle_input_t` / setter / event emission guard |
+| Shared Three-Position Runtime is duplicated or missing | `ForgeUILvglExport.ts` | `fg_three_way_input_t` / setter / event emission guard |
 | Button Normal/Pressed preview is wrong | `InteractiveButtonPreview.tsx` | `InteractiveButtonCanvasPreview.tsx`, resolver |
 | Light OFF/ON preview is wrong | `InteractiveLightPreview.tsx` | `InteractiveLightCanvasPreview.tsx`, resolver |
 | Light preview changes saved/exported state | `InteractiveLightCanvasPreview.tsx` | local preview state and `initialState` resolution |
@@ -1128,7 +1475,7 @@ Start at the ownership boundary matching the symptom.
 | Generated image is missing after restart | `ForgeUIUploadedAssetRegistry.ts` | uploaded localStorage record and generated file path |
 | Interactive Asset is missing after restart | `ForgeUIInteractiveAssetPersistence.ts` | registry import and validation |
 | `Use on Selected` does nothing | owning designer/panel | selected component type, resolver component props, Redux update |
-| Canvas resolves the wrong kind | kind-specific Canvas preview | `getInteractiveButtonAsset()` / `getInteractiveLightAsset()` / `getInteractiveStatusIndicatorAsset()` |
+| Canvas resolves the wrong kind | kind-specific Canvas preview | `getInteractiveAssetByKind()` and the five exact kind-aware getters |
 | Button export is wrong | `ForgeUILvglExport.ts` Button branch | uploaded LVGL readiness and asset-source collection |
 | Light export/setter is wrong | `ForgeUILvglExport.ts` Light export map/branch | `initialState`, API naming, uploaded assets |
 | Status Indicator export/setter is wrong | `ForgeUILvglExport.ts` Binary Output export map/branch | Status Indicator lookup, `initialState`, API naming, uploaded assets |
@@ -1150,6 +1497,7 @@ Start at the ownership boundary matching the symptom.
 
 - `src/forgeui/interactive/ForgeUIInteractiveAssetPanel.tsx`
 - `src/forgeui/interactive/InteractiveLightDesigner.tsx`
+- `src/forgeui/interactive/InteractiveThreePositionToggleDesigner.tsx`
 
 ### Button rendering paths
 
@@ -1161,6 +1509,18 @@ Start at the ownership boundary matching the symptom.
 - `src/forgeui/interactive/InteractiveLightPreview.tsx`
 - `src/components/editor/previews/InteractiveLightCanvasPreview.tsx`
 
+### Toggle rendering paths
+
+- `src/forgeui/interactive/InteractiveToggleSwitchPreview.tsx`
+- `src/components/editor/previews/InteractiveToggleSwitchCanvasPreview.tsx`
+
+### Three-Position rendering paths
+
+- `src/forgeui/interactive/InteractiveThreePositionTogglePreview.tsx`
+- `src/components/editor/previews/InteractiveThreePositionToggleCanvasPreview.tsx`
+- `src/components/editor/PreviewContainer.tsx`
+- `src/forgeui/preview/forgePreviewRenderer.tsx`
+
 ### Status Indicator rendering paths
 
 - `src/forgeui/interactive/InteractiveStatusIndicatorPreview.tsx`
@@ -1171,6 +1531,18 @@ Start at the ownership boundary matching the symptom.
 - `src/forgeui/ForgeUILvglExport.ts`
 - generated `90_Studio_Export.c` runtime records and setters
 - generated `90_Studio_Export.h` public setter declarations
+
+### Toggle Input Runtime paths
+
+- `src/forgeui/ForgeUILvglExport.ts`
+- generated `fg_toggle_input_t`, `fg_toggle_input_set()` and `fg_toggle_input_event_cb()`
+- generated `95_UserEvents.*` bool hooks
+
+### Three-Position Input Runtime paths
+
+- `src/forgeui/ForgeUILvglExport.ts`
+- generated `fg_three_way_state_t`, `fg_three_way_input_t`, setter and local-coordinate event callback
+- generated `95_UserEvents.*` enum-state hooks
 
 ### AI generation paths
 
@@ -1197,14 +1569,14 @@ Start at the ownership boundary matching the symptom.
 Preserve these rules:
 
 1. `generateForgeUILvglCode()` is the only LVGL UI exporter.
-2. All Interactive Asset kinds use the shared registry and persistence layer.
+2. All five Interactive Asset kinds use the shared registry and `forgeui_interactive_assets_v1` persistence layer.
 3. All generated state images use the Uploaded Asset Registry.
 4. AI generation uses `InteractiveAssetAIGenerator` and `ForgeUIAIImagePipeline`.
 5. `selectedAssetKind` is parent-owned; the AI generator has no independent type selector.
 6. Canvas assignment uses `interactiveAssetId`, width, and height through normal component updates.
 7. Canvas resolution is kind-aware.
-8. Button, Light and Status Indicator keep separate discriminated data models.
-9. Button clicks use generated hooks; Light and Status Indicator runtime state uses generated public setters.
+8. All five kinds keep separate discriminated data models.
+9. Button uses momentary click hooks, Toggle uses generated bool-state hooks, Three-Position uses a strongly typed enum callback, and Binary Output types use generated public setters.
 10. Generated UI APIs live in `90_Studio_Export.h/.c`.
 11. Live `95_UserEvents.*` files are Studio-generated, not manually created.
 12. Standalone exported `95_UserEvents.*` files become developer-owned after export.
@@ -1214,6 +1586,11 @@ Preserve these rules:
 16. Built-in Theme assets participate in validation.
 17. Failed validation preserves the previous generated firmware.
 18. Binary Output Runtime is generated once per export and shared by every Binary Output Interactive Asset.
+19. Toggle Input Runtime and Three-Position Input Runtime are each emitted once per export.
+20. Per-instance state records, hooks and setter APIs remain unique.
+21. Three-Position hit testing converts screen coordinates into control-local coordinates.
+22. Every Canvas component uses the shared positioned, selectable, draggable and resizable wrapper.
+23. Missing or stale uploaded-asset references block export; validation is never bypassed to work around them.
 
 ## Framework extension pattern
 
@@ -1223,7 +1600,11 @@ Current runtime families:
 
 ```text
 Interactive Input Runtime
-  └── Interactive Button
+  ├── Interactive Button
+  └── Interactive Toggle Switch
+
+Three-Position Input Runtime
+  └── Interactive Three-Position Toggle Switch
 
 Binary Output Runtime
   ├── Interactive Light
@@ -1258,39 +1639,14 @@ It should add only the type-specific pieces it needs:
 
 Future Binary Output assets should reuse `fg_binary_output_t`, `fg_binary_output_set()`, shared runtime emission, and shared setter generation rather than generating a new runtime implementation.
 
-Potential Binary Output assets:
-
-- Alarm Indicator
-- Battery Indicator
-- Bluetooth Indicator
-- Wi-Fi Indicator
-- Motor State
-- Direction Indicator
-- Multi-state Lamp
-
 Potential future runtime families:
 
+- Value Runtime
+- Selection Runtime
 - Gauge Runtime
 - Numeric Display Runtime
 - Progress Runtime
 
-These are examples only and are not implemented.
+These are future concepts only and are not implemented.
 
-Do not create a new registry, persistence system, AI pipeline, uploaded-asset store, exporter, or duplicate runtime generator for a future type. Create a new runtime family only when the state and API contract cannot be represented by an existing family.
-## Interactive Toggle Switch map
-
-`ForgeUIInteractiveToggleSwitchAsset.ts` adds the persistent `toggleSwitch` member to the existing Interactive Asset union. Registry lookup, the versioned persistence store, uploaded-asset reference protection, and validation remain shared with all other Interactive Assets.
-
-`InteractiveLightDesigner.tsx` is the shared OFF/ON artwork designer for Light, Status Indicator, and Toggle Switch. For Toggle Switch it provides initial state, AI generation, preview, editing, deletion protection, and **Use on Selected** assignment without a parallel authoring system.
-
-`InteractiveToggleSwitchCanvasPreview.tsx` owns browser and Canvas behavior. Each mounted instance initializes from the asset's saved state and retains its local OFF/ON state until the next click.
-
-`ForgeUILvglExport.ts` prepares Toggle descriptors inside the existing exporter and emits one shared `fg_toggle_input_t` / `fg_toggle_input_set()` / `fg_toggle_input_event_cb()` implementation. Each instance contributes only its image references, state record, initial state, and `FG_On_*_Toggled(bool enabled)` hook.
-
-Interactive Input Runtime
-
-```text
-Interactive Input Runtime
-├── Interactive Button         momentary, FG_On_*_Clicked(void)
-└── Interactive Toggle Switch  persistent, FG_On_*_Toggled(bool enabled)
-```
+Do not create a new registry, persistence system, AI pipeline, uploaded-asset store, exporter, or duplicate runtime generator for a future type. Reuse an existing runtime family whenever its state and API contract match. Create a new runtime family only when the existing momentary input, persistent binary input, persistent three-position input and binary output contracts cannot represent the control.

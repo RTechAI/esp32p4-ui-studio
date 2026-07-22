@@ -48,6 +48,7 @@ import {
 
 import InteractiveButtonPreview from './InteractiveButtonPreview'
 import InteractiveLightDesigner from './InteractiveLightDesigner'
+import InteractiveThreePositionToggleDesigner from './InteractiveThreePositionToggleDesigner'
 import InteractiveAssetAIGenerator, {
   InteractiveAssetEditorKind,
 } from './InteractiveAssetAIGenerator'
@@ -71,6 +72,7 @@ import type {
 } from './ForgeUIInteractiveLightAsset'
 import type { ForgeUIInteractiveStatusIndicatorAsset } from './ForgeUIInteractiveStatusIndicatorAsset'
 import type { ForgeUIInteractiveToggleSwitchAsset } from './ForgeUIInteractiveToggleSwitchAsset'
+import type { ForgeUIInteractiveThreePositionToggleAsset } from './ForgeUIInteractiveThreePositionToggleAsset'
 
 const DEFAULT_WIDTH = 120
 const DEFAULT_HEIGHT = 48
@@ -113,6 +115,9 @@ const statusIndicatorAssets = assets.filter(
 const toggleSwitchAssets = assets.filter(
   (asset): asset is ForgeUIInteractiveToggleSwitchAsset => asset.kind === 'toggleSwitch',
 )
+const threePositionToggleAssets = assets.filter(
+  (asset): asset is ForgeUIInteractiveThreePositionToggleAsset => asset.kind === 'threePositionToggle',
+)
 
   const [
     uploadedAssets,
@@ -127,6 +132,7 @@ const toggleSwitchAssets = assets.filter(
   const [lightNewRequest, setLightNewRequest] = useState(0)
   const [statusIndicatorNewRequest, setStatusIndicatorNewRequest] = useState(0)
   const [toggleSwitchNewRequest, setToggleSwitchNewRequest] = useState(0)
+  const [threePositionToggleNewRequest, setThreePositionToggleNewRequest] = useState(0)
 
   const [
     editingAssetId,
@@ -263,8 +269,10 @@ const [
       setLightNewRequest(request => request + 1)
     } else if (selectedAssetKind === 'statusIndicator') {
       setStatusIndicatorNewRequest(request => request + 1)
-    } else {
+    } else if (selectedAssetKind === 'toggleSwitch') {
       setToggleSwitchNewRequest(request => request + 1)
+    } else {
+      setThreePositionToggleNewRequest(request => request + 1)
     }
 
     setIsDesignerOpen(true)
@@ -286,8 +294,10 @@ const [
       setLightNewRequest(request => request + 1)
     } else if (nextKind === 'statusIndicator') {
       setStatusIndicatorNewRequest(request => request + 1)
-    } else {
+    } else if (nextKind === 'toggleSwitch') {
       setToggleSwitchNewRequest(request => request + 1)
+    } else {
+      setThreePositionToggleNewRequest(request => request + 1)
     }
   }
 
@@ -601,6 +611,9 @@ const [
               </Radio>
               <Radio value="toggleSwitch" isDisabled={isGenerating}>
                 Toggle Switch
+              </Radio>
+              <Radio value="threePositionToggle" isDisabled={isGenerating}>
+                Three-Position Toggle
               </Radio>
             </Stack>
           </RadioGroup>
@@ -1004,6 +1017,18 @@ const [
             setSelectedAssetKind('toggleSwitch')
             setIsDesignerOpen(true)
           }}
+          onClose={() => setIsDesignerOpen(false)}
+          onGeneratingChange={setIsGenerating}
+        />
+
+        <InteractiveThreePositionToggleDesigner
+          assets={threePositionToggleAssets}
+          uploadedAssets={uploadedAssets}
+          isActive={isDesignerOpen && selectedAssetKind === 'threePositionToggle'}
+          newRequestVersion={threePositionToggleNewRequest}
+          onAssetsChanged={refreshAssets}
+          onUploadedAssetsChanged={refreshUploadedAssets}
+          onActivate={() => { setSelectedAssetKind('threePositionToggle'); setIsDesignerOpen(true) }}
           onClose={() => setIsDesignerOpen(false)}
           onGeneratingChange={setIsGenerating}
         />

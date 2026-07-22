@@ -15,6 +15,9 @@ type AIImageGenerationMode =
   | 'button-pressed'
   | 'light-off'
   | 'light-on'
+  | 'three-position-left'
+  | 'three-position-center'
+  | 'three-position-right'
 
 type GenerateAIImageAssetOptions = {
   prompt: string

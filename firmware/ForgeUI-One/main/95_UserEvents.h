@@ -13,11 +13,18 @@
 
 #include <stdbool.h>
 
+typedef enum
+{
+    FG_THREE_WAY_LEFT = -1,
+    FG_THREE_WAY_CENTER = 0,
+    FG_THREE_WAY_RIGHT = 1
+} fg_three_way_state_t;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void FG_On_StatusToggleSwitch_Toggled(bool enabled);
+void FG_On_ThreePositionToggle_Changed(fg_three_way_state_t state);
 
 #ifdef __cplusplus
 }

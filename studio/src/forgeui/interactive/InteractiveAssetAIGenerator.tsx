@@ -16,12 +16,13 @@ export type InteractiveAssetEditorKind =
   | 'light'
   | 'statusIndicator'
   | 'toggleSwitch'
+  | 'threePositionToggle'
 
 type InteractiveAssetAIGeneratorProps = {
   selectedAssetKind: InteractiveAssetEditorKind
   width: number
   height: number
-  onGenerated: (firstAssetId: string, secondAssetId: string) => void
+  onGenerated: (firstAssetId: string, secondAssetId: string, thirdAssetId?: string) => void
   onGeneratingChange: (isGenerating: boolean) => void
   onUploadedAssetsChanged: () => void
 }
@@ -48,6 +49,7 @@ const InteractiveAssetAIGenerator = ({
     try {
       const timestamp = Date.now()
       const isButton = selectedAssetKind === 'button'
+      const isThreePosition = selectedAssetKind === 'threePositionToggle'
       const outputPrefix = selectedAssetKind === 'statusIndicator'
         ? 'ai_status_indicator'
         : selectedAssetKind === 'toggleSwitch'
@@ -57,8 +59,8 @@ const InteractiveAssetAIGenerator = ({
         prompt: trimmedPrompt,
         filePrefix: isButton
           ? `ai_button_normal_${timestamp}`
-          : `${outputPrefix}_off_${timestamp}`,
-        generationMode: isButton ? 'button-normal' : 'light-off',
+          : isThreePosition ? `ai_three_position_left_${timestamp}` : `${outputPrefix}_off_${timestamp}`,
+        generationMode: isButton ? 'button-normal' : isThreePosition ? 'three-position-left' : 'light-off',
         assetMode: 'interactive_button',
         width,
         height,
@@ -67,15 +69,24 @@ const InteractiveAssetAIGenerator = ({
         prompt: trimmedPrompt,
         filePrefix: isButton
           ? `ai_button_pressed_${timestamp}`
-          : `${outputPrefix}_on_${timestamp}`,
-        generationMode: isButton ? 'button-pressed' : 'light-on',
+          : isThreePosition ? `ai_three_position_center_${timestamp}` : `${outputPrefix}_on_${timestamp}`,
+        generationMode: isButton ? 'button-pressed' : isThreePosition ? 'three-position-center' : 'light-on',
         assetMode: 'interactive_button',
         width,
         height,
       })
 
+      const third = isThreePosition ? await generateAIImageAsset({
+        prompt: trimmedPrompt,
+        filePrefix: `ai_three_position_right_${timestamp}`,
+        generationMode: 'three-position-right',
+        assetMode: 'interactive_button',
+        width,
+        height,
+      }) : undefined
       onUploadedAssetsChanged()
-      onGenerated(first.id, second.id)
+      if (third) onGenerated(first.id, second.id, third.id)
+      else onGenerated(first.id, second.id)
     } catch (error) {
       console.error('Interactive Asset AI generation failed:', error)
       window.alert(
@@ -101,7 +112,9 @@ const InteractiveAssetAIGenerator = ({
       <Text color="gray.400" fontSize="sm" mt={3} mb={2}>
         {selectedAssetKind === 'button'
           ? 'Generate matching Normal and Pressed images.'
-          : 'Generate matching OFF and ON images.'}
+          : selectedAssetKind === 'threePositionToggle'
+            ? 'Generate matching LEFT, CENTER, and RIGHT images.'
+            : 'Generate matching OFF and ON images.'}
       </Text>
       <Input
         value={prompt}
@@ -109,7 +122,9 @@ const InteractiveAssetAIGenerator = ({
         placeholder={
           selectedAssetKind === 'button'
             ? 'Blue Start button with soft glow...'
-            : 'Green power indicator...'
+            : selectedAssetKind === 'threePositionToggle'
+              ? 'Horizontal industrial selector switch with a rectangular body...'
+              : 'Green power indicator...'
         }
         mb={3}
       />

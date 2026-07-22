@@ -12,6 +12,9 @@ type GenerationMode =
   | 'button-pressed'
   | 'light-off'
   | 'light-on'
+  | 'three-position-left'
+  | 'three-position-center'
+  | 'three-position-right'
 
 type ApiResponse =
   | {
@@ -27,6 +30,27 @@ const buildGenerationPrompt = (
   prompt: string,
   mode: GenerationMode,
 ) => {
+  if (mode.startsWith('three-position-')) {
+    const position = mode.replace('three-position-', '').toUpperCase()
+    return `
+Create the ${position} visual state for a horizontal industrial three-position selector or rocker switch.
+
+User request:
+${prompt}
+
+Requirements:
+- one front-facing embedded HMI UI asset on a transparent background
+- a horizontal rectangular switch body spanning nearly the full image width
+- LEFT, CENTER and RIGHT positions must all remain clearly visible
+- the lever, slider, rocker or illuminated selection is clearly positioned at ${position}
+- industrial control-panel style suitable for an ESP32-P4 touchscreen
+- no circular status lamp, warning light, isolated indicator, dashboard, hands or unrelated objects
+- no text, letters, numbers or logos in the artwork
+- consistent fixed body geometry, camera, materials, lighting, scale and dimensions across all three states
+- differ from the matching states only by the selected position
+- use minimal transparent margins so the visible body communicates the full rectangular touch area
+`
+  }
   if (mode === 'button-normal') {
     return `
 Create the NORMAL visual state for an embedded HMI touchscreen button.
@@ -180,6 +204,9 @@ export default async function handler(
     'button-pressed',
     'light-off',
     'light-on',
+    'three-position-left',
+    'three-position-center',
+    'three-position-right',
   ]
 
   const mode: GenerationMode =

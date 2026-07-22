@@ -1,5 +1,5 @@
 import React from 'react'
-import { render } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { init } from '@rematch/core'
 import { Provider } from 'react-redux'
 import { DndProvider } from 'react-dnd'
@@ -103,4 +103,31 @@ test.each(componentsToTest)('Component Preview for %s', componentName => {
   // @ts-ignore
   renderWithRedux(<ComponentPreview componentName="test" />, { store })
   // expect(spy).not.toHaveBeenCalled();
+})
+
+test('Three-Position Toggle uses the shared positioned, selectable preview container', () => {
+  // @ts-ignore Rematch's inferred plugin type is wider than this test needs.
+  const store = init(storeConfig)
+  store.dispatch.components.addComponent({
+    parentName: 'root',
+    type: 'InteractiveThreePositionToggleSwitch',
+    rootParentType: 'InteractiveThreePositionToggleSwitch',
+    testId: 'three-way',
+    props: { positionMode: 'absolute', x: 137, y: 89, w: 96, h: 36 },
+  })
+
+  // @ts-ignore Test helper preserves its historical loosely typed options shape.
+  renderWithRedux(<ComponentPreview componentName="three-way" />, { store })
+
+  const preview = screen.getByTestId('three-position-preview')
+  const positionedContainer = preview.closest('.react-draggable') as HTMLElement
+  expect(positionedContainer).not.toBeNull()
+  expect(positionedContainer).toHaveStyle({
+    width: '96px',
+    height: '36px',
+  })
+  // @ts-ignore Store state is wrapped by redux-undo in production and tests.
+  expect(store.getState().components.present.components['three-way'].props).toMatchObject({
+    positionMode: 'absolute', x: 137, y: 89, w: 96, h: 36,
+  })
 })

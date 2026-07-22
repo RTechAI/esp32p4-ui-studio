@@ -99,4 +99,29 @@ describe('shared Interactive Asset AI generator', () => {
       expect(onGeneratingChange).toHaveBeenLastCalledWith(false),
     )
   })
+
+  it('uses dedicated selector modes for all three positions', async () => {
+    mockedGenerate.mockReset()
+    mockedGenerate
+      .mockResolvedValueOnce({ id: 'left' } as any)
+      .mockResolvedValueOnce({ id: 'center' } as any)
+      .mockResolvedValueOnce({ id: 'right' } as any)
+    const onGenerated = jest.fn()
+    render(<ChakraProvider><InteractiveAssetAIGenerator
+      selectedAssetKind="threePositionToggle"
+      width={96}
+      height={36}
+      onGenerated={onGenerated}
+      onGeneratingChange={jest.fn()}
+      onUploadedAssetsChanged={jest.fn()}
+    /></ChakraProvider>)
+    expect(screen.getByRole('textbox')).toHaveAttribute('placeholder', expect.stringContaining('Horizontal industrial selector'))
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Brushed steel control' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Generate' }))
+    await waitFor(() => expect(onGenerated).toHaveBeenCalledWith('left', 'center', 'right'))
+    expect(mockedGenerate.mock.calls.map(call => call[0].generationMode)).toEqual([
+      'three-position-left', 'three-position-center', 'three-position-right',
+    ])
+    mockedGenerate.mock.calls.forEach(call => expect(call[0]).toEqual(expect.objectContaining({ width: 96, height: 36 })))
+  })
 })

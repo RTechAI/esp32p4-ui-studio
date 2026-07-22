@@ -2,7 +2,7 @@
 
 ## Current proven save point
 
-**FORGEUI_PROJECT_HEALTH_PHASE2__GENERATED_EXPORT_API__BINARY_OUTPUT_RUNTIME__INTERACTIVE_STATUS_INDICATOR__VALIDATED_EXPORT_PIPELINE__PHYSICAL_ESP32P4_PROVEN__2026-07-22**
+**FORGEUI_FIVE_INTERACTIVE_ASSETS__THREE_GENERATED_RUNTIME_FAMILIES__VALIDATED_API_BOUNDARY__TOGGLE_PHYSICAL_VALIDATION_PENDING__2026-07-22**
 
 ## Purpose and scope
 
@@ -35,12 +35,22 @@ Use this map to determine:
 
 ## System overview
 
-The generated export layer supports three proven Interactive Asset types:
+The generated export layer supports five Interactive Asset types:
 
-- Interactive Button in the Interactive Input Runtime
-- Interactive Toggle Switch in the Interactive Input Runtime
-- Interactive Light in the Binary Output Runtime
-- Interactive Status Indicator in the Binary Output Runtime
+```text
+Interactive Input Runtime
+├── Interactive Button
+└── Interactive Toggle Switch
+
+Three-Position Input Runtime
+└── Interactive Three-Position Toggle Switch
+
+Binary Output Runtime
+├── Interactive Light
+└── Interactive Status Indicator
+```
+
+Button is momentary input. Toggle Switch is persistent boolean input. Three-Position Toggle is persistent enum input. Light and Status Indicator are developer-controlled outputs.
 
 ```text
 ForgeUI Canvas
@@ -50,7 +60,8 @@ generateForgeUILvglCode()
         │
         ▼
 Generated LVGL Source
-Generated API Metadata
+Generated Button, Toggle and Three-Position hook metadata
+Generated Binary Output public API metadata
 Generated Asset Source List
         │
         ▼
@@ -94,6 +105,20 @@ ESP32-P4 Display
 
 Interactive Light and Interactive Status Indicator both use this path. The output runtime is no longer a Light-only implementation.
 
+The generated input-control path is:
+
+```text
+UI interaction
+        ↓
+Generated LVGL runtime
+        ↓
+Generated FG_On_* hook
+        ↓
+95_UserEvents.c
+        ↓
+Developer application logic
+```
+
 ## Export Validation Ownership
 
 Export validation is a permanent two-boundary responsibility. It validates the exporter result before materialization without moving runtime generation out of the exporter.
@@ -109,11 +134,15 @@ Owns:
 - dimension validation
 - duplicate component-ID detection
 - uploaded-asset and LVGL-readiness validation
-- generated Button-hook and Binary Output setter API validation
+- generated Button, Toggle and Three-Position hook presence and naming validation
+- generated Binary Output setter API validation
+- Normal/Pressed, Toggle OFF/ON, Three-Position LEFT/CENTER/RIGHT and Binary Output OFF/ON uploaded-state validation
 - generated asset-source validation
 - structured, ownership-grouped diagnostics
 
 It validates. It does not generate LVGL, firmware, hooks, setters, CMake, or runtime behavior.
+
+The client currently validates expected hook names against `userEventHooks`, setter declarations against `publicApiDeclarations`, kind/state references, image readiness and duplicate generated identifiers. Generated enum and runtime-structure text is covered by exporter regression tests; it is not a separate client diagnostic category, so this map does not attribute unimplemented declaration parsing to the preflight.
 
 Client validation runs after candidate source and metadata generation and before the request is sent to the export server. A failure cancels export before server submission.
 
@@ -135,13 +164,37 @@ The server does not trust client validation. No generated firmware files are wri
 
 ## Permanent input and output API model
 
-ForgeUI controls cross the generated/developer boundary in one of two directions.
+ForgeUI controls cross the generated/developer boundary in one of two directions, with three distinct input signatures.
 
 ### Input controls: generated UI calls developer code
 
 Input controls originate in the UI runtime and notify application code through generated developer hooks.
 
-Proven examples:
+Input contracts:
+
+```c
+/* Momentary input: Interactive Button */
+void FG_On_<Name>_Clicked(void);
+
+/* Persistent binary input: Interactive Toggle Switch */
+void FG_On_<Name>_Toggled(bool enabled);
+
+/* Persistent three-state input: Interactive Three-Position Toggle */
+void FG_On_<Name>_Changed(fg_three_way_state_t state);
+```
+
+Generated Three-Position state type:
+
+```c
+typedef enum
+{
+    FG_THREE_WAY_LEFT = -1,
+    FG_THREE_WAY_CENTER = 0,
+    FG_THREE_WAY_RIGHT = 1
+} fg_three_way_state_t;
+```
+
+Input flow:
 
 ```text
 Interactive Button
@@ -186,6 +239,8 @@ Both public APIs are implemented in generated UI code and delegate to the same g
 
 > Inputs produce generated developer hooks. Outputs expose generated public UI functions.
 
+Input hooks may be void click hooks, bool state hooks or strongly typed enum state hooks. Outputs continue to expose `void FG_Set_<Name>(bool enabled);`.
+
 Do not implement output controls as fake click hooks. Do not put input-event application logic inside generated UI code.
 
 ## LVGL code generator
@@ -219,6 +274,12 @@ Runtime generation assumes that its candidate result will pass the dedicated cli
 - Interactive Button export
 - Interactive Light export
 - Interactive Status Indicator export
+- Interactive Toggle Switch export
+- Interactive Three-Position Toggle export
+- shared Toggle Input Runtime and per-instance records
+- shared Three-Position Input Runtime and per-instance records
+- Toggle and Three-Position hook naming and metadata
+- input callback-name uniqueness across all hook families
 - shared Binary Output Runtime generation
 - shared Binary Output setter generation
 - per-instance Binary Output runtime record generation
@@ -238,7 +299,9 @@ Runtime generation assumes that its candidate result will pass the dedicated cli
 
 Interactive Light introduced the Binary Output Runtime. Interactive Status Indicator reuses it through the same export descriptor, runtime-record, and setter-generation path.
 
-Do not create a separate Button exporter, Light exporter, Status Indicator exporter, or parallel runtime generator.
+The exporter emits Three-Position runtime code that uses `fg_three_way_state_t`; the enum itself is materialized by the user-event header generator in `95_UserEvents.h`.
+
+Do not create a separate Button, Toggle, Three-Position, Light or Status Indicator exporter, or a parallel runtime generator.
 
 ## Component export traversal
 
@@ -257,14 +320,14 @@ Developer-facing hook and setter names are derived separately and made unique wi
 
 ## Generated export result contract
 
-`generateForgeUILvglCode()` supplies the frontend export flow with:
+`generateForgeUILvglCode()` returns:
 
 - generated LVGL `code`;
-- generated asset-source metadata required by the generated UI;
-- `userEventHooks` for Button input callbacks;
+- `assetSources: string[]` containing generated C source paths required by the UI;
+- `userEventHooks: string[]` containing sanitized unique hook names for Button, Toggle and Three-Position inputs;
 - `publicApiDeclarations` for Binary Output setters, including Interactive Light and Interactive Status Indicator.
 
-These four values form the generated export contract: generated code, validated asset-source metadata, Button hook metadata, and Binary Output public API metadata. Every Binary Output asset contributes its generated setter declaration metadata, including Interactive Light and Interactive Status Indicator instances. The exporter collects the candidate metadata; the validation layers approve it before firmware materialization.
+These four properties are the complete current contract. All input families share the one generalized `userEventHooks` string collection; there are no separate Button, Toggle or Three-Position payload fields. Hook suffixes encode signature selection downstream: `Clicked`, `Toggled`, or `Changed`. Binary Output declarations use `publicApiDeclarations: string[]` and retain the exact `void FG_Set_*(bool enabled);` text.
 
 The UI export actions in `studio/src/components/Header.tsx` send these values to both export endpoints:
 
@@ -405,6 +468,131 @@ generateUserEventFiles()
 95_UserEvents.c implementation stub
 ```
 
+## Interactive Toggle Switch input API
+
+### Export branch
+
+The `InteractiveToggleSwitch` export path:
+
+1. resolves the Toggle Switch by kind;
+2. resolves OFF and ON uploaded assets;
+3. collects their required generated C sources;
+4. generates a unique `FG_On_*_Toggled` name and adds it to `userEventHooks`;
+5. creates a full-size parent LVGL button and child image;
+6. creates an independent `fg_toggle_input_t` record;
+7. initializes from the saved state through `fg_toggle_input_set(..., notify=false)`;
+8. attaches the shared click callback.
+
+### Shared Toggle Input Runtime
+
+Actual generated structure:
+
+```c
+typedef struct {
+    lv_obj_t * button;
+    lv_obj_t * image;
+    const void * off_src;
+    const void * on_src;
+    bool enabled;
+    void (*toggled_cb)(bool);
+} fg_toggle_input_t;
+```
+
+Shared helpers:
+
+```c
+fg_toggle_input_set()
+fg_toggle_input_event_cb()
+```
+
+Behavior:
+
+```text
+LV_EVENT_CLICKED
+  → invert enabled
+  → store independent instance state
+  → update OFF/ON artwork
+  → invoke toggled_cb(new bool state)
+```
+
+The structure, setter and event callback are emitted once. Each Toggle instance owns its button, image, sources, state and callback pointer.
+
+### Generated Toggle hook
+
+```c
+void FG_On_Main_Power_Toggled(bool enabled);
+```
+
+`generateUserEventFiles()` produces a live stub that prints `ON` or `OFF`. Initialization uses `notify=false`, so loading the configured initial state does not call developer code.
+
+## Interactive Three-Position Toggle input API
+
+### Generated public enum
+
+`fg_three_way_state_t` is generated in `95_UserEvents.h`, not `90_Studio_Export.h`. Generated `90_Studio_Export.c` includes `95_UserEvents.h` before using the type in runtime records and callback pointers, and developer implementations include the same header.
+
+```c
+typedef enum
+{
+    FG_THREE_WAY_LEFT = -1,
+    FG_THREE_WAY_CENTER = 0,
+    FG_THREE_WAY_RIGHT = 1
+} fg_three_way_state_t;
+```
+
+### Export branch
+
+The `InteractiveThreePositionToggleSwitch` export path:
+
+1. resolves the asset by kind;
+2. resolves LEFT, CENTER and RIGHT uploaded assets;
+3. collects all required C sources;
+4. generates a unique `FG_On_*_Changed` name and adds it to `userEventHooks`;
+5. creates the full rectangular parent button and child image;
+6. creates an independent `fg_three_way_input_t` record;
+7. initializes the saved enum state with `notify=false`;
+8. attaches the one shared `fg_three_way_input_event_cb()`.
+
+### Shared Three-Position Input Runtime
+
+Actual generated structure:
+
+```c
+typedef struct {
+    lv_obj_t * button;
+    lv_obj_t * image;
+    const void * left_src;
+    const void * center_src;
+    const void * right_src;
+    fg_three_way_state_t state;
+    void (*changed_cb)(fg_three_way_state_t state);
+} fg_three_way_input_t;
+```
+
+`fg_three_way_input_set()` validates state, stores it, selects the correct source, updates the image and optionally calls `changed_cb`. Initialization passes `notify=false`.
+
+`fg_three_way_input_event_cb()` converts the absolute pointer coordinate into button-local space:
+
+```c
+local_x = point.x - button_coords.x1;
+```
+
+```text
+first third  → FG_THREE_WAY_LEFT
+middle third → FG_THREE_WAY_CENTER
+last third   → FG_THREE_WAY_RIGHT
+```
+
+The parent button owns the full rectangular hit area. The child image is non-clickable, and parent and child are non-scrollable. Transparent artwork does not shrink the interaction bounds.
+
+### Generated Three-Position hook
+
+```c
+void FG_On_ModeSelector_Changed(fg_three_way_state_t state);
+```
+
+The generated live stub maps enum values to readable `LEFT`, `CENTER` and `RIGHT` output. One shared runtime is emitted; per-instance state, artwork and callback pointers remain independent.
+
 ## Interactive Light output API
 
 ### Export preparation and branch
@@ -489,6 +677,13 @@ void FG_Set_<Name>(bool enabled);
 ## Binary Output Runtime
 
 The generated Binary Output Runtime is the permanent implementation family for two-state output assets.
+
+It is unrelated to Toggle Input even though both cross an API boundary with a boolean:
+
+```text
+Toggle Switch: UI changes state → developer hook receives bool
+Binary Output: developer calls setter → UI changes state
+```
 
 Generated runtime structure:
 
@@ -588,6 +783,9 @@ Owns generated implementation:
 - shared runtime callbacks
 - Button callback wiring
 - calls into Button user hooks
+- shared Toggle Input Runtime, per-instance records and bool-hook calls
+- shared Three-Position Input Runtime, per-instance records and enum-hook calls
+- shared Binary Output Runtime and per-instance records
 - Binary Output OFF/ON runtime image references
 - Light public setter implementations
 - Interactive Status Indicator public setter implementations
@@ -605,7 +803,7 @@ Owns generated public declarations:
 
 It does not contain user implementations.
 
-All Binary Output public APIs are declared in `90_Studio_Export.h` and implemented in `90_Studio_Export.c`. Binary Output assets never place setter implementations or event hooks in `95_UserEvents.c`.
+`90_Studio_Export.h` includes `lvgl.h` and `<stdbool.h>`, declares `fg_studio_export_create(...)`, and declares Binary Output setters. It does not own `fg_three_way_state_t`; that enum is generated in `95_UserEvents.h`. All Binary Output public APIs are declared in `90_Studio_Export.h` and implemented in `90_Studio_Export.c`. Binary Output assets never place setter implementations or event hooks in `95_UserEvents.c`.
 
 ### Regeneration rule
 
@@ -636,27 +834,38 @@ The physical Build & Flash regression exposed missing Neural Core and Carbon Fib
 
 ### `95_UserEvents.h`
 
-Studio generates declarations for collected Button hooks:
+Studio generates declarations for all collected input hooks and the Three-Position enum type:
 
 ```c
 #pragma once
+
+#include <stdbool.h>
+
+typedef enum
+{
+    FG_THREE_WAY_LEFT = -1,
+    FG_THREE_WAY_CENTER = 0,
+    FG_THREE_WAY_RIGHT = 1
+} fg_three_way_state_t;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void FG_On_Button_Clicked(void);
+void FG_On_Start_Clicked(void);
+void FG_On_Main_Power_Toggled(bool enabled);
+void FG_On_ModeSelector_Changed(fg_three_way_state_t state);
 
 #ifdef __cplusplus
 }
 #endif
 ```
 
-The generated UI includes this header only when Interactive Buttons require hooks.
+The generated UI includes this header when any Button, Toggle or Three-Position input requires hooks.
 
 ### `95_UserEvents.c`
 
-Studio generates Button hook implementations for the current export. The live test implementation prints a confirmation:
+Studio generates Button, Toggle and Three-Position hook implementations for the current export. Stable server tests cover the signatures and readable state output. Representative stubs are:
 
 ```c
 #include "95_UserEvents.h"
@@ -665,6 +874,17 @@ Studio generates Button hook implementations for the current export. The live te
 void FG_On_Button_Clicked(void)
 {
     printf("[ForgeUI User Event] FG_On_Button_Clicked\n");
+}
+
+void FG_On_Main_Power_Toggled(bool enabled)
+{
+    printf("[ForgeUI User Event] FG_On_Main_Power_Toggled: %s\n", enabled ? "ON" : "OFF");
+}
+
+void FG_On_ModeSelector_Changed(fg_three_way_state_t state)
+{
+    const char * text = state == FG_THREE_WAY_LEFT ? "LEFT" : state == FG_THREE_WAY_RIGHT ? "RIGHT" : "CENTER";
+    printf("[ForgeUI User Event] FG_On_ModeSelector_Changed: %s\n", text);
 }
 ```
 
@@ -681,8 +901,10 @@ Coordinates:
 - standalone ESP-IDF project export
 - client preflight before export submission
 - transport of validated exporter metadata
-- transport of Button hook metadata
+- transport of `userEventHooks` for Button, Toggle Switch, and Three-Position Toggle hooks
 - transport of Binary Output setter metadata, including Light and Status Indicator
+
+The exact exporter fields transported are `code`, `assetSources`, `userEventHooks`, and `publicApiDeclarations`. The single `userEventHooks` collection carries the sanitized `_Clicked`, `_Toggled`, and `_Changed` names; `publicApiDeclarations` carries exact Binary Output setter declarations.
 
 Header coordinates export and starts flashing only after export succeeds. It does not validate generated firmware files itself, invent hooks or setters, materialize files, or define runtime behavior.
 
@@ -700,6 +922,7 @@ studio/export-server.js
 - validating payloads, paths, generated C sources, physical source existence, symbols, and source references
 - producing the validated asset-source list
 - normalizing supported public declarations
+- normalizing and generating all supported user-hook signatures through `generateUserEventFiles()`
 - generating `90_Studio_Export.h`
 - generating `95_UserEvents.c/.h`
 - writing generated files
@@ -712,11 +935,14 @@ studio/export-server.js
 ### Does not own
 
 - LVGL component generation
-- Button, Light, or Status Indicator runtime behavior
-- hook-name selection
+- Button, Toggle Switch, Three-Position Toggle, Light, or Status Indicator runtime behavior
+- hook-name or runtime-API invention
+- hook signature selection beyond materializing the established `_Clicked`, `_Toggled`, and `_Changed` suffix contract
 - Light setter-name selection
 - application logic
 - customer hardware behavior
+
+`generateUserEventFiles()` emits void, `bool`, or `fg_three_way_state_t` declarations and stubs from the validated hook suffix. It places `<stdbool.h>` and the Three-Position enum in `95_UserEvents.h` when required. `generateStudioExportHeader()` uses `normalizePublicApiDeclarations()` for the public Binary Output declarations in `90_Studio_Export.h`.
 
 The server owns validation, materialization, generated headers, generated hooks, generated CMake, generated assets, and project copying. The export server materializes validated exporter results; it does not invent runtime or widget behavior.
 
@@ -728,12 +954,7 @@ The server owns validation, materialization, generated headers, generated hooks,
 POST /export
 ```
 
-The endpoint receives:
-
-- generated C source
-- required asset source paths
-- Button `userEventHooks`
-- Light `publicApiDeclarations`
+The endpoint receives the exact payload fields `code`, `assetSources`, `userEventHooks`, and `publicApiDeclarations`. They carry generated C source, required assets, every Button/Toggle/Three-Position input hook, and every Light/Status Indicator public setter declaration respectively.
 
 It generates and writes:
 
@@ -772,7 +993,7 @@ main/
 └── CMakeLists.txt
 ```
 
-Studio creates all four API-layer files at export time. Once the standalone project exists, its `95_UserEvents.c/.h` copies become the developer-owned integration layer. ForgeUI Studio does not continuously regenerate, build, flash, or synchronize that exported project.
+Studio creates all four API-layer files at export time. Once the standalone project exists, its `95_UserEvents.c/.h` copies become the developer-owned integration layer for Button, Toggle Switch, and Three-Position Toggle callbacks. Developer code calls Light and Status Indicator setters declared by `90_Studio_Export.h`. ForgeUI Studio does not continuously regenerate, build, flash, or synchronize that exported project.
 
 ## File ownership boundary
 
@@ -848,14 +1069,25 @@ Example standalone application integration:
 #include "90_Studio_Export.h"
 #include "95_UserEvents.h"
 
-void FG_On_Button_Clicked(void)
+void FG_On_StartPump_Clicked(void)
 {
     pump_start();
-    FG_Set_Status_Light(true);
+    FG_Set_Running_Light(true);
+}
+
+void FG_On_Main_Power_Toggled(bool enabled)
+{
+    power_set_enabled(enabled);
+    FG_Set_Power_Status(enabled);
+}
+
+void FG_On_ModeSelector_Changed(fg_three_way_state_t state)
+{
+    machine_set_mode(state);
 }
 ```
 
-ForgeUI owns `FG_Set_Status_Light(...)` and the callback signature. The developer owns `pump_start()` and the decision to turn the Light on.
+ForgeUI owns the callback signatures and `FG_Set_*` APIs. The developer owns the example hardware functions and the decisions that connect input events to output state.
 
 ## Proven physical ESP32-P4 behavior
 
@@ -891,6 +1123,10 @@ Physically confirmed:
 - Light remained non-clickable
 - firmware remained stable
 
+### Interactive Toggle Switch input path
+
+Physical ESP32-P4 validation is pending. Automated coverage verifies generated initial state, OFF/ON visual switching, the persistent boolean runtime, and `FG_On_*_Toggled(bool enabled)` generation, but does not constitute proof of touch behavior or serial output on hardware.
+
 ### Interactive Status Indicator output path
 
 Physically confirmed:
@@ -903,6 +1139,10 @@ Physically confirmed:
 - multiple Binary Output instance records remained independent
 - generated setter APIs addressed the correct instances
 
+### Interactive Three-Position Toggle input path
+
+Physical ESP32-P4 validation is pending. Hardware proof must cover boot initial state, LEFT/CENTER/RIGHT selection away from screen origin, correct readable serial state, independent instances, and stable operation without a crash.
+
 ### System health
 
 - Wi-Fi READY
@@ -910,24 +1150,21 @@ Physically confirmed:
 - SD READY
 - no crash after interaction
 
-The Button input-hook path and the shared Light/Status Indicator Binary Output setter path are implemented and physically proven.
+The Button input-hook path and the shared Light/Status Indicator Binary Output setter path are implemented and physically proven. Toggle Switch and Three-Position Toggle physical validation remains pending.
 
 ## Automated Validation
 
 ### Full validation
 
-- 17 test suites passed
-- 111 tests passed
-- 1 test skipped as the documented legacy icon-export baseline
+- 23 Jest suites passed
+- 137 tests passed
+- 1 intentional legacy test skipped
 - zero TypeScript diagnostics
 - zero ESLint warnings or errors
+- export-server syntax validation passed
+- git diff validation passed
 
-### Targeted default-theme regression
-
-- 3 test suites passed
-- 26 tests passed
-
-The targeted run validates only the narrow default-theme export regression and its related exporter/server paths. It is separate from, and must not be added to, the full validation totals.
+The intentional skip remains the documented legacy icon-export baseline; it is not an untracked failure.
 
 ## Debug map
 
@@ -938,6 +1175,17 @@ The targeted run validates only the narrow default-theme export regression and i
 | Button hook name is wrong or duplicated | hook-name helpers in `ForgeUILvglExport.ts` | component name, asset label/name, uniqueness set |
 | Button visual state is wrong | `fg_interactive_button_event_cb` generation | per-instance Normal/Pressed sources |
 | Button CLICKED does not reach hook | Button event registration | `.clicked_cb`, `95_UserEvents.h/.c` |
+| Toggle hook is absent | Toggle branch in `ForgeUILvglExport.ts` | `userEventHooks`, sanitized `_Toggled` name, and `generateUserEventFiles()` |
+| Toggle callback receives the wrong bool | generated `fg_toggle_input_event_cb()` | inversion order, `fg_toggle_input_set()`, and `.toggled_cb` |
+| Toggle visual state does not persist | per-instance `fg_toggle_input_t` record | saved `initialState` and OFF/ON sources |
+| Toggle runtime is duplicated | runtime emission in `ForgeUILvglExport.ts` | single `fg_toggle_input_t` / `fg_toggle_input_set()` generation guard |
+| Three-Position hook is absent | Three-Position branch in `ForgeUILvglExport.ts` | `userEventHooks`, sanitized `_Changed` name, and `generateUserEventFiles()` |
+| `fg_three_way_state_t` is missing | `generateUserEventFiles()` | `_Changed` hook detection and generated `95_UserEvents.h` |
+| Wrong Three-Position zone is selected | generated `fg_three_way_input_event_cb()` | thirds calculation and component width |
+| Three-Position coordinates are wrong away from x=0 | `fg_three_way_input_event_cb()` | `point.x - button_coords.x1` local conversion and bounds check |
+| Child image intercepts touch | Three-Position object creation | child clickable flag and parent full-bounds clickability |
+| Three-Position runtime is duplicated | runtime emission in `ForgeUILvglExport.ts` | single `fg_three_way_input_t` / `fg_three_way_input_set()` generation guard |
+| Generated LEFT/CENTER/RIGHT stub is wrong | `generateUserEventFiles()` | `_Changed` signature branch and readable-state expression |
 | Light setter is missing from C source | Light export preparation in `ForgeUILvglExport.ts` | LVGL readiness and unique API name |
 | Light declaration is missing from header | `publicApiDeclarations` export result | Header payload and `generateStudioExportHeader()` |
 | Light starts in wrong state | Light export branch | saved `initialState` and initial image symbol |
@@ -949,10 +1197,13 @@ The targeted run validates only the narrow default-theme export regression and i
 | Export rejected before files are written | `ForgeUIExportValidation.ts` | `export-server.js` |
 | Missing generated C source | `export-server.js` | Uploaded Asset Registry |
 | Invalid generated asset source | `ForgeUIExportValidation.ts` | exporter asset collection |
+| Stale uploaded state asset blocks export | `ForgeUIExportValidation.ts` asset-kind/state checks | Uploaded Asset Registry and generated source existence |
 | Duplicate generated API | `ForgeUIExportValidation.ts` | `ForgeUILvglExport.ts` |
 | Duplicate `LV_IMAGE_DECLARE` | `ForgeUILvglExport.ts` | export validation |
 | Theme asset validation failure | `export-server.js` | built-in Theme assets |
 | API metadata is absent from request | `Header.tsx` | `/export` and `/export-idf-project` payloads |
+| Input hook metadata is missing from payload | `Header.tsx` | exact `userEventHooks` field from `generateForgeUILvglCode()` |
+| Server rejects a valid hook signature | `generateUserEventFiles()` suffix handling | `_Clicked`, `_Toggled`, `_Changed` validation and endpoint payload |
 | Generated header is wrong | `generateStudioExportHeader()` | `normalizePublicApiDeclarations()` |
 | Hook files are missing | `generateUserEventFiles()` | received `userEventHooks` and export endpoint |
 | Live files are unexpectedly replaced | live ownership policy | `/export` writes generated live output |
@@ -966,31 +1217,31 @@ The targeted run validates only the narrow default-theme export regression and i
 
 ### `studio/src/forgeui/ForgeUILvglExport.ts`
 
-Owns generated LVGL source, Interactive Button export, Light export, Status Indicator export, shared Binary Output Runtime generation, per-instance Binary Output records, hook names, setter names, and API metadata. Never writes files directly.
+Owns generated LVGL source, all five Interactive Asset branches, shared Button/Toggle/Three-Position/Binary Output runtimes, per-instance records, sanitized unique hook names, setter names, and all exporter metadata. Never writes files directly.
 
 ### `studio/src/components/Header.tsx`
 
-Coordinates Build & Flash, Clean Build & Flash, standalone export, client preflight, and transport of validated code, asset metadata, Button hooks, and Binary Output setters. Never invents runtime APIs or validates materialized firmware files.
+Coordinates Build & Flash, Clean Build & Flash, standalone export, client preflight, and transport of `code`, `assetSources`, all `userEventHooks`, and Binary Output `publicApiDeclarations`. Never invents runtime APIs or validates materialized firmware files.
 
 ### `studio/export-server.js`
 
-Owns validation of accepted metadata, generated headers/hooks, disk writes, assets, CMake, and project packaging. Never invents widget behavior.
+Owns validation of accepted metadata; normalization and generation of void, bool, and enum user hooks; generated headers; disk writes; assets; CMake; and project packaging. Never invents widget behavior.
 
 ### `90_Studio_Export.c`
 
-Owns generated UI and runtime implementations, the shared Binary Output Runtime, per-instance Binary Output records, and Light/Status Indicator setter implementations. Never contains developer product logic.
+Owns generated UI plus shared Button, Toggle Input, Three-Position Input, and Binary Output runtime implementations; per-instance records; calls to all input hooks; and Light/Status Indicator setter implementations. Never contains developer product logic.
 
 ### `90_Studio_Export.h`
 
-Owns generated public UI declarations, including every Binary Output `FG_Set_*` API. Never contains user implementations.
+Owns `fg_studio_export_create(...)` and every Binary Output `FG_Set_*` declaration, with required public includes such as `<stdbool.h>`. The Three-Position enum is actually owned by `95_UserEvents.h`, not this header. Never contains user implementations.
 
 ### `95_UserEvents.c`
 
-In live firmware, owns Studio-generated test hook implementations. In a standalone export, becomes the developer-owned callback/application implementation layer.
+In live firmware, owns Studio-generated Button click, Toggle bool-state, and Three-Position enum-state test stubs. In a standalone export, becomes the developer-owned callback/application implementation layer.
 
 ### `95_UserEvents.h`
 
-In live firmware, owns Studio-generated hook declarations. In a standalone export, forms part of the developer-owned hook interface while preserving exact generated names used by the UI.
+In live firmware, owns the generated Three-Position enum and Button, Toggle, and Three-Position hook declarations. In a standalone export, forms part of the developer-owned hook interface while preserving exact generated names used by the UI.
 
 ### `CMakeLists.txt`
 
@@ -1001,11 +1252,11 @@ Owns compilation source registration and is generated by the export server.
 Preserve these rules:
 
 1. `generateForgeUILvglCode()` remains the only LVGL UI exporter.
-2. Inputs generate `FG_On_*` developer hooks.
-3. Outputs generate public `FG_Set_*` UI functions.
-4. Button uses one shared LVGL event callback with per-instance data.
-5. Light and Status Indicator remain non-clickable images controlled by setters.
-6. Button hooks live across `90_Studio_Export.c` and `95_UserEvents.c/.h`.
+2. Interactive Button uses a void `FG_On_*_Clicked(void)` hook.
+3. Interactive Toggle Switch uses a persistent `FG_On_*_Toggled(bool enabled)` hook.
+4. Interactive Three-Position Toggle uses `FG_On_*_Changed(fg_three_way_state_t state)` and local component coordinates for touch selection.
+5. Outputs generate public `FG_Set_*` UI functions and no event hooks.
+6. Button, Toggle, and Three-Position calls live in `90_Studio_Export.c`; their enum/declarations/stubs live in `95_UserEvents.c/.h`.
 7. All Binary Output setters are declared and implemented entirely in `90_Studio_Export.h/.c`.
 8. `Header.tsx` transports exporter metadata but does not create APIs.
 9. `export-server.js` writes files but does not define widget behavior.
@@ -1021,6 +1272,13 @@ Preserve these rules:
 19. The Binary Output Runtime is generated once per export.
 20. Every Binary Output Interactive Asset reuses the shared runtime implementation.
 21. Future Binary Output assets extend the existing runtime rather than generating new runtime implementations.
+22. Toggle Input Runtime is generated once per export.
+23. Three-Position Input Runtime is generated once per export.
+24. Per-instance runtime state remains independent in every runtime family.
+25. Generated enum types are visible wherever hook declarations and developer implementations require them.
+26. Header and export server transport or materialize metadata but never invent runtime APIs.
+27. Hook generation preserves exact sanitized unique names across all hook families.
+28. Missing or stale state assets fail validation before filesystem mutation.
 
 ## Extension rule
 
@@ -1028,7 +1286,11 @@ Current proven runtime families:
 
 ```text
 Interactive Input Runtime
-  └── Interactive Button
+  ├── Interactive Button
+  └── Interactive Toggle Switch
+
+Three-Position Input Runtime
+  └── Interactive Three-Position Toggle Switch
 
 Binary Output Runtime
   ├── Interactive Light
@@ -1037,36 +1299,17 @@ Binary Output Runtime
 
 Future generated APIs must follow the established direction model:
 
-- a new input control contributes a generated developer hook and hook metadata;
-- a new output control contributes a generated `FG_Set_*` public UI function, declaration metadata, and a per-instance Binary Output runtime record.
+- momentary input → `FG_On_*_Clicked(void)`;
+- persistent binary input → `FG_On_*_Toggled(bool enabled)`;
+- persistent multi-state input → `FG_On_*_Changed(fg_three_way_state_t state)`;
+- binary output → `FG_Set_*(bool enabled)`.
 
 Future output controls should extend the Binary Output Runtime and expose generated `FG_Set_*` APIs without duplicating `fg_binary_output_t`, `fg_binary_output_set()`, or shared setter generation.
 
-Future controls must extend the existing exporter, export-result metadata, Header transport, export-server materialization, generated files, and ownership model. They must not introduce a parallel exporter, hook generator, public API generator, or runtime project.
+Future controls must extend the existing exporter, export-result metadata, Header transport, export-server materialization, generated files, and ownership model. They must not introduce a parallel exporter, a second hook generator, a second generated-header system, or a separate firmware API layer.
 
 ## Permanent architecture statement
 
 > ForgeUI generates the interface. ForgeUI exposes the interface. The developer supplies the application.
 
 Maintain this document only when the generated API or ownership boundary changes.
-## Interactive Toggle Switch input API
-
-An exported Toggle Switch remains inside the standard four generated files:
-
-- `90_Studio_Export.c` contains the shared Toggle Input Runtime, per-instance state records, LVGL objects, event wiring, and callback invocation.
-- `90_Studio_Export.h` retains the Studio UI API surface; Toggle Switch does not add a setter because its state is user-controlled.
-- `95_UserEvents.h` declares `void FG_On_<Name>_Toggled(bool enabled);`.
-- `95_UserEvents.c` provides the generated developer hook stub receiving the new state.
-
-The exporter emits `fg_toggle_input_t`, `fg_toggle_input_set()`, and `fg_toggle_input_event_cb()` once when at least one ready Toggle Switch is present. Every Toggle instance owns an independent record containing its LVGL button, image, OFF/ON sources, current `enabled` state, and generated callback. A click inverts the saved state, updates the artwork, then calls developer code with the new boolean value.
-
-Example:
-
-```c
-void FG_On_Main_Power_Toggled(bool enabled)
-{
-    /* enabled is the new persistent Toggle Switch state. */
-}
-```
-
-This is the persistent branch of the Interactive Input Runtime. Interactive Button remains its momentary branch; Light and Status Indicator remain in the separate shared Binary Output Runtime.

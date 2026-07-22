@@ -740,3 +740,8 @@ ForgeUI Interactive Assets use the shared registry, uploaded-image library, pers
   - Interactive Light and Interactive Status Indicator are non-clickable, setter-controlled outputs using `FG_Set_*(bool enabled)`.
 
 Toggle Switch instances have independent runtime state while sharing one generated `fg_toggle_input_t` implementation. Generated declarations and implementations remain in `90_Studio_Export.c/.h` and `95_UserEvents.c/.h`; no additional generated API files are used.
+# Interactive Three-Position Toggle Switch
+
+ForgeUI's Three-Position Input Runtime provides persistent `LEFT`, `CENTER`, and `RIGHT` state without treating the outer positions as equivalent. Each Canvas instance selects a state directly from the left, center, or right third of the control and exports a unique `FG_On_<Name>_Changed(fg_three_way_state_t state)` hook. Multiple instances share one generated setter/event implementation while retaining independent runtime data.
+
+The enum and developer callback declarations are generated in `95_UserEvents.h`; default readable callback stubs are generated in `95_UserEvents.c`. Studio-owned live-firmware copies may be regenerated. Standalone-export copies become developer-owned. Physical ESP32-P4 validation remains pending until the generated project is flashed and all three touch zones are exercised on hardware.
