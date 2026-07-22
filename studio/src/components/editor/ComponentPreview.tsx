@@ -32,6 +32,7 @@ import ProgressPreview from '~components/editor/previews/ProgressPreview'
 import InteractiveButtonCanvasPreview from './previews/InteractiveButtonCanvasPreview'
 import InteractiveLightCanvasPreview from './previews/InteractiveLightCanvasPreview'
 import InteractiveStatusIndicatorCanvasPreview from './previews/InteractiveStatusIndicatorCanvasPreview'
+import InteractiveToggleSwitchCanvasPreview from './previews/InteractiveToggleSwitchCanvasPreview'
 import CircularProgressPreview from '~components/editor/previews/CircularProgressPreview'
 import ImagePreview from '~components/editor/previews/ImagePreview'
 import StatGroupPreview, {
@@ -293,6 +294,13 @@ case 'AspectRatio':
   return (
     <PreviewContainer component={component} enableVisualHelper {...forwardedProps}>
       <InteractiveStatusIndicatorCanvasPreview component={component} />
+    </PreviewContainer>
+  )
+
+  case 'InteractiveToggleSwitch':
+  return (
+    <PreviewContainer component={component} enableVisualHelper {...forwardedProps}>
+      <InteractiveToggleSwitchCanvasPreview component={component} />
     </PreviewContainer>
   )
 

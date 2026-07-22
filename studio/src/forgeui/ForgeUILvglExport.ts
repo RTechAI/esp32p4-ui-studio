@@ -8,10 +8,13 @@ import {
   getInteractiveLightInitialState,
   getInteractiveStatusIndicatorAsset,
   getInteractiveStatusIndicatorInitialState,
+  getInteractiveToggleSwitchAsset,
+  getInteractiveToggleSwitchInitialState,
   isLvglReadyUploadedAsset,
   resolveInteractiveButtonVisuals,
   resolveInteractiveLightVisuals,
   resolveInteractiveStatusIndicatorVisuals,
+  resolveInteractiveToggleSwitchVisuals,
 } from './interactive'
 
 import {
@@ -170,6 +173,59 @@ const createUniqueHookName = (
   return hookName
 }
 
+const createUniqueToggleHookName = (baseName: string, usedHookNames: Set<string>) => {
+  let hookName = `FG_On_${baseName}_Toggled`
+  let suffix = 2
+  while (usedHookNames.has(hookName)) hookName = `FG_On_${baseName}_${suffix++}_Toggled`
+  usedHookNames.add(hookName)
+  return hookName
+}
+
+type ToggleInputExport = {
+  hookName: string
+  runtimeName: string
+  offSymbol?: string
+  onSymbol?: string
+  initialState: 'off' | 'on'
+  ready: boolean
+}
+
+const createToggleInputExports = (
+  components: IComponents,
+  usedAssetSources: Set<string>,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+): Map<string, ToggleInputExport> => {
+  const result = new Map<string, ToggleInputExport>()
+  const uploadedAssets = forgeUIGetUploadedAssets()
+  Object.values(components)
+    .filter(component => component.type === 'InteractiveToggleSwitch')
+    .sort((a, b) => a.id.localeCompare(b.id))
+    .forEach(component => {
+      const asset = component.props.interactiveAssetId
+        ? getInteractiveToggleSwitchAsset(component.props.interactiveAssetId)
+        : undefined
+      const base = toCIdentifier(component.componentName || asset?.label || asset?.name || component.id, 'InteractiveToggleSwitch')
+      const hookName = createUniqueToggleHookName(base, usedHookNames)
+      userEventHooks.add(hookName)
+      const { offAsset, onAsset } = resolveInteractiveToggleSwitchVisuals(asset, uploadedAssets)
+      const ready = isLvglReadyUploadedAsset(offAsset) && isLvglReadyUploadedAsset(onAsset)
+      if (ready) {
+        if (offAsset.cFile) usedAssetSources.add(offAsset.cFile)
+        if (onAsset.cFile) usedAssetSources.add(onAsset.cFile)
+      }
+      result.set(component.id, {
+        hookName,
+        runtimeName: `fg_${component.id.replace(/[^A-Za-z0-9_]/g, '_')}_toggle`,
+        offSymbol: ready ? offAsset?.lvgl : undefined,
+        onSymbol: ready ? onAsset?.lvgl : undefined,
+        initialState: getInteractiveToggleSwitchInitialState(asset),
+        ready,
+      })
+    })
+  return result
+}
+
 type BinaryOutputExport = {
   apiName: string
   runtimeName: string
@@ -260,6 +316,7 @@ const buildLvglBlock = (
   usedHookNames: Set<string>,
   userEventHooks: Set<string>,
   binaryOutputExports: Map<string, BinaryOutputExport>,
+  toggleInputExports: Map<string, ToggleInputExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -654,6 +711,29 @@ case 'InteractiveStatusIndicator': {
     lines.push(`lv_obj_clear_flag(${varName}, LV_OBJ_FLAG_SCROLLABLE);`)
   }
 
+  lines.push(``)
+  break
+}
+
+case 'InteractiveToggleSwitch': {
+  const toggle = toggleInputExports.get(child.id)
+  if (toggle?.ready && toggle.offSymbol && toggle.onSymbol) {
+    lines.push(`${toggle.runtimeName}.button = lv_button_create(${parentVar});`)
+    lines.push(`lv_obj_set_pos(${toggle.runtimeName}.button, ${x}, ${y});`)
+    lines.push(`lv_obj_set_size(${toggle.runtimeName}.button, ${w}, ${h});`)
+    lines.push(`lv_obj_set_style_bg_opa(${toggle.runtimeName}.button, LV_OPA_TRANSP, 0);`)
+    lines.push(`lv_obj_set_style_border_width(${toggle.runtimeName}.button, 0, 0);`)
+    lines.push(`${toggle.runtimeName}.image = lv_image_create(${toggle.runtimeName}.button);`)
+    lines.push(`lv_obj_clear_flag(${toggle.runtimeName}.image, LV_OBJ_FLAG_CLICKABLE);`)
+    lines.push(`lv_obj_center(${toggle.runtimeName}.image);`)
+    lines.push(`fg_toggle_input_set(&${toggle.runtimeName}, ${toggle.initialState === 'on' ? 'true' : 'false'}, false);`)
+    lines.push(`lv_obj_add_event_cb(${toggle.runtimeName}.button, fg_toggle_input_event_cb, LV_EVENT_CLICKED, &${toggle.runtimeName});`)
+  } else {
+    lines.push(`lv_obj_t * ${varName} = lv_label_create(${parentVar});`)
+    lines.push(`lv_label_set_text(${varName}, "Missing Interactive Toggle Assets");`)
+    lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
+    lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
+  }
   lines.push(``)
   break
 }
@@ -1350,6 +1430,7 @@ case 'Chart': {
         usedHookNames,
         userEventHooks,
         binaryOutputExports,
+        toggleInputExports,
       )
     }
   })
@@ -1370,6 +1451,9 @@ export const generateForgeUILvglCode = (
   const binaryOutputExports = createBinaryOutputExports(
     components,
     usedAssetSources,
+  )
+  const toggleInputExports = createToggleInputExports(
+    components, usedAssetSources, usedHookNames, userEventHooks,
   )
 
   const previewPalette =
@@ -1439,7 +1523,7 @@ const backgroundMode =
   lines.push(`#include "lvgl.h"`)
   lines.push(`#include "20_RTC.h"`)
   lines.push(`#include "30_WIFI.h"`)
-  if (hasInteractiveButtons) {
+  if (hasInteractiveButtons || toggleInputExports.size > 0) {
     lines.push(`#include "95_UserEvents.h"`)
   }
   lines.push(`#include <stdbool.h>`)
@@ -1466,6 +1550,42 @@ const backgroundMode =
         declaredLightSymbols.add(symbol)
       }
     })
+  })
+
+  const declaredToggleSymbols = new Set<string>()
+  toggleInputExports.forEach(toggle => {
+    if (!toggle.ready || !toggle.offSymbol || !toggle.onSymbol) return
+    ;[toggle.offSymbol, toggle.onSymbol].forEach(symbol => {
+      if (!declaredToggleSymbols.has(symbol)) {
+        lines.push(`LV_IMAGE_DECLARE(${symbol});`)
+        declaredToggleSymbols.add(symbol)
+      }
+    })
+  })
+  if (declaredToggleSymbols.size > 0) {
+    lines.push(`typedef struct { lv_obj_t * button; lv_obj_t * image; const void * off_src; const void * on_src; bool enabled; void (*toggled_cb)(bool); } fg_toggle_input_t;`)
+    lines.push(`static void fg_toggle_input_set(fg_toggle_input_t * toggle, bool enabled, bool notify)`)
+    lines.push(`{`)
+    lines.push(`    if (!toggle) return;`)
+    lines.push(`    toggle->enabled = enabled;`)
+    lines.push(`    if (toggle->image) lv_image_set_src(toggle->image, enabled ? toggle->on_src : toggle->off_src);`)
+    lines.push(`    if (notify && toggle->toggled_cb) toggle->toggled_cb(enabled);`)
+    lines.push(`}`)
+    lines.push(`static void fg_toggle_input_event_cb(lv_event_t * event)`)
+    lines.push(`{`)
+    lines.push(`    fg_toggle_input_t * toggle = (fg_toggle_input_t *)lv_event_get_user_data(event);`)
+    lines.push(`    if (toggle) fg_toggle_input_set(toggle, !toggle->enabled, true);`)
+    lines.push(`}`)
+    lines.push(``)
+  }
+  toggleInputExports.forEach(toggle => {
+    if (!toggle.ready || !toggle.offSymbol || !toggle.onSymbol) return
+    lines.push(`static fg_toggle_input_t ${toggle.runtimeName} = {`)
+    lines.push(`    .button = NULL, .image = NULL,`)
+    lines.push(`    .off_src = &${toggle.offSymbol}, .on_src = &${toggle.onSymbol},`)
+    lines.push(`    .enabled = ${toggle.initialState === 'on' ? 'true' : 'false'}, .toggled_cb = ${toggle.hookName},`)
+    lines.push(`};`)
+    lines.push(``)
   })
 
   if (declaredLightSymbols.size > 0) {
@@ -1695,6 +1815,7 @@ lines.push(`}`)
       usedHookNames,
         userEventHooks,
         binaryOutputExports,
+        toggleInputExports,
       )
   }
 

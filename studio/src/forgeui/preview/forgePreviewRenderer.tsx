@@ -23,6 +23,7 @@ import {
 import InteractiveButtonCanvasPreview from '~components/editor/previews/InteractiveButtonCanvasPreview'
 import InteractiveLightCanvasPreview from '~components/editor/previews/InteractiveLightCanvasPreview'
 import InteractiveStatusIndicatorCanvasPreview from '~components/editor/previews/InteractiveStatusIndicatorCanvasPreview'
+import InteractiveToggleSwitchCanvasPreview from '~components/editor/previews/InteractiveToggleSwitchCanvasPreview'
 
 const lv = (v: any, d: any = 0) =>
   v !== undefined && v !== null && v !== '' ? v : d
@@ -217,6 +218,15 @@ case 'WiFi': {
         output.push(
           <Box key={child.id} position="absolute" left={`${x}px`} top={`${y}px`}>
             <InteractiveStatusIndicatorCanvasPreview component={child} />
+          </Box>,
+        )
+        break
+      }
+
+      case 'InteractiveToggleSwitch': {
+        output.push(
+          <Box key={child.id} position="absolute" left={`${x}px`} top={`${y}px`}>
+            <InteractiveToggleSwitchCanvasPreview component={child} />
           </Box>,
         )
         break

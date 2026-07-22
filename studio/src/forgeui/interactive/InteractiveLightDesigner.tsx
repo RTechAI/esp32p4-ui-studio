@@ -31,13 +31,16 @@ import type {
 import {
   createDefaultInteractiveLightAsset,
   createDefaultInteractiveStatusIndicatorAsset,
+  createDefaultInteractiveToggleSwitchAsset,
   createInteractiveAssetId,
   getInteractiveLightComponentProps,
   getInteractiveStatusIndicatorComponentProps,
+  getInteractiveToggleSwitchComponentProps,
   registerInteractiveAsset,
   removeInteractiveAsset,
   resolveInteractiveLightVisuals,
   resolveInteractiveStatusIndicatorVisuals,
+  resolveInteractiveToggleSwitchVisuals,
   saveInteractiveAssets,
   updateInteractiveAssetByKind,
 } from '~forgeui/interactive'
@@ -46,15 +49,17 @@ import type {
   ForgeUIInteractiveLightState,
 } from './ForgeUIInteractiveLightAsset'
 import type { ForgeUIInteractiveStatusIndicatorAsset } from './ForgeUIInteractiveStatusIndicatorAsset'
+import type { ForgeUIInteractiveToggleSwitchAsset } from './ForgeUIInteractiveToggleSwitchAsset'
 import InteractiveLightPreview from './InteractiveLightPreview'
 import InteractiveStatusIndicatorPreview from './InteractiveStatusIndicatorPreview'
+import InteractiveToggleSwitchPreview from './InteractiveToggleSwitchPreview'
 import InteractiveAssetAIGenerator, {
   InteractiveAssetEditorKind,
 } from './InteractiveAssetAIGenerator'
 
 type InteractiveLightDesignerProps = {
-  assets: Array<ForgeUIInteractiveLightAsset | ForgeUIInteractiveStatusIndicatorAsset>
-  assetKind?: 'light' | 'statusIndicator'
+  assets: Array<ForgeUIInteractiveLightAsset | ForgeUIInteractiveStatusIndicatorAsset | ForgeUIInteractiveToggleSwitchAsset>
+  assetKind?: 'light' | 'statusIndicator' | 'toggleSwitch'
   uploadedAssets: ForgeUIUploadedAsset[]
   selectedAssetKind: InteractiveAssetEditorKind
   onAssetsChanged: () => void
@@ -82,21 +87,22 @@ const InteractiveLightDesigner = ({
   const components = useSelector(getComponents)
   const selectedComponent = useSelector(getSelectedComponent)
   const isStatusIndicator = assetKind === 'statusIndicator'
+  const isToggleSwitch = assetKind === 'toggleSwitch'
   const selectedIsInteractiveLight = selectedComponent?.type === (
-    isStatusIndicator ? 'InteractiveStatusIndicator' : 'InteractiveLight'
+    isStatusIndicator ? 'InteractiveStatusIndicator' : isToggleSwitch ? 'InteractiveToggleSwitch' : 'InteractiveLight'
   )
-  const displayName = isStatusIndicator ? 'Status Indicator' : 'Light'
+  const displayName = isStatusIndicator ? 'Status Indicator' : isToggleSwitch ? 'Toggle Switch' : 'Light'
   const BinaryPreview = isStatusIndicator
     ? InteractiveStatusIndicatorPreview
-    : InteractiveLightPreview
+    : isToggleSwitch ? InteractiveToggleSwitchPreview : InteractiveLightPreview
   const { setValue } = useForm()
   const dispatch = useDispatch()
 
   const [editingAssetId, setEditingAssetId] = useState<string | null>(null)
   const [name, setName] = useState(`New Interactive ${displayName}`)
   const [label, setLabel] = useState(`Status ${displayName}`)
-  const [width, setWidth] = useState(32)
-  const [height, setHeight] = useState(32)
+  const [width, setWidth] = useState(isToggleSwitch ? 64 : 32)
+  const [height, setHeight] = useState(isToggleSwitch ? 36 : 32)
   const [offAssetId, setOffAssetId] = useState<string | undefined>()
   const [onAssetId, setOnAssetId] = useState<string | undefined>()
   const [initialState, setInitialState] =
@@ -120,8 +126,8 @@ const InteractiveLightDesigner = ({
     setEditingAssetId(null)
     setName(`New Interactive ${displayName}`)
     setLabel(`Status ${displayName}`)
-    setWidth(32)
-    setHeight(32)
+    setWidth(isToggleSwitch ? 64 : 32)
+    setHeight(isToggleSwitch ? 36 : 32)
     setOffAssetId(undefined)
     setOnAssetId(undefined)
     setInitialState('off')
@@ -138,7 +144,7 @@ const InteractiveLightDesigner = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newRequestVersion])
 
-  const edit = (asset: ForgeUIInteractiveLightAsset | ForgeUIInteractiveStatusIndicatorAsset) => {
+  const edit = (asset: ForgeUIInteractiveLightAsset | ForgeUIInteractiveStatusIndicatorAsset | ForgeUIInteractiveToggleSwitchAsset) => {
     setEditingAssetId(asset.id)
     setName(asset.name)
     setLabel(asset.label)
@@ -181,7 +187,7 @@ const InteractiveLightDesigner = ({
     } else {
       const createDefault = isStatusIndicator
         ? createDefaultInteractiveStatusIndicatorAsset
-        : createDefaultInteractiveLightAsset
+        : isToggleSwitch ? createDefaultInteractiveToggleSwitchAsset : createDefaultInteractiveLightAsset
       registerInteractiveAsset({
         ...createDefault(
           createInteractiveAssetId(),
@@ -201,12 +207,14 @@ const InteractiveLightDesigner = ({
     close()
   }
 
-  const assign = (asset: ForgeUIInteractiveLightAsset | ForgeUIInteractiveStatusIndicatorAsset) => {
+  const assign = (asset: ForgeUIInteractiveLightAsset | ForgeUIInteractiveStatusIndicatorAsset | ForgeUIInteractiveToggleSwitchAsset) => {
     if (!selectedIsInteractiveLight || !selectedComponent) return
 
     const componentProps = isStatusIndicator
       ? getInteractiveStatusIndicatorComponentProps(asset as ForgeUIInteractiveStatusIndicatorAsset)
-      : getInteractiveLightComponentProps(asset as ForgeUIInteractiveLightAsset)
+      : isToggleSwitch
+        ? getInteractiveToggleSwitchComponentProps(asset as ForgeUIInteractiveToggleSwitchAsset)
+        : getInteractiveLightComponentProps(asset as ForgeUIInteractiveLightAsset)
     Object.entries(componentProps).forEach(
       ([propertyName, value]) => {
         setValue(propertyName, value)
@@ -242,7 +250,7 @@ const InteractiveLightDesigner = ({
         <Box>
           <Heading size="sm">Interactive {displayName}s</Heading>
           <Text color="gray.400" fontSize="sm" mt={1}>
-            Reusable OFF/ON output indicators controlled by generated C APIs.
+            {isToggleSwitch ? 'Persistent OFF/ON input controls with generated state callbacks.' : 'Reusable OFF/ON output indicators controlled by generated C APIs.'}
           </Text>
         </Box>
       </HStack>
@@ -333,7 +341,9 @@ const InteractiveLightDesigner = ({
       {assets.map(asset => {
         const visuals = isStatusIndicator
           ? resolveInteractiveStatusIndicatorVisuals(asset as ForgeUIInteractiveStatusIndicatorAsset, uploadedAssets)
-          : resolveInteractiveLightVisuals(asset as ForgeUIInteractiveLightAsset, uploadedAssets)
+          : isToggleSwitch
+            ? resolveInteractiveToggleSwitchVisuals(asset as ForgeUIInteractiveToggleSwitchAsset, uploadedAssets)
+            : resolveInteractiveLightVisuals(asset as ForgeUIInteractiveLightAsset, uploadedAssets)
         return (
           <Box key={asset.id} borderWidth="1px" borderColor="whiteAlpha.200" borderRadius="md" p={4}>
             <HStack justify="space-between" align="center">

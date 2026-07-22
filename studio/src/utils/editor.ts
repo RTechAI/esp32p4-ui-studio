@@ -16,6 +16,7 @@ export const COMPONENTS: (ComponentType | MetaComponentType)[] = [
   'InteractiveButton',
   'InteractiveLight',
   'InteractiveStatusIndicator',
+  'InteractiveToggleSwitch',
   'Center',
   'Checkbox',
   'CircularProgress',

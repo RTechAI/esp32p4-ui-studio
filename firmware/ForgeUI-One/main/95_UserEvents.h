@@ -11,11 +11,13 @@
 
 #pragma once
 
+#include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-
+void FG_On_StatusToggleSwitch_Toggled(bool enabled);
 
 #ifdef __cplusplus
 }

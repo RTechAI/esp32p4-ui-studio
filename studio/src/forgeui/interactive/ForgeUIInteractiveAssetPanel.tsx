@@ -70,6 +70,7 @@ import type {
   ForgeUIInteractiveLightAsset,
 } from './ForgeUIInteractiveLightAsset'
 import type { ForgeUIInteractiveStatusIndicatorAsset } from './ForgeUIInteractiveStatusIndicatorAsset'
+import type { ForgeUIInteractiveToggleSwitchAsset } from './ForgeUIInteractiveToggleSwitchAsset'
 
 const DEFAULT_WIDTH = 120
 const DEFAULT_HEIGHT = 48
@@ -109,6 +110,9 @@ const statusIndicatorAssets = assets.filter(
   (asset): asset is ForgeUIInteractiveStatusIndicatorAsset =>
     asset.kind === 'statusIndicator',
 )
+const toggleSwitchAssets = assets.filter(
+  (asset): asset is ForgeUIInteractiveToggleSwitchAsset => asset.kind === 'toggleSwitch',
+)
 
   const [
     uploadedAssets,
@@ -122,6 +126,7 @@ const statusIndicatorAssets = assets.filter(
   const [isGenerating, setIsGenerating] = useState(false)
   const [lightNewRequest, setLightNewRequest] = useState(0)
   const [statusIndicatorNewRequest, setStatusIndicatorNewRequest] = useState(0)
+  const [toggleSwitchNewRequest, setToggleSwitchNewRequest] = useState(0)
 
   const [
     editingAssetId,
@@ -256,8 +261,10 @@ const [
       setEditingAssetId(null)
     } else if (selectedAssetKind === 'light') {
       setLightNewRequest(request => request + 1)
-    } else {
+    } else if (selectedAssetKind === 'statusIndicator') {
       setStatusIndicatorNewRequest(request => request + 1)
+    } else {
+      setToggleSwitchNewRequest(request => request + 1)
     }
 
     setIsDesignerOpen(true)
@@ -277,8 +284,10 @@ const [
       setEditingAssetId(null)
     } else if (nextKind === 'light') {
       setLightNewRequest(request => request + 1)
-    } else {
+    } else if (nextKind === 'statusIndicator') {
       setStatusIndicatorNewRequest(request => request + 1)
+    } else {
+      setToggleSwitchNewRequest(request => request + 1)
     }
   }
 
@@ -589,6 +598,9 @@ const [
               </Radio>
               <Radio value="statusIndicator" isDisabled={isGenerating}>
                 Status Indicator
+              </Radio>
+              <Radio value="toggleSwitch" isDisabled={isGenerating}>
+                Toggle Switch
               </Radio>
             </Stack>
           </RadioGroup>
@@ -973,6 +985,23 @@ const [
           newRequestVersion={statusIndicatorNewRequest}
           onActivate={() => {
             setSelectedAssetKind('statusIndicator')
+            setIsDesignerOpen(true)
+          }}
+          onClose={() => setIsDesignerOpen(false)}
+          onGeneratingChange={setIsGenerating}
+        />
+
+        <InteractiveLightDesigner
+          assets={toggleSwitchAssets}
+          assetKind="toggleSwitch"
+          uploadedAssets={uploadedAssets}
+          selectedAssetKind={selectedAssetKind}
+          onAssetsChanged={refreshAssets}
+          onUploadedAssetsChanged={refreshUploadedAssets}
+          isActive={isDesignerOpen && selectedAssetKind === 'toggleSwitch'}
+          newRequestVersion={toggleSwitchNewRequest}
+          onActivate={() => {
+            setSelectedAssetKind('toggleSwitch')
             setIsDesignerOpen(true)
           }}
           onClose={() => setIsDesignerOpen(false)}

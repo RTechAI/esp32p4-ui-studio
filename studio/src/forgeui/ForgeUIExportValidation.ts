@@ -6,6 +6,7 @@ export type ForgeUIExportDiagnosticCategory =
   | 'Interactive Button'
   | 'Interactive Light'
   | 'Interactive Status Indicator'
+  | 'Interactive Toggle Switch'
   | 'Uploaded Assets'
   | 'Canvas'
   | 'Public API'
@@ -108,7 +109,7 @@ export const validateForgeUIExport = (
   const referencedUploadedIds = new Set<string>()
 
   const validateImage = (
-    category: 'Interactive Button' | 'Interactive Light' | 'Interactive Status Indicator',
+    category: 'Interactive Button' | 'Interactive Light' | 'Interactive Status Indicator' | 'Interactive Toggle Switch',
     subject: string,
     state: string,
     assetId: string | undefined,
@@ -139,6 +140,8 @@ export const validateForgeUIExport = (
       ? 'Interactive Button'
       : asset.kind === 'statusIndicator'
         ? 'Interactive Status Indicator'
+        : asset.kind === 'toggleSwitch'
+          ? 'Interactive Toggle Switch'
         : 'Interactive Light'
     const subject = asset.name || asset.id
 
@@ -221,6 +224,7 @@ export const validateForgeUIExport = (
       component.type !== 'InteractiveButton' &&
       component.type !== 'InteractiveLight' &&
       component.type !== 'InteractiveStatusIndicator'
+      && component.type !== 'InteractiveToggleSwitch'
     ) {
       return
     }
@@ -228,6 +232,8 @@ export const validateForgeUIExport = (
       ? 'button'
       : component.type === 'InteractiveStatusIndicator'
         ? 'statusIndicator'
+        : component.type === 'InteractiveToggleSwitch'
+          ? 'toggleSwitch'
         : 'light'
     const assetId = component.props.interactiveAssetId
     const asset = typeof assetId === 'string' ? interactiveById.get(assetId) : undefined
@@ -240,14 +246,18 @@ export const validateForgeUIExport = (
     if (asset.kind !== expectedKind) {
       add('Canvas', subject, `Interactive Asset kind must be ${expectedKind}`)
     }
-    if (expectedKind === 'button') {
+    if (expectedKind === 'button' || expectedKind === 'toggleSwitch') {
       const base = toCIdentifier(
-        'label' in asset ? asset.label : component.props.label,
-        'InteractiveButton',
+        expectedKind === 'toggleSwitch'
+          ? component.componentName || ('label' in asset ? asset.label : component.id)
+          : 'label' in asset ? asset.label : component.props.label,
+        expectedKind === 'toggleSwitch' ? 'InteractiveToggleSwitch' : 'InteractiveButton',
       )
-      const name = `FG_On_${base}_Clicked`
+      const name = `FG_On_${base}_${expectedKind === 'toggleSwitch' ? 'Toggled' : 'Clicked'}`
       const previous = hookNames.get(name)
-      if (previous) add('Public API', name, `Duplicate Button hook for ${previous} and ${subject}`)
+      if (previous) add('Public API', name, expectedKind === 'button'
+        ? `Duplicate Button hook for ${previous} and ${subject}`
+        : `Duplicate Toggle Switch hook for ${previous} and ${subject}`)
       else hookNames.set(name, subject)
     } else {
       const name = binarySetterByComponent.get(component)
@@ -301,7 +311,7 @@ export const validateForgeUIExport = (
   })
 
   hookNames.forEach((_, name) => {
-    if (!generated.userEventHooks.includes(name)) add('Public API', name, 'Button hook will not be generated')
+    if (!generated.userEventHooks.includes(name)) add('Public API', name, 'Input hook will not be generated')
   })
   setterNames.forEach((_, name) => {
     if (!generated.publicApiDeclarations.includes(`void ${name}(bool enabled);`)) {

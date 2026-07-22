@@ -36,6 +36,14 @@ describe('generated public UI API headers', () => {
     expect(files.header).not.toContain('FG_Set_Status_Light')
     expect(files.source).not.toContain('FG_Set_Status_Light')
   })
+
+  it('generates persistent Toggle Switch hooks with the new boolean state', () => {
+    const files = generateUserEventFiles(['FG_On_Main_Power_Toggled'])
+    expect(files.hooks).toEqual(['FG_On_Main_Power_Toggled'])
+    expect(files.header).toContain('#include <stdbool.h>')
+    expect(files.header).toContain('void FG_On_Main_Power_Toggled(bool enabled);')
+    expect(files.source).toContain('void FG_On_Main_Power_Toggled(bool enabled)')
+  })
 })
 
 describe('server export preflight', () => {

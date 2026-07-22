@@ -3,6 +3,7 @@ import {
   getInteractiveButtonAsset,
   getInteractiveLightAsset,
   getInteractiveStatusIndicatorAsset,
+  getInteractiveToggleSwitchAsset,
   registerInteractiveAsset,
 } from './ForgeUIInteractiveAssetRegistry'
 import {
@@ -12,6 +13,7 @@ import {
   createDefaultInteractiveLightAsset,
 } from './ForgeUIInteractiveLightAsset'
 import { createDefaultInteractiveStatusIndicatorAsset } from './ForgeUIInteractiveStatusIndicatorAsset'
+import { createDefaultInteractiveToggleSwitchAsset } from './ForgeUIInteractiveToggleSwitchAsset'
 import {
   FORGEUI_INTERACTIVE_ASSETS_STORAGE_KEY,
   reloadInteractiveAssets,
@@ -78,5 +80,11 @@ describe('Interactive Asset persistence', () => {
     clearInteractiveAssetRegistry()
     reloadInteractiveAssets()
     expect(getInteractiveStatusIndicatorAsset(indicator.id)).toEqual(indicator)
+  })
+
+  it('restores Toggle Switches through the existing v1 key', () => {
+    const toggle = { ...createDefaultInteractiveToggleSwitchAsset('power'), offAssetId: 'off', onAssetId: 'on', initialState: 'on' as const }
+    registerInteractiveAsset(toggle); saveInteractiveAssets(); clearInteractiveAssetRegistry(); reloadInteractiveAssets()
+    expect(getInteractiveToggleSwitchAsset(toggle.id)).toEqual(toggle)
   })
 })

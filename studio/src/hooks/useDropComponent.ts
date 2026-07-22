@@ -114,6 +114,7 @@ const isInteractiveLight =
   item.type === 'InteractiveLight'
 const isInteractiveStatusIndicator =
   item.type === 'InteractiveStatusIndicator'
+const isInteractiveToggleSwitch = item.type === 'InteractiveToggleSwitch'
 const isSelect = item.type === 'Select'
 const isIcon = item.type === 'Icon'
 const isIconButton = item.type === 'IconButton'
@@ -145,6 +146,8 @@ const defaultW = isLed
                       ? 120
                       : isInteractiveButton
                         ? 160
+                        : isInteractiveToggleSwitch
+                          ? 64
                         : isInteractiveLight || isInteractiveStatusIndicator
                           ? 32
                         : isSelect
@@ -193,6 +196,8 @@ const defaultH = isLed
                       ? 40
                       : isInteractiveButton
                         ? 56
+                        : isInteractiveToggleSwitch
+                          ? 36
                         : isInteractiveLight || isInteractiveStatusIndicator
                           ? 32
                         : isSelect

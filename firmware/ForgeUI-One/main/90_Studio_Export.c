@@ -2,65 +2,34 @@
 #include "lvgl.h"
 #include "20_RTC.h"
 #include "30_WIFI.h"
+#include "95_UserEvents.h"
 #include <stdbool.h>
 #include <stdio.h>
 
 static lv_obj_t * fg_clock_label = NULL;
 static lv_obj_t * fg_wifi_label = NULL;
 
-LV_IMAGE_DECLARE(fg_upload_ai_status_indicator_off_1784682697093_1784682720049_7d915498);
-LV_IMAGE_DECLARE(fg_upload_ai_status_indicator_on_1784682697093_1784682745545_91d4e231);
-LV_IMAGE_DECLARE(fg_upload_ai_status_indicator_off_1784682803488_1784682823685_bac02494);
-LV_IMAGE_DECLARE(fg_upload_ai_status_indicator_on_1784682803488_1784682850209_47290330);
-
-typedef struct
+LV_IMAGE_DECLARE(fg_upload_ai_toggle_switch_off_1784686113814_1784686148028_6aa5bd35);
+LV_IMAGE_DECLARE(fg_upload_ai_toggle_switch_on_1784686113814_1784686172747_bad299af);
+typedef struct { lv_obj_t * button; lv_obj_t * image; const void * off_src; const void * on_src; bool enabled; void (*toggled_cb)(bool); } fg_toggle_input_t;
+static void fg_toggle_input_set(fg_toggle_input_t * toggle, bool enabled, bool notify)
 {
-    lv_obj_t * image;
-    const void * off_src;
-    const void * on_src;
-    bool enabled;
-} fg_binary_output_t;
-
-static void fg_binary_output_set(
-    fg_binary_output_t * output,
-    bool enabled
-)
+    if (!toggle) return;
+    toggle->enabled = enabled;
+    if (toggle->image) lv_image_set_src(toggle->image, enabled ? toggle->on_src : toggle->off_src);
+    if (notify && toggle->toggled_cb) toggle->toggled_cb(enabled);
+}
+static void fg_toggle_input_event_cb(lv_event_t * event)
 {
-    if (!output || !output->image)
-    {
-        return;
-    }
-
-    output->enabled = enabled;
-    lv_image_set_src(
-        output->image,
-        enabled ? output->on_src : output->off_src
-    );
+    fg_toggle_input_t * toggle = (fg_toggle_input_t *)lv_event_get_user_data(event);
+    if (toggle) fg_toggle_input_set(toggle, !toggle->enabled, true);
 }
 
-static fg_binary_output_t fg_green_power_light_on1_output = {
-    .image = NULL,
-    .off_src = &fg_upload_ai_status_indicator_off_1784682697093_1784682720049_7d915498,
-    .on_src = &fg_upload_ai_status_indicator_on_1784682697093_1784682745545_91d4e231,
-    .enabled = true,
+static fg_toggle_input_t fg_comp_MRVG2S1MYZVZ6_toggle = {
+    .button = NULL, .image = NULL,
+    .off_src = &fg_upload_ai_toggle_switch_off_1784686113814_1784686148028_6aa5bd35, .on_src = &fg_upload_ai_toggle_switch_on_1784686113814_1784686172747_bad299af,
+    .enabled = false, .toggled_cb = FG_On_StatusToggleSwitch_Toggled,
 };
-
-static fg_binary_output_t fg_red_power_light_off1_output = {
-    .image = NULL,
-    .off_src = &fg_upload_ai_status_indicator_off_1784682803488_1784682823685_bac02494,
-    .on_src = &fg_upload_ai_status_indicator_on_1784682803488_1784682850209_47290330,
-    .enabled = false,
-};
-
-void FG_Set_Green_Power_Light_On1(bool enabled)
-{
-    fg_binary_output_set(&fg_green_power_light_on1_output, enabled);
-}
-
-void FG_Set_Red_Power_Light_Off1(bool enabled)
-{
-    fg_binary_output_set(&fg_red_power_light_off1_output, enabled);
-}
 
 static void fg_clock_tick_cb(lv_timer_t *timer)
 {
@@ -118,19 +87,16 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_size(bg_texture_0, 1024, 600);
     lv_obj_move_background(bg_texture_0);
 
-    fg_green_power_light_on1_output.image = lv_image_create(parent);
-    fg_binary_output_set(&fg_green_power_light_on1_output, true);
-    lv_obj_set_pos(fg_green_power_light_on1_output.image, 624, 41);
-    lv_obj_set_size(fg_green_power_light_on1_output.image, 400, 300);
-    lv_obj_clear_flag(fg_green_power_light_on1_output.image, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_clear_flag(fg_green_power_light_on1_output.image, LV_OBJ_FLAG_SCROLLABLE);
-
-    fg_red_power_light_off1_output.image = lv_image_create(parent);
-    fg_binary_output_set(&fg_red_power_light_off1_output, false);
-    lv_obj_set_pos(fg_red_power_light_off1_output.image, 219, 41);
-    lv_obj_set_size(fg_red_power_light_off1_output.image, 400, 300);
-    lv_obj_clear_flag(fg_red_power_light_off1_output.image, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_clear_flag(fg_red_power_light_off1_output.image, LV_OBJ_FLAG_SCROLLABLE);
+    fg_comp_MRVG2S1MYZVZ6_toggle.button = lv_button_create(parent);
+    lv_obj_set_pos(fg_comp_MRVG2S1MYZVZ6_toggle.button, 558, 91);
+    lv_obj_set_size(fg_comp_MRVG2S1MYZVZ6_toggle.button, 300, 200);
+    lv_obj_set_style_bg_opa(fg_comp_MRVG2S1MYZVZ6_toggle.button, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(fg_comp_MRVG2S1MYZVZ6_toggle.button, 0, 0);
+    fg_comp_MRVG2S1MYZVZ6_toggle.image = lv_image_create(fg_comp_MRVG2S1MYZVZ6_toggle.button);
+    lv_obj_clear_flag(fg_comp_MRVG2S1MYZVZ6_toggle.image, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_center(fg_comp_MRVG2S1MYZVZ6_toggle.image);
+    fg_toggle_input_set(&fg_comp_MRVG2S1MYZVZ6_toggle, false, false);
+    lv_obj_add_event_cb(fg_comp_MRVG2S1MYZVZ6_toggle.button, fg_toggle_input_event_cb, LV_EVENT_CLICKED, &fg_comp_MRVG2S1MYZVZ6_toggle);
 
 
     fg_clock_tick_cb(NULL);

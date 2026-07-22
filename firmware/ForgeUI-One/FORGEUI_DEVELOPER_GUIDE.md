@@ -43,13 +43,13 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- None
+- `FG_On_StatusToggleSwitch_Toggled(bool enabled)`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| None | - | - |
+| StatusToggleSwitch | Toggle | `FG_On_StatusToggleSwitch_Toggled(bool enabled)` |
 
 ---
 

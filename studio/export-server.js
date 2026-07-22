@@ -865,14 +865,15 @@ function generateDeveloperGuide(userEventHooks) {
 
     const hookTable =
         hooks.length
-            ? hooks.map(h =>
-                `| ${h.replace(/^FG_On_|_Clicked$/g, '')} | Click | \`${h}()\` |`
-              ).join('\n')
+            ? hooks.map(h => {
+                const toggled = h.endsWith('_Toggled')
+                return `| ${h.replace(/^FG_On_|_(Clicked|Toggled)$/g, '')} | ${toggled ? 'Toggle' : 'Click'} | \`${h}(${toggled ? 'bool enabled' : ''})\` |`
+              }).join('\n')
             : '| None | - | - |'
 
     const hookList =
         hooks.length
-            ? hooks.map(h => `- \`${h}()\``).join('\n')
+            ? hooks.map(h => `- \`${h}(${h.endsWith('_Toggled') ? 'bool enabled' : ''})\``).join('\n')
             : '- None'
 
     return `# ForgeUI Developer Guide
@@ -1076,7 +1077,7 @@ function generateUserEventFiles(userEventHooks) {
       )
         .map((hook) => String(hook || '').trim())
         .filter((hook) =>
-          /^FG_On_[A-Za-z0-9_]+_Clicked$/.test(hook)
+          /^FG_On_[A-Za-z0-9_]+_(Clicked|Toggled)$/.test(hook)
         )
     )
   )
@@ -1084,12 +1085,18 @@ function generateUserEventFiles(userEventHooks) {
   
 
   const declarations = uniqueHooks
-    .map((hook) => `void ${hook}(void);`)
+    .map((hook) => hook.endsWith('_Toggled')
+      ? `void ${hook}(bool enabled);`
+      : `void ${hook}(void);`)
     .join('\n')
 
   const definitions = uniqueHooks
-    .map((hook) =>
-`void ${hook}(void)
+    .map((hook) => hook.endsWith('_Toggled')
+      ? `void ${hook}(bool enabled)
+{
+    printf("[ForgeUI User Event] ${hook}: %s\\n", enabled ? "ON" : "OFF");
+}`
+      : `void ${hook}(void)
 {
     printf("[ForgeUI User Event] ${hook}\\n");
 }`
@@ -1109,6 +1116,8 @@ function generateUserEventFiles(userEventHooks) {
  */
 
 #pragma once
+
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {

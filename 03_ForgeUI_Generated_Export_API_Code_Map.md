@@ -38,6 +38,7 @@ Use this map to determine:
 The generated export layer supports three proven Interactive Asset types:
 
 - Interactive Button in the Interactive Input Runtime
+- Interactive Toggle Switch in the Interactive Input Runtime
 - Interactive Light in the Binary Output Runtime
 - Interactive Status Indicator in the Binary Output Runtime
 
@@ -1048,3 +1049,24 @@ Future controls must extend the existing exporter, export-result metadata, Heade
 > ForgeUI generates the interface. ForgeUI exposes the interface. The developer supplies the application.
 
 Maintain this document only when the generated API or ownership boundary changes.
+## Interactive Toggle Switch input API
+
+An exported Toggle Switch remains inside the standard four generated files:
+
+- `90_Studio_Export.c` contains the shared Toggle Input Runtime, per-instance state records, LVGL objects, event wiring, and callback invocation.
+- `90_Studio_Export.h` retains the Studio UI API surface; Toggle Switch does not add a setter because its state is user-controlled.
+- `95_UserEvents.h` declares `void FG_On_<Name>_Toggled(bool enabled);`.
+- `95_UserEvents.c` provides the generated developer hook stub receiving the new state.
+
+The exporter emits `fg_toggle_input_t`, `fg_toggle_input_set()`, and `fg_toggle_input_event_cb()` once when at least one ready Toggle Switch is present. Every Toggle instance owns an independent record containing its LVGL button, image, OFF/ON sources, current `enabled` state, and generated callback. A click inverts the saved state, updates the artwork, then calls developer code with the new boolean value.
+
+Example:
+
+```c
+void FG_On_Main_Power_Toggled(bool enabled)
+{
+    /* enabled is the new persistent Toggle Switch state. */
+}
+```
+
+This is the persistent branch of the Interactive Input Runtime. Interactive Button remains its momentary branch; Light and Status Indicator remain in the separate shared Binary Output Runtime.

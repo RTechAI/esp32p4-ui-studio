@@ -19,7 +19,7 @@ Use this document to answer:
 
 ## Proven system status
 
-The framework currently has three implemented asset types:
+The framework currently has four implemented asset types:
 
 ```text
 Shared Interactive Asset Framework
@@ -1277,3 +1277,20 @@ Potential future runtime families:
 These are examples only and are not implemented.
 
 Do not create a new registry, persistence system, AI pipeline, uploaded-asset store, exporter, or duplicate runtime generator for a future type. Create a new runtime family only when the state and API contract cannot be represented by an existing family.
+## Interactive Toggle Switch map
+
+`ForgeUIInteractiveToggleSwitchAsset.ts` adds the persistent `toggleSwitch` member to the existing Interactive Asset union. Registry lookup, the versioned persistence store, uploaded-asset reference protection, and validation remain shared with all other Interactive Assets.
+
+`InteractiveLightDesigner.tsx` is the shared OFF/ON artwork designer for Light, Status Indicator, and Toggle Switch. For Toggle Switch it provides initial state, AI generation, preview, editing, deletion protection, and **Use on Selected** assignment without a parallel authoring system.
+
+`InteractiveToggleSwitchCanvasPreview.tsx` owns browser and Canvas behavior. Each mounted instance initializes from the asset's saved state and retains its local OFF/ON state until the next click.
+
+`ForgeUILvglExport.ts` prepares Toggle descriptors inside the existing exporter and emits one shared `fg_toggle_input_t` / `fg_toggle_input_set()` / `fg_toggle_input_event_cb()` implementation. Each instance contributes only its image references, state record, initial state, and `FG_On_*_Toggled(bool enabled)` hook.
+
+Interactive Input Runtime
+
+```text
+Interactive Input Runtime
+├── Interactive Button         momentary, FG_On_*_Clicked(void)
+└── Interactive Toggle Switch  persistent, FG_On_*_Toggled(bool enabled)
+```

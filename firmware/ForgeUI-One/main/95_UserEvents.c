@@ -18,4 +18,7 @@
 #include "95_UserEvents.h"
 #include <stdio.h>
 
-
+void FG_On_StatusToggleSwitch_Toggled(bool enabled)
+{
+    printf("[ForgeUI User Event] FG_On_StatusToggleSwitch_Toggled: %s\n", enabled ? "ON" : "OFF");
+}

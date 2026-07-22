@@ -2,12 +2,12 @@
 
 **ForgeUI Studio is an open-source, AI-assisted visual embedded HMI Studio for ESP32-P4.** It combines drag-and-drop design, natural-language layout generation, native LVGL asset conversion, reusable Interactive Assets, generated firmware APIs, and standalone ESP-IDF export.
 
-ForgeUI converts visual designs and natural-language ideas into native LVGL C that compiles inside ESP-IDF. The complete workflow has been exercised on the Waveshare ESP32-P4-WiFi6-Touch-LCD-7B, including Interactive Button input hooks and Interactive Light output APIs.
+ForgeUI converts visual designs and natural-language ideas into native LVGL C that compiles inside ESP-IDF. The Interactive Asset Framework includes momentary Button input, persistent Toggle Switch input, and the shared Light/Status Indicator Binary Output Runtime.
 
 Current proven milestone:
 
 ```text
-FORGEUI_INTERACTIVE_ASSET_FRAMEWORK_V2__SHARED_BINARY_OUTPUT_RUNTIME__BUTTON__LIGHT__STATUS_INDICATOR__PHYSICAL_ESP32P4_PROVEN
+FORGEUI_INTERACTIVE_ASSET_FRAMEWORK_V3__INPUT_RUNTIME__BUTTON__TOGGLE_SWITCH__BINARY_OUTPUT_RUNTIME__LIGHT__STATUS_INDICATOR
 ```
 
 > **Build it. Prove it. Flash it. Improve it. Repeat.**
@@ -25,7 +25,7 @@ ForgeUI brings the interface workflow into one Studio:
 - Generate hero artwork, standalone artwork, icons, and Interactive Asset state images.
 - Convert image assets into native LVGL C resources.
 - Preview interfaces in the Builder and browser before export.
-- Generate Button input hooks and Light output setters.
+- Generate Button click hooks, Toggle Switch state hooks, and Binary Output setters.
 - Build and flash the integrated ESP32-P4 firmware.
 - Export an independent ESP-IDF project for normal application development.
 
@@ -729,3 +729,14 @@ ForgeUI Studio is open source because I believe powerful embedded development to
 Creator & Lead Developer — ForgeUI Studio
 
 📧 **forgeui.esp32@gmail.com**
+## Interactive Runtime Families
+
+ForgeUI Interactive Assets use the shared registry, uploaded-image library, persistence key, AI image pipeline, Canvas assignment, validation, and LVGL export pipeline.
+
+- **Interactive Input Runtime**
+  - Interactive Button is momentary and generates `FG_On_*_Clicked(void)`.
+  - Interactive Toggle Switch is persistent. It displays saved OFF/ON artwork, toggles on each Canvas or LVGL click, and generates `FG_On_*_Toggled(bool enabled)` with the new state.
+- **Binary Output Runtime**
+  - Interactive Light and Interactive Status Indicator are non-clickable, setter-controlled outputs using `FG_Set_*(bool enabled)`.
+
+Toggle Switch instances have independent runtime state while sharing one generated `fg_toggle_input_t` implementation. Generated declarations and implementations remain in `90_Studio_Export.c/.h` and `95_UserEvents.c/.h`; no additional generated API files are used.

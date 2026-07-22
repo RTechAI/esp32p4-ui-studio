@@ -27,6 +27,7 @@ type ComponentType =
   | 'InteractiveButton'
   | 'InteractiveLight'
   | 'InteractiveStatusIndicator'
+  | 'InteractiveToggleSwitch'
   | 'Center'
   | 'Checkbox'
   | 'CircularProgress'

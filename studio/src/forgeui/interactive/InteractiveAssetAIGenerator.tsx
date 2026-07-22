@@ -15,6 +15,7 @@ export type InteractiveAssetEditorKind =
   | 'button'
   | 'light'
   | 'statusIndicator'
+  | 'toggleSwitch'
 
 type InteractiveAssetAIGeneratorProps = {
   selectedAssetKind: InteractiveAssetEditorKind
@@ -49,7 +50,9 @@ const InteractiveAssetAIGenerator = ({
       const isButton = selectedAssetKind === 'button'
       const outputPrefix = selectedAssetKind === 'statusIndicator'
         ? 'ai_status_indicator'
-        : 'ai_light'
+        : selectedAssetKind === 'toggleSwitch'
+          ? 'ai_toggle_switch'
+          : 'ai_light'
       const first = await generateAIImageAsset({
         prompt: trimmedPrompt,
         filePrefix: isButton

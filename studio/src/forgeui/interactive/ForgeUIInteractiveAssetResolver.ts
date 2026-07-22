@@ -13,6 +13,7 @@ import type {
   ForgeUIInteractiveStatusIndicatorAsset,
   ForgeUIInteractiveStatusIndicatorState,
 } from './ForgeUIInteractiveStatusIndicatorAsset'
+import type { ForgeUIInteractiveToggleSwitchAsset, ForgeUIInteractiveToggleSwitchState } from './ForgeUIInteractiveToggleSwitchAsset'
 
 export type ForgeUIInteractiveButtonVisuals = {
   normalAsset?: ForgeUIUploadedAsset
@@ -25,6 +26,7 @@ export type ForgeUIInteractiveLightVisuals = {
 }
 
 export type ForgeUIInteractiveStatusIndicatorVisuals = ForgeUIInteractiveLightVisuals
+export type ForgeUIInteractiveToggleSwitchVisuals = ForgeUIInteractiveLightVisuals
 
 export const findUploadedAssetById = (
   uploadedAssets: ForgeUIUploadedAsset[],
@@ -49,7 +51,7 @@ export const resolveInteractiveButtonVisuals = (
 })
 
 export const resolveInteractiveLightVisuals = (
-  asset: ForgeUIInteractiveLightAsset | ForgeUIInteractiveStatusIndicatorAsset | undefined,
+  asset: ForgeUIInteractiveLightAsset | ForgeUIInteractiveStatusIndicatorAsset | ForgeUIInteractiveToggleSwitchAsset | undefined,
   uploadedAssets: ForgeUIUploadedAsset[],
 ): ForgeUIInteractiveLightVisuals => ({
   offAsset: findUploadedAssetById(
@@ -69,6 +71,11 @@ export const resolveInteractiveStatusIndicatorVisuals = (
   offAsset: findUploadedAssetById(uploadedAssets, asset?.offAssetId),
   onAsset: findUploadedAssetById(uploadedAssets, asset?.onAssetId),
 })
+
+export const resolveInteractiveToggleSwitchVisuals = (
+  asset: ForgeUIInteractiveToggleSwitchAsset | undefined,
+  uploadedAssets: ForgeUIUploadedAsset[],
+): ForgeUIInteractiveToggleSwitchVisuals => resolveInteractiveLightVisuals(asset, uploadedAssets)
 
 export const isLvglReadyUploadedAsset = (
   asset: ForgeUIUploadedAsset | undefined,
@@ -133,3 +140,16 @@ export const getInteractiveStatusIndicatorInitialState = (
   asset: ForgeUIInteractiveStatusIndicatorAsset | ForgeUIInteractiveLightAsset | undefined,
 ): ForgeUIInteractiveStatusIndicatorState =>
   asset?.initialState === 'on' ? 'on' : 'off'
+
+export const getInteractiveToggleSwitchDimensions = (
+  asset: ForgeUIInteractiveToggleSwitchAsset | undefined,
+  fallback: { width: number; height: number },
+) => ({ width: asset?.width || fallback.width, height: asset?.height || fallback.height })
+
+export const getInteractiveToggleSwitchComponentProps = (
+  asset: ForgeUIInteractiveToggleSwitchAsset,
+) => ({ interactiveAssetId: asset.id, w: String(asset.width), h: String(asset.height) })
+
+export const getInteractiveToggleSwitchInitialState = (
+  asset: ForgeUIInteractiveToggleSwitchAsset | undefined,
+): ForgeUIInteractiveToggleSwitchState => asset?.initialState === 'on' ? 'on' : 'off'
