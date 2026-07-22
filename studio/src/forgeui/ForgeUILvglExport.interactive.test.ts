@@ -126,17 +126,56 @@ describe('Interactive Button LVGL export compatibility', () => {
     expect(result.userEventHooks).toEqual([])
     expect(result.code).toContain('LV_IMAGE_DECLARE(fg_upload_status_off);')
     expect(result.code).toContain('LV_IMAGE_DECLARE(fg_upload_status_on);')
-    expect(result.code).toContain('fg_status_light_image = lv_image_create(parent);')
-    expect(result.code).toContain('lv_image_set_src(fg_status_light_image, &fg_upload_status_off);')
-    expect(result.code).toContain('lv_obj_set_pos(fg_status_light_image, 12, 34);')
-    expect(result.code).toContain('lv_obj_set_size(fg_status_light_image, 400, 300);')
-    expect(result.code).toContain('lv_obj_clear_flag(fg_status_light_image, LV_OBJ_FLAG_CLICKABLE);')
+    expect(result.code).toContain('typedef struct')
+    expect(result.code).toContain('} fg_binary_output_t;')
+    expect(result.code).toContain('static void fg_binary_output_set(')
+    expect(result.code).toContain('fg_status_light_output.image = lv_image_create(parent);')
+    expect(result.code).toContain('fg_binary_output_set(&fg_status_light_output, false);')
+    expect(result.code).toContain('lv_obj_set_pos(fg_status_light_output.image, 12, 34);')
+    expect(result.code).toContain('lv_obj_set_size(fg_status_light_output.image, 400, 300);')
+    expect(result.code).toContain('lv_obj_clear_flag(fg_status_light_output.image, LV_OBJ_FLAG_CLICKABLE);')
+    expect(result.code).toContain('lv_obj_clear_flag(fg_status_light_output.image, LV_OBJ_FLAG_SCROLLABLE);')
     expect(result.code).toContain('void FG_Set_Status_Light(bool enabled)')
-    expect(result.code).toContain('if (!fg_status_light_image)')
-    expect(result.code).toContain('? &fg_upload_status_on')
-    expect(result.code).toContain(': &fg_upload_status_off')
+    expect(result.code).toContain('fg_binary_output_set(&fg_status_light_output, enabled);')
+    expect(result.code).toContain('.off_src = &fg_upload_status_off,')
+    expect(result.code).toContain('.on_src = &fg_upload_status_on,')
     expect(result.code).not.toContain('FG_On_StatusLight')
     expect(result.code).not.toContain('lv_button_create(parent);')
+  })
+
+  it('characterizes the public Light setter and guarded OFF/ON switching contract', () => {
+    const offAsset = createUploadedAsset('contract_off')
+    const onAsset = createUploadedAsset('contract_on')
+    forgeUIAddUploadedAssets([offAsset, onAsset])
+    const light = {
+      ...createDefaultInteractiveLightAsset('contract-light'),
+      offAssetId: offAsset.id,
+      onAssetId: onAsset.id,
+      initialState: 'off' as const,
+    }
+    registerInteractiveAsset(light)
+
+    const result = generateForgeUILvglCode({
+      root: { id: 'root', parent: 'root', type: 'Box', props: {}, children: ['light'] },
+      light: { id: 'light', parent: 'root', type: 'InteractiveLight',
+        componentName: 'Contract Light',
+        props: { interactiveAssetId: light.id, w: 32, h: 32 }, children: [] },
+    })
+
+    expect(result.publicApiDeclarations).toEqual([
+      'void FG_Set_Contract_Light(bool enabled);',
+    ])
+    expect(result.userEventHooks).toEqual([])
+    expect(result.code).toContain('void FG_Set_Contract_Light(bool enabled)')
+    expect(result.code).toContain('if (!output || !output->image)')
+    expect(result.code).toContain('output->enabled = enabled;')
+    expect(result.code).toContain('enabled ? output->on_src : output->off_src')
+    expect(result.code).toContain('.off_src = &fg_upload_contract_off,')
+    expect(result.code).toContain('.on_src = &fg_upload_contract_on,')
+    expect(result.code).toContain(
+      'fg_binary_output_set(&fg_contract_light_output, enabled);',
+    )
+    expect(result.code).not.toContain('FG_On_Contract')
   })
 
   it('uses ON as the configured initial Light source', () => {
@@ -156,7 +195,10 @@ describe('Interactive Button LVGL export compatibility', () => {
       a: { id: 'a', parent: 'root', type: 'InteractiveLight', props: { interactiveAssetId: light.id }, children: [] },
     })
 
-    expect(result.code).toContain('lv_image_set_src(fg_status_light_image, &fg_upload_on);')
+    expect(result.code).toContain('.enabled = true,')
+    expect(result.code).toContain(
+      'fg_binary_output_set(&fg_status_light_output, true);',
+    )
   })
 
   it('allocates duplicate Light APIs deterministically across Canvas reorder', () => {
@@ -185,9 +227,92 @@ describe('Interactive Button LVGL export compatibility', () => {
       'void FG_Set_Warning_Light_2(bool enabled);',
     ])
     expect(reordered.publicApiDeclarations).toEqual(first.publicApiDeclarations)
-    expect(first.code).toContain('fg_warning_light_image = lv_image_create(parent);')
-    expect(reordered.code).toContain('fg_warning_light_2_image = lv_image_create(parent);')
+    expect(first.code).toContain('fg_warning_light_output.image = lv_image_create(parent);')
+    expect(reordered.code).toContain('fg_warning_light_2_output.image = lv_image_create(parent);')
+    expect(first.code.match(/static void fg_binary_output_set\(/g)).toHaveLength(1)
+    expect(first.code).toContain(
+      'fg_binary_output_set(&fg_warning_light_output, enabled);',
+    )
+    expect(first.code).toContain(
+      'fg_binary_output_set(&fg_warning_light_2_output, enabled);',
+    )
     expect(reordered.code).not.toContain('fg_interactive_button_event_cb')
+  })
+
+  it('allocates three independent Light setters and runtimes for one reusable asset', () => {
+    const offAsset = createUploadedAsset('shared_off')
+    const onAsset = createUploadedAsset('shared_on')
+    forgeUIAddUploadedAssets([offAsset, onAsset])
+    const light = {
+      ...createDefaultInteractiveLightAsset('shared-light'),
+      label: 'Status Light',
+      offAssetId: offAsset.id,
+      onAssetId: onAsset.id,
+    }
+    registerInteractiveAsset(light)
+
+    const components: IComponents = {
+      root: { id: 'root', parent: 'root', type: 'Box', props: {},
+        children: ['third', 'first', 'second'] },
+      first: { id: 'first', parent: 'root', type: 'InteractiveLight',
+        componentName: 'Status Light', props: { interactiveAssetId: light.id }, children: [] },
+      second: { id: 'second', parent: 'root', type: 'InteractiveLight',
+        componentName: 'Status Light', props: { interactiveAssetId: light.id }, children: [] },
+      third: { id: 'third', parent: 'root', type: 'InteractiveLight',
+        componentName: 'Status Light', props: { interactiveAssetId: light.id }, children: [] },
+    }
+
+    const firstExport = generateForgeUILvglCode(components)
+    const repeatedExport = generateForgeUILvglCode(components)
+
+    expect(firstExport.publicApiDeclarations).toEqual([
+      'void FG_Set_Status_Light(bool enabled);',
+      'void FG_Set_Status_Light_2(bool enabled);',
+      'void FG_Set_Status_Light_3(bool enabled);',
+    ])
+    expect(firstExport.code).toContain('static fg_binary_output_t fg_status_light_output = {')
+    expect(firstExport.code).toContain('static fg_binary_output_t fg_status_light_2_output = {')
+    expect(firstExport.code).toContain('static fg_binary_output_t fg_status_light_3_output = {')
+    expect(firstExport.code.match(/\.image = lv_image_create\(parent\);/g)).toHaveLength(3)
+    expect(firstExport.code.match(/LV_IMAGE_DECLARE\(fg_upload_shared_off\)/g)).toHaveLength(1)
+    expect(firstExport.code.match(/LV_IMAGE_DECLARE\(fg_upload_shared_on\)/g)).toHaveLength(1)
+    expect(firstExport.assetSources).toEqual(expect.arrayContaining([
+      offAsset.cFile,
+      onAsset.cFile,
+    ]))
+    expect(firstExport.assetSources.filter(source => source === offAsset.cFile))
+      .toHaveLength(1)
+    expect(firstExport.assetSources.filter(source => source === onAsset.cFile))
+      .toHaveLength(1)
+    expect(repeatedExport).toEqual(firstExport)
+  })
+
+  it('derives distinct output setters from different Canvas component names', () => {
+    const offAsset = createUploadedAsset('named_off')
+    const onAsset = createUploadedAsset('named_on')
+    forgeUIAddUploadedAssets([offAsset, onAsset])
+    const light = {
+      ...createDefaultInteractiveLightAsset('named-light'),
+      offAssetId: offAsset.id,
+      onAssetId: onAsset.id,
+    }
+    registerInteractiveAsset(light)
+
+    const result = generateForgeUILvglCode({
+      root: { id: 'root', parent: 'root', type: 'Box', props: {},
+        children: ['pump', 'alarm'] },
+      pump: { id: 'pump', parent: 'root', type: 'InteractiveLight',
+        componentName: 'Pump Ready', props: { interactiveAssetId: light.id }, children: [] },
+      alarm: { id: 'alarm', parent: 'root', type: 'InteractiveLight',
+        componentName: 'Alarm Active', props: { interactiveAssetId: light.id }, children: [] },
+    })
+
+    expect(result.publicApiDeclarations).toEqual([
+      'void FG_Set_Alarm_Active(bool enabled);',
+      'void FG_Set_Pump_Ready(bool enabled);',
+    ])
+    expect(result.code).toContain('fg_alarm_active_output.image = lv_image_create(parent);')
+    expect(result.code).toContain('fg_pump_ready_output.image = lv_image_create(parent);')
   })
 
   it('keeps Button hooks intact in a mixed Button and Light export', () => {
@@ -260,9 +385,8 @@ describe('Interactive Button LVGL export compatibility', () => {
     expect(result.code).toContain(
       '.pressed_src = &fg_upload_shared,',
     )
-    expect(result.code).toContain(
-      'lv_image_set_src(fg_shared_light_image, &fg_upload_shared);',
-    )
+    expect(result.code).toContain('.off_src = &fg_upload_shared,')
+    expect(result.code).toContain('.on_src = &fg_upload_shared,')
     expect(result.code).toContain(
       'lv_image_set_src(obj3, &fg_upload_shared);',
     )

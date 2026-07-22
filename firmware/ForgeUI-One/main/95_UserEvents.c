@@ -18,7 +18,12 @@
 #include "95_UserEvents.h"
 #include <stdio.h>
 
-void FG_On_Button_Clicked(void)
+void FG_On_GreenButton_Clicked(void)
 {
-    printf("[ForgeUI User Event] FG_On_Button_Clicked\n");
+    printf("[ForgeUI User Event] FG_On_GreenButton_Clicked\n");
+}
+
+void FG_On_RedButton_Clicked(void)
+{
+    printf("[ForgeUI User Event] FG_On_RedButton_Clicked\n");
 }

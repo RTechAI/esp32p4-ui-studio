@@ -1,5 +1,6 @@
 import type { ForgeUIUploadedAsset } from './ForgeUIUploadedAssetRegistry'
 import type { ForgeUIInteractiveAsset } from './interactive'
+import { allocateUniqueOutputApiName } from './ForgeUIGeneratedApiNames'
 
 export type ForgeUIExportDiagnosticCategory =
   | 'Interactive Button'
@@ -153,6 +154,31 @@ export const validateForgeUIExport = (
   const componentIds = new Set<string>()
   const hookNames = new Map<string, string>()
   const setterNames = new Map<string, string>()
+  const lightSetterByComponent = new Map<IComponent, string>()
+  const usedOutputApiNames = new Set<string>()
+
+  Object.values(components)
+    .filter(component => component.type === 'InteractiveLight')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const assetId = component.props.interactiveAssetId
+      const asset = typeof assetId === 'string'
+        ? interactiveById.get(assetId)
+        : undefined
+      const lightAsset = asset?.kind === 'light' ? asset : undefined
+      const base = toCIdentifier(
+        component.componentName ||
+        lightAsset?.label ||
+        lightAsset?.name ||
+        component.id,
+        'InteractiveLight',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+
+      lightSetterByComponent.set(
+        component,
+        allocateUniqueOutputApiName(base, usedOutputApiNames),
+      )
+    })
 
   Object.values(components).forEach(component => {
     const componentSubject = component.componentName || component.type
@@ -204,15 +230,17 @@ export const validateForgeUIExport = (
       if (previous) add('Public API', name, `Duplicate Button hook for ${previous} and ${subject}`)
       else hookNames.set(name, subject)
     } else {
-      const base = toCIdentifier(
-        component.componentName || ('label' in asset ? asset.label : '') || asset.name || component.id,
-        'InteractiveLight',
-      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
-      const name = `FG_Set_${base}`
-      const previous = setterNames.get(name)
-      if (previous) add('Public API', name, `Duplicate Light setter for ${previous} and ${subject}`)
-      else setterNames.set(name, subject)
+      const name = lightSetterByComponent.get(component)
+      if (name) setterNames.set(name, subject)
     }
+  })
+
+  const publicApiDeclarations = new Set<string>()
+  generated.publicApiDeclarations.forEach(declaration => {
+    if (publicApiDeclarations.has(declaration)) {
+      add('Public API', declaration, 'Duplicate final public API declaration')
+    }
+    publicApiDeclarations.add(declaration)
   })
 
   const symbols = new Map<string, string>()

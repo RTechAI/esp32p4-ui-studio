@@ -43,13 +43,15 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- `FG_On_Button_Clicked()`
+- `FG_On_GreenButton_Clicked()`
+- `FG_On_RedButton_Clicked()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| Button | Click | `FG_On_Button_Clicked()` |
+| GreenButton | Click | `FG_On_GreenButton_Clicked()` |
+| RedButton | Click | `FG_On_RedButton_Clicked()` |
 
 ---
 

@@ -86,7 +86,7 @@ describe('ForgeUI export preflight', () => {
     ]))
   })
 
-  it('rejects duplicate hooks, setters, symbols, and invalid assetSources', () => {
+  it('rejects duplicate hooks, symbols, and invalid assetSources', () => {
     const button = interactive('button')
     const light = interactive('light')
     const assets = [uploaded('normal'), uploaded('pressed'), uploaded('off'),
@@ -94,15 +94,53 @@ describe('ForgeUI export preflight', () => {
     const result = validateForgeUIExport({
       a: component('InteractiveButton', 'a', button.id),
       b: component('InteractiveButton', 'b', button.id),
-      c: component('InteractiveLight', 'same', light.id),
-      d: component('InteractiveLight', 'same', light.id),
+      c: { ...component('InteractiveLight', 'c', light.id), componentName: 'same' },
+      d: { ...component('InteractiveLight', 'd', light.id), componentName: 'same' },
     } as any, [button, light] as any, assets, generate(assets, ['FG_On_Button_Clicked'], [
       'void FG_Set_Same(bool enabled);',
+      'void FG_Set_Same_2(bool enabled);',
     ]))
     expect(result.diagnostics.some(item => item.message.includes('Duplicate Button hook'))).toBe(true)
-    expect(result.diagnostics.some(item => item.message.includes('Duplicate Light setter'))).toBe(true)
+    expect(result.diagnostics.some(item => item.message.includes('Duplicate Light setter'))).toBe(false)
     expect(result.diagnostics.some(item => item.message === 'Duplicate generated image symbol')).toBe(true)
     expect(result.diagnostics.some(item => item.message === 'Invalid relative C source path')).toBe(true)
+  })
+
+  it('accepts deterministic suffixed setters for same-named Light instances', () => {
+    const light = interactive('light')
+    const assets = [uploaded('off'), uploaded('on')]
+    const first = { ...component('InteractiveLight', 'first', light.id),
+      componentName: 'Status Light' }
+    const second = { ...component('InteractiveLight', 'second', light.id),
+      componentName: 'Status Light' }
+    const result = validateForgeUIExport(
+      { second, first } as any,
+      [light] as any,
+      assets,
+      generate(assets, [], [
+        'void FG_Set_Status_Light(bool enabled);',
+        'void FG_Set_Status_Light_2(bool enabled);',
+      ]),
+    )
+
+    expect(result.ok).toBe(true)
+    expect(result.diagnostics).toEqual([])
+  })
+
+  it('rejects genuinely duplicated final public declarations', () => {
+    const declaration = 'void FG_Set_Status_Light(bool enabled);'
+    const result = validateForgeUIExport(
+      {} as any,
+      [],
+      [],
+      { ...generate([]), publicApiDeclarations: [declaration, declaration] },
+    )
+
+    expect(result.diagnostics).toContainEqual({
+      category: 'Public API',
+      subject: declaration,
+      message: 'Duplicate final public API declaration',
+    })
   })
 
   it('rejects duplicate component IDs', () => {

@@ -1,5 +1,6 @@
 import { forgeUIGetUploadedAssets } from './ForgeUIUploadedAssetRegistry'
 import { FORGEUI_IMAGE_ASSETS } from './ForgeUIAssetRegistry'
+import { allocateUniqueOutputApiName } from './ForgeUIGeneratedApiNames'
 
 import {
   getInteractiveButtonAsset,
@@ -166,9 +167,9 @@ const createUniqueHookName = (
   return hookName
 }
 
-type InteractiveLightExport = {
+type BinaryOutputExport = {
   apiName: string
-  runtimeImageName: string
+  runtimeName: string
   offSymbol?: string
   onSymbol?: string
   initialState: 'off' | 'on'
@@ -178,8 +179,8 @@ type InteractiveLightExport = {
 const createInteractiveLightExports = (
   components: IComponents,
   usedAssetSources: Set<string>,
-): Map<string, InteractiveLightExport> => {
-  const exportsByComponent = new Map<string, InteractiveLightExport>()
+): Map<string, BinaryOutputExport> => {
+  const exportsByComponent = new Map<string, BinaryOutputExport>()
   const usedApiNames = new Set<string>()
   const uploadedAssets = forgeUIGetUploadedAssets()
 
@@ -198,14 +199,10 @@ const createInteractiveLightExports = (
         'InteractiveLight',
       ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
 
-      let apiName = `FG_Set_${baseName}`
-      let suffix = 2
-
-      while (usedApiNames.has(apiName)) {
-        apiName = `FG_Set_${baseName}_${suffix}`
-        suffix++
-      }
-      usedApiNames.add(apiName)
+      const apiName = allocateUniqueOutputApiName(
+        baseName,
+        usedApiNames,
+      )
 
       const runtimeStem = apiName
         .replace(/^FG_Set_/, '')
@@ -228,7 +225,7 @@ const createInteractiveLightExports = (
 
       exportsByComponent.set(component.id, {
         apiName,
-        runtimeImageName: `fg_${runtimeStem}_image`,
+        runtimeName: `fg_${runtimeStem}_output`,
         offSymbol: ready ? offAsset?.lvgl : undefined,
         onSymbol: ready ? onAsset?.lvgl : undefined,
         initialState: getInteractiveLightInitialState(asset),
@@ -249,7 +246,7 @@ const buildLvglBlock = (
   usedAssetSources: Set<string>,
   usedHookNames: Set<string>,
   userEventHooks: Set<string>,
-  lightExports: Map<string, InteractiveLightExport>,
+  lightExports: Map<string, BinaryOutputExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -614,27 +611,23 @@ case 'InteractiveLight': {
     lightExport.offSymbol &&
     lightExport.onSymbol
   ) {
-    const initialSymbol = lightExport.initialState === 'on'
-      ? lightExport.onSymbol
-      : lightExport.offSymbol
-
     lines.push(
-      `${lightExport.runtimeImageName} = lv_image_create(${parentVar});`,
+      `${lightExport.runtimeName}.image = lv_image_create(${parentVar});`,
     )
     lines.push(
-      `lv_image_set_src(${lightExport.runtimeImageName}, &${initialSymbol});`,
+      `fg_binary_output_set(&${lightExport.runtimeName}, ${lightExport.initialState === 'on' ? 'true' : 'false'});`,
     )
     lines.push(
-      `lv_obj_set_pos(${lightExport.runtimeImageName}, ${x}, ${y});`,
+      `lv_obj_set_pos(${lightExport.runtimeName}.image, ${x}, ${y});`,
     )
     lines.push(
-      `lv_obj_set_size(${lightExport.runtimeImageName}, ${safeLightWidth}, ${safeLightHeight});`,
+      `lv_obj_set_size(${lightExport.runtimeName}.image, ${safeLightWidth}, ${safeLightHeight});`,
     )
     lines.push(
-      `lv_obj_clear_flag(${lightExport.runtimeImageName}, LV_OBJ_FLAG_CLICKABLE);`,
+      `lv_obj_clear_flag(${lightExport.runtimeName}.image, LV_OBJ_FLAG_CLICKABLE);`,
     )
     lines.push(
-      `lv_obj_clear_flag(${lightExport.runtimeImageName}, LV_OBJ_FLAG_SCROLLABLE);`,
+      `lv_obj_clear_flag(${lightExport.runtimeName}.image, LV_OBJ_FLAG_SCROLLABLE);`,
     )
   } else {
     lines.push(`lv_obj_t * ${varName} = lv_label_create(${parentVar});`)
@@ -1459,12 +1452,54 @@ const backgroundMode =
         declaredLightSymbols.add(symbol)
       }
     })
-    lines.push(
-      `static lv_obj_t * ${lightExport.runtimeImageName} = NULL;`,
-    )
   })
 
-  if (declaredLightSymbols.size > 0) lines.push(``)
+  if (declaredLightSymbols.size > 0) {
+    lines.push(``)
+    lines.push(`typedef struct`)
+    lines.push(`{`)
+    lines.push(`    lv_obj_t * image;`)
+    lines.push(`    const void * off_src;`)
+    lines.push(`    const void * on_src;`)
+    lines.push(`    bool enabled;`)
+    lines.push(`} fg_binary_output_t;`)
+    lines.push(``)
+    lines.push(`static void fg_binary_output_set(`)
+    lines.push(`    fg_binary_output_t * output,`)
+    lines.push(`    bool enabled`)
+    lines.push(`)`)
+    lines.push(`{`)
+    lines.push(`    if (!output || !output->image)`)
+    lines.push(`    {`)
+    lines.push(`        return;`)
+    lines.push(`    }`)
+    lines.push(``)
+    lines.push(`    output->enabled = enabled;`)
+    lines.push(`    lv_image_set_src(`)
+    lines.push(`        output->image,`)
+    lines.push(`        enabled ? output->on_src : output->off_src`)
+    lines.push(`    );`)
+    lines.push(`}`)
+    lines.push(``)
+  }
+
+  lightExports.forEach(lightExport => {
+    if (
+      !lightExport.ready ||
+      !lightExport.offSymbol ||
+      !lightExport.onSymbol
+    ) {
+      return
+    }
+
+    lines.push(`static fg_binary_output_t ${lightExport.runtimeName} = {`)
+    lines.push(`    .image = NULL,`)
+    lines.push(`    .off_src = &${lightExport.offSymbol},`)
+    lines.push(`    .on_src = &${lightExport.onSymbol},`)
+    lines.push(`    .enabled = ${lightExport.initialState === 'on' ? 'true' : 'false'},`)
+    lines.push(`};`)
+    lines.push(``)
+  })
 
   lightExports.forEach(lightExport => {
     if (
@@ -1477,17 +1512,7 @@ const backgroundMode =
 
     lines.push(`void ${lightExport.apiName}(bool enabled)`)
     lines.push(`{`)
-    lines.push(`    if (!${lightExport.runtimeImageName})`)
-    lines.push(`    {`)
-    lines.push(`        return;`)
-    lines.push(`    }`)
-    lines.push(``)
-    lines.push(`    lv_image_set_src(`)
-    lines.push(`        ${lightExport.runtimeImageName},`)
-    lines.push(`        enabled`)
-    lines.push(`            ? &${lightExport.onSymbol}`)
-    lines.push(`            : &${lightExport.offSymbol}`)
-    lines.push(`    );`)
+    lines.push(`    fg_binary_output_set(&${lightExport.runtimeName}, enabled);`)
     lines.push(`}`)
     lines.push(``)
   })
