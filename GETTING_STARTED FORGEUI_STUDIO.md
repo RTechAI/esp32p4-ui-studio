@@ -1,385 +1,407 @@
-# 🚀 ForgeUI Studio: Getting Started Guide
+# 🚀 ForgeUI Studio – Getting Started
 
-ForgeUI Studio is an AI-assisted visual embedded HMI Studio for ESP32-P4. It combines a drag-and-drop Visual Builder, AI layout and artwork generation, reusable Interactive Assets, native LVGL export, integrated build and flash, and standalone ESP-IDF project export.
+Welcome to **ForgeUI Studio**.
 
-Current proven architecture:
+ForgeUI is an AI-assisted visual HMI Studio for the **ESP32-P4**, combining drag-and-drop interface design, AI-assisted workflows, reusable Interactive Assets, native LVGL code generation, integrated build and flash, and standalone ESP-IDF project export.
 
-```text
-FORGEUI_INTERACTIVE_ASSET_FRAMEWORK_V1__BUTTON_AND_LIGHT__UNIFIED_UI_FLOW__PHYSICAL_ESP32P4_PROVEN
-```
+This guide is designed for **first-time users**. If you're starting with a brand-new Windows installation, follow the steps below and you'll have ForgeUI running in just a few minutes.
 
-This guide focuses on getting a new user running quickly. For detailed subsystem ownership and generated API internals, see:
+For detailed architecture and generated API documentation, see:
 
-- [`02_DEVELOPER_CODE_MAP.md`](../02_DEVELOPER_CODE_MAP.md)
-- [`03_ForgeUI_Generated_Export_API_Code_Map.md`](../03_ForgeUI_Generated_Export_API_Code_Map.md)
+- `02_DEVELOPER_CODE_MAP.md`
+- `03_ForgeUI_Generated_Export_API_Code_Map.md`
 
 ---
 
-## Quick start
+# Before You Begin
 
-### 1. Clone or open the repository
+There are only a few applications you should install yourself before using ForgeUI Studio.
 
-```bash
-git clone <your-repository-url> esp32p4-ui-studio
-cd esp32p4-ui-studio
+## Required Software
+
+### Windows 11
+
+Ensure Windows Update is fully up to date.
+
+---
+
+### GitHub Desktop
+
+Download:
+
+https://github.com/apps/desktop
+
+GitHub Desktop is the easiest way to clone and update ForgeUI Studio.
+
+---
+
+### Visual Studio Code (Recommended)
+
+Download:
+
+https://code.visualstudio.com/
+
+Visual Studio Code is recommended if you intend to modify ForgeUI Studio or develop standalone exported firmware projects.
+
+---
+
+### ESP-IDF v5.5.4
+
+Download the **ESP-IDF v5.5.4 Offline Installer**:
+
+https://dl.espressif.com/dl/esp-idf/
+
+The offline installer is currently the recommended installation method.
+
+---
+
+# Step 1 — Create Your ForgeUI Workspace
+
+Open **Command Prompt**.
+
+Create the recommended workspace:
+
+```text
+C:
+cd \
+mkdir ForgeUI
+mkdir ForgeUI\Projects
+cd ForgeUI\Projects
 ```
 
-If you already have the project, open its root directory in File Explorer or Visual Studio Code.
+Clone ForgeUI Studio:
 
-### 2. Check prerequisites
+```bash
+git clone https://github.com/RTechAI/esp32p4-ui-studio.git
+```
 
-ForgeUI's Windows setup expects:
+---
 
-- Node.js 20 LTS with npm
-- Python 3.11
-- Git
-- ESP-IDF 5.5.x for firmware build and flash
-- the USB drivers required by your ESP32-P4 board
-- Visual Studio Code with the Espressif ESP-IDF extension for standalone project development
+# Step 2 — Run First-Time Setup
 
-AI features additionally require an OpenAI API key. The Visual Builder and non-AI workflows can still run without one.
-
-### 3. Run first-time setup
-
-From the repository root, launch:
+Open the project folder and simply run:
 
 ```text
 FIRST_TIME_FORGEUI_SETUP.bat
 ```
 
-The setup utility checks the local environment and offers safe repairs. It can:
+This is the **ForgeUI Bootstrap Installer**.
 
-- verify Node.js and npm;
-- install Studio npm dependencies when missing;
-- locate a compatible Python environment;
-- install Pillow, pypng, and lz4 when required;
-- validate `tools/lvgl/LVGLImage.py`;
-- check the firmware template and ESP-IDF export support;
-- check whether an OpenAI API key is configured;
-- check the local Studio ports.
+It automatically prepares your development environment.
 
-It does not automatically install Node.js, Python, ESP-IDF, USB drivers, or Visual Studio Code.
+During setup ForgeUI will:
 
-### 4. Configure AI features (optional)
+- Verify the project structure
+- Install Node.js 20 automatically (if required)
+- Verify npm
+- Install Studio dependencies
+- Build ForgeUI Studio
+- Verify Python
+- Verify LVGL conversion tools
+- Verify ESP-IDF installation
+- Check Studio ports
+- Check optional AI configuration
+- Verify the firmware template
 
-Create:
+If everything is successful you will see:
 
 ```text
-studio/.env.local
+FORGEUI PREFLIGHT PASSED
+```
+
+You will then be prompted to launch ForgeUI Studio.
+
+No manual Node.js installation is normally required.
+
+---
+
+# Optional AI Features
+
+ForgeUI Studio works perfectly **without** an OpenAI API key.
+
+The following features are fully available without AI:
+
+- Visual Builder
+- Drag-and-drop Canvas
+- Browser Preview
+- Theme Manager
+- Interactive Assets
+- Native LVGL Export
+- Build and Flash
+- Standalone ESP-IDF Export
+
+Only the AI-powered features require an API key:
+
+- AI Layout Generator
+- AI Prompt Helper
+- Hero Background Generation
+- AI Artwork Generation
+- Interactive Asset Artwork Generation
+
+If no API key is configured, ForgeUI will display a warning during preflight but Studio will still launch normally.
+
+To enable AI features create:
+
+```text
+studio\.env.local
 ```
 
 Add:
 
 ```text
-OPENAI_API_KEY=your_key_here
+OPENAI_API_KEY=your_openai_api_key
 ```
 
-Never commit `.env.local` or an API key to source control.
+Replace `your_openai_api_key` with your own OpenAI API key.
 
-### 5. Start ForgeUI Studio
+> **Important**
+>
+> - `.env.local` is a local configuration file.
+> - Never commit it to GitHub.
+> - Missing this file only disables AI features.
 
-Run:
+Restart ForgeUI Studio after creating or modifying `.env.local`.
+
+---
+
+# First Launch
+
+After setup completes choose:
 
 ```text
-START_FORGEUI_STUDIO_HIDDEN.vbs
+Start ForgeUI Studio
 ```
 
-This starts:
+ForgeUI will start:
 
-- the Next.js Studio on port `3000`;
-- the local export, image-conversion, and hardware bridge on port `3030`.
+- Studio (Port 3000)
+- Local Export Server (Port 3030)
 
-The launcher opens:
+Your browser will automatically open:
 
 ```text
 http://localhost:3000
 ```
 
-To stop the local ForgeUI processes, run:
-
-```text
-STOP_FORGEUI_STUDIO.bat
-```
-
 ---
 
-## First project workflow
+# Your First ForgeUI Project
+
+The normal ForgeUI workflow is simple:
 
 ```text
-Visual Builder
-        │
-        ▼
-Interactive Assets
-        │
-        ▼
-Canvas
+Create Screen
         │
         ▼
 Browser Preview
         │
         ▼
-Native LVGL Export
+Build & Flash
         │
         ▼
-Standalone ESP-IDF Project
+Export Standalone Project
         │
         ▼
-Visual Studio Code
-        │
-        ▼
-ESP-IDF Build
-        │
-        ▼
-ESP32-P4
+Continue Development in ESP-IDF
 ```
-
-Interactive Assets are optional. A project can contain standard ForgeUI widgets, Interactive Assets, or both.
-
-### 1. Build a screen
-
-Use the Visual Builder to add, position, resize, and configure components on the Canvas. You can work manually or use ForgeUI AI Studio to generate an editable starting layout.
-
-Typical first steps:
-
-1. Choose a theme or background.
-2. Add components from the Studio component library.
-3. Set component position, size, text, and visual properties.
-4. Use Browser Preview to check the complete screen.
-
-### 2. Use AI assistance (optional)
-
-ForgeUI AI currently supports:
-
-- layout generation;
-- Layout Prompt Helper;
-- hero background generation;
-- standalone artwork generation;
-- Interactive Button state artwork;
-- Interactive Light state artwork;
-- semantic icon generation and resolution.
-
-AI layouts enter the normal Canvas workflow and remain editable. AI-generated artwork enters the same uploaded-asset and native LVGL conversion pipeline as manually imported artwork.
-
-### 3. Add an Interactive Asset (optional)
-
-Open the Interactive Assets panel and choose:
-
-```text
-+ New Interactive Asset
-```
-
-Select the Asset Type:
-
-- Button
-- Light
-
-You can select existing LVGL-ready images or generate the state artwork with AI. Save the asset, select a compatible Canvas component, and use **Use on Selected** to assign it.
-
-### 4. Preview
-
-Use the Canvas for editing and state interaction, then open Browser Preview to inspect the complete interface before export.
-
-Canvas-only Light toggling is a temporary preview aid. It does not change the Light's saved initial state or create a clickable Light in firmware.
-
-### 5. Build, flash, or export
-
-Choose the workflow that matches your goal:
-
-- Use the integrated Studio build and flash controls for rapid validation on the configured ESP32-P4 hardware.
-- Use **Export Standalone Project** when you are ready to continue application development independently in Visual Studio Code.
 
 ---
 
-## Interactive Asset Framework
+# Creating a Screen
 
-Interactive Assets are reusable visual definitions that can be assigned to compatible Canvas components before export.
+Use the Visual Builder to:
 
-Current types:
+- Drag components onto the Canvas
+- Resize and position them
+- Apply themes
+- Configure text and appearance
+- Preview the final interface
 
-| Asset type | Visual states | Firmware role |
-|---|---|---|
-| Interactive Button | Normal, Pressed | Input control with a generated click hook |
-| Interactive Light | OFF, ON | Output indicator with a generated public setter |
-
-Both types share the same registry, persistence, uploaded-asset, AI image, LVGL conversion, Canvas assignment, and export pipeline.
-
-### Interactive Button
-
-An Interactive Button can use manually selected or AI-generated Normal and Pressed artwork.
-
-In Preview and firmware:
-
-```text
-Normal
-  ↓
-Touch
-  ↓
-Pressed
-  ↓
-Release or Press Lost
-  ↓
-Normal
-```
-
-Each exported Button receives a generated developer hook, such as:
-
-```c
-void FG_On_StartPump_Clicked(void);
-```
-
-In a standalone exported project, add the hook's application behavior in `95_UserEvents.c`.
-
-### Interactive Light
-
-An Interactive Light can use manually selected or AI-generated OFF and ON artwork. Its saved initial state determines which image appears when firmware creates the UI.
-
-Light is non-clickable in firmware. Application code controls it through a generated public API, for example:
-
-```c
-FG_Set_Status_Light(true);  // ON
-FG_Set_Status_Light(false); // OFF
-```
-
-The Canvas can toggle a temporary preview without changing the saved state or exported runtime behavior.
+You can design completely manually or use the built-in AI tools to generate a starting layout.
 
 ---
 
-## Generated project structure
+# Interactive Assets
 
-ForgeUI keeps generated UI/runtime code separate from application integration code.
+Interactive Assets are reusable controls that connect artwork to generated firmware behaviour.
 
-### Generated and replaceable
+Current Interactive Assets include:
 
-- `90_Studio_Export.c`
-- `90_Studio_Export.h`
+- Interactive Button
+- Interactive Toggle Switch
+- Interactive Three-Position Toggle Switch
+- Interactive Light
+- Interactive Status Indicator
 
-These files contain generated UI construction, runtime support, and public UI APIs. ForgeUI may regenerate them. Do not add permanent hardware or product logic to them.
+Each asset can use manually imported artwork or AI-generated artwork.
 
-### Developer integration layer
-
-- `95_UserEvents.c`
-- `95_UserEvents.h`
-
-Studio creates these files as part of export. In the Studio-controlled live firmware they are generated test hooks and may be replaced. In a standalone exported project, their copies become the developer integration layer for Button hooks and application behavior.
-
-The basic direction is:
-
-```text
-Button input
-  → generated UI calls FG_On_* hook
-  → developer implements behavior in 95_UserEvents.c
-
-Light output
-  → developer calls FG_Set_* API
-  → generated UI updates the LVGL object
-```
-
-For the complete ownership contract, see [`03_ForgeUI_Generated_Export_API_Code_Map.md`](../03_ForgeUI_Generated_Export_API_Code_Map.md).
+Once assigned to a Canvas component, ForgeUI automatically exports the required LVGL runtime code.
 
 ---
 
-## Standalone ESP-IDF export
+# Browser Preview
 
-**Export Standalone Project** creates a separate ESP-IDF workspace under:
+Browser Preview allows you to interact with your interface before exporting.
+
+It mirrors the generated firmware as closely as possible while providing instant feedback during development.
+
+---
+
+# Exporting
+
+ForgeUI supports two workflows.
+
+## Rapid Development
+
+Use the integrated Build and Flash tools to immediately test on your connected ESP32-P4.
+
+---
+
+## Standalone Development
+
+Choose:
+
+```text
+Export Standalone Project
+```
+
+ForgeUI creates a complete ESP-IDF project in:
 
 ```text
 C:\ForgeUI-Exports
 ```
 
-The exported project includes:
+The exported project is completely independent from ForgeUI Studio.
 
-- generated UI and runtime code in `90_Studio_Export.c/.h`;
-- generated Button hook declarations and stubs in `95_UserEvents.c/.h`;
-- generated public Light declarations in `90_Studio_Export.h`;
-- required LVGL image assets;
-- an ESP-IDF CMake source list;
-- the ForgeUI-One firmware baseline.
+Continue development using:
 
-After export, the project is independent of ForgeUI Studio. Open it directly in Visual Studio Code and use the official Espressif ESP-IDF extension to build, flash, monitor, version-control, and maintain it.
-
-Recommended application workflow:
-
-1. Export the project from ForgeUI Studio.
-2. Open the exported folder in Visual Studio Code.
-3. Add Button behavior and product integration in the developer-owned application layer.
-4. Include `90_Studio_Export.h` where application code needs generated Light setters.
-5. Build, flash, and monitor through ESP-IDF.
-
-Do not edit generated `90_Studio_Export.c/.h` to add application logic.
+- Visual Studio Code
+- ESP-IDF Extension
+- Git
+- Your own application code
 
 ---
 
-## Build and hardware notes
+# Generated Files
 
-The current ForgeUI-One baseline targets:
+ForgeUI separates generated code from developer code.
 
-- Waveshare ESP32-P4-WiFi6-Touch-LCD-7B;
-- ESP-IDF 5.5.x;
-- LVGL 9;
-- a 1024×600 display configuration.
+## Generated Files
 
-Board configuration, USB setup, component dependencies, and ESP-IDF environment details can vary by workstation. Run the first-time setup check before troubleshooting the Studio itself.
+```text
+90_Studio_Export.c
+90_Studio_Export.h
+```
 
----
+These files are automatically regenerated.
 
-## Troubleshooting quick checks
-
-### Studio does not open
-
-- Confirm Node.js and npm are available.
-- Run `FIRST_TIME_FORGEUI_SETUP.bat` again.
-- Check that ports `3000` and `3030` are free.
-- Confirm both the Studio and `export-server.js` processes started.
-
-### AI generation fails
-
-- Confirm `OPENAI_API_KEY` is present in `studio/.env.local` or the Windows environment.
-- Restart Studio after changing environment configuration.
-- Check the Studio terminal output for the API error.
-
-### Image conversion fails
-
-- Confirm Python 3.11 is available.
-- Run the setup utility to validate Pillow, pypng, and lz4.
-- Confirm `tools/lvgl/LVGLImage.py` exists.
-- Confirm the local export server is running on port `3030`.
-
-### Firmware build or flash fails
-
-- Confirm ESP-IDF 5.5.x and the board USB drivers are configured.
-- Use **Clean Firmware** for a targeted generated-file reset.
-- Use **Firmware Maintenance** only when a full generated-asset and build-cache sweep is required.
-- Re-export before building a standalone project.
-
-### Interactive Asset is missing after restart
-
-- Confirm the asset was saved before closing Studio.
-- Confirm its state images were converted to LVGL-ready uploaded assets.
-- Reassign the saved asset to the compatible Canvas component if necessary.
+Do **not** place permanent application logic inside them.
 
 ---
 
-# About the Creator
+## Developer Files
 
-Hi, I'm **Scott Forster** from New Zealand, creator of **ForgeUI Studio**.
+```text
+95_UserEvents.c
+95_UserEvents.h
+```
 
-ForgeUI began as a personal project with a simple goal: make professional embedded HMI development faster, more approachable and more enjoyable. I wanted a tool that could take an idea—from a rough sketch or a natural-language prompt—all the way through to a working interface running on real ESP32-P4 hardware.
+These are where your hardware control and application behaviour belong after exporting a standalone project.
 
-Today, ForgeUI Studio combines visual design, AI-assisted layout generation, native LVGL code generation, reusable Interactive Assets and standalone ESP-IDF export into a single development workflow. Every major feature is developed against physical hardware, with new capabilities only considered complete once they have been built, exported, compiled, flashed and verified on an ESP32-P4.
+---
 
-My development philosophy remains simple:
+# Expected Preflight Warnings
+
+The following warnings are normal.
+
+## OpenAI API Key Not Configured
+
+AI features will be disabled.
+
+ForgeUI Studio will still operate normally.
+
+---
+
+## ESP-IDF Shell Not Activated
+
+Only relevant when compiling or flashing standalone firmware.
+
+The Studio itself will continue to operate normally.
+
+---
+
+# Troubleshooting
+
+## Studio will not start
+
+Run:
+
+```text
+FIRST_TIME_FORGEUI_SETUP.bat
+```
+
+Again.
+
+The setup utility safely verifies and repairs the Studio installation.
+
+---
+
+## AI Features Do Not Work
+
+Confirm:
+
+```text
+studio\.env.local
+```
+
+contains:
+
+```text
+OPENAI_API_KEY=your_openai_api_key
+```
+
+Restart ForgeUI Studio afterwards.
+
+---
+
+## Image Conversion Problems
+
+Run the First-Time Setup utility again.
+
+It validates:
+
+- Python
+- Pillow
+- pypng
+- lz4
+- LVGLImage.py
+
+---
+
+## Firmware Build Problems
+
+Confirm:
+
+- ESP-IDF v5.5.x is installed
+- USB drivers are installed
+- An ESP-IDF shell is active
+
+---
+
+# About ForgeUI
+
+ForgeUI Studio was created by **Scott Forster** from New Zealand.
+
+Its goal is simple:
+
+> **Build embedded interfaces visually. Export clean native firmware. Keep developers in complete control of the generated code.**
+
+Every major feature is developed and validated on physical ESP32-P4 hardware before being considered complete.
+
+ForgeUI is built using modern AI-assisted engineering workflows, with architecture, validation and product direction led by Scott Forster, while implementation assistance is provided by AI development tools including ChatGPT and Codex.
+
+The philosophy behind ForgeUI remains:
 
 > **Build it. Prove it. Flash it. Improve it.**
 
-ForgeUI is developed using modern AI-assisted engineering practices. I define the product vision, architecture, hardware validation and engineering direction, while AI coding tools—including **ChatGPT** and **Codex**—assist with implementation, refactoring, testing, documentation and design reviews. Every change is reviewed and validated before becoming part of the project.
-
-The goal is not simply to build another UI designer, but to create an open, native-first embedded development platform that removes repetitive engineering work while preserving complete control of the generated firmware.
-
-ForgeUI Studio is open source because I believe powerful embedded development tools should be accessible to everyone. I hope it helps engineers, students, makers and companies build better products more quickly, and I welcome ideas, feedback and contributions from the community.
-
----
-
-**Scott Forster**  
-Creator & Lead Developer — ForgeUI Studio
-
-📧 **forgeui.esp32@gmail.com**
+Happy building!

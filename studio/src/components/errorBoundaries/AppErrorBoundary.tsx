@@ -18,7 +18,7 @@ export default class AppErrorBoundary extends Component<
   state = { hasError: false }
 
   static getDerivedStateFromError(error: any) {
-    bugsnagClient.notify(error)
+    bugsnagClient?.notify(error)
     return { hasError: true }
   }
 

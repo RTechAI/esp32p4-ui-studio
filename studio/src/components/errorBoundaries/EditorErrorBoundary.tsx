@@ -23,7 +23,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 
   static getDerivedStateFromError(error: any) {
-    bugsnagClient.notify(error)
+    bugsnagClient?.notify(error)
     return { hasError: true }
   }
 

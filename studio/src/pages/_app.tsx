@@ -11,8 +11,8 @@ import AppErrorBoundary from '~components/errorBoundaries/AppErrorBoundary'
 import { ForgeThemeProvider } from '~forgeui/theme/ForgeThemeContext'
 import { AppProps } from 'next/app'
 
-const Main = ({ Component, pageProps }: AppProps) => (
-  <BugsnagErrorBoundary>
+const Main = ({ Component, pageProps }: AppProps) => {
+  const app = (
     <ChakraProvider resetCSS theme={theme}>
       <Global
         styles={{
@@ -44,7 +44,13 @@ const Main = ({ Component, pageProps }: AppProps) => (
         </ForgeThemeProvider>
       </AppErrorBoundary>
     </ChakraProvider>
-  </BugsnagErrorBoundary>
-)
+  )
+
+  return BugsnagErrorBoundary ? (
+    <BugsnagErrorBoundary>{app}</BugsnagErrorBoundary>
+  ) : (
+    app
+  )
+}
 
 export default wrapper.withRedux(Main)
