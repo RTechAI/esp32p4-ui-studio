@@ -294,52 +294,74 @@ const StateSheetOverlay = ({
               )
             }
             style={{
-              border: `2px solid ${color}`,
-              background: `${color}1f`,
+              border: `1px solid ${color}`,
+              background: `${color}0a`,
               boxSizing: 'border-box',
               pointerEvents: 'auto',
             }}
             resizeHandleStyles={{
-              top: { borderTop: `4px solid ${color}` },
-              right: { borderRight: `4px solid ${color}` },
-              bottom: {
-                borderBottom: `4px solid ${color}`,
+              top: {
+                height: 12,
+                background: `linear-gradient(to bottom, transparent 5.5px, ${color} 5.5px, ${color} 6.5px, transparent 6.5px)`,
               },
-              left: { borderLeft: `4px solid ${color}` },
+              right: {
+                width: 12,
+                background: `linear-gradient(to right, transparent 5.5px, ${color} 5.5px, ${color} 6.5px, transparent 6.5px)`,
+              },
+              bottom: {
+                height: 12,
+                background: `linear-gradient(to bottom, transparent 5.5px, ${color} 5.5px, ${color} 6.5px, transparent 6.5px)`,
+              },
+              left: {
+                width: 12,
+                background: `linear-gradient(to right, transparent 5.5px, ${color} 5.5px, ${color} 6.5px, transparent 6.5px)`,
+              },
               topRight: {
-                width: 10,
-                height: 10,
+                width: 16,
+                height: 16,
+                padding: 6,
                 background: color,
+                backgroundClip: 'content-box',
+                boxSizing: 'border-box',
               },
               bottomRight: {
-                width: 10,
-                height: 10,
+                width: 16,
+                height: 16,
+                padding: 6,
                 background: color,
+                backgroundClip: 'content-box',
+                boxSizing: 'border-box',
               },
               bottomLeft: {
-                width: 10,
-                height: 10,
+                width: 16,
+                height: 16,
+                padding: 6,
                 background: color,
+                backgroundClip: 'content-box',
+                boxSizing: 'border-box',
               },
               topLeft: {
-                width: 10,
-                height: 10,
+                width: 16,
+                height: 16,
+                padding: 6,
                 background: color,
+                backgroundClip: 'content-box',
+                boxSizing: 'border-box',
               },
             }}
           >
             <Text
               as="span"
               position="absolute"
-              top="4px"
-              left="4px"
-              px={2}
-              py={0.5}
+              top="2px"
+              left="2px"
+              px={1}
+              py={0.25}
               bg="blackAlpha.800"
               color={color}
-              fontSize="xs"
-              fontWeight="bold"
-              lineHeight="short"
+              fontSize="10px"
+              fontWeight="medium"
+              lineHeight="1.1"
               userSelect="none"
             >
               {region.label}
