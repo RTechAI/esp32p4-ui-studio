@@ -85,9 +85,26 @@ describe('Interactive Asset persistence', () => {
   })
 
   it('restores Toggle Switches through the existing v1 key', () => {
-    const toggle = { ...createDefaultInteractiveToggleSwitchAsset('power'), offAssetId: 'off', onAssetId: 'on', initialState: 'on' as const }
+    const toggle = { ...createDefaultInteractiveToggleSwitchAsset('power'), offAssetId: 'off', onAssetId: 'on', stateSheetSourceAssetId: 'source', initialState: 'on' as const }
     registerInteractiveAsset(toggle); saveInteractiveAssets(); clearInteractiveAssetRegistry(); reloadInteractiveAssets()
     expect(getInteractiveToggleSwitchAsset(toggle.id)).toEqual(toggle)
+  })
+  it('restores legacy Toggle Switches without state-sheet metadata', () => {
+    const legacy = {
+      ...createDefaultInteractiveToggleSwitchAsset(
+        'legacy-power',
+      ),
+      offAssetId: 'legacy-off',
+      onAssetId: 'legacy-on',
+    }
+    delete legacy.stateSheetSourceAssetId
+    registerInteractiveAsset(legacy)
+    saveInteractiveAssets()
+    clearInteractiveAssetRegistry()
+    reloadInteractiveAssets()
+    expect(
+      getInteractiveToggleSwitchAsset(legacy.id),
+    ).toEqual(legacy)
   })
   it('round-trips all three artwork references and state through the existing v1 key', () => {
     const toggle={...createDefaultInteractiveThreePositionToggleAsset('mode'),leftAssetId:'left',centerAssetId:'center',rightAssetId:'right',initialState:'right' as const};registerInteractiveAsset(toggle);saveInteractiveAssets();clearInteractiveAssetRegistry();reloadInteractiveAssets();expect(getInteractiveThreePositionToggleAsset(toggle.id)).toEqual(toggle)

@@ -1,4 +1,5 @@
 import {
+  calculateToggleContainScale,
   generateForgeUILvglCode,
 } from './ForgeUILvglExport'
 import {
@@ -6,6 +7,7 @@ import {
   createDefaultInteractiveButtonAsset,
   createDefaultInteractiveLightAsset,
   createDefaultInteractiveStatusIndicatorAsset,
+  createDefaultInteractiveToggleSwitchAsset,
   registerInteractiveAsset,
 } from './interactive'
 import {
@@ -389,6 +391,157 @@ describe('Interactive Button LVGL export compatibility', () => {
     expect(result.code).toContain('fg_interactive_button_event_cb')
   })
 
+  it('removes native LVGL styling from Toggle parent and image objects', () => {
+    const offAsset = createUploadedAsset('toggle_off')
+    const onAsset = createUploadedAsset('toggle_on')
+    forgeUIAddUploadedAssets([offAsset, onAsset])
+    const toggle = {
+      ...createDefaultInteractiveToggleSwitchAsset(
+        'toggle',
+        'Status Toggle',
+      ),
+      offAssetId: offAsset.id,
+      onAssetId: onAsset.id,
+    }
+    registerInteractiveAsset(toggle)
+
+    const result = generateForgeUILvglCode({
+      root: {
+        id: 'root',
+        parent: 'root',
+        type: 'Box',
+        props: {},
+        children: ['toggle-component'],
+      },
+      'toggle-component': {
+        id: 'toggle-component',
+        parent: 'root',
+        type: 'InteractiveToggleSwitch',
+        props: {
+          interactiveAssetId: toggle.id,
+          w: 300,
+          h: 200,
+        },
+        children: [],
+      },
+    })
+
+    expect(result.code).toContain(
+      'lv_obj_remove_style_all(fg_toggle_component_toggle.button);',
+    )
+    expect(result.code).toContain(
+      'lv_obj_set_style_bg_opa(fg_toggle_component_toggle.button, LV_OPA_TRANSP, LV_PART_MAIN);',
+    )
+    expect(result.code).toContain(
+      'lv_obj_set_style_border_opa(fg_toggle_component_toggle.button, LV_OPA_TRANSP, LV_PART_MAIN);',
+    )
+    expect(result.code).toContain(
+      'lv_obj_set_style_outline_opa(fg_toggle_component_toggle.button, LV_OPA_TRANSP, LV_PART_MAIN);',
+    )
+    expect(result.code).toContain(
+      'lv_obj_set_style_shadow_opa(fg_toggle_component_toggle.button, LV_OPA_TRANSP, LV_PART_MAIN);',
+    )
+    expect(result.code).toContain(
+      'lv_obj_set_style_pad_all(fg_toggle_component_toggle.button, 0, LV_PART_MAIN);',
+    )
+    expect(result.code).toContain(
+      'lv_obj_remove_style_all(fg_toggle_component_toggle.image);',
+    )
+  })
+
+  it('contains a native Toggle image inside its clickable bounds before centring', () => {
+    const offAsset = {
+      ...createUploadedAsset('toggle_scaled_off'),
+      width: 402,
+      height: 594,
+    }
+    const onAsset = {
+      ...createUploadedAsset('toggle_scaled_on'),
+      width: 402,
+      height: 594,
+    }
+    forgeUIAddUploadedAssets([offAsset, onAsset])
+    const toggle = {
+      ...createDefaultInteractiveToggleSwitchAsset(
+        'toggle-scaled',
+        'Scaled Toggle',
+      ),
+      offAssetId: offAsset.id,
+      onAssetId: onAsset.id,
+    }
+    registerInteractiveAsset(toggle)
+
+    const result = generateForgeUILvglCode({
+      root: {
+        id: 'root',
+        parent: 'root',
+        type: 'Box',
+        props: {},
+        children: ['scaled-toggle'],
+      },
+      'scaled-toggle': {
+        id: 'scaled-toggle',
+        parent: 'root',
+        type: 'InteractiveToggleSwitch',
+        props: {
+          interactiveAssetId: toggle.id,
+          w: 300,
+          h: 200,
+        },
+        children: [],
+      },
+    })
+
+    const scale = 'lv_image_set_scale(fg_scaled_toggle_toggle.image, 86);'
+    const center = 'lv_obj_center(fg_scaled_toggle_toggle.image);'
+    expect(result.code).toContain(
+      'lv_obj_set_size(fg_scaled_toggle_toggle.button, 300, 200);',
+    )
+    expect(result.code).toContain(scale)
+    expect(result.code.indexOf(scale)).toBeLessThan(result.code.indexOf(center))
+    expect(result.code).toContain('lv_obj_add_event_cb(fg_scaled_toggle_toggle.button,')
+    expect(result.code.match(/lv_image_set_scale\(fg_scaled_toggle_toggle\.image, 86\);/g)).toHaveLength(1)
+  })
+
+  it('uses descriptor dimensions as a legacy fallback when registry metadata is absent', () => {
+    const offAsset = createUploadedAsset('toggle_legacy_off')
+    const onAsset = createUploadedAsset('toggle_legacy_on')
+    forgeUIAddUploadedAssets([offAsset, onAsset])
+    const toggle = {
+      ...createDefaultInteractiveToggleSwitchAsset('toggle-legacy'),
+      offAssetId: offAsset.id,
+      onAssetId: onAsset.id,
+    }
+    registerInteractiveAsset(toggle)
+
+    const result = generateForgeUILvglCode({
+      root: {
+        id: 'root',
+        parent: 'root',
+        type: 'Box',
+        props: {},
+        children: ['legacy-toggle'],
+      },
+      'legacy-toggle': {
+        id: 'legacy-toggle',
+        parent: 'root',
+        type: 'InteractiveToggleSwitch',
+        props: {
+          interactiveAssetId: toggle.id,
+          w: 300,
+          h: 200,
+        },
+        children: [],
+      },
+    })
+
+    expect(result.code).toContain('fg_upload_toggle_legacy_off.header.w')
+    expect(result.code).toContain('fg_upload_toggle_legacy_on.header.h')
+    expect(result.code).toContain(
+      'lv_image_set_scale(fg_legacy_toggle_toggle.image, fg_legacy_toggle_toggle_scale);',
+    )
+  })
+
   it('deduplicates a shared declaration without removing image uses', () => {
     const shared = createUploadedAsset('shared')
     forgeUIAddUploadedAssets([shared])
@@ -442,5 +595,88 @@ describe('Interactive Button LVGL export compatibility', () => {
       'lv_obj_add_event_cb(obj1, fg_interactive_button_event_cb, LV_EVENT_CLICKED, &obj1_data);',
     )
     expect(result.assetSources).toEqual([shared.cFile])
+  })
+
+  it('exports only runtime Toggle images and ignores its retained state sheet', () => {
+    const source = createUploadedAsset('source-sheet')
+    const off = createUploadedAsset('runtime-off')
+    const on = createUploadedAsset('runtime-on')
+    forgeUIAddUploadedAssets([source, off, on])
+    const toggle = {
+      ...createDefaultInteractiveToggleSwitchAsset(
+        'runtime-toggle',
+      ),
+      offAssetId: off.id,
+      onAssetId: on.id,
+      stateSheetSourceAssetId: source.id,
+    }
+    registerInteractiveAsset(toggle)
+
+    const result = generateForgeUILvglCode({
+      root: {
+        id: 'root',
+        parent: 'root',
+        type: 'Box',
+        props: {},
+        children: ['toggle'],
+      },
+      toggle: {
+        id: 'toggle',
+        parent: 'root',
+        type: 'InteractiveToggleSwitch',
+        componentName: 'Runtime Toggle',
+        props: {
+          interactiveAssetId: toggle.id,
+          w: 64,
+          h: 36,
+        },
+        children: [],
+      },
+    } as any)
+
+    expect(result.assetSources).toEqual(
+      expect.arrayContaining([
+        off.cFile,
+        on.cFile,
+      ]),
+    )
+    expect(result.assetSources).not.toContain(
+      source.cFile,
+    )
+    expect(result.code).not.toContain(source.lvgl)
+  })
+})
+
+describe('Toggle contain scale', () => {
+  it('preserves aspect ratio and uses a safe common scale for both states', () => {
+    expect(calculateToggleContainScale(
+      300,
+      200,
+      [
+        { width: 402, height: 594 },
+        { width: 402, height: 594 },
+      ],
+    )).toBe(86)
+    expect(calculateToggleContainScale(
+      300,
+      200,
+      [
+        { width: 402, height: 594 },
+        { width: 450, height: 600 },
+      ],
+    )).toBe(85)
+  })
+
+  it('uses scale 256 for matching and smaller sources under the no-upscaling policy', () => {
+    expect(calculateToggleContainScale(
+      300,
+      200,
+      [{ width: 300, height: 200 }],
+    )).toBe(256)
+    expect(calculateToggleContainScale(
+      300,
+      200,
+      [{ width: 150, height: 100 }],
+    )).toBe(256)
   })
 })

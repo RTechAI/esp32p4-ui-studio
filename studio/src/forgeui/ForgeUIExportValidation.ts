@@ -107,7 +107,35 @@ export const validateForgeUIExport = (
   ) => diagnostics.push({ category, subject, message })
   const interactiveById = new Map(interactiveAssets.map(asset => [asset.id, asset]))
   const uploadedById = new Map(uploadedAssets.map(asset => [asset.id, asset]))
-  const referencedUploadedIds = new Set<string>()
+  const referencedImages: Array<{
+    category:
+      | 'Interactive Button'
+      | 'Interactive Light'
+      | 'Interactive Status Indicator'
+      | 'Interactive Toggle Switch'
+      | 'Interactive Three-Position Toggle Switch'
+    subject: string
+    state: string
+    assetId: string
+  }> = []
+  const reachableInteractiveIds = new Set(
+    Object.values(components)
+      .filter(component =>
+        component.type === 'InteractiveButton' ||
+        component.type === 'InteractiveLight' ||
+        component.type === 'InteractiveStatusIndicator' ||
+        component.type === 'InteractiveToggleSwitch' ||
+        component.type ===
+          'InteractiveThreePositionToggleSwitch',
+      )
+      .map(component =>
+        component.props.interactiveAssetId,
+      )
+      .filter(
+        (id): id is string =>
+          typeof id === 'string' && id.length > 0,
+      ),
+  )
 
   const validateImage = (
     category: 'Interactive Button' | 'Interactive Light' | 'Interactive Status Indicator' | 'Interactive Toggle Switch' | 'Interactive Three-Position Toggle Switch',
@@ -119,7 +147,12 @@ export const validateForgeUIExport = (
       add(category, subject, `${state} image missing`)
       return
     }
-    referencedUploadedIds.add(assetId)
+    referencedImages.push({
+      category,
+      subject,
+      state,
+      assetId,
+    })
     const uploaded = uploadedById.get(assetId)
     if (!uploaded) {
       add('Uploaded Assets', assetId, `Referenced by ${subject} but does not exist`)
@@ -136,7 +169,11 @@ export const validateForgeUIExport = (
     }
   }
 
-  interactiveAssets.forEach(asset => {
+  interactiveAssets
+    .filter(asset =>
+      reachableInteractiveIds.has(asset.id),
+    )
+    .forEach(asset => {
     const category = asset.kind === 'button'
       ? 'Interactive Button'
       : asset.kind === 'statusIndicator'
@@ -285,7 +322,16 @@ export const validateForgeUIExport = (
   })
 
   const symbols = new Map<string, string>()
-  uploadedAssets.forEach(asset => {
+  const runtimeUploadedIds = new Set(
+    referencedImages.map(
+      reference => reference.assetId,
+    ),
+  )
+  const runtimeUploadedAssets =
+    uploadedAssets.filter(asset =>
+      runtimeUploadedIds.has(asset.id),
+    )
+  runtimeUploadedAssets.forEach(asset => {
     if (!asset.lvgl) return
     const previous = symbols.get(asset.lvgl)
     if (previous && previous !== asset.id) {
@@ -308,16 +354,22 @@ export const validateForgeUIExport = (
     if (!validSource(source)) add('Asset Sources', source, 'Invalid relative C source path')
     if (sourceSet.has(source)) add('Asset Sources', source, 'Duplicate asset source')
     sourceSet.add(source)
-    const asset = uploadedAssets.find(item => item.cFile === source)
+    const asset = runtimeUploadedAssets.find(
+      item => item.cFile === source,
+    )
     if (asset && !generated.code.includes(asset.lvgl)) {
       add('Asset Sources', source, 'Source is not referenced by generated code')
     }
   })
 
-  referencedUploadedIds.forEach(id => {
-    const asset = uploadedById.get(id)
+  referencedImages.forEach(reference => {
+    const asset = uploadedById.get(reference.assetId)
     if (asset?.cFile && !sourceSet.has(asset.cFile)) {
-      add('Asset Sources', asset.cFile, 'Referenced image source is missing from export')
+      add(
+        'Asset Sources',
+        `${reference.subject} ${reference.state}`,
+        `Referenced image source is missing from export: ${asset.name} (${asset.cFile})`,
+      )
     }
   })
 

@@ -48,6 +48,9 @@ import {
 
 import InteractiveButtonPreview from './InteractiveButtonPreview'
 import InteractiveLightDesigner from './InteractiveLightDesigner'
+import type {
+  ToggleStateSheetResult,
+} from './InteractiveLightDesigner'
 import InteractiveThreePositionToggleDesigner from './InteractiveThreePositionToggleDesigner'
 import InteractiveAssetAIGenerator, {
   InteractiveAssetEditorKind,
@@ -82,7 +85,21 @@ type VisualSelectorMode =
   | 'pressed'
   | null
  
-const ForgeUIInteractiveAssetPanel = () => {
+type ForgeUIInteractiveAssetPanelProps = {
+  onBuildToggleSet?: (
+    stateSheetSourceAssetId?: string,
+  ) => void
+  toggleStateSheetResult?: ToggleStateSheetResult | null
+  onToggleStateSheetResultConsumed?: () => void
+  toggleDesignerRestoreVersion?: number
+}
+
+const ForgeUIInteractiveAssetPanel = ({
+  onBuildToggleSet,
+  toggleStateSheetResult,
+  onToggleStateSheetResultConsumed,
+  toggleDesignerRestoreVersion = 0,
+}: ForgeUIInteractiveAssetPanelProps) => {
 const selectedComponent =
     useSelector(getSelectedComponent)
 const components = useSelector(getComponents)
@@ -133,6 +150,15 @@ const threePositionToggleAssets = assets.filter(
   const [statusIndicatorNewRequest, setStatusIndicatorNewRequest] = useState(0)
   const [toggleSwitchNewRequest, setToggleSwitchNewRequest] = useState(0)
   const [threePositionToggleNewRequest, setThreePositionToggleNewRequest] = useState(0)
+
+  useEffect(() => {
+    if (toggleDesignerRestoreVersion <= 0) {
+      return
+    }
+
+    setSelectedAssetKind('toggleSwitch')
+    setIsDesignerOpen(true)
+  }, [toggleDesignerRestoreVersion])
 
   const [
     editingAssetId,
@@ -1019,6 +1045,11 @@ const [
           }}
           onClose={() => setIsDesignerOpen(false)}
           onGeneratingChange={setIsGenerating}
+          onBuildToggleSet={onBuildToggleSet}
+          toggleStateSheetResult={toggleStateSheetResult}
+          onToggleStateSheetResultConsumed={
+            onToggleStateSheetResultConsumed
+          }
         />
 
         <InteractiveThreePositionToggleDesigner

@@ -191,6 +191,44 @@ type ToggleInputExport = {
   onSymbol?: string
   initialState: 'off' | 'on'
   ready: boolean
+  imageScale?: number
+}
+
+export const calculateToggleContainScale = (
+  componentWidth: number,
+  componentHeight: number,
+  images: Array<{
+    width?: number
+    height?: number
+  }>,
+): number | undefined => {
+  if (
+    !Number.isFinite(componentWidth) ||
+    !Number.isFinite(componentHeight) ||
+    componentWidth <= 0 ||
+    componentHeight <= 0 ||
+    images.length === 0 ||
+    images.some(image =>
+      !Number.isFinite(image.width) ||
+      !Number.isFinite(image.height) ||
+      Number(image.width) <= 0 ||
+      Number(image.height) <= 0,
+    )
+  ) {
+    return undefined
+  }
+
+  const ratio = Math.min(
+    ...images.flatMap(image => [
+      componentWidth / Number(image.width),
+      componentHeight / Number(image.height),
+    ]),
+  )
+
+  return Math.max(
+    1,
+    Math.min(256, Math.round(ratio * 256)),
+  )
 }
 
 const createToggleInputExports = (
@@ -213,6 +251,13 @@ const createToggleInputExports = (
       userEventHooks.add(hookName)
       const { offAsset, onAsset } = resolveInteractiveToggleSwitchVisuals(asset, uploadedAssets)
       const ready = isLvglReadyUploadedAsset(offAsset) && isLvglReadyUploadedAsset(onAsset)
+      const imageScale = ready
+        ? calculateToggleContainScale(
+          Number(component.props.w),
+          Number(component.props.h),
+          [offAsset, onAsset],
+        )
+        : undefined
       if (ready) {
         if (offAsset.cFile) usedAssetSources.add(offAsset.cFile)
         if (onAsset.cFile) usedAssetSources.add(onAsset.cFile)
@@ -224,6 +269,7 @@ const createToggleInputExports = (
         onSymbol: ready ? onAsset?.lvgl : undefined,
         initialState: getInteractiveToggleSwitchInitialState(asset),
         ready,
+        imageScale,
       })
     })
   return result
@@ -736,12 +782,31 @@ case 'InteractiveToggleSwitch': {
   const toggle = toggleInputExports.get(child.id)
   if (toggle?.ready && toggle.offSymbol && toggle.onSymbol) {
     lines.push(`${toggle.runtimeName}.button = lv_button_create(${parentVar});`)
+    lines.push(`lv_obj_remove_style_all(${toggle.runtimeName}.button);`)
     lines.push(`lv_obj_set_pos(${toggle.runtimeName}.button, ${x}, ${y});`)
     lines.push(`lv_obj_set_size(${toggle.runtimeName}.button, ${w}, ${h});`)
-    lines.push(`lv_obj_set_style_bg_opa(${toggle.runtimeName}.button, LV_OPA_TRANSP, 0);`)
-    lines.push(`lv_obj_set_style_border_width(${toggle.runtimeName}.button, 0, 0);`)
+    lines.push(`lv_obj_set_style_bg_opa(${toggle.runtimeName}.button, LV_OPA_TRANSP, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_border_opa(${toggle.runtimeName}.button, LV_OPA_TRANSP, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_outline_opa(${toggle.runtimeName}.button, LV_OPA_TRANSP, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_shadow_opa(${toggle.runtimeName}.button, LV_OPA_TRANSP, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_pad_all(${toggle.runtimeName}.button, 0, LV_PART_MAIN);`)
     lines.push(`${toggle.runtimeName}.image = lv_image_create(${toggle.runtimeName}.button);`)
+    lines.push(`lv_obj_remove_style_all(${toggle.runtimeName}.image);`)
+    lines.push(`lv_obj_set_style_bg_opa(${toggle.runtimeName}.image, LV_OPA_TRANSP, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_border_opa(${toggle.runtimeName}.image, LV_OPA_TRANSP, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_outline_opa(${toggle.runtimeName}.image, LV_OPA_TRANSP, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_shadow_opa(${toggle.runtimeName}.image, LV_OPA_TRANSP, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_pad_all(${toggle.runtimeName}.image, 0, LV_PART_MAIN);`)
     lines.push(`lv_obj_clear_flag(${toggle.runtimeName}.image, LV_OBJ_FLAG_CLICKABLE);`)
+    if (toggle.imageScale !== undefined) {
+      lines.push(`lv_image_set_scale(${toggle.runtimeName}.image, ${toggle.imageScale});`)
+    } else {
+      lines.push(`int32_t ${toggle.runtimeName}_scale = LV_MIN(((${w}) * 256) / ${toggle.offSymbol}.header.w, ((${h}) * 256) / ${toggle.offSymbol}.header.h);`)
+      lines.push(`${toggle.runtimeName}_scale = LV_MIN(${toggle.runtimeName}_scale, ((${w}) * 256) / ${toggle.onSymbol}.header.w);`)
+      lines.push(`${toggle.runtimeName}_scale = LV_MIN(${toggle.runtimeName}_scale, ((${h}) * 256) / ${toggle.onSymbol}.header.h);`)
+      lines.push(`${toggle.runtimeName}_scale = LV_MAX(1, LV_MIN(256, ${toggle.runtimeName}_scale));`)
+      lines.push(`lv_image_set_scale(${toggle.runtimeName}.image, ${toggle.runtimeName}_scale);`)
+    }
     lines.push(`lv_obj_center(${toggle.runtimeName}.image);`)
     lines.push(`fg_toggle_input_set(&${toggle.runtimeName}, ${toggle.initialState === 'on' ? 'true' : 'false'}, false);`)
     lines.push(`lv_obj_add_event_cb(${toggle.runtimeName}.button, fg_toggle_input_event_cb, LV_EVENT_CLICKED, &${toggle.runtimeName});`)

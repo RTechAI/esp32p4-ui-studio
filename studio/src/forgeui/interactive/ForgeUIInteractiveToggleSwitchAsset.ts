@@ -13,6 +13,7 @@ export type ForgeUIInteractiveToggleSwitchAsset = ForgeUIInteractiveAssetBase & 
   height: number
   offAssetId?: string
   onAssetId?: string
+  stateSheetSourceAssetId?: string
   initialState: ForgeUIInteractiveToggleSwitchState
 }
 
@@ -32,6 +33,7 @@ export const createDefaultInteractiveToggleSwitchAsset = (
     height: 36,
     offAssetId: undefined,
     onAssetId: undefined,
+    stateSheetSourceAssetId: undefined,
     initialState: 'off',
     createdAt: now,
     updatedAt: now,

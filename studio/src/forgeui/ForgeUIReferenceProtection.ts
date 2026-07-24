@@ -24,6 +24,10 @@ export const findUploadedAssetReferences = (
       (asset.offAssetId === assetId || asset.onAssetId === assetId)) {
       references.push({ type: asset.kind === 'statusIndicator' ? 'Status Indicator' : 'Toggle Switch', name: asset.name })
     }
+    if (asset.kind === 'toggleSwitch' &&
+      asset.stateSheetSourceAssetId === assetId) {
+      references.push({ type: 'Toggle Switch', name: asset.name })
+    }
     if (asset.kind === 'threePositionToggle' &&
       (asset.leftAssetId === assetId || asset.centerAssetId === assetId || asset.rightAssetId === assetId)) {
       references.push({ type: 'Three-Position Toggle', name: asset.name })

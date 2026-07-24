@@ -1,4 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { useSelector } from 'react-redux'
 import {
   Badge,
@@ -69,6 +74,17 @@ type InteractiveLightDesignerProps = {
   onActivate: () => void
   onClose: () => void
   onGeneratingChange: (isGenerating: boolean) => void
+  onBuildToggleSet?: (
+    stateSheetSourceAssetId?: string,
+  ) => void
+  toggleStateSheetResult?: ToggleStateSheetResult | null
+  onToggleStateSheetResultConsumed?: () => void
+}
+
+export type ToggleStateSheetResult = {
+  offAssetId: string
+  onAssetId: string
+  stateSheetSourceAssetId: string
 }
 
 const InteractiveLightDesigner = ({
@@ -83,6 +99,9 @@ const InteractiveLightDesigner = ({
   onActivate,
   onClose,
   onGeneratingChange,
+  onBuildToggleSet,
+  toggleStateSheetResult,
+  onToggleStateSheetResultConsumed,
 }: InteractiveLightDesignerProps) => {
   const components = useSelector(getComponents)
   const selectedComponent = useSelector(getSelectedComponent)
@@ -105,10 +124,16 @@ const InteractiveLightDesigner = ({
   const [height, setHeight] = useState(isToggleSwitch ? 36 : 32)
   const [offAssetId, setOffAssetId] = useState<string | undefined>()
   const [onAssetId, setOnAssetId] = useState<string | undefined>()
+  const [
+    stateSheetSourceAssetId,
+    setStateSheetSourceAssetId,
+  ] = useState<string | undefined>()
   const [initialState, setInitialState] =
     useState<ForgeUIInteractiveLightState>('off')
   const [previewState, setPreviewState] =
     useState<ForgeUIInteractiveLightState>('off')
+  const consumedStateSheetResultRef =
+    useRef<string | null>(null)
 
   const offAsset = useMemo(
     () => uploadedAssets.find(asset => asset.id === offAssetId),
@@ -130,6 +155,7 @@ const InteractiveLightDesigner = ({
     setHeight(isToggleSwitch ? 36 : 32)
     setOffAssetId(undefined)
     setOnAssetId(undefined)
+    setStateSheetSourceAssetId(undefined)
     setInitialState('off')
     setPreviewState('off')
   }
@@ -144,6 +170,41 @@ const InteractiveLightDesigner = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newRequestVersion])
 
+  useEffect(() => {
+    if (!toggleStateSheetResult) {
+      consumedStateSheetResultRef.current = null
+      return
+    }
+
+    if (!isToggleSwitch) {
+      return
+    }
+
+    const resultKey =
+      `${toggleStateSheetResult.offAssetId}:${toggleStateSheetResult.onAssetId}:${toggleStateSheetResult.stateSheetSourceAssetId}`
+
+    if (
+      consumedStateSheetResultRef.current === resultKey
+    ) {
+      return
+    }
+
+    consumedStateSheetResultRef.current = resultKey
+    setOffAssetId(toggleStateSheetResult.offAssetId)
+    setOnAssetId(toggleStateSheetResult.onAssetId)
+    setStateSheetSourceAssetId(
+      toggleStateSheetResult.stateSheetSourceAssetId,
+    )
+    setPreviewState('off')
+    onUploadedAssetsChanged()
+    onToggleStateSheetResultConsumed?.()
+  }, [
+    isToggleSwitch,
+    onToggleStateSheetResultConsumed,
+    onUploadedAssetsChanged,
+    toggleStateSheetResult,
+  ])
+
   const edit = (asset: ForgeUIInteractiveLightAsset | ForgeUIInteractiveStatusIndicatorAsset | ForgeUIInteractiveToggleSwitchAsset) => {
     setEditingAssetId(asset.id)
     setName(asset.name)
@@ -152,6 +213,14 @@ const InteractiveLightDesigner = ({
     setHeight(asset.height)
     setOffAssetId(asset.offAssetId)
     setOnAssetId(asset.onAssetId)
+    setStateSheetSourceAssetId(
+      isToggleSwitch
+        ? (
+          asset as
+            ForgeUIInteractiveToggleSwitchAsset
+        ).stateSheetSourceAssetId
+        : undefined,
+    )
     setInitialState(asset.initialState)
     setPreviewState(asset.initialState)
     onActivate()
@@ -182,6 +251,9 @@ const InteractiveLightDesigner = ({
         height,
         offAssetId,
         onAssetId,
+        ...(isToggleSwitch
+          ? { stateSheetSourceAssetId }
+          : {}),
         initialState,
       })
     } else {
@@ -198,6 +270,9 @@ const InteractiveLightDesigner = ({
         height,
         offAssetId,
         onAssetId,
+        ...(isToggleSwitch
+          ? { stateSheetSourceAssetId }
+          : {}),
         initialState,
       })
     }
@@ -285,14 +360,37 @@ const InteractiveLightDesigner = ({
                 <FormLabel fontSize="sm">Width</FormLabel>
                 <NumberInput size="sm" min={1} value={width} onChange={(_, value) => Number.isFinite(value) && setWidth(value)}>
                   <NumberInputField />
-                </NumberInput>
-              </FormControl>
+                  </NumberInput>
+                </FormControl>
               <FormControl isRequired>
                 <FormLabel fontSize="sm">Height</FormLabel>
                 <NumberInput size="sm" min={1} value={height} onChange={(_, value) => Number.isFinite(value) && setHeight(value)}>
                   <NumberInputField />
                 </NumberInput>
               </FormControl>
+              {isToggleSwitch && (
+                <Button
+                  gridColumn={{
+                    base: 'auto',
+                    md: '1 / -1',
+                  }}
+                  size="sm"
+                  colorScheme="purple"
+                  variant="outline"
+                  onClick={() =>
+                    onBuildToggleSet?.(
+                      stateSheetSourceAssetId,
+                    )
+                  }
+                  isDisabled={!onBuildToggleSet}
+                >
+                  {offAssetId && onAssetId
+                    ? stateSheetSourceAssetId
+                      ? 'Rebuild Toggle Set'
+                      : 'Replace Toggle Set'
+                    : 'Create Toggle Set'}
+                </Button>
+              )}
               <FormControl isRequired>
                 <FormLabel fontSize="sm">OFF Image</FormLabel>
                 <Select size="sm" value={offAssetId || ''} onChange={event => setOffAssetId(event.target.value || undefined)}>

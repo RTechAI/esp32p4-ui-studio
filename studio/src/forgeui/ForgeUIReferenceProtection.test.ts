@@ -42,6 +42,29 @@ describe('ForgeUI reference protection', () => {
     expect(JSON.stringify(light)).toBe(before)
   })
 
+  it('protects a Toggle retained state-sheet source', () => {
+    const toggle = {
+      id: 'toggle',
+      name: 'Pump',
+      kind: 'toggleSwitch',
+      offAssetId: 'off',
+      onAssetId: 'on',
+      stateSheetSourceAssetId: 'source',
+    }
+
+    expect(
+      findUploadedAssetReferences(
+        'source',
+        [toggle] as any,
+      ),
+    ).toEqual([
+      {
+        type: 'Toggle Switch',
+        name: 'Pump',
+      },
+    ])
+  })
+
   it('blocks an assigned Interactive Light before any deletion mutation', () => {
     const components = {
       light: { id: 'light-component', componentName: 'WiFi Status',

@@ -1,10 +1,15 @@
 import {
   forgeUIAddUploadedAssets,
   forgeUICreateUploadedAsset,
+  forgeUIGetUploadedAssets,
   forgeUIUpdateUploadedAsset,
 } from '~forgeui/ForgeUIUploadedAssetRegistry'
 import { useForgeTheme } from '~forgeui/theme/ForgeThemeContext'
-import React, { useEffect, useState } from 'react'
+import React, {
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import { useToast } from '@chakra-ui/react'
 import {
   Badge,
@@ -33,6 +38,9 @@ import {
 import { aiSupportedComponents } from '~componentsList'
 import { createForgeAIContext } from './ForgeAIContext'
 import { generateForgeAILayout } from './ForgeAIEngine'
+import StateSheetOverlay, {
+  ForgeUIStateSheetProject,
+} from './StateSheetOverlay'
 
 import ForgeUIInteractiveAssetPanel from
   '~forgeui/interactive/ForgeUIInteractiveAssetPanel'
@@ -43,6 +51,20 @@ type ForgeAIPanelProps = {
   onClose: () => void
   insertAiLayout: (items: any[]) => void
 }
+
+type ToggleStateSheetResult = {
+  offAssetId: string
+  onAssetId: string
+  stateSheetSourceAssetId: string
+}
+
+const TOGGLE_STATE_SHEET_PROMPT = `Create two identical premium industrial rectangular rocker switches shown side by side.
+
+They must have identical housing, bezel, dimensions, material, camera angle, perspective and lighting.
+
+The left switch is OFF. The right switch is ON. The only difference is the switch state.
+
+Transparent background. No text. No shadows.`
 
 const SUPPORTED_AI_COMPONENTS = new Set(aiSupportedComponents)
 
@@ -1063,6 +1085,16 @@ export const ForgeAIPanel = ({
   const { heroBackground, setHeroBackground } = useForgeTheme()
 
   const toast = useToast()
+  const [activeTabIndex, setActiveTabIndex] =
+    useState(0)
+  const [
+    toggleStateSheetResult,
+    setToggleStateSheetResult,
+  ] = useState<ToggleStateSheetResult | null>(null)
+  const [
+    toggleDesignerRestoreVersion,
+    setToggleDesignerRestoreVersion,
+  ] = useState(0)
   const [layoutJson, setLayoutJson] = useState(DEFAULT_LAYOUT_JSON)
 const [jsonError, setJsonError] = useState('')
 
@@ -1128,6 +1160,46 @@ const [assetPreview, setAssetPreview] =
 
 const [assetArtwork, setAssetArtwork] =
   useState('')
+
+const [isStateSheetEditing, setIsStateSheetEditing] =
+  useState(false)
+
+const [stateSheetProject, setStateSheetProject] =
+  useState<ForgeUIStateSheetProject | null>(null)
+
+const [
+  stateSheetSourceAssetId,
+  setStateSheetSourceAssetId,
+] = useState<string | undefined>()
+
+const [
+  stateSheetBuilderMode,
+  setStateSheetBuilderMode,
+] = useState<'sourceRequired' | 'cropReady'>(
+  'sourceRequired',
+)
+
+const [
+  isToggleSetStartPending,
+  setIsToggleSetStartPending,
+] = useState(false)
+
+const [
+  isCreatingToggleSet,
+  setIsCreatingToggleSet,
+] = useState(false)
+
+const [stateSheetError, setStateSheetError] =
+  useState('')
+
+const artworkImageRef =
+  useRef<HTMLImageElement | null>(null)
+
+const offPreviewCanvasRef =
+  useRef<HTMLCanvasElement | null>(null)
+
+const onPreviewCanvasRef =
+  useRef<HTMLCanvasElement | null>(null)
 
 const [isGeneratingAsset, setIsGeneratingAsset] =
   useState(false)
@@ -1438,7 +1510,9 @@ const generateAsset = async () => {
   }
 }
 
-const generateAssetArtwork = async () => {
+const generateAssetArtwork = async (
+  continueToggleSet = false,
+) => {
   try {
     setArtworkError('')
     setIsGeneratingArtwork(true)
@@ -1492,7 +1566,17 @@ Requirements:
     }
 
     setAssetPreview(null)
+    setStateSheetProject(null)
     setAssetArtwork(payload.image)
+    if (continueToggleSet) {
+      setStateSheetSourceAssetId(undefined)
+      setStateSheetBuilderMode('cropReady')
+      setIsStateSheetEditing(true)
+      setIsToggleSetStartPending(true)
+    } else {
+      setIsToggleSetStartPending(false)
+      setIsStateSheetEditing(false)
+    }
   } catch (err: any) {
     console.error(err)
 
@@ -1500,8 +1584,485 @@ Requirements:
       err.message ||
         'AI artwork generation failed',
     )
+    if (continueToggleSet) {
+      setStateSheetError(
+        err.message ||
+          'AI artwork generation failed',
+      )
+    }
   } finally {
     setIsGeneratingArtwork(false)
+  }
+}
+
+const initializeToggleSetEditing = (
+  image: HTMLImageElement,
+) => {
+  if (
+    image.naturalWidth <= 0 ||
+    image.naturalHeight <= 0
+  ) {
+    return false
+  }
+
+  const sourceWidth = image.naturalWidth
+  const sourceHeight = image.naturalHeight
+  const cropWidth = Math.max(
+    1,
+    Math.round(sourceWidth * 0.38),
+  )
+  const cropHeight = Math.max(
+    1,
+    Math.round(sourceHeight * 0.76),
+  )
+  const y = Math.max(
+    0,
+    Math.round((sourceHeight - cropHeight) / 2),
+  )
+
+  setStateSheetProject({
+    sourceWidth,
+    sourceHeight,
+    cropWidth,
+    cropHeight,
+    regions: [
+      {
+        id: 'off',
+        label: 'OFF',
+        x: Math.round(sourceWidth * 0.07),
+        y,
+      },
+      {
+        id: 'on',
+        label: 'ON',
+        x: Math.min(
+          sourceWidth - cropWidth,
+          Math.round(sourceWidth * 0.55),
+        ),
+        y,
+      },
+    ],
+  })
+  setStateSheetError('')
+  setStateSheetBuilderMode('cropReady')
+  setIsStateSheetEditing(true)
+  setIsToggleSetStartPending(false)
+  return true
+}
+
+const beginToggleSetEditing = (
+  retainedSourceAssetId?: string,
+) => {
+  const retainedSource = retainedSourceAssetId
+    ? forgeUIGetUploadedAssets().find(
+      asset => asset.id === retainedSourceAssetId,
+    )
+    : undefined
+  const sourceArtwork =
+    retainedSource?.browserSrc || assetArtwork
+
+  if (!sourceArtwork) {
+    if (!assetPrompt.trim()) {
+      setAssetPrompt(TOGGLE_STATE_SHEET_PROMPT)
+    }
+    setStateSheetSourceAssetId(undefined)
+    setStateSheetProject(null)
+    setStateSheetError('')
+    setStateSheetBuilderMode('sourceRequired')
+    setIsToggleSetStartPending(false)
+    setIsStateSheetEditing(true)
+    return
+  }
+
+  if (sourceArtwork !== assetArtwork) {
+    setAssetArtwork(sourceArtwork)
+  }
+  setStateSheetSourceAssetId(
+    retainedSource?.id,
+  )
+  setStateSheetError('')
+  setStateSheetBuilderMode('cropReady')
+  setIsStateSheetEditing(true)
+  setIsToggleSetStartPending(true)
+}
+
+useEffect(() => {
+  if (!isToggleSetStartPending) {
+    return
+  }
+
+  const image = artworkImageRef.current
+
+  if (image?.complete) {
+    initializeToggleSetEditing(image)
+  }
+}, [
+  assetArtwork,
+  isToggleSetStartPending,
+])
+
+const returnToToggleDesigner = () => {
+  setToggleDesignerRestoreVersion(
+    version => version + 1,
+  )
+}
+
+const cancelToggleSetEditing = () => {
+  setIsToggleSetStartPending(false)
+  setIsStateSheetEditing(false)
+  setStateSheetProject(null)
+  setStateSheetSourceAssetId(undefined)
+  setStateSheetBuilderMode('sourceRequired')
+  setStateSheetError('')
+  returnToToggleDesigner()
+}
+
+useEffect(() => {
+  if (!isStateSheetEditing || !stateSheetProject) {
+    return
+  }
+
+  const sourceImage = artworkImageRef.current
+
+  if (!sourceImage || !sourceImage.complete) {
+    return
+  }
+
+  stateSheetProject.regions.forEach(region => {
+    const canvas =
+      region.id === 'off'
+        ? offPreviewCanvasRef.current
+        : onPreviewCanvasRef.current
+
+    if (!canvas) return
+
+    canvas.width = stateSheetProject.cropWidth
+    canvas.height = stateSheetProject.cropHeight
+
+    const context = canvas.getContext('2d')
+
+    if (!context) return
+
+    context.clearRect(
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+    )
+    context.drawImage(
+      sourceImage,
+      region.x,
+      region.y,
+      stateSheetProject.cropWidth,
+      stateSheetProject.cropHeight,
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+    )
+  })
+}, [isStateSheetEditing, stateSheetProject])
+
+const cropRegionToPng = (
+  sourceImage: HTMLImageElement,
+  regionId: string,
+  fileName: string,
+) =>
+  new Promise<{
+    file: File
+    browserSrc: string
+  }>((resolve, reject) => {
+    if (!stateSheetProject) {
+      reject(
+        new Error('State sheet crop project is missing.'),
+      )
+      return
+    }
+
+    const region = stateSheetProject.regions.find(
+      item => item.id === regionId,
+    )
+
+    if (!region) {
+      reject(
+        new Error(
+          `${regionId.toUpperCase()} crop region is missing.`,
+        ),
+      )
+      return
+    }
+
+    const canvas = document.createElement('canvas')
+    canvas.width = stateSheetProject.cropWidth
+    canvas.height = stateSheetProject.cropHeight
+
+    const context = canvas.getContext('2d')
+
+    if (!context) {
+      reject(
+        new Error('Unable to create crop canvas.'),
+      )
+      return
+    }
+
+    context.clearRect(
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+    )
+    context.drawImage(
+      sourceImage,
+      region.x,
+      region.y,
+      stateSheetProject.cropWidth,
+      stateSheetProject.cropHeight,
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+    )
+
+    const browserSrc = canvas.toDataURL('image/png')
+
+    canvas.toBlob(blob => {
+      if (!blob) {
+        reject(
+          new Error(
+            `Unable to create ${region.label} crop.`,
+          ),
+        )
+        return
+      }
+
+      resolve({
+        file: new File([blob], fileName, {
+          type: 'image/png',
+        }),
+        browserSrc,
+      })
+    }, 'image/png')
+  })
+
+const convertToggleCropAsset = async (
+  file: File,
+  browserSrc: string,
+) => {
+  const asset = forgeUICreateUploadedAsset(
+    file,
+    browserSrc,
+  )
+
+  forgeUIAddUploadedAssets([asset])
+
+  if (asset.exportStatus !== 'pending_conversion') {
+    return asset
+  }
+
+  const conversionResponse = await fetch(
+    'http://localhost:3030/convert-lvgl-image',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fileName: asset.name,
+        symbolName: asset.lvgl,
+        base64: asset.browserSrc,
+        assetMode: 'interactive_button',
+        width: stateSheetProject?.cropWidth,
+        height: stateSheetProject?.cropHeight,
+      }),
+    },
+  )
+
+  const conversionPayload =
+    await conversionResponse.json()
+
+  if (
+    !conversionResponse.ok ||
+    !conversionPayload.ok ||
+    !conversionPayload.symbolName ||
+    !conversionPayload.assetSource
+  ) {
+    throw new Error(
+      conversionPayload.error ||
+        `LVGL conversion failed for ${asset.name}.`,
+    )
+  }
+
+  const completedAsset = {
+    ...asset,
+    exportStatus: 'lvgl_ready' as const,
+    lvgl: conversionPayload.symbolName,
+    cFile: conversionPayload.assetSource,
+    browserSrc:
+      conversionPayload.browserSrc ||
+      asset.browserSrc,
+    width: stateSheetProject?.cropWidth,
+    height: stateSheetProject?.cropHeight,
+  }
+
+  forgeUIUpdateUploadedAsset(asset.id, {
+    exportStatus: completedAsset.exportStatus,
+    lvgl: completedAsset.lvgl,
+    cFile: completedAsset.cFile,
+    browserSrc: completedAsset.browserSrc,
+    width: completedAsset.width,
+    height: completedAsset.height,
+  })
+
+  return completedAsset
+}
+
+const ensureToggleStateSheetSourceAsset =
+  async () => {
+    if (stateSheetSourceAssetId) {
+      const retainedSource =
+        forgeUIGetUploadedAssets().find(
+          asset =>
+            asset.id === stateSheetSourceAssetId,
+        )
+
+      if (retainedSource) {
+        return retainedSource
+      }
+    }
+
+    const response = await fetch(assetArtwork)
+
+    if (!response.ok) {
+      throw new Error(
+        'Failed to prepare Toggle source artwork.',
+      )
+    }
+
+    const blob = await response.blob()
+    const file = new File(
+      [blob],
+      `toggle_state_sheet_source_${Date.now()}.png`,
+      { type: 'image/png' },
+    )
+    const asset = forgeUICreateUploadedAsset(
+      file,
+      assetArtwork,
+    )
+
+    forgeUIAddUploadedAssets([asset])
+
+    const conversionResponse = await fetch(
+      'http://localhost:3030/convert-lvgl-image',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileName: asset.name,
+          symbolName: asset.lvgl,
+          base64: asset.browserSrc,
+          assetMode: 'artwork',
+        }),
+      },
+    )
+    const conversionPayload =
+      await conversionResponse.json()
+
+    if (
+      !conversionResponse.ok ||
+      !conversionPayload.ok ||
+      !conversionPayload.symbolName ||
+      !conversionPayload.assetSource
+    ) {
+      throw new Error(
+        conversionPayload.error ||
+          'LVGL preparation failed for Toggle source artwork.',
+      )
+    }
+
+    const completedAsset = {
+      ...asset,
+      exportStatus: 'lvgl_ready' as const,
+      lvgl: conversionPayload.symbolName,
+      cFile: conversionPayload.assetSource,
+      browserSrc:
+        conversionPayload.browserSrc ||
+        asset.browserSrc,
+    }
+
+    forgeUIUpdateUploadedAsset(asset.id, {
+      exportStatus: completedAsset.exportStatus,
+      lvgl: completedAsset.lvgl,
+      cFile: completedAsset.cFile,
+      browserSrc: completedAsset.browserSrc,
+    })
+    setStateSheetSourceAssetId(asset.id)
+
+    return completedAsset
+  }
+
+const createToggleSet = async () => {
+  const sourceImage = artworkImageRef.current
+
+  if (
+    !sourceImage ||
+    !stateSheetProject ||
+    isCreatingToggleSet
+  ) {
+    return
+  }
+
+  setIsCreatingToggleSet(true)
+  setStateSheetError('')
+
+  try {
+    const sourceAsset =
+      await ensureToggleStateSheetSourceAsset()
+    const timestamp = Date.now()
+    const [offCrop, onCrop] = await Promise.all([
+      cropRegionToPng(
+        sourceImage,
+        'off',
+        `toggle_off_${timestamp}.png`,
+      ),
+      cropRegionToPng(
+        sourceImage,
+        'on',
+        `toggle_on_${timestamp}.png`,
+      ),
+    ])
+
+    const [offAsset, onAsset] = await Promise.all([
+      convertToggleCropAsset(
+        offCrop.file,
+        offCrop.browserSrc,
+      ),
+      convertToggleCropAsset(
+        onCrop.file,
+        onCrop.browserSrc,
+      ),
+    ])
+
+    setToggleStateSheetResult({
+      offAssetId: offAsset.id,
+      onAssetId: onAsset.id,
+      stateSheetSourceAssetId: sourceAsset.id,
+    })
+    setIsToggleSetStartPending(false)
+    setIsStateSheetEditing(false)
+    setStateSheetProject(null)
+    setStateSheetSourceAssetId(undefined)
+    setStateSheetBuilderMode('sourceRequired')
+    returnToToggleDesigner()
+  } catch (error) {
+    setStateSheetError(
+      error instanceof Error
+        ? error.message
+        : 'Failed to create Toggle Set.',
+    )
+  } finally {
+    setIsCreatingToggleSet(false)
   }
 }
 
@@ -2177,31 +2738,239 @@ toast({
         </Button>
       </Flex>
 
-      <Box
+<Box
   h="calc(100% - 82px)"
   overflowY="auto"
   px={{ base: 4, md: 6 }}
   py={5}
 >
+  {isStateSheetEditing && (
+    <VStack
+      align="stretch"
+      spacing={4}
+      data-testid="toggle-state-sheet-workspace"
+    >
+      <Box>
+        <Heading size="md">
+          Toggle State Sheet Builder
+        </Heading>
+        <Text
+          color="gray.400"
+          fontSize="sm"
+          mt={1}
+        >
+          {stateSheetBuilderMode ===
+          'sourceRequired'
+            ? 'Create a new combined OFF/ON source artwork without leaving the Toggle Designer.'
+            : 'Position the OFF and ON selectors. Both regions share the same crop size.'}
+        </Text>
+      </Box>
+
+      <Box
+        border="1px solid rgba(45, 212, 191, 0.32)"
+        bg="rgba(8, 18, 24, 0.82)"
+        borderRadius="xl"
+        p={5}
+      >
+        {stateSheetBuilderMode ===
+        'sourceRequired' ? (
+          <VStack align="stretch" spacing={4}>
+            <Heading size="sm">
+              Create a two-state source artwork
+            </Heading>
+            <Text color="gray.400" fontSize="sm">
+              Generate a combined image containing matching
+              OFF and ON states. You will crop both states
+              in the next step.
+            </Text>
+            <Textarea
+              value={assetPrompt}
+              onChange={event =>
+                setAssetPrompt(event.target.value)
+              }
+              minH="180px"
+              bg="#050914"
+              aria-label="Two-state source prompt"
+            />
+            {stateSheetError && (
+              <Text color="red.300" fontSize="sm">
+                {stateSheetError}
+              </Text>
+            )}
+            <HStack spacing={3}>
+              <Button
+                flex={1}
+                variant="ghost"
+                onClick={cancelToggleSetEditing}
+              >
+                Cancel
+              </Button>
+              <Button
+                flex={1}
+                colorScheme="cyan"
+                isLoading={isGeneratingArtwork}
+                loadingText="Generating Source..."
+                isDisabled={!assetPrompt.trim()}
+                onClick={() =>
+                  generateAssetArtwork(true)
+                }
+              >
+                Generate Source Artwork
+              </Button>
+            </HStack>
+          </VStack>
+        ) : (
+        <VStack align="stretch" spacing={4}>
+          <Box position="relative">
+            <Image
+              ref={artworkImageRef}
+              src={assetArtwork}
+              alt="AI generated artwork"
+              onLoad={event => {
+                if (isToggleSetStartPending) {
+                  initializeToggleSetEditing(
+                    event.currentTarget,
+                  )
+                }
+              }}
+              maxH="52vh"
+              width="100%"
+              objectFit="contain"
+              borderRadius="md"
+            />
+
+            {stateSheetProject && (
+              <StateSheetOverlay
+                imageElement={artworkImageRef.current}
+                project={stateSheetProject}
+                onChange={setStateSheetProject}
+              />
+            )}
+          </Box>
+
+          {stateSheetProject && (
+            <SimpleGrid
+              columns={{ base: 1, md: 2 }}
+              spacing={3}
+            >
+              <Box>
+                <Text
+                  color="blue.200"
+                  fontSize="xs"
+                  fontWeight="bold"
+                  mb={1}
+                >
+                  OFF Preview
+                </Text>
+                <Flex
+                  height="120px"
+                  align="center"
+                  justify="center"
+                  bg="blackAlpha.400"
+                  borderRadius="md"
+                  overflow="hidden"
+                  p={2}
+                >
+                  <canvas
+                    ref={offPreviewCanvasRef}
+                    aria-label="OFF crop preview"
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: '100%',
+                    }}
+                  />
+                </Flex>
+              </Box>
+
+              <Box>
+                <Text
+                  color="green.200"
+                  fontSize="xs"
+                  fontWeight="bold"
+                  mb={1}
+                >
+                  ON Preview
+                </Text>
+                <Flex
+                  height="120px"
+                  align="center"
+                  justify="center"
+                  bg="blackAlpha.400"
+                  borderRadius="md"
+                  overflow="hidden"
+                  p={2}
+                >
+                  <canvas
+                    ref={onPreviewCanvasRef}
+                    aria-label="ON crop preview"
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: '100%',
+                    }}
+                  />
+                </Flex>
+              </Box>
+            </SimpleGrid>
+          )}
+
+          {stateSheetError && (
+            <Text color="red.300" fontSize="sm">
+              {stateSheetError}
+            </Text>
+          )}
+
+          <HStack spacing={3}>
+            <Button
+              flex={1}
+              variant="ghost"
+              onClick={cancelToggleSetEditing}
+            >
+              Cancel
+            </Button>
+            <Button
+              flex={1}
+              colorScheme="green"
+              isLoading={isCreatingToggleSet}
+              loadingText="Creating Set..."
+              onClick={createToggleSet}
+              isDisabled={!stateSheetProject}
+            >
+              Create Toggle Set
+            </Button>
+          </HStack>
+        </VStack>
+        )}
+      </Box>
+    </VStack>
+  )}
+
   <Tabs
+    data-testid="forge-ai-tabs"
+    data-active-tab-index={activeTabIndex}
+    display={isStateSheetEditing ? 'none' : 'block'}
     colorScheme="purple"
     variant="soft-rounded"
     isLazy
+    lazyBehavior="keepMounted"
+    index={activeTabIndex}
+    onChange={setActiveTabIndex}
   >
-    <TabList
-      gap={2}
-      overflowX="auto"
-      pb={3}
-      borderBottom="1px solid rgba(148, 163, 184, 0.14)"
-    >
-      <Tab>Layout</Tab>
-      <Tab>Theme</Tab>
-      <Tab>Assets</Tab>
-      <Tab>Interactive</Tab>
-      <Tab isDisabled>Images</Tab>
-      <Tab isDisabled>Icons</Tab>
-      <Tab isDisabled>Runtime</Tab>
-    </TabList>
+    {!isStateSheetEditing && (
+      <TabList
+        gap={2}
+        overflowX="auto"
+        pb={3}
+        borderBottom="1px solid rgba(148, 163, 184, 0.14)"
+      >
+        <Tab>Layout</Tab>
+        <Tab>Theme</Tab>
+        <Tab>Assets</Tab>
+        <Tab>Interactive</Tab>
+        <Tab isDisabled>Images</Tab>
+        <Tab isDisabled>Icons</Tab>
+        <Tab isDisabled>Runtime</Tab>
+      </TabList>
+    )}
 
     <TabPanels>
             <TabPanel px={0} pt={5}>
@@ -2837,12 +3606,17 @@ toast({
 </SimpleGrid>
             </TabPanel>
             <TabPanel px={0} pt={5}>
+  {!isStateSheetEditing && (
   <SimpleGrid
-    columns={{ base: 1, xl: 2 }}
+    columns={{
+      base: 1,
+      xl: isStateSheetEditing ? 1 : 2,
+    }}
     spacing={5}
     alignItems="start"
   >
-    <VStack spacing={5} align="stretch">
+    {!isStateSheetEditing && (
+      <VStack spacing={5} align="stretch">
       <Box
         border="1px solid rgba(124, 58, 237, 0.4)"
         bg="rgba(15, 23, 42, 0.72)"
@@ -2999,7 +3773,7 @@ toast({
       isLoading={isGeneratingArtwork}
       loadingText="Creating..."
       isDisabled={!assetPrompt.trim()}
-      onClick={generateAssetArtwork}
+      onClick={() => generateAssetArtwork(false)}
     >
       ✨ Create AI Artwork
     </Button>
@@ -3112,7 +3886,8 @@ toast({
   </VStack>
 )}
       </Box>
-    </VStack>
+      </VStack>
+    )}
 
     <VStack spacing={5} align="stretch">
       <Box
@@ -3129,7 +3904,9 @@ toast({
         >
           <Box>
   <Heading size="sm">
-    Artwork Preview
+    {isStateSheetEditing
+      ? 'Toggle State Sheet Builder'
+      : 'Artwork Preview'}
   </Heading>
 
   <Text
@@ -3137,9 +3914,9 @@ toast({
     fontSize="xs"
     mt={1}
   >
-    Design an industrial asset using the
-    Asset Brief. Review it here before
-    saving it to your Forge Asset Library.
+    {isStateSheetEditing
+      ? 'Position the OFF and ON selectors. Both regions share the same crop size.'
+      : 'Design an industrial asset using the Asset Brief. Review it here before saving it to your Forge Asset Library.'}
   </Text>
 </Box>
 <Badge
@@ -3187,28 +3964,125 @@ toast({
     justify="center"
     spacing={3}
   >
-    <Image
-      src={assetArtwork}
-      alt="AI generated artwork"
-      maxH="190px"
-      width="100%"
-      objectFit="contain"
-      borderRadius="md"
-    />
+    <Box position="relative">
+      <Image
+        ref={artworkImageRef}
+        src={assetArtwork}
+        alt="AI generated artwork"
+        onLoad={event => {
+          if (isToggleSetStartPending) {
+            initializeToggleSetEditing(
+              event.currentTarget,
+            )
+          }
+        }}
+        maxH={
+          isStateSheetEditing
+            ? '52vh'
+            : '190px'
+        }
+        width="100%"
+        objectFit="contain"
+        borderRadius="md"
+      />
 
-    <HStack spacing={2}>
-      <Badge colorScheme="purple">
-        {assetCategory}
-      </Badge>
+      {isStateSheetEditing &&
+        stateSheetProject && (
+          <StateSheetOverlay
+            imageElement={artworkImageRef.current}
+            project={stateSheetProject}
+            onChange={setStateSheetProject}
+          />
+        )}
+    </Box>
 
-      <Badge colorScheme="cyan">
-        {assetStyle}
-      </Badge>
+    {isStateSheetEditing &&
+      stateSheetProject && (
+        <SimpleGrid
+          columns={{ base: 1, md: 2 }}
+          spacing={3}
+        >
+          <Box>
+            <Text
+              color="blue.200"
+              fontSize="xs"
+              fontWeight="bold"
+              mb={1}
+            >
+              OFF Preview
+            </Text>
+            <Flex
+              height="100px"
+              align="center"
+              justify="center"
+              bg="blackAlpha.400"
+              borderRadius="md"
+              overflow="hidden"
+              p={2}
+            >
+              <canvas
+                ref={offPreviewCanvasRef}
+                aria-label="OFF crop preview"
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                }}
+              />
+            </Flex>
+          </Box>
 
-      <Badge colorScheme="green">
-        ARTWORK READY
-      </Badge>
-    </HStack>
+          <Box>
+            <Text
+              color="green.200"
+              fontSize="xs"
+              fontWeight="bold"
+              mb={1}
+            >
+              ON Preview
+            </Text>
+            <Flex
+              height="100px"
+              align="center"
+              justify="center"
+              bg="blackAlpha.400"
+              borderRadius="md"
+              overflow="hidden"
+              p={2}
+            >
+              <canvas
+                ref={onPreviewCanvasRef}
+                aria-label="ON crop preview"
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                }}
+              />
+            </Flex>
+          </Box>
+        </SimpleGrid>
+      )}
+
+    {stateSheetError && (
+      <Text color="red.300" fontSize="sm">
+        {stateSheetError}
+      </Text>
+    )}
+
+    {!isStateSheetEditing && (
+      <HStack spacing={2}>
+        <Badge colorScheme="purple">
+          {assetCategory}
+        </Badge>
+
+        <Badge colorScheme="cyan">
+          {assetStyle}
+        </Badge>
+
+        <Badge colorScheme="green">
+          ARTWORK READY
+        </Badge>
+      </HStack>
+    )}
   </VStack>
 ) : assetError ? (
   <Flex
@@ -3287,7 +4161,27 @@ toast({
 </Box>
 
 <HStack mt={4} spacing={3}>
-  {assetArtwork ? (
+  {assetArtwork && isStateSheetEditing ? (
+    <>
+      <Button
+        flex={1}
+        variant="ghost"
+        onClick={cancelToggleSetEditing}
+      >
+        Cancel
+      </Button>
+
+      <Button
+        flex={1}
+        colorScheme="green"
+        isLoading={isCreatingToggleSet}
+        loadingText="Creating Set..."
+        onClick={createToggleSet}
+      >
+        Create Toggle Set
+      </Button>
+    </>
+  ) : assetArtwork ? (
     <>
       <Button
         flex={1}
@@ -3306,6 +4200,7 @@ toast({
 >
   Insert Artwork
 </Button>
+
     </>
   ) : (
     <>
@@ -3339,50 +4234,66 @@ toast({
   )}
 </HStack>
 
-        <Divider
-          my={4}
-          borderColor="rgba(148, 163, 184, 0.16)"
-        />
+        {!isStateSheetEditing && (
+          <>
+            <Divider
+              my={4}
+              borderColor="rgba(148, 163, 184, 0.16)"
+            />
 
-        <Button
-          size="sm"
-          variant="ghost"
-          colorScheme="cyan"
-          isDisabled
-        >
-          Show Advanced JSON
-        </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              colorScheme="cyan"
+              isDisabled
+            >
+              Show Advanced JSON
+            </Button>
+          </>
+        )}
       </Box>
 
-      <Box
-        border="1px solid rgba(148, 163, 184, 0.16)"
-        borderRadius="xl"
-        p={4}
-        bg="rgba(15, 23, 42, 0.42)"
-      >
-        <Text
-          color="gray.300"
-          fontWeight="semibold"
-          fontSize="sm"
+      {!isStateSheetEditing && (
+        <Box
+          border="1px solid rgba(148, 163, 184, 0.16)"
+          borderRadius="xl"
+          p={4}
+          bg="rgba(15, 23, 42, 0.42)"
         >
-          Asset Creator
-        </Text>
+          <Text
+            color="gray.300"
+            fontWeight="semibold"
+            fontSize="sm"
+          >
+            Asset Creator
+          </Text>
 
-        <Text
-          color="gray.500"
-          fontSize="xs"
-          mt={1}
-        >
-          This workspace will create reusable structured
-          ForgeUI assets using supported components.
-        </Text>
-      </Box>
+          <Text
+            color="gray.500"
+            fontSize="xs"
+            mt={1}
+          >
+            This workspace will create reusable structured
+            ForgeUI assets using supported components.
+          </Text>
+        </Box>
+      )}
     </VStack>
   </SimpleGrid>
+  )}
 </TabPanel>
 
 <TabPanel px={0} pt={5}>
-  <ForgeUIInteractiveAssetPanel />
+  <ForgeUIInteractiveAssetPanel
+    onBuildToggleSet={beginToggleSetEditing}
+    toggleStateSheetResult={toggleStateSheetResult}
+    onToggleStateSheetResultConsumed={() =>
+      setToggleStateSheetResult(null)
+    }
+    toggleDesignerRestoreVersion={
+      toggleDesignerRestoreVersion
+    }
+  />
 </TabPanel>
 
 </TabPanels>

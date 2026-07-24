@@ -24,7 +24,7 @@ typedef enum
 extern "C" {
 #endif
 
-void FG_On_ThreePositionToggle_Changed(fg_three_way_state_t state);
+void FG_On_StatusToggleSwitch_Toggled(bool enabled);
 
 #ifdef __cplusplus
 }

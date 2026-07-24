@@ -19,6 +19,8 @@ export type ForgeUIUploadedAsset = {
   exportStatus: ForgeUIUploadedAssetExportStatus
   lvgl: string
   cFile: string
+  width?: number
+  height?: number
 }
 
 const FORGEUI_UPLOADED_ASSETS_KEY =
@@ -243,6 +245,8 @@ export function forgeUIUpdateUploadedAsset(
       | 'lvgl'
       | 'cFile'
       | 'browserSrc'
+      | 'width'
+      | 'height'
     >
   >,
 ) {

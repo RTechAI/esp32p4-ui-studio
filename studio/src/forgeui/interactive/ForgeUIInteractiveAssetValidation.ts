@@ -292,6 +292,7 @@ export const validateInteractiveToggleSwitchAsset: (
   if (!isFiniteNumber(toggle.height) || toggle.height <= 0) throw new Error('Toggle Switch height must be greater than zero')
   if (toggle.offAssetId !== undefined && !isNonEmptyString(toggle.offAssetId)) throw new Error('Toggle Switch offAssetId must be a non-empty string')
   if (toggle.onAssetId !== undefined && !isNonEmptyString(toggle.onAssetId)) throw new Error('Toggle Switch onAssetId must be a non-empty string')
+  if (toggle.stateSheetSourceAssetId !== undefined && !isNonEmptyString(toggle.stateSheetSourceAssetId)) throw new Error('Toggle Switch stateSheetSourceAssetId must be a non-empty string')
   if (toggle.initialState !== 'off' && toggle.initialState !== 'on') throw new Error('Toggle Switch initialState must be off or on')
 }
 

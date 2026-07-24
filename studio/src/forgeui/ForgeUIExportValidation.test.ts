@@ -18,7 +18,7 @@ const interactive = (kind: 'button' | 'light' | 'statusIndicator', id = `${kind}
     : { offAssetId: 'off', onAssetId: 'on', initialState: 'off' as const }),
 })
 
-const component = (type: 'InteractiveButton' | 'InteractiveLight' | 'InteractiveStatusIndicator', id: string, assetId: string) => ({
+const component = (type: 'InteractiveButton' | 'InteractiveLight' | 'InteractiveStatusIndicator' | 'InteractiveToggleSwitch', id: string, assetId: string) => ({
   id, type, componentName: id, parent: 'root', children: [],
   props: { interactiveAssetId: assetId, w: 32, h: 32 },
 })
@@ -31,6 +31,28 @@ const generate = (assets: ReturnType<typeof uploaded>[], hooks: string[] = [], s
 })
 
 describe('ForgeUI export preflight', () => {
+  const toggle = (
+    id: string,
+    offAssetId: string,
+    onAssetId: string,
+    stateSheetSourceAssetId?: string,
+  ) => ({
+    schemaVersion: 1 as const,
+    id,
+    name: id,
+    kind: 'toggleSwitch' as const,
+    interactionMode: 'state' as const,
+    label: id,
+    width: 64,
+    height: 36,
+    offAssetId,
+    onAssetId,
+    stateSheetSourceAssetId,
+    initialState: 'off' as const,
+    createdAt: 'now',
+    updatedAt: 'now',
+  })
+
   const canvas = (props: Record<string, unknown>) => ({
     root: { id: 'root', type: 'Box', parent: 'root', children: ['text'], props: {} },
     text: { id: 'text-id', type: 'Text', componentName: 'Status Text',
@@ -210,5 +232,191 @@ describe('ForgeUI export preflight', () => {
     expect(result.diagnostics).toContainEqual(expect.objectContaining({
       message: 'Duplicate image declaration', subject: 'fg_same',
     }))
+  })
+
+  it('ignores unreferenced historical Toggle assets with missing sources', () => {
+    const current = toggle(
+      'Current Toggle',
+      'new_off',
+      'new_on',
+    )
+    const historical = toggle(
+      'Historical Toggle',
+      'old_off',
+      'old_on',
+    )
+    const currentImages = [
+      uploaded('new_off'),
+      uploaded('new_on'),
+    ]
+    const staleImages = [
+      uploaded('old_off', {
+        cFile:
+          'assets/uploads/missing_old_off.c',
+        lvgl: 'fg_new_off',
+      }),
+      uploaded('old_on', {
+        cFile:
+          'assets/uploads/missing_old_on.c',
+      }),
+    ]
+    const result = validateForgeUIExport(
+      {
+        toggle: component(
+          'InteractiveToggleSwitch',
+          'toggle',
+          current.id,
+        ),
+      } as any,
+      [current, historical],
+      [...currentImages, ...staleImages],
+      generate(
+        currentImages,
+        ['FG_On_Toggle_Toggled'],
+      ),
+    )
+
+    expect(result.ok).toBe(true)
+    expect(result.assetSources).toEqual(
+      currentImages.map(image => image.cFile),
+    )
+  })
+
+  it('reports one precise error for a reachable Toggle source omitted from export', () => {
+    const current = toggle(
+      'Pump Toggle',
+      'pump_off',
+      'pump_on',
+    )
+    const images = [
+      uploaded('pump_off'),
+      uploaded('pump_on'),
+    ]
+    const result = validateForgeUIExport(
+      {
+        pump: component(
+          'InteractiveToggleSwitch',
+          'Pump',
+          current.id,
+        ),
+      } as any,
+      [current],
+      images,
+      {
+        ...generate(
+          [images[1]],
+          ['FG_On_Pump_Toggled'],
+        ),
+      },
+    )
+
+    expect(result.diagnostics).toContainEqual({
+      category: 'Asset Sources',
+      subject: 'Pump Toggle OFF',
+      message:
+        'Referenced image source is missing from export: pump_off.png (assets/uploads/fg_pump_off.c)',
+    })
+    expect(
+      result.diagnostics.filter(
+        item =>
+          item.message.includes(
+            'Referenced image source is missing',
+          ),
+      ),
+    ).toHaveLength(1)
+  })
+
+  it('deduplicates shared Toggle images and ignores state-sheet metadata', () => {
+    const source = uploaded('state_sheet', {
+      cFile:
+        'assets/uploads/missing_state_sheet.c',
+    })
+    const images = [
+      uploaded('shared_off'),
+      uploaded('shared_on'),
+    ]
+    const first = toggle(
+      'First',
+      'shared_off',
+      'shared_on',
+      source.id,
+    )
+    const second = toggle(
+      'Second',
+      'shared_off',
+      'shared_on',
+    )
+    const result = validateForgeUIExport(
+      {
+        first: component(
+          'InteractiveToggleSwitch',
+          'First',
+          first.id,
+        ),
+        second: component(
+          'InteractiveToggleSwitch',
+          'Second',
+          second.id,
+        ),
+      } as any,
+      [first, second],
+      [...images, source],
+      generate(
+        images,
+        [
+          'FG_On_First_Toggled',
+          'FG_On_Second_Toggled',
+        ],
+      ),
+    )
+
+    expect(result.ok).toBe(true)
+    expect(result.assetSources).toEqual(
+      images.map(image => image.cFile),
+    )
+    expect(result.assetSources).not.toContain(
+      source.cFile,
+    )
+  })
+
+  it('follows only the replacement pair referenced by the saved Toggle', () => {
+    const rebuilt = toggle(
+      'Rebuilt',
+      'replacement_off',
+      'replacement_on',
+      'source',
+    )
+    const replacement = [
+      uploaded('replacement_off'),
+      uploaded('replacement_on'),
+    ]
+    const old = [
+      uploaded('old_off', {
+        cFile: 'assets/uploads/deleted_off.c',
+      }),
+      uploaded('old_on', {
+        cFile: 'assets/uploads/deleted_on.c',
+      }),
+    ]
+    const result = validateForgeUIExport(
+      {
+        rebuilt: component(
+          'InteractiveToggleSwitch',
+          'Rebuilt',
+          rebuilt.id,
+        ),
+      } as any,
+      [rebuilt],
+      [...replacement, ...old],
+      generate(
+        replacement,
+        ['FG_On_Rebuilt_Toggled'],
+      ),
+    )
+
+    expect(result.ok).toBe(true)
+    expect(result.assetSources).toEqual(
+      replacement.map(image => image.cFile),
+    )
   })
 })
