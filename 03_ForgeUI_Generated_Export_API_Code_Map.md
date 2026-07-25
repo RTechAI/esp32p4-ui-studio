@@ -2,7 +2,7 @@
 
 ## Current proven save point
 
-**FORGEUI_FIVE_INTERACTIVE_ASSETS__THREE_GENERATED_RUNTIME_FAMILIES__VALIDATED_API_BOUNDARY__TOGGLE_PHYSICAL_VALIDATION_PENDING__2026-07-22**
+**FORGEUI_DIRECT_CREATORS__STATE_SHEETS__LINKED_CROPS__KEYBOARD_LVGL_PARITY__ESP32_P4_PROVEN__READY_FOR_UI_POLISH__2026-07-26**
 
 ## Purpose and scope
 
@@ -118,6 +118,38 @@ Generated FG_On_* hook
         ↓
 Developer application logic
 ```
+
+The reusable asset-generation path feeding those runtime families is:
+
+```text
+ForgeUI Canvas
+        |
+        v
+Open Creator
+        |
+        v
+Designer
+        |
+        v
+State Sheet generation
+        |
+        v
+Linked crop workspace
+        |
+        v
+Atomic uploaded-asset registration
+        |
+        v
+Export
+        |
+        v
+Generated runtime
+        |
+        v
+ESP32-P4
+```
+
+Direct Creator entry points select the current Canvas component and its linked Interactive Asset. The Creator and State Sheet pipeline prepares the uploaded state assets consumed by export; it does not replace or redefine the generated runtime-family contracts.
 
 ## Export Validation Ownership
 
@@ -278,6 +310,10 @@ Runtime generation assumes that its candidate result will pass the dedicated cli
 - Interactive Three-Position Toggle export
 - shared Toggle Input Runtime and per-instance records
 - shared Three-Position Input Runtime and per-instance records
+- Keyboard export, including native `lv_keyboard`/buttonmatrix configuration
+- Keyboard top-left alignment, relative control-width map, explicit styles, and final runtime ordering
+- export of uploaded assets produced by Toggle and Three-Position State Sheet workflows
+- current direct Creator integration through the component and uploaded-asset model
 - Toggle and Three-Position hook naming and metadata
 - input callback-name uniqueness across all hook families
 - shared Binary Output Runtime generation
@@ -318,6 +354,8 @@ Current internal object names such as `obj1`, `obj2`, and `obj3` are implementat
 
 Developer-facing hook and setter names are derived separately and made unique within an export.
 
+For Keyboard, traversal geometry remains the source of truth. The branch emits map and mode configuration before explicit styles and final top-left position/size so native `lv_keyboard` defaults cannot replace the Canvas geometry.
+
 ## Generated export result contract
 
 `generateForgeUILvglCode()` returns:
@@ -347,6 +385,56 @@ Every generated asset source included in an export must have:
 - successful validation before CMake generation.
 
 Built-in Theme assets participate in this same contract. They are permanent generated firmware assets, not validation-exempt resources.
+
+## State Sheet generation and export architecture
+
+State Sheets are reusable generation workflows that produce the independent uploaded assets required by existing runtime families.
+
+### Toggle State Sheet
+
+The Toggle State Sheet Builder uses one master image containing OFF and ON artwork. Two linked crop regions retain a shared crop size while allowing independent positions. Confirming the crops extracts the two state images and registers OFF and ON together.
+
+### Three-Position State Sheet
+
+The Three-Position Creator uses this current path:
+
+```text
+Create Three-Position Toggle Set
+        |
+        v
+One master State Sheet request
+        |
+        v
+Linked crop workspace
+        |
+        v
+LEFT / CENTER / RIGHT crops
+        |
+        v
+Atomic uploaded-asset registration
+        |
+        v
+Generated Three-Position runtime
+```
+
+The three crop regions share dimensions. Their positions remain independently adjustable, and row remapping can swap which cropped row becomes LEFT, CENTER, or RIGHT without generating another master. This replaces any earlier implication that Three-Position artwork is created by three independent image-generation requests.
+
+`studio/src/forgeui/ai/InteractiveAssetAIGenerator.tsx` owns the Creator/Designer state, the single Three-Position set request, crop confirmation, and state-row assignment. `studio/src/forgeui/ai/StateSheetOverlay.tsx` owns the linked crop-region geometry and resize behavior. Direct Canvas entry is routed by `ForgeUINavigation.ts` and `PreviewContainer.tsx`; those files select context but do not generate firmware.
+
+### AI image pipeline ownership
+
+`studio/src/forgeui/ai/ForgeUIAIImagePipeline.ts` owns crop extraction and registration:
+
+1. receive the single generated master;
+2. represent crop results as PNG data URLs;
+3. decode the Base64 PNG payloads into files for conversion;
+4. convert all requested state crops;
+5. register the completed uploaded assets in one atomic batch;
+6. update the Interactive Asset draft only after the batch succeeds.
+
+`Confirm Crops` is the commit boundary. The active crop-registration path does not depend on temporary blob URLs; PNG data URLs survive the crop-to-conversion handoff. A partial conversion must not partially register a state set.
+
+State Sheet generation belongs to asset preparation. Export still resolves the resulting uploaded assets through the normal generated asset-source contract.
 
 ## Interactive Button input API
 
@@ -526,6 +614,10 @@ void FG_On_Main_Power_Toggled(bool enabled);
 `generateUserEventFiles()` produces a live stub that prints `ON` or `OFF`. Initialization uses `notify=false`, so loading the configured initial state does not call developer code.
 
 ## Interactive Three-Position Toggle input API
+
+### Generation workflow and unchanged runtime contract
+
+Three-Position artwork now comes from one master State Sheet request and three confirmed crops. Export still receives three independent uploaded assets, one each for LEFT, CENTER, and RIGHT. The public enum, generated callback, per-instance runtime record, and touch behavior are unchanged; only the generation workflow changed.
 
 ### Generated public enum
 
@@ -724,6 +816,48 @@ Every exported Binary Output instance creates its own `fg_binary_output_t` recor
 
 Every generated Binary Output setter calls `fg_binary_output_set()` with its own record. Future Binary Output assets must reuse this implementation rather than emit another binary state structure or switching function.
 
+## Keyboard generated runtime ownership
+
+The `Keyboard` branch exports a native `lv_keyboard`, whose internal key surface is the widget's buttonmatrix. Native LVGL keyboard creation has a default alignment and built-in map/style behavior, so creating the object and setting only its outer size is not sufficient for Studio parity.
+
+The exporter owns this ordered setup:
+
+1. create the associated textarea;
+2. create `lv_keyboard`;
+3. install the four-row map and its buttonmatrix control-width array;
+4. associate the textarea;
+5. select `LV_KEYBOARD_MODE_TEXT_LOWER`;
+6. apply explicit main-part padding, row/column gaps, border, radius, colors, outline and shadow;
+7. apply explicit item-part padding, border, radius, colors, outline, shadow, text line spacing and `lv_font_montserrat_12`;
+8. replace the native default alignment with `LV_ALIGN_TOP_LEFT`;
+9. apply the final Canvas-relative position and size;
+10. update layout after final geometry.
+
+Map/mode setup precedes final style and geometry because those native APIs own buttonmatrix configuration. No later align or size call may override the Canvas values.
+
+The control-width map uses LVGL's numeric buttonmatrix width units combined with control flags. Normal alpha widths and special-key widths are normalized row by row; Space remains deliberately wider, while mode, Backspace, Enter, arrows and confirm retain only the relative width required by the Studio layout. These are proportional controls, not screen-resolution compensation.
+
+Current row width units are:
+
+```text
+row 1: 1#/alpha/Backspace = 4
+row 2: ABC/alpha/Enter     = 3
+row 3: symbol/alpha keys   = 1
+row 4: keyboard/left       = 2, Space = 12, right/confirm = 2
+```
+
+Keyboard export therefore owns:
+
+- `LV_ALIGN_TOP_LEFT` correction for the native `lv_keyboard` default alignment;
+- four-row map order;
+- relative buttonmatrix width map;
+- explicit main and item padding;
+- explicit row and column gaps;
+- explicit item font and line spacing;
+- theme-preserving border, color and radius styles;
+- map/mode/style/alignment/geometry call ordering;
+- final parity with the component's exported Canvas geometry.
+
 ## Interactive Status Indicator output API
 
 ### Export preparation and branch
@@ -786,6 +920,8 @@ Owns generated implementation:
 - shared Toggle Input Runtime, per-instance records and bool-hook calls
 - shared Three-Position Input Runtime, per-instance records and enum-hook calls
 - shared Binary Output Runtime and per-instance records
+- Keyboard native map, control widths, explicit styles and top-left alignment
+- final Keyboard setup ordering and Canvas-relative geometry
 - Binary Output OFF/ON runtime image references
 - Light public setter implementations
 - Interactive Status Indicator public setter implementations
@@ -1125,7 +1261,13 @@ Physically confirmed:
 
 ### Interactive Toggle Switch input path
 
-Physical ESP32-P4 validation is pending. Automated coverage verifies generated initial state, OFF/ON visual switching, the persistent boolean runtime, and `FG_On_*_Toggled(bool enabled)` generation, but does not constitute proof of touch behavior or serial output on hardware.
+Physically confirmed for the exercised control:
+
+- OFF and ON artwork displayed through touch state changes
+- persistent boolean runtime selected the correct artwork
+- generated Toggle interaction remained stable
+
+This proof does not claim unperformed multi-instance or stress coverage.
 
 ### Interactive Status Indicator output path
 
@@ -1141,7 +1283,16 @@ Physically confirmed:
 
 ### Interactive Three-Position Toggle input path
 
-Physical ESP32-P4 validation is pending. Hardware proof must cover boot initial state, LEFT/CENTER/RIGHT selection away from screen origin, correct readable serial state, independent instances, and stable operation without a crash.
+Physically confirmed:
+
+- one generated LEFT/CENTER/RIGHT artwork set exported as three independent assets
+- the full rectangular control was divided into three working touch zones
+- each zone selected the correct LEFT, CENTER, or RIGHT runtime state
+- the generated `FG_On_*_Changed(fg_three_way_state_t state)` callback reported the matching readable state
+- initialization did not spuriously notify application code
+- repeated interaction remained stable without a crash
+
+The proof validates the current component instance and generated runtime. It does not imply unperformed multi-instance stress coverage.
 
 ### System health
 
@@ -1150,21 +1301,21 @@ Physical ESP32-P4 validation is pending. Hardware proof must cover boot initial 
 - SD READY
 - no crash after interaction
 
-The Button input-hook path and the shared Light/Status Indicator Binary Output setter path are implemented and physically proven. Toggle Switch and Three-Position Toggle physical validation remains pending.
+The Button, exercised Toggle Switch, Three-Position input-hook path, and shared Light/Status Indicator Binary Output setter path are implemented and physically proven within the scopes stated above. Keyboard geometry, alignment, row fill and functional special keys are also proven on the 1024x600 ESP32-P4 display.
 
 ## Automated Validation
 
-### Full validation
+### Current validation boundary
 
-- 23 Jest suites passed
-- 137 tests passed
-- 1 intentional legacy test skipped
-- zero TypeScript diagnostics
-- zero ESLint warnings or errors
-- export-server syntax validation passed
-- git diff validation passed
+- focused LVGL exporter regressions pass;
+- Keyboard exporter geometry, call-order and control-width regressions pass;
+- State Sheet and crop-pipeline tests pass;
+- Three-Position generated runtime regressions pass;
+- TypeScript validation passes;
+- export-server syntax/regression validation passes where applicable;
+- scoped diff validation for this subsystem passes.
 
-The intentional skip remains the documented legacy icon-export baseline; it is not an untracked failure.
+Do not preserve historical suite totals here. Unrelated repository fixtures or pre-existing whitespace findings must be reported separately from this subsystem rather than presented as a generated-export failure.
 
 ## Debug map
 
@@ -1184,6 +1335,8 @@ The intentional skip remains the documented legacy icon-export baseline; it is n
 | Wrong Three-Position zone is selected | generated `fg_three_way_input_event_cb()` | thirds calculation and component width |
 | Three-Position coordinates are wrong away from x=0 | `fg_three_way_input_event_cb()` | `point.x - button_coords.x1` local conversion and bounds check |
 | Child image intercepts touch | Three-Position object creation | child clickable flag and parent full-bounds clickability |
+| Three-Position State Sheet is missing or stale | `InteractiveAssetAIGenerator.tsx` three-position-set flow | master request, crop workspace and linked asset ID |
+| LEFT/CENTER/RIGHT crops map to the wrong states | State Sheet row mapping | unique row assignments and crop-to-state draft update |
 | Three-Position runtime is duplicated | runtime emission in `ForgeUILvglExport.ts` | single `fg_three_way_input_t` / `fg_three_way_input_set()` generation guard |
 | Generated LEFT/CENTER/RIGHT stub is wrong | `generateUserEventFiles()` | `_Changed` signature branch and readable-state expression |
 | Light setter is missing from C source | Light export preparation in `ForgeUILvglExport.ts` | LVGL readiness and unique API name |
@@ -1201,6 +1354,14 @@ The intentional skip remains the documented legacy icon-export baseline; it is n
 | Duplicate generated API | `ForgeUIExportValidation.ts` | `ForgeUILvglExport.ts` |
 | Duplicate `LV_IMAGE_DECLARE` | `ForgeUILvglExport.ts` | export validation |
 | Theme asset validation failure | `export-server.js` | built-in Theme assets |
+| Direct Open Creator action targets the wrong asset | `ForgeUINavigation.ts` | `PreviewContainer.tsx`, component ID and linked Interactive Asset ID |
+| Confirm Crops does not complete | `InteractiveAssetAIGenerator.tsx` | crop validity, PNG data URLs and `ForgeUIAIImagePipeline.ts` |
+| Only part of a state set is registered | `ForgeUIAIImagePipeline.ts` | conversion completion before `forgeUIAddUploadedAssets()` atomic batch |
+| Toggle linked crops drift in size | Toggle State Sheet crop workspace | shared crop dimensions and linked resize rules |
+| Keyboard is centered or offset at runtime | `ForgeUILvglExport.ts` Keyboard branch | `LV_ALIGN_TOP_LEFT` after map/mode and final `lv_obj_set_pos()` ordering |
+| Keyboard outer size falls back to native geometry | Keyboard final setup ordering | final `lv_obj_set_size()` and absence of later alignment/size calls |
+| Keyboard special keys have wrong proportions | Keyboard buttonmatrix control array | numeric width units, control flags and row totals |
+| Keyboard theme padding changes key fill | Keyboard `LV_PART_MAIN` / `LV_PART_ITEMS` styles | explicit pad, gaps, border, font and style ordering |
 | API metadata is absent from request | `Header.tsx` | `/export` and `/export-idf-project` payloads |
 | Input hook metadata is missing from payload | `Header.tsx` | exact `userEventHooks` field from `generateForgeUILvglCode()` |
 | Server rejects a valid hook signature | `generateUserEventFiles()` suffix handling | `_Clicked`, `_Toggled`, `_Changed` validation and endpoint payload |
@@ -1217,7 +1378,7 @@ The intentional skip remains the documented legacy icon-export baseline; it is n
 
 ### `studio/src/forgeui/ForgeUILvglExport.ts`
 
-Owns generated LVGL source, all five Interactive Asset branches, shared Button/Toggle/Three-Position/Binary Output runtimes, per-instance records, sanitized unique hook names, setter names, and all exporter metadata. Never writes files directly.
+Owns generated LVGL source, all five Interactive Asset branches, shared Button/Toggle/Three-Position/Binary Output runtimes, Keyboard native map/alignment/control widths/styles/final geometry ordering, per-instance records, sanitized unique hook names, setter names, uploaded State Sheet asset consumption, and all exporter metadata. Never writes files directly.
 
 ### `studio/src/components/Header.tsx`
 
@@ -1279,6 +1440,12 @@ Preserve these rules:
 26. Header and export server transport or materialize metadata but never invent runtime APIs.
 27. Hook generation preserves exact sanitized unique names across all hook families.
 28. Missing or stale state assets fail validation before filesystem mutation.
+29. Three-Position generation uses one master State Sheet request, but export and runtime retain three independent LEFT/CENTER/RIGHT uploaded assets.
+30. Confirm Crops registers a complete converted state set atomically; partial state-set registration is not a valid current path.
+31. State Sheet row remapping changes crop-to-state assignment without changing the generated runtime API.
+32. Keyboard map/mode configuration precedes explicit style, `LV_ALIGN_TOP_LEFT`, final position and final size.
+33. Keyboard dimensions come from the Canvas component; no global or resolution-specific scaling is introduced.
+34. Creator navigation selects component/asset context, while the exporter remains the sole owner of generated LVGL and runtime behavior.
 
 ## Extension rule
 
@@ -1307,6 +1474,19 @@ Future generated APIs must follow the established direction model:
 Future output controls should extend the Binary Output Runtime and expose generated `FG_Set_*` APIs without duplicating `fg_binary_output_t`, `fg_binary_output_set()`, or shared setter generation.
 
 Future controls must extend the existing exporter, export-result metadata, Header transport, export-server materialization, generated files, and ownership model. They must not introduce a parallel exporter, a second hook generator, a second generated-header system, or a separate firmware API layer.
+
+Generated export also supports reusable generation workflows:
+
+```text
+Reusable generation workflow
+  Master image
+    -> linked crop regions
+    -> state-to-row remapping
+    -> atomic uploaded-asset registration
+    -> existing runtime-family export
+```
+
+Toggle uses the pattern for two states and Three-Position uses it for three. The architectural extension point is an N-state generation workflow: one master, N linked crop regions, an explicit unique state mapping, and one atomic registration boundary. This describes how a future state set should feed an existing or deliberately extended runtime contract; it does not claim that additional widgets or runtime families are implemented.
 
 ## Permanent architecture statement
 

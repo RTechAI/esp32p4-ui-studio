@@ -1,6 +1,6 @@
 # Current Save Point
 
-**FORGEUI_RUNTIME_FAMILIES__FIVE_INTERACTIVE_ASSETS__TOGGLE_AND_THREE_POSITION_PHYSICAL_VALIDATION_PENDING__2026-07-22**
+**FORGEUI_INTERACTIVE_ASSET_CREATORS__THREE_POSITION_STATE_SHEET_AND_LINKED_CROPS__KEYBOARD_LVGL_PARITY__PHYSICAL_ESP32P4_PROVEN__READY_FOR_UI_POLISH__2026-07-26**
 
 ## Current Proven Status..
 
@@ -20,11 +20,11 @@ Binary Output Runtime:
 - Interactive Light
 - Interactive Status Indicator
 
-All five types are proven through Studio creation, AI state-image generation, asset registration, persistence, Canvas rendering, Studio preview, Browser Preview, LVGL export and automated validation. Interactive Button, Interactive Light and Interactive Status Indicator retain the established physical ESP32-P4 baseline. Physical validation of Interactive Toggle Switch and Interactive Three-Position Toggle Switch remains pending.
+All five types are proven through Studio creation, AI state-image generation, asset registration, persistence, Canvas rendering, Studio preview, Browser Preview, LVGL export and automated validation. The current physical ESP32-P4 record covers Interactive Button, Interactive Toggle Switch, Interactive Three-Position Toggle Switch, Interactive Light and Interactive Status Indicator. Three-Position LEFT/CENTER/RIGHT touch selection, its generated changed callback, consistent State Sheet visuals, and the corrected LVGL keyboard placement and sizing have also been proven on hardware.
 
 The Studio presents all five types through one coherent Interactive Assets creation flow. Each runtime family owns its generated runtime while every type shares the common Interactive Asset Framework and retains type-specific asset models, designers, state mappings, preview behaviour, export behaviour and runtime behaviour.
 
-Project Health Phases 1 and 2 are complete. The repository now has clean TypeScript and ESLint baselines, a fully passing automated test suite, protected asset references, and client- and server-side export validation before generated firmware files are written. The Interactive Button and Interactive Light physical proof remains the hardware baseline underneath this health work.
+Project Health Phases 1 and 2 are complete. The repository has clean TypeScript and ESLint baselines, protected asset references, and client- and server-side export validation before generated firmware files are written. Focused Creator, State Sheet, crop, image-pipeline and exporter regressions provide the current automated baseline. The project is ready for continued UI polish on top of its physically proven runtime families.
 
 ## Project Health Phase 1 — Clean Baseline
 
@@ -89,6 +89,31 @@ The parent-owned `selectedAssetKind` controls the active designer, visible type-
 Clicking `+ New Interactive Asset` initializes the selected type's draft without creating a registry object. Registration occurs only on Save. Editing an existing asset automatically selects `asset.kind`, opens the correct designer, and loads the correct draft.
 
 There are no parallel creation flows. Type-specific designers and models remain distinct internally; their save logic is coordinated through the shared panel and common registry rather than merged into a second framework.
+
+## Direct Creator Workflow
+
+Interactive Button, Interactive Toggle Switch, Interactive Three-Position Toggle Switch and Interactive Light share a direct Creator workflow in addition to the Interactive Assets panel.
+
+- Canvas right-click exposes the type-specific `Open Creator` action.
+- Configured components reopen the exact asset referenced by `interactiveAssetId`.
+- Unconfigured components open a fresh unsaved draft.
+- Opening a Creator never automatically creates, registers, saves or assigns an asset.
+- A private ForgeUI navigation dispatcher carries type-scoped requests into the shared AI Studio portal.
+- Button, Toggle, Light and Three-Position edit requests remain separate so one Creator cannot consume another type's request.
+- The portal replaces the current Creator view rather than stacking duplicate creation surfaces.
+- Outside-click and Escape dismiss the Canvas context menu.
+- Inspector onboarding cards provide the same direct route when required state visuals are missing.
+
+Current navigation targets include:
+
+```text
+interactive-button-designer
+interactive-toggle-switch-designer
+interactive-light-designer
+interactive-three-position-toggle-designer
+```
+
+Status Indicator remains outside the direct Light Creator Canvas type guards. It continues to use the shared Interactive Assets panel and Binary Output design path.
 
 ## Shared Interactive Asset Framework
 
@@ -186,7 +211,11 @@ Interactive Toggle Switch uses `kind: toggleSwitch`, `interactionMode: state`, a
 ### Studio behavior
 
 - The designer provides OFF and ON artwork selection.
-- AI generation produces matching OFF and ON visual states through the shared image pipeline.
+- Direct Creator access is available from Canvas and Inspector onboarding.
+- Configured components reopen the exact linked Toggle asset; unconfigured components start a fresh draft.
+- The direct designer can generate a paired OFF/ON set through the shared image pipeline.
+- The Toggle State Sheet Builder can instead create one combined OFF/ON source, crop two linked regions and return both visuals to the Toggle draft.
+- Creator and State Sheet results update the draft only; Save and `Use on Selected` remain explicit.
 - The asset, artwork references and initial state persist through the existing Interactive Asset store.
 - Live preview and Canvas preview retain the selected binary state until toggled again.
 - Browser Preview uses the same OFF / ON artwork and interaction model.
@@ -236,14 +265,37 @@ Interactive Three-Position Toggle Switch uses `kind: threePositionToggle`, `inte
 
 ### Studio behavior
 
-- The designer provides LEFT, CENTER and RIGHT artwork selection.
-- Dedicated AI modes generate a consistent horizontal selector or rocker for all three positions.
+- The designer retains manual LEFT, CENTER and RIGHT artwork selectors and the selectable initial state.
+- `Create Three-Position Toggle Set` replaces the generic Generate action for this asset type.
+- One `three-position-set` request produces a master State Sheet with exactly three horizontal state rows.
+- LEFT, CENTER and RIGHT crops become three separate uploaded asset IDs.
+- The generated set updates the draft only; it does not automatically save, register the Interactive Asset or assign it to Canvas.
+- Direct Creator access is available from Canvas and Inspector onboarding.
+- Configured components reopen the exact linked asset; unconfigured components open a fresh draft.
+- The responsive unconfigured placeholder scales with the component and switches to compact icon-only presentation at small sizes.
 - Initial state is selectable as LEFT, CENTER or RIGHT.
 - Live preview responds across the entire rectangular width.
 - A designer-only `LEFT | CENTER | RIGHT` overlay makes the three touch zones visible without modifying exported artwork.
 - Canvas and Browser Preview divide the configured bounds into direct left, center and right thirds.
 - Use on Selected writes `interactiveAssetId` and propagates width and height.
 - Artwork references and initial state persist through the existing Interactive Asset store.
+
+Live generation flow:
+
+```text
+Prompt
+  -> Create Three-Position Toggle Set
+  -> one master State Sheet
+  -> crop workspace
+  -> LEFT / CENTER / RIGHT linked crop regions
+  -> optional row remapping
+  -> Confirm Crops
+  -> preprocessing and LVGL conversion
+  -> atomic uploaded-asset registration
+  -> update draft
+  -> Save
+  -> assign to Canvas
+```
 
 ### Three-Position Input Runtime
 
@@ -301,6 +353,17 @@ Interactive Light uses `kind: light`, `interactionMode: state`, and a saved `ini
 
 - `offAssetId`
 - `onAssetId`
+
+### Studio behavior
+
+- Canvas right-click and Inspector onboarding open the direct Light Creator through `interactive-light-designer`.
+- Configured components reopen the exact linked Light asset; unconfigured components receive a fresh unsaved draft.
+- The responsive empty state uses a lamp/indicator SVG with compact icon-only presentation at small dimensions.
+- Larger empty states show OFF and ON hints.
+- The unselected placeholder is near-white, the selected component is cyan, and the active indicator uses muted green.
+- Inspector onboarding appears when the Interactive Asset or either uploaded visual is missing.
+- The helper disappears once both OFF and ON uploaded visuals resolve.
+- Save and assignment remain explicit; opening the Creator does not mutate the registry or Canvas.
 
 ## Binary Output Runtime
 
@@ -434,14 +497,16 @@ Button generation modes:
 
 Toggle generation modes:
 
-- `toggle-off`
-- `toggle-on`
+- direct paired generation uses `light-off` and `light-on`
+- the Toggle State Sheet Builder uses one combined OFF/ON source artwork
 
 Three-Position generation modes:
 
-- `three-position-left`
-- `three-position-center`
-- `three-position-right`
+- active Creator request: `three-position-set`
+- one master generated image
+- three LEFT/CENTER/RIGHT crops derived from that master
+
+The older `three-position-left`, `three-position-center` and `three-position-right` requests remain accepted by the lower-level API for compatibility, but the active Three-Position Creator no longer uses three independent generation calls.
 
 Light generation modes:
 
@@ -450,18 +515,50 @@ Light generation modes:
 
 Status Indicator generation modes:
 
-- `status-off`
-- `status-on`
+- `light-off`
+- `light-on`
 
-The type-specific differences are prompt mode, prompt template, filename prefix, and result-to-state mapping. The selected parent asset kind determines the modes used by the shared generator.
+The type-specific differences are prompt mode, prompt template, filename prefix, State Sheet handling, and result-to-state mapping. The selected parent asset kind determines the active workflow.
 
 ```text
-Button: first → normalAssetId, second → pressedAssetId
-Toggle: first → offAssetId, second → onAssetId
-Three Position: first → leftAssetId, second → centerAssetId, third → rightAssetId
+Button paired generation: first → normalAssetId, second → pressedAssetId
+Toggle direct paired generation: first → offAssetId, second → onAssetId
+Toggle State Sheet Builder: one OFF/ON source → two linked crops → offAssetId / onAssetId
+Three Position: one LEFT/CENTER/RIGHT master → three linked crops → leftAssetId / centerAssetId / rightAssetId
 Light: first → offAssetId, second → onAssetId
 Status Indicator: first → offAssetId, second → onAssetId
 ```
+
+## State Sheet Generation and Crop Architecture
+
+The standard Toggle State Sheet Builder and Three-Position Creator reuse `StateSheetOverlay` while retaining workflow-specific state counts.
+
+Standard Toggle uses one combined OFF/ON source with two independently positioned crop regions and a shared crop width and height. The resulting OFF and ON assets return to the Toggle draft.
+
+Three-Position uses one master image and three crop rectangles:
+
+- LEFT, CENTER and RIGHT retain independent X/Y positions.
+- Crop width and height are shared across all three regions.
+- Moving one region moves only that region.
+- Resizing any region resizes all three, ensuring identical confirmed output dimensions.
+- Gaps between AI-generated rows can be excluded by positioning the rectangles explicitly.
+- Every region exposes edge and corner handles.
+- Confirmation uses the exact crop coordinates rather than inferred row boundaries.
+
+Synchronized Three-Position resizing follows these rules:
+
+- RIGHT or BOTTOM resizing changes the shared dimensions without shifting region origins.
+- LEFT or TOP resizing applies the same position delta to every region.
+- Corner resizing combines the corresponding horizontal and vertical rules.
+- Each region otherwise retains its independent base position.
+
+Default row assignment is `TOP → LEFT`, `MIDDLE → CENTER`, `BOTTOM → RIGHT`. If AI returns states in another order, row-to-state remapping is available before confirmation. Mappings remain unique: changing one row swaps the displaced state, overlay labels update immediately, and remapping changes state assignment without changing crop geometry.
+
+### Image-pipeline safeguards
+
+State Sheet crops use `canvas.toDataURL('image/png')`, ensuring preprocessing receives real PNG Base64 rather than blob-URL text. Three-Position confirmation validates `data:image/png;base64` input and decodes it locally into `image/png` Blobs instead of calling `fetch()` on a data URL; converter requests continue to carry the Base64 data URL.
+
+Three-Position registration is atomic. All three crops are prepared and converted before the Uploaded Asset Registry is mutated. A conversion failure therefore cannot partially register LEFT/CENTER/RIGHT assets, existing draft IDs remain unchanged, and the draft updates only after all three conversions succeed.
 
 ## File Ownership
 
@@ -495,6 +592,16 @@ Paths under `src/` are relative to `studio/`.
 - `src/forgeui/interactive/ForgeUIInteractiveAssetResolver.ts`
 - `src/forgeui/interactive/index.ts`
 
+### Direct Creator and navigation
+
+- `src/forgeui/ForgeUINavigation.ts`
+- `src/components/editor/PreviewContainer.tsx`
+- `src/components/inspector/Inspector.tsx`
+- `src/components/inspector/InteractiveButtonCreatorHelper.tsx`
+- `src/components/inspector/InteractiveToggleCreatorHelper.tsx`
+- `src/components/inspector/InteractiveLightCreatorHelper.tsx`
+- `src/components/inspector/InteractiveThreePositionToggleCreatorHelper.tsx`
+
 ### Button
 
 - `src/forgeui/interactive/ForgeUIInteractiveButtonAsset.ts`
@@ -506,15 +613,18 @@ Paths under `src/` are relative to `studio/`.
 - `src/forgeui/interactive/ForgeUIInteractiveToggleSwitchAsset.ts`
 - `src/forgeui/interactive/InteractiveToggleSwitchPreview.tsx`
 - `src/components/editor/previews/InteractiveToggleSwitchCanvasPreview.tsx`
-- `src/forgeui/interactive/InteractiveLightDesigner.tsx` — current shared OFF / ON designer used by Toggle Switch, Light and Status Indicator
+- `src/forgeui/interactive/InteractiveLightDesigner.tsx` — shared binary-artwork designer with type-scoped Toggle, Light and Status Indicator drafts
+- `src/forgeui/ai/ForgeAIPanel.tsx` — owns the Toggle State Sheet Builder and returns completed OFF/ON state IDs to the Toggle designer
 
-The current implementation does not introduce a separate `InteractiveToggleSwitchDesigner.tsx`; Toggle Switch follows the shared binary artwork designer path while retaining its own asset model, preview and generated Toggle Input Runtime.
+The current implementation does not introduce a separate `InteractiveToggleSwitchDesigner.tsx`. Toggle retains its own direct navigation target, draft requests, State Sheet handoff, asset model, preview and generated Toggle Input Runtime while reusing the binary-artwork designer.
 
 ### Three-Position Toggle Switch
 
 - `src/forgeui/interactive/ForgeUIInteractiveThreePositionToggleAsset.ts`
 - `src/forgeui/interactive/InteractiveThreePositionTogglePreview.tsx`
 - `src/forgeui/interactive/InteractiveThreePositionToggleDesigner.tsx`
+- `src/forgeui/interactive/UnconfiguredThreePositionTogglePlaceholder.tsx`
+- `src/forgeui/interactive/InteractiveAssetAIGenerator.tsx`
 - `src/components/editor/previews/InteractiveThreePositionToggleCanvasPreview.tsx`
 
 ### Light
@@ -522,6 +632,7 @@ The current implementation does not introduce a separate `InteractiveToggleSwitc
 - `src/forgeui/interactive/ForgeUIInteractiveLightAsset.ts`
 - `src/forgeui/interactive/InteractiveLightDesigner.tsx`
 - `src/forgeui/interactive/InteractiveLightPreview.tsx`
+- `src/forgeui/interactive/UnconfiguredLightPlaceholder.tsx`
 - `src/components/editor/previews/InteractiveLightCanvasPreview.tsx`
 
 ### Status Indicator
@@ -534,12 +645,14 @@ The current implementation does not introduce a separate `InteractiveToggleSwitc
 
 - `src/forgeui/interactive/ForgeUIInteractiveAssetPanel.tsx`
 - `src/forgeui/interactive/InteractiveAssetAIGenerator.tsx`
+- `src/forgeui/ai/StateSheetOverlay.tsx`
 - `src/forgeui/ai/ForgeUIAIImagePipeline.ts`
 - `src/pages/api/forgeui-ai-hero.ts`
 
 ### Exporter
 
 - `src/forgeui/ForgeUILvglExport.ts`
+- `src/forgeui/ForgeUILvglExport.keyboard.test.ts`
 - `export-server.js`
 
 The exporter owns the shared generated runtime implementations and unique per-instance records. `90_Studio_Export.*` remains generated and replaceable; live-firmware `95_UserEvents.*` may be regenerated, while standalone-export copies become developer-owned.
@@ -577,15 +690,19 @@ The exporter owns the shared generated runtime implementations and unique per-in
 ### Interactive Toggle Switch
 
 - Studio, persistence, Canvas, Browser Preview, generated Toggle Input Runtime and automated export validation are complete.
-- Physical ESP32-P4 validation is pending.
-- No physical proof is claimed for touch interaction or generated toggle callbacks.
+- The current Toggle Switch export has been exercised on the physical ESP32-P4.
+- OFF/ON state artwork and touch state changes operate through the generated Toggle Input Runtime.
+- No claim beyond the recorded single-control physical workflow is made here.
 
 ### Interactive Three-Position Toggle Switch
 
-- Studio, persistence, direct three-zone Canvas and Browser Preview, generated Three-Position Input Runtime and automated export validation are complete.
-- Absolute pointer coordinates are converted to local control coordinates before LEFT / CENTER / RIGHT zone selection.
-- Physical ESP32-P4 validation is pending after the hit-area and selector-artwork refresh.
-- No physical proof is claimed for the corrected touch zones or generated changed callback.
+- Generated LEFT, CENTER and RIGHT images displayed physically with consistent State Sheet styling.
+- The full rectangular control was divided into three touch zones.
+- LEFT, CENTER and RIGHT changed correctly on touch.
+- The generated `FG_On_ThreePositionToggle_Changed` callback matched the runtime state.
+- The user-event hook printed readable LEFT, CENTER and RIGHT values.
+- Initial state was applied with notification disabled.
+- Runtime remained stable.
 
 ### System health
 
@@ -595,20 +712,36 @@ The exporter owns the shared generated runtime implementations and unique per-in
 - SD READY
 - No crash after interaction
 
+## LVGL Keyboard Visual Parity
+
+The exported keyboard uses native `lv_keyboard`, which is an `lv_buttonmatrix` subclass. Two LVGL defaults caused the original hardware mismatch:
+
+- the active theme supplied DPI-dependent padding, gaps, radius, font, shadow and outline;
+- `lv_keyboard_create()` internally bottom-aligned the object, while `lv_obj_set_pos()` changed X/Y without clearing that alignment.
+
+The exporter now configures the map, textarea, mode and explicit keyboard styles before final geometry. It clears unwanted theme-dependent padding, shadow and outline behavior, assigns the intended font and gaps, calls `lv_obj_set_align(..., LV_ALIGN_TOP_LEFT)`, and only then applies final position and size. No later generated call overrides the geometry.
+
+The refined button-matrix width map is:
+
+```text
+Row 1: 4  4  4  4  4  4  4  4  4  4  4  4
+Row 2: 3  3  3  3  3  3  3  3  3  3  3
+Row 3: 1  1  1  1  1  1  1  1  1  1  1  1
+Row 4: mode 2, left arrow 2, space 12, right arrow 2, confirm 2
+```
+
+LVGL normalizes width units independently within each row. The physical result now occupies the intended large keyboard area, aligns its textarea and keyboard, fills the available rectangle with four key rows, and is much closer to the Studio preview.
+
 ## Verified Automated Status
 
-- 23 Jest test suites passed.
-- 137 tests passed.
-- 1 documented legacy test is intentionally skipped.
-- TypeScript completed with zero diagnostics using `tsc --noEmit`.
-- ESLint completed with no warnings or errors.
-- `export-server.js` syntax check passed.
-- Client and server export validation passed.
-- Diff validation passed.
-- Export validation and reference-protection suites passed for all five Interactive Asset types.
-- The built-in Neural Core and Carbon Fiber firmware sources passed real server-side source and symbol validation.
-
-The former `InteractiveLightCanvasPreview.test.tsx` TypeScript baseline error is resolved. The only non-passing test status is the intentional legacy icon-export skip documented during Phase 1.
+- Focused direct Creator, State Sheet, crop interaction, row-remapping, AI pipeline, exporter and regression suites pass.
+- Standard Toggle State Sheet and Toggle runtime regressions remain passing.
+- Three-Position master generation, linked-crop and atomic-registration regressions pass.
+- Keyboard exporter geometry, ordering, style and relative-width regressions pass.
+- TypeScript validation passes with `tsc --noEmit`.
+- Scoped diff validation passes for the current implementation work.
+- Client/server export validation and reference-protection coverage remain in place for all five Interactive Asset types.
+- A known unrelated server fixture/source absence can fail the built-in theme-source preflight when the expected Neural Core or Carbon Fiber generated C files are not present; this does not weaken the validation boundary.
 
 ## Architectural Significance and Extension Pattern
 
@@ -623,6 +756,27 @@ Interactive Light introduced the shared **Binary Output Runtime**, proving that 
 Interactive Status Indicator validated that the Binary Output Runtime is reusable. It extends the framework without introducing a second runtime implementation, demonstrating that additional binary output assets can be added by reusing the existing runtime while providing their own asset model, designer, preview behaviour, export handling and generated public API.
 
 ForgeUI now extends by adding reusable runtime families rather than accumulating isolated widget implementations. Each family owns the generated C runtime appropriate to its state and interaction model. All families share Interactive Asset identity, registry, persistence, uploaded assets, AI generation, Canvas assignment, preview, export integration, validation and generated-file ownership.
+
+ForgeUI also has reusable creation architecture:
+
+- direct Creator navigation from Canvas context menus and Inspector onboarding;
+- exact configured-asset reopening and clean unconfigured drafts;
+- explicit Save and assignment boundaries;
+- master State Sheet generation;
+- shared linked-crop editing;
+- atomic conversion and uploaded-asset registration;
+- type-scoped Creator requests inside the shared portal.
+
+The Three-Position workflow proves an extensible N-state creation pattern:
+
+```text
+one master image
+  -> N linked crop regions
+  -> N uploaded visual assets
+  -> strongly typed runtime state
+```
+
+This architecture can support future multi-state selectors without implying that those controls are implemented today.
 
 Future Interactive Asset types should extend the discriminated asset union and provide their own:
 
@@ -687,6 +841,13 @@ These remain future concepts only. They are not implemented or physically proven
 # Save Point History
 
 Save points are ordered newest to oldest. Detailed subsystem engineering is maintained in the Developer Code Maps.
+
+## FORGEUI_INTERACTIVE_CREATORS__THREE_POSITION_STATE_SHEET__LINKED_CROPS__KEYBOARD_PARITY__ESP32P4_PROVEN__2026-07-26
+
+- **What changed:** Added direct Interactive Light and Three-Position Creators, `Create Three-Position Toggle Set`, one-master State Sheet generation, unique row remapping, three independently positioned linked crop regions, atomic registration, and corrected LVGL keyboard alignment and key-width distribution.
+- **Why it changed:** Visual controls needed safe component-to-Creator editing, consistent multi-state artwork from one source, reliable crop conversion, and closer Studio-to-P4 keyboard parity.
+- **Final architecture:** Canvas and Inspector navigation open type-scoped drafts; one Three-Position master feeds linked LEFT/CENTER/RIGHT crops, conversion completes before registry mutation, and the keyboard applies explicit native map/style/alignment geometry.
+- **Proven result:** Three-Position artwork, full-width touch zones, readable generated callback states and stable runtime were proven on ESP32-P4; the keyboard now fills and aligns with its intended physical area.
 
 ## FORGEUI_INTERACTIVE_ASSET_FRAMEWORK_V1__BUTTON_AND_LIGHT__UNIFIED_UI_FLOW__PHYSICAL_ESP32P4_PROVEN
 

@@ -2,7 +2,7 @@
 
 ## Current save point
 
-**FORGEUI_FIVE_INTERACTIVE_ASSETS__THREE_RUNTIME_FAMILIES__PROJECT_HEALTH_PHASE2__TOGGLE_PHYSICAL_VALIDATION_PENDING__2026-07-22**
+**FORGEUI_DIRECT_CREATORS__THREE_POSITION_STATE_SHEET__LINKED_CROPS__KEYBOARD_LVGL_PARITY__PHYSICAL_ESP32P4_PROVEN__READY_FOR_STUDIO_POLISH__2026-07-26**
 
 ## Purpose
 
@@ -43,7 +43,7 @@ The shared framework is proven through:
 - ESP-IDF build
 - physical ESP32-P4 runtime where recorded below
 
-The Physical ESP32-P4 proof section records the physically validated Button and Light behaviors. Toggle Switch and Three-Position Toggle are implementation- and host-validation complete, but their current physical ESP32-P4 validation remains pending. Status Indicator proves reuse of the same Binary Output Runtime through its model, Studio, Canvas, persistence, validation, preview, multi-instance, coexistence, and exporter contracts.
+The Physical ESP32-P4 proof section records the current Button, Toggle Switch, Three-Position Toggle and Light hardware results. Three-Position LEFT/CENTER/RIGHT touch selection, generated callback output and stable runtime are proven. Status Indicator remains documented at the level supported by its current project record. State Sheet generation, linked crop editing and keyboard LVGL parity extend the proven Studio-to-runtime pipeline.
 
 All five controls are separate discriminated models inside one framework. They share infrastructure. Interactive Button and Interactive Toggle Switch belong to the Interactive Input Runtime, Interactive Three-Position Toggle Switch owns the Three-Position Input Runtime, and Interactive Light and Interactive Status Indicator belong to the Binary Output Runtime.
 
@@ -83,6 +83,31 @@ Interactive Assets panel
         ↓
       physical ESP32-P4 runtime
 ```
+
+Direct Creator ownership:
+
+```text
+Canvas component
+  â†“
+Right-click
+  â†“
+Open Creator
+  â†“
+Configured â†’ reopen exact linked asset
+Unconfigured â†’ new unsaved draft
+  â†“
+Type-scoped designer
+  â†“
+Generate State Sheet where supported
+  â†“
+Crop workspace
+  â†“
+Save
+  â†“
+Assign
+```
+
+`src/forgeui/ForgeUINavigation.ts` owns the private type-scoped navigation request contract. `src/components/editor/PreviewContainer.tsx` owns Canvas context-menu access and passes component identity plus any linked `interactiveAssetId`. `src/components/inspector/Inspector.tsx` mounts type-specific Creator helpers for incomplete components. Navigation opens the shared AI Studio portal without creating, registering, saving or assigning an asset.
 
 ## Project Health Architecture
 
@@ -344,6 +369,28 @@ Consumers should import established framework APIs from this barrel where practi
 
 ### Unified Studio UI
 
+#### `src/forgeui/ForgeUINavigation.ts`
+
+Owns the private Creator navigation dispatcher and its type-scoped request contract:
+
+- Button Creator target
+- Toggle Creator target
+- Light Creator target
+- Three-Position Creator target
+- source Canvas component ID
+- optional linked Interactive Asset ID
+- unique request ID
+
+Do not replace this with public URL routing or let one Creator consume another type's edit request.
+
+#### `src/components/editor/PreviewContainer.tsx`
+
+Owns Canvas right-click Creator access for Button, Toggle Switch, Three-Position Toggle and Light. It selects the source component, opens a portal-based context menu, dismisses it on outside click or Escape, and dispatches configured or unconfigured navigation without mutating assets. Status Indicator is intentionally excluded from these direct Light Creator guards.
+
+#### `src/components/inspector/Inspector.tsx` and Creator helpers
+
+Inspector mounts type-specific onboarding helpers. The Light helper remains visible until the linked Light and both uploaded visuals resolve. The Three-Position helper remains visible until LEFT, CENTER and RIGHT visuals resolve. Button and Toggle helpers follow the same ownership pattern. Helpers navigate to the Creator; they do not save or assign.
+
 #### `src/forgeui/interactive/ForgeUIInteractiveAssetPanel.tsx`
 
 Owns the framework-level Studio experience:
@@ -361,6 +408,11 @@ Owns the framework-level Studio experience:
 - coordinating the Status Indicator designer
 - coordinating the Toggle Switch path through the shared OFF/ON designer
 - coordinating the dedicated Three-Position Toggle designer
+- consuming Button, Toggle, Light and Three-Position direct Creator requests
+- separating configured edit requests from unconfigured new-draft requests
+- type-scoped edit-request replacement
+- Inspector onboarding handoff
+- Canvas context-menu editing handoff
 - editing existing Button assets
 - Button `Use on Selected`
 
@@ -407,9 +459,37 @@ Owns the shared two-state Studio designer behavior used by Light, Status Indicat
 
 It receives the parent-selected kind for AI generation. It does not own an independent Asset Type selector. There is no separate `InteractiveToggleSwitchDesigner.tsx` in the current implementation.
 
+It also consumes type-scoped Light, Status Indicator and Toggle new/edit requests. A configured request loads the exact linked asset; an unconfigured request resets to a fresh draft. These request effects must not call Save or assignment.
+
+#### `src/forgeui/ai/ForgeAIPanel.tsx`
+
+Owns the shared AI Studio portal and the standard Toggle State Sheet Builder:
+
+- combined OFF/ON source artwork
+- two linked crop regions
+- shared crop dimensions
+- OFF/ON previews
+- conversion and return of completed state IDs
+- restoration of the Toggle designer after completion or cancellation
+
+The Toggle State Sheet Builder complements direct paired generation; it does not replace the Toggle runtime or persistence model.
+
 #### `src/forgeui/interactive/InteractiveThreePositionToggleDesigner.tsx`
 
-Owns Three-Position Toggle draft, LEFT/CENTER/RIGHT artwork selectors, three-image AI orchestration, initial-state selection, designer-only zone overlay, create/edit/delete/save behavior, persistence coordination, asset cards and `Use on Selected` assignment.
+Owns:
+
+- Three-Position Toggle draft
+- manual LEFT/CENTER/RIGHT artwork selectors
+- `Create Three-Position Toggle Set`
+- master State Sheet and linked-crop handoff
+- initial-state selection
+- designer-only zone overlay
+- configured asset reopening and fresh unsaved drafts
+- create/edit/delete/Save behavior
+- Inspector onboarding destination
+- persistence coordination, asset cards and `Use on Selected`
+
+The generic duplicate Generate path is hidden for Three-Position. Generated crop IDs update the draft only; Save and assignment remain explicit.
 
 #### `src/forgeui/interactive/InteractiveAssetAIGenerator.tsx`
 
@@ -417,7 +497,12 @@ Owns shared interactive image-generation UI and orchestration:
 
 - prompt input
 - generation loading state
-- two or three sequential state-image requests according to asset kind
+- paired Button and binary-state requests where applicable
+- the Three-Position `three-position-set` master request
+- Three-Position crop-workspace state
+- unique TOP/MIDDLE/BOTTOM row-to-state remapping
+- `Confirm Crops`
+- returning LEFT/CENTER/RIGHT IDs only after atomic registration succeeds
 - kind-to-generation-mode mapping
 - file-prefix selection
 - returning the generated uploaded-asset IDs
@@ -427,18 +512,35 @@ It receives `selectedAssetKind`; it does not own or render another Asset Type se
 
 ### Shared AI image pipeline
 
+#### `src/forgeui/ai/StateSheetOverlay.tsx`
+
+Owns reusable State Sheet crop geometry and interaction:
+
+- two-region Toggle and three-region Three-Position projects
+- independent region X/Y positions
+- shared crop width and height
+- edge and corner resize handles
+- single-region movement
+- linked Three-Position resize behavior
+- exact source-coordinate conversion
+- live crop labels
+
+For three linked regions, RIGHT/BOTTOM resizing changes shared dimensions without shifting origins. LEFT/TOP resizing applies the same delta to every origin. Row remapping is owned by `InteractiveAssetAIGenerator.tsx`; the overlay renders the remapped labels without changing crop geometry.
+
 #### `src/forgeui/ai/ForgeUIAIImagePipeline.ts`
 
-Owns the common generated-image lifecycle:
+Owns:
 
-1. POST the prompt and generation mode.
-2. Read the image response.
-3. Fetch the returned image data.
-4. create a browser `File`.
-5. create and register a ForgeUI uploaded asset.
-6. send it through LVGL conversion.
-7. update the uploaded asset to `lvgl_ready`.
-8. return the completed uploaded-asset record.
+- normal generated-image requests and conversion
+- Three-Position master-image generation through `three-position-set`
+- crop extraction with explicit coordinates
+- `canvas.toDataURL('image/png')` PNG creation
+- validation and local decoding of Base64 PNG data into `image/png` Blobs
+- converter communication using Base64 image payloads
+- preparation and conversion of all three state assets
+- atomic Uploaded Asset Registry mutation only after every conversion succeeds
+- failure propagation without partial LEFT/CENTER/RIGHT registration or draft mutation
+- completed crop results returned to `Confirm Crops`
 
 All five Interactive Asset kinds use this same pipeline.
 
@@ -714,11 +816,16 @@ default dimensions: 96 × 36
 Owns:
 
 - LEFT, CENTER and RIGHT artwork selectors
-- dedicated three-image AI generation
+- `Create Three-Position Toggle Set`
+- one master State Sheet request
+- linked crop-editor handoff and crop confirmation
+- row remapping before confirmation
 - create, edit, delete and Save
 - LEFT/CENTER/RIGHT initial-state selection
 - designer-only `LEFT | CENTER | RIGHT` zone overlay
 - live direct-zone preview
+- configured asset reopening and fresh unconfigured drafts
+- Inspector onboarding destination
 - reference-aware deletion
 - `Use on Selected`
 - persistence through the existing v1 store
@@ -729,13 +836,17 @@ Assignment uses `getInteractiveThreePositionComponentProps()` and writes `intera
 
 #### `src/forgeui/interactive/InteractiveThreePositionTogglePreview.tsx`
 
-Owns direct horizontal three-zone selection across the full rectangular width, local preview state callbacks, optional designer-only zone guidance and the explicit `Missing <STATE> artwork` fallback.
+Owns direct horizontal three-zone selection across the full rectangular width, current-position highlighting, local preview state callbacks, optional designer-only zone guidance and the explicit `Missing <STATE> artwork` fallback.
+
+#### `src/forgeui/interactive/UnconfiguredThreePositionTogglePlaceholder.tsx`
+
+Owns the responsive unconfigured selector graphic, compact icon-only mode and current-state indicator. It provides presentation only and does not create an asset.
 
 #### `src/components/editor/previews/InteractiveThreePositionToggleCanvasPreview.tsx`
 
 Owns kind-aware asset lookup, LEFT/CENTER/RIGHT uploaded-asset resolution, dimensions, initial-state restoration and persistent local Canvas state.
 
-`ComponentPreview.tsx` wraps the control in `PreviewContainer`, so absolute position, selection, dragging and resizing follow the same shared path as every other Canvas component. `forgePreviewRenderer.tsx` inserts an absolutely positioned browser-preview node; it does not return early from the render loop. Canvas and Browser Preview therefore match the physical three-zone model.
+`ComponentPreview.tsx` wraps the control in `PreviewContainer`, so absolute position, selection, dragging, resizing and `Open Three-Position Toggle Creator` context-menu access follow the shared Canvas path. `InteractiveThreePositionToggleCreatorHelper.tsx` owns incomplete-asset Inspector onboarding. `forgePreviewRenderer.tsx` inserts an absolutely positioned browser-preview node; it does not return early from the render loop. Canvas and Browser Preview therefore match the physical three-zone model.
 
 ### Runtime behavior
 
@@ -780,7 +891,16 @@ last third   → RIGHT
 
 The parent button owns the full rectangular hit area. The child image is non-clickable, and both parent and child are non-scrollable. Transparent image margins do not reduce the clickable bounds. Initialization calls the shared setter with `notify=false`; valid interaction uses `notify=true`.
 
-One shared runtime and event callback are emitted per export. Multiple Canvas instances retain independent runtime records, artwork, state and changed callbacks. Physical ESP32-P4 validation of the current hit-area and artwork revision remains pending.
+One shared runtime and event callback are emitted per export. Multiple Canvas instances retain independent runtime records, artwork, state and changed callbacks.
+
+Physical ESP32-P4 validation confirms:
+
+- the full rectangular control divides into LEFT/CENTER/RIGHT touch zones;
+- each zone selects the correct generated State Sheet artwork;
+- `FG_On_ThreePositionToggle_Changed(fg_three_way_state_t state)` matches runtime state;
+- the generated user hook prints readable LEFT/CENTER/RIGHT values;
+- initialization applies state with `notify=false`;
+- interaction remains stable.
 
 ## Interactive Light map
 
@@ -804,6 +924,8 @@ State-image references:
 ### Studio behavior
 
 - AI generates OFF and ON state images.
+- Canvas right-click and incomplete-state Inspector onboarding open the direct Light Creator.
+- Configured components reopen the linked Light asset; unconfigured components open a fresh unsaved draft.
 - The first result maps to `offAssetId`.
 - The second result maps to `onAssetId`.
 - `Use on Selected` is enabled only for an `InteractiveLight` component.
@@ -826,6 +948,9 @@ Owns Canvas integration for `InteractiveLight`:
 - resolves dimensions and saved initial state
 - maintains a temporary Canvas preview state
 - renders `InteractiveLightPreview`
+- renders `UnconfiguredLightPlaceholder` when the Light or either visual is unresolved
+
+`UnconfiguredLightPlaceholder.tsx` owns the responsive lamp SVG, compact icon-only mode, larger OFF/ON hints and muted-green active indicator. `PreviewContainer.tsx` supplies near-white unselected and cyan selected Creator highlighting. `InteractiveLightCreatorHelper.tsx` owns the Inspector onboarding card and hides it once both uploaded visuals resolve.
 
 Clicking the Canvas preview toggles only local preview state. It does not mutate the saved Interactive Light and does not affect exported firmware.
 
@@ -1020,17 +1145,24 @@ Toggle mapping:
 - first result → `offAssetId`
 - second result → `onAssetId`
 
-Three-Position Toggle generation modes:
+The direct Toggle Creator retains paired OFF/ON generation. `ForgeAIPanel.tsx` separately owns the Toggle State Sheet Builder: one combined OFF/ON source, two linked crop regions, conversion, and return of both state IDs to the Toggle draft.
 
-- `three-position-left`
-- `three-position-center`
-- `three-position-right`
+Three-Position Toggle active generation mode:
+
+- `three-position-set`
 
 Three-Position mapping:
 
-- first result → `leftAssetId`
-- second result → `centerAssetId`
-- third result → `rightAssetId`
+```text
+one master generation
+  → State Sheet
+  → linked crop workspace
+  → LEFT / CENTER / RIGHT crops
+  → three converted uploaded assets
+  → draft update
+```
+
+The old independent `three-position-left`, `three-position-center` and `three-position-right` calls are not used by the active Three-Position Creator.
 
 The Three-Position prompt requires a horizontal rectangular selector or rocker, consistent body geometry, minimal transparent margins and a clearly visible selected position. It explicitly rejects circular status lamps.
 
@@ -1054,11 +1186,12 @@ Status Indicator mapping:
 - first result → `offAssetId`
 - second result → `onAssetId`
 
-The request and response pipeline is shared. Type-specific differences are limited to:
+The request and response pipeline is shared. Type-specific differences include:
 
 - generation mode
 - prompt template
 - filename prefix
+- State Sheet and crop count
 - result-to-state mapping
 
 Do not create a second AI image pipeline for another Interactive Asset kind.
@@ -1196,6 +1329,39 @@ Three-Position export preparation and the `InteractiveThreePositionToggleSwitch`
 8. attach the shared local-coordinate event callback.
 
 The enum contract, runtime structure, setter and event callback are generated through the single exporter. `local_x = point.x - button_coords.x1` makes zone selection independent of screen placement.
+
+### Keyboard export ownership
+
+#### `src/forgeui/ForgeUILvglExport.ts`
+
+The `Keyboard` branch owns native `lv_keyboard` export and Studio parity:
+
+- explicit four-row keyboard map
+- explicit `lv_buttonmatrix_ctrl_t` relative-width map
+- textarea creation and association
+- keyboard mode
+- main-part padding, row gap and column gap
+- item font, radius, padding, border, shadow and outline styling
+- final top-left alignment through `lv_obj_set_align(..., LV_ALIGN_TOP_LEFT)`
+- final position and size after map, mode and style setup
+- post-layout runtime geometry diagnostics
+
+`lv_keyboard_create()` internally bottom-aligns the object. `lv_obj_set_pos()` does not clear that alignment, so the exporter must retain the explicit `LV_ALIGN_TOP_LEFT` reset before final geometry.
+
+Current relative widths:
+
+```text
+Row 1: all keys 4
+Row 2: all keys 3
+Row 3: all keys 1
+Row 4: mode 2, left 2, space 12, right 2, confirm 2
+```
+
+LVGL normalizes control widths independently within each row.
+
+#### `src/forgeui/ForgeUILvglExport.keyboard.test.ts`
+
+Owns generated-C regression coverage for keyboard map order, relative widths, textarea wiring, style ordering, top-left alignment, final geometry and absence of later geometry overrides.
 
 ### Light export branch
 
@@ -1399,9 +1565,7 @@ Physically confirmed:
 
 ### Interactive Toggle Switch
 
-Studio, persistence, preview, export, shared runtime and bool-hook generation are host-validated. Current physical ESP32-P4 proof is not recorded here and remains pending.
-
-Expected physical proof includes initial OFF/ON artwork, touch toggling, generated bool callback and readable serial ON/OFF output.
+Studio, persistence, preview, export, shared runtime and bool-hook generation are validated. The current single-control export has also been exercised on the physical ESP32-P4: OFF/ON artwork and touch state changes operate through the generated Toggle Input Runtime. Do not generalize this into unrecorded multi-instance or stress-test claims.
 
 ### Interactive Status Indicator
 
@@ -1409,16 +1573,17 @@ Model, Studio, Canvas, persistence, validation, preview, multi-instance coexiste
 
 ### Interactive Three-Position Toggle Switch
 
-Studio, persistence, preview, direct local-zone calculation, export and independent-instance contracts are host-validated. Physical ESP32-P4 proof remains pending until the current flash and touch test is completed.
+Physically confirmed:
 
-Expected physical proof:
-
-- boot in the configured initial state
-- LEFT third selects LEFT
-- CENTER third selects CENTER
-- RIGHT third selects RIGHT
-- serial output reports the correct enum state
-- independent instances do not interfere
+- generated LEFT/CENTER/RIGHT State Sheet artwork displayed
+- full rectangular hit area divided into three zones
+- LEFT third selected LEFT
+- CENTER third selected CENTER
+- RIGHT third selected RIGHT
+- generated callback matched runtime state
+- generated user hook printed readable LEFT/CENTER/RIGHT values
+- configured initial state applied without notification
+- runtime remained stable
 
 ### System health during interaction
 
@@ -1427,19 +1592,19 @@ Expected physical proof:
 - SD READY
 - no crash after interaction
 
-Physical Button state behavior and Light initial-state behavior are proven. They are not pending phases.
+Physical Button, Toggle, Three-Position and Light behavior recorded above is proven. These are not pending phases.
 
 ## Verified automated status
 
-### Full validation
+### Current validation
 
-- 23 Jest suites passed
-- 137 tests passed
-- 1 intentional legacy icon-export test skipped
-- TypeScript passed with zero diagnostics
-- ESLint passed with no warnings or errors
-- `export-server.js` syntax validation passed
-- `git diff --check` validation passed
+- focused Creator, State Sheet, crop interaction, row-remapping, image-pipeline and exporter regressions pass
+- standard Toggle regressions remain passing
+- Three-Position linked-crop and atomic-registration regressions pass
+- keyboard exporter geometry, ordering and relative-width regressions pass
+- TypeScript validation passes
+- scoped diff checks pass
+- known unrelated fixture/source absences are reported separately rather than weakening export validation
 
 ## Debugging map
 
@@ -1449,6 +1614,10 @@ Start at the ownership boundary matching the symptom.
 |---|---|---|
 | Unified New action or type switching is wrong | `ForgeUIInteractiveAssetPanel.tsx` | `InteractiveLightDesigner.tsx`, `InteractiveAssetAIGenerator.tsx` |
 | Editing opens the wrong kind | `ForgeUIInteractiveAssetPanel.tsx` | asset `kind`, Light `onActivate` path |
+| Canvas Open Creator is missing or opens the wrong designer | `PreviewContainer.tsx` | `ForgeUINavigation.ts`, component type guards, navigation target |
+| Configured Creator opens a blank draft | `ForgeUINavigation.ts` request | `interactiveAssetId`, type-scoped edit request in `ForgeUIInteractiveAssetPanel.tsx` |
+| Unconfigured Creator creates or saves unexpectedly | owning designer new-request effect | registry calls, Save handler, assignment handler |
+| Inspector onboarding is missing or remains after configuration | owning `*CreatorHelper.tsx` | linked Interactive Asset, required uploaded visual IDs, asset-update events |
 | Button draft/save is wrong | `ForgeUIInteractiveAssetPanel.tsx` | Button model, registry validation |
 | Light draft/save is wrong | `InteractiveLightDesigner.tsx` | Light model, registry validation |
 | Toggle draft/save is wrong | `InteractiveLightDesigner.tsx` | Toggle model, selected `assetKind`, registry validation |
@@ -1463,6 +1632,11 @@ Start at the ownership boundary matching the symptom.
 | Three-Position selects the wrong zone | generated `fg_three_way_input_event_cb()` | `local_x`, button coordinates and configured width |
 | Three-Position has stale artwork references | `ForgeUIInteractiveAssetResolver.ts` | Uploaded Asset Registry, persistence, reference protection |
 | Three-Position enum/callback is missing | `ForgeUILvglExport.ts` | `userEventHooks`, `export-server.js`, `95_UserEvents.*` |
+| Three-Position set action or crop workspace is missing | `InteractiveAssetAIGenerator.tsx` | `generateRequestId`, `three-position-set`, master-image state |
+| Three-Position crop handles or linked sizing are wrong | `StateSheetOverlay.tsx` | `resizeStateSheetRegions()`, source/display coordinate scale |
+| Three-Position row labels or assignments are wrong | `updateThreePositionRowMapping()` | `remapThreePositionProject()`, unique swap behavior |
+| Confirm Crops fails | `registerThreePositionToggleCrops()` | PNG data URL validation, Base64 decoding, converter responses |
+| Only some Three-Position assets register | `ForgeUIAIImagePipeline.ts` | prepared/completed asset arrays, registry mutation after all conversions |
 | Shared Toggle Runtime is duplicated or missing | `ForgeUILvglExport.ts` | `fg_toggle_input_t` / setter / event emission guard |
 | Shared Three-Position Runtime is duplicated or missing | `ForgeUILvglExport.ts` | `fg_three_way_input_t` / setter / event emission guard |
 | Button Normal/Pressed preview is wrong | `InteractiveButtonPreview.tsx` | `InteractiveButtonCanvasPreview.tsx`, resolver |
@@ -1472,6 +1646,9 @@ Start at the ownership boundary matching the symptom.
 | Status Indicator Canvas Preview is wrong | `InteractiveStatusIndicatorCanvasPreview.tsx` | kind-aware lookup, uploaded assets, `initialState` |
 | AI uses the wrong state modes | `InteractiveAssetAIGenerator.tsx` | parent `selectedAssetKind` |
 | AI request/image conversion fails | `ForgeUIAIImagePipeline.ts` | `/api/forgeui-ai-hero`, `export-server.js` conversion route |
+| Keyboard appears offset despite correct X/Y | `ForgeUILvglExport.ts` Keyboard branch | final `LV_ALIGN_TOP_LEFT`, call ordering, parent coordinates |
+| Keyboard outer size is correct but keys are compressed | keyboard main/item styles | padding, row/column gaps, font, button-matrix width controls |
+| Keyboard special-key proportions differ from Studio | generated keyboard control map | per-row width units and `ForgeUILvglExport.keyboard.test.ts` |
 | Generated image is missing after restart | `ForgeUIUploadedAssetRegistry.ts` | uploaded localStorage record and generated file path |
 | Interactive Asset is missing after restart | `ForgeUIInteractiveAssetPersistence.ts` | registry import and validation |
 | `Use on Selected` does nothing | owning designer/panel | selected component type, resolver component props, Redux update |
@@ -1495,6 +1672,11 @@ Start at the ownership boundary matching the symptom.
 
 ### Creation and editing paths
 
+- `src/forgeui/ForgeUINavigation.ts`
+- `src/components/editor/PreviewContainer.tsx`
+- `src/components/inspector/Inspector.tsx`
+- `src/components/inspector/InteractiveLightCreatorHelper.tsx`
+- `src/components/inspector/InteractiveThreePositionToggleCreatorHelper.tsx`
 - `src/forgeui/interactive/ForgeUIInteractiveAssetPanel.tsx`
 - `src/forgeui/interactive/InteractiveLightDesigner.tsx`
 - `src/forgeui/interactive/InteractiveThreePositionToggleDesigner.tsx`
@@ -1517,6 +1699,7 @@ Start at the ownership boundary matching the symptom.
 ### Three-Position rendering paths
 
 - `src/forgeui/interactive/InteractiveThreePositionTogglePreview.tsx`
+- `src/forgeui/interactive/UnconfiguredThreePositionTogglePlaceholder.tsx`
 - `src/components/editor/previews/InteractiveThreePositionToggleCanvasPreview.tsx`
 - `src/components/editor/PreviewContainer.tsx`
 - `src/forgeui/preview/forgePreviewRenderer.tsx`
@@ -1547,8 +1730,15 @@ Start at the ownership boundary matching the symptom.
 ### AI generation paths
 
 - `src/forgeui/interactive/InteractiveAssetAIGenerator.tsx`
+- `src/forgeui/ai/StateSheetOverlay.tsx`
 - `src/forgeui/ai/ForgeUIAIImagePipeline.ts`
 - `src/pages/api/forgeui-ai-hero.ts`
+
+### Keyboard export paths
+
+- `src/forgeui/ForgeUILvglExport.ts`
+- `src/forgeui/ForgeUILvglExport.keyboard.test.ts`
+- generated `lv_keyboard` / `lv_buttonmatrix` map and style calls
 
 ### Export path
 
@@ -1591,6 +1781,12 @@ Preserve these rules:
 21. Three-Position hit testing converts screen coordinates into control-local coordinates.
 22. Every Canvas component uses the shared positioned, selectable, draggable and resizable wrapper.
 23. Missing or stale uploaded-asset references block export; validation is never bypassed to work around them.
+24. Direct Creator navigation carries source component identity and an optional linked asset; opening a Creator never saves or assigns.
+25. Configured direct Creator requests reopen the linked asset; unconfigured requests initialize a fresh unsaved draft.
+26. Active Three-Position generation uses one `three-position-set` master and three linked crop regions.
+27. Three-Position uploaded assets register only after all three conversions succeed.
+28. `StateSheetOverlay.tsx` owns shared crop geometry; row-to-state remapping does not mutate crop positions.
+29. Keyboard map, mode and styles precede the final top-left alignment, position and size.
 
 ## Framework extension pattern
 
@@ -1619,6 +1815,8 @@ A future Interactive Asset type should reuse:
 - persistence
 - validation dispatch
 - AI generator and image pipeline
+- direct Creator navigation and Inspector onboarding where applicable
+- State Sheet and linked-crop infrastructure when multiple visuals come from one master
 - Uploaded Asset Registry
 - Canvas assignment through `interactiveAssetId`
 - the single LVGL exporter
@@ -1638,6 +1836,40 @@ It should add only the type-specific pieces it needs:
 - tests covering registry, persistence, Canvas, export, and runtime contract
 
 Future Binary Output assets should reuse `fg_binary_output_t`, `fg_binary_output_set()`, shared runtime emission, and shared setter generation rather than generating a new runtime implementation.
+
+Reusable Creator architecture now includes:
+
+```text
+Canvas or Inspector entry
+  â†“
+shared type-scoped navigation
+  â†“
+configured asset or unsaved draft
+  â†“
+designer
+  â†“
+optional master State Sheet
+  â†“
+linked crop workflow
+  â†“
+atomic uploaded-asset registration
+  â†“
+explicit Save and assignment
+```
+
+Three-Position proves the general visual-state pattern:
+
+```text
+one master image
+  â†“
+N crop regions
+  â†“
+N uploaded assets
+  â†“
+strongly typed runtime state
+```
+
+This is extension guidance, not a claim that additional N-state controls are implemented.
 
 Potential future runtime families:
 

@@ -2,53 +2,11 @@
 #include "lvgl.h"
 #include "20_RTC.h"
 #include "30_WIFI.h"
-#include "95_UserEvents.h"
 #include <stdbool.h>
 #include <stdio.h>
 
 static lv_obj_t * fg_clock_label = NULL;
 static lv_obj_t * fg_wifi_label = NULL;
-
-LV_IMAGE_DECLARE(fg_upload_ai_three_position_left_1784964646655_1784964646662_410a6bdb);
-LV_IMAGE_DECLARE(fg_upload_ai_three_position_center_1784964646655_1784964646665_00bc7bec);
-LV_IMAGE_DECLARE(fg_upload_ai_three_position_right_1784964646655_1784964646667_9dd7fb0c);
-typedef struct { lv_obj_t * button; lv_obj_t * image; const void * left_src; const void * center_src; const void * right_src; fg_three_way_state_t state; void (*changed_cb)(fg_three_way_state_t state); } fg_three_way_input_t;
-static void fg_three_way_input_set(fg_three_way_input_t * input, fg_three_way_state_t state, bool notify)
-{
-    if (!input || (state != FG_THREE_WAY_LEFT && state != FG_THREE_WAY_CENTER && state != FG_THREE_WAY_RIGHT)) return;
-    input->state = state;
-    const void * src = state == FG_THREE_WAY_LEFT ? input->left_src : state == FG_THREE_WAY_RIGHT ? input->right_src : input->center_src;
-    if (input->image) lv_image_set_src(input->image, src);
-    if (notify && input->changed_cb) input->changed_cb(state);
-}
-static void fg_three_way_input_event_cb(lv_event_t * event)
-{
-    fg_three_way_input_t * input = (fg_three_way_input_t *)lv_event_get_user_data(event);
-    lv_obj_t * button = lv_event_get_target(event);
-    lv_indev_t * indev = lv_indev_active();
-    if (!input || !button || !indev) return;
-
-    lv_point_t point;
-    lv_area_t button_coords;
-    lv_indev_get_point(indev, &point);
-    lv_obj_get_coords(button, &button_coords);
-
-    int32_t width = lv_area_get_width(&button_coords);
-    int32_t local_x = point.x - button_coords.x1;
-    if (width <= 0 || local_x < 0 || local_x >= width) return;
-
-    fg_three_way_state_t state = local_x < width / 3
-        ? FG_THREE_WAY_LEFT
-        : local_x < (width * 2) / 3
-            ? FG_THREE_WAY_CENTER
-            : FG_THREE_WAY_RIGHT;
-    fg_three_way_input_set(input, state, true);
-}
-
-static fg_three_way_input_t fg_comp_MS01Q1D32Z1X0_three_way = {
-    .button = NULL, .image = NULL, .left_src = &fg_upload_ai_three_position_left_1784964646655_1784964646662_410a6bdb, .center_src = &fg_upload_ai_three_position_center_1784964646655_1784964646665_00bc7bec, .right_src = &fg_upload_ai_three_position_right_1784964646655_1784964646667_9dd7fb0c,
-    .state = FG_THREE_WAY_CENTER, .changed_cb = FG_On_ThreePositionToggle_Changed,
-};
 
 static void fg_clock_tick_cb(lv_timer_t *timer)
 {
@@ -99,25 +57,69 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_bg_color(parent, lv_color_hex(0x121417), 0);
     lv_obj_set_style_bg_opa(parent, LV_OPA_COVER, 0);
 
-    LV_IMAGE_DECLARE(fg_upload_ai_hero_1784959234465_d990d8a2);
+    LV_IMAGE_DECLARE(fg_upload_ai_hero_1784342478518_b95a7dc0);
     lv_obj_t * bg_texture_0 = lv_image_create(parent);
-    lv_image_set_src(bg_texture_0, &fg_upload_ai_hero_1784959234465_d990d8a2);
+    lv_image_set_src(bg_texture_0, &fg_upload_ai_hero_1784342478518_b95a7dc0);
     lv_obj_set_pos(bg_texture_0, 0, 0);
     lv_obj_set_size(bg_texture_0, 1024, 600);
     lv_obj_move_background(bg_texture_0);
 
-    fg_comp_MS01Q1D32Z1X0_three_way.button = lv_button_create(parent);
-    lv_obj_set_pos(fg_comp_MS01Q1D32Z1X0_three_way.button, 537, 258);
-    lv_obj_set_size(fg_comp_MS01Q1D32Z1X0_three_way.button, 96, 36);
-    lv_obj_add_flag(fg_comp_MS01Q1D32Z1X0_three_way.button, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_clear_flag(fg_comp_MS01Q1D32Z1X0_three_way.button, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_style_pad_all(fg_comp_MS01Q1D32Z1X0_three_way.button, 0, 0);
-    fg_comp_MS01Q1D32Z1X0_three_way.image = lv_image_create(fg_comp_MS01Q1D32Z1X0_three_way.button);
-    lv_obj_clear_flag(fg_comp_MS01Q1D32Z1X0_three_way.image, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_clear_flag(fg_comp_MS01Q1D32Z1X0_three_way.image, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_center(fg_comp_MS01Q1D32Z1X0_three_way.image);
-    fg_three_way_input_set(&fg_comp_MS01Q1D32Z1X0_three_way, FG_THREE_WAY_CENTER, false);
-    lv_obj_add_event_cb(fg_comp_MS01Q1D32Z1X0_three_way.button, fg_three_way_input_event_cb, LV_EVENT_CLICKED, &fg_comp_MS01Q1D32Z1X0_three_way);
+    // ForgeUI Keyboard component comp-MS0XM66LKUFGW -> obj1
+    static const char * const obj1_map[] = {
+        "1#", "q", "w", "e", "r", "t", "y", "u", "i", "o", "p", LV_SYMBOL_BACKSPACE, "\n",
+        "ABC", "a", "s", "d", "f", "g", "h", "j", "k", "l", LV_SYMBOL_NEW_LINE, "\n",
+        "_", "-", "z", "x", "c", "v", "b", "n", "m", ".", ",", ":", "\n",
+        LV_SYMBOL_KEYBOARD, LV_SYMBOL_LEFT, " ", LV_SYMBOL_RIGHT, LV_SYMBOL_OK, ""
+    };
+    static const lv_buttonmatrix_ctrl_t obj1_ctrl[] = {
+        LV_KEYBOARD_CTRL_BUTTON_FLAGS | 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, LV_BUTTONMATRIX_CTRL_CHECKED | 4,
+        LV_KEYBOARD_CTRL_BUTTON_FLAGS | 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, LV_BUTTONMATRIX_CTRL_CHECKED | 3,
+        LV_BUTTONMATRIX_CTRL_CHECKED | 1, LV_BUTTONMATRIX_CTRL_CHECKED | 1, 1, 1, 1, 1, 1, 1, 1, LV_BUTTONMATRIX_CTRL_CHECKED | 1, LV_BUTTONMATRIX_CTRL_CHECKED | 1, LV_BUTTONMATRIX_CTRL_CHECKED | 1,
+        LV_KEYBOARD_CTRL_BUTTON_FLAGS | 2, LV_BUTTONMATRIX_CTRL_CHECKED | 2, 12, LV_BUTTONMATRIX_CTRL_CHECKED | 2, LV_KEYBOARD_CTRL_BUTTON_FLAGS | 2
+    };
+    lv_obj_t * obj1_ta = lv_textarea_create(parent);
+    lv_textarea_set_one_line(obj1_ta, true);
+    lv_textarea_set_placeholder_text(obj1_ta, "Keyboard input");
+    lv_obj_set_pos(obj1_ta, 58, 73);
+    lv_obj_set_size(obj1_ta, 744, 45);
+    lv_obj_t * obj1 = lv_keyboard_create(parent);
+    lv_keyboard_set_map(obj1, LV_KEYBOARD_MODE_TEXT_LOWER, obj1_map, obj1_ctrl);
+    lv_keyboard_set_textarea(obj1, obj1_ta);
+    lv_keyboard_set_mode(obj1, LV_KEYBOARD_MODE_TEXT_LOWER);
+    lv_obj_set_style_pad_all(obj1, 8, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(obj1, 6, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(obj1, 6, LV_PART_MAIN);
+    lv_obj_set_style_border_width(obj1, 1, LV_PART_MAIN);
+    lv_obj_set_style_border_color(obj1, lv_color_hex(0xF2A900), LV_PART_MAIN);
+    lv_obj_set_style_radius(obj1, 8, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(obj1, 0, LV_PART_MAIN);
+    lv_obj_set_style_shadow_width(obj1, 0, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(obj1, lv_color_hex(0x1E2328), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(obj1, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(obj1, 0, LV_PART_ITEMS);
+    lv_obj_set_style_border_width(obj1, 0, LV_PART_ITEMS);
+    lv_obj_set_style_radius(obj1, 6, LV_PART_ITEMS);
+    lv_obj_set_style_outline_width(obj1, 0, LV_PART_ITEMS);
+    lv_obj_set_style_shadow_width(obj1, 0, LV_PART_ITEMS);
+    lv_obj_set_style_bg_color(obj1, lv_color_hex(0x2A3138), LV_PART_ITEMS);
+    lv_obj_set_style_bg_opa(obj1, LV_OPA_COVER, LV_PART_ITEMS);
+    lv_obj_set_style_text_color(obj1, lv_color_hex(0xF5F5F5), LV_PART_ITEMS);
+    lv_obj_set_style_text_font(obj1, &lv_font_montserrat_12, LV_PART_ITEMS);
+    lv_obj_set_style_text_line_space(obj1, 0, LV_PART_ITEMS);
+    lv_obj_set_align(obj1, LV_ALIGN_TOP_LEFT);
+    lv_obj_set_pos(obj1, 58, 128);
+    lv_obj_set_size(obj1, 744, 230);
+    lv_obj_update_layout(lv_screen_active());
+    lv_area_t obj1_coords;
+    lv_obj_get_coords(obj1, &obj1_coords);
+    printf("[ForgeUI][Keyboard comp-MS0XM66LKUFGW] obj=obj1 parent=%p local=(%ld,%ld) size=%ldx%ld content=%ldx%ld abs=(%ld,%ld)-(%ld,%ld) parent=%ldx%ld virtual_buttonmatrix=%ldx%ld children=%lu\n",
+        (void *)parent, (long)lv_obj_get_x(obj1), (long)lv_obj_get_y(obj1),
+        (long)lv_obj_get_width(obj1), (long)lv_obj_get_height(obj1),
+        (long)lv_obj_get_content_width(obj1), (long)lv_obj_get_content_height(obj1),
+        (long)obj1_coords.x1, (long)obj1_coords.y1, (long)obj1_coords.x2, (long)obj1_coords.y2,
+        (long)lv_obj_get_width(parent), (long)lv_obj_get_height(parent),
+        (long)lv_obj_get_width(obj1), (long)lv_obj_get_height(obj1),
+        (unsigned long)lv_obj_get_child_count(obj1));
 
 
     fg_clock_tick_cb(NULL);

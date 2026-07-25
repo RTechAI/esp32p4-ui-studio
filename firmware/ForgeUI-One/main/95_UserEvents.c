@@ -18,8 +18,4 @@
 #include "95_UserEvents.h"
 #include <stdio.h>
 
-void FG_On_ThreePositionToggle_Changed(fg_three_way_state_t state)
-{
-    const char * text = state == FG_THREE_WAY_LEFT ? "LEFT" : state == FG_THREE_WAY_RIGHT ? "RIGHT" : "CENTER";
-    printf("[ForgeUI User Event] FG_On_ThreePositionToggle_Changed: %s\n", text);
-}
+
