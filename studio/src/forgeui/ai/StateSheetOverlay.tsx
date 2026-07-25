@@ -74,6 +74,7 @@ export const resizeStateSheetRegions = (
   cropHeightValue: number,
   x: number,
   y: number,
+  direction?: string,
 ): ForgeUIStateSheetProject => {
   const cropWidth = clamp(
     Math.round(cropWidthValue),
@@ -85,6 +86,15 @@ export const resizeStateSheetRegions = (
     1,
     project.sourceHeight,
   )
+  const linkedRegions = project.regions.length === 3
+  const shiftX =
+    linkedRegions && direction?.toLowerCase().includes('left')
+      ? project.cropWidth - cropWidth
+      : 0
+  const shiftY =
+    linkedRegions && direction?.toLowerCase().includes('top')
+      ? project.cropHeight - cropHeight
+      : 0
 
   return {
     ...project,
@@ -93,12 +103,20 @@ export const resizeStateSheetRegions = (
     regions: project.regions.map(region => ({
       ...region,
       x: clamp(
-        region.id === id ? Math.round(x) : region.x,
+        linkedRegions
+          ? region.x + shiftX
+          : region.id === id
+            ? Math.round(x)
+            : region.x,
         0,
         project.sourceWidth - cropWidth,
       ),
       y: clamp(
-        region.id === id ? Math.round(y) : region.y,
+        linkedRegions
+          ? region.y + shiftY
+          : region.id === id
+            ? Math.round(y)
+            : region.y,
         0,
         project.sourceHeight - cropHeight,
       ),
@@ -219,6 +237,7 @@ const StateSheetOverlay = ({
     displayHeight: number,
     displayX: number,
     displayY: number,
+    direction: string,
   ) => {
     onChange(
       resizeStateSheetRegions(
@@ -228,6 +247,7 @@ const StateSheetOverlay = ({
         displayHeight / scale,
         displayX / scale,
         displayY / scale,
+        direction,
       ),
     )
   }
@@ -261,6 +281,7 @@ const StateSheetOverlay = ({
             }}
             minWidth={12}
             minHeight={12}
+            disableDragging={false}
             enableResizing={{
               top: true,
               right: true,
@@ -271,6 +292,20 @@ const StateSheetOverlay = ({
               bottomLeft: true,
               topLeft: true,
             }}
+            resizeHandleClasses={{
+              top: `state-sheet-resize-handle-${region.id}-top`,
+              right: `state-sheet-resize-handle-${region.id}-right`,
+              bottom: `state-sheet-resize-handle-${region.id}-bottom`,
+              left: `state-sheet-resize-handle-${region.id}-left`,
+              topRight:
+                `state-sheet-resize-handle-${region.id}-top-right`,
+              bottomRight:
+                `state-sheet-resize-handle-${region.id}-bottom-right`,
+              bottomLeft:
+                `state-sheet-resize-handle-${region.id}-bottom-left`,
+              topLeft:
+                `state-sheet-resize-handle-${region.id}-top-left`,
+            }}
             onDrag={(_event, position) =>
               moveRegion(
                 region.id,
@@ -280,7 +315,7 @@ const StateSheetOverlay = ({
             }
             onResize={(
               _event,
-              _direction,
+              direction,
               element,
               _delta,
               position,
@@ -291,6 +326,7 @@ const StateSheetOverlay = ({
                 element.offsetHeight,
                 position.x,
                 position.y,
+                direction,
               )
             }
             style={{
@@ -299,27 +335,33 @@ const StateSheetOverlay = ({
               boxSizing: 'border-box',
               pointerEvents: 'auto',
             }}
+            data-testid={`state-sheet-crop-${region.id}`}
             resizeHandleStyles={{
               top: {
                 height: 12,
+                zIndex: 4,
                 background: `linear-gradient(to bottom, transparent 5.5px, ${color} 5.5px, ${color} 6.5px, transparent 6.5px)`,
               },
               right: {
                 width: 12,
+                zIndex: 4,
                 background: `linear-gradient(to right, transparent 5.5px, ${color} 5.5px, ${color} 6.5px, transparent 6.5px)`,
               },
               bottom: {
                 height: 12,
+                zIndex: 4,
                 background: `linear-gradient(to bottom, transparent 5.5px, ${color} 5.5px, ${color} 6.5px, transparent 6.5px)`,
               },
               left: {
                 width: 12,
+                zIndex: 4,
                 background: `linear-gradient(to right, transparent 5.5px, ${color} 5.5px, ${color} 6.5px, transparent 6.5px)`,
               },
               topRight: {
                 width: 16,
                 height: 16,
                 padding: 6,
+                zIndex: 5,
                 background: color,
                 backgroundClip: 'content-box',
                 boxSizing: 'border-box',
@@ -328,6 +370,7 @@ const StateSheetOverlay = ({
                 width: 16,
                 height: 16,
                 padding: 6,
+                zIndex: 5,
                 background: color,
                 backgroundClip: 'content-box',
                 boxSizing: 'border-box',
@@ -336,6 +379,7 @@ const StateSheetOverlay = ({
                 width: 16,
                 height: 16,
                 padding: 6,
+                zIndex: 5,
                 background: color,
                 backgroundClip: 'content-box',
                 boxSizing: 'border-box',
@@ -344,6 +388,7 @@ const StateSheetOverlay = ({
                 width: 16,
                 height: 16,
                 padding: 6,
+                zIndex: 5,
                 background: color,
                 backgroundClip: 'content-box',
                 boxSizing: 'border-box',

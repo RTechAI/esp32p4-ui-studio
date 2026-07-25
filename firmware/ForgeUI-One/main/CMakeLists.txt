@@ -9,9 +9,10 @@ idf_component_register(
         "90_Studio_Export.c"
         "95_UserEvents.c"
         "assets/defaults/fg_upload_ai_hero_1784342478518_b95a7dc0.c"
-        "assets/uploads/fg_upload_toggle_off_1784854272909_84eab303.c"
-        "assets/uploads/fg_upload_toggle_on_1784854272909_de3b60e3.c"
-        "assets/defaults/fg_upload_ai_hero_1784342478518_b95a7dc0.c"
+        "assets/uploads/fg_upload_ai_three_position_left_1784964646655_1784964646662_410a6bdb.c"
+        "assets/uploads/fg_upload_ai_three_position_center_1784964646655_1784964646665_00bc7bec.c"
+        "assets/uploads/fg_upload_ai_three_position_right_1784964646655_1784964646667_9dd7fb0c.c"
+        "assets/uploads/fg_upload_ai_hero_1784959234465_d990d8a2.c"
 
     INCLUDE_DIRS
         "."

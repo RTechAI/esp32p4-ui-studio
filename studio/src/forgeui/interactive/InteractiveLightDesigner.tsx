@@ -61,6 +61,9 @@ import InteractiveToggleSwitchPreview from './InteractiveToggleSwitchPreview'
 import InteractiveAssetAIGenerator, {
   InteractiveAssetEditorKind,
 } from './InteractiveAssetAIGenerator'
+import {
+  FORGEUI_INTERACTIVE_ASSETS_UPDATED_EVENT,
+} from '~forgeui/ForgeUINavigation'
 
 type InteractiveLightDesignerProps = {
   assets: Array<ForgeUIInteractiveLightAsset | ForgeUIInteractiveStatusIndicatorAsset | ForgeUIInteractiveToggleSwitchAsset>
@@ -79,6 +82,8 @@ type InteractiveLightDesignerProps = {
   ) => void
   toggleStateSheetResult?: ToggleStateSheetResult | null
   onToggleStateSheetResultConsumed?: () => void
+  requestedEditAssetId?: string
+  requestedEditVersion?: number
 }
 
 export type ToggleStateSheetResult = {
@@ -102,6 +107,8 @@ const InteractiveLightDesigner = ({
   onBuildToggleSet,
   toggleStateSheetResult,
   onToggleStateSheetResultConsumed,
+  requestedEditAssetId,
+  requestedEditVersion,
 }: InteractiveLightDesignerProps) => {
   const components = useSelector(getComponents)
   const selectedComponent = useSelector(getSelectedComponent)
@@ -120,8 +127,8 @@ const InteractiveLightDesigner = ({
   const [editingAssetId, setEditingAssetId] = useState<string | null>(null)
   const [name, setName] = useState(`New Interactive ${displayName}`)
   const [label, setLabel] = useState(`Status ${displayName}`)
-  const [width, setWidth] = useState(isToggleSwitch ? 64 : 32)
-  const [height, setHeight] = useState(isToggleSwitch ? 36 : 32)
+  const [width, setWidth] = useState(isToggleSwitch ? 300 : 32)
+  const [height, setHeight] = useState(isToggleSwitch ? 200 : 32)
   const [offAssetId, setOffAssetId] = useState<string | undefined>()
   const [onAssetId, setOnAssetId] = useState<string | undefined>()
   const [
@@ -151,8 +158,8 @@ const InteractiveLightDesigner = ({
     setEditingAssetId(null)
     setName(`New Interactive ${displayName}`)
     setLabel(`Status ${displayName}`)
-    setWidth(isToggleSwitch ? 64 : 32)
-    setHeight(isToggleSwitch ? 36 : 32)
+    setWidth(isToggleSwitch ? 300 : 32)
+    setHeight(isToggleSwitch ? 200 : 32)
     setOffAssetId(undefined)
     setOnAssetId(undefined)
     setStateSheetSourceAssetId(undefined)
@@ -226,6 +233,28 @@ const InteractiveLightDesigner = ({
     onActivate()
   }
 
+  useEffect(() => {
+    if (
+      !requestedEditAssetId ||
+      !requestedEditVersion
+    ) {
+      return
+    }
+
+    const requestedAsset = assets.find(
+      asset => asset.id === requestedEditAssetId,
+    )
+    if (requestedAsset) {
+      edit(requestedAsset)
+    }
+    // The request version intentionally identifies explicit navigation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    assets,
+    requestedEditAssetId,
+    requestedEditVersion,
+  ])
+
   const close = () => {
     reset()
     onClose()
@@ -278,6 +307,9 @@ const InteractiveLightDesigner = ({
     }
 
     saveInteractiveAssets()
+    window.dispatchEvent(new Event(
+      FORGEUI_INTERACTIVE_ASSETS_UPDATED_EVENT,
+    ))
     onAssetsChanged()
     close()
   }
@@ -336,17 +368,19 @@ const InteractiveLightDesigner = ({
             <Heading size="sm">
               {editingAssetId ? `Edit Interactive ${displayName}` : `Interactive ${displayName} Designer`}
             </Heading>
-            <InteractiveAssetAIGenerator
-              selectedAssetKind={selectedAssetKind}
-              width={width}
-              height={height}
-              onGenerated={(offId, onId) => {
-                setOffAssetId(offId)
-                setOnAssetId(onId)
-              }}
-              onGeneratingChange={onGeneratingChange}
-              onUploadedAssetsChanged={onUploadedAssetsChanged}
-            />
+            {!isToggleSwitch && (
+              <InteractiveAssetAIGenerator
+                selectedAssetKind={selectedAssetKind}
+                width={width}
+                height={height}
+                onGenerated={(offId, onId) => {
+                  setOffAssetId(offId)
+                  setOnAssetId(onId)
+                }}
+                onGeneratingChange={onGeneratingChange}
+                onUploadedAssetsChanged={onUploadedAssetsChanged}
+              />
+            )}
             <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
               <FormControl isRequired>
                 <FormLabel fontSize="sm">Asset Name</FormLabel>

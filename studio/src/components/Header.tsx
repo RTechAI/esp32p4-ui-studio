@@ -59,6 +59,10 @@ import { useSelector } from 'react-redux'
 import { getComponents } from '~core/selectors/components'
 import { getShowLayout, getShowCode } from '~core/selectors/app'
 import HeaderMenu from '~components/headerMenu/HeaderMenu'
+import {
+  FORGEUI_OPEN_AI_PLAYGROUND_EVENT,
+  ForgeUINavigationRequest,
+} from '~forgeui/ForgeUINavigation'
 
 const ExportProjectButton = ({
   exportEspIdfProject,
@@ -185,6 +189,10 @@ const selectedHeroAsset =
   const [assetManagerOpen, setAssetManagerOpen] = useState(false)
   const [themeManagerOpen, setThemeManagerOpen] = useState(false)
   const [aiPlaygroundOpen, setAiPlaygroundOpen] = useState(false)
+  const [
+    aiPlaygroundNavigationRequest,
+    setAiPlaygroundNavigationRequest,
+  ] = useState<ForgeUINavigationRequest | null>(null)
 
   const insertAiLayout = async (
   items: any[],
@@ -278,19 +286,23 @@ useEffect(() => {
     setThemeManagerOpen(true)
   }
 
- const openAiPlayground = () => {
+ const openAiPlayground = (event: Event) => {
+  const request = (
+    event as CustomEvent<ForgeUINavigationRequest>
+  ).detail
+  setAiPlaygroundNavigationRequest(request || null)
   setAiPlaygroundOpen(true)
  }
 
  
   window.addEventListener('forgeui-open-asset-manager', openAssetManager)
   window.addEventListener('forgeui-open-theme-manager', openThemeManager)
-  window.addEventListener('forgeui-open-ai-playground', openAiPlayground)
+  window.addEventListener(FORGEUI_OPEN_AI_PLAYGROUND_EVENT, openAiPlayground)
 
   return () => {
     window.removeEventListener('forgeui-open-asset-manager', openAssetManager)
     window.removeEventListener('forgeui-open-theme-manager', openThemeManager)
-    window.removeEventListener('forgeui-open-ai-playground', openAiPlayground)
+    window.removeEventListener(FORGEUI_OPEN_AI_PLAYGROUND_EVENT, openAiPlayground)
   }
 }, [])
 
@@ -1048,8 +1060,12 @@ if (data.defaultHero) {
 
 {aiPlaygroundOpen && (
   <ForgeAIPanel
-    onClose={() => setAiPlaygroundOpen(false)}
+    onClose={() => {
+      setAiPlaygroundOpen(false)
+      setAiPlaygroundNavigationRequest(null)
+    }}
     insertAiLayout={insertAiLayout}
+    navigationRequest={aiPlaygroundNavigationRequest}
   />
 )}
 

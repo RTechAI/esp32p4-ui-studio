@@ -15,6 +15,7 @@ type GenerationMode =
   | 'three-position-left'
   | 'three-position-center'
   | 'three-position-right'
+  | 'three-position-set'
 
 type ApiResponse =
   | {
@@ -26,10 +27,36 @@ type ApiResponse =
       error: string
     }
 
-const buildGenerationPrompt = (
+export const buildGenerationPrompt = (
   prompt: string,
   mode: GenerationMode,
 ) => {
+  if (mode === 'three-position-set') {
+    return `
+Create one master state sheet for a premium industrial three-position rocker or selector switch.
+
+User request:
+${prompt}
+
+Requirements:
+- exactly three equal horizontal rows in this fixed order:
+- TOP ROW (ROW 1): LEFT state active; illuminate, depress or select only the left rocker position
+- MIDDLE ROW (ROW 2): CENTER state active; illuminate, depress or select only the centre rocker position
+- BOTTOM ROW (ROW 3): RIGHT state active; illuminate, depress or select only the right rocker position
+- repeat and obey this ordering exactly: TOP = LEFT, MIDDLE = CENTER, BOTTOM = RIGHT
+- each row contains the same complete switch in one shared housing
+- identical housing, framing, bezel, dimensions, proportions and materials in every row
+- identical front-facing camera angle, centered composition, scale and object position
+- identical lighting, shadows, colour, background and transparent treatment
+- the only visual difference is which LEFT, CENTER or RIGHT section is depressed, raised, illuminated or selected
+- three adjacent positions must remain visible within the shared housing
+- no reordered states and no duplicate active state
+- no extra switches, collage, contact sheet, inset, thumbnail or alternate view
+- no text, labels, letters, numbers, logos, dividers or captions
+- uniform padding around the switch in every row
+- clean industrial HMI artwork with no dashboard, hands or unrelated objects
+`
+  }
   if (mode.startsWith('three-position-')) {
     const position = mode.replace('three-position-', '').toUpperCase()
     return `
@@ -207,6 +234,7 @@ export default async function handler(
     'three-position-left',
     'three-position-center',
     'three-position-right',
+    'three-position-set',
   ]
 
   const mode: GenerationMode =

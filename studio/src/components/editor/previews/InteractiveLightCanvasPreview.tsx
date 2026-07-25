@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 
 import InteractiveLightPreview from '~forgeui/interactive/InteractiveLightPreview'
+import UnconfiguredLightPlaceholder from '~forgeui/interactive/UnconfiguredLightPlaceholder'
 import {
   getInteractiveLightAsset,
   getInteractiveLightDimensions,
@@ -49,6 +50,13 @@ const InteractiveLightCanvasPreview = ({
       width={width}
       height={height}
       state={previewState}
+      minimumHeight={Math.min(height, 120)}
+      missingVisual={
+        <UnconfiguredLightPlaceholder
+          width={width}
+          height={height}
+        />
+      }
       onPreviewClick={() => {
         setPreviewState(current =>
           current === 'off' ? 'on' : 'off',

@@ -38,6 +38,10 @@ import { generateComponentCode, formatCode } from '~utils/code'
 import useClipboard from '~hooks/useClipboard'
 import { useInspectorUpdate } from '~contexts/inspector-context'
 import { componentsList } from '~componentsList'
+import InteractiveToggleCreatorHelper from './InteractiveToggleCreatorHelper'
+import InteractiveButtonCreatorHelper from './InteractiveButtonCreatorHelper'
+import InteractiveLightCreatorHelper from './InteractiveLightCreatorHelper'
+import InteractiveThreePositionToggleCreatorHelper from './InteractiveThreePositionToggleCreatorHelper'
 
 const CodeActionButton = memo(() => {
   const [isLoading, setIsLoading] = useState(false)
@@ -185,6 +189,27 @@ const Inspector = () => {
           </Stack>
         )}
       </Box>
+
+      {type === 'InteractiveToggleSwitch' && (
+        <InteractiveToggleCreatorHelper
+          component={component}
+        />
+      )}
+      {type === 'InteractiveButton' && (
+        <InteractiveButtonCreatorHelper
+          component={component}
+        />
+      )}
+      {type === 'InteractiveLight' && (
+        <InteractiveLightCreatorHelper
+          component={component}
+        />
+      )}
+      {type === 'InteractiveThreePositionToggleSwitch' && (
+        <InteractiveThreePositionToggleCreatorHelper
+          component={component}
+        />
+      )}
 
       <Box
          pb={1}

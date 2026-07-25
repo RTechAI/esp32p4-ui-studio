@@ -1,13 +1,16 @@
 import React, { useState } from 'react'
 import {
   Box,
+  HStack,
   Image,
   Text,
+  VStack,
 } from '@chakra-ui/react'
 
 import type {
   ForgeUIUploadedAsset,
 } from '~forgeui/ForgeUIUploadedAssetRegistry'
+import UnconfiguredButtonIcon from './UnconfiguredButtonIcon'
 
 type InteractiveButtonPreviewProps = {
   normalAsset?: ForgeUIUploadedAsset
@@ -35,13 +38,17 @@ const InteractiveButtonPreview = ({
   const hasBothVisuals =
     Boolean(normalAsset) &&
     Boolean(pressedAsset)
+  const compact = width < 160 || height < 64
+  const iconWidth = Math.round(width * 0.84)
+  const iconHeight = Math.round(height * 0.86)
 
   return (
     <Box
       display="flex"
       justifyContent="center"
       alignItems="center"
-      minHeight="180px"
+      minHeight={Math.min(height, 180)}
+      color="inherit"
     >
       {hasBothVisuals && previewAsset ? (
         <Image
@@ -64,13 +71,30 @@ const InteractiveButtonPreview = ({
           }
         />
       ) : (
-        <Text
-          color="gray.500"
-          fontSize="sm"
+        <VStack
+          data-testid="unconfigured-button-placeholder"
+          data-layout={compact ? 'compact' : 'full'}
+          spacing={compact ? 0 : 2}
+          maxWidth="100%"
+          overflow="hidden"
+          pointerEvents="none"
         >
-          Select both Normal and Pressed visuals
-          to preview the button.
-        </Text>
+          <UnconfiguredButtonIcon
+            width={iconWidth}
+            height={iconHeight}
+          />
+          {!compact && (
+            <HStack
+              spacing={4}
+              color="gray.300"
+              fontSize="xs"
+              whiteSpace="nowrap"
+            >
+              <Text>Normal</Text>
+              <Text color="#67E8F9">Pressed</Text>
+            </HStack>
+          )}
+        </VStack>
       )}
     </Box>
   )

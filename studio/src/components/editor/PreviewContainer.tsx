@@ -1,14 +1,26 @@
 import React, {
   FunctionComponent,
   ComponentClass,
+  useEffect,
+  useRef,
+  useState,
 } from 'react'
 import { useSelector } from 'react-redux'
 import { useInteractive } from '~hooks/useInteractive'
-import { Box } from '@chakra-ui/react'
+import {
+  Box,
+  Portal,
+} from '@chakra-ui/react'
 import { Rnd } from 'react-rnd'
 import { forgeuiPositionProps } from '~forgeui/ForgeUIPositionProps'
 import useDispatch from '~hooks/useDispatch'
 import { getSelectedComponentId } from '~core/selectors/components'
+import {
+  openButtonCreator,
+  openLightCreator,
+  openThreePositionToggleCreator,
+  openToggleCreator,
+} from '~forgeui/ForgeUINavigation'
 
 const PreviewContainer: React.FC<{
   component: IComponent
@@ -29,9 +41,66 @@ const PreviewContainer: React.FC<{
   const selectedComponentId = useSelector(
   getSelectedComponentId,
 )
+  const [contextMenuPosition, setContextMenuPosition] =
+    useState<{ x: number; y: number } | null>(null)
+  const contextMenuRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!contextMenuPosition) {
+      return
+    }
+
+    const dismissOutside = (event: MouseEvent) => {
+      if (
+        contextMenuRef.current?.contains(
+          event.target as Node,
+        )
+      ) {
+        return
+      }
+      setContextMenuPosition(null)
+    }
+    const dismissOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setContextMenuPosition(null)
+      }
+    }
+
+    document.addEventListener(
+      'mousedown',
+      dismissOutside,
+      true,
+    )
+    document.addEventListener(
+      'keydown',
+      dismissOnEscape,
+    )
+    return () => {
+      document.removeEventListener(
+        'mousedown',
+        dismissOutside,
+        true,
+      )
+      document.removeEventListener(
+        'keydown',
+        dismissOnEscape,
+      )
+    }
+  }, [contextMenuPosition])
 
 const isSelected =
   selectedComponentId === component.id
+const hasCreatorMenu =
+  component.type === 'InteractiveToggleSwitch' ||
+  component.type === 'InteractiveButton' ||
+  component.type === 'InteractiveLight' ||
+  component.type === 'InteractiveThreePositionToggleSwitch'
+const creatorPlaceholderColor =
+  hasCreatorMenu
+    ? isSelected
+      ? '#67E8F9'
+      : 'rgba(248, 250, 252, 0.9)'
+    : undefined
 
   const childProps =
     props.positionMode === 'absolute'
@@ -61,6 +130,78 @@ const isSelected =
     </Box>
   ) : type ? (
     React.createElement(type, childProps)
+  ) : null
+
+  const openContextMenu = (
+    event: React.MouseEvent,
+  ) => {
+    if (!hasCreatorMenu) {
+      return
+    }
+
+    event.preventDefault()
+    event.stopPropagation()
+    dispatch.components.select(component.id)
+    setContextMenuPosition({
+      x: event.clientX,
+      y: event.clientY,
+    })
+  }
+
+  const contextMenu = contextMenuPosition ? (
+    <Portal>
+      <Box
+        ref={contextMenuRef}
+        role="menu"
+        data-context-component-id={component.id}
+        position="fixed"
+        left={`${contextMenuPosition.x}px`}
+        top={`${contextMenuPosition.y}px`}
+        zIndex={1400}
+        bg="gray.700"
+        borderWidth="1px"
+        borderColor="gray.500"
+        borderRadius="md"
+        boxShadow="lg"
+        p={1}
+      >
+        <Box
+          as="button"
+          role="menuitem"
+          px={3}
+          py={2}
+          color="white"
+          fontSize="sm"
+          borderRadius="sm"
+          _hover={{ bg: 'gray.600' }}
+          onClick={() => {
+            setContextMenuPosition(null)
+            const openCreator =
+              component.type === 'InteractiveButton'
+                ? openButtonCreator
+                : component.type === 'InteractiveLight'
+                  ? openLightCreator
+                  : component.type ===
+                    'InteractiveThreePositionToggleSwitch'
+                    ? openThreePositionToggleCreator
+                : openToggleCreator
+            openCreator(
+              component.id,
+              component.props.interactiveAssetId,
+            )
+          }}
+        >
+          {component.type === 'InteractiveButton'
+            ? 'Open Button Creator'
+            : component.type === 'InteractiveLight'
+              ? 'Open Light Creator'
+              : component.type ===
+                'InteractiveThreePositionToggleSwitch'
+                ? 'Open Three-Position Toggle Creator'
+            : 'Open Toggle Creator'}
+        </Box>
+      </Box>
+    </Portal>
   ) : null
 
   if (props.positionMode === 'absolute') {
@@ -127,12 +268,20 @@ const isSelected =
   width="100%"
   height="100%"
   overflow="visible"
+  color={creatorPlaceholderColor}
+  data-toggle-placeholder-tone={
+    hasCreatorMenu
+      ? isSelected ? 'selected' : 'neutral'
+      : undefined
+  }
   onClick={props.onClick}
   onDoubleClick={props.onDoubleClick}
   onMouseOver={props.onMouseOver}
   onMouseOut={props.onMouseOut}
+  onContextMenu={openContextMenu}
 >
   {children}
+  {contextMenu}
 </Box>
       </Rnd>
     )
@@ -145,12 +294,20 @@ const isSelected =
     width="100%"
     height="100%"
     overflow="visible"
+    color={creatorPlaceholderColor}
+    data-toggle-placeholder-tone={
+      hasCreatorMenu
+        ? isSelected ? 'selected' : 'neutral'
+        : undefined
+    }
     onClick={props.onClick}
     onDoubleClick={props.onDoubleClick}
     onMouseOver={props.onMouseOver}
     onMouseOut={props.onMouseOut}
+    onContextMenu={openContextMenu}
   >
     {children}
+    {contextMenu}
   </Box>
 )
 }

@@ -9,26 +9,45 @@
 static lv_obj_t * fg_clock_label = NULL;
 static lv_obj_t * fg_wifi_label = NULL;
 
-LV_IMAGE_DECLARE(fg_upload_toggle_off_1784854272909_84eab303);
-LV_IMAGE_DECLARE(fg_upload_toggle_on_1784854272909_de3b60e3);
-typedef struct { lv_obj_t * button; lv_obj_t * image; const void * off_src; const void * on_src; bool enabled; void (*toggled_cb)(bool); } fg_toggle_input_t;
-static void fg_toggle_input_set(fg_toggle_input_t * toggle, bool enabled, bool notify)
+LV_IMAGE_DECLARE(fg_upload_ai_three_position_left_1784964646655_1784964646662_410a6bdb);
+LV_IMAGE_DECLARE(fg_upload_ai_three_position_center_1784964646655_1784964646665_00bc7bec);
+LV_IMAGE_DECLARE(fg_upload_ai_three_position_right_1784964646655_1784964646667_9dd7fb0c);
+typedef struct { lv_obj_t * button; lv_obj_t * image; const void * left_src; const void * center_src; const void * right_src; fg_three_way_state_t state; void (*changed_cb)(fg_three_way_state_t state); } fg_three_way_input_t;
+static void fg_three_way_input_set(fg_three_way_input_t * input, fg_three_way_state_t state, bool notify)
 {
-    if (!toggle) return;
-    toggle->enabled = enabled;
-    if (toggle->image) lv_image_set_src(toggle->image, enabled ? toggle->on_src : toggle->off_src);
-    if (notify && toggle->toggled_cb) toggle->toggled_cb(enabled);
+    if (!input || (state != FG_THREE_WAY_LEFT && state != FG_THREE_WAY_CENTER && state != FG_THREE_WAY_RIGHT)) return;
+    input->state = state;
+    const void * src = state == FG_THREE_WAY_LEFT ? input->left_src : state == FG_THREE_WAY_RIGHT ? input->right_src : input->center_src;
+    if (input->image) lv_image_set_src(input->image, src);
+    if (notify && input->changed_cb) input->changed_cb(state);
 }
-static void fg_toggle_input_event_cb(lv_event_t * event)
+static void fg_three_way_input_event_cb(lv_event_t * event)
 {
-    fg_toggle_input_t * toggle = (fg_toggle_input_t *)lv_event_get_user_data(event);
-    if (toggle) fg_toggle_input_set(toggle, !toggle->enabled, true);
+    fg_three_way_input_t * input = (fg_three_way_input_t *)lv_event_get_user_data(event);
+    lv_obj_t * button = lv_event_get_target(event);
+    lv_indev_t * indev = lv_indev_active();
+    if (!input || !button || !indev) return;
+
+    lv_point_t point;
+    lv_area_t button_coords;
+    lv_indev_get_point(indev, &point);
+    lv_obj_get_coords(button, &button_coords);
+
+    int32_t width = lv_area_get_width(&button_coords);
+    int32_t local_x = point.x - button_coords.x1;
+    if (width <= 0 || local_x < 0 || local_x >= width) return;
+
+    fg_three_way_state_t state = local_x < width / 3
+        ? FG_THREE_WAY_LEFT
+        : local_x < (width * 2) / 3
+            ? FG_THREE_WAY_CENTER
+            : FG_THREE_WAY_RIGHT;
+    fg_three_way_input_set(input, state, true);
 }
 
-static fg_toggle_input_t fg_comp_MRY83G0VXI5EA_toggle = {
-    .button = NULL, .image = NULL,
-    .off_src = &fg_upload_toggle_off_1784854272909_84eab303, .on_src = &fg_upload_toggle_on_1784854272909_de3b60e3,
-    .enabled = false, .toggled_cb = FG_On_StatusToggleSwitch_Toggled,
+static fg_three_way_input_t fg_comp_MS01Q1D32Z1X0_three_way = {
+    .button = NULL, .image = NULL, .left_src = &fg_upload_ai_three_position_left_1784964646655_1784964646662_410a6bdb, .center_src = &fg_upload_ai_three_position_center_1784964646655_1784964646665_00bc7bec, .right_src = &fg_upload_ai_three_position_right_1784964646655_1784964646667_9dd7fb0c,
+    .state = FG_THREE_WAY_CENTER, .changed_cb = FG_On_ThreePositionToggle_Changed,
 };
 
 static void fg_clock_tick_cb(lv_timer_t *timer)
@@ -80,34 +99,25 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_bg_color(parent, lv_color_hex(0x121417), 0);
     lv_obj_set_style_bg_opa(parent, LV_OPA_COVER, 0);
 
-    LV_IMAGE_DECLARE(fg_upload_ai_hero_1784342478518_b95a7dc0);
+    LV_IMAGE_DECLARE(fg_upload_ai_hero_1784959234465_d990d8a2);
     lv_obj_t * bg_texture_0 = lv_image_create(parent);
-    lv_image_set_src(bg_texture_0, &fg_upload_ai_hero_1784342478518_b95a7dc0);
+    lv_image_set_src(bg_texture_0, &fg_upload_ai_hero_1784959234465_d990d8a2);
     lv_obj_set_pos(bg_texture_0, 0, 0);
     lv_obj_set_size(bg_texture_0, 1024, 600);
     lv_obj_move_background(bg_texture_0);
 
-    fg_comp_MRY83G0VXI5EA_toggle.button = lv_button_create(parent);
-    lv_obj_remove_style_all(fg_comp_MRY83G0VXI5EA_toggle.button);
-    lv_obj_set_pos(fg_comp_MRY83G0VXI5EA_toggle.button, 650, 44);
-    lv_obj_set_size(fg_comp_MRY83G0VXI5EA_toggle.button, 300, 200);
-    lv_obj_set_style_bg_opa(fg_comp_MRY83G0VXI5EA_toggle.button, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_border_opa(fg_comp_MRY83G0VXI5EA_toggle.button, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_outline_opa(fg_comp_MRY83G0VXI5EA_toggle.button, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_shadow_opa(fg_comp_MRY83G0VXI5EA_toggle.button, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(fg_comp_MRY83G0VXI5EA_toggle.button, 0, LV_PART_MAIN);
-    fg_comp_MRY83G0VXI5EA_toggle.image = lv_image_create(fg_comp_MRY83G0VXI5EA_toggle.button);
-    lv_obj_remove_style_all(fg_comp_MRY83G0VXI5EA_toggle.image);
-    lv_obj_set_style_bg_opa(fg_comp_MRY83G0VXI5EA_toggle.image, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_border_opa(fg_comp_MRY83G0VXI5EA_toggle.image, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_outline_opa(fg_comp_MRY83G0VXI5EA_toggle.image, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_shadow_opa(fg_comp_MRY83G0VXI5EA_toggle.image, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(fg_comp_MRY83G0VXI5EA_toggle.image, 0, LV_PART_MAIN);
-    lv_obj_clear_flag(fg_comp_MRY83G0VXI5EA_toggle.image, LV_OBJ_FLAG_CLICKABLE);
-    lv_image_set_scale(fg_comp_MRY83G0VXI5EA_toggle.image, 120);
-    lv_obj_center(fg_comp_MRY83G0VXI5EA_toggle.image);
-    fg_toggle_input_set(&fg_comp_MRY83G0VXI5EA_toggle, false, false);
-    lv_obj_add_event_cb(fg_comp_MRY83G0VXI5EA_toggle.button, fg_toggle_input_event_cb, LV_EVENT_CLICKED, &fg_comp_MRY83G0VXI5EA_toggle);
+    fg_comp_MS01Q1D32Z1X0_three_way.button = lv_button_create(parent);
+    lv_obj_set_pos(fg_comp_MS01Q1D32Z1X0_three_way.button, 537, 258);
+    lv_obj_set_size(fg_comp_MS01Q1D32Z1X0_three_way.button, 96, 36);
+    lv_obj_add_flag(fg_comp_MS01Q1D32Z1X0_three_way.button, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(fg_comp_MS01Q1D32Z1X0_three_way.button, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_pad_all(fg_comp_MS01Q1D32Z1X0_three_way.button, 0, 0);
+    fg_comp_MS01Q1D32Z1X0_three_way.image = lv_image_create(fg_comp_MS01Q1D32Z1X0_three_way.button);
+    lv_obj_clear_flag(fg_comp_MS01Q1D32Z1X0_three_way.image, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(fg_comp_MS01Q1D32Z1X0_three_way.image, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_center(fg_comp_MS01Q1D32Z1X0_three_way.image);
+    fg_three_way_input_set(&fg_comp_MS01Q1D32Z1X0_three_way, FG_THREE_WAY_CENTER, false);
+    lv_obj_add_event_cb(fg_comp_MS01Q1D32Z1X0_three_way.button, fg_three_way_input_event_cb, LV_EVENT_CLICKED, &fg_comp_MS01Q1D32Z1X0_three_way);
 
 
     fg_clock_tick_cb(NULL);

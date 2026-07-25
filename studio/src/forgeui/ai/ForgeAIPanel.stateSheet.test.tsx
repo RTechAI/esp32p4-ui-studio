@@ -44,6 +44,7 @@ jest.mock(
       onBuildToggleSet,
       toggleStateSheetResult,
       onToggleStateSheetResultConsumed,
+      navigationRequest,
     }: {
       onBuildToggleSet?: (
         stateSheetSourceAssetId?: string,
@@ -54,6 +55,10 @@ jest.mock(
         stateSheetSourceAssetId: string
       } | null
       onToggleStateSheetResultConsumed?: () => void
+      navigationRequest?: {
+        sourceComponentId: string
+        interactiveAssetId?: string
+      } | null
     }) => {
       const [draftName, setDraftName] =
         React.useState('Preserved Toggle Draft')
@@ -126,6 +131,12 @@ jest.mock(
           </output>
           <output aria-label="State sheet source asset">
             {stateSheetSourceAssetId}
+          </output>
+          <output aria-label="Navigation source component">
+            {navigationRequest?.sourceComponentId}
+          </output>
+          <output aria-label="Navigation interactive asset">
+            {navigationRequest?.interactiveAssetId}
           </output>
         </div>
       )
@@ -242,6 +253,34 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
     })
     fireEvent.load(image)
   }
+
+  it('opens the Interactive tab and forwards a Toggle creator request', async () => {
+    render(
+      <ChakraProvider>
+        <ForgeAIPanel
+          onClose={jest.fn()}
+          insertAiLayout={jest.fn()}
+          navigationRequest={{
+            target: 'interactive-toggle-switch-designer',
+            sourceComponentId: 'canvas-toggle',
+            interactiveAssetId: 'saved-toggle',
+            requestId: 7,
+          }}
+        />
+      </ChakraProvider>,
+    )
+
+    await waitFor(() =>
+      expect(screen.getByTestId('forge-ai-tabs'))
+        .toHaveAttribute('data-active-tab-index', '3'),
+    )
+    expect(screen.getByLabelText(
+      'Navigation source component',
+    )).toHaveTextContent('canvas-toggle')
+    expect(screen.getByLabelText(
+      'Navigation interactive asset',
+    )).toHaveTextContent('saved-toggle')
+  })
 
   const generateArtwork = async () => {
     fireEvent.click(

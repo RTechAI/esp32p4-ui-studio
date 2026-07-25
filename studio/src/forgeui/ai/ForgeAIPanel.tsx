@@ -44,12 +44,16 @@ import StateSheetOverlay, {
 
 import ForgeUIInteractiveAssetPanel from
   '~forgeui/interactive/ForgeUIInteractiveAssetPanel'
+import type {
+  ForgeUINavigationRequest,
+} from '~forgeui/ForgeUINavigation'
 
 
 
 type ForgeAIPanelProps = {
   onClose: () => void
   insertAiLayout: (items: any[]) => void
+  navigationRequest?: ForgeUINavigationRequest | null
 }
 
 type ToggleStateSheetResult = {
@@ -1080,6 +1084,7 @@ const FORGE_AI_ASSETS_STORAGE_KEY =
 export const ForgeAIPanel = ({
   onClose,
   insertAiLayout,
+  navigationRequest,
 }: ForgeAIPanelProps) => {
 
   const { heroBackground, setHeroBackground } = useForgeTheme()
@@ -1087,6 +1092,20 @@ export const ForgeAIPanel = ({
   const toast = useToast()
   const [activeTabIndex, setActiveTabIndex] =
     useState(0)
+  useEffect(() => {
+    if (
+      navigationRequest?.target ===
+        'interactive-toggle-switch-designer' ||
+      navigationRequest?.target ===
+        'interactive-button-designer' ||
+      navigationRequest?.target ===
+        'interactive-light-designer' ||
+      navigationRequest?.target ===
+        'interactive-three-position-toggle-designer'
+    ) {
+      setActiveTabIndex(3)
+    }
+  }, [navigationRequest])
   const [
     toggleStateSheetResult,
     setToggleStateSheetResult,
@@ -4285,6 +4304,7 @@ toast({
 
 <TabPanel px={0} pt={5}>
   <ForgeUIInteractiveAssetPanel
+    navigationRequest={navigationRequest}
     onBuildToggleSet={beginToggleSetEditing}
     toggleStateSheetResult={toggleStateSheetResult}
     onToggleStateSheetResultConsumed={() =>

@@ -23,6 +23,8 @@ type InteractiveLightPreviewProps = {
   onStateChange?: (state: ForgeUIInteractiveLightState) => void
   showControls?: boolean
   onPreviewClick?: React.MouseEventHandler<HTMLDivElement>
+  missingVisual?: React.ReactNode
+  minimumHeight?: number | string
 }
 
 const InteractiveLightPreview = ({
@@ -34,6 +36,8 @@ const InteractiveLightPreview = ({
   onStateChange,
   showControls = false,
   onPreviewClick,
+  missingVisual,
+  minimumHeight = 120,
 }: InteractiveLightPreviewProps) => {
   const previewAsset = state === 'on' ? onAsset : offAsset
 
@@ -43,7 +47,7 @@ const InteractiveLightPreview = ({
       flexDirection="column"
       justifyContent="center"
       alignItems="center"
-      minHeight="120px"
+      minHeight={minimumHeight}
       gap={3}
       data-testid="interactive-light-preview"
       data-state={state}
@@ -61,8 +65,16 @@ const InteractiveLightPreview = ({
           userSelect="none"
           pointerEvents="none"
         />
+      ) : missingVisual ? (
+        <Box pointerEvents="none">
+          {missingVisual}
+        </Box>
       ) : (
-        <Text color="gray.500" fontSize="sm">
+        <Text
+          color="gray.500"
+          fontSize="sm"
+          pointerEvents="none"
+        >
           Missing {state.toUpperCase()} visual
         </Text>
       )}

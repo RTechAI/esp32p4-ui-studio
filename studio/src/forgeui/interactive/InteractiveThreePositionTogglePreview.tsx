@@ -1,7 +1,8 @@
 import React from 'react'
-import { Box, Image, Text } from '@chakra-ui/react'
+import { Box, Image } from '@chakra-ui/react'
 import type { ForgeUIUploadedAsset } from '~forgeui/ForgeUIUploadedAssetRegistry'
 import type { ForgeUIInteractiveThreePositionState } from './ForgeUIInteractiveThreePositionToggleAsset'
+import UnconfiguredThreePositionTogglePlaceholder from './UnconfiguredThreePositionTogglePlaceholder'
 
 type Props = {
   leftAsset?: ForgeUIUploadedAsset
@@ -46,7 +47,11 @@ const InteractiveThreePositionTogglePreview = ({ leftAsset, centerAsset, rightAs
           alignItems="center"
           justifyContent="center"
         >
-          <Text color="gray.500" fontSize="xs">Missing {state.toUpperCase()} artwork</Text>
+          <UnconfiguredThreePositionTogglePlaceholder
+            width={width}
+            height={height}
+            state={state}
+          />
         </Box>}
     {showZoneOverlay && <Box
       data-testid="three-position-zone-overlay"

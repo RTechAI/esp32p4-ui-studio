@@ -43,13 +43,13 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- `FG_On_StatusToggleSwitch_Toggled(bool enabled)`
+- `FG_On_ThreePositionToggle_Changed()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| StatusToggleSwitch | Toggle | `FG_On_StatusToggleSwitch_Toggled(bool enabled)` |
+| ThreePositionToggle_Changed | Click | `FG_On_ThreePositionToggle_Changed()` |
 
 ---
 

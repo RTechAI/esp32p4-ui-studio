@@ -104,7 +104,9 @@ describe('Interactive Light Canvas preview', () => {
       </ChakraProvider>,
     )
 
-    expect(screen.getByText('Missing OFF visual')).toBeInTheDocument()
+    expect(screen.getByTestId(
+      'unconfigured-light-placeholder',
+    )).toBeInTheDocument()
   })
 
   it.each([

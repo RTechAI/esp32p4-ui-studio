@@ -76,6 +76,12 @@ import type {
 import type { ForgeUIInteractiveStatusIndicatorAsset } from './ForgeUIInteractiveStatusIndicatorAsset'
 import type { ForgeUIInteractiveToggleSwitchAsset } from './ForgeUIInteractiveToggleSwitchAsset'
 import type { ForgeUIInteractiveThreePositionToggleAsset } from './ForgeUIInteractiveThreePositionToggleAsset'
+import type {
+  ForgeUINavigationRequest,
+} from '~forgeui/ForgeUINavigation'
+import {
+  FORGEUI_INTERACTIVE_ASSETS_UPDATED_EVENT,
+} from '~forgeui/ForgeUINavigation'
 
 const DEFAULT_WIDTH = 120
 const DEFAULT_HEIGHT = 48
@@ -86,6 +92,7 @@ type VisualSelectorMode =
   | null
  
 type ForgeUIInteractiveAssetPanelProps = {
+  navigationRequest?: ForgeUINavigationRequest | null
   onBuildToggleSet?: (
     stateSheetSourceAssetId?: string,
   ) => void
@@ -95,6 +102,7 @@ type ForgeUIInteractiveAssetPanelProps = {
 }
 
 const ForgeUIInteractiveAssetPanel = ({
+  navigationRequest,
   onBuildToggleSet,
   toggleStateSheetResult,
   onToggleStateSheetResultConsumed,
@@ -147,9 +155,37 @@ const threePositionToggleAssets = assets.filter(
   const [isDesignerOpen, setIsDesignerOpen] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [lightNewRequest, setLightNewRequest] = useState(0)
+  const [
+    lightEditRequest,
+    setLightEditRequest,
+  ] = useState<{
+    assetId: string
+    requestId: number
+  } | null>(null)
   const [statusIndicatorNewRequest, setStatusIndicatorNewRequest] = useState(0)
   const [toggleSwitchNewRequest, setToggleSwitchNewRequest] = useState(0)
+  const [
+    toggleSwitchEditRequest,
+    setToggleSwitchEditRequest,
+  ] = useState<{
+    assetId: string
+    requestId: number
+  } | null>(null)
   const [threePositionToggleNewRequest, setThreePositionToggleNewRequest] = useState(0)
+  const [
+    threePositionToggleEditRequest,
+    setThreePositionToggleEditRequest,
+  ] = useState<{
+    assetId: string
+    requestId: number
+  } | null>(null)
+  const [
+    buttonEditRequest,
+    setButtonEditRequest,
+  ] = useState<{
+    assetId: string
+    requestId: number
+  } | null>(null)
 
   useEffect(() => {
     if (toggleDesignerRestoreVersion <= 0) {
@@ -159,6 +195,72 @@ const threePositionToggleAssets = assets.filter(
     setSelectedAssetKind('toggleSwitch')
     setIsDesignerOpen(true)
   }, [toggleDesignerRestoreVersion])
+
+  useEffect(() => {
+    if (
+      navigationRequest?.target !==
+      'interactive-toggle-switch-designer'
+    ) {
+      return
+    }
+
+    setSelectedAssetKind('toggleSwitch')
+    setIsDesignerOpen(true)
+
+    if (navigationRequest.interactiveAssetId) {
+      setToggleSwitchEditRequest({
+        assetId: navigationRequest.interactiveAssetId,
+        requestId: navigationRequest.requestId,
+      })
+    } else {
+      setToggleSwitchEditRequest(null)
+      setToggleSwitchNewRequest(request => request + 1)
+    }
+  }, [navigationRequest])
+
+  useEffect(() => {
+    if (
+      navigationRequest?.target !==
+      'interactive-three-position-toggle-designer'
+    ) {
+      return
+    }
+
+    setSelectedAssetKind('threePositionToggle')
+    setIsDesignerOpen(true)
+    if (navigationRequest.interactiveAssetId) {
+      setThreePositionToggleEditRequest({
+        assetId: navigationRequest.interactiveAssetId,
+        requestId: navigationRequest.requestId,
+      })
+    } else {
+      setThreePositionToggleEditRequest(null)
+      setThreePositionToggleNewRequest(
+        request => request + 1,
+      )
+    }
+  }, [navigationRequest])
+
+  useEffect(() => {
+    if (
+      navigationRequest?.target !==
+      'interactive-light-designer'
+    ) {
+      return
+    }
+
+    setSelectedAssetKind('light')
+    setIsDesignerOpen(true)
+    if (navigationRequest.interactiveAssetId) {
+      setLightEditRequest({
+        assetId: navigationRequest.interactiveAssetId,
+        requestId: navigationRequest.requestId,
+      })
+    } else {
+      setLightEditRequest(null)
+      setLightNewRequest(request => request + 1)
+    }
+  }, [navigationRequest])
 
   const [
     editingAssetId,
@@ -342,6 +444,44 @@ const [
     setIsDesignerOpen(true)
   }
 
+  useEffect(() => {
+    if (
+      navigationRequest?.target !==
+      'interactive-button-designer'
+    ) {
+      return
+    }
+
+    setSelectedAssetKind('button')
+    setIsDesignerOpen(true)
+
+    if (!navigationRequest.interactiveAssetId) {
+      resetDesigner()
+      setEditingAssetId(null)
+      setButtonEditRequest(null)
+      return
+    }
+
+    setButtonEditRequest({
+      assetId: navigationRequest.interactiveAssetId,
+      requestId: navigationRequest.requestId,
+    })
+  }, [navigationRequest])
+
+  useEffect(() => {
+    if (!buttonEditRequest) {
+      return
+    }
+    const requestedAsset = buttonAssets.find(
+      asset => asset.id === buttonEditRequest.assetId,
+    )
+    if (requestedAsset) {
+      editInteractiveButton(requestedAsset)
+    }
+    // The request id intentionally identifies explicit navigation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assets, buttonEditRequest])
+
   const closeInteractiveButtonDesigner = () => {
     resetDesigner()
     setEditingAssetId(null)
@@ -407,6 +547,9 @@ const [
     }
 
     saveInteractiveAssets()
+    window.dispatchEvent(new Event(
+      FORGEUI_INTERACTIVE_ASSETS_UPDATED_EVENT,
+    ))
     refreshAssets()
     closeInteractiveButtonDesigner()
   }
@@ -1011,6 +1154,12 @@ const [
           }}
           onClose={() => setIsDesignerOpen(false)}
           onGeneratingChange={setIsGenerating}
+          requestedEditAssetId={
+            lightEditRequest?.assetId
+          }
+          requestedEditVersion={
+            lightEditRequest?.requestId
+          }
         />
 
         <InteractiveLightDesigner
@@ -1050,6 +1199,12 @@ const [
           onToggleStateSheetResultConsumed={
             onToggleStateSheetResultConsumed
           }
+          requestedEditAssetId={
+            toggleSwitchEditRequest?.assetId
+          }
+          requestedEditVersion={
+            toggleSwitchEditRequest?.requestId
+          }
         />
 
         <InteractiveThreePositionToggleDesigner
@@ -1062,6 +1217,12 @@ const [
           onActivate={() => { setSelectedAssetKind('threePositionToggle'); setIsDesignerOpen(true) }}
           onClose={() => setIsDesignerOpen(false)}
           onGeneratingChange={setIsGenerating}
+          requestedEditAssetId={
+            threePositionToggleEditRequest?.assetId
+          }
+          requestedEditVersion={
+            threePositionToggleEditRequest?.requestId
+          }
         />
 
         <Box

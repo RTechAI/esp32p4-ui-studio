@@ -25,6 +25,42 @@ const createAsset = (id: string): ForgeUIUploadedAsset => ({
 })
 
 describe('Interactive Button preview compatibility', () => {
+  it('renders a compact pointer-transparent empty-state icon', () => {
+    render(
+      <ChakraProvider>
+        <InteractiveButtonPreview
+          width={120}
+          height={48}
+        />
+      </ChakraProvider>,
+    )
+
+    const icon = screen.getByTestId('unconfigured-button-icon')
+    expect(icon).toHaveAttribute('width', '101')
+    expect(icon).toHaveAttribute('height', '41')
+    expect(icon).toHaveStyle({
+      pointerEvents: 'none',
+      flexShrink: '0',
+    })
+    expect(screen.getByTestId('unconfigured-button-placeholder'))
+      .toHaveAttribute('data-layout', 'compact')
+    expect(screen.queryByText(/Select both Normal/))
+      .not.toBeInTheDocument()
+  })
+
+  it('adds compact hints only when the Button has room', () => {
+    render(
+      <ChakraProvider>
+        <InteractiveButtonPreview
+          width={240}
+          height={100}
+        />
+      </ChakraProvider>,
+    )
+    expect(screen.getByText('Normal')).toBeInTheDocument()
+    expect(screen.getByText('Pressed')).toBeInTheDocument()
+  })
+
   it('still previews Normal and Pressed states through pointer input', () => {
     const normalAsset = createAsset('normal')
     const pressedAsset = createAsset('pressed')
