@@ -32,8 +32,12 @@ import {
   registerInteractiveAsset,
 } from './index'
 
+let mockReduxState: any
+
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => undefined),
+  useSelector: jest.fn((selector: (state: any) => unknown) =>
+    selector(mockReduxState),
+  ),
 }))
 
 jest.mock('~hooks/useForm', () => ({
@@ -66,6 +70,22 @@ const mockedRegisterCrops =
 
 describe('Interactive Assets unified creation flow', () => {
   beforeEach(() => {
+    mockReduxState = {
+      components: {
+        present: {
+          selectedId: 'root',
+          components: {
+            root: {
+              id: 'root',
+              parent: 'root',
+              type: 'Box',
+              props: {},
+              children: [],
+            },
+          },
+        },
+      },
+    }
     clearInteractiveAssetRegistry()
     forgeUIClearUploadedAssets()
     window.localStorage.clear()
@@ -99,6 +119,161 @@ describe('Interactive Assets unified creation flow', () => {
 
     fireEvent.click(screen.getByRole('radio', { name: 'Button' }))
     expect(screen.getByText('Interactive Button Designer')).toBeInTheDocument()
+  })
+
+  it('previews the Button callback live from the Label field', () => {
+    renderPanel()
+    fireEvent.click(screen.getByRole('button', {
+      name: '+ New Interactive Asset',
+    }))
+
+    expect(screen.getByTestId('button-creator-hook-preview'))
+      .toHaveTextContent('FG_On_Button1_Clicked(void)')
+
+    fireEvent.change(screen.getByDisplayValue('Button 1'), {
+      target: { value: 'Start Button' },
+    })
+
+    expect(screen.getByTestId('button-creator-hook-preview'))
+      .toHaveTextContent('FG_On_StartButton_Clicked(void)')
+  })
+
+  it('uses the lowest available Label from all registered Buttons', () => {
+    const existing = [
+      ['button-1', 'Button 1'],
+      ['button-2', 'Button 2'],
+      ['button-4', 'Button 4'],
+    ].map(([id, label]) => ({
+      ...createDefaultInteractiveButtonAsset(id),
+      label,
+    }))
+    existing.forEach(registerInteractiveAsset)
+
+    renderPanel()
+    fireEvent.click(screen.getByRole('button', {
+      name: '+ New Interactive Asset',
+    }))
+
+    expect(screen.getByDisplayValue('Button 3'))
+      .toBeInTheDocument()
+    expect(screen.getByTestId('button-creator-hook-preview'))
+      .toHaveTextContent('FG_On_Button3_Clicked(void)')
+  })
+
+  it('counts assets saved moments earlier even while they remain unplaced', () => {
+    forgeUIAddUploadedAssets(
+      ['normal', 'pressed'].map(id => ({
+        id,
+        name: `${id}.png`,
+        type: 'image/png',
+        size: 1,
+        createdAt: 1,
+        browserSrc: id,
+        kind: 'uploaded' as const,
+        exportStatus: 'lvgl_ready' as const,
+        lvgl: `fg_${id}`,
+        cFile: `${id}.c`,
+      })),
+    )
+    renderPanel()
+
+    const openNew = () =>
+      fireEvent.click(screen.getByRole('button', {
+        name: '+ New Interactive Asset',
+      }))
+    const chooseVisualsAndSave = () => {
+      fireEvent.click(screen.getAllByRole('button', {
+        name: 'Choose Visual',
+      })[0])
+      const normalChoices =
+        screen.getAllByAltText('normal.png')
+      fireEvent.click(
+        normalChoices
+          .map(image => image.closest('button'))
+          .find(Boolean)!,
+      )
+      fireEvent.click(screen.getByRole('button', {
+        name: 'Choose Visual',
+      }))
+      const pressedChoices =
+        screen.getAllByAltText('pressed.png')
+      fireEvent.click(
+        pressedChoices
+          .map(image => image.closest('button'))
+          .find(Boolean)!,
+      )
+      fireEvent.click(screen.getByRole('button', {
+        name: 'Save Interactive Button',
+      }))
+    }
+
+    openNew()
+    expect(screen.getByDisplayValue('Button 1'))
+      .toBeInTheDocument()
+    chooseVisualsAndSave()
+    expect(getAllInteractiveAssets()).toHaveLength(1)
+    expect(getAllInteractiveAssets()[0]).toMatchObject({
+      label: 'Button 1',
+    })
+    expect(
+      mockReduxState.components.present.components.root.children,
+    ).toHaveLength(0)
+
+    openNew()
+    expect(screen.getByDisplayValue('Button 2'))
+      .toBeInTheDocument()
+    chooseVisualsAndSave()
+    expect(getAllInteractiveAssets().map(asset => asset.label))
+      .toEqual(['Button 1', 'Button 2'])
+
+    openNew()
+    expect(screen.getByDisplayValue('Button 3'))
+      .toBeInTheDocument()
+  })
+
+  it('recalculates a new Label after cancelling a stale draft', () => {
+    renderPanel()
+    fireEvent.click(screen.getByRole('button', {
+      name: '+ New Interactive Asset',
+    }))
+    expect(screen.getByDisplayValue('Button 1'))
+      .toBeInTheDocument()
+
+    registerInteractiveAsset({
+      ...createDefaultInteractiveButtonAsset('external-button'),
+      label: 'Button 1',
+    })
+    fireEvent.click(screen.getByRole('button', {
+      name: 'Cancel',
+    }))
+    fireEvent.click(screen.getByRole('button', {
+      name: '+ New Interactive Asset',
+    }))
+
+    expect(screen.getByDisplayValue('Button 2'))
+      .toBeInTheDocument()
+  })
+
+  it('uses registered assets for an unconfigured navigation request', async () => {
+    registerInteractiveAsset({
+      ...createDefaultInteractiveButtonAsset('unplaced-button'),
+      label: 'Button 1',
+    })
+
+    render(
+      <ChakraProvider>
+        <ForgeUIInteractiveAssetPanel
+          navigationRequest={{
+            target: 'interactive-button-designer',
+            sourceComponentId: 'new-canvas-button',
+            requestId: 901,
+          }}
+        />
+      </ChakraProvider>,
+    )
+
+    expect(await screen.findByDisplayValue('Button 2'))
+      .toBeInTheDocument()
   })
 
   it('automatically selects the kind of an existing asset being edited', () => {
@@ -340,6 +515,11 @@ describe('Interactive Assets unified creation flow', () => {
     expect(screen.getByDisplayValue(
       'New Interactive Button',
     )).toBeInTheDocument()
+    expect(screen.getByDisplayValue('Button 1'))
+      .toBeInTheDocument()
+    const dimensions = screen.getAllByRole('spinbutton')
+    expect(dimensions[0]).toHaveValue('200')
+    expect(dimensions[1]).toHaveValue('100')
     expect(getAllInteractiveAssets()).toHaveLength(0)
     fireEvent.click(screen.getByRole('button', {
       name: 'Cancel',

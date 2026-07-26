@@ -24,6 +24,8 @@ All five types are proven through Studio creation, AI state-image generation, as
 
 The Studio presents all five types through one coherent Interactive Assets creation flow. Each runtime family owns its generated runtime while every type shares the common Interactive Asset Framework and retains type-specific asset models, designers, state mappings, preview behaviour, export behaviour and runtime behaviour.
 
+Interactive Button and Interactive Light now also have complete placement and artwork-bounds polish. Their configured and unconfigured previews refresh from Interactive Asset registry changes, component geometry is authoritative after placement, shared selection-border resizing and continuous Canvas clamping keep Inspector geometry live, and explicit visible-artwork fitting creates stable linked two-state crops without replacing original uploads. Canvas, Browser Preview and generated LVGL contain-fit scaling are physically aligned on ESP32-P4.
+
 Project Health Phases 1 and 2 are complete. The repository has clean TypeScript and ESLint baselines, protected asset references, and client- and server-side export validation before generated firmware files are written. Focused Creator, State Sheet, crop, image-pipeline and exporter regressions provide the current automated baseline. The project is ready for continued UI polish on top of its physically proven runtime families.
 
 ## Project Health Phase 1 — Clean Baseline
@@ -131,6 +133,13 @@ The shared framework owns:
 - The shared AI image-generation pipeline
 - Canvas asset and dimension resolution
 - Canvas assignment through `interactiveAssetId`
+- Shared selection-border resizing with eight edge and corner zones
+- Shared continuous Canvas boundary clamping and live Inspector geometry updates
+- Shared alpha-bound measurement and two-state visible-bounds union resolution
+- Shared linked crop generation with preserved original uploads
+- Shared legacy image-dimension recovery
+- Shared contain-fit LVGL scaling through registry, PNG IHDR and LVGL descriptor dimensions
+- Registry-driven configured and unconfigured preview refresh
 - LVGL export integration
 
 Shared asset concepts include `schemaVersion`, `id`, `name`, `kind`, `interactionMode`, `createdAt`, `updatedAt`, `width`, `height`, and uploaded asset references for visual states.
@@ -156,7 +165,7 @@ interactionMode: state
 
 `ForgeUIInteractiveAsset` is the discriminated union of all five supported models. The common registry and existing v1 persistence layer store every kind. Kind-aware lookup and validation prevent an asset from being resolved as the wrong type.
 
-Canvas components store an `interactiveAssetId`. Assignment also propagates the selected asset's width and height. On reload, the Interactive Asset registry and uploaded-asset registry restore the records required for Canvas and export resolution.
+Canvas components store an `interactiveAssetId`. Fresh placeholders may adopt newly created asset dimensions during assignment; existing configured components preserve their geometry. After placement, component geometry is authoritative for Canvas, Browser Preview and LVGL export. On reload, the Interactive Asset registry and uploaded-asset registry restore the records required for Canvas and export resolution.
 
 ## Interactive Button
 
@@ -169,10 +178,18 @@ Interactive Button uses `kind: button` and `interactionMode: momentary`. Its upl
 
 - AI generates Normal and Pressed images.
 - Generated results map to `normalAssetId` and `pressedAssetId`.
+- New drafts use consistent `200 × 100` creation dimensions and the lowest available normalized Label sequence: `Button 1`, `Button 2`, `Button 3`, and onward.
+- Duplicate public callback validation is grouped by generated callback, retains component IDs as secondary diagnostics, and identifies every conflicting Button.
+- The Inspector displays the live generated callback and an inline duplicate warning while the controlling Label conflicts.
 - Canvas preview displays Pressed while held and returns to Normal on release.
 - The asset can be assigned to an `InteractiveButton` Canvas component.
-- Assignment writes `interactiveAssetId` and propagates width and height.
+- Assignment writes `interactiveAssetId`; component geometry remains authoritative after placement and is preserved during asset replacement.
 - Assignment persists across Studio restart.
+- Selected Buttons use the shared selection border with eight edge and corner resize zones, continuous Canvas clamping and live Inspector geometry updates.
+- Interactive Asset registry updates replace configured and unconfigured previews immediately; assignment unmounts the placeholder instead of layering previews.
+- `Fit Bounds to Visible Artwork` measures transparent padding, creates one stable Normal/Pressed union crop, links new cropped assets and preserves the original uploads.
+- Visible-bounds fitting is idempotent.
+- Legacy artwork dimensions recover through registry metadata, PNG IHDR and generated LVGL descriptors.
 
 ### LVGL runtime behavior
 
@@ -181,6 +198,7 @@ The exporter creates a parent LVGL button object and a child LVGL image object:
 - `LV_EVENT_PRESSED` changes to the Pressed image.
 - `LV_EVENT_RELEASED` and `LV_EVENT_PRESS_LOST` restore the Normal image.
 - `LV_EVENT_CLICKED` calls the generated developer hook.
+- The child image uses a shared Normal/Pressed contain-fit scale derived from final component geometry and remains centred.
 
 Generated hook example:
 
@@ -361,12 +379,17 @@ Interactive Light uses `kind: light`, `interactionMode: state`, and a saved `ini
 
 - Canvas right-click and Inspector onboarding open the direct Light Creator through `interactive-light-designer`.
 - Configured components reopen the exact linked Light asset; unconfigured components receive a fresh unsaved draft.
+- The configured Inspector helper remains visible after assignment and `Open Light Creator` reopens the exact linked asset.
 - The responsive empty state uses a lamp/indicator SVG with compact icon-only presentation at small dimensions.
 - Larger empty states show OFF and ON hints.
 - The unselected placeholder is near-white, the selected component is cyan, and the active indicator uses muted green.
-- Inspector onboarding appears when the Interactive Asset or either uploaded visual is missing.
-- The helper disappears once both OFF and ON uploaded visuals resolve.
+- Inspector onboarding guidance appears when the Interactive Asset or either uploaded visual is missing; configured Lights retain a compact helper above geometry fields.
 - Save and assignment remain explicit; opening the Creator does not mutate the registry or Canvas.
+- Fresh placeholders adopt newly created asset dimensions; existing configured Lights preserve their geometry.
+- Selected Lights use the shared selection border, continuous Canvas clamping and live Inspector geometry updates.
+- Component geometry is authoritative after placement, and configured or unconfigured preview state refreshes with same-ID registry updates.
+- `Fit Bounds to Visible Artwork` measures OFF/ON alpha bounds, creates one stable union crop, links both cropped assets and preserves the original uploads.
+- Visible-bounds fitting is idempotent and keeps OFF/ON state changes inside stable component bounds.
 
 ## Binary Output Runtime
 
@@ -378,6 +401,8 @@ The generated runtime owns:
 - `fg_binary_output_set()`
 
 Both Interactive Asset types generate independent runtime records while reusing the same implementation.
+
+Interactive Light adds a transparent component-sized LVGL container and a centred child image to the shared runtime record. OFF and ON use one contain-fit scale derived from final component geometry. Dimension resolution follows uploaded-asset registry metadata, PNG IHDR data and generated `lv_image_dsc_t` descriptors, with scale 256 used only when no reliable dimensions remain. Interactive Status Indicator runtime behaviour is unchanged.
 
 Developer-facing APIs follow the same pattern:
 
@@ -620,6 +645,8 @@ Paths under `src/` are relative to `studio/`.
 ### Button
 
 - `src/forgeui/interactive/ForgeUIInteractiveButtonAsset.ts`
+- `src/forgeui/interactive/ForgeUIInteractiveButtonHook.ts`
+- `src/forgeui/interactive/ForgeUIInteractiveButtonVisibleBounds.ts`
 - `src/forgeui/interactive/InteractiveButtonPreview.tsx`
 - `src/components/editor/previews/InteractiveButtonCanvasPreview.tsx`
 
@@ -645,10 +672,18 @@ The current implementation does not introduce a separate `InteractiveToggleSwitc
 ### Light
 
 - `src/forgeui/interactive/ForgeUIInteractiveLightAsset.ts`
+- `src/forgeui/interactive/ForgeUIInteractiveLightVisibleBounds.ts`
 - `src/forgeui/interactive/InteractiveLightDesigner.tsx`
 - `src/forgeui/interactive/InteractiveLightPreview.tsx`
 - `src/forgeui/interactive/UnconfiguredLightPlaceholder.tsx`
 - `src/components/editor/previews/InteractiveLightCanvasPreview.tsx`
+
+### Shared visible bounds and Canvas geometry
+
+- `src/forgeui/interactive/ForgeUITwoStateVisibleBounds.ts`
+- `src/forgeui/ForgeUIUploadedAssetRegistry.ts`
+- `src/components/editor/PreviewContainer.tsx`
+- `src/components/editor/ComponentPreview.tsx`
 
 ### Status Indicator
 
@@ -688,6 +723,8 @@ The exporter owns the shared generated runtime implementations and unique per-in
 - Pressed image displayed on touch.
 - Released state restored the Normal image.
 - Physical click was detected and the generated hook was called.
+- Resized and visible-bounds-fitted geometry matched Canvas and Browser Preview through generated contain-fit scaling.
+- Legacy artwork dimension recovery and centred Normal/Pressed scaling were validated on ESP32-P4.
 - Monitor output confirmed:
 
 ```text
@@ -701,6 +738,8 @@ The exporter owns the shared generated runtime implementations and unique per-in
 - The saved initial ON state displayed physically.
 - The public setter was generated.
 - The Light remained non-clickable.
+- Resized and visible-bounds-fitted Light geometry matched Canvas and Browser Preview through shared OFF/ON contain-fit scaling.
+- Registry, PNG IHDR and LVGL descriptor dimension resolution preserve stable centred generated geometry.
 - Firmware remained stable.
 
 ### Interactive Toggle Switch
@@ -754,6 +793,9 @@ LVGL normalizes width units independently within each row. The physical result n
 - Standard Toggle State Sheet and Toggle runtime regressions remain passing.
 - Three-Position master generation, linked-crop and atomic-registration regressions pass.
 - Keyboard exporter geometry, ordering, style and relative-width regressions pass.
+- Interactive Button default Label, grouped callback validation, Inspector callback preview, resize, registry refresh, visible-bounds and LVGL contain-fit regressions pass.
+- Interactive Light Creator assignment, configured Inspector helper, resize, registry refresh, shared visible-bounds, persistence and LVGL contain-fit regressions pass.
+- Shared two-state union geometry, alpha-bound metadata, linked crop and idempotent fitting regressions pass.
 - TypeScript validation passes with `tsc --noEmit`.
 - Scoped diff validation passes for the current implementation work.
 - Client/server export validation and reference-protection coverage remain in place for all five Interactive Asset types.
@@ -782,6 +824,18 @@ ForgeUI also has reusable creation architecture, with direct Creator coverage no
 - shared linked-crop editing;
 - atomic conversion and uploaded-asset registration;
 - type-scoped Creator requests inside the shared portal.
+
+Button and Light polish establishes reusable post-placement geometry architecture:
+
+- one shared selection-border resize capability with eight edge and corner zones;
+- continuous Canvas-boundary clamping with live Inspector updates;
+- component-authoritative geometry after placement;
+- registry-driven configured and unconfigured preview replacement;
+- one shared two-state visible-bounds union and linked-crop workflow;
+- preserved original uploads and idempotent fitted assets;
+- legacy dimension recovery and centred contain-fit LVGL generation.
+
+This keeps artwork ownership on reusable Interactive Assets while component placement, size and export geometry remain owned by each Canvas component.
 
 The Three-Position workflow proves an extensible N-state creation pattern:
 
@@ -857,6 +911,13 @@ These remain future concepts only. They are not implemented or physically proven
 # Save Point History
 
 Save points are ordered newest to oldest. Detailed subsystem engineering is maintained in the Developer Code Maps.
+
+## FORGEUI_INTERACTIVE_BUTTON_AND_LIGHT__WORKFLOW_POLISH__SHARED_VISIBLE_BOUNDS__CANVAS_RESIZE__LVGL_PARITY__ESP32P4_VALIDATED__2026-07-26
+
+- **What changed:** Completed Button and Light creation, Inspector, registry-refresh, shared selection-border resize and visible-artwork fitting polish; added stable two-state union crops, linked fitted assets, legacy dimension recovery and centred contain-fit LVGL scaling.
+- **Why it changed:** Reusable artwork needed predictable new-asset workflow, actionable callback diagnostics, geometry-preserving assignment, direct Canvas resizing, immediate preview replacement and physical output that matched Canvas and Browser Preview.
+- **Final architecture:** Interactive Assets retain artwork and state ownership while placed components own geometry; Button and Light reuse shared resize, clamping, alpha measurement, two-state visible-bounds and linked-crop infrastructure, and export resolves image dimensions through registry metadata, PNG IHDR and LVGL descriptors.
+- **Proven result:** Button and Light resizing, fitting, state changes and generated scaling match Canvas, Browser Preview and the physical ESP32-P4 while original uploads, persistence, public APIs and existing runtime behaviour remain intact.
 
 ## FORGEUI_ALL_FIVE_DIRECT_CREATORS__THREE_POSITION_STATE_SHEET__LINKED_CROPS__STATUS_INDICATOR_POLISH__KEYBOARD_PARITY__ESP32P4_PROVEN__2026-07-26
 

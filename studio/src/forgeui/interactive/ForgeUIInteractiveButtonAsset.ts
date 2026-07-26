@@ -41,8 +41,8 @@ export const createDefaultInteractiveButtonAsset = (
 
     label: 'Button',
 
-    width: 160,
-    height: 56,
+    width: 200,
+    height: 100,
 
     // Phase 4
     // Image asset references

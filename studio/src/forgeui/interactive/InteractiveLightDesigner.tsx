@@ -38,7 +38,7 @@ import {
   createDefaultInteractiveStatusIndicatorAsset,
   createDefaultInteractiveToggleSwitchAsset,
   createInteractiveAssetId,
-  getInteractiveLightComponentProps,
+  getInteractiveLightAssignmentProps,
   getInteractiveStatusIndicatorComponentProps,
   getInteractiveToggleSwitchComponentProps,
   registerInteractiveAsset,
@@ -321,7 +321,10 @@ const InteractiveLightDesigner = ({
       ? getInteractiveStatusIndicatorComponentProps(asset as ForgeUIInteractiveStatusIndicatorAsset)
       : isToggleSwitch
         ? getInteractiveToggleSwitchComponentProps(asset as ForgeUIInteractiveToggleSwitchAsset)
-        : getInteractiveLightComponentProps(asset as ForgeUIInteractiveLightAsset)
+        : getInteractiveLightAssignmentProps(
+            asset as ForgeUIInteractiveLightAsset,
+            selectedComponent,
+          )
     Object.entries(componentProps).forEach(
       ([propertyName, value]) => {
         setValue(propertyName, value)

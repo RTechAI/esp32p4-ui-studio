@@ -1,5 +1,9 @@
 import { forgeuiInputStyle } from '~forgeui/ForgeUIControlStyle'
-import React, { memo } from 'react'
+import React, {
+  memo,
+  useEffect,
+  useState,
+} from 'react'
 import { useSelector } from 'react-redux'
 import ClockPreview from './previews/ClockPreview'
 import AlertPreview from '~components/editor/previews/AlertPreview'
@@ -29,11 +33,16 @@ import BreadcrumbItemPreview from './previews/BreadcrumbItemPreview'
 import HighlightPreview from './previews/HighlightPreview'
 import SliderPreview from '~components/editor/previews/SliderPreview'
 import ProgressPreview from '~components/editor/previews/ProgressPreview'
-import InteractiveButtonCanvasPreview from './previews/InteractiveButtonCanvasPreview'
+import InteractiveButtonCanvasPreview, {
+  getInteractiveButtonCanvasAspectRatio,
+} from './previews/InteractiveButtonCanvasPreview'
 import InteractiveLightCanvasPreview from './previews/InteractiveLightCanvasPreview'
 import InteractiveStatusIndicatorCanvasPreview from './previews/InteractiveStatusIndicatorCanvasPreview'
 import InteractiveToggleSwitchCanvasPreview from './previews/InteractiveToggleSwitchCanvasPreview'
 import InteractiveThreePositionToggleCanvasPreview from './previews/InteractiveThreePositionToggleCanvasPreview'
+import {
+  FORGEUI_INTERACTIVE_ASSETS_UPDATED_EVENT,
+} from '~forgeui/ForgeUINavigation'
 import CircularProgressPreview from '~components/editor/previews/CircularProgressPreview'
 import ImagePreview from '~components/editor/previews/ImagePreview'
 import StatGroupPreview, {
@@ -49,6 +58,38 @@ const ComponentPreview: React.FC<{
   componentName: string
 }> = ({ componentName, ...forwardedProps }) => {
   const component = useSelector(getComponentBy(componentName))
+  const [, setUploadedAssetsVersion] = useState(0)
+
+  useEffect(() => {
+    if (
+      component?.type !== 'InteractiveButton'
+    ) {
+      return
+    }
+
+    const refreshArtworkDimensions = () =>
+      setUploadedAssetsVersion(version => version + 1)
+
+    window.addEventListener(
+      'forgeui-assets-updated',
+      refreshArtworkDimensions,
+    )
+    window.addEventListener(
+      FORGEUI_INTERACTIVE_ASSETS_UPDATED_EVENT,
+      refreshArtworkDimensions,
+    )
+    return () => {
+      window.removeEventListener(
+        'forgeui-assets-updated',
+        refreshArtworkDimensions,
+      )
+      window.removeEventListener(
+        FORGEUI_INTERACTIVE_ASSETS_UPDATED_EVENT,
+        refreshArtworkDimensions,
+      )
+    }
+  }, [component?.type])
+
   if (!component) {
     console.error(`ComponentPreview unavailable for component ${componentName}`)
   }
@@ -272,6 +313,10 @@ case 'AspectRatio':
     <PreviewContainer
       component={component}
       enableVisualHelper
+      resizeMode="selection-border"
+      resizeAspectRatio={
+        getInteractiveButtonCanvasAspectRatio(component)
+      }
       {...forwardedProps}
     >
       <InteractiveButtonCanvasPreview
@@ -285,6 +330,7 @@ case 'AspectRatio':
     <PreviewContainer
       component={component}
       enableVisualHelper
+      resizeMode="selection-border"
       {...forwardedProps}
     >
       <InteractiveLightCanvasPreview component={component} />

@@ -63,6 +63,9 @@ import {
   FORGEUI_OPEN_AI_PLAYGROUND_EVENT,
   ForgeUINavigationRequest,
 } from '~forgeui/ForgeUINavigation'
+import {
+  useExportValidationNotification,
+} from './ExportValidationNotification'
 
 const ExportProjectButton = ({
   exportEspIdfProject,
@@ -178,6 +181,10 @@ const selectedHeroAsset =
   const showCode = useSelector(getShowCode)
   const dispatch = useDispatch()
   const toast = useToast()
+  const {
+    notifyExportValidationFailure,
+    exportValidationDialog,
+  } = useExportValidationNotification()
   const components = useSelector(getComponents)
 
   const [flashLog, setFlashLog] = useState('')
@@ -319,8 +326,7 @@ const exportToForgeUIOne = async () => {
     const message = error instanceof ForgeUIExportValidationError
       ? error.message
       : String(error)
-    toast({ title: 'Export Validation Failed', description: message,
-      status: 'error', duration: 12000, isClosable: true })
+    notifyExportValidationFailure(message)
     return
   }
 
@@ -366,8 +372,7 @@ const exportToForgeUIOne = async () => {
     const message = error instanceof ForgeUIExportValidationError
       ? error.message
       : String(error)
-    toast({ title: 'Export Validation Failed', description: message,
-      status: 'error', duration: 12000, isClosable: true })
+    notifyExportValidationFailure(message)
     return
   }
 
@@ -423,8 +428,7 @@ const cleanBuildFlashForgeUIOne = async () => {
     const message = error instanceof ForgeUIExportValidationError
       ? error.message
       : String(error)
-    toast({ title: 'Export Validation Failed', description: message,
-      status: 'error', duration: 12000, isClosable: true })
+    notifyExportValidationFailure(message)
     return
   }
 
@@ -1071,6 +1075,8 @@ if (data.defaultHero) {
     }
   />
 )}
+
+{exportValidationDialog}
 
 </DarkMode>
 )

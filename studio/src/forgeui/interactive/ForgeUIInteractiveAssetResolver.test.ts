@@ -14,6 +14,7 @@ import {
   isLvglReadyUploadedAsset,
   resolveInteractiveButtonVisuals,
   getInteractiveLightComponentProps,
+  getInteractiveLightAssignmentProps,
   getInteractiveLightDimensions,
   getInteractiveLightInitialState,
   resolveInteractiveLightVisuals,
@@ -62,11 +63,9 @@ describe('Interactive Asset resolution', () => {
     ).toEqual({ normalAsset, pressedAsset })
   })
 
-  it('preserves component assignment prop names and string values', () => {
+  it('assigns artwork without replacing deliberate component geometry', () => {
     expect(getInteractiveButtonComponentProps(button)).toEqual({
       interactiveAssetId: 'button',
-      w: '120',
-      h: '48',
     })
   })
 
@@ -113,8 +112,6 @@ describe('Interactive Asset resolution', () => {
     })).toEqual({ width: 32, height: 32 })
     expect(getInteractiveLightComponentProps(light)).toEqual({
       interactiveAssetId: 'light',
-      w: '32',
-      h: '32',
     })
     expect(getInteractiveLightInitialState(light)).toBe('on')
   })
@@ -130,5 +127,112 @@ describe('Interactive Asset resolution', () => {
       onAsset: undefined,
     })
     expect(getInteractiveLightInitialState(light)).toBe('off')
+  })
+
+  describe('initial Light assignment geometry', () => {
+    const assignmentComponent = (
+      props: Record<string, unknown>,
+    ): IComponent => ({
+      id: 'light-component',
+      parent: 'root',
+      type: 'InteractiveLight',
+      props: {
+        positionMode: 'absolute',
+        x: 20,
+        y: 30,
+        w: 32,
+        h: 32,
+        ...props,
+      },
+      children: [],
+    })
+    const lightAsset = {
+      ...createDefaultInteractiveLightAsset('assigned-light'),
+      width: 100,
+      height: 100,
+    }
+
+    it.each([
+      [100, 100],
+      [64, 96],
+    ])(
+      'adopts %sx%s for an untouched placeholder',
+      (width, height) => {
+        expect(getInteractiveLightAssignmentProps(
+          { ...lightAsset, width, height },
+          assignmentComponent({}),
+          { width: 300, height: 200 },
+        )).toEqual({
+          interactiveAssetId: lightAsset.id,
+          x: '20',
+          y: '30',
+          w: String(width),
+          h: String(height),
+        })
+      },
+    )
+
+    it('preserves resized unconfigured geometry', () => {
+      expect(getInteractiveLightAssignmentProps(
+        lightAsset,
+        assignmentComponent({
+          w: 80,
+          h: 120,
+        }),
+      )).toEqual({
+        interactiveAssetId: lightAsset.id,
+      })
+    })
+
+    it('preserves configured and reopened geometry', () => {
+      expect(getInteractiveLightAssignmentProps(
+        lightAsset,
+        assignmentComponent({
+          interactiveAssetId: 'existing',
+          w: 32,
+          h: 32,
+        }),
+      )).toEqual({
+        interactiveAssetId: lightAsset.id,
+      })
+    })
+
+    it('shifts adopted geometry inside right and bottom bounds', () => {
+      expect(getInteractiveLightAssignmentProps(
+        lightAsset,
+        assignmentComponent({
+          x: 250,
+          y: 150,
+        }),
+        { width: 300, height: 200 },
+      )).toEqual({
+        interactiveAssetId: lightAsset.id,
+        x: '200',
+        y: '100',
+        w: '100',
+        h: '100',
+      })
+    })
+
+    it('clamps oversized assets to the complete canvas', () => {
+      expect(getInteractiveLightAssignmentProps(
+        {
+          ...lightAsset,
+          width: 400,
+          height: 250,
+        },
+        assignmentComponent({
+          x: 20,
+          y: 30,
+        }),
+        { width: 300, height: 200 },
+      )).toEqual({
+        interactiveAssetId: lightAsset.id,
+        x: '0',
+        y: '0',
+        w: '300',
+        h: '200',
+      })
+    })
   })
 })

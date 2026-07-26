@@ -1,0 +1,129 @@
+import {
+  forgeUIFindAlphaContentBounds,
+  forgeUIParsePngDimensions,
+  forgeUIResolveUploadedAssetDimensions,
+} from './ForgeUIUploadedAssetRegistry'
+
+const pngBytes = (width: number, height: number) => {
+  const bytes = new Uint8Array(24)
+  bytes.set([
+    0x89, 0x50, 0x4e, 0x47,
+    0x0d, 0x0a, 0x1a, 0x0a,
+  ])
+  const view = new DataView(bytes.buffer)
+  view.setUint32(8, 13)
+  bytes.set([0x49, 0x48, 0x44, 0x52], 12)
+  view.setUint32(16, width)
+  view.setUint32(20, height)
+  return bytes
+}
+
+const dataUrl = (bytes: Uint8Array) =>
+  `data:image/png;base64,${btoa(
+    String.fromCharCode(...bytes),
+  )}`
+
+describe('uploaded image dimension resolution', () => {
+  it('prefers modern registry dimensions', () => {
+    expect(forgeUIResolveUploadedAssetDimensions({
+      width: 320,
+      height: 180,
+      browserSrc: dataUrl(pngBytes(200, 100)),
+    })).toEqual({
+      width: 320,
+      height: 180,
+    })
+  })
+
+  it('reads legacy PNG IHDR dimensions without decoding the image', () => {
+    expect(forgeUIParsePngDimensions(
+      pngBytes(200, 100),
+    )).toEqual({
+      width: 200,
+      height: 100,
+    })
+    expect(forgeUIResolveUploadedAssetDimensions({
+      browserSrc: dataUrl(pngBytes(477, 404)),
+    })).toEqual({
+      width: 477,
+      height: 404,
+    })
+  })
+
+  it('rejects malformed PNG data safely', () => {
+    expect(forgeUIParsePngDimensions(
+      new Uint8Array([1, 2, 3]),
+    )).toBeUndefined()
+    expect(forgeUIResolveUploadedAssetDimensions({
+      browserSrc: 'data:image/png;base64,not-valid-base64!',
+    })).toBeUndefined()
+
+    const malformed = pngBytes(200, 100)
+    malformed[12] = 0x42
+    expect(forgeUIParsePngDimensions(
+      malformed,
+    )).toBeUndefined()
+  })
+})
+
+describe('uploaded image alpha-content bounds', () => {
+  const pixels = (
+    width: number,
+    height: number,
+    opaque: Array<[number, number]>,
+  ) => {
+    const rgba = new Uint8ClampedArray(
+      width * height * 4,
+    )
+    opaque.forEach(([x, y]) => {
+      rgba[(y * width + x) * 4 + 3] = 255
+    })
+    return rgba
+  }
+
+  it('reports full bounds for fully opaque artwork', () => {
+    const rgba = new Uint8ClampedArray(3 * 2 * 4)
+    for (let index = 3; index < rgba.length; index += 4) {
+      rgba[index] = 255
+    }
+    expect(forgeUIFindAlphaContentBounds(
+      rgba,
+      3,
+      2,
+    )).toEqual({
+      contentX: 0,
+      contentY: 0,
+      contentWidth: 3,
+      contentHeight: 2,
+    })
+  })
+
+  it('measures transparent margins inclusively', () => {
+    expect(forgeUIFindAlphaContentBounds(
+      pixels(5, 4, [
+        [1, 1],
+        [3, 2],
+      ]),
+      5,
+      4,
+    )).toEqual({
+      contentX: 1,
+      contentY: 1,
+      contentWidth: 3,
+      contentHeight: 2,
+    })
+  })
+
+  it('falls back safely for empty or malformed pixels', () => {
+    expect(forgeUIFindAlphaContentBounds(
+      new Uint8ClampedArray(4),
+      2,
+      2,
+    )).toBeUndefined()
+    expect(forgeUIFindAlphaContentBounds(
+      new Uint8ClampedArray(16),
+      2,
+      2,
+    )).toBeUndefined()
+  })
+})

@@ -122,10 +122,177 @@ describe('ForgeUI export preflight', () => {
       'void FG_Set_Same(bool enabled);',
       'void FG_Set_Same_2(bool enabled);',
     ]))
-    expect(result.diagnostics.some(item => item.message.includes('Duplicate Button hook'))).toBe(true)
+    expect(result.diagnostics.some(item =>
+      item.message.includes(
+        'Duplicate public callback',
+      ),
+    )).toBe(true)
     expect(result.diagnostics.some(item => item.message.includes('Duplicate Light setter'))).toBe(false)
     expect(result.diagnostics.some(item => item.message === 'Duplicate generated image symbol')).toBe(true)
     expect(result.diagnostics.some(item => item.message === 'Invalid relative C source path')).toBe(true)
+  })
+
+  describe('Interactive Button public callback conflicts', () => {
+    const button = (
+      id: string,
+      name: string,
+      label: string,
+    ) => ({
+      ...interactive('button', id),
+      name,
+      label,
+    })
+    const buttons = (
+      firstLabel: string,
+      secondLabel: string,
+    ) => {
+      const first = button(
+        'blue-button-asset',
+        'Blue Start Button',
+        firstLabel,
+      )
+      const second = button(
+        'silver-button-asset',
+        'Silver Start Button',
+        secondLabel,
+      )
+      return {
+        first,
+        second,
+        components: {
+          blue: component(
+            'InteractiveButton',
+            'comp-blue',
+            first.id,
+          ),
+          silver: component(
+            'InteractiveButton',
+            'comp-silver',
+            second.id,
+          ),
+        },
+      }
+    }
+    const images = [uploaded('normal'), uploaded('pressed')]
+
+    it('accepts two Buttons with unique generated callbacks', () => {
+      const { first, second, components } =
+        buttons('Start', 'Stop')
+      const result = validateForgeUIExport(
+        components as any,
+        [first, second] as any,
+        images,
+        generate(images, [
+          'FG_On_Start_Clicked',
+          'FG_On_Stop_Clicked',
+        ]),
+      )
+
+      expect(result.ok).toBe(true)
+    })
+
+    it('reports callback, user-facing names, IDs, and Label guidance', () => {
+      const { first, second, components } =
+        buttons('Start Button', 'Start-Button')
+      const result = validateForgeUIExport(
+        components as any,
+        [first, second] as any,
+        images,
+        generate(images, [
+          'FG_On_StartButton_Clicked',
+          'FG_On_StartButton_2_Clicked',
+        ]),
+      )
+      const duplicate = result.diagnostics.find(item =>
+        item.message.includes(
+          'Duplicate public callback',
+        ),
+      )
+
+      expect(result.ok).toBe(false)
+      expect(duplicate?.message).toContain(
+        'FG_On_StartButton_Clicked(void)',
+      )
+      expect(duplicate?.message).toContain(
+        '- Blue Start Button',
+      )
+      expect(duplicate?.message).toContain(
+        '- Silver Start Button',
+      )
+      expect(duplicate?.message).toContain(
+        'Rename the Label on 1 of these Buttons',
+      )
+      expect(duplicate?.message).toContain(
+        'Component ID: comp-blue',
+      )
+      expect(duplicate?.message).toContain(
+        'Component ID: comp-silver',
+      )
+    })
+
+    it('aggregates every Button in a multi-way callback collision', () => {
+      const assets = ['first', 'second', 'third', 'fourth'].map(
+        id => button(`${id}-asset`, 'New Interactive Button', 'Button'),
+      )
+      const components = Object.fromEntries(
+        assets.map((asset, index) => [
+          `button-${index}`,
+          component(
+            'InteractiveButton',
+            `comp-${index + 1}`,
+            asset.id,
+          ),
+        ]),
+      )
+      const result = validateForgeUIExport(
+        components as any,
+        assets as any,
+        images,
+        generate(images, [
+          'FG_On_Button_Clicked',
+          'FG_On_Button_2_Clicked',
+          'FG_On_Button_3_Clicked',
+          'FG_On_Button_4_Clicked',
+        ]),
+      )
+      const duplicates = result.diagnostics.filter(item =>
+        item.message.includes('Duplicate public callback'),
+      )
+
+      expect(duplicates).toHaveLength(1)
+      expect(duplicates[0].message).toContain(
+        'The following 4 Buttons generate this callback:',
+      )
+      ;['comp-1', 'comp-2', 'comp-3', 'comp-4'].forEach(id => {
+        expect(duplicates[0].message).toContain(
+          `Component ID: ${id}`,
+        )
+      })
+      expect(duplicates[0].message).toContain(
+        'Rename the Label on 3 of these Buttons',
+      )
+    })
+
+    it('clears the conflict after changing the second Label', () => {
+      const { first, second, components } =
+        buttons('Start Button', 'Start-Button')
+      const renamed = {
+        ...second,
+        label: 'Stop Button',
+      }
+      const result = validateForgeUIExport(
+        components as any,
+        [first, renamed] as any,
+        images,
+        generate(images, [
+          'FG_On_StartButton_Clicked',
+          'FG_On_StopButton_Clicked',
+        ]),
+      )
+
+      expect(result.ok).toBe(true)
+      expect(result.diagnostics).toEqual([])
+    })
   })
 
   it('accepts deterministic suffixed setters for same-named Light instances', () => {

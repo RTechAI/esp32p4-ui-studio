@@ -95,7 +95,7 @@ const requestGeneratedImage = async (
   return generationPayload.image
 }
 
-const registerAndConvertImage = async ({
+export const registerAndConvertImage = async ({
   browserSrc,
   filePrefix,
   assetMode,

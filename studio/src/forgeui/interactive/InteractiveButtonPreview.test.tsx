@@ -82,4 +82,42 @@ describe('Interactive Button preview compatibility', () => {
     fireEvent.mouseUp(screen.getByAltText(pressedAsset.name))
     expect(screen.getByAltText(normalAsset.name)).toBeInTheDocument()
   })
+
+  it('keeps matching component bounds for mismatched state ratios', () => {
+    const normalAsset = {
+      ...createAsset('wide-normal'),
+      width: 200,
+      height: 100,
+    }
+    const pressedAsset = {
+      ...createAsset('square-pressed'),
+      width: 100,
+      height: 100,
+    }
+
+    render(
+      <ChakraProvider>
+        <InteractiveButtonPreview
+          normalAsset={normalAsset}
+          pressedAsset={pressedAsset}
+          width={200}
+          height={100}
+        />
+      </ChakraProvider>,
+    )
+
+    const normalImage = screen.getByAltText(normalAsset.name)
+    expect(normalImage).toHaveStyle({
+      width: '200px',
+      height: '100px',
+      objectFit: 'contain',
+    })
+
+    fireEvent.mouseDown(normalImage)
+    expect(screen.getByAltText(pressedAsset.name)).toHaveStyle({
+      width: '200px',
+      height: '100px',
+      objectFit: 'contain',
+    })
+  })
 })

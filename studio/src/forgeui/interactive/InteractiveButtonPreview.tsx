@@ -10,6 +10,9 @@ import {
 import type {
   ForgeUIUploadedAsset,
 } from '~forgeui/ForgeUIUploadedAssetRegistry'
+import {
+  forgeUIRecordRenderedImageMetadata,
+} from '~forgeui/ForgeUIUploadedAssetRegistry'
 import UnconfiguredButtonIcon from './UnconfiguredButtonIcon'
 
 type InteractiveButtonPreviewProps = {
@@ -44,6 +47,11 @@ const InteractiveButtonPreview = ({
 
   return (
     <Box
+      data-testid={
+        hasBothVisuals
+          ? 'configured-button-preview'
+          : 'unconfigured-button-preview'
+      }
       display="flex"
       justifyContent="center"
       alignItems="center"
@@ -59,7 +67,28 @@ const InteractiveButtonPreview = ({
           objectFit="contain"
           cursor="pointer"
           draggable={false}
+          crossOrigin="anonymous"
           userSelect="none"
+          onLoad={event => {
+            const image = event.currentTarget
+            if (
+              image.naturalWidth > 0 &&
+              image.naturalHeight > 0 &&
+              (
+                previewAsset.width !==
+                  image.naturalWidth ||
+                previewAsset.height !==
+                  image.naturalHeight ||
+                !previewAsset.contentWidth ||
+                !previewAsset.contentHeight
+              )
+            ) {
+              forgeUIRecordRenderedImageMetadata(
+                previewAsset,
+                image,
+              )
+            }
+          }}
           onMouseDown={() =>
             setIsPreviewPressed(true)
           }

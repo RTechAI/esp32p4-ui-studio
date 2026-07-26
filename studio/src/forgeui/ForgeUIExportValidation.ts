@@ -1,6 +1,9 @@
 import type { ForgeUIUploadedAsset } from './ForgeUIUploadedAssetRegistry'
 import type { ForgeUIInteractiveAsset } from './interactive'
 import { allocateUniqueOutputApiName } from './ForgeUIGeneratedApiNames'
+import {
+  getInteractiveButtonHookName,
+} from './interactive/ForgeUIInteractiveButtonHook'
 
 export type ForgeUIExportDiagnosticCategory =
   | 'Interactive Button'
@@ -203,7 +206,17 @@ export const validateForgeUIExport = (
   })
 
   const componentIds = new Set<string>()
-  const hookNames = new Map<string, string>()
+  const hookNames = new Map<string, {
+    subject: string
+    componentId: string
+    displayName: string
+    label: string
+  }>()
+  const buttonHookEntries = new Map<string, Array<{
+    componentId: string
+    displayName: string
+    label: string
+  }>>()
   const setterNames = new Map<string, string>()
   const binarySetterByComponent = new Map<IComponent, string>()
   const usedOutputApiNames = new Set<string>()
@@ -295,22 +308,77 @@ export const validateForgeUIExport = (
       add('Canvas', subject, `Interactive Asset kind must be ${expectedKind}`)
     }
     if (expectedKind === 'button' || expectedKind === 'toggleSwitch' || expectedKind === 'threePositionToggle') {
+      const label = 'label' in asset
+        ? asset.label
+        : component.props.label
       const base = toCIdentifier(
         expectedKind === 'toggleSwitch' || expectedKind === 'threePositionToggle'
-          ? component.componentName || ('label' in asset ? asset.label : component.id)
-          : 'label' in asset ? asset.label : component.props.label,
+          ? component.componentName || label || component.id
+          : label,
         expectedKind === 'toggleSwitch' ? 'InteractiveToggleSwitch' : expectedKind === 'threePositionToggle' ? 'InteractiveThreePositionToggle' : 'InteractiveButton',
       )
-      const name = `FG_On_${base}_${expectedKind === 'toggleSwitch' ? 'Toggled' : expectedKind === 'threePositionToggle' ? 'Changed' : 'Clicked'}`
+      const name = expectedKind === 'button'
+        ? getInteractiveButtonHookName(label)
+        : `FG_On_${base}_${expectedKind === 'toggleSwitch' ? 'Toggled' : 'Changed'}`
       const previous = hookNames.get(name)
-      if (previous) add('Public API', name, expectedKind === 'button'
-        ? `Duplicate Button hook for ${previous} and ${subject}`
-        : `Duplicate Toggle Switch hook for ${previous} and ${subject}`)
-      else hookNames.set(name, subject)
+      const hookEntry = {
+        subject,
+        componentId: component.id,
+        displayName:
+          asset.name ||
+          component.componentName ||
+          label ||
+          component.id,
+        label: String(label || ''),
+      }
+      if (expectedKind === 'button') {
+        const entries = buttonHookEntries.get(name) || []
+        entries.push(hookEntry)
+        buttonHookEntries.set(name, entries)
+      } else if (previous) {
+        add(
+          'Public API',
+          '',
+          `Duplicate Toggle Switch hook for ${previous.subject} and ${subject}`,
+        )
+      } else {
+        hookNames.set(name, hookEntry)
+      }
     } else {
       const name = binarySetterByComponent.get(component)
       if (name) setterNames.set(name, subject)
     }
+  })
+
+  buttonHookEntries.forEach((entries, name) => {
+    hookNames.set(name, {
+      subject: entries[0].displayName,
+      ...entries[0],
+    })
+
+    if (entries.length < 2) {
+      return
+    }
+
+    add(
+      'Public API',
+      '',
+      [
+        'Duplicate public callback',
+        '',
+        `${name}(void)`,
+        '',
+        `The following ${entries.length} Buttons generate this callback:`,
+        '',
+        ...entries.flatMap(entry => [
+          `- ${entry.displayName}`,
+          `  Label: ${entry.label}`,
+          `  Component ID: ${entry.componentId}`,
+          '',
+        ]),
+        `Rename the Label on ${entries.length - 1} of these Buttons so every Button generates a unique callback.`,
+      ].join('\n').trim(),
+    )
   })
 
   const publicApiDeclarations = new Set<string>()

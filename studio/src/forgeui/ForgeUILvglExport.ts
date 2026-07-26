@@ -1,4 +1,7 @@
-import { forgeUIGetUploadedAssets } from './ForgeUIUploadedAssetRegistry'
+import {
+  forgeUIGetUploadedAssets,
+  forgeUIResolveUploadedAssetDimensions,
+} from './ForgeUIUploadedAssetRegistry'
 import { FORGEUI_IMAGE_ASSETS } from './ForgeUIAssetRegistry'
 import { allocateUniqueOutputApiName } from './ForgeUIGeneratedApiNames'
 
@@ -19,6 +22,9 @@ import {
   getInteractiveThreePositionInitialState,
   resolveInteractiveThreePositionVisuals,
 } from './interactive'
+import {
+  getInteractiveButtonHookBase,
+} from './interactive/ForgeUIInteractiveButtonHook'
 
 import {
   FG_PREVIEW_PALETTES,
@@ -231,6 +237,43 @@ export const calculateToggleContainScale = (
   )
 }
 
+export const calculateInteractiveButtonContainScale = (
+  componentWidth: number,
+  componentHeight: number,
+  images: Array<{
+    width?: number
+    height?: number
+  }>,
+): number | undefined => {
+  if (
+    !Number.isFinite(componentWidth) ||
+    !Number.isFinite(componentHeight) ||
+    componentWidth <= 0 ||
+    componentHeight <= 0 ||
+    images.length === 0 ||
+    images.some(image =>
+      !Number.isFinite(image.width) ||
+      !Number.isFinite(image.height) ||
+      Number(image.width) <= 0 ||
+      Number(image.height) <= 0,
+    )
+  ) {
+    return undefined
+  }
+
+  const ratio = Math.min(
+    ...images.flatMap(image => [
+      componentWidth / Number(image.width),
+      componentHeight / Number(image.height),
+    ]),
+  )
+
+  return Math.max(
+    1,
+    Math.min(65535, Math.round(ratio * 256)),
+  )
+}
+
 const createToggleInputExports = (
   components: IComponents,
   usedAssetSources: Set<string>,
@@ -291,10 +334,12 @@ const createThreeWayInputExports = (components: IComponents, usedAssetSources: S
 type BinaryOutputExport = {
   apiName: string
   runtimeName: string
+  isInteractiveLight: boolean
   offSymbol?: string
   onSymbol?: string
   initialState: 'off' | 'on'
   ready: boolean
+  imageScale?: number | string
 }
 
 const createBinaryOutputExports = (
@@ -346,6 +391,22 @@ const createBinaryOutputExports = (
         isLvglReadyUploadedAsset(onAsset) &&
         Boolean(offAsset?.lvgl) &&
         Boolean(onAsset?.lvgl)
+      const componentWidth = Number(lv(component.props.w, 120))
+      const componentHeight = Number(lv(component.props.h, 40))
+      const offDimensions = offAsset
+        ? forgeUIResolveUploadedAssetDimensions(offAsset)
+        : undefined
+      const onDimensions = onAsset
+        ? forgeUIResolveUploadedAssetDimensions(onAsset)
+        : undefined
+      const resolvedScale =
+        !isStatusIndicator && ready
+          ? calculateInteractiveButtonContainScale(
+              componentWidth,
+              componentHeight,
+              [offDimensions || {}, onDimensions || {}],
+            )
+          : undefined
 
       if (ready) {
         if (offAsset.cFile) usedAssetSources.add(offAsset.cFile)
@@ -355,12 +416,18 @@ const createBinaryOutputExports = (
       exportsByComponent.set(component.id, {
         apiName,
         runtimeName: `fg_${runtimeStem}_output`,
+        isInteractiveLight: !isStatusIndicator,
         offSymbol: ready ? offAsset?.lvgl : undefined,
         onSymbol: ready ? onAsset?.lvgl : undefined,
         initialState: isStatusIndicator
           ? getInteractiveStatusIndicatorInitialState(asset)
           : getInteractiveLightInitialState(asset),
         ready,
+        imageScale:
+          !isStatusIndicator && ready
+            ? resolvedScale ??
+              `fg_interactive_light_contain_scale(&${offAsset?.lvgl}, &${onAsset?.lvgl}, ${componentWidth}, ${componentHeight})`
+            : undefined,
       })
     })
 
@@ -506,7 +573,7 @@ case 'InteractiveButton': {
         )
       : undefined
         const buttonBaseName =
-    toCIdentifier(
+    getInteractiveButtonHookBase(
       interactiveAsset?.label ||
       child.props.label ||
       child.props.name ||
@@ -547,6 +614,26 @@ case 'InteractiveButton': {
 
     const pressedSymbol =
       pressedAsset.lvgl
+    const normalDimensions =
+      forgeUIResolveUploadedAssetDimensions(
+        normalAsset,
+      )
+    const pressedDimensions =
+      forgeUIResolveUploadedAssetDimensions(
+        pressedAsset,
+      )
+    const resolvedImageScale =
+      calculateInteractiveButtonContainScale(
+        Number(w),
+        Number(h),
+        [
+          normalDimensions || {},
+          pressedDimensions || {},
+        ],
+      )
+    const imageScale =
+      resolvedImageScale ??
+      `fg_interactive_button_contain_scale(&${normalSymbol}, &${pressedSymbol}, ${w}, ${h})`
 
     if (normalAsset.cFile) {
       usedAssetSources.add(
@@ -613,7 +700,7 @@ lines.push(
 )
 
 lines.push(
-   `lv_image_set_scale(${varName}_img, 256);`,
+   `lv_image_set_scale(${varName}_img, ${imageScale});`,
 )
 
 lines.push(
@@ -745,18 +832,57 @@ case 'InteractiveStatusIndicator': {
     lightExport.offSymbol &&
     lightExport.onSymbol
   ) {
-    lines.push(
-      `${lightExport.runtimeName}.image = lv_image_create(${parentVar});`,
-    )
-    lines.push(
-      `fg_binary_output_set(&${lightExport.runtimeName}, ${lightExport.initialState === 'on' ? 'true' : 'false'});`,
-    )
-    lines.push(
-      `lv_obj_set_pos(${lightExport.runtimeName}.image, ${x}, ${y});`,
-    )
-    lines.push(
-      `lv_obj_set_size(${lightExport.runtimeName}.image, ${safeLightWidth}, ${safeLightHeight});`,
-    )
+    if (lightExport.isInteractiveLight) {
+      lines.push(
+        `lv_obj_t * ${lightExport.runtimeName}_obj = lv_obj_create(${parentVar});`,
+      )
+      lines.push(
+        `lv_obj_set_pos(${lightExport.runtimeName}_obj, ${x}, ${y});`,
+      )
+      lines.push(
+        `lv_obj_set_size(${lightExport.runtimeName}_obj, ${safeLightWidth}, ${safeLightHeight});`,
+      )
+      lines.push(
+        `lv_obj_set_style_bg_opa(${lightExport.runtimeName}_obj, LV_OPA_TRANSP, LV_PART_MAIN);`,
+      )
+      lines.push(
+        `lv_obj_set_style_border_width(${lightExport.runtimeName}_obj, 0, LV_PART_MAIN);`,
+      )
+      lines.push(
+        `lv_obj_set_style_pad_all(${lightExport.runtimeName}_obj, 0, LV_PART_MAIN);`,
+      )
+      lines.push(
+        `${lightExport.runtimeName}.image = lv_image_create(${lightExport.runtimeName}_obj);`,
+      )
+      lines.push(
+        `fg_binary_output_set(&${lightExport.runtimeName}, ${lightExport.initialState === 'on' ? 'true' : 'false'});`,
+      )
+      lines.push(
+        `lv_image_set_scale(${lightExport.runtimeName}.image, ${lightExport.imageScale});`,
+      )
+      lines.push(
+        `lv_obj_center(${lightExport.runtimeName}.image);`,
+      )
+      lines.push(
+        `lv_obj_clear_flag(${lightExport.runtimeName}_obj, LV_OBJ_FLAG_CLICKABLE);`,
+      )
+      lines.push(
+        `lv_obj_clear_flag(${lightExport.runtimeName}_obj, LV_OBJ_FLAG_SCROLLABLE);`,
+      )
+    } else {
+      lines.push(
+        `${lightExport.runtimeName}.image = lv_image_create(${parentVar});`,
+      )
+      lines.push(
+        `fg_binary_output_set(&${lightExport.runtimeName}, ${lightExport.initialState === 'on' ? 'true' : 'false'});`,
+      )
+      lines.push(
+        `lv_obj_set_pos(${lightExport.runtimeName}.image, ${x}, ${y});`,
+      )
+      lines.push(
+        `lv_obj_set_size(${lightExport.runtimeName}.image, ${safeLightWidth}, ${safeLightHeight});`,
+      )
+    }
     lines.push(
       `lv_obj_clear_flag(${lightExport.runtimeName}.image, LV_OBJ_FLAG_CLICKABLE);`,
     )
@@ -1597,6 +1723,9 @@ export const generateForgeUILvglCode = (
   const hasInteractiveButtons = Object.values(components).some(
     component => component.type === 'InteractiveButton',
   )
+  const hasInteractiveLights = Object.values(components).some(
+    component => component.type === 'InteractiveLight',
+  )
   const binaryOutputExports = createBinaryOutputExports(
     components,
     usedAssetSources,
@@ -1677,6 +1806,9 @@ const backgroundMode =
     lines.push(`#include "95_UserEvents.h"`)
   }
   lines.push(`#include <stdbool.h>`)
+  if (hasInteractiveButtons || hasInteractiveLights) {
+    lines.push(`#include <stdint.h>`)
+  }
   lines.push(`#include <stdio.h>`)
   lines.push(``)
   lines.push(`static lv_obj_t * fg_clock_label = NULL;`)
@@ -1798,6 +1930,37 @@ const backgroundMode =
     lines.push(`}`)
     lines.push(``)
   }
+  if (hasInteractiveLights) {
+    lines.push(`static uint32_t fg_interactive_light_axis_scale(int32_t target, uint32_t source)`)
+    lines.push(`{`)
+    lines.push(`    if (target <= 0 || source == 0) return 256;`)
+    lines.push(`    uint64_t rounded = ((uint64_t)target * 256u + source / 2u) / source;`)
+    lines.push(`    if (rounded < 1u) return 1;`)
+    lines.push(`    if (rounded > 65535u) return 65535;`)
+    lines.push(`    return (uint32_t)rounded;`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`static uint32_t fg_interactive_light_contain_scale(`)
+    lines.push(`    const lv_image_dsc_t * off,`)
+    lines.push(`    const lv_image_dsc_t * on,`)
+    lines.push(`    int32_t width,`)
+    lines.push(`    int32_t height`)
+    lines.push(`)`)
+    lines.push(`{`)
+    lines.push(`    if (!off || !on ||`)
+    lines.push(`        off->header.w == 0 || off->header.h == 0 ||`)
+    lines.push(`        on->header.w == 0 || on->header.h == 0) return 256;`)
+    lines.push(`    uint32_t scale = fg_interactive_light_axis_scale(width, off->header.w);`)
+    lines.push(`    uint32_t candidate = fg_interactive_light_axis_scale(height, off->header.h);`)
+    lines.push(`    if (candidate < scale) scale = candidate;`)
+    lines.push(`    candidate = fg_interactive_light_axis_scale(width, on->header.w);`)
+    lines.push(`    if (candidate < scale) scale = candidate;`)
+    lines.push(`    candidate = fg_interactive_light_axis_scale(height, on->header.h);`)
+    lines.push(`    if (candidate < scale) scale = candidate;`)
+    lines.push(`    return scale;`)
+    lines.push(`}`)
+    lines.push(``)
+  }
 
   binaryOutputExports.forEach(lightExport => {
     if (
@@ -1833,6 +1996,35 @@ const backgroundMode =
     lines.push(``)
   })
   if (hasInteractiveButtons) {
+    lines.push(`static uint32_t fg_interactive_button_axis_scale(int32_t target, uint32_t source)`)
+    lines.push(`{`)
+    lines.push(`    if (target <= 0 || source == 0) return 256;`)
+    lines.push(`    uint64_t rounded = ((uint64_t)target * 256u + source / 2u) / source;`)
+    lines.push(`    if (rounded < 1u) return 1;`)
+    lines.push(`    if (rounded > 65535u) return 65535;`)
+    lines.push(`    return (uint32_t)rounded;`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`static uint32_t fg_interactive_button_contain_scale(`)
+    lines.push(`    const lv_image_dsc_t * normal,`)
+    lines.push(`    const lv_image_dsc_t * pressed,`)
+    lines.push(`    int32_t width,`)
+    lines.push(`    int32_t height`)
+    lines.push(`)`)
+    lines.push(`{`)
+    lines.push(`    if (!normal || !pressed ||`)
+    lines.push(`        normal->header.w == 0 || normal->header.h == 0 ||`)
+    lines.push(`        pressed->header.w == 0 || pressed->header.h == 0) return 256;`)
+    lines.push(`    uint32_t scale = fg_interactive_button_axis_scale(width, normal->header.w);`)
+    lines.push(`    uint32_t candidate = fg_interactive_button_axis_scale(height, normal->header.h);`)
+    lines.push(`    if (candidate < scale) scale = candidate;`)
+    lines.push(`    candidate = fg_interactive_button_axis_scale(width, pressed->header.w);`)
+    lines.push(`    if (candidate < scale) scale = candidate;`)
+    lines.push(`    candidate = fg_interactive_button_axis_scale(height, pressed->header.h);`)
+    lines.push(`    if (candidate < scale) scale = candidate;`)
+    lines.push(`    return scale;`)
+    lines.push(`}`)
+    lines.push(``)
     lines.push(`typedef struct`)
   lines.push(`{`)
   lines.push(`    const void * normal_src;`)

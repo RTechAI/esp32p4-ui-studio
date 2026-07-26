@@ -82,6 +82,7 @@ CodeActionButton.displayName = 'CodeActionButton'
 const Inspector = () => {
   const dispatch = useDispatch()
   const component = useSelector(getSelectedComponent)
+  const allComponents = useSelector(getComponents)
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [componentName, onChangeComponentName] = useState('')
   const componentsNames = useSelector(getComponentNames)
@@ -199,6 +200,7 @@ const Inspector = () => {
       {type === 'InteractiveButton' && (
         <InteractiveButtonCreatorHelper
           component={component}
+          components={allComponents}
         />
       )}
       {type === 'InteractiveLight' && (

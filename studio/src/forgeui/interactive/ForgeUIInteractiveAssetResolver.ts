@@ -1,6 +1,9 @@
 import type {
   ForgeUIUploadedAsset,
 } from '~forgeui/ForgeUIUploadedAssetRegistry'
+import {
+  FORGEUI_ACTIVE_DEVICE,
+} from '~forgeui/ForgeUIDeviceConfig'
 
 import type {
   ForgeUIInteractiveButtonAsset,
@@ -97,8 +100,6 @@ export const getInteractiveButtonComponentProps = (
   asset: ForgeUIInteractiveButtonAsset,
 ) => ({
   interactiveAssetId: asset.id,
-  w: String(asset.width),
-  h: String(asset.height),
 })
 
 export const getInteractiveLightDimensions = (
@@ -113,9 +114,65 @@ export const getInteractiveLightComponentProps = (
   asset: ForgeUIInteractiveLightAsset,
 ) => ({
   interactiveAssetId: asset.id,
-  w: String(asset.width),
-  h: String(asset.height),
 })
+
+export const getInteractiveLightAssignmentProps = (
+  asset: ForgeUIInteractiveLightAsset,
+  component: IComponent,
+  canvas = {
+    width: FORGEUI_ACTIVE_DEVICE.width,
+    height: FORGEUI_ACTIVE_DEVICE.height,
+  },
+) => {
+  const assignment = {
+    interactiveAssetId: asset.id,
+  } as {
+    interactiveAssetId: string
+    x?: string
+    y?: string
+    w?: string
+    h?: string
+  }
+  const isUntouchedPlaceholder =
+    !component.props.interactiveAssetId &&
+    Number(component.props.w) === 32 &&
+    Number(component.props.h) === 32
+
+  if (!isUntouchedPlaceholder) {
+    return assignment
+  }
+
+  const width = Math.min(
+    Math.max(1, Number(asset.width)),
+    canvas.width,
+  )
+  const height = Math.min(
+    Math.max(1, Number(asset.height)),
+    canvas.height,
+  )
+  const x = Math.max(
+    0,
+    Math.min(
+      Number(component.props.x) || 0,
+      canvas.width - width,
+    ),
+  )
+  const y = Math.max(
+    0,
+    Math.min(
+      Number(component.props.y) || 0,
+      canvas.height - height,
+    ),
+  )
+
+  return {
+    ...assignment,
+    x: String(x),
+    y: String(y),
+    w: String(width),
+    h: String(height),
+  }
+}
 
 export const getInteractiveLightInitialState = (
   asset: ForgeUIInteractiveLightAsset | ForgeUIInteractiveStatusIndicatorAsset | undefined,

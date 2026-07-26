@@ -16,6 +16,16 @@ export const INTERACTIVE_STATUS_INDICATOR_DROP_SIZE = {
 export const getInteractiveStatusIndicatorDropSize = () =>
   INTERACTIVE_STATUS_INDICATOR_DROP_SIZE
 
+export const getInteractiveButtonDropSize = () => ({
+  width: 200,
+  height: 100,
+})
+
+export const getInteractiveLightDropSize = () => ({
+  width: 32,
+  height: 32,
+})
+
 export const useDropComponent = (
   componentId: string,
   accept: (ComponentType | MetaComponentType)[] = rootComponents,
@@ -154,7 +164,7 @@ const defaultW = isLed
                     : isButton
                       ? 120
                       : isInteractiveButton
-                        ? 160
+                        ? getInteractiveButtonDropSize().width
                         : isInteractiveToggleSwitch
                           ? 64
                         : isInteractiveThreePositionToggleSwitch
@@ -162,7 +172,7 @@ const defaultW = isLed
                         : isInteractiveStatusIndicator
                           ? getInteractiveStatusIndicatorDropSize().width
                         : isInteractiveLight
-                          ? 32
+                          ? getInteractiveLightDropSize().width
                         : isSelect
                           ? 180
                           : isSwitch
@@ -208,7 +218,7 @@ const defaultH = isLed
                     : isButton
                       ? 40
                       : isInteractiveButton
-                        ? 56
+                        ? getInteractiveButtonDropSize().height
                         : isInteractiveToggleSwitch
                           ? 36
                         : isInteractiveThreePositionToggleSwitch
@@ -216,7 +226,7 @@ const defaultH = isLed
                         : isInteractiveStatusIndicator
                           ? getInteractiveStatusIndicatorDropSize().height
                         : isInteractiveLight
-                          ? 32
+                          ? getInteractiveLightDropSize().height
                         : isSelect
                           ? 36
                           : isSwitch

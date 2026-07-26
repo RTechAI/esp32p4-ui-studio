@@ -2,7 +2,7 @@
 
 ## Current proven save point
 
-**FORGEUI_ALL_FIVE_DIRECT_CREATORS__STATUS_INDICATOR_PREVIEW_POLISH__STATE_SHEETS__LINKED_CROPS__KEYBOARD_LVGL_PARITY__ESP32_P4_PROVEN__2026-07-26**
+**FORGEUI_INTERACTIVE_BUTTON_AND_LIGHT__WORKFLOW_POLISH__SHARED_VISIBLE_BOUNDS__CANVAS_RESIZE__LVGL_PARITY__ESP32P4_VALIDATED__2026-07-26**
 
 ## Purpose and scope
 
@@ -51,6 +51,8 @@ Binary Output Runtime
 ```
 
 Button is momentary input. Toggle Switch is persistent boolean input. Three-Position Toggle is persistent enum input. Light and Status Indicator are developer-controlled outputs.
+
+For placed Interactive Button and Interactive Light components, persisted Canvas `x/y/w/h` is the generated geometry source of truth. Their state artwork uses centred contain-fit scaling resolved through uploaded-asset registry metadata, PNG IHDR dimensions and generated LVGL descriptors, with scale 256 only as the final safe fallback. Live firmware and standalone export consume the same generated result.
 
 ```text
 ForgeUI Canvas
@@ -160,6 +162,8 @@ interactive-status-indicator-designer
 ```
 
 These entry points select the current Canvas component and its linked Interactive Asset. The Creator and State Sheet pipeline prepares or edits the Interactive Asset and uploaded state images consumed by export; it does not replace or redefine the generated runtime-family contracts. In particular, Status Indicator Creator navigation does not change the generated Binary Output API direction or `FG_Set_*` contract.
+
+Button and Light `Fit Bounds to Visible Artwork` is an explicit pre-export asset operation. It creates linked cropped state assets from one stable two-state alpha-content union and preserves the original uploads. Once applied, normal asset resolution causes both export paths to consume the linked cropped assets without adding another export API or payload field.
 
 ## Export Validation Ownership
 
@@ -324,6 +328,13 @@ Runtime generation assumes that its candidate result will pass the dedicated cli
 - Keyboard top-left alignment, relative control-width map, explicit styles, and final runtime ordering
 - export of uploaded assets produced by Toggle and Three-Position State Sheet workflows
 - current direct Creator integration through the component and uploaded-asset model
+- final persisted component geometry for Button and Light object sizing
+- shared two-state contain-fit scale calculation
+- uploaded-asset registry dimension metadata consumption
+- PNG IHDR dimension recovery
+- generated LVGL descriptor-based dimension fallback
+- centred Button and Light image placement after scaling
+- linked cropped state-asset consumption
 - Toggle and Three-Position hook naming and metadata
 - input callback-name uniqueness across all hook families
 - shared Binary Output Runtime generation
@@ -360,6 +371,8 @@ The exporter walks the ForgeUI component tree and selects the correct component 
 - asset-source collection
 - recursive export of nested children
 
+After placement, component geometry is authoritative. Button and Light branches use the traversed component `x/y/w/h`; they do not replace it with reusable Interactive Asset dimensions during generation. The same persisted geometry feeds live firmware, standalone export and Browser Preview.
+
 Current internal object names such as `obj1`, `obj2`, and `obj3` are implementation details. They are suitable for generated LVGL variables but are not the stable developer API.
 
 Developer-facing hook and setter names are derived separately and made unique within an export.
@@ -376,6 +389,8 @@ For Keyboard, traversal geometry remains the source of truth. The branch emits m
 - `publicApiDeclarations` for Binary Output setters, including Interactive Light and Interactive Status Indicator.
 
 These four properties are the complete current contract. All input families share the one generalized `userEventHooks` string collection; there are no separate Button, Toggle or Three-Position payload fields. Hook suffixes encode signature selection downstream: `Clicked`, `Toggled`, or `Changed`. Binary Output declarations use `publicApiDeclarations: string[]` and retain the exact `void FG_Set_*(bool enabled);` text.
+
+Contain-fit scaling, recovered dimensions and visible-bounds crop metadata do not add export-result properties. The generated `code` contains resolved numeric scales or descriptor-based helper calls, while `assetSources` contains the linked cropped state sources when fitting has replaced the Interactive Asset's state references.
 
 The UI export actions in `studio/src/components/Header.tsx` send these values to both export endpoints:
 
@@ -458,13 +473,19 @@ The `InteractiveButton` exporter branch owns:
 4. using the preflight-validated Normal and Pressed image metadata;
 5. adding required asset C files;
 6. declaring LVGL images;
-7. creating the parent LVGL button;
+7. using final persisted component geometry for the parent LVGL button;
 8. creating the child LVGL image;
-9. creating per-button runtime data;
-10. attaching the shared Button event callback;
-11. collecting the unique generated click hook.
+9. resolving both state dimensions through registry metadata or PNG IHDR;
+10. calculating one safe Normal/Pressed contain scale;
+11. emitting the descriptor-based contain-scale helper call when Studio dimensions are unavailable;
+12. centring the scaled child image;
+13. creating per-button runtime data;
+14. attaching the shared Button event callback;
+15. collecting the unique generated click hook.
 
 Button runtime generation assumes validated image assets. It does not perform late export validation while emitting runtime code.
+
+The Button contain-fit helper evaluates both Normal and Pressed descriptor widths and heights against final component `w/h`. Both states use the same scale, so press transitions do not change placement. Reliable Studio dimensions produce a numeric scale; generated `lv_image_dsc_t.header.w/h` supplies the legacy runtime fallback, and invalid descriptors return scale 256.
 
 ### Proven runtime data
 
@@ -532,6 +553,8 @@ It registers the shared callback for:
 - `LV_EVENT_CLICKED`
 
 The visual-state runtime and click-hook runtime are parts of the same generated Button implementation.
+
+When visible-artwork fitting has been applied, `normalAssetId` and `pressedAssetId` resolve to the linked stable-union crops. Export collects those cropped C sources; it does not modify or export through the superseded original references unless another active asset still uses them.
 
 ### Button hook naming
 
@@ -706,11 +729,15 @@ Interactive Light export owns:
 3. resolving OFF and ON uploaded assets;
 4. using the preflight-validated OFF and ON image metadata;
 5. adding required asset C files;
-6. creating a non-clickable LVGL image;
-7. selecting its initial source from saved `initialState`;
-8. creating a unique public setter name;
-9. emitting the setter implementation;
-10. returning its declaration as public API metadata.
+6. creating a transparent container from final persisted component geometry;
+7. creating a centred non-clickable child LVGL image;
+8. resolving both state dimensions through registry metadata or PNG IHDR;
+9. calculating one safe OFF/ON contain scale;
+10. emitting the descriptor-based contain-scale helper call when Studio dimensions are unavailable;
+11. selecting its initial source from saved `initialState`;
+12. creating a unique public setter name;
+13. emitting the setter implementation;
+14. returning its declaration as public API metadata.
 
 Light runtime generation likewise assumes validated image assets and API metadata. It does not perform late export validation while emitting runtime code.
 
@@ -719,10 +746,25 @@ Light runtime generation likewise assumes validated image assets and API metadat
 Interactive Light is an output indicator, not an input control.
 
 - It is emitted as an LVGL image.
+- The image is centred inside a transparent component-sized container.
+- Final container position and size come from persisted component `x/y/w/h`.
+- OFF and ON use one common contain scale.
+- State switching changes only the image source, not scale, centre or container geometry.
 - The object remains non-clickable.
 - It has no Button-style event callback.
 - It produces no hook in `95_UserEvents`.
 - Its initial OFF/ON image follows the saved `initialState`.
+
+The Light contain-fit helper evaluates both OFF and ON descriptor dimensions against final component geometry. Dimension ownership follows the same chain as Button:
+
+```text
+Uploaded Asset Registry metadata
+  → PNG IHDR dimensions
+  → generated lv_image_dsc_t.header.w/h
+  → safe scale 256
+```
+
+When visible-artwork fitting has been applied, Light resolution and `assetSources` use the linked stable-union OFF/ON crops. Original uploads remain unchanged and are exported only when still actively referenced elsewhere.
 
 ### Proven public setter
 
@@ -821,6 +863,8 @@ static void fg_binary_output_set(
 ```
 
 This structure and function are generated once per export. Interactive Light introduced them; Interactive Status Indicator reuses them unchanged.
+
+The Binary Output API contract is unchanged by Light scaling. `fg_binary_output_set()` continues to switch only `image` source. Light object creation owns its transparent geometry container, shared OFF/ON scale and centring before the runtime record is used; Status Indicator retains its existing generated object behavior.
 
 Every exported Binary Output instance creates its own `fg_binary_output_t` record containing its LVGL image, OFF source, ON source, and saved state. Multiple records remain independent even when instances reuse the same artwork.
 
@@ -938,6 +982,7 @@ Owns generated implementation:
 - generated runtime structures
 - shared runtime callbacks
 - Button callback wiring
+- Button parent geometry, shared Normal/Pressed contain scale and centred child image
 - calls into Button user hooks
 - shared Toggle Input Runtime, per-instance records and bool-hook calls
 - shared Three-Position Input Runtime, per-instance records and enum-hook calls
@@ -945,6 +990,8 @@ Owns generated implementation:
 - Keyboard native map, control widths, explicit styles and top-left alignment
 - final Keyboard setup ordering and Canvas-relative geometry
 - Binary Output OFF/ON runtime image references
+- Light component-sized container, shared OFF/ON contain scale and centred child image
+- generated Button and Light LVGL descriptor fallback helpers
 - Light public setter implementations
 - Interactive Status Indicator public setter implementations
 - `fg_studio_export_create(...)`
@@ -1263,6 +1310,8 @@ Physically confirmed:
 - physical click detected
 - generated shared callback executed
 - generated user hook executed
+- resized and visible-bounds-fitted artwork matched Canvas and Browser Preview
+- generated contain-fit scaling used final persisted component geometry
 
 Monitor output:
 
@@ -1279,6 +1328,8 @@ Physically confirmed:
 - saved initial ON state displayed
 - `FG_Set_*` public setter generated
 - Light remained non-clickable
+- resized and visible-bounds-fitted artwork matched Canvas and Browser Preview
+- common OFF/ON contain scaling used final persisted component geometry
 - firmware remained stable
 
 ### Interactive Toggle Switch input path
@@ -1335,6 +1386,9 @@ The Button, exercised Toggle Switch, Three-Position input-hook path, and shared 
 - Keyboard exporter geometry, call-order and control-width regressions pass;
 - State Sheet and crop-pipeline tests pass;
 - Three-Position generated runtime regressions pass;
+- Button final-geometry, registry-dimension, PNG IHDR, LVGL descriptor fallback and linked-crop export regressions pass;
+- Light final-geometry, common OFF/ON scale, centring, initial-state and linked-crop export regressions pass;
+- Canvas, Browser Preview, live/standalone generator and persistence regressions preserve geometry ownership;
 - TypeScript validation passes;
 - export-server syntax/regression validation passes where applicable;
 - scoped diff validation for this subsystem passes.
@@ -1349,6 +1403,8 @@ Do not preserve historical suite totals here. Unrelated repository fixtures or p
 | Button hook is absent from export result | `ForgeUILvglExport.ts` Button branch | `userEventHooks` set and hook naming |
 | Button hook name is wrong or duplicated | hook-name helpers in `ForgeUILvglExport.ts` | component name, asset label/name, uniqueness set |
 | Button visual state is wrong | `fg_interactive_button_event_cb` generation | per-instance Normal/Pressed sources |
+| Button export ignores resized geometry | `ForgeUILvglExport.ts` Button branch | persisted component `w/h`, parent size and child image centring |
+| Button hardware artwork remains at native size | generated `lv_image_set_scale(...)` | Normal/Pressed contain scale and dimension fallback path |
 | Button CLICKED does not reach hook | Button event registration | `.clicked_cb`, `95_UserEvents.h/.c` |
 | Toggle hook is absent | Toggle branch in `ForgeUILvglExport.ts` | `userEventHooks`, sanitized `_Toggled` name, and `generateUserEventFiles()` |
 | Toggle callback receives the wrong bool | generated `fg_toggle_input_event_cb()` | inversion order, `fg_toggle_input_set()`, and `.toggled_cb` |
@@ -1367,6 +1423,15 @@ Do not preserve historical suite totals here. Unrelated repository fixtures or p
 | Light declaration is missing from header | `publicApiDeclarations` export result | Header payload and `generateStudioExportHeader()` |
 | Light starts in wrong state | Light export branch | saved `initialState` and initial image symbol |
 | Light is clickable or generates a hook | Light export branch | remove Button-style callback/hook behavior |
+| Light export ignores resized geometry | `ForgeUILvglExport.ts` Light branch | persisted component `x/y/w/h`, transparent container and centred child image |
+| OFF/ON state change alters visible size or position | generated Light contain-scale call | common state-pair scale, identical centring and linked crop dimensions |
+| Numeric contain scale is wrong | contain-scale calculation in `ForgeUILvglExport.ts` | final component dimensions and both state-image dimensions |
+| Legacy image emits the wrong scale | `forgeUIResolveUploadedAssetDimensions()` | registry metadata, PNG IHDR bytes, generated LVGL descriptor helper, safe 256 fallback |
+| PNG IHDR fallback is not used | `ForgeUIUploadedAssetRegistry.ts` | data-URL decoding and `forgeUIParsePngDimensions()` |
+| LVGL descriptor fallback is missing | generated Button or Light contain-scale helper | both `lv_image_dsc_t.header.w/h` values and scale-256 guard |
+| Fitted artwork exports original state symbols | kind-specific Interactive Asset state IDs | linked cropped uploaded assets, resolver and `assetSources` |
+| Visible-artwork fitting changes original uploads | `ForgeUITwoStateVisibleBounds.ts` | linked crop registration and state-reference replacement |
+| Configured preview remains stale after asset replacement | kind-specific Canvas preview | Interactive Asset registry event and uploaded-asset registry refresh; this occurs before generated export |
 | Status Indicator setter is missing | Binary Output export preparation in `ForgeUILvglExport.ts` | kind-aware lookup, LVGL readiness, and unique API name |
 | Status Indicator starts in wrong state | Status Indicator export branch | saved `initialState` and per-instance runtime record |
 | Status Indicator looks stretched in Canvas or Browser Preview | `InteractiveStatusIndicatorPreview.tsx` | intrinsic image dimensions and centered contain-fit styles; this is outside generated firmware ownership |
@@ -1401,12 +1466,29 @@ Do not preserve historical suite totals here. Unrelated repository fixtures or p
 | Linker reports missing Button callback | `95_UserEvents.h/.c` | exact generated hook name |
 | Linker reports missing Binary Output setter | `90_Studio_Export.h/.c` | exact Light or Status Indicator setter declaration/definition |
 | Physical behavior differs from export | generated C and symbols | LVGL object wiring and copied asset sources |
+| Canvas, Browser Preview, live and standalone sizes differ | persisted component geometry and `generateForgeUILvglCode()` | shared generator result, contain-fit scale, centring and selected linked state assets |
 
 ## File responsibility summary
 
 ### `studio/src/forgeui/ForgeUILvglExport.ts`
 
-Owns generated LVGL source, all five Interactive Asset branches, shared Button/Toggle/Three-Position/Binary Output runtimes, Keyboard native map/alignment/control widths/styles/final geometry ordering, per-instance records, sanitized unique hook names, setter names, uploaded State Sheet asset consumption, and all exporter metadata. Never writes files directly.
+Owns generated LVGL source, all five Interactive Asset branches, shared Button/Toggle/Three-Position/Binary Output runtimes, Button/Light contain-fit calculations and descriptor helpers, Keyboard native map/alignment/control widths/styles/final geometry ordering, per-instance records, sanitized unique hook names, setter names, linked cropped asset consumption, and all exporter metadata. Never writes files directly.
+
+### `studio/src/forgeui/ForgeUIUploadedAssetRegistry.ts`
+
+Owns uploaded image records, intrinsic dimension metadata, alpha-content metadata, PNG IHDR parsing and the registry-first dimension resolution used before generated LVGL descriptor fallback.
+
+### `studio/src/forgeui/interactive/ForgeUITwoStateVisibleBounds.ts`
+
+Owns the non-destructive shared two-state alpha union, component-geometry mapping and linked crop generation used by Button and Light before export.
+
+### `studio/src/forgeui/interactive/ForgeUIInteractiveButtonVisibleBounds.ts`
+
+Owns the Button-facing Normal/Pressed wrapper over shared visible-bounds fitting.
+
+### `studio/src/forgeui/interactive/ForgeUIInteractiveLightVisibleBounds.ts`
+
+Owns the Light-facing OFF/ON wrapper and linked fitted-asset naming over shared visible-bounds fitting.
 
 ### `studio/src/components/Header.tsx`
 
@@ -1477,6 +1559,13 @@ Preserve these rules:
 35. Direct Creator access across all five Interactive Assets does not change generated API direction.
 36. Status Indicator Canvas Preview may toggle local state for visual verification, but temporary preview state is never exported.
 37. Generated Status Indicator LVGL remains non-clickable and Binary Output state remains developer-controlled through `FG_Set_*`.
+38. Component geometry becomes authoritative after placement; reusable Interactive Asset dimensions do not overwrite persisted component geometry during export.
+39. Generated Button and Light LVGL position and size always use persisted component `x/y/w/h`.
+40. Interactive Asset families that export two-state contained artwork reuse the common contain-fit scaling model rather than inventing independent geometry rules.
+41. Legacy image dimensions resolve in this order: uploaded-asset registry metadata, PNG IHDR, generated LVGL descriptor dimensions, then safe scale 256.
+42. Button Normal/Pressed and Light OFF/ON each use one common state-pair scale and centred child-image placement.
+43. Canvas, Browser Preview, live firmware and standalone export must remain visually equivalent for the same persisted component geometry and state assets.
+44. Visible-artwork fitting exports linked cropped state assets and never modifies the original uploaded images.
 
 ## Extension rule
 
@@ -1505,6 +1594,8 @@ Future generated APIs must follow the established direction model:
 Future output controls should extend the Binary Output Runtime and expose generated `FG_Set_*` APIs without duplicating `fg_binary_output_t`, `fg_binary_output_set()`, or shared setter generation.
 
 Future controls must extend the existing exporter, export-result metadata, Header transport, export-server materialization, generated files, and ownership model. They must not introduce a parallel exporter, a second hook generator, a second generated-header system, or a separate firmware API layer.
+
+Any compatible two-state artwork family must reuse the established geometry path: component-authoritative bounds, registry metadata, PNG IHDR recovery, LVGL descriptor fallback, one safe contain scale and centred image placement. If it supports visible-artwork fitting, it must create linked cropped assets through the shared two-state visible-bounds framework and preserve original uploads.
 
 Generated export also supports reusable generation workflows:
 

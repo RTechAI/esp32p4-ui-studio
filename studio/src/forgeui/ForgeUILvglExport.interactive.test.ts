@@ -1,4 +1,5 @@
 import {
+  calculateInteractiveButtonContainScale,
   calculateToggleContainScale,
   generateForgeUILvglCode,
 } from './ForgeUILvglExport'
@@ -32,6 +33,25 @@ const createUploadedAsset = (
   lvgl: `fg_upload_${id}`,
   cFile: `assets/uploads/fg_upload_${id}.c`,
 })
+
+const createPngDataUrl = (
+  width: number,
+  height: number,
+) => {
+  const bytes = new Uint8Array(24)
+  bytes.set([
+    0x89, 0x50, 0x4e, 0x47,
+    0x0d, 0x0a, 0x1a, 0x0a,
+  ])
+  const view = new DataView(bytes.buffer)
+  view.setUint32(8, 13)
+  bytes.set([0x49, 0x48, 0x44, 0x52], 12)
+  view.setUint32(16, width)
+  view.setUint32(20, height)
+  return `data:image/png;base64,${btoa(
+    String.fromCharCode(...bytes),
+  )}`
+}
 
 describe('Interactive Button LVGL export compatibility', () => {
   beforeEach(() => {
@@ -129,6 +149,207 @@ describe('Interactive Button LVGL export compatibility', () => {
     )
   })
 
+  it.each([
+    [200, 100],
+    [420, 100],
+    [200, 240],
+    [420, 160],
+    [200, 200],
+    [760, 180],
+  ])(
+    'exports final Interactive Button canvas geometry %sx%s',
+    (width, height) => {
+      const normal = {
+        ...createUploadedAsset('button_geometry_normal'),
+        width: 200,
+        height: 100,
+      }
+      const pressed = {
+        ...createUploadedAsset('button_geometry_pressed'),
+        width: 200,
+        height: 100,
+      }
+      forgeUIAddUploadedAssets([normal, pressed])
+      const asset = {
+        ...createDefaultInteractiveButtonAsset('geometry-button'),
+        label: 'Geometry',
+        normalAssetId: normal.id,
+        pressedAssetId: pressed.id,
+      }
+      registerInteractiveAsset(asset)
+      const result = generateForgeUILvglCode({
+        root: {
+          id: 'root',
+          parent: 'root',
+          type: 'Box',
+          props: {},
+          children: ['button'],
+        },
+        button: {
+          id: 'button',
+          parent: 'root',
+          type: 'InteractiveButton',
+          props: {
+            interactiveAssetId: asset.id,
+            w: String(width),
+            h: String(height),
+          },
+          children: [],
+        },
+      })
+
+      expect(result.code).toContain(
+        `lv_obj_set_size(obj1, ${width}, ${height});`,
+      )
+    },
+  )
+
+  it('contain-fits both Button states against resized component geometry', () => {
+    const normal = {
+      ...createUploadedAsset('resized_normal'),
+      width: 200,
+      height: 100,
+    }
+    const pressed = {
+      ...createUploadedAsset('resized_pressed'),
+      width: 180,
+      height: 90,
+    }
+    forgeUIAddUploadedAssets([normal, pressed])
+    const asset = {
+      ...createDefaultInteractiveButtonAsset('resized-button'),
+      label: 'Resized',
+      width: 160,
+      height: 56,
+      normalAssetId: normal.id,
+      pressedAssetId: pressed.id,
+    }
+    registerInteractiveAsset(asset)
+    const components: IComponents = {
+      root: {
+        id: 'root',
+        parent: 'root',
+        type: 'Box',
+        props: {},
+        children: ['button'],
+      },
+      button: {
+        id: 'button',
+        parent: 'root',
+        type: 'InteractiveButton',
+        props: {
+          interactiveAssetId: asset.id,
+          x: 12,
+          y: 18,
+          w: '420',
+          h: '160',
+        },
+        children: [],
+      },
+    }
+
+    const result = generateForgeUILvglCode(components)
+
+    expect(result.code).toContain(
+      'lv_obj_set_size(obj1, 420, 160);',
+    )
+    expect(result.code).toContain(
+      'lv_image_set_scale(obj1_img, 410);',
+    )
+    expect(result.code).toContain(
+      'lv_obj_center(obj1_img);',
+    )
+    expect(result.code).not.toContain(
+      'lv_obj_set_size(obj1, 160, 56);',
+    )
+
+    const reloaded = JSON.parse(
+      JSON.stringify(components),
+    ) as IComponents
+    expect(generateForgeUILvglCode(reloaded).code)
+      .toContain('lv_obj_set_size(obj1, 420, 160);')
+  })
+
+  it('keeps legacy Button image scaling safe without image dimensions', () => {
+    const normal = createUploadedAsset('legacy_normal')
+    const pressed = createUploadedAsset('legacy_pressed')
+    forgeUIAddUploadedAssets([normal, pressed])
+    const asset = {
+      ...createDefaultInteractiveButtonAsset('legacy-button'),
+      normalAssetId: normal.id,
+      pressedAssetId: pressed.id,
+    }
+    registerInteractiveAsset(asset)
+    const result = generateForgeUILvglCode({
+      root: {
+        id: 'root',
+        parent: 'root',
+        type: 'Box',
+        props: {},
+        children: ['button'],
+      },
+      button: {
+        id: 'button',
+        parent: 'root',
+        type: 'InteractiveButton',
+        props: { interactiveAssetId: asset.id },
+        children: [],
+      },
+    })
+
+    expect(result.code).toContain(
+      'lv_obj_set_size(obj1, 120, 40);',
+    )
+    expect(result.code).toContain(
+      'lv_image_set_scale(obj1_img, fg_interactive_button_contain_scale(&fg_upload_legacy_normal, &fg_upload_legacy_pressed, 120, 40));',
+    )
+  })
+
+  it('recovers legacy Button dimensions from PNG IHDR bytes', () => {
+    const normal = {
+      ...createUploadedAsset('png_legacy_normal'),
+      browserSrc: createPngDataUrl(200, 100),
+    }
+    const pressed = {
+      ...createUploadedAsset('png_legacy_pressed'),
+      browserSrc: createPngDataUrl(200, 100),
+    }
+    forgeUIAddUploadedAssets([normal, pressed])
+    const asset = {
+      ...createDefaultInteractiveButtonAsset('png-legacy-button'),
+      normalAssetId: normal.id,
+      pressedAssetId: pressed.id,
+    }
+    registerInteractiveAsset(asset)
+    const result = generateForgeUILvglCode({
+      root: {
+        id: 'root',
+        parent: 'root',
+        type: 'Box',
+        props: {},
+        children: ['button'],
+      },
+      button: {
+        id: 'button',
+        parent: 'root',
+        type: 'InteractiveButton',
+        props: {
+          interactiveAssetId: asset.id,
+          w: 477,
+          h: 404,
+        },
+        children: [],
+      },
+    })
+
+    expect(result.code).toContain(
+      'lv_obj_set_size(obj1, 477, 404);',
+    )
+    expect(result.code).toContain(
+      'lv_image_set_scale(obj1_img, 611);',
+    )
+  })
+
   it('exports a direct, non-clickable Light and public setter', () => {
     const offAsset = createUploadedAsset('status_off')
     const onAsset = createUploadedAsset('status_on')
@@ -176,10 +397,15 @@ describe('Interactive Button LVGL export compatibility', () => {
     expect(result.code).toContain('typedef struct')
     expect(result.code).toContain('} fg_binary_output_t;')
     expect(result.code).toContain('static void fg_binary_output_set(')
-    expect(result.code).toContain('fg_status_light_output.image = lv_image_create(parent);')
+    expect(result.code).toContain('lv_obj_t * fg_status_light_output_obj = lv_obj_create(parent);')
+    expect(result.code).toContain('fg_status_light_output.image = lv_image_create(fg_status_light_output_obj);')
     expect(result.code).toContain('fg_binary_output_set(&fg_status_light_output, false);')
-    expect(result.code).toContain('lv_obj_set_pos(fg_status_light_output.image, 12, 34);')
-    expect(result.code).toContain('lv_obj_set_size(fg_status_light_output.image, 400, 300);')
+    expect(result.code).toContain('lv_obj_set_pos(fg_status_light_output_obj, 12, 34);')
+    expect(result.code).toContain('lv_obj_set_size(fg_status_light_output_obj, 400, 300);')
+    expect(result.code).toContain(
+      'lv_image_set_scale(fg_status_light_output.image, fg_interactive_light_contain_scale(&fg_upload_status_off, &fg_upload_status_on, 400, 300));',
+    )
+    expect(result.code).toContain('lv_obj_center(fg_status_light_output.image);')
     expect(result.code).toContain('lv_obj_clear_flag(fg_status_light_output.image, LV_OBJ_FLAG_CLICKABLE);')
     expect(result.code).toContain('lv_obj_clear_flag(fg_status_light_output.image, LV_OBJ_FLAG_SCROLLABLE);')
     expect(result.code).toContain('void FG_Set_Status_Light(bool enabled)')
@@ -188,6 +414,97 @@ describe('Interactive Button LVGL export compatibility', () => {
     expect(result.code).toContain('.on_src = &fg_upload_status_on,')
     expect(result.code).not.toContain('FG_On_StatusLight')
     expect(result.code).not.toContain('lv_button_create(parent);')
+  })
+
+  it('contain-fits both Light states from registry dimensions and centres them', () => {
+    const offAsset = {
+      ...createUploadedAsset('scaled_light_off'),
+      width: 100,
+      height: 100,
+    }
+    const onAsset = {
+      ...createUploadedAsset('scaled_light_on'),
+      width: 80,
+      height: 100,
+    }
+    forgeUIAddUploadedAssets([offAsset, onAsset])
+    const light = {
+      ...createDefaultInteractiveLightAsset('scaled-light'),
+      offAssetId: offAsset.id,
+      onAssetId: onAsset.id,
+    }
+    registerInteractiveAsset(light)
+
+    const result = generateForgeUILvglCode({
+      root: {
+        id: 'root', parent: 'root', type: 'Box',
+        props: {}, children: ['light'],
+      },
+      light: {
+        id: 'light', parent: 'root', type: 'InteractiveLight',
+        props: {
+          interactiveAssetId: light.id,
+          x: 50, y: 60, w: 400, h: 300,
+        },
+        children: [],
+      },
+    })
+
+    expect(result.code).toContain(
+      'lv_obj_set_pos(fg_status_light_output_obj, 50, 60);',
+    )
+    expect(result.code).toContain(
+      'lv_obj_set_size(fg_status_light_output_obj, 400, 300);',
+    )
+    expect(result.code).toContain(
+      'lv_image_set_scale(fg_status_light_output.image, 768);',
+    )
+    expect(result.code).toContain(
+      'lv_obj_center(fg_status_light_output.image);',
+    )
+    expect(result.code.match(
+      /lv_image_set_scale\(fg_status_light_output\.image/g,
+    )).toHaveLength(1)
+  })
+
+  it('resolves Light dimensions from PNG IHDR before descriptor fallback', () => {
+    const offAsset = {
+      ...createUploadedAsset('ihdr_light_off'),
+      browserSrc: createPngDataUrl(200, 100),
+    }
+    const onAsset = {
+      ...createUploadedAsset('ihdr_light_on'),
+      browserSrc: createPngDataUrl(200, 100),
+    }
+    forgeUIAddUploadedAssets([offAsset, onAsset])
+    const light = {
+      ...createDefaultInteractiveLightAsset('ihdr-light'),
+      offAssetId: offAsset.id,
+      onAssetId: onAsset.id,
+    }
+    registerInteractiveAsset(light)
+
+    const result = generateForgeUILvglCode({
+      root: {
+        id: 'root', parent: 'root', type: 'Box',
+        props: {}, children: ['light'],
+      },
+      light: {
+        id: 'light', parent: 'root', type: 'InteractiveLight',
+        props: {
+          interactiveAssetId: light.id,
+          w: 400, h: 300,
+        },
+        children: [],
+      },
+    })
+
+    expect(result.code).toContain(
+      'lv_image_set_scale(fg_status_light_output.image, 512);',
+    )
+    expect(result.code).not.toContain(
+      'lv_image_set_scale(fg_status_light_output.image, fg_interactive_light_contain_scale',
+    )
   })
 
   it('characterizes the public Light setter and guarded OFF/ON switching contract', () => {
@@ -274,8 +591,8 @@ describe('Interactive Button LVGL export compatibility', () => {
       'void FG_Set_Warning_Light_2(bool enabled);',
     ])
     expect(reordered.publicApiDeclarations).toEqual(first.publicApiDeclarations)
-    expect(first.code).toContain('fg_warning_light_output.image = lv_image_create(parent);')
-    expect(reordered.code).toContain('fg_warning_light_2_output.image = lv_image_create(parent);')
+    expect(first.code).toContain('fg_warning_light_output.image = lv_image_create(fg_warning_light_output_obj);')
+    expect(reordered.code).toContain('fg_warning_light_2_output.image = lv_image_create(fg_warning_light_2_output_obj);')
     expect(first.code.match(/static void fg_binary_output_set\(/g)).toHaveLength(1)
     expect(first.code).toContain(
       'fg_binary_output_set(&fg_warning_light_output, enabled);',
@@ -320,7 +637,7 @@ describe('Interactive Button LVGL export compatibility', () => {
     expect(firstExport.code).toContain('static fg_binary_output_t fg_status_light_output = {')
     expect(firstExport.code).toContain('static fg_binary_output_t fg_status_light_2_output = {')
     expect(firstExport.code).toContain('static fg_binary_output_t fg_status_light_3_output = {')
-    expect(firstExport.code.match(/\.image = lv_image_create\(parent\);/g)).toHaveLength(3)
+    expect(firstExport.code.match(/\.image = lv_image_create\(fg_status_light(?:_2|_3)?_output_obj\);/g)).toHaveLength(3)
     expect(firstExport.code.match(/LV_IMAGE_DECLARE\(fg_upload_shared_off\)/g)).toHaveLength(1)
     expect(firstExport.code.match(/LV_IMAGE_DECLARE\(fg_upload_shared_on\)/g)).toHaveLength(1)
     expect(firstExport.assetSources).toEqual(expect.arrayContaining([
@@ -358,8 +675,8 @@ describe('Interactive Button LVGL export compatibility', () => {
       'void FG_Set_Alarm_Active(bool enabled);',
       'void FG_Set_Pump_Ready(bool enabled);',
     ])
-    expect(result.code).toContain('fg_alarm_active_output.image = lv_image_create(parent);')
-    expect(result.code).toContain('fg_pump_ready_output.image = lv_image_create(parent);')
+    expect(result.code).toContain('fg_alarm_active_output.image = lv_image_create(fg_alarm_active_output_obj);')
+    expect(result.code).toContain('fg_pump_ready_output.image = lv_image_create(fg_pump_ready_output_obj);')
   })
 
   it('keeps Button hooks intact in a mixed Button and Light export', () => {
@@ -644,6 +961,40 @@ describe('Interactive Button LVGL export compatibility', () => {
       source.cFile,
     )
     expect(result.code).not.toContain(source.lvgl)
+  })
+})
+
+describe('Interactive Button contain scale', () => {
+  it('preserves aspect ratio and allows contained upscaling', () => {
+    expect(calculateInteractiveButtonContainScale(
+      420,
+      160,
+      [
+        { width: 200, height: 100 },
+        { width: 180, height: 90 },
+      ],
+    )).toBe(410)
+    expect(calculateInteractiveButtonContainScale(
+      200,
+      200,
+      [{ width: 200, height: 100 }],
+    )).toBe(256)
+  })
+
+  it('uses the safest common scale and rejects invalid metadata', () => {
+    expect(calculateInteractiveButtonContainScale(
+      300,
+      200,
+      [
+        { width: 150, height: 100 },
+        { width: 300, height: 150 },
+      ],
+    )).toBe(256)
+    expect(calculateInteractiveButtonContainScale(
+      300,
+      200,
+      [{ width: undefined, height: 100 }],
+    )).toBeUndefined()
   })
 })
 

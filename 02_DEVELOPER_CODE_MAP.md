@@ -2,7 +2,7 @@
 
 ## Current save point
 
-**FORGEUI_ALL_FIVE_DIRECT_CREATORS__STATUS_INDICATOR_PREVIEW_POLISH__THREE_POSITION_STATE_SHEET__LINKED_CROPS__KEYBOARD_LVGL_PARITY__READY_FOR_STUDIO_POLISH__2026-07-26**
+**FORGEUI_INTERACTIVE_BUTTON_AND_LIGHT__WORKFLOW_POLISH__SHARED_VISIBLE_BOUNDS__CANVAS_RESIZE__LVGL_PARITY__ESP32P4_VALIDATED__2026-07-26**
 
 ## Purpose
 
@@ -42,6 +42,8 @@ The shared framework is proven through:
 - LVGL export
 - ESP-IDF build
 - physical ESP32-P4 runtime where recorded below
+
+Interactive Button and Interactive Light additionally prove the shared selection-border resize, continuous Canvas clamping, registry-driven preview refresh, non-destructive two-state visible-bounds workflow, linked fitted assets, legacy dimension recovery and centred LVGL contain-fit path. Their component geometry remains authoritative across Canvas, Browser Preview and generated firmware after placement.
 
 The Physical ESP32-P4 proof section records the current Button, Toggle Switch, Three-Position Toggle and Light hardware results. Three-Position LEFT/CENTER/RIGHT touch selection, generated callback output and stable runtime are proven. Status Indicator remains documented at the level supported by its current project record. State Sheet generation, linked crop editing and keyboard LVGL parity extend the proven Studio-to-runtime pipeline.
 
@@ -83,6 +85,8 @@ Interactive Assets panel
         ↓
       physical ESP32-P4 runtime
 ```
+
+Placed Button and Light geometry follows one ownership path: the Canvas component owns `x/y/w/h`; `PreviewContainer.tsx` owns selection-border resizing and boundary clamping; kind-specific previews resolve current registry artwork; optional visible-bounds fitting updates linked artwork and component geometry explicitly; and `ForgeUILvglExport.ts` consumes the same final geometry for centred contain-fit output.
 
 Direct Creator ownership:
 
@@ -351,7 +355,7 @@ Exact Three-Position helpers include:
 - `getInteractiveThreePositionDimensions()`
 - `getInteractiveThreePositionComponentProps()`
 
-All Canvas assignment helpers write:
+Canvas assignment helpers resolve:
 
 ```text
 interactiveAssetId
@@ -359,7 +363,28 @@ w
 h
 ```
 
-Resolvers do not mutate registries or Redux state.
+Fresh placeholder assignment may adopt the resolved asset dimensions. Existing configured components preserve their current geometry. Resolvers do not mutate registries or Redux state.
+
+#### `src/forgeui/interactive/ForgeUITwoStateVisibleBounds.ts`
+
+Owns reusable two-state artwork-bounds behavior:
+
+- validating measured intrinsic dimensions and alpha-content bounds
+- calculating one stable union across two visual states
+- mapping that union into component geometry
+- generating two linked cropped uploaded assets
+- preserving the original uploaded assets
+- recording full-content metadata on completed fitted assets when requested
+
+Button and Light expose type-named wrappers around this implementation. Do not duplicate alpha-union, crop-canvas or linked-conversion logic in another two-state helper.
+
+#### `src/forgeui/interactive/ForgeUIInteractiveButtonVisibleBounds.ts`
+
+Owns Button-facing Normal/Pressed names and error contracts over the shared two-state visible-bounds implementation.
+
+#### `src/forgeui/interactive/ForgeUIInteractiveLightVisibleBounds.ts`
+
+Owns Light-facing OFF/ON names, linked fitted-asset prefixes and error contracts over the shared two-state visible-bounds implementation.
 
 #### `src/forgeui/interactive/index.ts`
 
@@ -389,11 +414,15 @@ Do not replace this with public URL routing or let one Creator consume another t
 
 #### `src/components/editor/PreviewContainer.tsx`
 
-Owns Canvas right-click Creator access for Button, Toggle Switch, Three-Position Toggle, Light and Status Indicator. It selects the source component, opens a portal-based context menu, dismisses it on outside click or Escape, replaces any existing Canvas Creator menu, and dispatches configured or unconfigured navigation without mutating assets. Status Indicator exposes `Open Status Indicator Creator`.
+Owns Canvas right-click Creator access for Button, Toggle Switch, Three-Position Toggle, Light and Status Indicator. It selects the source component, opens a portal-based context menu, dismisses it on outside click or Escape, replaces any existing Canvas Creator menu, and dispatches configured or unconfigured navigation without mutating assets. It also owns the shared selection-border resize interaction, eight edge/corner hit zones, pointer capture lifecycle, resize-versus-drag separation and continuous Canvas-boundary clamping. Status Indicator exposes `Open Status Indicator Creator`.
 
 #### `src/components/inspector/Inspector.tsx` and Creator helpers
 
-Inspector mounts type-specific onboarding helpers. The Light helper remains visible until the linked Light and both uploaded visuals resolve. The Three-Position helper remains visible until LEFT, CENTER and RIGHT visuals resolve. Button and Toggle helpers follow the same ownership pattern.
+Inspector mounts type-specific Creator helpers. Button and Light helpers remain available for configured components as workflow surfaces; they reopen the exact linked asset and own their visible-bounds actions. Missing or incomplete assets receive onboarding guidance. The Three-Position helper remains visible until LEFT, CENTER and RIGHT visuals resolve. Toggle retains its existing helper ownership pattern.
+
+`src/components/inspector/InteractiveButtonCreatorHelper.tsx` owns the live generated callback preview, inline duplicate warning, exact linked-asset reopening and Button `Fit Bounds to Visible Artwork` action.
+
+`src/components/inspector/InteractiveLightCreatorHelper.tsx` owns configured and incomplete Light helper states, exact linked-asset reopening and Light `Fit Bounds to Visible Artwork` action.
 
 `src/components/inspector/InteractiveStatusIndicatorCreatorHelper.tsx` owns Status Indicator onboarding when no asset is assigned or when the linked OFF or ON visual is missing. It hides once both uploaded visuals resolve and opens the Status Indicator Creator without saving or assigning.
 
@@ -410,6 +439,8 @@ Owns the framework-level Studio experience:
 - opening the selected designer
 - initializing the selected draft
 - Button draft and save behavior
+- Button `200 × 100` new-draft defaults
+- lowest-available normalized `Button N` Label selection across registered Button assets
 - coordinating the Light designer
 - coordinating the Status Indicator designer
 - coordinating the Toggle Switch path through the shared OFF/ON designer
@@ -578,6 +609,12 @@ Interactive Assets store uploaded asset IDs, not image blobs or generated C sour
 - generated C asset source path
 - conversion status
 - uploaded-asset persistence
+- intrinsic `width` and `height` metadata
+- measured alpha-content bounds
+- PNG IHDR dimension recovery when explicit metadata is unavailable
+- registry update events used by configured and unconfigured previews
+
+`forgeUIRecordRenderedImageMetadata()` records intrinsic dimensions and alpha-content bounds from rendered images. `forgeUIResolveUploadedAssetDimensions()` resolves explicit registry metadata first and PNG IHDR data second; generated LVGL descriptor dimensions remain the exporter fallback.
 
 Do not copy uploaded image data into an Interactive Asset record.
 
@@ -610,7 +647,8 @@ Owns client export validation and diagnostic reporting:
 - generated API validation
 - Toggle and Three-Position callback validation
 - Three-Position enum and runtime-contract validation
-- duplicate detection
+- normalized Button callback duplicate detection grouped by generated callback
+- user-facing Button conflict details and actionable Label guidance
 - generated asset-source validation
 - grouped export diagnostics
 
@@ -648,13 +686,24 @@ State-image references:
 
 Button-specific data also includes label and visual fallback state.
 
+New Button drafts use consistent `200 × 100` dimensions. Default Labels use the lowest available normalized `Button N` callback identity across all registered Button assets; existing assets and user-entered Labels are never silently renamed.
+
+#### `src/forgeui/interactive/ForgeUIInteractiveButtonHook.ts`
+
+Owns Button callback normalization, generated callback names and callback previews. Creation defaults, Inspector warnings, validation and LVGL export reuse this naming contract.
+
 ### Studio behavior
 
 - AI generates Normal and Pressed state images.
 - The first result maps to `normalAssetId`.
 - The second result maps to `pressedAssetId`.
 - `Use on Selected` is enabled only for an `InteractiveButton` component.
-- Assignment writes `interactiveAssetId`, width, and height.
+- Fresh assignment may adopt asset dimensions; replacing an existing configured asset preserves component geometry.
+- Component geometry becomes authoritative after placement.
+- The configured Inspector displays the generated callback preview and an inline duplicate warning.
+- Export validation groups every normalized collision under its generated callback instead of emitting pairwise duplicates.
+- `Fit Bounds to Visible Artwork` measures Normal/Pressed alpha content and creates one stable union crop with two linked uploaded assets.
+- Fitting preserves original uploads and is idempotent.
 - Registry and uploaded-asset persistence restore the assignment after Studio restart.
 
 ### Preview and Canvas rendering
@@ -663,7 +712,7 @@ Button-specific data also includes label and visual fallback state.
 
 Owns presentation and pointer-driven Normal/Pressed preview behavior.
 
-It renders resolved uploaded assets. It does not access the registry directly.
+It renders resolved uploaded assets. It does not access the registry directly. Rendered image loads feed shared intrinsic-dimension and alpha-content measurement.
 
 #### `src/components/editor/previews/InteractiveButtonCanvasPreview.tsx`
 
@@ -674,8 +723,13 @@ Owns Canvas integration for `InteractiveButton`:
 - resolves Normal and Pressed uploaded assets
 - resolves asset dimensions with component fallbacks
 - renders `InteractiveButtonPreview`
+- responds to Interactive Asset and uploaded-asset registry update events
+- unmounts the unconfigured placeholder immediately after assignment
+- uses component `w/h` as the authoritative placed bounds
 
 Canvas preview shows Pressed while held and restores Normal on release.
+
+Selection, movement and resizing are owned by the shared Canvas wrapper. Selected Buttons receive eight edge/corner resize zones, continuous Canvas clamping and live Inspector `x/y/w/h` updates; resize pointer handling does not trigger pressed or clicked preview behavior.
 
 ### Runtime behavior
 
@@ -686,6 +740,10 @@ The single LVGL exporter emits:
 - per-instance runtime data
 - shared Button event handling
 - a generated developer click hook
+- one Normal/Pressed contain-fit scale
+- centred rendering inside final component bounds
+
+Dimension resolution uses uploaded registry metadata, then PNG IHDR recovery, then generated `lv_image_dsc_t.header.w/h`; scale 256 is used only when reliable dimensions are unavailable.
 
 Event behavior:
 
@@ -934,18 +992,22 @@ State-image references:
 
 - AI generates OFF and ON state images.
 - Canvas right-click and incomplete-state Inspector onboarding open the direct Light Creator.
-- Configured components reopen the linked Light asset; unconfigured components open a fresh unsaved draft.
+- Configured components reopen the exact linked Light asset; unconfigured components open a fresh unsaved draft.
+- The compact configured Inspector helper remains mounted after assignment.
 - The first result maps to `offAssetId`.
 - The second result maps to `onAssetId`.
 - `Use on Selected` is enabled only for an `InteractiveLight` component.
-- Assignment writes `interactiveAssetId`, width, and height.
+- Fresh placeholders conditionally adopt newly created asset dimensions; existing configured Lights preserve component geometry.
+- Component geometry is authoritative after placement.
+- `Fit Bounds to Visible Artwork` measures OFF/ON alpha content and creates one stable union crop with two linked uploaded assets.
+- Fitting preserves original uploads and is idempotent.
 - Registry and uploaded-asset persistence restore the assignment after Studio restart.
 
 ### Preview and Canvas rendering
 
 #### `src/forgeui/interactive/InteractiveLightPreview.tsx`
 
-Owns Light presentation and optional preview controls.
+Owns Light presentation, optional preview controls and shared intrinsic-dimension and alpha-content measurement on image load.
 
 #### `src/components/editor/previews/InteractiveLightCanvasPreview.tsx`
 
@@ -958,16 +1020,22 @@ Owns Canvas integration for `InteractiveLight`:
 - maintains a temporary Canvas preview state
 - renders `InteractiveLightPreview`
 - renders `UnconfiguredLightPlaceholder` when the Light or either visual is unresolved
+- responds to same-ID Interactive Asset replacement and uploaded-asset registry updates
+- replaces configured and unconfigured rendering without layered previews
+- uses component `w/h` as the authoritative placed bounds
 
-`UnconfiguredLightPlaceholder.tsx` owns the responsive lamp SVG, compact icon-only mode, larger OFF/ON hints and muted-green active indicator. `PreviewContainer.tsx` supplies near-white unselected and cyan selected Creator highlighting. `InteractiveLightCreatorHelper.tsx` owns the Inspector onboarding card and hides it once both uploaded visuals resolve.
+`UnconfiguredLightPlaceholder.tsx` owns the responsive lamp SVG, compact icon-only mode, larger OFF/ON hints and muted-green active indicator. `PreviewContainer.tsx` supplies near-white unselected and cyan selected Creator highlighting plus shared selection-border resizing and Canvas clamping. `InteractiveLightCreatorHelper.tsx` owns both configured and incomplete Inspector cards, exact linked-asset reopening and visible-bounds fitting.
 
 Clicking the Canvas preview toggles only local preview state. It does not mutate the saved Interactive Light and does not affect exported firmware.
 
 ### Runtime behavior
 
-The exporter emits Light as a non-clickable LVGL image:
+The exporter emits Light as a transparent component-sized container with a centred non-clickable LVGL image:
 
 - initial image follows the saved `initialState`
+- OFF and ON use one contain-fit scale derived from final component geometry
+- state switching does not change the container position or size
+- dimensions resolve through registry metadata, PNG IHDR and LVGL descriptors before the safe scale-256 fallback
 - no Light click callback is registered
 - no Light event hook is generated in `95_UserEvents`
 - a generated public setter controls the image source
@@ -1244,11 +1312,15 @@ InteractiveStatusIndicator → InteractiveStatusIndicatorCanvasPreview
 
 Canvas components keep only the Interactive Asset reference and component dimensions. Visual records remain in the Interactive Asset and uploaded-asset registries. Every component is rendered through the shared positioning, selection, drag and resize wrapper. Three-Position Toggle follows `PreviewContainer` on Canvas and an explicitly positioned insertion in Browser Preview, preventing origin jumps or early-return omissions.
 
+`PreviewContainer.tsx` owns the shared selected-component border and eight edge/corner resize zones. Resize geometry is normalized for the active direction, clamped continuously to Canvas boundaries, and persisted through normal component property updates so Inspector `x/y/w/h` fields remain live. Resize pointer handling is isolated from component movement and interactive preview input.
+
+After placement, component geometry is authoritative. Preview components consume current component `w/h`; replacing a configured Interactive Asset does not silently restore asset dimensions.
+
 `useDropComponent.ts` gives a newly inserted Status Indicator real `w: 120` and `h: 72` bounds before artwork is assigned. Those dimensions drive the drag placement calculation, Canvas bounds, selection and resize frame, and the responsive placeholder.
 
 ### Assignment contract
 
-All designers use kind-specific resolver helpers to assign:
+All designers use kind-specific resolver helpers to resolve:
 
 ```text
 interactiveAssetId
@@ -1256,7 +1328,7 @@ w
 h
 ```
 
-Assignment updates form state and Redux component props. Do not bypass the normal component property update path.
+Fresh placeholder assignment may apply `w/h` from a newly created asset. Existing configured Button and Light components preserve current `x/y/w/h` during replacement. Assignment updates form state and Redux component props. Do not bypass the normal component property update path.
 
 ## LVGL exporter map
 
@@ -1299,6 +1371,9 @@ It owns:
 - single shared Three-Position Input Runtime generation
 - Three-Position enum and direct local-zone hit testing
 - unique per-instance input runtime records
+- Button and Light two-state contain-fit scale calculation
+- registry and PNG IHDR image-dimension resolution
+- generated LVGL descriptor-based dimension fallback
 
 Do not create:
 
@@ -1323,7 +1398,10 @@ The `InteractiveButton` branch:
 6. creates a parent button and child image;
 7. creates per-instance runtime data;
 8. attaches the shared event callback;
-9. records the generated click hook.
+9. resolves Normal/Pressed dimensions through registry metadata or PNG IHDR;
+10. applies one contain-fit scale, using the LVGL descriptor helper when Studio metadata is unavailable;
+11. centres the child image inside final component bounds;
+12. records the generated click hook.
 
 ### Toggle Switch export branch
 
@@ -1397,10 +1475,13 @@ Light export preparation and the `InteractiveLight` branch:
 3. resolve OFF and ON uploaded assets;
 4. confirm both are LVGL-ready;
 5. add their C sources to `usedAssetSources`;
-6. generate a non-clickable LVGL image;
-7. select the initial source from `initialState`;
-8. generate a unique public `FG_Set_*` API;
-9. switch OFF/ON source inside that setter.
+6. use final persisted component `x/y/w/h` for a transparent container;
+7. create a centred non-clickable child LVGL image;
+8. resolve OFF/ON dimensions through registry metadata or PNG IHDR;
+9. apply one shared OFF/ON contain-fit scale, using generated LVGL descriptors and then scale 256 only as fallbacks;
+10. select the initial source from `initialState`;
+11. generate a unique public `FG_Set_*` API;
+12. switch OFF/ON source inside that setter without changing apparent placement.
 
 No Light event hook is added.
 
@@ -1570,6 +1651,8 @@ Physically confirmed:
 - physical click detected
 - generated callback called
 - generated user hook called
+- resized and visible-bounds-fitted artwork matched Canvas and Browser Preview
+- centred contain-fit scaling matched final component geometry
 
 Monitor output:
 
@@ -1586,6 +1669,8 @@ Physically confirmed:
 - saved initial ON state displayed
 - public setter generated
 - Light remained non-clickable
+- resized and visible-bounds-fitted artwork matched Canvas and Browser Preview
+- shared OFF/ON contain-fit scaling matched final component geometry
 - firmware remained stable
 
 ### Interactive Toggle Switch
@@ -1627,6 +1712,9 @@ Physical Button, Toggle, Three-Position and Light behavior recorded above is pro
 - standard Toggle regressions remain passing
 - Three-Position linked-crop and atomic-registration regressions pass
 - keyboard exporter geometry, ordering and relative-width regressions pass
+- Button default dimensions, unique Labels, grouped callback validation, callback preview, Canvas resize, registry refresh, visible bounds and LVGL scaling regressions pass
+- Light conditional assignment, configured helper, Canvas resize, registry refresh, visible bounds, persistence and LVGL scaling regressions pass
+- shared alpha measurement, two-state union geometry, linked crop and legacy dimension recovery regressions pass
 - TypeScript validation passes
 - scoped diff checks pass
 - known unrelated fixture/source absences are reported separately rather than weakening export validation
@@ -1642,8 +1730,11 @@ Start at the ownership boundary matching the symptom.
 | Canvas Open Creator is missing or opens the wrong designer | `PreviewContainer.tsx` | `ForgeUINavigation.ts`, component type guards, navigation target |
 | Configured Creator opens a blank draft | `ForgeUINavigation.ts` request | `interactiveAssetId`, type-scoped edit request in `ForgeUIInteractiveAssetPanel.tsx` |
 | Unconfigured Creator creates or saves unexpectedly | owning designer new-request effect | registry calls, Save handler, assignment handler |
-| Inspector onboarding is missing or remains after configuration | owning `*CreatorHelper.tsx` | linked Interactive Asset, required uploaded visual IDs, asset-update events |
+| Inspector helper is missing or stale after configuration | owning `*CreatorHelper.tsx` | linked Interactive Asset, required uploaded visual IDs, Interactive Asset and uploaded-asset update events |
 | Button draft/save is wrong | `ForgeUIInteractiveAssetPanel.tsx` | Button model, registry validation |
+| New Button reuses `Button 1` | Button new-draft initialization in `ForgeUIInteractiveAssetPanel.tsx` | all registered Button assets, `ForgeUIInteractiveButtonHook.ts` normalization |
+| Button callback preview or duplicate warning is wrong | `InteractiveButtonCreatorHelper.tsx` | `ForgeUIInteractiveButtonHook.ts`, grouped validation in `ForgeUIExportValidation.ts` |
+| Duplicate Button callbacks produce repeated diagnostics | `ForgeUIExportValidation.ts` | generated callback grouping and Label normalization |
 | Light draft/save is wrong | `InteractiveLightDesigner.tsx` | Light model, registry validation |
 | Toggle draft/save is wrong | `InteractiveLightDesigner.tsx` | Toggle model, selected `assetKind`, registry validation |
 | Toggle OFF/ON preview is wrong | `InteractiveToggleSwitchPreview.tsx` | Canvas preview, resolver, uploaded assets |
@@ -1666,6 +1757,15 @@ Start at the ownership boundary matching the symptom.
 | Shared Three-Position Runtime is duplicated or missing | `ForgeUILvglExport.ts` | `fg_three_way_input_t` / setter / event emission guard |
 | Button Normal/Pressed preview is wrong | `InteractiveButtonPreview.tsx` | `InteractiveButtonCanvasPreview.tsx`, resolver |
 | Light OFF/ON preview is wrong | `InteractiveLightPreview.tsx` | `InteractiveLightCanvasPreview.tsx`, resolver |
+| Configured preview remains a placeholder after assignment | kind-specific Canvas preview update listener | Interactive Asset update event, uploaded-asset update event, same-ID registry replacement |
+| Configured and placeholder previews are layered | kind-specific Canvas preview conditional rendering | resolved asset completeness and registry refresh |
+| Button or Light resize handles are missing | `PreviewContainer.tsx` | selected component state, shared resize capability and edge/corner hit zones |
+| Resize crosses the Canvas boundary or Inspector geometry lags | `PreviewContainer.tsx` | shared clamp calculation and normal component `updateProps` path |
+| Replacing artwork resets component geometry | owning designer assignment handler | fresh-placeholder condition and existing component `x/y/w/h` |
+| Fit Bounds action is disabled unexpectedly | owning `*CreatorHelper.tsx` | intrinsic dimensions and alpha bounds in `ForgeUIUploadedAssetRegistry.ts` |
+| Fit Bounds produces state jitter | `ForgeUITwoStateVisibleBounds.ts` | stable two-state union and linked cropped asset IDs |
+| Repeated Fit Bounds creates more crops | owning visible-bounds helper | completed assets' full-content metadata and idempotent disabled state |
+| Original artwork disappears after fitting | `ForgeUITwoStateVisibleBounds.ts` | linked crop registration and Interactive Asset state-ID replacement only |
 | Light preview changes saved/exported state | `InteractiveLightCanvasPreview.tsx` | local preview state and `initialState` resolution |
 | Status Indicator OFF/ON Browser Preview is wrong | `InteractiveStatusIndicatorPreview.tsx` | Status Indicator model and resolver |
 | Status Indicator Canvas Preview is wrong | `InteractiveStatusIndicatorCanvasPreview.tsx` | kind-aware lookup, uploaded assets, `initialState` |
@@ -1684,8 +1784,10 @@ Start at the ownership boundary matching the symptom.
 | Interactive Asset is missing after restart | `ForgeUIInteractiveAssetPersistence.ts` | registry import and validation |
 | `Use on Selected` does nothing | owning designer/panel | selected component type, resolver component props, Redux update |
 | Canvas resolves the wrong kind | kind-specific Canvas preview | `getInteractiveAssetByKind()` and the five exact kind-aware getters |
-| Button export is wrong | `ForgeUILvglExport.ts` Button branch | uploaded LVGL readiness and asset-source collection |
-| Light export/setter is wrong | `ForgeUILvglExport.ts` Light export map/branch | `initialState`, API naming, uploaded assets |
+| Button export is wrong | `ForgeUILvglExport.ts` Button branch | uploaded LVGL readiness, dimension resolution, contain scale and asset-source collection |
+| Light export/setter is wrong | `ForgeUILvglExport.ts` Light export map/branch | final component geometry, contain scale, centring, `initialState`, API naming and uploaded assets |
+| Hardware image remains at native size | `lv_image_set_scale(...)` in generated `90_Studio_Export.c` | registry dimensions, PNG IHDR recovery, LVGL descriptor helper and final component `w/h` |
+| Canvas and hardware contain-fit sizes differ | `ForgeUILvglExport.ts` contain-scale calculation | both state dimensions, shared scale, child centring and component geometry |
 | Status Indicator export/setter is wrong | `ForgeUILvglExport.ts` Binary Output export map/branch | Status Indicator lookup, `initialState`, API naming, uploaded assets |
 | Binary Output Runtime is duplicated or missing | `ForgeUILvglExport.ts` | shared `fg_binary_output_t` / `fg_binary_output_set()` emission guard |
 | Generated Setter API is wrong | `ForgeUILvglExport.ts` | deterministic output API allocation and export validation |
@@ -1717,11 +1819,20 @@ Start at the ownership boundary matching the symptom.
 
 ### Button rendering paths
 
+- `src/components/editor/PreviewContainer.tsx`
+- `src/components/inspector/InteractiveButtonCreatorHelper.tsx`
+- `src/forgeui/interactive/ForgeUIInteractiveButtonHook.ts`
+- `src/forgeui/interactive/ForgeUIInteractiveButtonVisibleBounds.ts`
+- `src/forgeui/interactive/ForgeUITwoStateVisibleBounds.ts`
 - `src/forgeui/interactive/InteractiveButtonPreview.tsx`
 - `src/components/editor/previews/InteractiveButtonCanvasPreview.tsx`
 
 ### Light rendering paths
 
+- `src/components/editor/PreviewContainer.tsx`
+- `src/components/inspector/InteractiveLightCreatorHelper.tsx`
+- `src/forgeui/interactive/ForgeUIInteractiveLightVisibleBounds.ts`
+- `src/forgeui/interactive/ForgeUITwoStateVisibleBounds.ts`
 - `src/forgeui/interactive/InteractiveLightPreview.tsx`
 - `src/components/editor/previews/InteractiveLightCanvasPreview.tsx`
 
@@ -1798,7 +1909,7 @@ Preserve these rules:
 3. All generated state images use the Uploaded Asset Registry.
 4. AI generation uses `InteractiveAssetAIGenerator` and `ForgeUIAIImagePipeline`.
 5. `selectedAssetKind` is parent-owned; the AI generator has no independent type selector.
-6. Canvas assignment uses `interactiveAssetId`, width, and height through normal component updates.
+6. Canvas assignment uses `interactiveAssetId` through normal component updates; fresh placeholders may adopt asset dimensions, while component geometry is authoritative after placement.
 7. Canvas resolution is kind-aware.
 8. All five kinds keep separate discriminated data models.
 9. Button uses momentary click hooks, Toggle uses generated bool-state hooks, Three-Position uses a strongly typed enum callback, and Binary Output types use generated public setters.
@@ -1814,7 +1925,7 @@ Preserve these rules:
 19. Toggle Input Runtime and Three-Position Input Runtime are each emitted once per export.
 20. Per-instance state records, hooks and setter APIs remain unique.
 21. Three-Position hit testing converts screen coordinates into control-local coordinates.
-22. Every Canvas component uses the shared positioned, selectable, draggable and resizable wrapper.
+22. Every Canvas component uses the shared positioned, selectable, draggable and resizable wrapper; selection-border resize logic and boundary clamping must not be duplicated in type-specific previews.
 23. Missing or stale uploaded-asset references block export; validation is never bypassed to work around them.
 24. Direct Creator navigation carries source component identity and an optional linked asset; opening a Creator never saves or assigns.
 25. Configured direct Creator requests reopen the linked asset; unconfigured requests initialize a fresh unsaved draft.
@@ -1826,6 +1937,12 @@ Preserve these rules:
 31. New Status Indicators default to real `120 × 72` Canvas bounds.
 32. Status Indicator preview rendering preserves intrinsic image aspect ratio with centered contain-fit constraints.
 33. Status Indicator Canvas Preview may toggle temporary local state for visual verification, but the physical LVGL runtime remains non-clickable and controlled only through `FG_Set_*`.
+34. Button and Light configured previews refresh from Interactive Asset and uploaded-asset registry updates; assignment replaces placeholders rather than layering renderers.
+35. Two-state visible-artwork fitting uses `ForgeUITwoStateVisibleBounds.ts`, one stable state union and two linked cropped assets.
+36. `Fit Bounds to Visible Artwork` is explicit and non-destructive: original uploads remain registered, existing assets are not silently rewritten, and completed fitting is idempotent.
+37. Intrinsic image dimensions resolve through registry metadata, PNG IHDR and generated LVGL descriptors before the safe fallback.
+38. Button and Light use final component geometry and one common state-pair contain scale in generated LVGL.
+39. Canvas, Browser Preview and LVGL output must remain visually equivalent for the same persisted component geometry.
 
 ## Framework extension pattern
 
@@ -1856,6 +1973,12 @@ A future Interactive Asset type should reuse:
 - AI generator and image pipeline
 - direct Creator navigation and Inspector onboarding across all five current Interactive Asset types
 - State Sheet and linked-crop infrastructure when multiple visuals come from one master
+- shared selection-border resizing and Canvas-boundary clamping
+- shared registry-driven preview refresh
+- shared intrinsic-dimension and alpha-content measurement
+- `ForgeUITwoStateVisibleBounds.ts` for two-state visible-artwork fitting
+- linked cropped assets with preserved originals
+- shared contain-fit dimension-resolution and LVGL scaling model
 - Uploaded Asset Registry
 - Canvas assignment through `interactiveAssetId`
 - the single LVGL exporter

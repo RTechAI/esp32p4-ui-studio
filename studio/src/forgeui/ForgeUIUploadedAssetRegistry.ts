@@ -21,6 +21,182 @@ export type ForgeUIUploadedAsset = {
   cFile: string
   width?: number
   height?: number
+  contentX?: number
+  contentY?: number
+  contentWidth?: number
+  contentHeight?: number
+}
+
+export type ForgeUIImageDimensions = {
+  width: number
+  height: number
+}
+
+export type ForgeUIImageContentBounds = {
+  contentX: number
+  contentY: number
+  contentWidth: number
+  contentHeight: number
+}
+
+export const forgeUIFindAlphaContentBounds = (
+  rgba: Uint8ClampedArray,
+  width: number,
+  height: number,
+): ForgeUIImageContentBounds | undefined => {
+  if (
+    width <= 0 ||
+    height <= 0 ||
+    rgba.length < width * height * 4
+  ) {
+    return undefined
+  }
+
+  let left = width
+  let right = -1
+  let top = height
+  let bottom = -1
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      if (rgba[(y * width + x) * 4 + 3] === 0) {
+        continue
+      }
+      left = Math.min(left, x)
+      right = Math.max(right, x)
+      top = Math.min(top, y)
+      bottom = Math.max(bottom, y)
+    }
+  }
+
+  return right < left || bottom < top
+    ? undefined
+    : {
+        contentX: left,
+        contentY: top,
+        contentWidth: right - left + 1,
+        contentHeight: bottom - top + 1,
+      }
+}
+
+export const forgeUIRecordRenderedImageMetadata = (
+  asset: ForgeUIUploadedAsset,
+  image: HTMLImageElement,
+) => {
+  if (
+    image.naturalWidth <= 0 ||
+    image.naturalHeight <= 0
+  ) {
+    return
+  }
+
+  let contentBounds: ForgeUIImageContentBounds | undefined
+  try {
+    const canvas = document.createElement('canvas')
+    canvas.width = image.naturalWidth
+    canvas.height = image.naturalHeight
+    const context = canvas.getContext('2d')
+    context?.drawImage(image, 0, 0)
+    const pixels = context?.getImageData(
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+    )
+    contentBounds = pixels
+      ? forgeUIFindAlphaContentBounds(
+          pixels.data,
+          canvas.width,
+          canvas.height,
+        )
+      : undefined
+  } catch {
+    // Cross-origin or malformed images retain safe intrinsic bounds.
+  }
+
+  forgeUIUpdateUploadedAsset(asset.id, {
+    width: image.naturalWidth,
+    height: image.naturalHeight,
+    ...(contentBounds || {}),
+  })
+}
+
+export const forgeUIParsePngDimensions = (
+  bytes: Uint8Array,
+): ForgeUIImageDimensions | undefined => {
+  const signature = [
+    0x89, 0x50, 0x4e, 0x47,
+    0x0d, 0x0a, 0x1a, 0x0a,
+  ]
+  if (
+    bytes.length < 24 ||
+    signature.some((value, index) =>
+      bytes[index] !== value,
+    )
+  ) {
+    return undefined
+  }
+
+  const view = new DataView(
+    bytes.buffer,
+    bytes.byteOffset,
+    bytes.byteLength,
+  )
+  const ihdrLength = view.getUint32(8)
+  const ihdrType = String.fromCharCode(
+    bytes[12],
+    bytes[13],
+    bytes[14],
+    bytes[15],
+  )
+  if (ihdrLength !== 13 || ihdrType !== 'IHDR') {
+    return undefined
+  }
+
+  const width = view.getUint32(16)
+  const height = view.getUint32(20)
+  if (width === 0 || height === 0) {
+    return undefined
+  }
+
+  return { width, height }
+}
+
+export const forgeUIResolveUploadedAssetDimensions = (
+  asset: Pick<
+    ForgeUIUploadedAsset,
+    'width' | 'height' | 'browserSrc'
+  >,
+): ForgeUIImageDimensions | undefined => {
+  if (
+    Number.isFinite(asset.width) &&
+    Number.isFinite(asset.height) &&
+    Number(asset.width) > 0 &&
+    Number(asset.height) > 0
+  ) {
+    return {
+      width: Number(asset.width),
+      height: Number(asset.height),
+    }
+  }
+
+  const match = asset.browserSrc.match(
+    /^data:image\/png;base64,([A-Za-z0-9+/=\s]+)$/i,
+  )
+  if (!match) {
+    return undefined
+  }
+
+  try {
+    const decoded = atob(match[1].replace(/\s/g, ''))
+    const bytes = Uint8Array.from(
+      decoded,
+      character => character.charCodeAt(0),
+    )
+    return forgeUIParsePngDimensions(bytes)
+  } catch {
+    return undefined
+  }
 }
 
 const FORGEUI_UPLOADED_ASSETS_KEY =
@@ -247,6 +423,10 @@ export function forgeUIUpdateUploadedAsset(
       | 'browserSrc'
       | 'width'
       | 'height'
+      | 'contentX'
+      | 'contentY'
+      | 'contentWidth'
+      | 'contentHeight'
     >
   >,
 ) {

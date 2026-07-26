@@ -36,6 +36,8 @@ import {
   createDefaultInteractiveButtonAsset,
   createInteractiveAssetId,
   getAllInteractiveAssets,
+  getNextInteractiveButtonLabel,
+  getInteractiveButtonHookPreview,
   getInteractiveButtonComponentProps,
   findUploadedAssetById,
   registerInteractiveAsset,
@@ -83,8 +85,8 @@ import {
   FORGEUI_INTERACTIVE_ASSETS_UPDATED_EVENT,
 } from '~forgeui/ForgeUINavigation'
 
-const DEFAULT_WIDTH = 120
-const DEFAULT_HEIGHT = 48
+const DEFAULT_WIDTH = 200
+const DEFAULT_HEIGHT = 100
 
 type VisualSelectorMode =
   | 'normal'
@@ -309,7 +311,7 @@ const threePositionToggleAssets = assets.filter(
     useState('New Interactive Button')
 
   const [buttonLabel, setButtonLabel] =
-    useState('Button')
+    useState('Button 1')
 
   const [buttonWidth, setButtonWidth] =
     useState(DEFAULT_WIDTH)
@@ -410,9 +412,22 @@ const [
     },
   )
 }    
-  const resetDesigner = () => {
+  const getNewButtonLabel = () => {
+    const registeredLabels = getAllInteractiveAssets()
+      .filter(
+        (asset): asset is ForgeUIInteractiveButtonAsset =>
+          asset.kind === 'button',
+      )
+      .map(asset => asset.label)
+
+    return getNextInteractiveButtonLabel(registeredLabels)
+  }
+
+  const resetDesigner = (
+    label = getNewButtonLabel(),
+  ) => {
     setAssetName('New Interactive Button')
-    setButtonLabel('Button')
+    setButtonLabel(label)
     setButtonWidth(DEFAULT_WIDTH)
     setButtonHeight(DEFAULT_HEIGHT)
     setNormalAssetId(undefined)
@@ -891,6 +906,15 @@ const [
                   }
                   placeholder="Start"
                 />
+                <Text
+                  data-testid="button-creator-hook-preview"
+                  mt={1}
+                  fontFamily="mono"
+                  fontSize="xs"
+                  color="cyan.300"
+                >
+                  {getInteractiveButtonHookPreview(buttonLabel)}
+                </Text>
               </FormControl>
 
               <SimpleGrid

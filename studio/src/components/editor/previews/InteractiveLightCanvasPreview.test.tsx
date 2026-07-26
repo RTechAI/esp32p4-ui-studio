@@ -1,6 +1,7 @@
 import React from 'react'
 import { ChakraProvider } from '@chakra-ui/react'
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -11,6 +12,7 @@ import {
   createDefaultInteractiveButtonAsset,
   createDefaultInteractiveLightAsset,
   registerInteractiveAsset,
+  updateInteractiveAssetByKind,
 } from '~forgeui/interactive'
 import {
   forgeUIAddUploadedAssets,
@@ -21,6 +23,9 @@ import type {
 } from '~forgeui/ForgeUIUploadedAssetRegistry'
 import InteractiveLightCanvasPreview from './InteractiveLightCanvasPreview'
 import * as persistence from '~forgeui/interactive/ForgeUIInteractiveAssetPersistence'
+import {
+  FORGEUI_INTERACTIVE_ASSETS_UPDATED_EVENT,
+} from '~forgeui/ForgeUINavigation'
 
 jest.mock(
   '~forgeui/interactive/ForgeUIInteractiveAssetPersistence',
@@ -107,6 +112,68 @@ describe('Interactive Light Canvas preview', () => {
     expect(screen.getByTestId(
       'unconfigured-light-placeholder',
     )).toBeInTheDocument()
+  })
+
+  it('requires both visuals and replaces same-id artwork without layering', () => {
+    const offAsset = createAsset('off')
+    const onAsset = createAsset('on')
+    const replacement = createAsset('replacement')
+    forgeUIAddUploadedAssets([
+      offAsset,
+      onAsset,
+      replacement,
+    ])
+    const light = {
+      ...createDefaultInteractiveLightAsset('light'),
+      offAssetId: offAsset.id,
+    }
+    registerInteractiveAsset(light)
+    render(
+      <ChakraProvider>
+        <InteractiveLightCanvasPreview
+          component={component('light-component', light.id)}
+        />
+      </ChakraProvider>,
+    )
+    expect(screen.getAllByTestId(
+      'unconfigured-light-placeholder',
+    )).toHaveLength(1)
+    expect(screen.queryByAltText(offAsset.name))
+      .not.toBeInTheDocument()
+
+    act(() => {
+      updateInteractiveAssetByKind(
+        light.id,
+        'light',
+        { onAssetId: onAsset.id },
+      )
+      window.dispatchEvent(new Event(
+        FORGEUI_INTERACTIVE_ASSETS_UPDATED_EVENT,
+      ))
+    })
+    expect(screen.queryByTestId(
+      'unconfigured-light-placeholder',
+    )).not.toBeInTheDocument()
+    expect(screen.getByAltText(offAsset.name))
+      .toBeInTheDocument()
+
+    act(() => {
+      updateInteractiveAssetByKind(
+        light.id,
+        'light',
+        { offAssetId: replacement.id },
+      )
+      window.dispatchEvent(new Event(
+        FORGEUI_INTERACTIVE_ASSETS_UPDATED_EVENT,
+      ))
+    })
+    expect(screen.getByAltText(replacement.name))
+      .toBeInTheDocument()
+    expect(screen.queryByAltText(offAsset.name))
+      .not.toBeInTheDocument()
+    expect(screen.getAllByTestId(
+      'interactive-light-preview',
+    )).toHaveLength(1)
   })
 
   it.each([

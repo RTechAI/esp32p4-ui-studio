@@ -10,6 +10,9 @@ import {
 import type {
   ForgeUIUploadedAsset,
 } from '~forgeui/ForgeUIUploadedAssetRegistry'
+import {
+  forgeUIRecordRenderedImageMetadata,
+} from '~forgeui/ForgeUIUploadedAssetRegistry'
 import type {
   ForgeUIInteractiveLightState,
 } from './ForgeUIInteractiveLightAsset'
@@ -62,8 +65,27 @@ const InteractiveLightPreview = ({
           height={`${height}px`}
           objectFit="contain"
           draggable={false}
+          crossOrigin="anonymous"
           userSelect="none"
           pointerEvents="none"
+          onLoad={event => {
+            const image = event.currentTarget
+            if (
+              image.naturalWidth > 0 &&
+              image.naturalHeight > 0 &&
+              (
+                previewAsset.width !== image.naturalWidth ||
+                previewAsset.height !== image.naturalHeight ||
+                !previewAsset.contentWidth ||
+                !previewAsset.contentHeight
+              )
+            ) {
+              forgeUIRecordRenderedImageMetadata(
+                previewAsset,
+                image,
+              )
+            }
+          }}
         />
       ) : missingVisual ? (
         <Box pointerEvents="none">
