@@ -430,15 +430,44 @@ export function forgeUIUpdateUploadedAsset(
     >
   >,
 ) {
-  forgeUIUploadedAssets =
-    forgeUIUploadedAssets.map(asset =>
-      asset.id === id
+  let changed = false
+  forgeUIUploadedAssets = forgeUIUploadedAssets.map(asset => {
+    if (asset.id !== id) {
+      return asset
+    }
+
+    const browserSourceChanged =
+      patch.browserSrc !== undefined &&
+      patch.browserSrc !== asset.browserSrc
+    const next = {
+      ...asset,
+      ...(browserSourceChanged
         ? {
-            ...asset,
-            ...patch,
+            width: undefined,
+            height: undefined,
+            contentX: undefined,
+            contentY: undefined,
+            contentWidth: undefined,
+            contentHeight: undefined,
           }
-        : asset,
-    )
+        : {}),
+      ...patch,
+    }
+    const keys = new Set([
+      ...Object.keys(asset),
+      ...Object.keys(next),
+    ]) as Set<keyof ForgeUIUploadedAsset>
+    if ([...keys].every(key => asset[key] === next[key])) {
+      return asset
+    }
+
+    changed = true
+    return next
+  })
+
+  if (!changed) {
+    return forgeUIUploadedAssets
+  }
 
   persistUploadedAssets()
   notifyAssetsUpdated()

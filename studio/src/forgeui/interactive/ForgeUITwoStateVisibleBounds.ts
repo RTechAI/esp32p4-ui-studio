@@ -53,6 +53,39 @@ export const getTwoStateCommonContentBounds = (
   }
 }
 
+export const getCommonContentBounds = (
+  assets: ForgeUIUploadedAsset[],
+): ForgeUIImageContentBounds | undefined => {
+  if (assets.length === 0) return undefined
+  const [first] = assets
+  if (
+    !Number.isFinite(first.width) ||
+    !Number.isFinite(first.height) ||
+    Number(first.width) <= 0 ||
+    Number(first.height) <= 0 ||
+    assets.some(asset =>
+      !hasContentBounds(asset) ||
+      asset.width !== first.width ||
+      asset.height !== first.height,
+    )
+  ) return undefined
+
+  const left = Math.min(...assets.map(asset => Number(asset.contentX)))
+  const top = Math.min(...assets.map(asset => Number(asset.contentY)))
+  const right = Math.max(...assets.map(asset =>
+    Number(asset.contentX) + Number(asset.contentWidth),
+  ))
+  const bottom = Math.max(...assets.map(asset =>
+    Number(asset.contentY) + Number(asset.contentHeight),
+  ))
+  return {
+    contentX: left,
+    contentY: top,
+    contentWidth: right - left,
+    contentHeight: bottom - top,
+  }
+}
+
 export const twoStateBoundsNeedFitting = (
   asset: ForgeUIUploadedAsset,
   bounds: ForgeUIImageContentBounds,
@@ -196,4 +229,52 @@ export const cropTwoStateArtwork = async ({
   }
 
   return { bounds, firstAsset, secondAsset }
+}
+
+export const cropThreeStateArtwork = async ({
+  left,
+  center,
+  right,
+}: {
+  left: ForgeUIUploadedAsset
+  center: ForgeUIUploadedAsset
+  right: ForgeUIUploadedAsset
+}) => {
+  const assets = [left, center, right]
+  const bounds = getCommonContentBounds(assets)
+  if (!bounds) {
+    throw new Error(
+      'LEFT, CENTER, and RIGHT artwork must have measured matching source dimensions before fitting.',
+    )
+  }
+  const sources = await Promise.all(assets.map(asset =>
+    cropToDataUrl(asset, bounds, 'Three-Position Toggle'),
+  ))
+  const stamp = Date.now()
+  const prefixes = ['left', 'center', 'right']
+  const cropped = await Promise.all(sources.map((
+    browserSrc,
+    index,
+  ) => registerAndConvertImage({
+    browserSrc,
+    filePrefix: `fitted_three_position_${prefixes[index]}_${stamp}`,
+    assetMode: 'interactive_button',
+    width: bounds.contentWidth,
+    height: bounds.contentHeight,
+    recordDimensions: true,
+  })))
+  cropped.forEach(asset => {
+    forgeUIUpdateUploadedAsset(asset.id, {
+      contentX: 0,
+      contentY: 0,
+      contentWidth: bounds.contentWidth,
+      contentHeight: bounds.contentHeight,
+    })
+  })
+  return {
+    bounds,
+    leftAsset: cropped[0],
+    centerAsset: cropped[1],
+    rightAsset: cropped[2],
+  }
 }

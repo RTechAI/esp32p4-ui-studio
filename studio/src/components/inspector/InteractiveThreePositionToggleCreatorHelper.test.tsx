@@ -1,6 +1,7 @@
 import React from 'react'
 import { ChakraProvider } from '@chakra-ui/react'
 import {
+  fireEvent,
   render,
   screen,
 } from '@testing-library/react'
@@ -17,6 +18,10 @@ import type {
   ForgeUIUploadedAsset,
 } from '~forgeui/ForgeUIUploadedAssetRegistry'
 import InteractiveThreePositionToggleCreatorHelper from './InteractiveThreePositionToggleCreatorHelper'
+
+jest.mock('~hooks/useDispatch', () => () => ({
+  components: { updateProps: jest.fn() },
+}))
 
 const component = (
   interactiveAssetId?: string,
@@ -67,7 +72,7 @@ describe('Three-Position Toggle Inspector helper', () => {
     )).toBeInTheDocument()
   })
 
-  it('hides when LEFT, CENTER, and RIGHT visuals resolve', () => {
+  it('keeps the configured helper when all visuals resolve', () => {
     forgeUIAddUploadedAssets([
       image('left'),
       image('center'),
@@ -81,6 +86,8 @@ describe('Three-Position Toggle Inspector helper', () => {
       centerAssetId: 'center',
       rightAssetId: 'right',
     })
+    const listener = jest.fn()
+    window.addEventListener('forgeui-open-ai-playground', listener)
     render(
       <ChakraProvider>
         <InteractiveThreePositionToggleCreatorHelper
@@ -88,8 +95,22 @@ describe('Three-Position Toggle Inspector helper', () => {
         />
       </ChakraProvider>,
     )
-    expect(screen.queryByTestId(
+    expect(screen.getByTestId(
       'three-position-toggle-creator-helper',
-    )).not.toBeInTheDocument()
+    )).toBeInTheDocument()
+    expect(screen.getByText('Interactive Three-Position Toggle'))
+      .toBeInTheDocument()
+    expect(screen.getByRole('button', {
+      name: 'Fit Bounds to Visible Artwork',
+    })).toBeDisabled()
+    fireEvent.click(screen.getByRole('button', {
+      name: 'Open Three-Position Toggle Creator',
+    }))
+    expect((listener.mock.calls[0][0] as CustomEvent).detail)
+      .toMatchObject({
+        sourceComponentId: 'three-position-component',
+        interactiveAssetId: 'complete',
+      })
+    window.removeEventListener('forgeui-open-ai-playground', listener)
   })
 })

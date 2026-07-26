@@ -8,6 +8,9 @@ import {
 } from '@chakra-ui/react'
 
 import type { ForgeUIUploadedAsset } from '~forgeui/ForgeUIUploadedAssetRegistry'
+import {
+  forgeUIRecordRenderedImageMetadata,
+} from '~forgeui/ForgeUIUploadedAssetRegistry'
 import type { ForgeUIInteractiveStatusIndicatorState } from './ForgeUIInteractiveStatusIndicatorAsset'
 
 type Props = {
@@ -21,6 +24,7 @@ type Props = {
   missingVisual?: React.ReactNode
   minimumHeight?: number | string
   onPreviewClick?: React.MouseEventHandler<HTMLDivElement>
+  fillContainer?: boolean
 }
 
 const InteractiveStatusIndicatorPreview = ({
@@ -34,8 +38,27 @@ const InteractiveStatusIndicatorPreview = ({
   missingVisual,
   minimumHeight = 120,
   onPreviewClick,
+  fillContainer = false,
 }: Props) => {
   const previewAsset = state === 'on' ? onAsset : offAsset
+  const inactiveAsset = state === 'on' ? offAsset : onAsset
+  const recordMeasurement = (
+    asset: ForgeUIUploadedAsset,
+    image: HTMLImageElement,
+  ) => {
+    if (
+      image.naturalWidth > 0 &&
+      image.naturalHeight > 0 &&
+      (
+        asset.width !== image.naturalWidth ||
+        asset.height !== image.naturalHeight ||
+        !asset.contentWidth ||
+        !asset.contentHeight
+      )
+    ) {
+      forgeUIRecordRenderedImageMetadata(asset, image)
+    }
+  }
 
   return (
     <Box
@@ -43,8 +66,10 @@ const InteractiveStatusIndicatorPreview = ({
       flexDirection="column"
       justifyContent="center"
       alignItems="center"
-      minHeight={minimumHeight}
-      gap={3}
+      width={fillContainer ? '100%' : undefined}
+      height={fillContainer ? '100%' : undefined}
+      minHeight={fillContainer ? 0 : minimumHeight}
+      gap={fillContainer ? 0 : 3}
       data-testid="interactive-status-indicator-preview"
       data-state={state}
       data-minimum-height={minimumHeight}
@@ -53,8 +78,8 @@ const InteractiveStatusIndicatorPreview = ({
     >
       {previewAsset ? (
         <Box
-          width={`${width}px`}
-          height={`${height}px`}
+          width={fillContainer ? '100%' : `${width}px`}
+          height={fillContainer ? '100%' : `${height}px`}
           display="flex"
           alignItems="center"
           justifyContent="center"
@@ -64,15 +89,38 @@ const InteractiveStatusIndicatorPreview = ({
           <Image
             src={previewAsset.browserSrc}
             alt={previewAsset.name}
-            width="auto"
-            height="auto"
-            maxWidth="100%"
-            maxHeight="100%"
-            objectFit="contain"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              display: 'block',
+            }}
             draggable={false}
             userSelect="none"
             pointerEvents="none"
+            crossOrigin="anonymous"
+            onLoad={event =>
+              recordMeasurement(
+                previewAsset,
+                event.currentTarget,
+              )
+            }
           />
+          {inactiveAsset && inactiveAsset.id !== previewAsset.id && (
+            <Image
+              display="none"
+              src={inactiveAsset.browserSrc}
+              alt=""
+              aria-hidden="true"
+              crossOrigin="anonymous"
+              onLoad={event =>
+                recordMeasurement(
+                  inactiveAsset,
+                  event.currentTarget,
+                )
+              }
+            />
+          )}
         </Box>
       ) : missingVisual ? (
         missingVisual

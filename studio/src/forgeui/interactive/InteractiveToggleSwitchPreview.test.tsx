@@ -9,6 +9,11 @@ import {
 import type {
   ForgeUIUploadedAsset,
 } from '~forgeui/ForgeUIUploadedAssetRegistry'
+import {
+  forgeUIAddUploadedAssets,
+  forgeUIClearUploadedAssets,
+  forgeUIGetUploadedAssets,
+} from '~forgeui/ForgeUIUploadedAssetRegistry'
 import InteractiveToggleSwitchPreview from './InteractiveToggleSwitchPreview'
 
 const configuredAsset: ForgeUIUploadedAsset = {
@@ -25,6 +30,10 @@ const configuredAsset: ForgeUIUploadedAsset = {
 }
 
 describe('Interactive Toggle Switch empty state', () => {
+  beforeEach(() => {
+    forgeUIClearUploadedAssets()
+  })
+
   it('shows the full creator hint at 300x200', () => {
     render(
       <ChakraProvider>
@@ -139,5 +148,62 @@ describe('Interactive Toggle Switch empty state', () => {
     expect(screen.queryByTestId(
       'unconfigured-toggle-placeholder',
     )).not.toBeInTheDocument()
+  })
+
+  it('preloads and measures both configured states once', () => {
+    const off = { ...configuredAsset, id: 'off', name: 'off.png' }
+    const on = { ...configuredAsset, id: 'on', name: 'on.png' }
+    forgeUIAddUploadedAssets([off, on])
+    const pixels = new Uint8ClampedArray(2 * 2 * 4)
+    for (let index = 3; index < pixels.length; index += 4) {
+      pixels[index] = 255
+    }
+    jest.spyOn(HTMLCanvasElement.prototype, 'getContext')
+      .mockReturnValue({
+        drawImage: jest.fn(),
+        getImageData: jest.fn(() => ({ data: pixels })),
+      } as unknown as CanvasRenderingContext2D)
+    const updates = jest.fn()
+    window.addEventListener('forgeui-assets-updated', updates)
+    const { container } = render(
+      <ChakraProvider>
+        <InteractiveToggleSwitchPreview
+          offAsset={off}
+          onAsset={on}
+          width={200}
+          height={100}
+          state="off"
+          fillContainer
+        />
+      </ChakraProvider>,
+    )
+    const images = container.querySelectorAll('img')
+    expect(images).toHaveLength(2)
+    images.forEach(element => {
+      Object.defineProperty(element, 'naturalWidth', {
+        configurable: true, value: 2,
+      })
+      Object.defineProperty(element, 'naturalHeight', {
+        configurable: true, value: 2,
+      })
+      fireEvent.load(element)
+    })
+    expect(forgeUIGetUploadedAssets()).toEqual([
+      expect.objectContaining({
+        id: 'off', width: 2, height: 2,
+        contentX: 0, contentY: 0,
+        contentWidth: 2, contentHeight: 2,
+      }),
+      expect.objectContaining({
+        id: 'on', width: 2, height: 2,
+        contentX: 0, contentY: 0,
+        contentWidth: 2, contentHeight: 2,
+      }),
+    ])
+    expect(updates).toHaveBeenCalledTimes(2)
+    images.forEach(element => fireEvent.load(element))
+    expect(updates).toHaveBeenCalledTimes(2)
+    window.removeEventListener('forgeui-assets-updated', updates)
+    jest.restoreAllMocks()
   })
 })

@@ -8,6 +8,7 @@ import {
   createDefaultInteractiveButtonAsset,
   createDefaultInteractiveLightAsset,
   createDefaultInteractiveStatusIndicatorAsset,
+  createDefaultInteractiveThreePositionToggleAsset,
   createDefaultInteractiveToggleSwitchAsset,
   registerInteractiveAsset,
 } from './interactive'
@@ -852,10 +853,8 @@ describe('Interactive Button LVGL export compatibility', () => {
       },
     })
 
-    expect(result.code).toContain('fg_upload_toggle_legacy_off.header.w')
-    expect(result.code).toContain('fg_upload_toggle_legacy_on.header.h')
     expect(result.code).toContain(
-      'lv_image_set_scale(fg_legacy_toggle_toggle.image, fg_legacy_toggle_toggle_scale);',
+      'fg_interactive_toggle_contain_scale(&fg_upload_toggle_legacy_off, &fg_upload_toggle_legacy_on, 300, 200)',
     )
   })
 
@@ -1018,7 +1017,7 @@ describe('Toggle contain scale', () => {
     )).toBe(85)
   })
 
-  it('uses scale 256 for matching and smaller sources under the no-upscaling policy', () => {
+  it('uses scale 256 for matching sources and supports contained upscaling', () => {
     expect(calculateToggleContainScale(
       300,
       200,
@@ -1028,6 +1027,53 @@ describe('Toggle contain scale', () => {
       300,
       200,
       [{ width: 150, height: 100 }],
-    )).toBe(256)
+    )).toBe(512)
+  })
+})
+
+describe('Three-Position contain scale export', () => {
+  it('uses one upscaling-capable scale and preserves thirds runtime mapping', () => {
+    const left = { ...createUploadedAsset('three_left'), width: 100, height: 50 }
+    const center = { ...createUploadedAsset('three_center'), width: 100, height: 50 }
+    const right = { ...createUploadedAsset('three_right'), width: 100, height: 50 }
+    forgeUIAddUploadedAssets([left, center, right])
+    const asset = {
+      ...createDefaultInteractiveThreePositionToggleAsset('three'),
+      leftAssetId: left.id,
+      centerAssetId: center.id,
+      rightAssetId: right.id,
+    }
+    registerInteractiveAsset(asset)
+    const result = generateForgeUILvglCode({
+      root: {
+        id: 'root', parent: 'root', type: 'Box',
+        props: {}, children: ['three-component'],
+      },
+      'three-component': {
+        id: 'three-component',
+        parent: 'root',
+        type: 'InteractiveThreePositionToggleSwitch',
+        props: {
+          interactiveAssetId: asset.id,
+          x: 10, y: 20, w: 300, h: 150,
+        },
+        children: [],
+      },
+    })
+    expect(result.code).toContain(
+      'lv_obj_set_size(fg_three_component_three_way.button, 300, 150);',
+    )
+    expect(result.code).toContain(
+      'lv_image_set_scale(fg_three_component_three_way.image, 768);',
+    )
+    expect(result.code.match(
+      /lv_image_set_scale\(fg_three_component_three_way\.image, 768\);/g,
+    )).toHaveLength(1)
+    expect(result.code).toContain(
+      'int32_t local_x = point.x - button_coords.x1;',
+    )
+    expect(result.code).toContain(
+      'local_x < (width * 2) / 3',
+    )
   })
 })

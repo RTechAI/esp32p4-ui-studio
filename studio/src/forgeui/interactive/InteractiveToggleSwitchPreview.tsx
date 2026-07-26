@@ -19,6 +19,7 @@ type Props = {
   onStateChange?: (state: ForgeUIInteractiveToggleSwitchState) => void
   showControls?: boolean
   onPreviewClick?: React.MouseEventHandler<HTMLDivElement>
+  fillContainer?: boolean
 }
 
 const InteractiveToggleSwitchPreview = (props: Props) => {
@@ -68,6 +69,7 @@ const InteractiveToggleSwitchPreview = (props: Props) => {
       {...props}
       minimumHeight={Math.min(props.height, 120)}
       missingVisual={missingVisual}
+      preloadInactive
     />
   )
 }

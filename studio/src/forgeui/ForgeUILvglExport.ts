@@ -197,7 +197,7 @@ type ToggleInputExport = {
   onSymbol?: string
   initialState: 'off' | 'on'
   ready: boolean
-  imageScale?: number
+  imageScale?: number | string
 }
 
 export const calculateToggleContainScale = (
@@ -233,7 +233,7 @@ export const calculateToggleContainScale = (
 
   return Math.max(
     1,
-    Math.min(256, Math.round(ratio * 256)),
+    Math.min(65535, Math.round(ratio * 256)),
   )
 }
 
@@ -294,13 +294,15 @@ const createToggleInputExports = (
       userEventHooks.add(hookName)
       const { offAsset, onAsset } = resolveInteractiveToggleSwitchVisuals(asset, uploadedAssets)
       const ready = isLvglReadyUploadedAsset(offAsset) && isLvglReadyUploadedAsset(onAsset)
-      const imageScale = ready
+      const resolvedScale = ready
         ? calculateToggleContainScale(
           Number(component.props.w),
           Number(component.props.h),
           [offAsset, onAsset],
         )
         : undefined
+      const componentWidth = Number(lv(component.props.w, 64))
+      const componentHeight = Number(lv(component.props.h, 36))
       if (ready) {
         if (offAsset.cFile) usedAssetSources.add(offAsset.cFile)
         if (onAsset.cFile) usedAssetSources.add(onAsset.cFile)
@@ -312,13 +314,16 @@ const createToggleInputExports = (
         onSymbol: ready ? onAsset?.lvgl : undefined,
         initialState: getInteractiveToggleSwitchInitialState(asset),
         ready,
-        imageScale,
+        imageScale: ready
+          ? resolvedScale ??
+            `fg_interactive_toggle_contain_scale(&${offAsset?.lvgl}, &${onAsset?.lvgl}, ${componentWidth}, ${componentHeight})`
+          : undefined,
       })
     })
   return result
 }
 
-type ThreeWayInputExport = { hookName: string; runtimeName: string; leftSymbol?: string; centerSymbol?: string; rightSymbol?: string; initialState: 'left'|'center'|'right'; ready: boolean }
+type ThreeWayInputExport = { hookName: string; runtimeName: string; leftSymbol?: string; centerSymbol?: string; rightSymbol?: string; initialState: 'left'|'center'|'right'; ready: boolean; imageScale?: number | string }
 const createThreeWayInputExports = (components: IComponents, usedAssetSources: Set<string>, usedHookNames: Set<string>, userEventHooks: Set<string>) => {
   const result = new Map<string, ThreeWayInputExport>(); const uploaded = forgeUIGetUploadedAssets()
   Object.values(components).filter(c => c.type === 'InteractiveThreePositionToggleSwitch').sort((a,b)=>a.id.localeCompare(b.id)).forEach(component => {
@@ -326,8 +331,11 @@ const createThreeWayInputExports = (components: IComponents, usedAssetSources: S
     const base = toCIdentifier(component.componentName || asset?.label || asset?.name || component.id, 'ThreePositionToggle')
     let hookName = `FG_On_${base}_Changed`; let suffix=2; while(usedHookNames.has(hookName)) hookName=`FG_On_${base}_${suffix++}_Changed`; usedHookNames.add(hookName); userEventHooks.add(hookName)
     const {leftAsset,centerAsset,rightAsset}=resolveInteractiveThreePositionVisuals(asset,uploaded); const ready=[leftAsset,centerAsset,rightAsset].every(isLvglReadyUploadedAsset)
+    const width=Number(lv(component.props.w,96)); const height=Number(lv(component.props.h,36))
+    const dimensions=[leftAsset,centerAsset,rightAsset].map(item=>item?forgeUIResolveUploadedAssetDimensions(item)||{}:{})
+    const resolvedScale=ready?calculateToggleContainScale(width,height,dimensions):undefined
     if(ready) [leftAsset,centerAsset,rightAsset].forEach(a=>{if(a?.cFile)usedAssetSources.add(a.cFile)})
-    result.set(component.id,{hookName,runtimeName:`fg_${component.id.replace(/[^A-Za-z0-9_]/g,'_')}_three_way`,leftSymbol:ready?leftAsset?.lvgl:undefined,centerSymbol:ready?centerAsset?.lvgl:undefined,rightSymbol:ready?rightAsset?.lvgl:undefined,initialState:getInteractiveThreePositionInitialState(asset),ready})
+    result.set(component.id,{hookName,runtimeName:`fg_${component.id.replace(/[^A-Za-z0-9_]/g,'_')}_three_way`,leftSymbol:ready?leftAsset?.lvgl:undefined,centerSymbol:ready?centerAsset?.lvgl:undefined,rightSymbol:ready?rightAsset?.lvgl:undefined,initialState:getInteractiveThreePositionInitialState(asset),ready,imageScale:ready?resolvedScale??`fg_interactive_three_way_contain_scale(&${leftAsset?.lvgl}, &${centerAsset?.lvgl}, &${rightAsset?.lvgl}, ${width}, ${height})`:undefined})
   }); return result
 }
 
@@ -926,12 +934,6 @@ case 'InteractiveToggleSwitch': {
     lines.push(`lv_obj_clear_flag(${toggle.runtimeName}.image, LV_OBJ_FLAG_CLICKABLE);`)
     if (toggle.imageScale !== undefined) {
       lines.push(`lv_image_set_scale(${toggle.runtimeName}.image, ${toggle.imageScale});`)
-    } else {
-      lines.push(`int32_t ${toggle.runtimeName}_scale = LV_MIN(((${w}) * 256) / ${toggle.offSymbol}.header.w, ((${h}) * 256) / ${toggle.offSymbol}.header.h);`)
-      lines.push(`${toggle.runtimeName}_scale = LV_MIN(${toggle.runtimeName}_scale, ((${w}) * 256) / ${toggle.onSymbol}.header.w);`)
-      lines.push(`${toggle.runtimeName}_scale = LV_MIN(${toggle.runtimeName}_scale, ((${h}) * 256) / ${toggle.onSymbol}.header.h);`)
-      lines.push(`${toggle.runtimeName}_scale = LV_MAX(1, LV_MIN(256, ${toggle.runtimeName}_scale));`)
-      lines.push(`lv_image_set_scale(${toggle.runtimeName}.image, ${toggle.runtimeName}_scale);`)
     }
     lines.push(`lv_obj_center(${toggle.runtimeName}.image);`)
     lines.push(`fg_toggle_input_set(&${toggle.runtimeName}, ${toggle.initialState === 'on' ? 'true' : 'false'}, false);`)
@@ -950,14 +952,21 @@ case 'InteractiveThreePositionToggleSwitch': {
   const input = threeWayInputExports.get(child.id)
   if (input?.ready && input.leftSymbol && input.centerSymbol && input.rightSymbol) {
     lines.push(`${input.runtimeName}.button = lv_button_create(${parentVar});`)
+    lines.push(`lv_obj_remove_style_all(${input.runtimeName}.button);`)
     lines.push(`lv_obj_set_pos(${input.runtimeName}.button, ${x}, ${y});`)
     lines.push(`lv_obj_set_size(${input.runtimeName}.button, ${w}, ${h});`)
+    lines.push(`lv_obj_set_style_bg_opa(${input.runtimeName}.button, LV_OPA_TRANSP, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_border_opa(${input.runtimeName}.button, LV_OPA_TRANSP, LV_PART_MAIN);`)
     lines.push(`lv_obj_add_flag(${input.runtimeName}.button, LV_OBJ_FLAG_CLICKABLE);`)
     lines.push(`lv_obj_clear_flag(${input.runtimeName}.button, LV_OBJ_FLAG_SCROLLABLE);`)
     lines.push(`lv_obj_set_style_pad_all(${input.runtimeName}.button, 0, 0);`)
     lines.push(`${input.runtimeName}.image = lv_image_create(${input.runtimeName}.button);`)
+    lines.push(`lv_obj_remove_style_all(${input.runtimeName}.image);`)
     lines.push(`lv_obj_clear_flag(${input.runtimeName}.image, LV_OBJ_FLAG_CLICKABLE);`)
     lines.push(`lv_obj_clear_flag(${input.runtimeName}.image, LV_OBJ_FLAG_SCROLLABLE);`)
+    if (input.imageScale !== undefined) {
+      lines.push(`lv_image_set_scale(${input.runtimeName}.image, ${input.imageScale});`)
+    }
     lines.push(`lv_obj_center(${input.runtimeName}.image);`)
     lines.push(`fg_three_way_input_set(&${input.runtimeName}, ${input.initialState === 'left' ? 'FG_THREE_WAY_LEFT' : input.initialState === 'right' ? 'FG_THREE_WAY_RIGHT' : 'FG_THREE_WAY_CENTER'}, false);`)
     lines.push(`lv_obj_add_event_cb(${input.runtimeName}.button, fg_three_way_input_event_cb, LV_EVENT_CLICKED, &${input.runtimeName});`)
@@ -1806,7 +1815,12 @@ const backgroundMode =
     lines.push(`#include "95_UserEvents.h"`)
   }
   lines.push(`#include <stdbool.h>`)
-  if (hasInteractiveButtons || hasInteractiveLights) {
+  if (
+    hasInteractiveButtons ||
+    hasInteractiveLights ||
+    toggleInputExports.size > 0 ||
+    threeWayInputExports.size > 0
+  ) {
     lines.push(`#include <stdint.h>`)
   }
   lines.push(`#include <stdio.h>`)
@@ -1847,6 +1861,26 @@ const backgroundMode =
   const declaredThreeWaySymbols = new Set<string>()
   threeWayInputExports.forEach(input => { if (!input.ready) return; [input.leftSymbol,input.centerSymbol,input.rightSymbol].forEach(symbol=>{if(symbol&&!declaredThreeWaySymbols.has(symbol)){lines.push(`LV_IMAGE_DECLARE(${symbol});`);declaredThreeWaySymbols.add(symbol)}}) })
   if (declaredThreeWaySymbols.size) {
+    lines.push(`static uint32_t fg_interactive_three_way_axis_scale(int32_t target, uint32_t source)`)
+    lines.push(`{`)
+    lines.push(`    if (target <= 0 || source == 0) return 256;`)
+    lines.push(`    uint64_t rounded = ((uint64_t)target * 256u + source / 2u) / source;`)
+    lines.push(`    if (rounded < 1u) return 1;`)
+    lines.push(`    if (rounded > 65535u) return 65535;`)
+    lines.push(`    return (uint32_t)rounded;`)
+    lines.push(`}`)
+    lines.push(`static uint32_t fg_interactive_three_way_contain_scale(const lv_image_dsc_t * left, const lv_image_dsc_t * center, const lv_image_dsc_t * right, int32_t width, int32_t height)`)
+    lines.push(`{`)
+    lines.push(`    if (!left || !center || !right || !left->header.w || !left->header.h || !center->header.w || !center->header.h || !right->header.w || !right->header.h) return 256;`)
+    lines.push(`    uint32_t scale = fg_interactive_three_way_axis_scale(width, left->header.w);`)
+    lines.push(`    uint32_t candidate = fg_interactive_three_way_axis_scale(height, left->header.h); if (candidate < scale) scale = candidate;`)
+    lines.push(`    candidate = fg_interactive_three_way_axis_scale(width, center->header.w); if (candidate < scale) scale = candidate;`)
+    lines.push(`    candidate = fg_interactive_three_way_axis_scale(height, center->header.h); if (candidate < scale) scale = candidate;`)
+    lines.push(`    candidate = fg_interactive_three_way_axis_scale(width, right->header.w); if (candidate < scale) scale = candidate;`)
+    lines.push(`    candidate = fg_interactive_three_way_axis_scale(height, right->header.h); if (candidate < scale) scale = candidate;`)
+    lines.push(`    return scale;`)
+    lines.push(`}`)
+    lines.push(``)
     lines.push(`typedef struct { lv_obj_t * button; lv_obj_t * image; const void * left_src; const void * center_src; const void * right_src; fg_three_way_state_t state; void (*changed_cb)(fg_three_way_state_t state); } fg_three_way_input_t;`)
     lines.push(`static void fg_three_way_input_set(fg_three_way_input_t * input, fg_three_way_state_t state, bool notify)`)
     lines.push(`{`); lines.push(`    if (!input || (state != FG_THREE_WAY_LEFT && state != FG_THREE_WAY_CENTER && state != FG_THREE_WAY_RIGHT)) return;`); lines.push(`    input->state = state;`); lines.push(`    const void * src = state == FG_THREE_WAY_LEFT ? input->left_src : state == FG_THREE_WAY_RIGHT ? input->right_src : input->center_src;`); lines.push(`    if (input->image) lv_image_set_src(input->image, src);`); lines.push(`    if (notify && input->changed_cb) input->changed_cb(state);`); lines.push(`}`)
@@ -1877,6 +1911,35 @@ const backgroundMode =
   }
   threeWayInputExports.forEach(input=>{if(!input.ready||!input.leftSymbol||!input.centerSymbol||!input.rightSymbol)return;lines.push(`static fg_three_way_input_t ${input.runtimeName} = {`);lines.push(`    .button = NULL, .image = NULL, .left_src = &${input.leftSymbol}, .center_src = &${input.centerSymbol}, .right_src = &${input.rightSymbol},`);lines.push(`    .state = ${input.initialState==='left'?'FG_THREE_WAY_LEFT':input.initialState==='right'?'FG_THREE_WAY_RIGHT':'FG_THREE_WAY_CENTER'}, .changed_cb = ${input.hookName},`);lines.push(`};`);lines.push(``)})
   if (declaredToggleSymbols.size > 0) {
+    lines.push(`static uint32_t fg_interactive_toggle_axis_scale(int32_t target, uint32_t source)`)
+    lines.push(`{`)
+    lines.push(`    if (target <= 0 || source == 0) return 256;`)
+    lines.push(`    uint64_t rounded = ((uint64_t)target * 256u + source / 2u) / source;`)
+    lines.push(`    if (rounded < 1u) return 1;`)
+    lines.push(`    if (rounded > 65535u) return 65535;`)
+    lines.push(`    return (uint32_t)rounded;`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`static uint32_t fg_interactive_toggle_contain_scale(`)
+    lines.push(`    const lv_image_dsc_t * off,`)
+    lines.push(`    const lv_image_dsc_t * on,`)
+    lines.push(`    int32_t width,`)
+    lines.push(`    int32_t height`)
+    lines.push(`)`)
+    lines.push(`{`)
+    lines.push(`    if (!off || !on ||`)
+    lines.push(`        off->header.w == 0 || off->header.h == 0 ||`)
+    lines.push(`        on->header.w == 0 || on->header.h == 0) return 256;`)
+    lines.push(`    uint32_t scale = fg_interactive_toggle_axis_scale(width, off->header.w);`)
+    lines.push(`    uint32_t candidate = fg_interactive_toggle_axis_scale(height, off->header.h);`)
+    lines.push(`    if (candidate < scale) scale = candidate;`)
+    lines.push(`    candidate = fg_interactive_toggle_axis_scale(width, on->header.w);`)
+    lines.push(`    if (candidate < scale) scale = candidate;`)
+    lines.push(`    candidate = fg_interactive_toggle_axis_scale(height, on->header.h);`)
+    lines.push(`    if (candidate < scale) scale = candidate;`)
+    lines.push(`    return scale;`)
+    lines.push(`}`)
+    lines.push(``)
     lines.push(`typedef struct { lv_obj_t * button; lv_obj_t * image; const void * off_src; const void * on_src; bool enabled; void (*toggled_cb)(bool); } fg_toggle_input_t;`)
     lines.push(`static void fg_toggle_input_set(fg_toggle_input_t * toggle, bool enabled, bool notify)`)
     lines.push(`{`)

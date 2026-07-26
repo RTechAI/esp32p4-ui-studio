@@ -28,6 +28,8 @@ type InteractiveLightPreviewProps = {
   onPreviewClick?: React.MouseEventHandler<HTMLDivElement>
   missingVisual?: React.ReactNode
   minimumHeight?: number | string
+  fillContainer?: boolean
+  preloadInactive?: boolean
 }
 
 const InteractiveLightPreview = ({
@@ -41,8 +43,28 @@ const InteractiveLightPreview = ({
   onPreviewClick,
   missingVisual,
   minimumHeight = 120,
+  fillContainer = false,
+  preloadInactive = false,
 }: InteractiveLightPreviewProps) => {
   const previewAsset = state === 'on' ? onAsset : offAsset
+  const inactiveAsset = state === 'on' ? offAsset : onAsset
+  const recordMeasurement = (
+    asset: ForgeUIUploadedAsset,
+    image: HTMLImageElement,
+  ) => {
+    if (
+      image.naturalWidth > 0 &&
+      image.naturalHeight > 0 &&
+      (
+        asset.width !== image.naturalWidth ||
+        asset.height !== image.naturalHeight ||
+        !asset.contentWidth ||
+        !asset.contentHeight
+      )
+    ) {
+      forgeUIRecordRenderedImageMetadata(asset, image)
+    }
+  }
 
   return (
     <Box
@@ -50,43 +72,56 @@ const InteractiveLightPreview = ({
       flexDirection="column"
       justifyContent="center"
       alignItems="center"
-      minHeight={minimumHeight}
-      gap={3}
+      width={fillContainer ? '100%' : undefined}
+      height={fillContainer ? '100%' : undefined}
+      minHeight={fillContainer ? 0 : minimumHeight}
+      gap={fillContainer ? 0 : 3}
       data-testid="interactive-light-preview"
       data-state={state}
       onClick={onPreviewClick}
       cursor={onPreviewClick ? 'pointer' : undefined}
     >
       {previewAsset ? (
-        <Image
-          src={previewAsset.browserSrc}
-          alt={previewAsset.name}
-          width={`${width}px`}
-          height={`${height}px`}
-          objectFit="contain"
-          draggable={false}
-          crossOrigin="anonymous"
-          userSelect="none"
-          pointerEvents="none"
-          onLoad={event => {
-            const image = event.currentTarget
-            if (
-              image.naturalWidth > 0 &&
-              image.naturalHeight > 0 &&
-              (
-                previewAsset.width !== image.naturalWidth ||
-                previewAsset.height !== image.naturalHeight ||
-                !previewAsset.contentWidth ||
-                !previewAsset.contentHeight
-              )
-            ) {
-              forgeUIRecordRenderedImageMetadata(
-                previewAsset,
-                image,
-              )
+        <>
+          <Image
+            src={previewAsset.browserSrc}
+            alt={previewAsset.name}
+            width={fillContainer ? undefined : `${width}px`}
+            height={fillContainer ? undefined : `${height}px`}
+            objectFit="contain"
+            display="block"
+            style={fillContainer ? {
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              display: 'block',
+            } : undefined}
+            draggable={false}
+            crossOrigin="anonymous"
+            userSelect="none"
+            pointerEvents="none"
+            onLoad={event =>
+              recordMeasurement(previewAsset, event.currentTarget)
             }
-          }}
-        />
+          />
+          {preloadInactive &&
+            inactiveAsset &&
+            inactiveAsset.id !== previewAsset.id && (
+              <Image
+                display="none"
+                src={inactiveAsset.browserSrc}
+                alt=""
+                aria-hidden="true"
+                crossOrigin="anonymous"
+                onLoad={event =>
+                  recordMeasurement(
+                    inactiveAsset,
+                    event.currentTarget,
+                  )
+                }
+              />
+            )}
+        </>
       ) : missingVisual ? (
         <Box pointerEvents="none">
           {missingVisual}

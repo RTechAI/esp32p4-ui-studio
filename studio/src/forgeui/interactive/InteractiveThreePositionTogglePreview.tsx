@@ -1,6 +1,7 @@
 import React from 'react'
 import { Box, Image } from '@chakra-ui/react'
 import type { ForgeUIUploadedAsset } from '~forgeui/ForgeUIUploadedAssetRegistry'
+import { forgeUIRecordRenderedImageMetadata } from '~forgeui/ForgeUIUploadedAssetRegistry'
 import type { ForgeUIInteractiveThreePositionState } from './ForgeUIInteractiveThreePositionToggleAsset'
 import UnconfiguredThreePositionTogglePlaceholder from './UnconfiguredThreePositionTogglePlaceholder'
 
@@ -13,6 +14,7 @@ type Props = {
   state: ForgeUIInteractiveThreePositionState
   onStateChange?: (state: ForgeUIInteractiveThreePositionState) => void
   showZoneOverlay?: boolean
+  fillContainer?: boolean
 }
 
 export const stateFromThreePositionClientX = (clientX: number, left: number, width: number): ForgeUIInteractiveThreePositionState | undefined => {
@@ -22,13 +24,33 @@ export const stateFromThreePositionClientX = (clientX: number, left: number, wid
   return localX < width / 3 ? 'left' : localX < (width * 2) / 3 ? 'center' : 'right'
 }
 
-const InteractiveThreePositionTogglePreview = ({ leftAsset, centerAsset, rightAsset, width, height, state, onStateChange, showZoneOverlay = false }: Props) => {
+const InteractiveThreePositionTogglePreview = ({ leftAsset, centerAsset, rightAsset, width, height, state, onStateChange, showZoneOverlay = false, fillContainer = false }: Props) => {
   const selected = state === 'left' ? leftAsset : state === 'right' ? rightAsset : centerAsset
+  const allAssets = [leftAsset, centerAsset, rightAsset].filter(
+    (asset): asset is ForgeUIUploadedAsset => Boolean(asset),
+  )
+  const recordMeasurement = (
+    asset: ForgeUIUploadedAsset,
+    image: HTMLImageElement,
+  ) => {
+    if (
+      image.naturalWidth > 0 &&
+      image.naturalHeight > 0 &&
+      (
+        asset.width !== image.naturalWidth ||
+        asset.height !== image.naturalHeight ||
+        !asset.contentWidth ||
+        !asset.contentHeight
+      )
+    ) {
+      forgeUIRecordRenderedImageMetadata(asset, image)
+    }
+  }
   return <Box
     data-testid="three-position-preview"
     position="relative"
-    width={`${width}px`}
-    height={`${height}px`}
+    width={fillContainer ? '100%' : `${width}px`}
+    height={fillContainer ? '100%' : `${height}px`}
     cursor={onStateChange ? 'pointer' : 'default'}
     overflow="hidden"
     onClick={event => {
@@ -38,7 +60,38 @@ const InteractiveThreePositionTogglePreview = ({ leftAsset, centerAsset, rightAs
     }}
   >
     {selected?.browserSrc
-      ? <Image src={selected.browserSrc} alt={`${state} artwork`} width="100%" height="100%" objectFit="fill" pointerEvents="none" />
+      ? <>
+        <Image
+          src={selected.browserSrc}
+          alt={`${state} artwork`}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            display: 'block',
+          }}
+          pointerEvents="none"
+          crossOrigin="anonymous"
+          onLoad={event =>
+            recordMeasurement(selected, event.currentTarget)
+          }
+        />
+        {allAssets
+          .filter(asset => asset.id !== selected.id)
+          .map(asset => (
+            <Image
+              key={asset.id}
+              display="none"
+              src={asset.browserSrc}
+              alt=""
+              aria-hidden="true"
+              crossOrigin="anonymous"
+              onLoad={event =>
+                recordMeasurement(asset, event.currentTarget)
+              }
+            />
+          ))}
+      </>
       : <Box
           data-testid="three-position-missing-artwork"
           width="100%"

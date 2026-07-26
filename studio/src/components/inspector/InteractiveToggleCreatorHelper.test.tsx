@@ -21,6 +21,11 @@ import type {
 } from '~forgeui/ForgeUIUploadedAssetRegistry'
 import InteractiveToggleCreatorHelper from './InteractiveToggleCreatorHelper'
 
+const mockUpdateProps = jest.fn()
+jest.mock('~hooks/useDispatch', () => () => ({
+  components: { updateProps: mockUpdateProps },
+}))
+
 const toggleComponent = (
   id: string,
   interactiveAssetId?: string,
@@ -32,7 +37,10 @@ const toggleComponent = (
   children: [],
 })
 
-const image = (id: string): ForgeUIUploadedAsset => ({
+const image = (
+  id: string,
+  measured = false,
+): ForgeUIUploadedAsset => ({
   id,
   name: `${id}.png`,
   type: 'image/png',
@@ -43,6 +51,14 @@ const image = (id: string): ForgeUIUploadedAsset => ({
   exportStatus: 'lvgl_ready',
   lvgl: `fg_${id}`,
   cFile: `${id}.c`,
+  width: 100,
+  height: 100,
+  ...(measured ? {
+    contentX: 10,
+    contentY: 10,
+    contentWidth: 80,
+    contentHeight: 80,
+  } : {}),
 })
 
 describe('Interactive Toggle Inspector creator helper', () => {
@@ -91,6 +107,12 @@ describe('Interactive Toggle Inspector creator helper', () => {
       'forgeui-open-ai-playground',
       listener,
     )
+    registerInteractiveAsset(
+      createDefaultInteractiveToggleSwitchAsset('first-asset'),
+    )
+    registerInteractiveAsset(
+      createDefaultInteractiveToggleSwitchAsset('second-asset'),
+    )
     const view = render(
       <ChakraProvider>
         <InteractiveToggleCreatorHelper
@@ -131,7 +153,7 @@ describe('Interactive Toggle Inspector creator helper', () => {
     )
   })
 
-  it('hides when the linked Toggle has both artwork assets', () => {
+  it('keeps a configured helper with exact linked-asset navigation', () => {
     forgeUIAddUploadedAssets([
       image('off-image'),
       image('on-image'),
@@ -144,6 +166,8 @@ describe('Interactive Toggle Inspector creator helper', () => {
       onAssetId: 'on-image',
     })
 
+    const listener = jest.fn()
+    window.addEventListener('forgeui-open-ai-playground', listener)
     render(
       <ChakraProvider>
         <InteractiveToggleCreatorHelper
@@ -155,11 +179,25 @@ describe('Interactive Toggle Inspector creator helper', () => {
       </ChakraProvider>,
     )
 
-    expect(screen.queryByTestId('toggle-creator-helper'))
-      .not.toBeInTheDocument()
+    expect(screen.getByTestId('toggle-creator-helper'))
+      .toBeInTheDocument()
+    expect(screen.getAllByText('Interactive Toggle Switch'))
+      .toHaveLength(2)
+    expect(screen.getByRole('button', {
+      name: 'Fit Bounds to Visible Artwork',
+    })).toBeDisabled()
+    fireEvent.click(screen.getByRole('button', {
+      name: 'Open Toggle Creator',
+    }))
+    expect((listener.mock.calls[0][0] as CustomEvent).detail)
+      .toMatchObject({
+        sourceComponentId: 'configured',
+        interactiveAssetId: 'complete-toggle',
+      })
+    window.removeEventListener('forgeui-open-ai-playground', listener)
   })
 
-  it('hides automatically when an incomplete linked set becomes complete', () => {
+  it('updates automatically when an incomplete linked set becomes complete', () => {
     render(
       <ChakraProvider>
         <InteractiveToggleCreatorHelper
@@ -187,7 +225,32 @@ describe('Interactive Toggle Inspector creator helper', () => {
       ])
     })
 
-    expect(screen.queryByTestId('toggle-creator-helper'))
-      .not.toBeInTheDocument()
+    expect(screen.getAllByText('Interactive Toggle Switch'))
+      .toHaveLength(2)
+  })
+
+  it('enables fitting automatically when both states are measured', () => {
+    forgeUIAddUploadedAssets([
+      image('off-measured', true),
+      image('on-measured', true),
+    ])
+    registerInteractiveAsset({
+      ...createDefaultInteractiveToggleSwitchAsset('measured-toggle'),
+      offAssetId: 'off-measured',
+      onAssetId: 'on-measured',
+    })
+    render(
+      <ChakraProvider>
+        <InteractiveToggleCreatorHelper
+          component={toggleComponent(
+            'measured',
+            'measured-toggle',
+          )}
+        />
+      </ChakraProvider>,
+    )
+    expect(screen.getByRole('button', {
+      name: 'Fit Bounds to Visible Artwork',
+    })).toBeEnabled()
   })
 })

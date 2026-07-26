@@ -1,7 +1,11 @@
 import {
+  forgeUIAddUploadedAssets,
+  forgeUIClearUploadedAssets,
   forgeUIFindAlphaContentBounds,
+  forgeUIGetUploadedAssets,
   forgeUIParsePngDimensions,
   forgeUIResolveUploadedAssetDimensions,
+  forgeUIUpdateUploadedAsset,
 } from './ForgeUIUploadedAssetRegistry'
 
 const pngBytes = (width: number, height: number) => {
@@ -125,5 +129,74 @@ describe('uploaded image alpha-content bounds', () => {
       2,
       2,
     )).toBeUndefined()
+  })
+})
+
+describe('uploaded image metadata updates', () => {
+  beforeEach(() => {
+    forgeUIClearUploadedAssets()
+  })
+
+  it('does not notify for an identical metadata write', () => {
+    forgeUIAddUploadedAssets([{
+      id: 'same',
+      name: 'same.png',
+      type: 'image/png',
+      size: 1,
+      createdAt: 1,
+      browserSrc: 'old',
+      kind: 'uploaded',
+      exportStatus: 'lvgl_ready',
+      lvgl: 'fg_same',
+      cFile: 'same.c',
+      width: 10,
+      height: 10,
+      contentX: 1,
+      contentY: 1,
+      contentWidth: 8,
+      contentHeight: 8,
+    }])
+    const listener = jest.fn()
+    window.addEventListener('forgeui-assets-updated', listener)
+    forgeUIUpdateUploadedAsset('same', {
+      width: 10,
+      height: 10,
+      contentX: 1,
+      contentY: 1,
+      contentWidth: 8,
+      contentHeight: 8,
+    })
+    expect(listener).not.toHaveBeenCalled()
+    window.removeEventListener('forgeui-assets-updated', listener)
+  })
+
+  it('clears stale measurements for same-ID artwork replacement', () => {
+    forgeUIAddUploadedAssets([{
+      id: 'replaceable',
+      name: 'status.png',
+      type: 'image/png',
+      size: 1,
+      createdAt: 1,
+      browserSrc: 'old',
+      kind: 'uploaded',
+      exportStatus: 'lvgl_ready',
+      lvgl: 'fg_status',
+      cFile: 'status.c',
+      width: 10,
+      height: 10,
+      contentX: 1,
+      contentY: 1,
+      contentWidth: 8,
+      contentHeight: 8,
+    }])
+    forgeUIUpdateUploadedAsset('replaceable', {
+      browserSrc: 'replacement',
+    })
+    expect(forgeUIGetUploadedAssets()[0]).toMatchObject({
+      id: 'replaceable',
+      browserSrc: 'replacement',
+    })
+    expect(forgeUIGetUploadedAssets()[0].width).toBeUndefined()
+    expect(forgeUIGetUploadedAssets()[0].contentWidth).toBeUndefined()
   })
 })

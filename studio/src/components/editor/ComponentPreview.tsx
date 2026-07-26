@@ -37,9 +37,15 @@ import InteractiveButtonCanvasPreview, {
   getInteractiveButtonCanvasAspectRatio,
 } from './previews/InteractiveButtonCanvasPreview'
 import InteractiveLightCanvasPreview from './previews/InteractiveLightCanvasPreview'
-import InteractiveStatusIndicatorCanvasPreview from './previews/InteractiveStatusIndicatorCanvasPreview'
-import InteractiveToggleSwitchCanvasPreview from './previews/InteractiveToggleSwitchCanvasPreview'
-import InteractiveThreePositionToggleCanvasPreview from './previews/InteractiveThreePositionToggleCanvasPreview'
+import InteractiveStatusIndicatorCanvasPreview, {
+  getInteractiveStatusIndicatorCanvasAspectRatio,
+} from './previews/InteractiveStatusIndicatorCanvasPreview'
+import InteractiveToggleSwitchCanvasPreview, {
+  getInteractiveToggleCanvasAspectRatio,
+} from './previews/InteractiveToggleSwitchCanvasPreview'
+import InteractiveThreePositionToggleCanvasPreview, {
+  getInteractiveThreePositionCanvasAspectRatio,
+} from './previews/InteractiveThreePositionToggleCanvasPreview'
 import {
   FORGEUI_INTERACTIVE_ASSETS_UPDATED_EVENT,
 } from '~forgeui/ForgeUINavigation'
@@ -62,7 +68,10 @@ const ComponentPreview: React.FC<{
 
   useEffect(() => {
     if (
-      component?.type !== 'InteractiveButton'
+      component?.type !== 'InteractiveButton' &&
+      component?.type !== 'InteractiveStatusIndicator' &&
+      component?.type !== 'InteractiveToggleSwitch' &&
+      component?.type !== 'InteractiveThreePositionToggleSwitch'
     ) {
       return
     }
@@ -339,20 +348,44 @@ case 'AspectRatio':
 
   case 'InteractiveStatusIndicator':
   return (
-    <PreviewContainer component={component} enableVisualHelper {...forwardedProps}>
+    <PreviewContainer
+      component={component}
+      enableVisualHelper
+      resizeMode="selection-border"
+      resizeAspectRatio={
+        getInteractiveStatusIndicatorCanvasAspectRatio(component)
+      }
+      {...forwardedProps}
+    >
       <InteractiveStatusIndicatorCanvasPreview component={component} />
     </PreviewContainer>
   )
 
   case 'InteractiveToggleSwitch':
   return (
-    <PreviewContainer component={component} enableVisualHelper {...forwardedProps}>
+    <PreviewContainer
+      component={component}
+      enableVisualHelper
+      resizeMode="selection-border"
+      resizeAspectRatio={
+        getInteractiveToggleCanvasAspectRatio(component)
+      }
+      {...forwardedProps}
+    >
       <InteractiveToggleSwitchCanvasPreview component={component} />
     </PreviewContainer>
     )
   case 'InteractiveThreePositionToggleSwitch':
     return (
-      <PreviewContainer component={component} enableVisualHelper {...forwardedProps}>
+      <PreviewContainer
+        component={component}
+        enableVisualHelper
+        resizeMode="selection-border"
+        resizeAspectRatio={
+          getInteractiveThreePositionCanvasAspectRatio(component)
+        }
+        {...forwardedProps}
+      >
         <InteractiveThreePositionToggleCanvasPreview component={component} />
       </PreviewContainer>
     )

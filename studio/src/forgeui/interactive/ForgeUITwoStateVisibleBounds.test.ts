@@ -1,4 +1,5 @@
 import {
+  getCommonContentBounds,
   fitTwoStateGeometryToContent,
   getTwoStateCommonContentBounds,
   twoStateBoundsNeedFitting,
@@ -88,5 +89,27 @@ describe('shared two-state visible bounds', () => {
       full,
       getTwoStateCommonContentBounds(full, full)!,
     )).toBe(false)
+  })
+
+  it('builds one stable union across three measured states', () => {
+    expect(getCommonContentBounds([
+      image('left', {
+        contentX: 20, contentY: 10,
+        contentWidth: 100, contentHeight: 70,
+      }),
+      image('center', {
+        contentX: 10, contentY: 20,
+        contentWidth: 160, contentHeight: 60,
+      }),
+      image('right', {
+        contentX: 30, contentY: 5,
+        contentWidth: 150, contentHeight: 90,
+      }),
+    ])).toEqual({
+      contentX: 10,
+      contentY: 5,
+      contentWidth: 170,
+      contentHeight: 90,
+    })
   })
 })

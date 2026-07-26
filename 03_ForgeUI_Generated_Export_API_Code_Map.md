@@ -2,7 +2,7 @@
 
 ## Current proven save point
 
-**FORGEUI_INTERACTIVE_BUTTON_AND_LIGHT__WORKFLOW_POLISH__SHARED_VISIBLE_BOUNDS__CANVAS_RESIZE__LVGL_PARITY__ESP32P4_VALIDATED__2026-07-26**
+**FORGEUI_ALL_FIVE_INTERACTIVE_ASSETS__CONFIGURED_INSPECTOR_PARITY__SHARED_SELECTION_BORDER_RESIZE__N_STATE_VISIBLE_BOUNDS__LVGL_CONTAIN_SCALING__ESP32P4_PROVEN__2026-07-27**
 
 ## Purpose and scope
 
@@ -52,7 +52,16 @@ Binary Output Runtime
 
 Button is momentary input. Toggle Switch is persistent boolean input. Three-Position Toggle is persistent enum input. Light and Status Indicator are developer-controlled outputs.
 
-For placed Interactive Button and Interactive Light components, persisted Canvas `x/y/w/h` is the generated geometry source of truth. Their state artwork uses centred contain-fit scaling resolved through uploaded-asset registry metadata, PNG IHDR dimensions and generated LVGL descriptors, with scale 256 only as the final safe fallback. Live firmware and standalone export consume the same generated result.
+For all five placed Interactive Asset component branches, persisted Canvas `x/y/w/h` is the generated geometry source of truth. State-image controls use that final geometry for the parent object or transparent container and centre a non-clickable child image inside it. Every required state shares one safe contain-fit scale; state switching changes only the source, not geometry. Dimension resolution uses uploaded-asset registry metadata, PNG IHDR dimensions and generated LVGL descriptors, with scale 256 only as the final safe fallback and valid scales above or below 256. Linked fitted assets are consumed automatically when their IDs replace the original state references. Browser Preview, live firmware and standalone export use the same persisted geometry model.
+
+Runtime direction remains unchanged:
+
+```text
+Button         -> FG_On_*_Clicked(void)
+Toggle         -> FG_On_*_Toggled(bool enabled)
+Three-Position -> FG_On_*_Changed(fg_three_way_state_t state)
+Light/Status   -> FG_Set_*(bool enabled)
+```
 
 ```text
 ForgeUI Canvas
@@ -163,7 +172,7 @@ interactive-status-indicator-designer
 
 These entry points select the current Canvas component and its linked Interactive Asset. The Creator and State Sheet pipeline prepares or edits the Interactive Asset and uploaded state images consumed by export; it does not replace or redefine the generated runtime-family contracts. In particular, Status Indicator Creator navigation does not change the generated Binary Output API direction or `FG_Set_*` contract.
 
-Button and Light `Fit Bounds to Visible Artwork` is an explicit pre-export asset operation. It creates linked cropped state assets from one stable two-state alpha-content union and preserves the original uploads. Once applied, normal asset resolution causes both export paths to consume the linked cropped assets without adding another export API or payload field.
+`Fit Bounds to Visible Artwork` is an explicit design-time asset operation for Button Normal/Pressed, Toggle OFF/ON, Light OFF/ON, Status Indicator OFF/ON and Three-Position LEFT/CENTER/RIGHT. It measures state artwork before export, calculates one stable union across the required states, creates same-size linked cropped uploaded assets, preserves original uploads, updates the existing Interactive Asset state IDs and remains idempotent. Export consumes whichever uploaded asset IDs the Interactive Asset currently references. Export does not perform alpha cropping, and fitting adds no firmware API or transport metadata.
 
 ## Export Validation Ownership
 
@@ -328,12 +337,15 @@ Runtime generation assumes that its candidate result will pass the dedicated cli
 - Keyboard top-left alignment, relative control-width map, explicit styles, and final runtime ordering
 - export of uploaded assets produced by Toggle and Three-Position State Sheet workflows
 - current direct Creator integration through the component and uploaded-asset model
-- final persisted component geometry for Button and Light object sizing
-- shared two-state contain-fit scale calculation
+- final persisted component geometry for all five Interactive Asset branches
+- component-sized transparent parent or container generation where applicable
+- centred non-clickable child image generation
+- shared two-state contain-fit scaling for Button Normal/Pressed, Toggle OFF/ON, Light OFF/ON and Status Indicator OFF/ON through the common Binary Output path
+- shared three-state contain-fit scaling for Three-Position LEFT/CENTER/RIGHT
 - uploaded-asset registry dimension metadata consumption
 - PNG IHDR dimension recovery
 - generated LVGL descriptor-based dimension fallback
-- centred Button and Light image placement after scaling
+- safe scale-256 fallback and scale values above or below 256
 - linked cropped state-asset consumption
 - Toggle and Three-Position hook naming and metadata
 - input callback-name uniqueness across all hook families
@@ -371,7 +383,7 @@ The exporter walks the ForgeUI component tree and selects the correct component 
 - asset-source collection
 - recursive export of nested children
 
-After placement, component geometry is authoritative. Button and Light branches use the traversed component `x/y/w/h`; they do not replace it with reusable Interactive Asset dimensions during generation. The same persisted geometry feeds live firmware, standalone export and Browser Preview.
+After placement, component geometry is authoritative. All five Interactive Asset branches use traversed component `x/y/w/h`; reusable Interactive Asset dimensions do not replace persisted component geometry during generation. Linked fitted state assets resolve through the normal kind-specific asset lookup when their IDs are current. The same persisted geometry feeds Browser Preview, live firmware and standalone export.
 
 Current internal object names such as `obj1`, `obj2`, and `obj3` are implementation details. They are suitable for generated LVGL variables but are not the stable developer API.
 
@@ -390,7 +402,7 @@ For Keyboard, traversal geometry remains the source of truth. The branch emits m
 
 These four properties are the complete current contract. All input families share the one generalized `userEventHooks` string collection; there are no separate Button, Toggle or Three-Position payload fields. Hook suffixes encode signature selection downstream: `Clicked`, `Toggled`, or `Changed`. Binary Output declarations use `publicApiDeclarations: string[]` and retain the exact `void FG_Set_*(bool enabled);` text.
 
-Contain-fit scaling, recovered dimensions and visible-bounds crop metadata do not add export-result properties. The generated `code` contains resolved numeric scales or descriptor-based helper calls, while `assetSources` contains the linked cropped state sources when fitting has replaced the Interactive Asset's state references.
+Scaling helpers and resolved numeric scales live inside generated `code`. Linked fitted C sources appear in `assetSources` when fitting has replaced the Interactive Asset's state references. Intrinsic dimensions, alpha metadata, union bounds and crop coordinates do not become export payload fields. All input hooks remain in the single `userEventHooks` collection, and Binary Output declarations remain in `publicApiDeclarations`.
 
 The UI export actions in `studio/src/components/Header.tsx` send these values to both export endpoints:
 
@@ -597,12 +609,18 @@ The `InteractiveToggleSwitch` export path:
 
 1. resolves the Toggle Switch by kind;
 2. resolves OFF and ON uploaded assets;
-3. collects their required generated C sources;
-4. generates a unique `FG_On_*_Toggled` name and adds it to `userEventHooks`;
-5. creates a full-size parent LVGL button and child image;
-6. creates an independent `fg_toggle_input_t` record;
-7. initializes from the saved state through `fg_toggle_input_set(..., notify=false)`;
-8. attaches the shared click callback.
+3. collects the currently linked or original required generated C sources;
+4. uses final persisted component position and size;
+5. creates a full-size transparent parent LVGL button;
+6. creates a centred non-clickable child image;
+7. calculates one common OFF/ON contain scale;
+8. recovers dimensions through registry metadata, PNG IHDR, `lv_image_dsc_t.header.w/h`, then safe scale 256;
+9. creates an independent `fg_toggle_input_t` record;
+10. initializes from the saved state through `fg_toggle_input_set(..., notify=false)`;
+11. attaches `fg_toggle_input_event_cb()`;
+12. generates a unique `FG_On_*_Toggled` name and adds it to `userEventHooks`.
+
+State changes replace the child image source without changing position, scale or parent geometry. The `fg_toggle_input_t`, `fg_toggle_input_set()`, `fg_toggle_input_event_cb()` and `void FG_On_<Name>_Toggled(bool enabled);` contracts are unchanged.
 
 ### Shared Toggle Input Runtime
 
@@ -671,12 +689,15 @@ The `InteractiveThreePositionToggleSwitch` export path:
 
 1. resolves the asset by kind;
 2. resolves LEFT, CENTER and RIGHT uploaded assets;
-3. collects all required C sources;
+3. collects all currently linked or original required C sources;
 4. generates a unique `FG_On_*_Changed` name and adds it to `userEventHooks`;
-5. creates the full rectangular parent button and child image;
-6. creates an independent `fg_three_way_input_t` record;
-7. initializes the saved enum state with `notify=false`;
-8. attaches the one shared `fg_three_way_input_event_cb()`.
+5. uses final persisted component position and size for the full transparent rectangular parent button;
+6. creates a centred non-clickable child image;
+7. resolves dimensions through registry metadata, PNG IHDR, LVGL descriptors and the safe scale-256 fallback;
+8. applies one common LEFT/CENTER/RIGHT contain scale, including values above or below 256;
+9. creates an independent `fg_three_way_input_t` record;
+10. initializes the saved enum state with `notify=false`;
+11. attaches the one shared `fg_three_way_input_event_cb()`.
 
 ### Shared Three-Position Input Runtime
 
@@ -864,7 +885,7 @@ static void fg_binary_output_set(
 
 This structure and function are generated once per export. Interactive Light introduced them; Interactive Status Indicator reuses them unchanged.
 
-The Binary Output API contract is unchanged by Light scaling. `fg_binary_output_set()` continues to switch only `image` source. Light object creation owns its transparent geometry container, shared OFF/ON scale and centring before the runtime record is used; Status Indicator retains its existing generated object behavior.
+The Binary Output API contract is unchanged by contain scaling. `fg_binary_output_set()` continues to switch only `image` source. Light and Status Indicator object creation use final component geometry, a transparent component-sized container, a centred child image and one shared OFF/ON scale before the runtime record is used.
 
 Every exported Binary Output instance creates its own `fg_binary_output_t` record containing its LVGL image, OFF source, ON source, and saved state. Multiple records remain independent even when instances reuse the same artwork.
 
@@ -923,15 +944,17 @@ Interactive Status Indicator export owns:
 3. resolving OFF and ON uploaded artwork;
 4. using the preflight-validated OFF and ON image metadata;
 5. adding required asset C files without duplicating reused artwork sources;
-6. creating a Binary Output export descriptor;
-7. creating a non-clickable LVGL image;
-8. selecting its initial source from saved `initialState`;
-9. creating a unique `fg_binary_output_t` runtime record;
-10. creating a deterministic public setter name;
-11. emitting a setter that delegates to `fg_binary_output_set()`;
-12. returning its declaration as public API metadata.
+6. creating a Binary Output export descriptor from final persisted component geometry;
+7. creating a transparent component-sized container and centred non-clickable child image;
+8. resolving dimensions through registry metadata, PNG IHDR, LVGL descriptors and safe scale 256;
+9. applying the common Binary Output OFF/ON contain scale;
+10. selecting its initial source from saved `initialState`;
+11. creating a unique `fg_binary_output_t` runtime record;
+12. creating a deterministic public setter name;
+13. emitting a setter that delegates to `fg_binary_output_set()`;
+14. returning its declaration as public API metadata.
 
-The exporter consumes the final saved OFF/ON asset references and component geometry only. It does not export Creator navigation, Inspector onboarding, local Canvas preview click behavior or temporary design-time state. It continues to emit one non-clickable LVGL image, one independent `fg_binary_output_t` record and one generated `FG_Set_*` API per Status Indicator.
+The exporter consumes the final saved OFF/ON asset references and component geometry only. It does not export Creator navigation, Inspector onboarding, local Canvas preview click behavior or temporary design-time state. It emits one centred non-clickable child image, one independent `fg_binary_output_t` record and one generated `FG_Set_*` API per Status Indicator.
 
 ### Design-time preview versus generated runtime
 
@@ -991,7 +1014,7 @@ Owns generated implementation:
 - final Keyboard setup ordering and Canvas-relative geometry
 - Binary Output OFF/ON runtime image references
 - Light component-sized container, shared OFF/ON contain scale and centred child image
-- generated Button and Light LVGL descriptor fallback helpers
+- generated Button, Toggle, Three-Position and Binary Output LVGL descriptor fallback helpers
 - Light public setter implementations
 - Interactive Status Indicator public setter implementations
 - `fg_studio_export_create(...)`
@@ -1388,6 +1411,7 @@ The Button, exercised Toggle Switch, Three-Position input-hook path, and shared 
 - Three-Position generated runtime regressions pass;
 - Button final-geometry, registry-dimension, PNG IHDR, LVGL descriptor fallback and linked-crop export regressions pass;
 - Light final-geometry, common OFF/ON scale, centring, initial-state and linked-crop export regressions pass;
+- Toggle, Status Indicator and Three-Position final-geometry, common state-scale, centring, fallback and linked fitted-asset export regressions pass;
 - Canvas, Browser Preview, live/standalone generator and persistence regressions preserve geometry ownership;
 - TypeScript validation passes;
 - export-server syntax/regression validation passes where applicable;
@@ -1472,7 +1496,7 @@ Do not preserve historical suite totals here. Unrelated repository fixtures or p
 
 ### `studio/src/forgeui/ForgeUILvglExport.ts`
 
-Owns generated LVGL source, all five Interactive Asset branches, shared Button/Toggle/Three-Position/Binary Output runtimes, Button/Light contain-fit calculations and descriptor helpers, Keyboard native map/alignment/control widths/styles/final geometry ordering, per-instance records, sanitized unique hook names, setter names, linked cropped asset consumption, and all exporter metadata. Never writes files directly.
+Owns generated LVGL source, all five Interactive Asset branches, shared Button/Toggle/Three-Position/Binary Output runtimes, two-state and three-state contain-fit calculations and descriptor helpers, final persisted component geometry, component-sized parent/container objects, centred child images, Keyboard native map/alignment/control widths/styles/final geometry ordering, per-instance records, sanitized unique hook names, setter names, linked cropped asset consumption, and all exporter metadata. Never writes files directly.
 
 ### `studio/src/forgeui/ForgeUIUploadedAssetRegistry.ts`
 
@@ -1480,7 +1504,7 @@ Owns uploaded image records, intrinsic dimension metadata, alpha-content metadat
 
 ### `studio/src/forgeui/interactive/ForgeUITwoStateVisibleBounds.ts`
 
-Owns the non-destructive shared two-state alpha union, component-geometry mapping and linked crop generation used by Button and Light before export.
+Owns non-destructive stable state-set alpha unions, compatible source-dimension validation, component-geometry mapping and linked crop generation used by Button, Toggle, Light, Status Indicator and Three-Position before export. Its filename and Button/Light compatibility APIs remain unchanged.
 
 ### `studio/src/forgeui/interactive/ForgeUIInteractiveButtonVisibleBounds.ts`
 
@@ -1560,10 +1584,10 @@ Preserve these rules:
 36. Status Indicator Canvas Preview may toggle local state for visual verification, but temporary preview state is never exported.
 37. Generated Status Indicator LVGL remains non-clickable and Binary Output state remains developer-controlled through `FG_Set_*`.
 38. Component geometry becomes authoritative after placement; reusable Interactive Asset dimensions do not overwrite persisted component geometry during export.
-39. Generated Button and Light LVGL position and size always use persisted component `x/y/w/h`.
+39. Generated LVGL position and size for all five Interactive Asset branches always use persisted component `x/y/w/h`.
 40. Interactive Asset families that export two-state contained artwork reuse the common contain-fit scaling model rather than inventing independent geometry rules.
 41. Legacy image dimensions resolve in this order: uploaded-asset registry metadata, PNG IHDR, generated LVGL descriptor dimensions, then safe scale 256.
-42. Button Normal/Pressed and Light OFF/ON each use one common state-pair scale and centred child-image placement.
+42. Button Normal/Pressed, Toggle OFF/ON, Light OFF/ON and Status Indicator OFF/ON each use one common state-pair scale and centred child-image placement; Three-Position LEFT/CENTER/RIGHT uses one common three-state scale.
 43. Canvas, Browser Preview, live firmware and standalone export must remain visually equivalent for the same persisted component geometry and state assets.
 44. Visible-artwork fitting exports linked cropped state assets and never modifies the original uploaded images.
 
