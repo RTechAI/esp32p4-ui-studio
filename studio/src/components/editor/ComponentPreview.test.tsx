@@ -512,3 +512,95 @@ test('Three-Position Toggle context menu opens its type-scoped creator', () => {
   expect(screen.queryByRole('menu')).not.toBeInTheDocument()
   window.removeEventListener('forgeui-open-ai-playground', listener)
 })
+
+test('Status Indicator context menu opens only its linked creator', () => {
+  // @ts-ignore Rematch's inferred plugin type is wider than this test needs.
+  const store = init(storeConfig)
+  store.dispatch.components.addComponent({
+    parentName: 'root',
+    type: 'InteractiveStatusIndicator',
+    rootParentType: 'InteractiveStatusIndicator',
+    testId: 'status-menu',
+    props: {
+      positionMode: 'absolute',
+      interactiveAssetId: 'linked-status',
+    },
+  })
+  const listener = jest.fn()
+  window.addEventListener('forgeui-open-ai-playground', listener)
+  renderWithRedux(
+    <ComponentPreview componentName="status-menu" />,
+    { store, initialState: undefined },
+  )
+  fireEvent.contextMenu(screen.getByTestId(
+    'unconfigured-status-indicator-placeholder',
+  ))
+  expect(screen.getByRole('menuitem', {
+    name: 'Open Status Indicator Creator',
+  })).toBeInTheDocument()
+  expect(screen.queryByText('Open Light Creator')).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('menuitem', {
+    name: 'Open Status Indicator Creator',
+  }))
+  expect((listener.mock.calls[0][0] as CustomEvent).detail).toMatchObject({
+    target: 'interactive-status-indicator-designer',
+    sourceComponentId: 'status-menu',
+    interactiveAssetId: 'linked-status',
+  })
+  window.removeEventListener('forgeui-open-ai-playground', listener)
+})
+
+test('a newly dropped Status Indicator uses its full placeholder and selection bounds', () => {
+  // @ts-ignore Rematch's inferred plugin type is wider than this test needs.
+  const store = init(storeConfig)
+  store.dispatch.components.addComponent({
+    parentName: 'root',
+    type: 'InteractiveStatusIndicator',
+    rootParentType: 'InteractiveStatusIndicator',
+    testId: 'new-status-size',
+    props: {
+      positionMode: 'absolute',
+      x: 40,
+      y: 50,
+      w: 120,
+      h: 72,
+    },
+  })
+  renderWithRedux(
+    <ComponentPreview componentName="new-status-size" />,
+    { store, initialState: undefined },
+  )
+  const placeholder = screen.getByTestId(
+    'unconfigured-status-indicator-placeholder',
+  )
+  expect(placeholder).toHaveAttribute('data-layout', 'full')
+  expect(screen.getByTestId(
+    'unconfigured-status-indicator-icon',
+  )).toHaveAttribute('width', '101')
+  const bounds = placeholder.closest(
+    '.react-draggable',
+  ) as HTMLElement
+  expect(bounds).toHaveStyle({
+    width: '120px',
+    height: '72px',
+  })
+})
+
+test('unrelated Interactive Assets do not get the Status Indicator action', () => {
+  // @ts-ignore Rematch's inferred plugin type is wider than this test needs.
+  const store = init(storeConfig)
+  store.dispatch.components.addComponent({
+    parentName: 'root',
+    type: 'InteractiveLight',
+    rootParentType: 'InteractiveLight',
+    testId: 'not-status',
+    props: { positionMode: 'absolute' },
+  })
+  renderWithRedux(
+    <ComponentPreview componentName="not-status" />,
+    { store, initialState: undefined },
+  )
+  fireEvent.contextMenu(screen.getByTestId('unconfigured-light-placeholder'))
+  expect(screen.queryByText('Open Status Indicator Creator'))
+    .not.toBeInTheDocument()
+})

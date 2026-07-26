@@ -1,6 +1,6 @@
 # Current Save Point
 
-**FORGEUI_INTERACTIVE_ASSET_CREATORS__THREE_POSITION_STATE_SHEET_AND_LINKED_CROPS__KEYBOARD_LVGL_PARITY__PHYSICAL_ESP32P4_PROVEN__READY_FOR_UI_POLISH__2026-07-26**
+**FORGEUI_ALL_FIVE_DIRECT_CREATORS__THREE_POSITION_STATE_SHEET__LINKED_CROPS__STATUS_INDICATOR_POLISH__KEYBOARD_PARITY__ESP32P4_PROVEN__2026-07-26**
 
 ## Current Proven Status..
 
@@ -92,17 +92,19 @@ There are no parallel creation flows. Type-specific designers and models remain 
 
 ## Direct Creator Workflow
 
-Interactive Button, Interactive Toggle Switch, Interactive Three-Position Toggle Switch and Interactive Light share a direct Creator workflow in addition to the Interactive Assets panel.
+Interactive Button, Interactive Toggle Switch, Interactive Three-Position Toggle Switch, Interactive Light and Interactive Status Indicator all share a direct Creator workflow in addition to the Interactive Assets panel.
 
 - Canvas right-click exposes the type-specific `Open Creator` action.
 - Configured components reopen the exact asset referenced by `interactiveAssetId`.
 - Unconfigured components open a fresh unsaved draft.
 - Opening a Creator never automatically creates, registers, saves or assigns an asset.
 - A private ForgeUI navigation dispatcher carries type-scoped requests into the shared AI Studio portal.
-- Button, Toggle, Light and Three-Position edit requests remain separate so one Creator cannot consume another type's request.
+- Button, Toggle, Light, Status Indicator and Three-Position edit requests remain separate so one Creator cannot consume another type's request. Wrong-kind asset IDs are rejected.
 - The portal replaces the current Creator view rather than stacking duplicate creation surfaces.
 - Outside-click and Escape dismiss the Canvas context menu.
 - Inspector onboarding cards provide the same direct route when required state visuals are missing.
+- Navigation requests are cleared after consumption so stale requests cannot reopen another workflow.
+- `ForgeAIPanel` recognizes every direct Creator target and opens the Interactive tab rather than leaving the shared portal in Layout.
 
 Current navigation targets include:
 
@@ -110,10 +112,11 @@ Current navigation targets include:
 interactive-button-designer
 interactive-toggle-switch-designer
 interactive-light-designer
+interactive-status-indicator-designer
 interactive-three-position-toggle-designer
 ```
 
-Status Indicator remains outside the direct Light Creator Canvas type guards. It continues to use the shared Interactive Assets panel and Binary Output design path.
+For Interactive Status Indicator specifically, Canvas right-click exposes `Open Status Indicator Creator`. Configured components reopen the exact Status Indicator referenced by `interactiveAssetId`; unconfigured components open a fresh unsaved Status Indicator draft. Opening that draft does not create, register, save or assign an asset.
 
 ## Shared Interactive Asset Framework
 
@@ -427,8 +430,17 @@ Application code controls state entirely through the generated public API.
 
 - AI generates OFF and ON images.
 - Generated results map to `offAssetId` and `onAssetId`.
+- Direct Canvas right-click exposes `Open Status Indicator Creator`.
+- Configured components reopen their exact linked Status Indicator asset; unconfigured components open a fresh unsaved draft.
+- Inspector onboarding provides the same Creator route when no Status Indicator asset is assigned or when the OFF or ON visual is missing.
+- The Inspector helper hides once both uploaded visuals resolve correctly.
+- An unconfigured component uses a responsive binary-output SVG placeholder: compact controls use icon-only mode, while larger controls show OFF / ON hints.
+- Placeholder styling follows the Interactive Asset family with near-white unselected artwork, cyan selected artwork and a muted-green active indicator.
+- New Status Indicators drop at `120 × 72`, replacing the previous shared `32 × 32` drop default so the component is immediately visible and selectable before artwork is assigned.
+- Browser Preview and Canvas Preview use the same centered contain-fit renderer.
+- Intrinsic artwork aspect ratio is preserved: square artwork remains square and non-square artwork is not stretched to fill width and height independently.
 - Canvas click toggles a temporary preview state.
-- Preview toggling does not mutate the saved asset or affect exported firmware.
+- Preview toggling is local visual verification only; it does not mutate the saved initial state, persistence or exported firmware.
 - The asset can be assigned to an `InteractiveStatusIndicator` Canvas component.
 - Assignment writes `interactiveAssetId` and propagates width and height.
 - Assignment persists across Studio restart.
@@ -600,7 +612,10 @@ Paths under `src/` are relative to `studio/`.
 - `src/components/inspector/InteractiveButtonCreatorHelper.tsx`
 - `src/components/inspector/InteractiveToggleCreatorHelper.tsx`
 - `src/components/inspector/InteractiveLightCreatorHelper.tsx`
+- `src/components/inspector/InteractiveStatusIndicatorCreatorHelper.tsx`
 - `src/components/inspector/InteractiveThreePositionToggleCreatorHelper.tsx`
+- `src/forgeui/ai/ForgeAIPanel.tsx` — recognizes direct Creator targets, including Status Indicator, and selects the Interactive tab
+- `src/hooks/useDropComponent.ts` — owns the `120 × 72` default Status Indicator Canvas size
 
 ### Button
 
@@ -638,6 +653,7 @@ The current implementation does not introduce a separate `InteractiveToggleSwitc
 ### Status Indicator
 
 - `src/forgeui/interactive/ForgeUIInteractiveStatusIndicatorAsset.ts`
+- `src/forgeui/interactive/UnconfiguredStatusIndicatorPlaceholder.tsx`
 - `src/forgeui/interactive/InteractiveStatusIndicatorPreview.tsx`
 - `src/components/editor/previews/InteractiveStatusIndicatorCanvasPreview.tsx`
 
@@ -753,11 +769,11 @@ Interactive Three-Position Toggle Switch established the **Three-Position Input 
 
 Interactive Light introduced the shared **Binary Output Runtime**, proving that generated output controls could expose a simple developer API while sharing a common runtime implementation.
 
-Interactive Status Indicator validated that the Binary Output Runtime is reusable. It extends the framework without introducing a second runtime implementation, demonstrating that additional binary output assets can be added by reusing the existing runtime while providing their own asset model, designer, preview behaviour, export handling and generated public API.
+Interactive Status Indicator validated that the Binary Output Runtime is reusable. It extends the framework without introducing a second runtime implementation, demonstrating that additional binary output assets can be added by reusing the existing runtime while providing their own asset model, designer, preview behaviour, export handling and generated public API. Status Indicator also completes the shared direct Creator workflow across all five Interactive Assets while remaining a non-clickable physical binary output controlled through `FG_Set_*`, not an input control.
 
 ForgeUI now extends by adding reusable runtime families rather than accumulating isolated widget implementations. Each family owns the generated C runtime appropriate to its state and interaction model. All families share Interactive Asset identity, registry, persistence, uploaded assets, AI generation, Canvas assignment, preview, export integration, validation and generated-file ownership.
 
-ForgeUI also has reusable creation architecture:
+ForgeUI also has reusable creation architecture, with direct Creator coverage now complete across all five Interactive Assets:
 
 - direct Creator navigation from Canvas context menus and Inspector onboarding;
 - exact configured-asset reopening and clean unconfigured drafts;
@@ -842,12 +858,12 @@ These remain future concepts only. They are not implemented or physically proven
 
 Save points are ordered newest to oldest. Detailed subsystem engineering is maintained in the Developer Code Maps.
 
-## FORGEUI_INTERACTIVE_CREATORS__THREE_POSITION_STATE_SHEET__LINKED_CROPS__KEYBOARD_PARITY__ESP32P4_PROVEN__2026-07-26
+## FORGEUI_ALL_FIVE_DIRECT_CREATORS__THREE_POSITION_STATE_SHEET__LINKED_CROPS__STATUS_INDICATOR_POLISH__KEYBOARD_PARITY__ESP32P4_PROVEN__2026-07-26
 
-- **What changed:** Added direct Interactive Light and Three-Position Creators, `Create Three-Position Toggle Set`, one-master State Sheet generation, unique row remapping, three independently positioned linked crop regions, atomic registration, and corrected LVGL keyboard alignment and key-width distribution.
-- **Why it changed:** Visual controls needed safe component-to-Creator editing, consistent multi-state artwork from one source, reliable crop conversion, and closer Studio-to-P4 keyboard parity.
-- **Final architecture:** Canvas and Inspector navigation open type-scoped drafts; one Three-Position master feeds linked LEFT/CENTER/RIGHT crops, conversion completes before registry mutation, and the keyboard applies explicit native map/style/alignment geometry.
-- **Proven result:** Three-Position artwork, full-width touch zones, readable generated callback states and stable runtime were proven on ESP32-P4; the keyboard now fills and aligns with its intended physical area.
+- **What changed:** Completed direct Creator coverage with Interactive Light, Three-Position and Status Indicator; added the Status Indicator responsive placeholder, `120 × 72` default drop size, corrected Interactive-tab navigation, aspect-ratio-preserving contain-fit preview and temporary local OFF / ON Canvas preview toggle; also added `Create Three-Position Toggle Set`, one-master State Sheet generation, linked crops, atomic registration, and corrected LVGL keyboard geometry.
+- **Why it changed:** Visual controls needed safe component-to-Creator editing, immediately usable Canvas bounds, undistorted preview artwork, consistent multi-state generation, reliable crop conversion, and closer Studio-to-P4 keyboard parity.
+- **Final architecture:** All five Interactive Assets open type-scoped drafts from Canvas and Inspector; Status Indicator requests are consumed in the Interactive tab and retain the shared Binary Output Runtime, while one Three-Position master feeds linked LEFT/CENTER/RIGHT crops before atomic registry mutation.
+- **Proven result:** Status Indicator now has complete Creator-family and polished local preview behavior without changing its non-clickable physical output contract; Three-Position artwork, touch zones, callback states and the corrected keyboard remain proven on ESP32-P4.
 
 ## FORGEUI_INTERACTIVE_ASSET_FRAMEWORK_V1__BUTTON_AND_LIGHT__UNIFIED_UI_FLOW__PHYSICAL_ESP32P4_PROVEN
 

@@ -93,6 +93,7 @@ type VisualSelectorMode =
  
 type ForgeUIInteractiveAssetPanelProps = {
   navigationRequest?: ForgeUINavigationRequest | null
+  onNavigationRequestConsumed?: () => void
   onBuildToggleSet?: (
     stateSheetSourceAssetId?: string,
   ) => void
@@ -103,6 +104,7 @@ type ForgeUIInteractiveAssetPanelProps = {
 
 const ForgeUIInteractiveAssetPanel = ({
   navigationRequest,
+  onNavigationRequestConsumed,
   onBuildToggleSet,
   toggleStateSheetResult,
   onToggleStateSheetResultConsumed,
@@ -163,6 +165,13 @@ const threePositionToggleAssets = assets.filter(
     requestId: number
   } | null>(null)
   const [statusIndicatorNewRequest, setStatusIndicatorNewRequest] = useState(0)
+  const [
+    statusIndicatorEditRequest,
+    setStatusIndicatorEditRequest,
+  ] = useState<{
+    assetId: string
+    requestId: number
+  } | null>(null)
   const [toggleSwitchNewRequest, setToggleSwitchNewRequest] = useState(0)
   const [
     toggleSwitchEditRequest,
@@ -186,6 +195,28 @@ const threePositionToggleAssets = assets.filter(
     assetId: string
     requestId: number
   } | null>(null)
+
+  useEffect(() => {
+    if (
+      navigationRequest?.target !==
+      'interactive-status-indicator-designer'
+    ) {
+      return
+    }
+
+    setSelectedAssetKind('statusIndicator')
+    setIsDesignerOpen(true)
+    if (navigationRequest.interactiveAssetId) {
+      setStatusIndicatorEditRequest({
+        assetId: navigationRequest.interactiveAssetId,
+        requestId: navigationRequest.requestId,
+      })
+    } else {
+      setStatusIndicatorEditRequest(null)
+      setStatusIndicatorNewRequest(request => request + 1)
+    }
+    onNavigationRequestConsumed?.()
+  }, [navigationRequest, onNavigationRequestConsumed])
 
   useEffect(() => {
     if (toggleDesignerRestoreVersion <= 0) {
@@ -1177,6 +1208,12 @@ const [
           }}
           onClose={() => setIsDesignerOpen(false)}
           onGeneratingChange={setIsGenerating}
+          requestedEditAssetId={
+            statusIndicatorEditRequest?.assetId
+          }
+          requestedEditVersion={
+            statusIndicatorEditRequest?.requestId
+          }
         />
 
         <InteractiveLightDesigner

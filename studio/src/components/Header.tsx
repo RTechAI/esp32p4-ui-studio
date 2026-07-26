@@ -1066,6 +1066,9 @@ if (data.defaultHero) {
     }}
     insertAiLayout={insertAiLayout}
     navigationRequest={aiPlaygroundNavigationRequest}
+    onNavigationRequestConsumed={() =>
+      setAiPlaygroundNavigationRequest(null)
+    }
   />
 )}
 

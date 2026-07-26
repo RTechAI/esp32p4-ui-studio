@@ -25,6 +25,7 @@ import {
   clearInteractiveAssetRegistry,
   createDefaultInteractiveButtonAsset,
   createDefaultInteractiveLightAsset,
+  createDefaultInteractiveStatusIndicatorAsset,
   createDefaultInteractiveThreePositionToggleAsset,
   createDefaultInteractiveToggleSwitchAsset,
   getAllInteractiveAssets,
@@ -395,6 +396,75 @@ describe('Interactive Assets unified creation flow', () => {
     expect(screen.getByDisplayValue('New Interactive Light'))
       .toBeInTheDocument()
     expect(getAllInteractiveAssets()).toHaveLength(0)
+  })
+
+  it('opens the exact linked Status Indicator', async () => {
+    registerInteractiveAsset({
+      ...createDefaultInteractiveStatusIndicatorAsset(
+        'linked-status',
+        'Linked Status',
+      ),
+      label: 'Linked Status Label',
+    })
+    render(
+      <ChakraProvider>
+        <ForgeUIInteractiveAssetPanel navigationRequest={{
+          target: 'interactive-status-indicator-designer',
+          sourceComponentId: 'status-component',
+          interactiveAssetId: 'linked-status',
+          requestId: 41,
+        }} />
+      </ChakraProvider>,
+    )
+    expect(await screen.findByText(
+      'Edit Interactive Status Indicator',
+    )).toBeInTheDocument()
+    expect(screen.getByDisplayValue('Linked Status')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('Linked Status Label')).toBeInTheDocument()
+  })
+
+  it('opens an unsaved Status Indicator draft without registration or assignment', async () => {
+    const onNavigationRequestConsumed = jest.fn()
+    render(
+      <ChakraProvider>
+        <ForgeUIInteractiveAssetPanel navigationRequest={{
+          target: 'interactive-status-indicator-designer',
+          sourceComponentId: 'blank-status',
+          requestId: 42,
+        }}
+        onNavigationRequestConsumed={
+          onNavigationRequestConsumed
+        } />
+      </ChakraProvider>,
+    )
+    expect(await screen.findByText(
+      'Interactive Status Indicator Designer',
+    )).toBeInTheDocument()
+    expect(screen.getByDisplayValue(
+      'New Interactive Status Indicator',
+    )).toBeInTheDocument()
+    expect(getAllInteractiveAssets()).toHaveLength(0)
+    expect(onNavigationRequestConsumed).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not resolve a Status Indicator edit request against another kind', async () => {
+    registerInteractiveAsset(
+      createDefaultInteractiveLightAsset('wrong-status-kind', 'Wrong Light'),
+    )
+    render(
+      <ChakraProvider>
+        <ForgeUIInteractiveAssetPanel navigationRequest={{
+          target: 'interactive-status-indicator-designer',
+          sourceComponentId: 'status-component',
+          interactiveAssetId: 'wrong-status-kind',
+          requestId: 43,
+        }} />
+      </ChakraProvider>,
+    )
+    expect(await screen.findByText(
+      'Interactive Status Indicator Designer',
+    )).toBeInTheDocument()
+    expect(screen.queryByDisplayValue('Wrong Light')).not.toBeInTheDocument()
   })
 
   it('opens the exact Three-Position Toggle and preserves all image selectors', async () => {

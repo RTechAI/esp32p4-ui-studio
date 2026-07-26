@@ -8,6 +8,7 @@ export type ForgeUINavigationRequest = {
     | 'interactive-toggle-switch-designer'
     | 'interactive-button-designer'
     | 'interactive-light-designer'
+    | 'interactive-status-indicator-designer'
     | 'interactive-three-position-toggle-designer'
   sourceComponentId: string
   interactiveAssetId?: string
@@ -62,6 +63,17 @@ export const openLightCreator = (
 ): void => {
   openInteractiveCreator(
     'interactive-light-designer',
+    sourceComponentId,
+    interactiveAssetId,
+  )
+}
+
+export const openStatusIndicatorCreator = (
+  sourceComponentId: string,
+  interactiveAssetId?: string,
+): void => {
+  openInteractiveCreator(
+    'interactive-status-indicator-designer',
     sourceComponentId,
     interactiveAssetId,
   )

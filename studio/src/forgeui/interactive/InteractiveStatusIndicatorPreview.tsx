@@ -18,6 +18,9 @@ type Props = {
   state: ForgeUIInteractiveStatusIndicatorState
   onStateChange?: (state: ForgeUIInteractiveStatusIndicatorState) => void
   showControls?: boolean
+  missingVisual?: React.ReactNode
+  minimumHeight?: number | string
+  onPreviewClick?: React.MouseEventHandler<HTMLDivElement>
 }
 
 const InteractiveStatusIndicatorPreview = ({
@@ -28,6 +31,9 @@ const InteractiveStatusIndicatorPreview = ({
   state,
   onStateChange,
   showControls = false,
+  missingVisual,
+  minimumHeight = 120,
+  onPreviewClick,
 }: Props) => {
   const previewAsset = state === 'on' ? onAsset : offAsset
 
@@ -37,22 +43,39 @@ const InteractiveStatusIndicatorPreview = ({
       flexDirection="column"
       justifyContent="center"
       alignItems="center"
-      minHeight="120px"
+      minHeight={minimumHeight}
       gap={3}
       data-testid="interactive-status-indicator-preview"
       data-state={state}
+      data-minimum-height={minimumHeight}
+      onClick={onPreviewClick}
+      cursor={onPreviewClick ? 'pointer' : undefined}
     >
       {previewAsset ? (
-        <Image
-          src={previewAsset.browserSrc}
-          alt={previewAsset.name}
+        <Box
           width={`${width}px`}
           height={`${height}px`}
-          objectFit="contain"
-          draggable={false}
-          userSelect="none"
-          pointerEvents="none"
-        />
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          overflow="hidden"
+          data-testid="status-indicator-image-bounds"
+        >
+          <Image
+            src={previewAsset.browserSrc}
+            alt={previewAsset.name}
+            width="auto"
+            height="auto"
+            maxWidth="100%"
+            maxHeight="100%"
+            objectFit="contain"
+            draggable={false}
+            userSelect="none"
+            pointerEvents="none"
+          />
+        </Box>
+      ) : missingVisual ? (
+        missingVisual
       ) : (
         <Text color="gray.500" fontSize="sm">
           Missing {state.toUpperCase()} visual

@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
 import InteractiveStatusIndicatorPreview from '~forgeui/interactive/InteractiveStatusIndicatorPreview'
+import UnconfiguredStatusIndicatorPlaceholder from '~forgeui/interactive/UnconfiguredStatusIndicatorPlaceholder'
 import {
   getInteractiveStatusIndicatorAsset,
   getInteractiveStatusIndicatorDimensions,
@@ -24,6 +25,14 @@ const InteractiveStatusIndicatorCanvasPreview = ({ component }: { component: ICo
       height: Number(component.props.h || 32),
     },
   )
+  const savedInitialState =
+    getInteractiveStatusIndicatorInitialState(interactiveAsset)
+  const [previewState, setPreviewState] =
+    useState(savedInitialState)
+
+  useEffect(() => {
+    setPreviewState(savedInitialState)
+  }, [interactiveAsset?.id, savedInitialState])
 
   return (
     <InteractiveStatusIndicatorPreview
@@ -31,7 +40,19 @@ const InteractiveStatusIndicatorCanvasPreview = ({ component }: { component: ICo
       onAsset={onAsset}
       width={width}
       height={height}
-      state={getInteractiveStatusIndicatorInitialState(interactiveAsset)}
+      state={previewState}
+      minimumHeight={Math.min(height, 120)}
+      missingVisual={
+        <UnconfiguredStatusIndicatorPlaceholder
+          width={width}
+          height={height}
+        />
+      }
+      onPreviewClick={() => {
+        setPreviewState(current =>
+          current === 'off' ? 'on' : 'off',
+        )
+      }}
     />
   )
 }

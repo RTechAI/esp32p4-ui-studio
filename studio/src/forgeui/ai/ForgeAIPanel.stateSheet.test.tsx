@@ -282,6 +282,29 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
     )).toHaveTextContent('saved-toggle')
   })
 
+  it('opens the Interactive tab for a Status Indicator creator request', async () => {
+    render(
+      <ChakraProvider>
+        <ForgeAIPanel
+          onClose={jest.fn()}
+          insertAiLayout={jest.fn()}
+          navigationRequest={{
+            target: 'interactive-status-indicator-designer',
+            sourceComponentId: 'canvas-status',
+            requestId: 8,
+          }}
+        />
+      </ChakraProvider>,
+    )
+    await waitFor(() =>
+      expect(screen.getByTestId('forge-ai-tabs'))
+        .toHaveAttribute('data-active-tab-index', '3'),
+    )
+    expect(screen.getByLabelText(
+      'Navigation source component',
+    )).toHaveTextContent('canvas-status')
+  })
+
   const generateArtwork = async () => {
     fireEvent.click(
       screen.getByRole('tab', {

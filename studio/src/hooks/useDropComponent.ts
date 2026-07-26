@@ -8,6 +8,14 @@ const clamp = (value: number, min: number, max: number) => {
   return Math.max(min, Math.min(value, max))
 }
 
+export const INTERACTIVE_STATUS_INDICATOR_DROP_SIZE = {
+  width: 120,
+  height: 72,
+} as const
+
+export const getInteractiveStatusIndicatorDropSize = () =>
+  INTERACTIVE_STATUS_INDICATOR_DROP_SIZE
+
 export const useDropComponent = (
   componentId: string,
   accept: (ComponentType | MetaComponentType)[] = rootComponents,
@@ -151,7 +159,9 @@ const defaultW = isLed
                           ? 64
                         : isInteractiveThreePositionToggleSwitch
                           ? 96
-                        : isInteractiveLight || isInteractiveStatusIndicator
+                        : isInteractiveStatusIndicator
+                          ? getInteractiveStatusIndicatorDropSize().width
+                        : isInteractiveLight
                           ? 32
                         : isSelect
                           ? 180
@@ -203,7 +213,9 @@ const defaultH = isLed
                           ? 36
                         : isInteractiveThreePositionToggleSwitch
                           ? 36
-                        : isInteractiveLight || isInteractiveStatusIndicator
+                        : isInteractiveStatusIndicator
+                          ? getInteractiveStatusIndicatorDropSize().height
+                        : isInteractiveLight
                           ? 32
                         : isSelect
                           ? 36

@@ -2,7 +2,7 @@
 
 ## Current proven save point
 
-**FORGEUI_DIRECT_CREATORS__STATE_SHEETS__LINKED_CROPS__KEYBOARD_LVGL_PARITY__ESP32_P4_PROVEN__READY_FOR_UI_POLISH__2026-07-26**
+**FORGEUI_ALL_FIVE_DIRECT_CREATORS__STATUS_INDICATOR_PREVIEW_POLISH__STATE_SHEETS__LINKED_CROPS__KEYBOARD_LVGL_PARITY__ESP32_P4_PROVEN__2026-07-26**
 
 ## Purpose and scope
 
@@ -149,7 +149,17 @@ Generated runtime
 ESP32-P4
 ```
 
-Direct Creator entry points select the current Canvas component and its linked Interactive Asset. The Creator and State Sheet pipeline prepares the uploaded state assets consumed by export; it does not replace or redefine the generated runtime-family contracts.
+Direct Creator entry points now cover all five Interactive Assets: Button, Toggle Switch, Three-Position Toggle Switch, Light and Status Indicator. Their private navigation targets are:
+
+```text
+interactive-button-designer
+interactive-toggle-switch-designer
+interactive-three-position-toggle-designer
+interactive-light-designer
+interactive-status-indicator-designer
+```
+
+These entry points select the current Canvas component and its linked Interactive Asset. The Creator and State Sheet pipeline prepares or edits the Interactive Asset and uploaded state images consumed by export; it does not replace or redefine the generated runtime-family contracts. In particular, Status Indicator Creator navigation does not change the generated Binary Output API direction or `FG_Set_*` contract.
 
 ## Export Validation Ownership
 
@@ -877,6 +887,18 @@ Interactive Status Indicator export owns:
 11. emitting a setter that delegates to `fg_binary_output_set()`;
 12. returning its declaration as public API metadata.
 
+The exporter consumes the final saved OFF/ON asset references and component geometry only. It does not export Creator navigation, Inspector onboarding, local Canvas preview click behavior or temporary design-time state. It continues to emit one non-clickable LVGL image, one independent `fg_binary_output_t` record and one generated `FG_Set_*` API per Status Indicator.
+
+### Design-time preview versus generated runtime
+
+- Canvas right-click can open the exact linked Status Indicator Creator.
+- An unconfigured component opens a fresh unsaved draft.
+- A new Status Indicator defaults to `120 × 72` on Canvas.
+- Canvas and Browser Preview share centered contain-fit rendering that preserves intrinsic artwork aspect ratio.
+- Canvas click may toggle a temporary local OFF / ON preview state for visual verification.
+- Local preview toggling does not mutate saved `initialState`, persistence or generated firmware.
+- The exported Status Indicator remains non-clickable, emits no user hook and changes runtime state only through `FG_Set_<Name>(bool enabled)`.
+
 ### Runtime behavior
 
 - OFF artwork is stored in `off_src`.
@@ -1281,6 +1303,8 @@ Physically confirmed:
 - multiple Binary Output instance records remained independent
 - generated setter APIs addressed the correct instances
 
+Design-time local preview clicking is intentionally not exported and is not physical input behavior.
+
 ### Interactive Three-Position Toggle input path
 
 Physically confirmed:
@@ -1345,6 +1369,10 @@ Do not preserve historical suite totals here. Unrelated repository fixtures or p
 | Light is clickable or generates a hook | Light export branch | remove Button-style callback/hook behavior |
 | Status Indicator setter is missing | Binary Output export preparation in `ForgeUILvglExport.ts` | kind-aware lookup, LVGL readiness, and unique API name |
 | Status Indicator starts in wrong state | Status Indicator export branch | saved `initialState` and per-instance runtime record |
+| Status Indicator looks stretched in Canvas or Browser Preview | `InteractiveStatusIndicatorPreview.tsx` | intrinsic image dimensions and centered contain-fit styles; this is outside generated firmware ownership |
+| Status Indicator Canvas click does nothing | `InteractiveStatusIndicatorCanvasPreview.tsx` | temporary local preview state; do not debug generated `FG_Set_*` for this design-time issue |
+| Status Indicator is clickable on hardware | `ForgeUILvglExport.ts` Status Indicator branch | verify no event callback or clickable flag was emitted |
+| Status Indicator setter does not change state | generated `fg_binary_output_t` record and `FG_Set_*` | saved OFF/ON symbols and setter-to-runtime-record mapping |
 | Binary Output instances affect each other | generated runtime records | setter-to-record mapping and unique runtime names |
 | Binary Output Runtime is duplicated | runtime emission in `ForgeUILvglExport.ts` | shared `fg_binary_output_t` and `fg_binary_output_set()` generation |
 | Export rejected before files are written | `ForgeUIExportValidation.ts` | `export-server.js` |
@@ -1446,6 +1474,9 @@ Preserve these rules:
 32. Keyboard map/mode configuration precedes explicit style, `LV_ALIGN_TOP_LEFT`, final position and final size.
 33. Keyboard dimensions come from the Canvas component; no global or resolution-specific scaling is introduced.
 34. Creator navigation selects component/asset context, while the exporter remains the sole owner of generated LVGL and runtime behavior.
+35. Direct Creator access across all five Interactive Assets does not change generated API direction.
+36. Status Indicator Canvas Preview may toggle local state for visual verification, but temporary preview state is never exported.
+37. Generated Status Indicator LVGL remains non-clickable and Binary Output state remains developer-controlled through `FG_Set_*`.
 
 ## Extension rule
 

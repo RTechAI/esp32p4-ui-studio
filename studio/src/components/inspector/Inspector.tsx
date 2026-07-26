@@ -42,6 +42,7 @@ import InteractiveToggleCreatorHelper from './InteractiveToggleCreatorHelper'
 import InteractiveButtonCreatorHelper from './InteractiveButtonCreatorHelper'
 import InteractiveLightCreatorHelper from './InteractiveLightCreatorHelper'
 import InteractiveThreePositionToggleCreatorHelper from './InteractiveThreePositionToggleCreatorHelper'
+import InteractiveStatusIndicatorCreatorHelper from './InteractiveStatusIndicatorCreatorHelper'
 
 const CodeActionButton = memo(() => {
   const [isLoading, setIsLoading] = useState(false)
@@ -207,6 +208,11 @@ const Inspector = () => {
       )}
       {type === 'InteractiveThreePositionToggleSwitch' && (
         <InteractiveThreePositionToggleCreatorHelper
+          component={component}
+        />
+      )}
+      {type === 'InteractiveStatusIndicator' && (
+        <InteractiveStatusIndicatorCreatorHelper
           component={component}
         />
       )}

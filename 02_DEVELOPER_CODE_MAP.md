@@ -2,7 +2,7 @@
 
 ## Current save point
 
-**FORGEUI_DIRECT_CREATORS__THREE_POSITION_STATE_SHEET__LINKED_CROPS__KEYBOARD_LVGL_PARITY__PHYSICAL_ESP32P4_PROVEN__READY_FOR_STUDIO_POLISH__2026-07-26**
+**FORGEUI_ALL_FIVE_DIRECT_CREATORS__STATUS_INDICATOR_PREVIEW_POLISH__THREE_POSITION_STATE_SHEET__LINKED_CROPS__KEYBOARD_LVGL_PARITY__READY_FOR_STUDIO_POLISH__2026-07-26**
 
 ## Purpose
 
@@ -88,26 +88,26 @@ Direct Creator ownership:
 
 ```text
 Canvas component
-  â†“
+  ->
 Right-click
-  â†“
+  ->
 Open Creator
-  â†“
-Configured â†’ reopen exact linked asset
-Unconfigured â†’ new unsaved draft
-  â†“
+  ->
+Configured -> reopen exact linked asset
+Unconfigured -> new unsaved draft
+  ->
 Type-scoped designer
-  â†“
+  ->
 Generate State Sheet where supported
-  â†“
+  ->
 Crop workspace
-  â†“
+  ->
 Save
-  â†“
+  ->
 Assign
 ```
 
-`src/forgeui/ForgeUINavigation.ts` owns the private type-scoped navigation request contract. `src/components/editor/PreviewContainer.tsx` owns Canvas context-menu access and passes component identity plus any linked `interactiveAssetId`. `src/components/inspector/Inspector.tsx` mounts type-specific Creator helpers for incomplete components. Navigation opens the shared AI Studio portal without creating, registering, saving or assigning an asset.
+`src/forgeui/ForgeUINavigation.ts` owns the private type-scoped navigation request contract for all five Interactive Assets. `src/components/editor/PreviewContainer.tsx` owns Canvas context-menu access and passes component identity plus any linked `interactiveAssetId`. `src/components/inspector/Inspector.tsx` mounts type-specific Creator helpers for incomplete components. Navigation opens the shared AI Studio portal without creating, registering, saving or assigning an asset.
 
 ## Project Health Architecture
 
@@ -376,20 +376,26 @@ Owns the private Creator navigation dispatcher and its type-scoped request contr
 - Button Creator target
 - Toggle Creator target
 - Light Creator target
+- Status Indicator Creator target: `interactive-status-indicator-designer`
 - Three-Position Creator target
 - source Canvas component ID
 - optional linked Interactive Asset ID
 - unique request ID
+- type-scoped request isolation
+
+`openStatusIndicatorCreator()` carries the Status Indicator source component ID and optional linked Status Indicator asset ID through the same private dispatcher used by the other Creators.
 
 Do not replace this with public URL routing or let one Creator consume another type's edit request.
 
 #### `src/components/editor/PreviewContainer.tsx`
 
-Owns Canvas right-click Creator access for Button, Toggle Switch, Three-Position Toggle and Light. It selects the source component, opens a portal-based context menu, dismisses it on outside click or Escape, and dispatches configured or unconfigured navigation without mutating assets. Status Indicator is intentionally excluded from these direct Light Creator guards.
+Owns Canvas right-click Creator access for Button, Toggle Switch, Three-Position Toggle, Light and Status Indicator. It selects the source component, opens a portal-based context menu, dismisses it on outside click or Escape, replaces any existing Canvas Creator menu, and dispatches configured or unconfigured navigation without mutating assets. Status Indicator exposes `Open Status Indicator Creator`.
 
 #### `src/components/inspector/Inspector.tsx` and Creator helpers
 
-Inspector mounts type-specific onboarding helpers. The Light helper remains visible until the linked Light and both uploaded visuals resolve. The Three-Position helper remains visible until LEFT, CENTER and RIGHT visuals resolve. Button and Toggle helpers follow the same ownership pattern. Helpers navigate to the Creator; they do not save or assign.
+Inspector mounts type-specific onboarding helpers. The Light helper remains visible until the linked Light and both uploaded visuals resolve. The Three-Position helper remains visible until LEFT, CENTER and RIGHT visuals resolve. Button and Toggle helpers follow the same ownership pattern.
+
+`src/components/inspector/InteractiveStatusIndicatorCreatorHelper.tsx` owns Status Indicator onboarding when no asset is assigned or when the linked OFF or ON visual is missing. It hides once both uploaded visuals resolve and opens the Status Indicator Creator without saving or assigning.
 
 #### `src/forgeui/interactive/ForgeUIInteractiveAssetPanel.tsx`
 
@@ -408,7 +414,7 @@ Owns the framework-level Studio experience:
 - coordinating the Status Indicator designer
 - coordinating the Toggle Switch path through the shared OFF/ON designer
 - coordinating the dedicated Three-Position Toggle designer
-- consuming Button, Toggle, Light and Three-Position direct Creator requests
+- consuming Button, Toggle, Light, Status Indicator and Three-Position direct Creator requests
 - separating configured edit requests from unconfigured new-draft requests
 - type-scoped edit-request replacement
 - Inspector onboarding handoff
@@ -442,6 +448,8 @@ Type selection is disabled while AI generation is in progress. This prevents an 
 
 The panel coordinates the designers; it does not merge their models or save logic.
 
+Configured Status Indicator edit requests resolve only against `statusIndicatorAssets`; wrong-kind IDs are rejected. Unconfigured requests initialize a fresh Status Indicator draft. The request is cleared after handling, and Status Indicator requests cannot be consumed by Light or Toggle flows.
+
 #### `src/forgeui/interactive/InteractiveLightDesigner.tsx`
 
 Owns the shared two-state Studio designer behavior used by Light, Status Indicator and Toggle Switch:
@@ -459,12 +467,13 @@ Owns the shared two-state Studio designer behavior used by Light, Status Indicat
 
 It receives the parent-selected kind for AI generation. It does not own an independent Asset Type selector. There is no separate `InteractiveToggleSwitchDesigner.tsx` in the current implementation.
 
-It also consumes type-scoped Light, Status Indicator and Toggle new/edit requests. A configured request loads the exact linked asset; an unconfigured request resets to a fresh draft. These request effects must not call Save or assignment.
+It also consumes type-scoped Light, Status Indicator and Toggle Switch new/edit requests. For Status Indicator, a configured request loads the exact linked Status Indicator and an unconfigured request resets to a fresh Status Indicator draft. Request effects never call Save or assignment.
 
 #### `src/forgeui/ai/ForgeAIPanel.tsx`
 
 Owns the shared AI Studio portal and the standard Toggle State Sheet Builder:
 
+- recognition of `interactive-status-indicator-designer` and selection of the Interactive tab
 - combined OFF/ON source artwork
 - two linked crop regions
 - shared crop dimensions
@@ -1049,6 +1058,11 @@ Semantics come from the OFF and ON artwork. The model contains no Wi-Fi, Bluetoo
 - The first result maps to `offAssetId`.
 - The second result maps to `onAssetId`.
 - The designer supports name, label, width, height, artwork selection, and `initialState`.
+- Canvas right-click opens the direct Status Indicator Creator, and Inspector onboarding provides the same route for incomplete configuration.
+- Configured components reopen the exact linked Status Indicator; unconfigured components open a fresh unsaved draft without Save, registration or assignment.
+- The unconfigured Canvas state uses a responsive binary-output SVG with compact icon-only mode and larger OFF / ON hints.
+- Placeholder tone is near-white when unselected, cyan when selected, and muted green for the active indicator.
+- New Status Indicators default to `120 × 72` on Canvas. `src/hooks/useDropComponent.ts` owns this initial `w` and `h`; the previous shared `32 × 32` drop size no longer applies.
 - Browser Preview switches between OFF and ON with the same binary state contract as Light.
 - `Use on Selected` is enabled only for an `InteractiveStatusIndicator` component.
 - Assignment writes `interactiveAssetId`, width, and height.
@@ -1058,7 +1072,11 @@ Semantics come from the OFF and ON artwork. The model contains no Wi-Fi, Bluetoo
 
 #### `src/forgeui/interactive/InteractiveStatusIndicatorPreview.tsx`
 
-Owns Status Indicator OFF/ON browser presentation and optional designer preview controls.
+Owns the shared Status Indicator OFF/ON renderer used by Browser Preview and Canvas Preview. Artwork is centered at intrinsic aspect ratio inside component bounds. `maxWidth` and `maxHeight` provide contain-fit constraints: square artwork remains square and non-square artwork is not stretched.
+
+#### `src/forgeui/interactive/UnconfiguredStatusIndicatorPlaceholder.tsx`
+
+Owns the responsive binary-output SVG. The icon uses 84% of component width and 88% of component height, switches to icon-only mode around the `120 × 72` compact threshold, has explicit minimum/maximum sizing, does not flex-shrink, and shows OFF / ON hints when space permits.
 
 #### `src/components/editor/previews/InteractiveStatusIndicatorCanvasPreview.tsx`
 
@@ -1069,7 +1087,12 @@ Owns Canvas integration for `InteractiveStatusIndicator`:
 - resolves OFF and ON uploaded assets
 - resolves width, height, and saved initial state
 - renders `InteractiveStatusIndicatorPreview`
-- does not add click behavior or mutate saved state
+- owns temporary local OFF / ON preview state
+- toggles that local state on Canvas click
+- resets local state when the linked asset or saved initial state changes
+- does not mutate saved `initialState`, persistence or exported firmware
+
+This design-time click behavior does not change the runtime contract. The physical LVGL Status Indicator remains non-clickable and changes state only through its generated `FG_Set_*` API.
 
 ### Runtime behavior
 
@@ -1220,6 +1243,8 @@ InteractiveStatusIndicator → InteractiveStatusIndicatorCanvasPreview
 ```
 
 Canvas components keep only the Interactive Asset reference and component dimensions. Visual records remain in the Interactive Asset and uploaded-asset registries. Every component is rendered through the shared positioning, selection, drag and resize wrapper. Three-Position Toggle follows `PreviewContainer` on Canvas and an explicitly positioned insertion in Browser Preview, preventing origin jumps or early-return omissions.
+
+`useDropComponent.ts` gives a newly inserted Status Indicator real `w: 120` and `h: 72` bounds before artwork is assigned. Those dimensions drive the drag placement calculation, Canvas bounds, selection and resize frame, and the responsive placeholder.
 
 ### Assignment contract
 
@@ -1644,6 +1669,12 @@ Start at the ownership boundary matching the symptom.
 | Light preview changes saved/exported state | `InteractiveLightCanvasPreview.tsx` | local preview state and `initialState` resolution |
 | Status Indicator OFF/ON Browser Preview is wrong | `InteractiveStatusIndicatorPreview.tsx` | Status Indicator model and resolver |
 | Status Indicator Canvas Preview is wrong | `InteractiveStatusIndicatorCanvasPreview.tsx` | kind-aware lookup, uploaded assets, `initialState` |
+| Status Indicator Creator opens Layout | `ForgeAIPanel.tsx` | Status Indicator target guard and Interactive tab selection |
+| Status Indicator drops too small or has incorrect bounds | `useDropComponent.ts` | Status Indicator `defaultW` / `defaultH`, component `w/h`, PreviewContainer bounds |
+| Status Indicator placeholder is constrained vertically | `InteractiveStatusIndicatorCanvasPreview.tsx` | preview wrapper minimum height and placeholder dimensions |
+| Status Indicator preview artwork is stretched | `InteractiveStatusIndicatorPreview.tsx` | intrinsic image sizing, centered bounds, `maxWidth` / `maxHeight` contain-fit styles |
+| Status Indicator click does nothing in Canvas Preview | `InteractiveStatusIndicatorCanvasPreview.tsx` | local preview state and `onPreviewClick` handler |
+| Status Indicator Inspector helper remains visible | `InteractiveStatusIndicatorCreatorHelper.tsx` | linked asset and OFF/ON uploaded visual resolution |
 | AI uses the wrong state modes | `InteractiveAssetAIGenerator.tsx` | parent `selectedAssetKind` |
 | AI request/image conversion fails | `ForgeUIAIImagePipeline.ts` | `/api/forgeui-ai-hero`, `export-server.js` conversion route |
 | Keyboard appears offset despite correct X/Y | `ForgeUILvglExport.ts` Keyboard branch | final `LV_ALIGN_TOP_LEFT`, call ordering, parent coordinates |
@@ -1676,7 +1707,10 @@ Start at the ownership boundary matching the symptom.
 - `src/components/editor/PreviewContainer.tsx`
 - `src/components/inspector/Inspector.tsx`
 - `src/components/inspector/InteractiveLightCreatorHelper.tsx`
+- `src/components/inspector/InteractiveStatusIndicatorCreatorHelper.tsx`
 - `src/components/inspector/InteractiveThreePositionToggleCreatorHelper.tsx`
+- `src/forgeui/ai/ForgeAIPanel.tsx`
+- `src/hooks/useDropComponent.ts`
 - `src/forgeui/interactive/ForgeUIInteractiveAssetPanel.tsx`
 - `src/forgeui/interactive/InteractiveLightDesigner.tsx`
 - `src/forgeui/interactive/InteractiveThreePositionToggleDesigner.tsx`
@@ -1706,6 +1740,7 @@ Start at the ownership boundary matching the symptom.
 
 ### Status Indicator rendering paths
 
+- `src/forgeui/interactive/UnconfiguredStatusIndicatorPlaceholder.tsx`
 - `src/forgeui/interactive/InteractiveStatusIndicatorPreview.tsx`
 - `src/components/editor/previews/InteractiveStatusIndicatorCanvasPreview.tsx`
 
@@ -1787,6 +1822,10 @@ Preserve these rules:
 27. Three-Position uploaded assets register only after all three conversions succeed.
 28. `StateSheetOverlay.tsx` owns shared crop geometry; row-to-state remapping does not mutate crop positions.
 29. Keyboard map, mode and styles precede the final top-left alignment, position and size.
+30. Direct Creator navigation is complete across all five Interactive Assets, and Status Indicator requests remain type-scoped.
+31. New Status Indicators default to real `120 × 72` Canvas bounds.
+32. Status Indicator preview rendering preserves intrinsic image aspect ratio with centered contain-fit constraints.
+33. Status Indicator Canvas Preview may toggle temporary local state for visual verification, but the physical LVGL runtime remains non-clickable and controlled only through `FG_Set_*`.
 
 ## Framework extension pattern
 
@@ -1815,7 +1854,7 @@ A future Interactive Asset type should reuse:
 - persistence
 - validation dispatch
 - AI generator and image pipeline
-- direct Creator navigation and Inspector onboarding where applicable
+- direct Creator navigation and Inspector onboarding across all five current Interactive Asset types
 - State Sheet and linked-crop infrastructure when multiple visuals come from one master
 - Uploaded Asset Registry
 - Canvas assignment through `interactiveAssetId`
@@ -1839,21 +1878,23 @@ Future Binary Output assets should reuse `fg_binary_output_t`, `fg_binary_output
 
 Reusable Creator architecture now includes:
 
+Status Indicator completes this direct Creator family while remaining a Binary Output asset. It does not produce a user hook or hardware touch input.
+
 ```text
 Canvas or Inspector entry
-  â†“
+  ->
 shared type-scoped navigation
-  â†“
+  ->
 configured asset or unsaved draft
-  â†“
+  ->
 designer
-  â†“
+  ->
 optional master State Sheet
-  â†“
+  ->
 linked crop workflow
-  â†“
+  ->
 atomic uploaded-asset registration
-  â†“
+  ->
 explicit Save and assignment
 ```
 
@@ -1861,11 +1902,11 @@ Three-Position proves the general visual-state pattern:
 
 ```text
 one master image
-  â†“
+  ->
 N crop regions
-  â†“
+  ->
 N uploaded assets
-  â†“
+  ->
 strongly typed runtime state
 ```
 

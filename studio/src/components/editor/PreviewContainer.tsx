@@ -18,6 +18,7 @@ import { getSelectedComponentId } from '~core/selectors/components'
 import {
   openButtonCreator,
   openLightCreator,
+  openStatusIndicatorCreator,
   openThreePositionToggleCreator,
   openToggleCreator,
 } from '~forgeui/ForgeUINavigation'
@@ -94,6 +95,7 @@ const hasCreatorMenu =
   component.type === 'InteractiveToggleSwitch' ||
   component.type === 'InteractiveButton' ||
   component.type === 'InteractiveLight' ||
+  component.type === 'InteractiveStatusIndicator' ||
   component.type === 'InteractiveThreePositionToggleSwitch'
 const creatorPlaceholderColor =
   hasCreatorMenu
@@ -181,6 +183,8 @@ const creatorPlaceholderColor =
                 ? openButtonCreator
                 : component.type === 'InteractiveLight'
                   ? openLightCreator
+                  : component.type === 'InteractiveStatusIndicator'
+                    ? openStatusIndicatorCreator
                   : component.type ===
                     'InteractiveThreePositionToggleSwitch'
                     ? openThreePositionToggleCreator
@@ -193,8 +197,10 @@ const creatorPlaceholderColor =
         >
           {component.type === 'InteractiveButton'
             ? 'Open Button Creator'
-            : component.type === 'InteractiveLight'
-              ? 'Open Light Creator'
+              : component.type === 'InteractiveLight'
+                ? 'Open Light Creator'
+                : component.type === 'InteractiveStatusIndicator'
+                  ? 'Open Status Indicator Creator'
               : component.type ===
                 'InteractiveThreePositionToggleSwitch'
                 ? 'Open Three-Position Toggle Creator'
