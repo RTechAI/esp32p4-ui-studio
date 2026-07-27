@@ -1,8 +1,19 @@
-# ForgeUI Runtime Architecture — Developer Code Map
+# Developer Code Map: where features live, who owns each layer, and which files are authoritative
+
+## WHY 01_SPINE & 02_DEVELOPER & 03_FORGEUI_GEN -  means Codex spends less time guessing and is much less likely to:
+
+- edit generated files directly
+- duplicate an existing subsystem
+- put firmware logic into the Studio
+- break ownership boundaries
+- revive an obsolete architecture
+- touch hardware configuration that is   already proven
+
+## ForgeUI Runtime Architecture — Developer Code Map
 
 ## Current save point
 
-**FORGEUI_SYSTEM_INTERFACE__HOSTED_WIFI_SD_RECOVERY__SDIO_SLOT1_RESTORED__PHYSICAL_ESP32P4_PROVEN__2026-07-27**
+**FORGEUI_SYSTEM_INTERFACE__HOSTED_WIFI_MANAGER__NATIVE_LVGL_KEYBOARD__PHYSICAL_UI_WORKFLOW__ESP32P4_PROVEN__2026-07-27**
 
 ## Purpose
 
@@ -57,7 +68,8 @@ Currently implemented System pages:
 
 - System Launcher
 - Display / Brightness
-- Wi-Fi Phase 1
+- Wi-Fi Manager
+- Native LVGL Keyboard
 
 The System Runtime is proven across:
 
@@ -73,12 +85,14 @@ Application
 → System
 → Display
 → System
+→ Wi-Fi Manager
+→ System
 → Application
 ```
 
 Display brightness is physically connected to the ESP32-P4 backlight through `bsp_display_brightness_set()`.
 
-Display / Brightness is complete and physically proven. The Wi-Fi backend and generated Wi-Fi System page are physically alive; the device automatically reconnects and receives an IP address. Scan and Disconnect controls exist. Scan-result list population and refresh behaviour still require polish, and Connect/password/credential-management UI is not part of the current Studio System page milestone. The Wi-Fi page workflow is not yet complete.
+Display / Brightness and the complete Wi-Fi Manager are physically proven. The generated Wi-Fi System page supports real non-blocking scans, structured SSID rows, RSSI, security, Connected and Saved badges, network selection, open-network connection, protected-network password entry through the reusable native LVGL keyboard, validation, Connect, Disconnect, Reconnect, Forget Network and connected details including IP address, gateway, station MAC, AP BSSID and backend status/error projection. Browser Preview provides deterministic hardware-independent parity while generated LVGL integrates with the live ESP32-P4 backend. Only minor visual polish remains, including complete active-theme integration for the Available Networks rows; this does not make the Wi-Fi workflow incomplete.
 
 ## System architecture
 
@@ -170,8 +184,9 @@ System Runtime
   │
   ├── Application Container
   ├── System Launcher
-  ├── Brightness Page
-  ├── Wi-Fi Phase 1
+  ├── Display / Brightness
+  ├── Wi-Fi Manager
+  ├── Native LVGL Keyboard
   └── Future Pages
 ```
 
@@ -183,7 +198,7 @@ Current future placeholders:
 - Device
 - Diagnostics
 
-System Launcher and Display / Brightness are implemented, and Wi-Fi Phase 1 has a physically live backend and generated page. Its scan-result list and refresh behaviour remain incomplete. The future pages are typed identifiers and disabled launcher placeholders, not completed services.
+System Launcher, Display / Brightness, the complete Wi-Fi Manager and its reusable native LVGL keyboard are implemented and physically proven. The future pages are typed identifiers and disabled launcher placeholders, not completed services.
 
 The System Runtime is not an Interactive Asset. It is not a user project screen. It is a reusable built-in platform layer generated alongside the user's application.
 
@@ -385,18 +400,40 @@ EPPP transitive components may be present while the active Wi-Fi Remote library 
 
 The non-generated Wi-Fi backend owns:
 
+- `fg_wifi_state_t`
+- `fg_wifi_result_t`
+- `fg_wifi_security_t`
+- `fg_wifi_network_t`
+- `fg_wifi_snapshot_t`
 - `esp_netif_init()`
 - default event-loop creation
 - default STA netif creation
 - `esp_wifi_init()`
 - STA mode and Wi-Fi start
 - event handling
-- scan start and deferred scan-result processing
-- connect and disconnect
-- current status and IP state
-- typed Wi-Fi state
-- current SSID and RSSI
-- scan-in-progress state
+- real non-blocking scan start and deferred scan-result processing
+- a fixed-size structured scan cache of at most `FG_WIFI_MAX_SCAN` records
+- SSID deduplication with strongest-record retention
+- connected-first and RSSI-descending sorting
+- scan and connection timeouts
+- structured operation results and authentication/generic error projection
+- open- and protected-network connection handling
+- Connect, Disconnect, Reconnect and Forget intent
+- current SSID, IP address, gateway, RSSI and security
+- station MAC and AP BSSID
+- scan-in-progress, connection and saved-network state
+- one persisted ESP-IDF STA configuration
+- reconnect intent and forget intent
+- flash-backed credential clearing
+
+The structured public boundary includes the exact implemented APIs:
+
+- `fg_wifi_get_snapshot()`
+- `fg_wifi_get_networks()`
+- `fg_wifi_connect_network()`
+- `fg_wifi_reconnect()`
+- `fg_wifi_forget()`
+- `fg_wifi_security_text()`
 
 Its locked execution rule is:
 
@@ -410,6 +447,8 @@ main loop
 ```
 
 The backend does not own LVGL or Studio UI.
+
+ESP-IDF supports one persisted STA configuration in the current implementation. `esp_wifi_set_config()` uses flash-backed Wi-Fi storage when a network is remembered. Physical Saved badges reflect that real configuration, and `fg_wifi_forget()` clears the persisted STA configuration. ForgeUI does not currently implement a multi-network credential database.
 
 #### `firmware/ForgeUI-One/main/main.c`
 
@@ -438,9 +477,15 @@ Owns:
 - current System page
 - current-session brightness value
 - deterministic Browser Preview Wi-Fi session state
-- Wi-Fi connection state, SSID, IP and RSSI
-- Wi-Fi scan state and simulated scan results
-- preview Disconnect behaviour
+- structured preview network records with SSID, RSSI, security, Connected and Saved state
+- selected and connected network state
+- scan progress and a fixed deterministic RSSI sequence
+- open-network connection
+- protected-network password-dialog state and password validation result projection
+- remember-password result projection
+- deterministic authentication failure
+- preview Disconnect, Reconnect and Forget behavior
+- connected details including IP, gateway, station MAC and AP BSSID
 - open navigation
 - close navigation
 - Back navigation
@@ -449,7 +494,7 @@ Owns:
 - `closeSystemInterface()`
 - `goBackInSystemInterface()`
 
-The context owns session state and navigation intent. Its Wi-Fi data is simulated and deterministic for Browser Preview; it does not control the physical Wi-Fi backend. It does not render pages, mutate user project screens, register Interactive Assets or generate LVGL.
+The context owns session state and navigation intent. Its Wi-Fi data is simulated and deterministic for Browser Preview; it never controls physical hardware. Password text, masking visibility and the local Remember checkbox are presentation state in `ForgeUIWifiPage.tsx`, while the context owns the dialog target and consumes password and remember intent. It does not render pages, mutate user project screens, register Interactive Assets or generate LVGL.
 
 #### `src/forgeui/system/ForgeUISystemSurface.tsx`
 
@@ -460,15 +505,29 @@ Owns:
 - System Launcher layout
 - Display / Brightness page layout
 - enabled Wi-Fi launcher card
-- current Wi-Fi status and SSID/IP/RSSI information
-- Scan and Disconnect actions
-- disabled Connect action where applicable
-- current network-list area
+- Wi-Fi page shell and shared System navigation
+- mounting the dedicated Wi-Fi Browser Preview page
 - navigation UI
 - live preview brightness rendering
 - disabled future-page cards
 
 The surface consumes the shared context. Browser Preview Wi-Fi data is simulated and deterministic. The surface does not own generated hardware navigation or become part of the user component tree.
+
+#### `src/forgeui/system/ForgeUIWifiPage.tsx`
+
+Owns the dedicated Browser Preview Wi-Fi presentation:
+
+- status and connected details
+- structured SSID rows with RSSI and security
+- Connected and Saved badges
+- selected-network presentation
+- password dialog and local password masking state
+- password Show / Hide
+- Connect and Cancel controls
+- Disconnect, Reconnect and Forget controls
+- deterministic preview interaction through `ForgeUISystemContext`
+
+This component presents and sends Browser Preview intent only. It does not own the physical backend, ESP-IDF calls, generated LVGL or persisted firmware credentials.
 
 #### `src/forgeui/system/index.ts`
 
@@ -1653,9 +1712,15 @@ It owns:
 - persistent application-container generation
 - System launcher and Brightness container generation
 - persistent Wi-Fi page container generation
-- Wi-Fi status, SSID, IP and RSSI labels
-- Scan and Disconnect controls and internal callbacks
-- periodic Wi-Fi refresh from the firmware backend
+- Wi-Fi status card and connected-detail generation
+- selectable structured network rows with security, RSSI, Connected and Saved presentation
+- Scan, Refresh, Connect, Disconnect, Reconnect and Forget controls and internal callbacks
+- password and forget dialogs, password textarea, Show / Hide and validation messages
+- reusable native LVGL keyboard creation, attachment and callbacks
+- periodic backend snapshot/network projection
+- projection pause while password entry is active
+- disconnected placeholder clearing
+- station MAC and AP BSSID projection
 - reuse of the existing application Wi-Fi service loop/timer
 - generated gear launcher
 - internal System page callbacks
@@ -1693,7 +1758,9 @@ Current navigation intentionally switches `LV_OBJ_FLAG_HIDDEN` between persisten
 
 The gear launcher, Display card, Brightness slider and Back controls are built-in controls. They do not generate `FG_On_*` user callbacks and do not enter the Interactive Asset Framework. Animated page transitions are future work.
 
-The generated System Runtime also owns one persistent Wi-Fi page container, Wi-Fi status and SSID/IP/RSSI labels, Scan and Disconnect buttons, internal Wi-Fi callbacks, and periodic refresh from the firmware backend through the existing application Wi-Fi service loop/timer. System Wi-Fi controls are internal and do not generate `FG_On_*` user hooks. The exporter consumes backend state and sends intent; it does not own ESP-IDF Wi-Fi truth or duplicate the backend.
+The generated System Runtime also owns one persistent Wi-Fi page container, status card, connected details, selectable structured rows, Connected and Saved presentation, security and RSSI labels, Scan, Refresh, Disconnect, Reconnect and Forget controls, confirmation and password dialogs, password textarea, Show / Hide, validation, native keyboard attachment, internal callbacks and periodic projection through the existing application Wi-Fi service loop/timer. Projection pauses while password entry is active so focused text input is not disrupted, and disconnected snapshots clear stale detail values to placeholders.
+
+Generated UI sends intent and projects `fg_wifi_snapshot_t` and `fg_wifi_network_t`; `30_WIFI.c` remains the physical source of truth. No scan, credential, connection, reconnect or ESP-IDF backend logic belongs in the exporter. System Wi-Fi controls are internal and never generate `FG_On_*` user hooks.
 
 ### Button export branch
 
@@ -1754,17 +1821,23 @@ The enum contract, runtime structure, setter and event callback are generated th
 
 #### `src/forgeui/ForgeUILvglExport.ts`
 
-The `Keyboard` branch owns native `lv_keyboard` export and Studio parity:
+The generated System Runtime owns a physically proven reusable native LVGL keyboard for System dialogs:
 
-- explicit four-row keyboard map
-- explicit `lv_buttonmatrix_ctrl_t` relative-width map
-- textarea creation and association
-- keyboard mode
-- main-part padding, row gap and column gap
-- item font, radius, padding, border, shadow and outline styling
+- native `lv_keyboard` / `lv_buttonmatrix`
+- lazy creation of one reusable instance
+- `lv_layer_top()` parent ownership
+- `LV_OBJ_FLAG_IGNORE_LAYOUT` and `LV_OBJ_FLAG_FLOATING`
+- focus/click textarea callbacks and an idempotent open helper
+- `lv_keyboard_set_textarea()` attachment and detachment
+- password textarea support
+- lowercase, uppercase/shift, numbers, symbols, space and backspace
+- Done and Hide / Cancel handling
+- password-dialog repositioning while open
+- explicit foreground ordering
+- ForgeUI dark styling without diagnostic magenta/green colors
 - final top-left alignment through `lv_obj_set_align(..., LV_ALIGN_TOP_LEFT)`
-- final position and size after map, mode and style setup
-- post-layout runtime geometry diagnostics
+- final physical position `(0, 350)` and size `1024 × 250`
+- no verbose geometry logging in the final architecture
 
 `lv_keyboard_create()` internally bottom-aligns the object. `lv_obj_set_pos()` does not clear that alignment, so the exporter must retain the explicit `LV_ALIGN_TOP_LEFT` reset before final geometry.
 
@@ -1777,11 +1850,11 @@ Row 3: all keys 1
 Row 4: mode 2, left 2, space 12, right 2, confirm 2
 ```
 
-LVGL normalizes control widths independently within each row.
+LVGL normalizes control widths independently within each row. The keyboard is a reusable System Runtime component, not merely visual-parity work. Future System pages may reuse it where text entry is required, but no future consumer is claimed as already implemented.
 
 #### `src/forgeui/ForgeUILvglExport.keyboard.test.ts`
 
-Owns generated-C regression coverage for keyboard map order, relative widths, textarea wiring, style ordering, top-left alignment, final geometry and absence of later geometry overrides.
+Owns generated-C regression coverage for lazy creation, one reusable instance, top-layer ownership, textarea wiring, focus/click open handling, style ordering, top-left alignment, final geometry and absence of later geometry overrides.
 
 ### Light export branch
 
@@ -1898,8 +1971,11 @@ They contain:
 - generated runtime support
 - generated public UI APIs
 - persistent application, System launcher and Brightness containers
-- generated Wi-Fi System page container and status/network labels
-- internal Wi-Fi Scan, Disconnect and periodic-refresh callbacks
+- complete generated Wi-Fi System page, status card, connected details and structured network rows
+- internal Scan, Refresh, network-selection, Connect, Disconnect, Reconnect and Forget callbacks
+- password dialog, password textarea, validation and Show / Hide callbacks
+- reusable native keyboard creation, attachment and callbacks
+- periodic backend snapshot/network projection
 - generated gear launcher
 - internal System page switching and container visibility
 - Brightness slider and live percentage label
@@ -1919,14 +1995,14 @@ The current System Runtime implementation is generated in `90_Studio_Export.c`. 
 
 ```text
 Generated System Wi-Fi UI
-→ reads backend state
-→ sends Scan / Disconnect intent
+→ reads structured backend state
+→ sends intent
 
 30_WIFI backend
 → owns physical Wi-Fi truth and ESP-IDF calls
 ```
 
-Backend logic must not move into generated code.
+Backend logic must not move into generated code. Wi-Fi System UI and its internal callbacks are unrelated to `95_UserEvents.*`.
 
 Do not place permanent product logic in these files.
 
@@ -2056,6 +2132,16 @@ Physically confirmed:
 - live Brightness slider and percentage
 - real ESP32-P4 backlight control through `bsp_display_brightness_set()`
 - current-session brightness retention
+- complete Wi-Fi Manager page
+- real scan-list population with structured SSID rows
+- live RSSI and security presentation
+- Connected and Saved badges
+- network selection
+- protected-network password dialog
+- native keyboard visibility, input and correct physical geometry
+- Connect, Disconnect, Reconnect and Forget workflows
+- connected details including IP, gateway, security, station MAC and AP BSSID
+- approximately 63 FPS after keyboard optimisation
 - Interactive Assets remain operational after leaving System
 
 ### Hosted Wi-Fi and SD coexistence
@@ -2085,6 +2171,8 @@ skipping init flow
 
 Wi-Fi and SD were physically operating simultaneously.
 
+The same Hosted backend was physically exercised through the complete generated Wi-Fi Manager workflow: scan-list population, network selection, protected-network password entry, Connect, Disconnect, Reconnect, Forget Network and connected-detail projection. This UI proof extends the consumer of the Hosted service without changing the proven SDIO transport or SD Slot 0 coexistence architecture.
+
 The transport also emitted this observed warning:
 
 ```text
@@ -2111,14 +2199,18 @@ Physical Button, Toggle, Three-Position, Light, the scoped Status Indicator Bina
 ### Current validation
 
 - System Context and Surface regressions cover open, close, Back, Display navigation, live brightness state, session retention, disabled placeholders and preservation of existing application interaction
-- System LVGL exporter regressions cover persistent containers, internal callbacks, gear generation, visibility switching, the `10–100` slider and Waveshare BSP brightness integration
+- System Context and Surface regressions also cover deterministic Wi-Fi scan, structured rows, selection, open/protected branching, password and forget workflows, connected details, Disconnect and Reconnect
+- System LVGL exporter regressions cover persistent containers, internal callbacks, gear generation, visibility switching, the `10–100` slider, Waveshare BSP brightness integration and the complete Wi-Fi Manager projection contract
+- Wi-Fi generator coverage includes connected-detail fields, structured row generation, password workflow and backend intent callbacks
 - all five workflows have focused configured-helper, resize, measurement, fit, preview and exporter coverage where implemented
 - Creator, Toggle and Three-Position State Sheet, crop interaction, row-remapping, image-pipeline, linked-crop and atomic-registration regressions pass; unchanged State Sheet suites may require the established longer timeout in combined runs
-- keyboard exporter geometry, ordering and relative-width regressions pass
+- keyboard exporter lazy-creation, reusable-instance, attachment, geometry, ordering and relative-width regressions pass
 - Button and Light hardware-backed resize/contain behavior retains its focused automated coverage
 - Toggle, Status Indicator and Three-Position configured-helper, Canvas resize, registry refresh, measurement, visible-bounds fitting, preview scaling and LVGL contain regressions pass
 - shared intrinsic and alpha measurement, state-set union geometry, same-ID invalidation, metadata-write deduplication, linked crop, idempotence and legacy dimension recovery regressions pass
 - TypeScript validation passes
+- generated-output verification passes
+- ESP-IDF firmware build passes for the recorded Wi-Fi Manager implementation
 - scoped diff checks pass
 - known unrelated fixture/source absences are reported separately rather than weakening export validation
 
@@ -2192,6 +2284,9 @@ Start at the ownership boundary matching the symptom.
 | AI uses the wrong state modes | `InteractiveAssetAIGenerator.tsx` | parent `selectedAssetKind` |
 | AI request/image conversion fails | `ForgeUIAIImagePipeline.ts` | `/api/forgeui-ai-hero`, `export-server.js` conversion route |
 | Keyboard appears offset despite correct X/Y | `ForgeUILvglExport.ts` Keyboard branch | final `LV_ALIGN_TOP_LEFT`, call ordering, parent coordinates |
+| Password field does not open keyboard | generated textarea callback | `lv_keyboard_set_textarea()`, top layer, focus/click events |
+| Keyboard appears off-screen | keyboard alignment and geometry | `LV_ALIGN_TOP_LEFT`, `(0, 350)`, top-layer coordinates |
+| Keyboard is laggy | password-dialog projection pause | repeated row/label updates, diagnostic logging |
 | Keyboard outer size is correct but keys are compressed | keyboard main/item styles | padding, row/column gaps, font, button-matrix width controls |
 | Keyboard special-key proportions differ from Studio | generated keyboard control map | per-row width units and `ForgeUILvglExport.keyboard.test.ts` |
 | Generated image is missing after restart | `ForgeUIUploadedAssetRegistry.ts` | uploaded localStorage record and generated file path |
@@ -2233,10 +2328,16 @@ Start at the ownership boundary matching the symptom.
 | Wi-Fi works but SD fails | `main.c` boot order | `40_SD.c`, Slot 0, LDO, BSP SD pins |
 | SD works but Wi-Fi transport fails | Hosted interface selection | ensure SDIO Slot 1, not SPI |
 | Wi-Fi page shows READY but no IP | backend event/IP state | DHCP event and periodic System refresh |
-| Scan button starts but no networks appear | `30_WIFI.c` scan flags and `fg_wifi_pump()` | generated Wi-Fi page list rendering and refresh |
-| Disconnect works but scan list remains empty | backend scan-result retrieval | System page list population |
-| Browser Preview differs from hardware Wi-Fi | `ForgeUISystemContext.tsx` simulated state | generated LVGL backend refresh |
-| Wi-Fi credentials reconnect automatically | ESP-IDF Wi-Fi NVS | connect/forget behaviour in `30_WIFI.c` |
+| SSID rows do not populate | `30_WIFI.c` structured scan cache | `fg_wifi_get_networks()`, generated row rebuild |
+| SSID row tap does nothing | generated row callback in `ForgeUILvglExport.ts` | row flags, event bubbling, selected network state |
+| Protected network does not open password dialog | generated network-row callback | security value, dialog pointer and hidden flags |
+| Connected details are dark or invisible | generated explicit label styles | inherited LVGL theme text colour and opacity |
+| Connected details are missing | `fg_wifi_snapshot_t` | generated label creation and projection |
+| Forget does not clear saved state | `30_WIFI.c` forget path | persisted STA configuration and snapshot saved flag |
+| Reconnect does nothing | `fg_wifi_reconnect()` | persisted credentials and current backend state |
+| Preview and physical Wi-Fi differ | `ForgeUISystemContext.tsx` | `ForgeUIWifiPage.tsx`, generated backend projection |
+| Wi-Fi list does not follow theme | `ForgeUILvglExport.ts` row styles | Browser Preview row theme values |
+| Wi-Fi credentials reconnect automatically | ESP-IDF Wi-Fi flash storage | connect/forget behavior in `30_WIFI.c` |
 
 ### Creation and editing paths
 
@@ -2326,6 +2427,7 @@ Start at the ownership boundary matching the symptom.
 
 - `src/forgeui/system/ForgeUISystemContext.tsx`
 - `src/forgeui/system/ForgeUISystemSurface.tsx`
+- `src/forgeui/system/ForgeUIWifiPage.tsx`
 - `src/components/editor/Editor.tsx`
 - `src/forgeui/preview/DevicePreview.tsx`
 - `src/pages/_app.tsx`
@@ -2431,12 +2533,19 @@ Preserve these rules:
 65. SD storage remains on SDMMC Slot 0 using BSP GPIO39–44.
 66. Wi-Fi initializes before SD and retains the 2500 ms delay.
 67. `sdkconfig.defaults` must preserve the golden Hosted configuration.
-68. Generated System Wi-Fi UI does not own the physical Wi-Fi backend.
-69. `30_WIFI.c` owns runtime Wi-Fi truth and ESP-IDF Wi-Fi calls.
-70. Wi-Fi event handlers remain lightweight; deferred work runs through `fg_wifi_pump()`.
-71. System Wi-Fi controls use internal runtime callbacks and do not generate user hooks.
-72. Browser Preview Wi-Fi state is simulated and must not be described as physical connectivity.
-73. Scan-result UI polish remains incomplete until hardware results populate visibly and refresh reliably.
+68. The Wi-Fi Manager is a completed built-in System Runtime feature; minor SSID-row theme polish does not change its proven workflow status.
+69. Browser Preview Wi-Fi remains deterministic, simulated and hardware-independent.
+70. Generated LVGL projects `fg_wifi_snapshot_t` and `fg_wifi_network_t`.
+71. `30_WIFI.c` remains the only owner of physical Wi-Fi truth and ESP-IDF Wi-Fi calls.
+72. The generated UI must not duplicate credential, connection, scan or reconnect logic.
+73. Physical firmware supports one persisted ESP-IDF STA configuration, not a multi-network credential database.
+74. Wi-Fi event handlers remain lightweight; deferred work runs through `fg_wifi_pump()`.
+75. The native LVGL keyboard is created lazily and reused.
+76. System password fields attach through `lv_keyboard_set_textarea()`.
+77. Keyboard geometry sets `LV_ALIGN_TOP_LEFT` before absolute top-layer positioning.
+78. Periodic Wi-Fi projection pauses during active password entry.
+79. System Wi-Fi controls use internal runtime callbacks and never generate user hooks.
+80. `95_UserEvents.c` is unrelated to Wi-Fi System UI.
 
 ## Framework extension pattern
 
@@ -2450,20 +2559,25 @@ Current System services are:
 System Runtime
 ├── Launcher
 ├── Display / Brightness
-└── Wi-Fi Phase 1
+├── Wi-Fi Manager
+├── Native LVGL Keyboard
+└── Future System Pages
 ```
 
-Display / Brightness is complete. Wi-Fi Phase 1 has a physically live backend and generated page, while scan-result population and refresh polish remain incomplete.
+Display / Brightness, the Wi-Fi Manager and the reusable native LVGL keyboard are complete within the recorded physical proof. Future System Pages remain placeholders.
 
 Future built-in System pages should reuse:
 
 - `ForgeUISystemContext`
 - `ForgeUISystemSurface`
+- dedicated page components such as `ForgeUIWifiPage`
 - the typed `ForgeUISystemPage` model
 - the shared navigation operations
 - generated LVGL navigation
 - persistent container visibility architecture
 - internal generated System callbacks
+- non-generated hardware backends
+- the shared native keyboard where text entry is required
 
 Future page identifiers currently include:
 
@@ -2473,7 +2587,7 @@ Future page identifiers currently include:
 - Device
 - Diagnostics
 
-These future pages and services are not implemented today. Adding one must extend the shared System Context, shared System Surface and single LVGL exporter without converting the page into an Interactive Asset or user project screen.
+These future pages and services are not implemented today. Adding one may extend the shared System Context, System Surface, a dedicated page component, generated persistent LVGL containers, internal callbacks, a non-generated hardware backend and the shared native keyboard where text entry is required. It must not convert the page into an Interactive Asset or user project screen.
 
 Future System services must follow this ownership split:
 

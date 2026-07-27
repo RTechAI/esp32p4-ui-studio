@@ -16,6 +16,7 @@ If ForgeUI helps your embedded work, consider leaving the project a GitHub star.
 - AI-assisted layout and artwork generation
 - Reusable multi-state Interactive Assets
 - Canvas and Browser Preview workflows
+- Reusable built-in System Runtime with a physically proven Wi-Fi Manager
 - Local conversion of images into LVGL-ready C assets
 - Native LVGL v9 UI and runtime generation
 - Generated input callbacks and output setter APIs
@@ -186,9 +187,9 @@ The exported Status Indicator remains non-clickable. Application code changes it
 
 ## Visual Designer and Preview
 
-The Canvas provides drag-and-drop placement, selection, resizing, properties, themes, uploaded artwork, and direct Interactive Asset editing. Browser Preview and Canvas aim to match generated LVGL behavior, while acknowledging that native LVGL widgets can require explicit exporter styling and geometry corrections.
+The Canvas provides drag-and-drop placement, selection, resizing, properties, themes, uploaded artwork, and direct Interactive Asset editing. Browser Preview and Canvas aim to match generated LVGL behavior, while acknowledging that native LVGL widgets can require explicit exporter styling and geometry corrections. Browser Preview now mirrors the Wi-Fi Manager, password workflow and connected details through deterministic hardware-independent network simulation.
 
-The native LVGL Keyboard exporter now owns an explicit map, relative key proportions, top-left alignment, and final size and position matching the Canvas. This geometry has been physically validated on the 1024 × 600 ESP32-P4 display.
+The generated System Runtime owns one reusable native LVGL keyboard for password entry. It is created lazily on the LVGL top layer, attaches to the active password textarea, supports Show / Hide, Done and Cancel, and retains physically validated geometry and touch interaction on the 1024 × 600 ESP32-P4 display.
 
 ---
 
@@ -198,11 +199,13 @@ ForgeUI also generates a built-in System Interface as platform infrastructure al
 
 - System Launcher
 - Display / Brightness
-- Wi-Fi Phase 1
+- Wi-Fi Manager
 
 The application and System pages use persistent generated containers with internal navigation, so Interactive Assets remain alive while the System Interface is open. Display brightness changes live through `bsp_display_brightness_set()` and remains selected for the current device session.
 
-The Wi-Fi backend is physically operational. Scan Networks and Disconnect controls exist, while visible scan-result population and refresh behaviour still require polish. The current Wi-Fi UI workflow is not claimed complete.
+The Wi-Fi Manager is physically proven across Browser Preview, generated LVGL and the ESP32-P4. It provides Scan Networks, Refresh, a structured selectable network list, RSSI, security, Connected and Saved badges, an integrated password dialog and reusable native LVGL keyboard, Show / Hide password, Connect, Disconnect, Reconnect, Forget Network and connected details including gateway, station MAC and AP BSSID.
+
+The generated page owns presentation, connected-detail projection and UI intent. The separate Hosted backend remains the source of physical Wi-Fi truth and continues to own scanning implementation, credentials, reconnect policy, DHCP, ESP-IDF and transport integration.
 
 The built-in System Interface is separate from reusable multi-page authoring for user projects, which remains future work.
 
@@ -223,7 +226,7 @@ SD Storage
 → GPIO39–44
 ```
 
-Physical validation on the Waveshare ESP32-P4-WiFi6-Touch-LCD-7B confirmed an active ESP-Hosted transport, ESP32-C6 identification, automatic Wi-Fi reconnect, DHCP address acquisition, successful SD mount and write/read testing, and simultaneous Wi-Fi and SD operation.
+Physical validation on the Waveshare ESP32-P4-WiFi6-Touch-LCD-7B confirmed an active ESP-Hosted transport, ESP32-C6 identification, automatic Wi-Fi reconnect, DHCP address acquisition, successful SD mount and write/read testing, and simultaneous Wi-Fi and SD operation. The proven Hosted backend now drives the complete generated Wi-Fi Manager without changing this transport architecture.
 
 ---
 
@@ -309,10 +312,17 @@ Proven paths include:
 - Canvas, Browser Preview, and generated LVGL contain-fit parity
 - built-in System Launcher and Display / Brightness page
 - physical backlight control through `bsp_display_brightness_set()`
+- complete Wi-Fi Manager with Scan, Refresh, structured network rows, network selection, RSSI and security
+- Connected and Saved badges
+- protected-network password dialog and reusable native LVGL keyboard
+- password entry, Show / Hide, Done and Cancel
+- Connect, Disconnect, Reconnect and Forget Network workflows
+- connected details including gateway, station MAC and AP BSSID
+- deterministic Browser Preview parity for the Wi-Fi workflow
 - Hosted Wi-Fi over SDIO Slot 1
 - SD Card storage over SDMMC Slot 0
 - simultaneous Wi-Fi and SD operation
-- full-size LVGL Keyboard alignment, four-row layout, special keys, and Studio parity
+- reusable top-layer native LVGL keyboard alignment, four-row layout, special keys, touch interaction, and Studio parity
 - integrated Build & Flash
 - detached standalone ESP-IDF project build and flash
 
@@ -389,6 +399,7 @@ ForgeUI validates exports before replacing generated firmware:
 - component resizing and property editing
 - broad LVGL widget catalog
 - Browser Preview
+- deterministic Wi-Fi Manager, password-workflow, and connected-detail preview parity
 - Theme Manager
 - hero backgrounds and uploaded artwork
 - semantic icon browsing
@@ -412,6 +423,7 @@ ForgeUI validates exports before replacing generated firmware:
 - Three-Position Toggle Set generation
 - linked crop workspace with atomic conversion and registration
 - independent exported runtime instances
+- runtime state preserved while the reusable built-in System Runtime is open
 
 ### Native export
 
@@ -419,7 +431,9 @@ ForgeUI validates exports before replacing generated firmware:
 - locally converted image assets
 - generated input callbacks
 - generated output setters
-- generated Keyboard map, styling, alignment, and relative key widths
+- complete generated Wi-Fi Manager and structured backend projection
+- generated connected details, selectable network rows, badges, password and forget dialogs
+- reusable native LVGL keyboard with generated attachment and callbacks
 - client preflight and independent server validation
 - reference-aware asset deletion
 - integrated Build & Flash
@@ -466,12 +480,15 @@ Current proven milestones include:
 - shared Binary Output Runtime and generated `FG_Set_*` Light/Status APIs
 - built-in System Launcher and Display / Brightness
 - physical display backlight control
-- Wi-Fi Phase 1 backend and generated System page
+- reusable built-in System Runtime
+- complete built-in Wi-Fi Manager with structured network rows, password workflow, Connect, Disconnect, Reconnect and Forget Network
+- connected Wi-Fi details including RSSI, gateway, security, station MAC and AP BSSID
+- deterministic Browser Preview parity for the Wi-Fi Manager
 - Hosted Wi-Fi over SDIO Slot 1
 - SD Card operation over SDMMC Slot 0
 - simultaneous Hosted Wi-Fi and SD operation
 - Three-Position State Sheet generation and linked crops
-- native LVGL Keyboard placement, sizing, and key proportions at 1024 × 600
+- reusable native LVGL keyboard, password attachment, top-layer ownership and physical interaction at 1024 × 600
 - client/server export validation before generated-file replacement
 - integrated ESP-IDF Build & Flash
 - independent standalone ESP-IDF export
@@ -488,8 +505,9 @@ These are future concepts, not descriptions of implemented runtime support:
 - additional generated runtime families;
 - value controls, gauges, and numeric displays;
 - reusable user-project multi-screen authoring; the built-in System Interface already uses persistent generated pages;
-- Wi-Fi visible scan-result population and reliable network refresh;
-- Wi-Fi password entry, network selection, connect/forget workflow, and credential management;
+- additional built-in System pages including Bluetooth and Device settings;
+- MQTT, OTA and Ethernet platform integrations;
+- continued visual theme polish for generated System surfaces;
 - GPIO and peripheral binding;
 - broader board and display profiles;
 - reusable project templates;

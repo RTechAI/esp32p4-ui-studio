@@ -1,0 +1,239 @@
+import React from 'react'
+import {
+  Badge, Box, Button, Checkbox, Flex, Grid, HStack, Input,
+  Modal, ModalBody, ModalContent, ModalFooter, ModalHeader,
+  ModalOverlay, Text, VStack,
+} from '@chakra-ui/react'
+import {
+  FiArrowLeft, FiEye, FiEyeOff, FiLock, FiRefreshCw, FiWifi,
+} from 'react-icons/fi'
+import { useForgeTheme } from '~forgeui/theme/ForgeThemeContext'
+import { useForgeUISystem } from './ForgeUISystemContext'
+
+const WifiPage = () => {
+  const system = useForgeUISystem()
+  const { palette } = useForgeTheme()
+  const [password, setPassword] = React.useState('')
+  const [showPassword, setShowPassword] = React.useState(false)
+  const [remember, setRemember] = React.useState(true)
+  const [validation, setValidation] = React.useState('')
+  const wifi = system.previewWifi
+  const stateLabel = wifi.scanInProgress
+    ? 'Scanning'
+    : wifi.state.replace('-', ' ')
+  const signal = (rssi: number) =>
+    rssi >= -55 ? 'Excellent' : rssi >= -67 ? 'Good'
+      : rssi >= -75 ? 'Fair' : 'Weak'
+  const cancelPassword = () => {
+    setPassword('')
+    setShowPassword(false)
+    setValidation('')
+    system.cancelPreviewWifiPassword()
+  }
+  const connectPassword = () => {
+    if (password.length < 8 || password.length > 63) {
+      setValidation('Password must be 8 to 63 characters')
+      return
+    }
+    setValidation('')
+    system.connectPreviewWifi(password, remember)
+  }
+
+  return (
+    <Box height="100%" data-testid="system-wifi-page">
+      <Box
+        height="82px"
+        display="flex"
+        alignItems="center"
+        borderBottom="1px solid rgba(148, 163, 184, 0.25)"
+        px="28px"
+        position="relative"
+      >
+        <Button
+          aria-label="Back from Wi-Fi"
+          onClick={system.goBackInSystemInterface}
+          leftIcon={<FiArrowLeft />}
+          size="lg"
+          variant="ghost"
+          color="inherit"
+          position="absolute"
+          left="22px"
+        >
+          Back
+        </Button>
+        <Text width="100%" textAlign="center" fontSize="30px" fontWeight="bold">
+          Wi-Fi
+        </Text>
+        <Badge position="absolute" right="28px" colorScheme="orange" data-testid="wifi-preview-badge">
+          Simulated Preview
+        </Badge>
+      </Box>
+      <Flex height="calc(100% - 82px)" px="28px" py="14px" gap="20px">
+        <VStack width="46%" align="stretch" spacing="10px">
+          <Box
+            border={`1px solid ${palette.border}`}
+            bg={palette.surface}
+            borderRadius="12px"
+            px="18px"
+            py="11px"
+          >
+            <Text fontSize="12px" opacity={0.7}>Connection</Text>
+            <Text
+              data-testid="wifi-state"
+              fontSize="26px"
+              fontWeight="bold"
+              textTransform="capitalize"
+              color={palette.accent}
+            >
+              {stateLabel}
+            </Text>
+            <Grid templateColumns="125px 1fr" rowGap="3px" mt="8px" fontSize="13px">
+              <Text opacity={0.65}>Current network</Text>
+              <Text data-testid="wifi-ssid">{wifi.ssid || '—'}</Text>
+              <Text opacity={0.65}>IP address</Text>
+              <Text data-testid="wifi-ip">{wifi.ip || '—'}</Text>
+              <Text opacity={0.65}>Gateway</Text>
+              <Text>{wifi.gateway || '—'}</Text>
+              <Text opacity={0.65}>Signal</Text>
+              <Text data-testid="wifi-rssi">
+                {wifi.rssi == null ? 'Unavailable' : `${wifi.rssi} dBm · ${signal(wifi.rssi)}`}
+              </Text>
+              <Text opacity={0.65}>Security</Text>
+              <Text>{wifi.security}</Text>
+              <Text opacity={0.65}>Status</Text>
+              <Text>{wifi.statusText}</Text>
+            </Grid>
+            {wifi.error && <Text mt="6px" color="red.300" data-testid="wifi-error">{wifi.error}</Text>}
+          </Box>
+          <HStack>
+            <Button
+              flex="1"
+              onClick={system.scanPreviewWifi}
+              disabled={wifi.scanInProgress}
+              leftIcon={<FiWifi />}
+            >
+              {wifi.scanInProgress ? 'Scanning…' : 'Scan Networks'}
+            </Button>
+            <Button aria-label="Refresh Wi-Fi status" leftIcon={<FiRefreshCw />}>
+              Refresh
+            </Button>
+          </HStack>
+          {wifi.state === 'connected' ? (
+            <Box
+              border={`1px solid ${palette.border}`}
+              bg={palette.surface}
+              borderRadius="12px"
+              px="14px"
+              py="9px"
+              data-testid="wifi-connected-details"
+            >
+              <Text fontWeight="bold">Connected Network</Text>
+              <Grid templateColumns="110px 1fr" fontSize="12px" rowGap="2px" mt="4px">
+                <Text opacity={0.65}>Station MAC</Text><Text>{wifi.stationMac}</Text>
+                <Text opacity={0.65}>AP BSSID</Text><Text>{wifi.apBssid || '—'}</Text>
+              </Grid>
+              <HStack mt="8px">
+                <Button size="sm" onClick={system.disconnectPreviewWifi}>Disconnect</Button>
+                <Button size="sm" onClick={system.requestForgetPreviewWifi}>Forget Network</Button>
+                <Button size="sm" onClick={system.reconnectPreviewWifi}>Reconnect</Button>
+              </HStack>
+            </Box>
+          ) : (
+            <Button onClick={system.reconnectPreviewWifi}>Reconnect Saved Network</Button>
+          )}
+        </VStack>
+        <Box
+          flex="1"
+          minWidth={0}
+          border={`1px solid ${palette.border}`}
+          bg={palette.surface}
+          borderRadius="12px"
+          px="14px"
+          py="12px"
+        >
+          <Text fontSize="20px" fontWeight="bold" mb="9px">Available Networks</Text>
+          <VStack align="stretch" spacing="6px" maxHeight="420px" overflowY="auto" data-testid="wifi-network-list">
+            {wifi.scanInProgress && <Text py="18px">Scanning for nearby networks…</Text>}
+            {!wifi.scanInProgress && wifi.networks.map(network => (
+              <Button
+                key={network.ssid}
+                onClick={() => system.selectPreviewWifi(network.ssid)}
+                justifyContent="space-between"
+                minHeight="43px"
+                px="10px"
+                border={
+                  wifi.selectedSsid === network.ssid
+                    ? `2px solid ${palette.accent}` : '2px solid transparent'
+                }
+                bg={palette.surface2}
+                color="inherit"
+                data-testid={`wifi-network-${network.ssid}`}
+              >
+                <HStack minWidth={0}>
+                  <FiWifi />
+                  {network.security !== 'Open' && <FiLock />}
+                  <Text noOfLines={1}>{network.ssid}</Text>
+                </HStack>
+                <HStack>
+                  {network.connected && <Badge colorScheme="green">Connected</Badge>}
+                  {network.saved && <Badge colorScheme="blue">Saved</Badge>}
+                  <Text fontSize="12px">{network.rssi} dBm</Text>
+                </HStack>
+              </Button>
+            ))}
+            {!wifi.scanInProgress && wifi.networks.length === 0 && (
+              <Text py="18px">No networks found. Tap Scan Networks.</Text>
+            )}
+          </VStack>
+        </Box>
+      </Flex>
+      <Modal isOpen={wifi.passwordDialogSsid != null} onClose={cancelPassword} isCentered>
+        <ModalOverlay />
+        <ModalContent bg={palette.surface} color={palette.text}>
+          <ModalHeader>Connect to {wifi.passwordDialogSsid}</ModalHeader>
+          <ModalBody>
+            <HStack>
+              <Input
+                aria-label="Wi-Fi password"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={event => setPassword(event.target.value)}
+                maxLength={63}
+              />
+              <Button
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                onClick={() => setShowPassword(value => !value)}
+              >
+                {showPassword ? <FiEyeOff /> : <FiEye />}
+              </Button>
+            </HStack>
+            <Checkbox mt="12px" isChecked={remember} onChange={event => setRemember(event.target.checked)}>
+              Remember password
+            </Checkbox>
+            {validation && <Text color="red.300" mt="8px">{validation}</Text>}
+            {wifi.error && <Text color="red.300" mt="8px">{wifi.error}</Text>}
+          </ModalBody>
+          <ModalFooter gap="8px">
+            <Button onClick={cancelPassword}>Cancel</Button>
+            <Button colorScheme="orange" onClick={connectPassword}>
+              Connect
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+      <Modal isOpen={wifi.forgetConfirmationOpen} onClose={system.cancelForgetPreviewWifi} isCentered>
+        <ModalOverlay />
+        <ModalContent bg={palette.surface} color={palette.text}>
+          <ModalHeader>Forget {wifi.ssid}?</ModalHeader>
+          <ModalBody>The saved password will be erased. A password will be required to reconnect.</ModalBody>
+          <ModalFooter gap="8px">
+            <Button onClick={system.cancelForgetPreviewWifi}>Cancel</Button>
+            <Button colorScheme="red" onClick={system.confirmForgetPreviewWifi}>Forget Network</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </Box>
+  )
+}
+
+export default WifiPage

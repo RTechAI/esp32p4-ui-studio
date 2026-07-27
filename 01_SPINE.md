@@ -1,6 +1,17 @@
-# Current Save Point
+# Project Spine: what ForgeUI is, what is proven, current priorities, and what must not regress
 
-**FORGEUI_SYSTEM_INTERFACE__HOSTED_WIFI_SD_RECOVERY__SDIO_SLOT1_RESTORED__PHYSICAL_ESP32P4_PROVEN__2026-07-27**
+## WHY 01_SPINE & 02_DEVELOPER & 03_FORGEUI_GEN -  means Codex spends less time guessing and is much less likely to:
+
+- edit generated files directly
+- duplicate an existing subsystem
+- put firmware logic into the Studio
+- break ownership boundaries
+- revive an obsolete architecture
+- touch hardware configuration that is   already proven
+
+## Current Save Point
+
+**FORGEUI_WIFI_MANAGER__NATIVE_LVGL_KEYBOARD__BROWSER_PREVIEW_PARITY__PHYSICAL_ESP32P4_PROVEN__2026-07-27**
 
 ## Current Proven Status..
 
@@ -38,7 +49,8 @@ Current implemented System pages:
 
 - System Launcher
 - Display / Brightness
-- Wi-Fi (backend physically operational; page workflows still require UI polish)
+- Wi-Fi Manager
+- Native LVGL Keyboard
 
 Navigation is proven through the complete current hierarchy:
 
@@ -47,10 +59,14 @@ Application
 → System
 → Display
 → System
+→ Wi-Fi Manager
+→ System
 → Application
 ```
 
 Display brightness is physically connected to the ESP32-P4 backlight through `bsp_display_brightness_set()`. Brightness changes live while the slider is moved and remains in memory during the current device session.
+
+The Wi-Fi Manager is a physically proven reusable System Runtime feature rather than a backend demonstration. The complete workflow is proven on the ESP32-P4: Scan Networks, Refresh, SSID selection, live RSSI, Connected and Saved state display, password dialog, native LVGL keyboard password entry, Connect, Disconnect, Reconnect, Forget Network and connected details including RSSI, security and gateway. Studio and Browser Preview retain parity with the generated LVGL workflow. Only minor visual polish remains, including active-theme consistency for the Available Networks list.
 
 ## Built-in System Interface
 
@@ -78,9 +94,9 @@ ForgeUISystemPage
 └── diagnostics
 ```
 
-Launcher and Brightness are implemented, and the Wi-Fi backend is now physically operational. The Wi-Fi System page still requires UI polish for Scan Networks, Disconnect, its live network list and refresh behaviour; those UI workflows are not complete. Bluetooth, Sound, Storage, Device and Diagnostics remain visible future page identifiers and disabled launcher placeholders, and their system functions are not implemented.
+Launcher, Brightness and the complete Wi-Fi Manager are implemented and physically proven. The shared System Runtime owns Browser Preview parity for the Wi-Fi workflow, while the generated LVGL runtime owns the physical page, password dialog, reusable native keyboard, network interaction and connected details. The Hosted backend supplies live scan, connection, RSSI, security, gateway and saved-network data to that complete UI without changing the separation between System Runtime and Hosted Connectivity Runtime. Only minor visual polish remains, including active-theme consistency for the Available Networks list. Bluetooth, Sound, Storage, Device and Diagnostics remain visible future page identifiers and disabled launcher placeholders, and their system functions are not implemented.
 
-The shared provider owns the active System page, open and back navigation, and current-session brightness. The shared surface renders the same built-in interface over the Studio Canvas and Browser Preview while keeping normal project components separate.
+The shared provider owns the active System page, open and back navigation, current-session brightness and the Browser Preview Wi-Fi workflow state. The shared surface renders the same built-in interface over the Studio Canvas and Browser Preview while keeping normal project components separate.
 
 ### LVGL runtime
 
@@ -89,10 +105,14 @@ Generated LVGL creates:
 - one persistent application container
 - one System launcher container
 - one Brightness container
+- one Wi-Fi Manager container
+- one reusable top-layer native LVGL keyboard, created lazily when a System dialog requires text entry
 
 The current hardware-safe navigation implementation uses immediate container visibility switching. It does not recreate screens, project widgets or Interactive Assets. Existing Interactive Assets remain instantiated and retain their state while the System Interface is open, then continue working after return to the application.
 
 The generated gear launcher and System controls use internal LVGL event callbacks. The Brightness slider listens for live value changes, clamps the value to `10–100`, updates its percentage label and calls the Waveshare BSP through the generated internal `FG_Set_Display_Brightness()` wrapper and `bsp_display_brightness_set()`. Brightness is session-only and is not persisted.
+
+The generated Wi-Fi Manager owns its System page, scan list, selection state, password and forget dialogs, connected details and internal Wi-Fi callbacks. The Hosted backend remains the source of live network and connection data. The generated native `lv_keyboard` is created lazily on the LVGL top layer, retained as one reusable instance, attached through `lv_keyboard_set_textarea()`, and detached and hidden after Done or Cancel. It supports password entry, show/hide password, correct physical geometry, ForgeUI styling and Browser Preview parity without introducing generated user hooks. This reusable architecture is intended for future Device settings, MQTT, Ethernet, Bluetooth, API keys, Device naming, Login and other System dialogs; those future uses are not claimed as implemented or physically proven.
 
 ## Hosted Wi-Fi Recovery
 
@@ -116,6 +136,8 @@ ESP-IDF Wi-Fi API
 ```
 
 The previous SPI Hosted configuration was incorrect for this hardware and prevented the Hosted transport from establishing. Restoring the SDIO Host Interface on SDMMC Slot 1 restored the intended transport.
+
+The recovered Hosted backend now drives the complete built-in Wi-Fi Manager UI, including scan results, selection, connection state, live RSSI, security, gateway, saved-network state and connected details. This extends the proven use of the existing Hosted service without changing its transport architecture, SDIO ownership or startup baseline.
 
 ## SD Coexistence
 
@@ -889,8 +911,9 @@ The current implementation does not introduce a separate `InteractiveToggleSwitc
 ### Built-in System Interface
 
 - `src/forgeui/system/`
-- `src/forgeui/system/ForgeUISystemContext.tsx` — typed page navigation and current-session brightness state
+- `src/forgeui/system/ForgeUISystemContext.tsx` — typed page navigation, current-session brightness and Browser Preview Wi-Fi workflow state
 - `src/forgeui/system/ForgeUISystemSurface.tsx` — shared Studio Canvas and Browser Preview System surface
+- `src/forgeui/system/ForgeUIWifiPage.tsx` — complete Browser Preview Wi-Fi Manager surface, password workflow and connected details
 - `src/forgeui/system/ForgeUISystemSurface.test.tsx`
 - `src/forgeui/system/index.ts`
 - `src/pages/_app.tsx` — owns the shared System provider boundary
@@ -977,6 +1000,19 @@ The exporter owns the shared generated runtime implementations, unique per-insta
 - Back navigation returns from Display to System and from System to the existing application.
 - Existing Interactive Assets remain alive while System is open and continue working after leaving System.
 
+### Wi-Fi Manager
+
+- The complete generated Wi-Fi Manager workflow is physically proven on the ESP32-P4.
+- Scan Networks and Refresh populate and update the live Available Networks list from the Hosted backend.
+- SSID selection, live RSSI, security and Saved and Connected state display are physically proven.
+- Secured-network selection opens the generated password dialog and attaches the reusable native LVGL keyboard to the password textarea.
+- Password entry, show/hide password, Done and Cancel operate with the correct physical geometry and top-layer ownership.
+- Connect, Disconnect, Reconnect and Forget Network are physically proven through the complete UI workflow.
+- Connected details display the active SSID, IP address, gateway, RSSI and signal quality, security, station MAC, AP BSSID and current status.
+- Studio and Browser Preview reproduce the same navigation, password, connection and connected-details workflow without taking ownership away from the generated LVGL System Runtime.
+- Existing Interactive Assets and System navigation remain alive and stable throughout Wi-Fi interaction.
+- Only minor visual polish remains, including active-theme consistency for the Available Networks list.
+
 ### Hosted Wi-Fi and SD coexistence
 
 Today's physical ESP32-P4 validation recovered the original Hosted Wi-Fi architecture and proved simultaneous Hosted connectivity and SD operation.
@@ -1020,9 +1056,9 @@ confirms the intended use of SDMMC Slot 1 for Hosted Wi-Fi alongside SDMMC Slot 
 - Hosted Wi-Fi and SD operating simultaneously
 - No crash after interaction
 
-## LVGL Keyboard Visual Parity
+## Native LVGL Keyboard Runtime and Visual Parity
 
-The exported keyboard uses native `lv_keyboard`, which is an `lv_buttonmatrix` subclass. Two LVGL defaults caused the original hardware mismatch:
+The generated System Runtime owns one reusable native `lv_keyboard`, which is an `lv_buttonmatrix` subclass. It is created lazily on the LVGL top layer, attached to the active password textarea through `lv_keyboard_set_textarea()`, reused after its first creation and hidden and detached after Done or Cancel. The password workflow, show/hide behavior, Done, Cancel, physical geometry, ForgeUI styling and Browser Preview parity are physically proven. Two LVGL defaults caused the original hardware mismatch:
 
 - the active theme supplied DPI-dependent padding, gaps, radius, font, shadow and outline;
 - `lv_keyboard_create()` internally bottom-aligned the object, while `lv_obj_set_pos()` changed X/Y without clearing that alignment.
@@ -1038,17 +1074,19 @@ Row 3: 1  1  1  1  1  1  1  1  1  1  1  1
 Row 4: mode 2, left arrow 2, space 12, right arrow 2, confirm 2
 ```
 
-LVGL normalizes width units independently within each row. The physical result now occupies the intended large keyboard area, aligns its textarea and keyboard, fills the available rectangle with four key rows, and is much closer to the Studio preview.
+LVGL normalizes width units independently within each row. The physical result now occupies the intended large keyboard area, aligns its textarea and keyboard, fills the available rectangle with four key rows, and matches the proven System password workflow represented in Browser Preview.
+
+The keyboard runtime is reusable architecture for future Device settings, MQTT, Ethernet, Bluetooth, API keys, Device naming, Login and other System dialogs. Those consumers remain future work and are not claimed as implemented or physically proven.
 
 ## Verified Automated Status
 
-- Built-in System regressions cover launcher opening and closing, Display navigation, Back navigation, live brightness state, current-session retention, disabled placeholder behavior and preservation of existing application interaction.
-- LVGL System exporter regressions cover the persistent application container, internal gear callback, System and Brightness containers, disabled cards, immediate visibility navigation, live `10–100` slider behavior and Waveshare BSP brightness integration.
+- Built-in System regressions cover launcher opening and closing, Display and Wi-Fi navigation, Back navigation, live brightness state, current-session retention, Wi-Fi scan and connection preview workflows, password and forget dialogs, connected details, disabled placeholder behavior and preservation of existing application interaction.
+- LVGL System exporter regressions cover the persistent application container, internal gear callback, System, Brightness and Wi-Fi containers, disabled cards, immediate visibility navigation, live `10–100` slider behavior, Waveshare BSP brightness integration and generated ownership of the Hosted-backed Wi-Fi Manager workflow.
 - Focused configured-helper, direct Creator, registry measurement, shared selection-border resize, visible-bounds, Canvas preview, Browser Preview, persistence and exporter regressions pass across the five Interactive Assets.
 - Browser Preview wrapper geometry and Interactive Browser Preview parity regressions cover saved component bounds, positioning and centred contain-fit rendering.
 - Binary Output regressions cover the shared exporter path, Status Indicator LVGL scaling, component-sized container generation and centred child-image generation.
 - Toggle State Sheet and Three-Position State Sheet, linked-crop, row-remapping and atomic-registration regressions pass; the State Sheet suite may require its longer timeout.
-- Keyboard exporter geometry, ordering, style and relative-width regressions pass.
+- Keyboard exporter lazy-creation, reusable-instance, textarea attachment, top-layer ownership, geometry, ordering, style and relative-width regressions pass.
 - Shared union geometry, intrinsic and alpha-bound metadata, linked crop, same-ID invalidation, duplicate-write suppression and idempotent fitting regressions pass.
 - TypeScript validation passes with `tsc --noEmit`.
 - Scoped diff validation passes for the current implementation work.
@@ -1067,8 +1105,9 @@ Studio
 
 System Runtime
 ├── System Launcher
-├── Brightness
-├── Wi-Fi backend
+├── Display
+├── Wi-Fi Manager
+├── Native LVGL Keyboard
 └── Future System pages
 
 Interactive Asset Runtime
@@ -1096,7 +1135,7 @@ The System Interface is not an Interactive Asset. It is a reusable platform serv
 
 Hosted Connectivity Runtime and Storage Runtime are reusable platform services independent of Interactive Assets. Hosted Connectivity owns ESP-Hosted, Wi-Fi Remote, the ESP32-C6 and SDIO Slot 1; Storage Runtime owns the SD Card on SDMMC Slot 0.
 
-This separation lets built-in Wi-Fi and future Bluetooth, Sound, Storage, Device and Diagnostics services reuse the typed System page, shared navigation and generated container framework without affecting project screens or changing existing Interactive Asset runtime contracts. The System Launcher and Display / Brightness are implemented and physically proven, and the Wi-Fi backend is physically operational. Scan Networks, Disconnect, the live network list and refresh behaviour still require UI polish and are not claimed complete.
+This separation lets built-in Wi-Fi and future Bluetooth, Sound, Storage, Device and Diagnostics services reuse the typed System page, shared navigation and generated container framework without affecting project screens or changing existing Interactive Asset runtime contracts. The System Launcher, Display / Brightness, complete Wi-Fi Manager and reusable native LVGL keyboard are implemented and physically proven. The Hosted backend drives the generated Wi-Fi Manager through Scan Networks, Refresh, SSID selection, password entry, Connect, Disconnect, Reconnect, Forget Network, live network state and connected details, while Browser Preview retains the same workflow and hierarchy. Only minor visual polish remains, including active-theme consistency for the Available Networks list.
 
 Interactive Button established the first **Interactive Input Runtime** within the Interactive Asset Framework.
 
@@ -1210,6 +1249,13 @@ These remain future concepts only. They are not implemented or physically proven
 # Save Point History
 
 Save points are ordered newest to oldest. Detailed subsystem engineering is maintained in the Developer Code Maps.
+
+## FORGEUI_WIFI_MANAGER__NATIVE_LVGL_KEYBOARD__BROWSER_PREVIEW_PARITY__PHYSICAL_ESP32P4_PROVEN__2026-07-27
+
+- **What changed:** Completed the built-in Wi-Fi Manager across Browser Preview and generated LVGL, including Scan Networks, Refresh, SSID selection, live RSSI, Connected and Saved state display, password and forget dialogs, Connect, Disconnect, Reconnect, Forget Network and connected details; added a lazily created reusable native LVGL keyboard with top-layer ownership, textarea attachment, password entry, show/hide, Done and Cancel; and completed the associated runtime performance optimisation.
+- **Why it changed:** The physically operational Hosted backend needed a complete reusable System Runtime workflow with responsive interaction, correct embedded text entry and Browser Preview parity rather than remaining a backend demonstration.
+- **Final architecture:** The generated System Runtime owns the Wi-Fi Manager page, dialogs, connected details and one reusable native LVGL keyboard, while the existing Hosted Connectivity Runtime continues to own ESP-Hosted, Wi-Fi Remote, the ESP32-C6 and SDIO Slot 1. Shared typed System state supplies Browser Preview parity without moving Wi-Fi behavior into Interactive Assets or generated user callbacks.
+- **Proven result:** The complete Wi-Fi interaction workflow, native keyboard geometry and behavior, Hosted-backed live data, connected details, Browser Preview parity and performance-optimised physical UI were validated on the ESP32-P4. Only minor visual polish remains, including active-theme consistency for the Available Networks list.
 
 ## FORGEUI_SYSTEM_INTERFACE__HOSTED_WIFI_SD_RECOVERY__SDIO_SLOT1_RESTORED__PHYSICAL_ESP32P4_PROVEN__2026-07-27
 

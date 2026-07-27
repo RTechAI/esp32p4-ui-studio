@@ -1,4 +1,6 @@
 import { generateForgeUILvglCode } from './ForgeUILvglExport'
+import fs from 'fs'
+import path from 'path'
 
 const components: IComponents = {
   root: {
@@ -98,22 +100,51 @@ describe('built-in System LVGL export', () => {
     )
   })
 
-  it('wires scan and disconnect but leaves Connect disabled', () => {
+  it('wires the complete Wi-Fi intent surface', () => {
     expect(generated.code).toContain('fg_wifi_scan_start();')
     expect(generated.code).toContain('fg_wifi_disconnect();')
+    expect(generated.code).toContain('fg_wifi_connect_network(')
+    expect(generated.code).toContain('fg_wifi_forget();')
+    expect(generated.code).toContain('fg_wifi_reconnect();')
+    expect(generated.code).toContain('fg_system_wifi_password_dialog')
+    expect(generated.code).toContain('fg_system_wifi_network_rows')
+  })
+
+  it('opens a shared native keyboard only when the password field is focused', () => {
     expect(generated.code).toContain(
-      'lv_obj_add_state(fg_system_wifi_connect_button, LV_STATE_DISABLED);',
+      'fg_system_wifi_keyboard = lv_keyboard_create(parent);',
     )
-    expect(generated.code).not.toMatch(
-      /fg_system_wifi_connect_button,.*LV_EVENT_CLICKED/,
+    expect(generated.code).toContain(
+      'lv_keyboard_set_textarea(fg_system_wifi_keyboard, fg_system_wifi_password_input);',
+    )
+    expect(generated.code).toContain(
+      'fg_keyboard_open_cb, LV_EVENT_FOCUSED, NULL',
+    )
+    expect(generated.code).toContain(
+      'lv_obj_set_size(fg_system_wifi_keyboard, 1024, 250);',
+    )
+    expect(generated.code).toContain(
+      'code == LV_EVENT_READY || code == LV_EVENT_CANCEL',
+    )
+  })
+
+  it('validates protected-network passwords before calling the backend', () => {
+    const validation = generated.code.indexOf(
+      'if (password_length < 8 || password_length > 63)',
+    )
+    const connect = generated.code.indexOf(
+      'fg_wifi_result_t result = fg_wifi_connect_network',
+    )
+    expect(validation).toBeGreaterThan(-1)
+    expect(connect).toBeGreaterThan(validation)
+    expect(generated.code).toContain(
+      'Password must be 8 to 63 characters',
     )
   })
 
   it('refreshes System Wi-Fi independently of an application widget', () => {
-    expect(generated.code).toContain('fg_wifi_state()')
-    expect(generated.code).toContain('fg_wifi_ssid_text()')
-    expect(generated.code).toContain('fg_wifi_rssi()')
-    expect(generated.code).toContain('fg_wifi_scan_in_progress()')
+    expect(generated.code).toContain('fg_wifi_get_snapshot(&snapshot)')
+    expect(generated.code).toContain('fg_wifi_get_networks(')
     expect(generated.code).toContain(
       'if (fg_wifi_label) {',
     )
@@ -122,6 +153,41 @@ describe('built-in System LVGL export', () => {
     )
     expect(generated.code.match(/lv_timer_create\(fg_wifi_tick_cb, 1000, NULL\)/g))
       .toHaveLength(1)
+    expect(generated.code).toContain(
+      'if (!fg_system_wifi_page || !fg_system_wifi_page_active) return;',
+    )
+  })
+
+  it('projects complete physical connected details from the backend snapshot', () => {
+    ;[
+      'snapshot.ssid',
+      'snapshot.ip',
+      'snapshot.gateway',
+      'snapshot.rssi',
+      'fg_wifi_signal_quality(snapshot.rssi)',
+      'fg_wifi_security_text(snapshot.security)',
+      'fg_wifi_status_text()',
+      'snapshot.station_mac[0]',
+      'snapshot.ap_bssid[0]',
+    ].forEach(field => expect(generated.code).toContain(field))
+    expect(generated.code).toContain('"Current network     %s"')
+    expect(generated.code).toContain('"IP address          %s"')
+    expect(generated.code).toContain('"Gateway             %s"')
+    expect(generated.code).toContain('"Signal              %d dBm - %s"')
+    expect(generated.code).toContain('"Security            %s"')
+    expect(generated.code).toContain('"Status              %s%s%s"')
+    expect(generated.code).toContain('"Station MAC  %s\\nAP BSSID     %s"')
+  })
+
+  it('pauses physical Wi-Fi projection while the password dialog is open', () => {
+    const pause = generated.code.indexOf(
+      '!lv_obj_has_flag(fg_system_wifi_password_dialog, LV_OBJ_FLAG_HIDDEN)) return;',
+    )
+    const snapshot = generated.code.indexOf(
+      'fg_wifi_get_snapshot(&snapshot)',
+    )
+    expect(pause).toBeGreaterThan(-1)
+    expect(pause).toBeLessThan(snapshot)
   })
 
   it('keeps built-in Wi-Fi out of User Events', () => {
@@ -156,3 +222,28 @@ describe('built-in System LVGL export', () => {
     )
   })
 })
+
+if (process.env.FORGEUI_REGENERATE_FIRMWARE === '1') {
+  test('regenerates the firmware Studio export from the generator', () => {
+    const emptyProject: IComponents = {
+      root: {
+        id: 'root',
+        parent: 'root',
+        type: 'Box',
+        props: {},
+        children: [],
+      },
+    }
+    const output = generateForgeUILvglCode(
+      emptyProject,
+      'graphite',
+      undefined,
+      { includeThemeTexture: false },
+    ).code
+    fs.writeFileSync(
+      path.resolve(__dirname, '../../../firmware/ForgeUI-One/main/90_Studio_Export.c'),
+      output,
+      'utf8',
+    )
+  })
+}

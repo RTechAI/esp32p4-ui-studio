@@ -27,7 +27,7 @@ describe('Keyboard LVGL export geometry', () => {
 
     const { code } = generateForgeUILvglCode(components, 'graphite')
 
-    expect(code).toContain('lv_obj_t * obj1 = lv_keyboard_create(parent);')
+    expect(code).toContain('lv_obj_t * obj1 = lv_keyboard_create(fg_application_page);')
     expect(code).toContain('lv_obj_set_pos(obj1, 0, 408);')
     expect(code).toContain('lv_obj_set_size(obj1, 654, 192);')
     expect(code).toContain('lv_obj_set_pos(obj1_ta, 0, 353);')

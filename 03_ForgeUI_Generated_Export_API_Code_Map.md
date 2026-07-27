@@ -1,8 +1,19 @@
-# ForgeUI Generated Export API — Permanent Code Map
+# Generated Export API Code Map: what generated firmware exposes, how callbacks and runtime APIs fit together, and what developers are allowed to extend.
+
+## WHY 01_SPINE & 02_DEVELOPER & 03_FORGEUI_GEN -  means Codex spends less time guessing and is much less likely to:
+
+- edit generated files directly
+- duplicate an existing subsystem
+- put firmware logic into the Studio
+- break ownership boundaries
+- revive an obsolete architecture
+- touch hardware configuration that is   already proven
+
+## ForgeUI Generated Export API — Permanent Code Map
 
 ## Current proven save point
 
-**FORGEUI_SYSTEM_INTERFACE__HOSTED_WIFI_SD_RECOVERY__SDIO_SLOT1_RESTORED__PHYSICAL_ESP32P4_PROVEN__2026-07-27**
+**FORGEUI_SYSTEM_INTERFACE__HOSTED_WIFI_MANAGER__NATIVE_LVGL_KEYBOARD__PHYSICAL_UI_WORKFLOW__ESP32P4_PROVEN__2026-07-27**
 
 ## Purpose and scope
 
@@ -52,8 +63,10 @@ Binary Output Runtime
 System Runtime
 ├── Application Container
 ├── System Launcher
-├── Brightness Page
-└── Wi-Fi Page
+├── Display / Brightness
+├── Wi-Fi Manager
+├── Native LVGL Keyboard
+└── Future System Pages
 
 Hosted Connectivity Runtime
 ├── ESP-Hosted
@@ -64,7 +77,7 @@ Hosted Connectivity Runtime
 
 Button is momentary input. Toggle Switch is persistent boolean input. Three-Position Toggle is persistent enum input. Light and Status Indicator are developer-controlled outputs.
 
-System Runtime is generated platform code. Its current implementation uses persistent Application, System Launcher, Brightness and Wi-Fi containers. Hosted Connectivity Runtime is platform infrastructure, not an Interactive Asset runtime.
+System Runtime is generated platform code. Its current implementation uses persistent Application, System Launcher, Display / Brightness and Wi-Fi Manager containers plus one lazily created reusable native LVGL keyboard. Hosted Connectivity Runtime is platform infrastructure, not an Interactive Asset runtime.
 
 ```text
 Application
@@ -163,7 +176,7 @@ Gear Launcher
         ↓
 System Runtime
         ↓
-Brightness Page
+Display / Brightness
         ↓
 FG_Set_Display_Brightness()
         ↓
@@ -172,23 +185,40 @@ bsp_display_brightness_set()
 ESP32-P4 Backlight
 ```
 
+The generated Wi-Fi path within the same System Runtime is:
+
+```text
+Wi-Fi Manager presentation and UI intent
+        ↓
+structured snapshot/network projection
+        ↓
+30_WIFI backend
+        ↓
+ESP-IDF
+        ↓
+ESP-Hosted
+        ↓
+ESP32-C6
+```
+
 System Runtime is generated. It does not generate developer callbacks and is not an Interactive Asset. `FG_Set_Display_Brightness()` is an internal generated hardware bridge, not a public User Events API.
 
 Current generated System pages are:
 
 - Application
 - System Launcher
-- Brightness
-- Wi-Fi
+- Display / Brightness
+- Wi-Fi Manager
+- Native LVGL Keyboard
 
-The generated Wi-Fi page owns labels, its Scan and Disconnect buttons, status text, SSID, RSSI, IP address and an internal refresh callback. It does not own `esp_wifi_init()`, scanning implementation, DHCP, Hosted transport or ESP-IDF APIs; those remain firmware backend responsibilities.
+The generated Wi-Fi Manager owns LVGL presentation, a structured selectable network list, Connected and Saved badges, password and forget dialogs, a password textarea, Show / Hide, native keyboard attachment, Connect, Disconnect, Reconnect, Forget, connected details, status, RSSI, gateway, security, station MAC, AP BSSID and periodic backend snapshot projection. It sends UI intent but does not own `esp_wifi_init()`, scanning implementation, credentials, reconnect policy, DHCP, Hosted transport or ESP-IDF APIs; those remain `30_WIFI` backend responsibilities.
 
 ## Hosted Connectivity Runtime
 
 The generated-to-platform boundary is:
 
 ```text
-Generated LVGL Wi-Fi Page
+Generated LVGL Wi-Fi Manager
         ↓
 internal generated callbacks
         ↓
@@ -382,18 +412,22 @@ The generated System Runtime owns:
 - Brightness slider behavior
 - current-session brightness value
 - System Runtime page state
-- Wi-Fi page LVGL objects and labels
-- Scan button and Disconnect button callbacks
-- periodic Wi-Fi state refresh
+- Wi-Fi Manager LVGL presentation, structured network rows and badges
+- password and forget dialogs, native keyboard and connected details
+- Scan, Refresh, selection, Connect, Disconnect, Reconnect and Forget callbacks
+- periodic structured backend snapshot/network projection
+- projection pause while password entry is active
 - internal Wi-Fi System navigation
 
 These responsibilities remain internal to generated `90_Studio_Export.c`. They are not added to `userEventHooks`, do not create declarations or stubs in `95_UserEvents.*`, and are not part of the public developer callback API.
 
-The generated System Runtime does not own Wi-Fi credentials, scanning implementation, DHCP, reconnect logic or transport startup. Those responsibilities belong to `30_WIFI.c`.
+The generated System Runtime does not own scanning implementation, credentials, reconnect policy, transport, DHCP or ESP-IDF calls. Those responsibilities belong to `30_WIFI.c`.
 
 ### Generated Wi-Fi API boundary
 
-No Wi-Fi User Event hooks are generated. No Wi-Fi public setter APIs are generated. The Wi-Fi System Runtime remains internally generated. Developer application code interacts with Wi-Fi through firmware APIs rather than generated `FG_On_*` or `FG_Set_*` functions.
+No Wi-Fi User Event hooks are generated. No Wi-Fi public setter APIs are generated. The Wi-Fi System Runtime remains internally generated.
+
+The generated page owns presentation, password dialog, reusable keyboard, network rows, connected details, backend projection and UI intent. It consumes `fg_wifi_snapshot_t` and `fg_wifi_network_t` from `30_WIFI`; it never becomes the source of physical Wi-Fi truth. Scanning implementation, persisted credentials, reconnect policy, transport, DHCP and ESP-IDF remain backend-owned. Physical firmware currently supports one persisted ESP-IDF STA configuration, not a multi-network credential database. `95_UserEvents.c` remains unrelated to the Wi-Fi System UI.
 
 ## Hosted configuration boundary
 
@@ -454,8 +488,8 @@ Runtime generation assumes that its candidate result will pass the dedicated cli
 - Interactive Three-Position Toggle export
 - shared Toggle Input Runtime and per-instance records
 - shared Three-Position Input Runtime and per-instance records
-- Keyboard export, including native `lv_keyboard`/buttonmatrix configuration
-- Keyboard top-left alignment, relative control-width map, explicit styles, and final runtime ordering
+- reusable native System keyboard generation, lazy creation and `lv_keyboard_set_textarea()` attachment
+- Keyboard top-layer ownership, top-left alignment, explicit styles, callbacks and final physical geometry
 - export of uploaded assets produced by Toggle and Three-Position State Sheet workflows
 - current direct Creator integration through the component and uploaded-asset model
 - final persisted component geometry for all five Interactive Asset branches
@@ -480,9 +514,13 @@ Runtime generation assumes that its candidate result will pass the dedicated cli
 - persistent application container generation
 - System launcher container generation
 - Brightness container generation
-- Wi-Fi container, labels and actions
-- internal Wi-Fi Scan and Disconnect callbacks
-- periodic Wi-Fi backend-state refresh
+- complete Wi-Fi Manager container, status, connected details and structured selectable rows
+- Connected and Saved presentation
+- password and forget dialogs, password textarea, Show / Hide and validation
+- internal Scan, Refresh, selection, Connect, Disconnect, Reconnect and Forget callbacks
+- native keyboard callbacks and password attachment
+- periodic structured backend projection
+- projection pause while password entry is active
 - generated gear launcher
 - generated Back navigation
 - container visibility switching
@@ -506,7 +544,7 @@ The exporter emits Three-Position runtime code that uses `fg_three_way_state_t`;
 
 Do not create a separate Button, Toggle, Three-Position, Light or Status Indicator exporter, or a parallel runtime generator.
 
-The same exporter owns the built-in System Runtime. It creates the Application, System Launcher, Brightness and Wi-Fi containers once, then generates internal callbacks that switch `LV_OBJ_FLAG_HIDDEN`. Interactive Assets remain instantiated inside the application container. System controls do not contribute developer hook metadata. Generated Wi-Fi code renders backend state and sends Scan or Disconnect intent; it does not implement scanning, DHCP, reconnect logic or Hosted transport.
+The same exporter owns the built-in System Runtime. It creates the Application, System Launcher, Display / Brightness and Wi-Fi Manager containers once, then generates internal callbacks that switch `LV_OBJ_FLAG_HIDDEN`. It lazily creates one reusable top-layer native keyboard when password entry requires it. Interactive Assets remain instantiated inside the application container. System controls do not contribute developer hook metadata. Generated Wi-Fi code projects structured backend state and sends UI intent; it does not implement scanning, credentials, DHCP, reconnect policy, ESP-IDF calls or Hosted transport.
 
 ## Component export traversal
 
@@ -1027,24 +1065,25 @@ Every exported Binary Output instance creates its own `fg_binary_output_t` recor
 
 Every generated Binary Output setter calls `fg_binary_output_set()` with its own record. Future Binary Output assets must reuse this implementation rather than emit another binary state structure or switching function.
 
-## Keyboard generated runtime ownership
+## Native LVGL Keyboard generated runtime ownership
 
-The `Keyboard` branch exports a native `lv_keyboard`, whose internal key surface is the widget's buttonmatrix. Native LVGL keyboard creation has a default alignment and built-in map/style behavior, so creating the object and setting only its outer size is not sufficient for Studio parity.
+The generated System Runtime owns one physically proven reusable native `lv_keyboard`, whose internal key surface is LVGL's native `lv_buttonmatrix`. It is created lazily when a System password field requires text entry, retained as one reusable instance and reattached through `lv_keyboard_set_textarea()`.
 
-The exporter owns this ordered setup:
+The exporter owns this runtime contract:
 
-1. create the associated textarea;
-2. create `lv_keyboard`;
-3. install the four-row map and its buttonmatrix control-width array;
-4. associate the textarea;
-5. select `LV_KEYBOARD_MODE_TEXT_LOWER`;
-6. apply explicit main-part padding, row/column gaps, border, radius, colors, outline and shadow;
-7. apply explicit item-part padding, border, radius, colors, outline, shadow, text line spacing and `lv_font_montserrat_12`;
+1. create the password textarea with password masking enabled;
+2. open from textarea focus or click through an idempotent helper;
+3. lazily create one `lv_keyboard` parented to `lv_layer_top()`;
+4. apply `LV_OBJ_FLAG_IGNORE_LAYOUT` and `LV_OBJ_FLAG_FLOATING`;
+5. associate the active textarea through `lv_keyboard_set_textarea()`;
+6. select `LV_KEYBOARD_MODE_TEXT_LOWER`, retaining native lowercase, uppercase/shift, number, symbol, space, Backspace and Done behavior;
+7. apply explicit ForgeUI main/item styles;
 8. replace the native default alignment with `LV_ALIGN_TOP_LEFT`;
-9. apply the final Canvas-relative position and size;
-10. update layout after final geometry.
+9. apply physical top-layer position `(0, 350)` and size `1024 × 250`;
+10. move the keyboard to the foreground and reposition the password dialog while entry is active;
+11. detach and hide the keyboard on Done or Cancel.
 
-Map/mode setup precedes final style and geometry because those native APIs own buttonmatrix configuration. No later align or size call may override the Canvas values.
+No diagnostic colors, geometry-debug styling or verbose runtime logging belong to this final architecture.
 
 The control-width map uses LVGL's numeric buttonmatrix width units combined with control flags. Normal alpha widths and special-key widths are normalized row by row; Space remains deliberately wider, while mode, Backspace, Enter, arrows and confirm retain only the relative width required by the Studio layout. These are proportional controls, not screen-resolution compensation.
 
@@ -1059,6 +1098,11 @@ row 4: keyboard/left       = 2, Space = 12, right/confirm = 2
 
 Keyboard export therefore owns:
 
+- lazy creation and one reusable instance;
+- `lv_layer_top()` ownership;
+- `lv_keyboard_set_textarea()` attachment;
+- password input, Done and Cancel interaction;
+- password Show / Hide through the surrounding generated dialog;
 - `LV_ALIGN_TOP_LEFT` correction for the native `lv_keyboard` default alignment;
 - four-row map order;
 - relative buttonmatrix width map;
@@ -1067,7 +1111,8 @@ Keyboard export therefore owns:
 - explicit item font and line spacing;
 - theme-preserving border, color and radius styles;
 - map/mode/style/alignment/geometry call ordering;
-- final parity with the component's exported Canvas geometry.
+- physically proven top-layer geometry and touch interaction;
+- reusable System-dialog architecture without claiming future pages already consume it.
 
 ## Interactive Status Indicator output API
 
@@ -1146,17 +1191,19 @@ Owns generated implementation:
 - shared Toggle Input Runtime, per-instance records and bool-hook calls
 - shared Three-Position Input Runtime, per-instance records and enum-hook calls
 - shared Binary Output Runtime and per-instance records
-- Keyboard native map, control widths, explicit styles and top-left alignment
-- final Keyboard setup ordering and Canvas-relative geometry
+- reusable native keyboard instance, top-layer ownership, callbacks, textarea attachment and explicit styles
+- final keyboard top-left alignment and physically proven `(0, 350)`, `1024 × 250` geometry
 - Binary Output OFF/ON runtime image references
 - Light component-sized container, shared OFF/ON contain scale and centred child image
 - generated Button, Toggle, Three-Position and Binary Output LVGL descriptor fallback helpers
 - Light public setter implementations
 - Interactive Status Indicator public setter implementations
 - generated System Runtime
-- persistent Application, System Launcher, Brightness and Wi-Fi containers
-- generated Wi-Fi labels, Scan button and Disconnect button
-- internal Wi-Fi callbacks and periodic backend-state refresh
+- persistent Application, System Launcher, Display / Brightness and Wi-Fi Manager containers
+- generated status, structured network rows, badges and connected details
+- password and forget dialogs, password validation and Show / Hide
+- internal Scan, Refresh, selection, Connect, Disconnect, Reconnect and Forget callbacks
+- native keyboard callbacks and periodic structured backend projection
 - generated gear launcher
 - generated Back navigation and container visibility switching
 - generated Brightness slider, percentage label and current-session value
@@ -1166,7 +1213,7 @@ Owns generated implementation:
 
 These System additions are generated automatically with the application. They are replaceable runtime integration, not developer-owned product logic.
 
-It must not contain customer product behavior or permanent application logic. The generated backlight bridge is built-in ForgeUI platform integration and remains internal. Wi-Fi credentials, scanning implementation, DHCP, reconnect logic and transport startup remain owned by `30_WIFI.c` and must not be generated.
+It must not contain customer product behavior or permanent application logic. The generated backlight bridge is built-in ForgeUI platform integration and remains internal. Wi-Fi credentials, scanning implementation, DHCP, reconnect policy, ESP-IDF calls and transport startup remain owned by `30_WIFI.c` and must not be generated.
 
 ### `90_Studio_Export.h`
 
@@ -1553,6 +1600,17 @@ Physically confirmed:
 - generated Brightness slider and live percentage
 - real ESP32-P4 brightness control through `bsp_display_brightness_set()`
 - current-session brightness retention
+- generated Wi-Fi Manager
+- Scan and Refresh with visible structured SSID rows
+- live RSSI and security
+- Connected and Saved badges
+- password dialog, password masking and Show / Hide
+- reusable native keyboard visibility, password entry, Done and Cancel
+- correct top-layer keyboard geometry and touch interaction
+- Connect, Disconnect, Reconnect and Forget workflows
+- connected details including gateway, station MAC and AP BSSID
+- deterministic Browser Preview parity
+- approximately 63 FPS after keyboard optimisation
 - Interactive Assets remain alive and operational while System Runtime pages are active and after return to the application
 
 ### Hosted Wi-Fi and SD coexistence path
@@ -1570,7 +1628,7 @@ SD mounted OK
 SD TEST PASS
 ```
 
-The physical ESP32-P4 run proved Hosted transport, Wi-Fi Runtime, SD coexistence, System Runtime and Interactive Asset Runtime operating simultaneously.
+The physical ESP32-P4 run proved Hosted transport, the complete generated Wi-Fi Manager workflow, SD coexistence, System Runtime and Interactive Asset Runtime operating simultaneously.
 
 ### System health
 
@@ -1588,10 +1646,11 @@ The Button, exercised Toggle Switch, Three-Position input-hook path, shared Ligh
 
 ### Current validation boundary
 
-- System Runtime exporter regressions cover persistent containers, gear generation, internal page callbacks, visibility switching, the `10–100` Brightness slider and hardware bridge;
-- Studio and Browser Preview System regressions cover navigation, live brightness, session retention, disabled placeholders and preservation of application interaction;
+- System Runtime exporter regressions cover persistent containers, gear generation, internal page callbacks, visibility switching, the `10–100` Brightness slider, hardware bridge and complete Wi-Fi Manager generation;
+- Wi-Fi generator regressions cover structured network rows, connected-detail fields, password dialog, open/protected connection branching and internal intent callbacks;
+- Studio and Browser Preview System regressions cover navigation, live brightness, deterministic Wi-Fi parity, password and forget workflows, session retention, disabled placeholders and preservation of application interaction;
 - focused LVGL exporter regressions pass;
-- Keyboard exporter geometry, call-order and control-width regressions pass;
+- Keyboard exporter lazy-creation, reusable-instance, textarea attachment, geometry, call-order and control-width regressions pass;
 - State Sheet and crop-pipeline tests pass;
 - Three-Position generated runtime regressions pass;
 - Button final-geometry, registry-dimension, PNG IHDR, LVGL descriptor fallback and linked-crop export regressions pass;
@@ -1599,6 +1658,8 @@ The Button, exercised Toggle Switch, Three-Position input-hook path, shared Ligh
 - Toggle, Status Indicator and Three-Position final-geometry, common state-scale, centring, fallback and linked fitted-asset export regressions pass;
 - Canvas, Browser Preview, live/standalone generator and persistence regressions preserve geometry ownership;
 - TypeScript validation passes;
+- generated-output verification passes;
+- ESP-IDF firmware build passes for the recorded Wi-Fi Manager implementation;
 - export-server syntax/regression validation passes where applicable;
 - scoped diff validation for this subsystem passes.
 
@@ -1662,6 +1723,10 @@ Do not preserve historical suite totals here. Unrelated repository fixtures or p
 | Only part of a state set is registered | `ForgeUIAIImagePipeline.ts` | conversion completion before `forgeUIAddUploadedAssets()` atomic batch |
 | Toggle linked crops drift in size | Toggle State Sheet crop workspace | shared crop dimensions and linked resize rules |
 | Keyboard is centered or offset at runtime | `ForgeUILvglExport.ts` Keyboard branch | `LV_ALIGN_TOP_LEFT` after map/mode and final `lv_obj_set_pos()` ordering |
+| Password dialog does not open | generated network-row callback | selected network security, dialog pointer and hidden flags |
+| Password textarea does not attach keyboard | generated focus/click callback | `lv_keyboard_set_textarea()`, reusable keyboard pointer and top layer |
+| Keyboard appears off-screen | generated keyboard geometry | `LV_ALIGN_TOP_LEFT`, `(0, 350)`, `lv_layer_top()` coordinates |
+| Wi-Fi projection makes password entry laggy | password-dialog projection pause | repeated label/row updates and obsolete diagnostic logging |
 | Keyboard outer size falls back to native geometry | Keyboard final setup ordering | final `lv_obj_set_size()` and absence of later alignment/size calls |
 | Keyboard special keys have wrong proportions | Keyboard buttonmatrix control array | numeric width units, control flags and row totals |
 | Keyboard theme padding changes key fill | Keyboard `LV_PART_MAIN` / `LV_PART_ITEMS` styles | explicit pad, gaps, border, font and style ordering |
@@ -1687,16 +1752,18 @@ Do not preserve historical suite totals here. Unrelated repository fixtures or p
 | Application disappears after closing System | generated application container | close callback, application hidden flag and foreground ordering |
 | Container visibility switching is incorrect | generated System callbacks | all persistent container pointers and hide/show order |
 | Hosted transport fails | `sdkconfig.defaults` | Hosted SDIO configuration |
-| Generated Wi-Fi page empty | generated Wi-Fi refresh | backend status functions |
-| Scan button responds but list empty | generated refresh | `30_WIFI` scan processing |
-| Disconnect updates backend only | generated labels | periodic refresh |
-| Wi-Fi reconnects automatically | ESP-IDF Wi-Fi NVS | backend connect state |
+| Structured network rows do not populate | generated backend projection | `30_WIFI` structured cache and `fg_wifi_get_networks()` |
+| Connected details are missing or unreadable | generated detail labels and explicit styles | `fg_wifi_snapshot_t`, text color and opacity |
+| Reconnect does nothing | generated reconnect callback | `fg_wifi_reconnect()` and persisted STA configuration |
+| Forget leaves Saved state visible | generated forget callback | `fg_wifi_forget()`, snapshot saved flag and row projection |
+| Wi-Fi rows ignore active theme | generated row styles | Browser Preview palette-derived row values |
+| Browser Preview and physical Wi-Fi differ | deterministic preview state | `ForgeUIWifiPage.tsx` and generated snapshot projection |
 
 ## File responsibility summary
 
 ### `studio/src/forgeui/ForgeUILvglExport.ts`
 
-Owns generated LVGL source, all five Interactive Asset branches, shared Button/Toggle/Three-Position/Binary Output runtimes, the built-in System Runtime, persistent Application/System/Brightness/Wi-Fi containers, internal System and Wi-Fi callbacks, Wi-Fi backend-state rendering and refresh, generated brightness hardware integration, two-state and three-state contain-fit calculations and descriptor helpers, final persisted component geometry, component-sized parent/container objects, centred child images, Keyboard native map/alignment/control widths/styles/final geometry ordering, per-instance records, sanitized unique hook names, setter names, linked cropped asset consumption, and all exporter metadata. Never writes files directly and never owns Hosted transport.
+Owns generated LVGL source, all five Interactive Asset branches, shared Button/Toggle/Three-Position/Binary Output runtimes, the built-in System Runtime, persistent Application/System/Display/Wi-Fi Manager containers, internal System and Wi-Fi callbacks, structured backend projection, network rows, badges, password and forget dialogs, connected details, reconnect/forget intent, projection pause during password entry, reusable native keyboard creation/attachment/callbacks/styles/geometry, generated brightness hardware integration, two-state and three-state contain-fit calculations and descriptor helpers, final persisted component geometry, component-sized parent/container objects, centred child images, per-instance records, sanitized unique hook names, setter names, linked cropped asset consumption, and all exporter metadata. Never writes files directly and never owns Hosted transport or physical Wi-Fi truth.
 
 ### `studio/src/forgeui/ForgeUIUploadedAssetRegistry.ts`
 
@@ -1724,7 +1791,7 @@ Owns validation of accepted metadata; normalization and generation of void, bool
 
 ### `90_Studio_Export.c`
 
-Owns generated UI plus shared Button, Toggle Input, Three-Position Input, Binary Output and System Runtime implementations; persistent Application/System/Brightness/Wi-Fi containers; gear and Back navigation; internal brightness state and hardware bridge; internal Wi-Fi labels, actions and refresh; per-instance records; calls to all input hooks; and Light/Status Indicator setter implementations. Never contains developer product logic, Wi-Fi credentials, DHCP, scanning implementation, reconnect logic or transport startup.
+Owns generated UI plus shared Button, Toggle Input, Three-Position Input, Binary Output and System Runtime implementations; persistent Application/System/Display/Wi-Fi Manager containers; gear and Back navigation; internal brightness state and hardware bridge; structured Wi-Fi rows, dialogs, connected details, UI intent and backend projection; the reusable native keyboard and callbacks; per-instance records; calls to all input hooks; and Light/Status Indicator setter implementations. Never contains developer product logic, Wi-Fi credentials, DHCP, scanning implementation, reconnect policy, ESP-IDF calls or transport startup.
 
 ### `90_Studio_Export.h`
 
@@ -1799,13 +1866,18 @@ Preserve these rules:
 51. Future animation must preserve generated runtime ownership, application state and Interactive Asset lifetime.
 52. Hosted Wi-Fi transport uses SDIO Slot 1.
 53. SD storage uses SDMMC Slot 0.
-54. Generated Wi-Fi page renders backend state only.
-55. Generated Wi-Fi page never owns transport startup.
-56. Wi-Fi backend owns ESP-IDF interaction.
-57. No Wi-Fi User Event callbacks are generated.
-58. No Wi-Fi public setter APIs are generated.
-59. `sdkconfig.defaults` owns the permanent Hosted configuration.
-60. Generated firmware assumes, but does not define, Hosted transport configuration.
+54. The complete Wi-Fi Manager is generated System Runtime presentation and intent code.
+55. Generated LVGL projects structured backend snapshots and network records; it never owns physical Wi-Fi truth.
+56. `30_WIFI` owns scanning, credentials, reconnect policy, DHCP and ESP-IDF interaction.
+57. Physical firmware supports one persisted ESP-IDF STA configuration, not a multi-network database.
+58. Browser Preview Wi-Fi remains deterministic and hardware-independent.
+59. The native LVGL keyboard is created lazily as one reusable top-layer instance.
+60. System password fields attach through `lv_keyboard_set_textarea()`, and keyboard geometry uses `LV_ALIGN_TOP_LEFT` before absolute positioning.
+61. Periodic Wi-Fi projection pauses while password entry is active.
+62. No Wi-Fi User Event callbacks or public setter APIs are generated.
+63. `95_UserEvents.c` remains unrelated to Wi-Fi System UI.
+64. `sdkconfig.defaults` owns the permanent Hosted configuration.
+65. Generated firmware assumes, but does not define, Hosted transport configuration.
 
 ## Extension rule
 
@@ -1815,8 +1887,9 @@ Current implemented pages:
 
 - Application
 - Launcher
-- Brightness
-- Wi-Fi
+- Display / Brightness
+- Wi-Fi Manager
+- Native LVGL Keyboard
 
 Future pages:
 
@@ -1826,7 +1899,7 @@ Future pages:
 - Device
 - Diagnostics
 
-Future pages reuse the existing generated System Runtime, internal navigation callbacks and persistent container ownership. They do not become Interactive Assets, do not generate User Event callbacks or public APIs, and extend the generated System Runtime alongside the application.
+Future pages may reuse the existing generated System Runtime, internal navigation callbacks, persistent container ownership, structured cards, backend projection, password-dialog patterns and shared native keyboard where text entry is required. They do not become Interactive Assets, do not generate User Event callbacks or public APIs, and are not claimed as already implemented.
 
 Each future System page follows:
 
@@ -1857,8 +1930,10 @@ Binary Output Runtime
 System Runtime
   ├── Application Container
   ├── System Launcher
-  ├── Brightness Page
-  └── Wi-Fi Page
+  ├── Display / Brightness
+  ├── Wi-Fi Manager
+  ├── Native LVGL Keyboard
+  └── Future System Pages
 
 Hosted Connectivity Runtime
   ├── ESP-Hosted

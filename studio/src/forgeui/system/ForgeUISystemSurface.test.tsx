@@ -119,14 +119,12 @@ describe('ForgeUI System interface', () => {
       .toBeInTheDocument()
   })
 
-  it('simulates scanning and keeps Connect disabled', () => {
+  it('simulates scanning and refreshes deterministic networks', () => {
     jest.useFakeTimers()
     renderSurface()
     fireEvent.click(screen.getByLabelText('Open System'))
     fireEvent.click(screen.getByTestId('system-card-wifi'))
 
-    expect(screen.getByRole('button', { name: 'Connect' }))
-      .toBeDisabled()
     fireEvent.click(
       screen.getByRole('button', { name: 'Scan Networks' }),
     )
@@ -136,7 +134,7 @@ describe('ForgeUI System interface', () => {
       .toBeDisabled()
 
     act(() => {
-      jest.runAllTimers()
+      jest.advanceTimersByTime(600)
     })
     expect(screen.getByText('ESP32-Testbench'))
       .toBeInTheDocument()
@@ -154,8 +152,8 @@ describe('ForgeUI System interface', () => {
     expect(screen.getByTestId('wifi-state'))
       .toHaveTextContent('disconnected')
     expect(screen.getByTestId('wifi-ssid')).toHaveTextContent('—')
-    expect(screen.getByRole('button', { name: 'Disconnect' }))
-      .toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Reconnect Saved Network' }))
+      .toBeEnabled()
 
     fireEvent.click(
       screen.getByRole('button', { name: 'Back from Wi-Fi' }),
@@ -163,6 +161,62 @@ describe('ForgeUI System interface', () => {
     fireEvent.click(screen.getByTestId('system-card-wifi'))
     expect(screen.getByTestId('wifi-state'))
       .toHaveTextContent('disconnected')
+  })
+
+  it('connects to an open network without a password dialog', () => {
+    jest.useFakeTimers()
+    renderSurface()
+    fireEvent.click(screen.getByLabelText('Open System'))
+    fireEvent.click(screen.getByTestId('system-card-wifi'))
+    fireEvent.click(screen.getByTestId('wifi-network-Workshop-IoT'))
+    expect(screen.queryByLabelText('Wi-Fi password')).not.toBeInTheDocument()
+    expect(screen.getByTestId('wifi-state')).toHaveTextContent('connecting')
+    act(() => { jest.advanceTimersByTime(500) })
+    expect(screen.getByTestId('wifi-ssid')).toHaveTextContent('Workshop-IoT')
+    jest.useRealTimers()
+  })
+
+  it('shows a password dialog and authentication failure deterministically', () => {
+    renderSurface()
+    fireEvent.click(screen.getByLabelText('Open System'))
+    fireEvent.click(screen.getByTestId('system-card-wifi'))
+    fireEvent.click(screen.getByTestId('wifi-network-Guest-Network'))
+    fireEvent.change(screen.getByLabelText('Wi-Fi password'), {
+      target: { value: 'wrong-password' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Connect' }))
+    expect(screen.getByTestId('wifi-error')).toHaveTextContent('Authentication failed')
+  })
+
+  it('validates password length and Cancel clears transient password text', () => {
+    renderSurface()
+    fireEvent.click(screen.getByLabelText('Open System'))
+    fireEvent.click(screen.getByTestId('system-card-wifi'))
+    fireEvent.click(screen.getByTestId('wifi-network-Guest-Network'))
+    const input = screen.getByLabelText('Wi-Fi password')
+    fireEvent.focus(input)
+    fireEvent.change(input, { target: { value: 'short' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Connect' }))
+    expect(screen.getByText('Password must be 8 to 63 characters'))
+      .toBeInTheDocument()
+    expect(screen.getByTestId('wifi-state')).toHaveTextContent('connected')
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    fireEvent.click(screen.getByTestId('wifi-network-Guest-Network'))
+    expect(screen.getByLabelText('Wi-Fi password')).toHaveValue('')
+  })
+
+  it('toggles password visibility without losing entered text', () => {
+    renderSurface()
+    fireEvent.click(screen.getByLabelText('Open System'))
+    fireEvent.click(screen.getByTestId('system-card-wifi'))
+    fireEvent.click(screen.getByTestId('wifi-network-Guest-Network'))
+    const input = screen.getByLabelText('Wi-Fi password')
+    fireEvent.change(input, { target: { value: 'valid-password' } })
+    fireEvent.click(screen.getByLabelText('Show password'))
+    expect(input).toHaveAttribute('type', 'text')
+    expect(input).toHaveValue('valid-password')
+    fireEvent.click(screen.getByLabelText('Hide password'))
+    expect(input).toHaveAttribute('type', 'password')
   })
 
   it('does not navigate from future placeholder cards', () => {

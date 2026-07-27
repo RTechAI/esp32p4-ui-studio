@@ -30,6 +30,7 @@ import {
   ForgeUISystemPage,
   useForgeUISystem,
 } from './ForgeUISystemContext'
+import WifiPage from './ForgeUIWifiPage'
 
 type SystemCard = {
   page: ForgeUISystemPage
@@ -210,7 +211,7 @@ const BrightnessPage = () => {
   )
 }
 
-const WifiPage = () => {
+const LegacyWifiPage = () => {
   const {
     previewWifi,
     scanPreviewWifi,

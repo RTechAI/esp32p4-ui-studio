@@ -10,13 +10,15 @@ ForgeUI Studio bridges the gap between high-level browser-based layout design an
 
 # 🤖 AI Design Studio
 
-ForgeUI Studio includes three integrated AI workflows:
+ForgeUI Studio includes integrated AI workflows for layouts, artwork, hero backgrounds and reusable Interactive Assets:
 
 ✓ AI Layout Designer — Generate complete embedded interfaces.
 
 ✓ AI Asset Designer — Generate reusable ForgeUI widgets and industrial artwork.
 
 ✓ AI Hero Designer — Generate production-ready themed backgrounds with automatic LVGL conversion.
+
+Interactive Asset generation also supports related State Sheets and linked crop workflows so multi-state artwork remains consistent and editable.
 
 Every generated asset remains fully editable before being exported as native LVGL code for deployment to physical ESP32-P4 hardware.
 
@@ -190,6 +192,8 @@ Native LVGL Asset
 
 * **AI Asset Designer** — Generate reusable ForgeUI widgets, controls and industrial artwork.
 
+* **Interactive Asset Generation** — Generate multi-state controls through State Sheets, linked crop editing and native asset conversion.
+
 * **Forge Asset Library** — Save, organise and reuse AI-generated assets across projects.
 
 * **Semantic Icon Resolution** — Automatically resolve AI-generated icon requests into native LVGL-ready assets.
@@ -212,6 +216,8 @@ Native LVGL Asset
 
 * **Render Parity** — Browser Preview, generated LVGL code and physical ESP32-P4 hardware share the same rendering pipeline for consistent visual results.
 
+* **System Runtime Parity** — Preview the deterministic Wi-Fi Manager password workflow and connected details through the same System architecture represented by generated LVGL.
+
 ---
 
 ### Native Code Generation
@@ -219,6 +225,22 @@ Native LVGL Asset
 * **Native LVGL v9 Output** — Generates structured, readable LVGL C code using modern APIs and best-practice object creation patterns.
 
 * **Production-Ready Projects** — Export standalone ESP-IDF workspaces ready to build, version control and extend without ForgeUI Studio.
+
+---
+
+### Interactive Asset Framework
+
+ForgeUI's complete Interactive Asset Framework includes Interactive Button, Interactive Toggle Switch, Interactive Three-Position Toggle Switch, Interactive Light and Interactive Status Indicator. All five use direct Creator workflows and retain Canvas, Browser Preview, generated LVGL and physical ESP32-P4 parity within the recorded validation scope.
+
+---
+
+### Built-in System Runtime
+
+ForgeUI now includes a reusable generated System Runtime providing the System Launcher, Display / Brightness and a complete Wi-Fi Manager. Browser Preview and generated LVGL share the same System architecture while remaining separate from user project screens and Interactive Assets.
+
+The System Runtime also owns one reusable native LVGL keyboard for password entry, with Show / Hide, Done, Cancel and top-layer ownership physically validated on the ESP32-P4.
+
+The physically proven Hosted Connectivity Runtime uses ESP-Hosted with the ESP32-C6 over SDIO Slot 1, while SD storage operates simultaneously on SDMMC Slot 0. The generated Wi-Fi Manager consumes that backend without taking ownership of the transport.
 
 ---
 
@@ -282,6 +304,12 @@ Theme properties utilize specialized color weight tokens that synchronize perfec
 * ✓ Native Icon Asset Pipeline — PROVEN
 * ✓ Browser Preview / ESP32-P4 Parity — PROVEN
 * ✓ Firmware Maintenance Tools — PROVEN
+* ✓ Complete Interactive Asset Framework and Direct Creator Workflows — PROVEN
+* ✓ Generated System Runtime with Launcher and Display / Brightness — PROVEN
+* ✓ Complete Wi-Fi Manager and Browser Preview Parity — PROVEN
+* ✓ Reusable Native LVGL Keyboard — PROVEN
+* ✓ ESP-Hosted Wi-Fi over ESP32-C6 SDIO Slot 1 — PROVEN
+* ✓ Simultaneous Hosted Wi-Fi and SDMMC Slot 0 Storage — PROVEN
 
 ---
 
@@ -352,7 +380,7 @@ Every feature in ForgeUI is developed with a simple philosophy:
 
 > **Build it. Prove it. Flash it. Improve it.**
 
-The project has grown into an open-source AI-assisted embedded UI platform combining visual design, AI-powered generation, LVGL, and ESP-IDF into a single workflow.
+The project has grown into an open-source AI-assisted embedded UI platform combining AI Studio, Interactive Assets, a generated System Runtime, Browser Preview, physically proven Hosted Connectivity, native LVGL generation and ESP-IDF into a single workflow.
 
 ForgeUI is built in collaboration with ChatGPT, which has been an invaluable coding assistant, sounding board and development partner throughout the project. While I design the architecture, test the hardware and drive the vision, ChatGPT has helped accelerate development by assisting with implementation, refactoring and documentation.
 
