@@ -88,7 +88,7 @@ describe('Interactive Button LVGL export compatibility', () => {
     const second = generateForgeUILvglCode(components)
 
     expect(second.code).toBe(first.code)
-    expect(first.code.match(/typedef struct/g)).toHaveLength(1)
+    expect(first.code.match(/} fg_binary_output_t;/g)).toHaveLength(1)
     expect(first.code.match(/static void fg_binary_output_set\(/g)).toHaveLength(1)
     expect(first.code.match(/static fg_binary_output_t fg_/g)).toHaveLength(3)
     expect(first.publicApiDeclarations).toEqual([

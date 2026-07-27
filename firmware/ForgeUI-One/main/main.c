@@ -4,6 +4,8 @@
 #include "nvs.h"
 #include "esp_log.h"
 #include "esp_err.h"
+#include "esp_heap_caps.h"
+#include "esp_system.h"
 #include "lvgl.h"
 #include "bsp/esp-bsp.h"
 #include "bsp/display.h"
@@ -22,6 +24,10 @@ static const char *TAG = "APP_MAIN";
 
 void app_main(void)
 {
+    ESP_LOGI(TAG, "BOOT 01 app_main reset=%d heap=%u min_heap=%u",
+             (int)esp_reset_reason(),
+             (unsigned)esp_get_free_heap_size(),
+             (unsigned)esp_get_minimum_free_heap_size());
     // ---- NVS INIT ----
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
@@ -42,14 +48,23 @@ void app_main(void)
         }
     };
 
-    (void)bsp_display_start_with_config(&cfg);
+    ESP_LOGI(TAG, "BOOT 02 display init begin");
+    lv_display_t *display_result = bsp_display_start_with_config(&cfg);
+    ESP_LOGI(TAG, "BOOT 03 display init end handle=%p heap=%u min_heap=%u",
+             display_result,
+             (unsigned)esp_get_free_heap_size(),
+             (unsigned)esp_get_minimum_free_heap_size());
 
     bsp_display_backlight_on();
+    ESP_LOGI(TAG, "BOOT 04 backlight on / LVGL lock");
 
         // ---- UI INIT ----
     bsp_display_lock(0);
     fg_runtime_init();
     bsp_display_unlock();
+    ESP_LOGI(TAG, "BOOT 20 UI init returned heap=%u min_heap=%u",
+             (unsigned)esp_get_free_heap_size(),
+             (unsigned)esp_get_minimum_free_heap_size());
 
 #if FORGEUI_ENABLE_RTC
     // ---- RTC INIT ----

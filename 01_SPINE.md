@@ -11,7 +11,7 @@
 
 ## Current Save Point
 
-**FORGEUI_SYSTEM_RUNTIME__COMPLETE_WIFI_MANAGER__NATIVE_LVGL_KEYBOARD__HOSTED_CONNECTIVITY__ESP32P4_PROVEN__READY_FOR_WIFI_UI_POLISH__2026-07-27**
+**FORGEUI_SYSTEM_RUNTIME__LAZY_SD_STORAGE_BROWSER__SAFE_RUNTIME__DELETE_EMPTY_FOLDER__ESP32P4_PROVEN__READY_FOR_CANVAS_PREVIEW_PARITY__2026-07-28**
 
 ## Current Proven Status..
 
@@ -50,6 +50,7 @@ Current implemented System pages:
 - System Launcher
 - Display / Brightness
 - Wi-Fi Manager
+- Storage Browser
 - Native LVGL Keyboard
 
 Navigation is proven through the complete current hierarchy:
@@ -67,6 +68,8 @@ Application
 Display brightness is physically connected to the ESP32-P4 backlight through `bsp_display_brightness_set()`. Brightness changes live while the slider is moved and remains in memory during the current device session.
 
 The Wi-Fi Manager is a physically proven reusable System Runtime feature rather than a backend demonstration. The complete workflow is proven on the ESP32-P4: Hosted Scan Networks, Refresh, live Available Networks population, SSID selection, RSSI and security display, Connected and Saved indicators, password dialog, native LVGL keyboard password entry, Connect, Disconnect, Reconnect, Forget Network and connected details. The complete Hosted scan pipeline, Browser Preview parity and generated LVGL parity are physically proven. Only minor visual polish remains.
+
+The Storage Runtime is physically proven through lazy page creation, page reuse, SD status, capacity display, root and folder browsing, parent navigation, Previous / Next paging, Refresh, Read / Write Test, Select Item mode, Delete Empty Folder and Hosted Wi-Fi coexistence. Only Browser Preview / Canvas parity polish remains.
 
 ## Built-in System Interface
 
@@ -94,7 +97,7 @@ ForgeUISystemPage
 └── diagnostics
 ```
 
-Launcher, Brightness and the complete Wi-Fi Manager are implemented and physically proven. The shared System Runtime owns Browser Preview parity for the Wi-Fi workflow, while the generated LVGL runtime owns the physical page, password dialog, reusable native keyboard, network interaction and connected details. The Hosted backend supplies live scan results through the complete Hosted scan pipeline into the generated LVGL interface, together with connection, RSSI, security, gateway and saved-network data, without changing the separation between System Runtime and Hosted Connectivity Runtime. Only minor visual polish remains. Bluetooth, Sound, Storage, Device and Diagnostics remain visible future page identifiers and disabled launcher placeholders, and their system functions are not implemented.
+Launcher, Brightness, the complete Wi-Fi Manager and Storage Browser are implemented and physically proven. The shared System Runtime owns Browser Preview parity for the Wi-Fi workflow and Storage parity polish, while the generated LVGL runtime owns the physical pages, password dialog, reusable native keyboard, network interaction, connected details and Storage workflow. The Hosted backend supplies live scan results through the complete Hosted scan pipeline into the generated LVGL interface, together with connection, RSSI, security, gateway and saved-network data, without changing the separation between System Runtime and Hosted Connectivity Runtime. The Storage backend supplies bounded SD status, directory and operation results without changing the separation between System Runtime and Storage Runtime. Only Browser Preview / Canvas parity polish remains for Storage. Bluetooth, Sound, Device and Diagnostics remain visible future page identifiers and disabled launcher placeholders, and their system functions are not implemented.
 
 The shared provider owns the active System page, open and back navigation, current-session brightness and the Browser Preview Wi-Fi workflow state. The shared surface renders the same built-in interface over the Studio Canvas and Browser Preview while keeping normal project components separate.
 
@@ -106,6 +109,7 @@ Generated LVGL creates:
 - one System launcher container
 - one Brightness container
 - one Wi-Fi Manager container
+- one persistent Storage container, created lazily and reused
 - one reusable top-layer native LVGL keyboard, created lazily when a System dialog requires text entry
 
 The current hardware-safe navigation implementation uses immediate container visibility switching. It does not recreate screens, project widgets or Interactive Assets. Existing Interactive Assets remain instantiated and retain their state while the System Interface is open, then continue working after return to the application.
@@ -113,6 +117,32 @@ The current hardware-safe navigation implementation uses immediate container vis
 The generated gear launcher and System controls use internal LVGL event callbacks. The Brightness slider listens for live value changes, clamps the value to `10–100`, updates its percentage label and calls the Waveshare BSP through the generated internal `FG_Set_Display_Brightness()` wrapper and `bsp_display_brightness_set()`. Brightness is session-only and is not persisted.
 
 The generated Wi-Fi Manager owns its System page, scan list, selection state, password and forget dialogs, connected details and internal Wi-Fi callbacks. The Hosted backend remains the source of live network and connection data and supplies live AP results through the complete Hosted scan pipeline into the generated LVGL interface. The generated native `lv_keyboard` is created lazily on the LVGL top layer, retained as one reusable instance, attached through `lv_keyboard_set_textarea()`, and detached and hidden after Done or Cancel. It supports password entry, show/hide password, correct physical geometry, ForgeUI styling and Browser Preview parity without introducing generated user hooks. This reusable architecture is intended for future Device settings, MQTT, Ethernet, Bluetooth, API keys, Device naming, Login and other System dialogs; those future uses are not claimed as implemented or physically proven.
+
+The generated Storage Runtime owns one lazily created persistent Storage container, page reuse, an eight-row reusable pool, paging, Storage navigation, status projection, Refresh, Read / Write Test, Select Item mode and the Delete Empty Folder workflow. The Storage backend remains in `40_SD.c/.h`; generated LVGL owns presentation and user intent only.
+
+## Storage Runtime
+
+The physically proven Storage Runtime uses:
+
+- SDMMC Slot 0
+- lazy page construction
+- deferred worker
+- bounded request model
+- bounded eight-row pool
+- page reuse
+- Refresh
+- Read / Write Test
+- directory browsing
+- folder navigation
+- Select Item mode
+- Delete Empty Folder
+- no recursive deletion
+- no full format
+- no multi-select
+- no rename
+- no mount / unmount
+
+File deletion, recursive deletion, full format, multi-select, rename, New Folder and mount / unmount remain future work and are not claimed as implemented or physically proven.
 
 ## Hosted Wi-Fi Recovery
 
@@ -1014,6 +1044,19 @@ The exporter owns the shared generated runtime implementations, unique per-insta
 - Existing Interactive Assets and System navigation remain alive and stable throughout Wi-Fi interaction.
 - Minor visual polish remains.
 
+### Storage Browser
+
+- The lazily created Storage page opens and is reused without boot or navigation regression.
+- SD status and capacity display are physically proven.
+- Root browsing, folder browsing and parent navigation are physically proven.
+- Previous / Next paging is physically proven.
+- Refresh and Read / Write Test are physically proven.
+- Select Item mode selects one directory without changing normal folder navigation.
+- Delete Empty Folder is physically proven through the lazy confirmation workflow.
+- Hosted Wi-Fi remains alive during Storage use.
+- Repeated Storage opening, browsing, Refresh and operation use do not regress the System Runtime.
+- File deletion, rename, formatting, mount / unmount and recursive deletion are not claimed as implemented or physically proven.
+
 ### Hosted Wi-Fi and SD coexistence
 
 Today's physical ESP32-P4 validation recovered the original Hosted Wi-Fi architecture and proved simultaneous Hosted connectivity and SD operation.
@@ -1108,6 +1151,7 @@ System Runtime
 ├── System Launcher
 ├── Display
 ├── Wi-Fi Manager
+├── Storage Browser
 ├── Native LVGL Keyboard
 └── Future System pages
 
@@ -1123,7 +1167,11 @@ Hosted Connectivity Runtime
 └── SDIO Slot 1
 
 Storage Runtime
-└── SDMMC Slot 0
+├── SDMMC Slot 0
+├── Lazy Storage page
+├── Deferred worker
+├── Bounded request and row models
+└── Safe directory operations
 
 Generated Firmware
 ├── LVGL
@@ -1134,9 +1182,9 @@ Generated Firmware
 
 The System Interface is not an Interactive Asset. It is a reusable platform service generated alongside the user's application. It does not enter the Interactive Asset registry, does not become a user project screen and does not generate user callbacks.
 
-Hosted Connectivity Runtime and Storage Runtime are reusable platform services independent of Interactive Assets. Hosted Connectivity owns ESP-Hosted, Wi-Fi Remote, the ESP32-C6 and SDIO Slot 1 and provides a complete reusable Hosted Wi-Fi service consumed by the built-in Wi-Fi Manager, including hosted scanning, AP retrieval and connection workflow; Storage Runtime owns the SD Card on SDMMC Slot 0.
+Hosted Connectivity Runtime and Storage Runtime are reusable platform services independent of Interactive Assets. Hosted Connectivity owns ESP-Hosted, Wi-Fi Remote, the ESP32-C6 and SDIO Slot 1 and provides a complete reusable Hosted Wi-Fi service consumed by the built-in Wi-Fi Manager, including hosted scanning, AP retrieval and connection workflow; Storage Runtime owns the SD Card on SDMMC Slot 0 and provides a reusable built-in Storage Browser service alongside Wi-Fi.
 
-This separation lets built-in Wi-Fi and future Bluetooth, Sound, Storage, Device and Diagnostics services reuse the typed System page, shared navigation and generated container framework without affecting project screens or changing existing Interactive Asset runtime contracts. The System Launcher, Display / Brightness, complete Wi-Fi Manager and reusable native LVGL keyboard are implemented and physically proven. The Hosted backend drives the generated Wi-Fi Manager through the complete Hosted scan pipeline, Scan Networks, Refresh, live Available Networks population, SSID selection, password entry, Connect, Disconnect, Reconnect, Forget Network, live network state and connected details, while Browser Preview retains the same workflow and hierarchy. Only minor visual polish remains.
+This separation lets built-in Wi-Fi and Storage, together with future Bluetooth, Sound, Device and Diagnostics services, reuse the typed System page, shared navigation and generated container framework without affecting project screens or changing existing Interactive Asset runtime contracts. The System Launcher, Display / Brightness, complete Wi-Fi Manager, Storage Browser and reusable native LVGL keyboard are implemented and physically proven. The Hosted backend drives the generated Wi-Fi Manager through the complete Hosted scan pipeline, while the Storage backend drives the lazy generated Storage Browser through bounded status, browsing, Refresh, Read / Write Test and Delete Empty Folder operations. Browser Preview retains the System hierarchy; only Storage Browser Preview / Canvas parity polish remains.
 
 Interactive Button established the first **Interactive Input Runtime** within the Interactive Asset Framework.
 
@@ -1250,6 +1298,13 @@ These remain future concepts only. They are not implemented or physically proven
 # Save Point History
 
 Save points are ordered newest to oldest. Detailed subsystem engineering is maintained in the Developer Code Maps.
+
+## FORGEUI_SYSTEM_RUNTIME__LAZY_SD_STORAGE_BROWSER__SAFE_RUNTIME__DELETE_EMPTY_FOLDER__ESP32P4_PROVEN__READY_FOR_CANVAS_PREVIEW_PARITY__2026-07-28
+
+- **What changed:** Added the lazy Storage Runtime, SD browser, paging, Refresh, Read / Write Test, Select Item mode and Delete Empty Folder; removed the unstable recursive delete and full-format workflow.
+- **Why it changed:** The large eager Storage runtime caused boot instability, so Storage was redesigned around lazy construction and bounded runtime structures.
+- **Final architecture:** A lazy System Runtime page uses a deferred worker, small request model, eight reusable rows and safe backend ownership while Hosted Wi-Fi remains unchanged.
+- **Proven result:** Stable ESP32-P4 boot and Storage Runtime, SD browsing, folder navigation, Refresh, Read / Write Test and empty-folder deletion are physically proven with Hosted Wi-Fi and SD coexistence.
 
 ## FORGEUI_SYSTEM_RUNTIME__COMPLETE_WIFI_MANAGER__NATIVE_LVGL_KEYBOARD__HOSTED_CONNECTIVITY__ESP32P4_PROVEN__READY_FOR_WIFI_UI_POLISH__2026-07-27
 

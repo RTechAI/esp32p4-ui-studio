@@ -216,7 +216,9 @@ Native LVGL Asset
 
 * **Render Parity** — Browser Preview, generated LVGL code and physical ESP32-P4 hardware share the same rendering pipeline for consistent visual results.
 
-* **System Runtime Parity** — Preview the deterministic Wi-Fi Manager password workflow and connected details through the same System architecture represented by generated LVGL.
+* **System Runtime Parity** — Browser Preview mirrors Interactive Assets, the System Runtime, Wi-Fi Manager and Storage Browser through the same architecture represented by generated LVGL.
+
+* **Final Parity Polish** — Only final visual parity polish remains between Browser Preview, Canvas and the physical ESP32-P4.
 
 ---
 
@@ -236,11 +238,27 @@ ForgeUI's complete Interactive Asset Framework includes Interactive Button, Inte
 
 ### Built-in System Runtime
 
-ForgeUI now includes a reusable generated System Runtime providing the System Launcher, Display / Brightness and a complete Wi-Fi Manager. Browser Preview and generated LVGL share the same System architecture while remaining separate from user project screens and Interactive Assets.
+ForgeUI now includes a reusable generated System Runtime providing:
 
-The System Runtime also owns one reusable native LVGL keyboard for password entry, with Show / Hide, Done, Cancel and top-layer ownership physically validated on the ESP32-P4.
+* System Launcher
+* Display / Brightness
+* Wi-Fi Manager
+* Storage Browser
 
-The physically proven Hosted Connectivity Runtime uses ESP-Hosted with the ESP32-C6 over SDIO Slot 1, while SD storage operates simultaneously on SDMMC Slot 0. The generated Wi-Fi Manager consumes that backend without taking ownership of the transport.
+Browser Preview and generated LVGL share the same System architecture while remaining separate from user project screens and Interactive Assets.
+
+The System Runtime also owns one reusable native LVGL keyboard and now includes a physically proven lazy Storage Browser supporting:
+
+* SD status
+* directory browsing
+* folder navigation
+* paging
+* Refresh
+* Read / Write Test
+* Select Item mode
+* Delete Empty Folder
+
+The physically proven Hosted Connectivity Runtime uses ESP-Hosted with the ESP32-C6 over SDIO Slot 1, while SD Storage operates simultaneously on SDMMC Slot 0. The generated Wi-Fi Manager and Storage Browser consume those backends without taking ownership of transport or filesystem operations.
 
 ---
 
@@ -310,6 +328,12 @@ Theme properties utilize specialized color weight tokens that synchronize perfec
 * ✓ Reusable Native LVGL Keyboard — PROVEN
 * ✓ ESP-Hosted Wi-Fi over ESP32-C6 SDIO Slot 1 — PROVEN
 * ✓ Simultaneous Hosted Wi-Fi and SDMMC Slot 0 Storage — PROVEN
+* ✓ Storage Browser System Runtime — PROVEN
+* ✓ Lazy Storage Runtime Architecture — PROVEN
+* ✓ SD Browser, Paging & Refresh — PROVEN
+* ✓ Read / Write Test — PROVEN
+* ✓ Select Item Mode — PROVEN
+* ✓ Delete Empty Folder — PROVEN
 
 ---
 
@@ -380,7 +404,7 @@ Every feature in ForgeUI is developed with a simple philosophy:
 
 > **Build it. Prove it. Flash it. Improve it.**
 
-The project has grown into an open-source AI-assisted embedded UI platform combining AI Studio, Interactive Assets, a generated System Runtime, Browser Preview, physically proven Hosted Connectivity, native LVGL generation and ESP-IDF into a single workflow.
+The project has grown into an open-source AI-assisted embedded UI platform combining AI Studio, Interactive Assets, a generated System Runtime with Wi-Fi and Storage tools, Browser Preview, physically proven Hosted Connectivity, native LVGL generation and ESP-IDF into a single workflow.
 
 ForgeUI is built in collaboration with ChatGPT, which has been an invaluable coding assistant, sounding board and development partner throughout the project. While I design the architecture, test the hardware and drive the vision, ChatGPT has helped accelerate development by assisting with implementation, refactoring and documentation.
 

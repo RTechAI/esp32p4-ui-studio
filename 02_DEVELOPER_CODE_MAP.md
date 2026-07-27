@@ -13,7 +13,7 @@
 
 ## Current save point
 
-**FORGEUI_SYSTEM_RUNTIME__COMPLETE_WIFI_MANAGER__NATIVE_LVGL_KEYBOARD__HOSTED_CONNECTIVITY__ESP32P4_PROVEN__READY_FOR_WIFI_UI_POLISH__2026-07-27**
+**FORGEUI_SYSTEM_RUNTIME__LAZY_SD_STORAGE_BROWSER__SAFE_RUNTIME__DELETE_EMPTY_FOLDER__ESP32P4_PROVEN__READY_FOR_CANVAS_PREVIEW_PARITY__2026-07-28**
 
 ## Purpose
 
@@ -69,6 +69,7 @@ Currently implemented System pages:
 - System Launcher
 - Display / Brightness
 - Wi-Fi Manager
+- Storage Browser
 - Native LVGL Keyboard
 
 The System Runtime is proven across:
@@ -93,6 +94,8 @@ Application
 Display brightness is physically connected to the ESP32-P4 backlight through `bsp_display_brightness_set()`.
 
 Display / Brightness and the complete Wi-Fi Manager are physically proven. The generated Wi-Fi System page supports Hosted scan execution, immediate AP count and record retrieval, live structured SSID list population, RSSI, security, Connected and Saved badges, network selection, open-network connection, protected-network password entry through the reusable native LVGL keyboard, validation, Connect, Disconnect, Reconnect, Forget Network and connected details including IP address, gateway, station MAC, AP BSSID and backend status/error projection. Scan and Refresh use the same backend path. Repeated scans atomically replace prior results without duplicate or stale SSID rows. Browser Preview provides deterministic hardware-independent parity while generated LVGL integrates with the live ESP32-P4 backend. Only minor visual polish remains.
+
+Storage Browser is physically proven through lazy page construction, persistent page reuse, a bounded row pool, Refresh, Read / Write Test, SD status and capacity, directory browsing, folder navigation, Previous / Next paging, Select Item mode, Delete Empty Folder and Hosted Wi-Fi coexistence.
 
 ## System architecture
 
@@ -186,6 +189,7 @@ System Runtime
   ├── System Launcher
   ├── Display / Brightness
   ├── Wi-Fi Manager
+  ├── Storage Browser
   ├── Native LVGL Keyboard
   └── Future Pages
 ```
@@ -194,11 +198,10 @@ Current future placeholders:
 
 - Bluetooth
 - Sound
-- Storage
 - Device
 - Diagnostics
 
-System Launcher, Display / Brightness, the complete Wi-Fi Manager and its reusable native LVGL keyboard are implemented and physically proven. The future pages are typed identifiers and disabled launcher placeholders, not completed services.
+System Launcher, Display / Brightness, the complete Wi-Fi Manager, Storage Browser and the reusable native LVGL keyboard are implemented and physically proven. The future pages are typed identifiers and disabled launcher placeholders, not completed services.
 
 The System Runtime is not an Interactive Asset. It is not a user project screen. It is a reusable built-in platform layer generated alongside the user's application.
 
@@ -242,6 +245,49 @@ SD Storage
 ```
 
 Slot 0 and Slot 1 use distinct GPIOs. The previous active SPI Hosted configuration was wrong for this board and prevented the ESP32-C6 transport from becoming active.
+
+## Storage Runtime
+
+Storage Runtime is a built-in platform service alongside Hosted Connectivity Runtime. It is separate from Interactive Assets and user project screens.
+
+Storage Runtime owns:
+
+- `firmware/ForgeUI-One/main/40_SD.c`
+- `firmware/ForgeUI-One/main/40_SD.h`
+- SDMMC Slot 0
+- FAT filesystem
+- SD mount
+- directory enumeration
+- empty-folder detection
+- bounded directory model
+- Refresh
+- Read / Write Test
+- Delete Empty Folder backend
+- storage snapshot APIs
+
+Generated LVGL owns:
+
+- Storage page
+- lazy page construction and reuse
+- page navigation
+- bounded reusable row pool
+- paging
+- Refresh button
+- Read / Write Test button
+- Select Item mode
+- Delete Empty Folder workflow
+
+The ownership split is:
+
+```text
+Generated UI
+→ user intent
+
+40_SD.c
+→ filesystem truth
+```
+
+Filesystem logic must not move into generated LVGL, and `40_SD.c` must never own LVGL.
 
 ## Project Health Architecture
 
@@ -477,7 +523,19 @@ Wi-Fi must initialize before SD.
 
 #### `firmware/ForgeUI-One/main/40_SD.c`
 
-This file owns SDMMC Slot 0 SD Card and FAT filesystem operation. It does not configure or manipulate ESP-Hosted.
+This file owns:
+
+- `fg_sd_init()`
+- `fg_sd_test()`
+- `fg_sd_get_snapshot()`
+- `fg_sd_list_directory()`
+- `fg_sd_delete_empty_folder()`
+- directory enumeration
+- filesystem operations
+- SDMMC Slot 0
+- FAT
+
+It does not configure or manipulate ESP-Hosted and must never own LVGL.
 
 ### System Runtime
 
@@ -540,6 +598,19 @@ Owns the dedicated Browser Preview Wi-Fi presentation:
 - deterministic preview interaction through `ForgeUISystemContext`
 
 This component presents and sends Browser Preview intent only. It does not own the physical backend, ESP-IDF calls, generated LVGL or persisted firmware credentials.
+
+#### `src/forgeui/system/ForgeUIStoragePage.tsx`
+
+Owns:
+
+- Browser Preview Storage page
+- Storage UI state
+- paging
+- Select Item mode
+- Delete Folder workflow
+- Browser Preview parity
+
+This component presents Browser Preview state and intent only. It does not own the physical filesystem, SDMMC, generated LVGL or firmware Storage backend.
 
 #### `src/forgeui/system/index.ts`
 
@@ -1724,6 +1795,11 @@ It owns:
 - persistent application-container generation
 - System launcher and Brightness container generation
 - persistent Wi-Fi page container generation
+- lazy persistent Storage container generation and page reuse
+- reusable Storage row pool and projection timer
+- Storage Refresh and Read / Write Test callbacks
+- Storage paging and selection mode
+- Delete Empty Folder callback and confirmation workflow
 - Wi-Fi status card and connected-detail generation
 - selectable structured network rows with security, RSSI, Connected and Saved presentation
 - Scan, Refresh, Connect, Disconnect, Reconnect and Forget controls and internal callbacks
@@ -1773,6 +1849,8 @@ The gear launcher, Display card, Brightness slider and Back controls are built-i
 The generated System Runtime also owns one persistent Wi-Fi page container, status card, connected details, selectable structured rows, Connected and Saved presentation, security and RSSI labels, Scan, Refresh, Disconnect, Reconnect and Forget controls, confirmation and password dialogs, password textarea, Show / Hide, validation, native keyboard attachment, internal callbacks and periodic projection through the existing application Wi-Fi service loop/timer. Projection pauses while password entry is active so focused text input is not disrupted, and disconnected snapshots clear stale detail values to placeholders.
 
 Generated UI sends intent and projects `fg_wifi_snapshot_t` and `fg_wifi_network_t`; `30_WIFI.c` remains the physical source of truth. No scan, credential, connection, reconnect or ESP-IDF backend logic belongs in the exporter. System Wi-Fi controls are internal and never generate `FG_On_*` user hooks.
+
+The generated System Runtime also owns one lazily created persistent Storage container, page reuse, reusable row pool, paging, status projection, Refresh, Read / Write Test, Select Item mode, Delete Empty Folder callback and the periodic Storage projection timer. Generated Storage UI sends intent and projects bounded backend state; filesystem operations remain in `40_SD.c/.h`.
 
 ### Button export branch
 
@@ -1984,6 +2062,9 @@ They contain:
 - generated public UI APIs
 - persistent application, System launcher and Brightness containers
 - complete generated Wi-Fi System page, status card, connected details and structured network rows
+- lazily created persistent Storage page and reusable row pool
+- Storage callbacks, bounded projection, paging and selection
+- Delete Empty Folder workflow
 - internal Scan, Refresh, network-selection, Connect, Disconnect, Reconnect and Forget callbacks
 - password dialog, password textarea, validation and Show / Hide callbacks
 - reusable native keyboard creation, attachment and callbacks
@@ -2015,6 +2096,8 @@ Generated System Wi-Fi UI
 ```
 
 Backend logic must not move into generated code. Wi-Fi System UI and its internal callbacks are unrelated to `95_UserEvents.*`.
+
+`90_Studio_Export.c/.h` may also contain the generated Storage page, callbacks, projection, paging, selection and Delete Empty Folder workflow, but filesystem operations remain in `40_SD.c/.h`.
 
 Do not place permanent product logic in these files.
 
@@ -2155,6 +2238,26 @@ Physically confirmed:
 - connected details including IP, gateway, security, station MAC and AP BSSID
 - approximately 63 FPS after keyboard optimisation
 - Interactive Assets remain operational after leaving System
+
+### Storage Runtime
+
+Physically confirmed:
+
+- Storage page creation
+- lazy construction
+- persistent page reuse
+- SD status and capacity
+- Refresh
+- directory browsing
+- folder navigation
+- Previous / Next paging
+- Read / Write Test
+- Select Item mode
+- Delete Empty Folder
+- Hosted Wi-Fi coexistence
+- repeated Storage use without crash
+
+Delete File, Rename, Format, Mount / Unmount and recursive deletion are not claimed as implemented or physically proven.
 
 ### Hosted Wi-Fi and SD coexistence
 
@@ -2334,6 +2437,11 @@ Start at the ownership boundary matching the symptom.
 | System pages are recreated unexpectedly | `ForgeUILvglExport.ts` System Runtime construction | persistent container creation and visibility-only callbacks |
 | Interactive Assets disappear after leaving System | generated application container | `fg_system_show_page()`, application hidden flag and absence of object recreation |
 | System navigation differs between Browser Preview and LVGL | `ForgeUISystemContext.tsx` navigation contract | `ForgeUISystemSurface.tsx` and generated System callbacks in `ForgeUILvglExport.ts` |
+| Storage page fails to open | `ForgeUILvglExport.ts` Storage branch | generated lazy Storage container |
+| Storage Refresh fails | generated Storage Refresh callback | `fg_sd_get_snapshot()` and bounded worker request |
+| Storage browsing fails | `40_SD.c` | `fg_sd_list_directory()` and bounded directory model |
+| Delete Folder remains disabled | generated Storage row callback | persistent row metadata, empty-folder flag and Storage projection |
+| Delete Folder crashes | generated Delete Empty Folder callback | `fg_sd_delete_empty_folder()` and selection bounds |
 | Hosted slave transport fails before `esp_wifi_init()` | `sdkconfig` effective Hosted interface | `sdkconfig.defaults`, Slot 1 pins, reset GPIO54 |
 | Firmware unexpectedly uses SPI Hosted | `sdkconfig.defaults` | generated `sdkconfig`, Kconfig selection |
 | C6 is not identified | Hosted SDIO pins and reset | Slot 1, GPIO14–19, GPIO54, transport logs |
@@ -2558,6 +2666,15 @@ Preserve these rules:
 78. Periodic Wi-Fi projection pauses during active password entry.
 79. System Wi-Fi controls use internal runtime callbacks and never generate user hooks.
 80. `95_UserEvents.c` is unrelated to Wi-Fi System UI.
+81. Storage Runtime remains a built-in System Runtime and never becomes an Interactive Asset or user project screen.
+82. Filesystem logic and physical SD truth remain in `40_SD.c/.h`.
+83. Generated Storage LVGL owns presentation and user intent only.
+84. Storage page construction remains lazy.
+85. The persistent Storage page is reused after first creation.
+86. The Storage worker and row pool remain bounded.
+87. `fg_storage_request_t` remains compact: operation kind, one path and one name.
+88. The shared Storage projection model remains compact.
+89. Delete File remains disconnected from generated LVGL until separately proven.
 
 ## Framework extension pattern
 
@@ -2572,17 +2689,18 @@ System Runtime
 ├── Launcher
 ├── Display / Brightness
 ├── Wi-Fi Manager
+├── Storage Browser
 ├── Native LVGL Keyboard
 └── Future System Pages
 ```
 
-Display / Brightness, the Wi-Fi Manager and the reusable native LVGL keyboard are complete within the recorded physical proof. Future System Pages remain placeholders.
+Display / Brightness, the Wi-Fi Manager, Storage Browser and the reusable native LVGL keyboard are complete within the recorded physical proof. Storage Runtime is a reusable built-in platform service alongside Hosted Connectivity Runtime. Future System Pages remain placeholders.
 
 Future built-in System pages should reuse:
 
 - `ForgeUISystemContext`
 - `ForgeUISystemSurface`
-- dedicated page components such as `ForgeUIWifiPage`
+- dedicated page components such as `ForgeUIWifiPage` and `ForgeUIStoragePage`
 - the typed `ForgeUISystemPage` model
 - the shared navigation operations
 - generated LVGL navigation
@@ -2595,7 +2713,6 @@ Future page identifiers currently include:
 
 - Bluetooth
 - Sound
-- Storage
 - Device
 - Diagnostics
 

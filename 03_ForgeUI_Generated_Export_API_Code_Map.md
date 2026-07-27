@@ -13,7 +13,7 @@
 
 ## Current proven save point
 
-**FORGEUI_SYSTEM_RUNTIME__COMPLETE_WIFI_MANAGER__NATIVE_LVGL_KEYBOARD__HOSTED_CONNECTIVITY__ESP32P4_PROVEN__READY_FOR_WIFI_UI_POLISH__2026-07-27**
+**FORGEUI_SYSTEM_RUNTIME__LAZY_SD_STORAGE_BROWSER__SAFE_RUNTIME__DELETE_EMPTY_FOLDER__ESP32P4_PROVEN__READY_FOR_CANVAS_PREVIEW_PARITY__2026-07-28**
 
 ## Purpose and scope
 
@@ -65,6 +65,7 @@ System Runtime
 ├── System Launcher
 ├── Display / Brightness
 ├── Wi-Fi Manager
+├── Storage Browser
 ├── Native LVGL Keyboard
 └── Future System Pages
 
@@ -77,7 +78,7 @@ Hosted Connectivity Runtime
 
 Button is momentary input. Toggle Switch is persistent boolean input. Three-Position Toggle is persistent enum input. Light and Status Indicator are developer-controlled outputs.
 
-System Runtime is generated platform code. Its current implementation uses persistent Application, System Launcher, Display / Brightness and Wi-Fi Manager containers plus one lazily created reusable native LVGL keyboard. Hosted Connectivity Runtime is platform infrastructure, not an Interactive Asset runtime.
+System Runtime is generated platform code. Its current implementation uses persistent Application, System Launcher, Display / Brightness and Wi-Fi Manager containers, one lazily created persistent Storage Browser container and one lazily created reusable native LVGL keyboard. Hosted Connectivity Runtime is platform infrastructure, not an Interactive Asset runtime.
 
 ```text
 Application
@@ -209,9 +210,12 @@ Current generated System pages are:
 - System Launcher
 - Display / Brightness
 - Wi-Fi Manager
+- Storage Browser
 - Native LVGL Keyboard
 
 The generated Wi-Fi Manager owns LVGL presentation, a structured selectable network list, Connected and Saved badges, password and forget dialogs, a password textarea, Show / Hide, native keyboard attachment, Connect, Disconnect, Reconnect, Forget, connected details, status, RSSI, gateway, security, station MAC, AP BSSID and periodic backend snapshot projection. Scan and Refresh both invoke the same `fg_wifi_scan_start()` backend path and initiate scan intent only. Generated LVGL never performs Hosted scanning itself; it projects completed backend models, rebuilds SSID row presentation from completed network data, and owns row visibility and layout only. It does not own `esp_wifi_init()`, scanning implementation, credentials, reconnect policy, DHCP, Hosted transport or ESP-IDF APIs; those remain `30_WIFI` backend responsibilities.
+
+The generated Storage Browser owns its Storage container, lazy page creation, persistent page reuse, reusable row pool, paging, Refresh, Read / Write Test, Select Item mode, Delete Empty Folder workflow, Storage projection and internal callbacks. Generated code owns UI presentation and user intent; `40_SD.c` owns filesystem operations.
 
 ## Hosted Connectivity Runtime
 
@@ -232,6 +236,40 @@ ESP32-C6
 ```
 
 Generated code renders state. The non-generated firmware backend owns transport and physical Wi-Fi truth. Hosted scanning executes inside that backend through a blocking Hosted scan. AP count and AP records are retrieved immediately afterward in the same backend task, copied into owned runtime storage, deduplicated by SSID with strongest-record retention, sorted by Connected state and RSSI, and atomically installed as one completed model before LVGL projection. Hosted Connectivity Runtime is generated platform infrastructure and must not enter any Interactive Asset runtime family.
+
+## Storage Runtime Boundary
+
+The generated-to-platform boundary is:
+
+```text
+Generated Storage Runtime
+        ↓
+40_SD backend
+        ↓
+SDMMC Slot 0
+        ↓
+FAT filesystem
+```
+
+Generated code owns:
+
+- page navigation
+- projection
+- row rendering
+- selection
+- paging
+- callbacks
+
+The backend owns:
+
+- filesystem
+- directory enumeration
+- empty-folder detection
+- deletion
+- Read / Write Test
+- SD state
+
+Generated LVGL owns presentation and user intent only. Filesystem truth and operations remain in `40_SD.c/.h`.
 
 The reusable asset-generation path feeding those runtime families is:
 
@@ -420,6 +458,12 @@ The generated System Runtime owns:
 - completed-model row visibility and list-layout projection
 - projection pause while password entry is active
 - internal Wi-Fi System navigation
+- lazy Storage page creation and persistent page reuse
+- reusable Storage row pool, paging and row rendering
+- Storage status projection
+- Storage Refresh and Read / Write Test callbacks
+- Select Item mode
+- Delete Empty Folder workflow and callbacks
 
 These responsibilities remain internal to generated `90_Studio_Export.c`. They are not added to `userEventHooks`, do not create declarations or stubs in `95_UserEvents.*`, and are not part of the public developer callback API.
 
@@ -517,6 +561,11 @@ Runtime generation assumes that its candidate result will pass the dedicated cli
 - System launcher container generation
 - Brightness container generation
 - complete Wi-Fi Manager container, status, connected details and structured selectable rows
+- lazy Storage page creation and persistent page reuse
+- reusable Storage rows, paging and projection
+- Storage Refresh and Read / Write Test callbacks
+- Storage Select Item mode
+- Delete Empty Folder callback and workflow
 - Connected and Saved presentation
 - password and forget dialogs, password textarea, Show / Hide and validation
 - internal Scan, Refresh, selection, Connect, Disconnect, Reconnect and Forget callbacks
@@ -546,7 +595,7 @@ The exporter emits Three-Position runtime code that uses `fg_three_way_state_t`;
 
 Do not create a separate Button, Toggle, Three-Position, Light or Status Indicator exporter, or a parallel runtime generator.
 
-The same exporter owns the built-in System Runtime. It creates the Application, System Launcher, Display / Brightness and Wi-Fi Manager containers once, then generates internal callbacks that switch `LV_OBJ_FLAG_HIDDEN`. It lazily creates one reusable top-layer native keyboard when password entry requires it. Interactive Assets remain instantiated inside the application container. System controls do not contribute developer hook metadata. Generated Wi-Fi code projects structured backend state and sends UI intent; it does not implement scanning, credentials, DHCP, reconnect policy, ESP-IDF calls or Hosted transport.
+The same exporter owns the built-in System Runtime. It creates the Application, System Launcher, Display / Brightness and Wi-Fi Manager containers once, lazily creates and reuses the persistent Storage Browser container, then generates internal callbacks that switch `LV_OBJ_FLAG_HIDDEN`. It lazily creates one reusable top-layer native keyboard when password entry requires it. Interactive Assets remain instantiated inside the application container. System controls do not contribute developer hook metadata. Generated Wi-Fi code projects structured backend state and sends UI intent; it does not implement scanning, credentials, DHCP, reconnect policy, ESP-IDF calls or Hosted transport. Generated Storage code owns page presentation, rows, paging, selection, callbacks and projection; it does not own filesystem operations, which remain in `40_SD.c/.h`.
 
 ## Component export traversal
 
@@ -1202,6 +1251,10 @@ Owns generated implementation:
 - Interactive Status Indicator public setter implementations
 - generated System Runtime
 - persistent Application, System Launcher, Display / Brightness and Wi-Fi Manager containers
+- lazily created persistent Storage page
+- Storage callbacks and row projection
+- Storage paging and Select Item mode
+- Delete Empty Folder UI workflow
 - generated status, structured network rows, badges and connected details
 - password and forget dialogs, password validation and Show / Hide
 - internal Scan, Refresh, selection, Connect, Disconnect, Reconnect and Forget callbacks
@@ -1215,7 +1268,7 @@ Owns generated implementation:
 
 These System additions are generated automatically with the application. They are replaceable runtime integration, not developer-owned product logic.
 
-It must not contain customer product behavior or permanent application logic. The generated backlight bridge is built-in ForgeUI platform integration and remains internal. Wi-Fi credentials, scanning implementation, DHCP, reconnect policy, ESP-IDF calls and transport startup remain owned by `30_WIFI.c` and must not be generated.
+It must not contain customer product behavior or permanent application logic. The generated backlight bridge is built-in ForgeUI platform integration and remains internal. Wi-Fi credentials, scanning implementation, DHCP, reconnect policy, ESP-IDF calls and transport startup remain owned by `30_WIFI.c` and must not be generated. Storage filesystem operations remain owned by `40_SD.c/.h`.
 
 ### `90_Studio_Export.h`
 
@@ -1620,6 +1673,24 @@ Physically confirmed:
 - Interactive Assets remain alive and operational while System Runtime pages are active and after return to the application
 - only minor UI polish remains
 
+### Storage Runtime path
+
+Physically confirmed:
+
+- lazy Storage page creation
+- persistent page reuse
+- Refresh
+- directory browsing
+- folder navigation
+- Previous / Next paging
+- Read / Write Test
+- Select Item mode
+- Delete Empty Folder
+- Hosted Wi-Fi coexistence
+- repeated Storage use without crash
+
+Delete File, Rename, Format, Mount / Unmount and recursive deletion are not claimed as implemented or physically proven.
+
 ### Hosted Wi-Fi and SD coexistence path
 
 The recovered physical proof includes:
@@ -1654,6 +1725,7 @@ The Button, exercised Toggle Switch, Three-Position input-hook path, shared Ligh
 ### Current validation boundary
 
 - System Runtime exporter regressions cover persistent containers, gear generation, internal page callbacks, visibility switching, the `10–100` Brightness slider, hardware bridge and complete Wi-Fi Manager generation;
+- Storage Runtime exporter and preview regressions cover lazy page creation, persistent reuse, reusable rows, paging, Select Item mode and the Delete Empty Folder workflow;
 - Wi-Fi generator regressions cover structured network rows, connected-detail fields, password dialog, open/protected connection branching and internal intent callbacks;
 - Studio and Browser Preview System regressions cover navigation, live brightness, deterministic Wi-Fi parity, password and forget workflows, session retention, disabled placeholders and preservation of application interaction;
 - focused LVGL exporter regressions pass;
@@ -1758,6 +1830,11 @@ Do not preserve historical suite totals here. Unrelated repository fixtures or p
 | System navigation fails | generated `fg_system_show_page()` and Back callbacks | target container and `LV_OBJ_FLAG_HIDDEN` changes |
 | Application disappears after closing System | generated application container | close callback, application hidden flag and foreground ordering |
 | Container visibility switching is incorrect | generated System callbacks | all persistent container pointers and hide/show order |
+| Storage page is missing | `ForgeUILvglExport.ts` Storage generation | generated lazy Storage container |
+| Storage Refresh fails | generated Storage Refresh callback | `fg_sd_get_snapshot()` and bounded request path |
+| Storage browsing fails | generated Storage projection | `fg_sd_list_directory()` |
+| Delete Folder remains disabled | generated Storage row callback | Storage projection, persistent row metadata and empty-folder flag |
+| Delete Folder fails | generated Delete Empty Folder callback | `fg_sd_delete_empty_folder()` |
 | Hosted transport fails | `sdkconfig.defaults` | Hosted SDIO configuration |
 | Scan works but Refresh does not | generated Scan callback and generated Refresh callback | both invoke `fg_wifi_scan_start()` |
 | Rows remain blank after scan | backend completed network model and generated LVGL projection | row visibility assignment and list rebuild |
@@ -1772,7 +1849,7 @@ Do not preserve historical suite totals here. Unrelated repository fixtures or p
 
 ### `studio/src/forgeui/ForgeUILvglExport.ts`
 
-Owns generated LVGL source, all five Interactive Asset branches, shared Button/Toggle/Three-Position/Binary Output runtimes, the built-in System Runtime, persistent Application/System/Display/Wi-Fi Manager containers, internal System and Wi-Fi callbacks, structured backend projection, network rows, badges, password and forget dialogs, connected details, reconnect/forget intent, projection pause during password entry, reusable native keyboard creation/attachment/callbacks/styles/geometry, generated brightness hardware integration, two-state and three-state contain-fit calculations and descriptor helpers, final persisted component geometry, component-sized parent/container objects, centred child images, per-instance records, sanitized unique hook names, setter names, linked cropped asset consumption, and all exporter metadata. Never writes files directly and never owns Hosted transport or physical Wi-Fi truth.
+Owns generated LVGL source, all five Interactive Asset branches, shared Button/Toggle/Three-Position/Binary Output runtimes, the built-in System Runtime, persistent Application/System/Display/Wi-Fi Manager containers, lazy persistent Storage page creation and reuse, Storage rows, paging, Refresh, Read / Write Test, Select Item, Delete Empty Folder callbacks and projection, internal System and Wi-Fi callbacks, structured backend projection, network rows, badges, password and forget dialogs, connected details, reconnect/forget intent, projection pause during password entry, reusable native keyboard creation/attachment/callbacks/styles/geometry, generated brightness hardware integration, two-state and three-state contain-fit calculations and descriptor helpers, final persisted component geometry, component-sized parent/container objects, centred child images, per-instance records, sanitized unique hook names, setter names, linked cropped asset consumption, and all exporter metadata. Never writes files directly and never owns Hosted transport, physical Wi-Fi truth or Storage filesystem operations.
 
 ### `studio/src/forgeui/ForgeUIUploadedAssetRegistry.ts`
 
@@ -1800,7 +1877,7 @@ Owns validation of accepted metadata; normalization and generation of void, bool
 
 ### `90_Studio_Export.c`
 
-Owns generated UI plus shared Button, Toggle Input, Three-Position Input, Binary Output and System Runtime implementations; persistent Application/System/Display/Wi-Fi Manager containers; gear and Back navigation; internal brightness state and hardware bridge; structured Wi-Fi rows, dialogs, connected details, UI intent and backend projection; the reusable native keyboard and callbacks; per-instance records; calls to all input hooks; and Light/Status Indicator setter implementations. Never contains developer product logic, Wi-Fi credentials, DHCP, scanning implementation, reconnect policy, ESP-IDF calls or transport startup.
+Owns generated UI plus shared Button, Toggle Input, Three-Position Input, Binary Output and System Runtime implementations; persistent Application/System/Display/Wi-Fi Manager containers; lazy persistent Storage page, callbacks, row projection, paging, Select Item mode and Delete Empty Folder UI; gear and Back navigation; internal brightness state and hardware bridge; structured Wi-Fi rows, dialogs, connected details, UI intent and backend projection; the reusable native keyboard and callbacks; per-instance records; calls to all input hooks; and Light/Status Indicator setter implementations. Never contains developer product logic, Wi-Fi credentials, DHCP, scanning implementation, reconnect policy, ESP-IDF calls, transport startup or Storage filesystem operations.
 
 ### `90_Studio_Export.h`
 
@@ -1892,6 +1969,14 @@ Preserve these rules:
 68. Hosted Connectivity Runtime owns physical scan execution and AP retrieval.
 69. Completed backend models are projected into LVGL.
 70. Generated code must never duplicate Hosted scan logic.
+71. Storage Runtime is generated System Runtime and never becomes an Interactive Asset or public developer API.
+72. Storage filesystem logic remains in `40_SD.c/.h`.
+73. Generated Storage code owns presentation and user intent only.
+74. Storage page construction remains lazy and the persistent page is reused.
+75. The Storage worker and reusable row pool remain bounded.
+76. The Storage request model remains compact: operation kind, one path and one name.
+77. The shared Storage projection model remains compact.
+78. Delete File remains disconnected from generated LVGL until physically proven.
 
 ## Extension rule
 
@@ -1903,17 +1988,17 @@ Current implemented pages:
 - Launcher
 - Display / Brightness
 - Wi-Fi Manager
+- Storage Browser
 - Native LVGL Keyboard
 
 Future pages:
 
 - Bluetooth
 - Sound
-- Storage
 - Device
 - Diagnostics
 
-Future pages may reuse the existing generated System Runtime, internal navigation callbacks, persistent container ownership, structured cards, backend projection, password-dialog patterns and shared native keyboard where text entry is required. They do not become Interactive Assets, do not generate User Event callbacks or public APIs, and are not claimed as already implemented.
+Storage Browser is part of the reusable generated System Runtime and is the reference architecture for future built-in System pages requiring lazy construction, bounded backend projection and persistent page reuse. Future pages may reuse the existing generated System Runtime, internal navigation callbacks, persistent container ownership, structured cards, backend projection, password-dialog patterns and shared native keyboard where text entry is required. They do not become Interactive Assets, do not generate User Event callbacks or public APIs, and are not claimed as already implemented.
 
 Each future System page follows:
 
@@ -1942,10 +2027,11 @@ Binary Output Runtime
   └── Interactive Status Indicator
 
 System Runtime
-  ├── Application Container
-  ├── System Launcher
+  ├── Application
+  ├── Launcher
   ├── Display / Brightness
   ├── Wi-Fi Manager
+  ├── Storage Browser
   ├── Native LVGL Keyboard
   └── Future System Pages
 
@@ -1984,7 +2070,7 @@ Toggle uses the pattern for two states and Three-Position uses it for three. The
 
 ## Permanent architecture statement
 
-The built-in System Runtime is part of the interface ForgeUI generates. It extends generated platform behavior alongside the application without changing the developer callback boundary or becoming an Interactive Asset. Its generated Wi-Fi page renders and controls the separate Hosted Connectivity Runtime through internal callbacks and the non-generated `30_WIFI` backend; generated code never owns the Hosted transport.
+The built-in System Runtime is part of the interface ForgeUI generates. It extends generated platform behavior alongside the application without changing the developer callback boundary or becoming an Interactive Asset. Its generated Wi-Fi page renders and controls the separate Hosted Connectivity Runtime through internal callbacks and the non-generated `30_WIFI` backend; generated code never owns the Hosted transport. Its generated Storage Browser renders and controls the separate Storage Runtime through internal callbacks and the non-generated `40_SD` backend; generated code never owns filesystem operations.
 
 > ForgeUI generates the interface. ForgeUI exposes the interface. The developer supplies the application.
 

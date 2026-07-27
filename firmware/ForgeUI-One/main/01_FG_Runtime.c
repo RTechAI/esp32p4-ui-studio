@@ -6,14 +6,17 @@
 
 #include "lvgl.h"
 #include "90_Studio_Export.h"
+#include "esp_log.h"
 
 #include <stdio.h>
 
 void fg_runtime_init(void)
 {
+    ESP_LOGI("FG_BOOT", "BOOT 05 LVGL runtime begin");
     lv_obj_t *scr = lv_screen_active();
 
     if (!scr) {
+        ESP_LOGE("FG_BOOT", "BOOT FAIL no active LVGL screen");
         return;
     }
 
@@ -31,5 +34,7 @@ void fg_runtime_init(void)
         (int)lv_obj_get_height(scr)
     );
 
+    ESP_LOGI("FG_BOOT", "BOOT 06 export begin");
     fg_studio_export_create(scr);
+    ESP_LOGI("FG_BOOT", "BOOT 19 export end");
 }
