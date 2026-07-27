@@ -6,6 +6,8 @@ import {
   screen,
 } from '@testing-library/react'
 import { ChakraProvider } from '@chakra-ui/react'
+import fs from 'fs'
+import path from 'path'
 import { ForgeThemeProvider } from '~forgeui/theme/ForgeThemeContext'
 import {
   ForgeUISystemProvider,
@@ -117,6 +119,38 @@ describe('ForgeUI System interface', () => {
     )
     expect(screen.getByTestId('system-launcher'))
       .toBeInTheDocument()
+  })
+
+  it('uses only ForgeUI palette styling for Wi-Fi network row states and badges', () => {
+    const source = fs.readFileSync(
+      path.resolve(__dirname, 'ForgeUIWifiPage.tsx'),
+      'utf8',
+    )
+    ;[
+      'bg={selected ? palette.accent : palette.surface2}',
+      'borderColor={selected ? palette.accent : palette.border}',
+      'color={selected ? palette.bg : palette.text}',
+      '_hover={{',
+      '_active={{',
+      '_focusVisible={{',
+      '_disabled={{',
+      'data-connecting={connecting || undefined}',
+      '<Badge bg={palette.surface} color={palette.text}',
+      'color={selected ? palette.bg : palette.accent}',
+      'color={selected ? palette.bg : palette.border}',
+    ].forEach(style => expect(source).toContain(style))
+    expect(source).not.toContain('colorScheme="blue"')
+
+    renderSurface()
+    fireEvent.click(screen.getByLabelText('Open System'))
+    fireEvent.click(screen.getByTestId('system-card-wifi'))
+
+    expect(screen.getByText('Saved')).not.toHaveAttribute('data-theme', 'blue')
+
+    fireEvent.click(screen.getByTestId('wifi-network-Workshop-IoT'))
+    const connecting = screen.getByTestId('wifi-network-Workshop-IoT')
+    expect(connecting).toHaveAttribute('data-selected', 'true')
+    expect(connecting).toHaveAttribute('data-connecting', 'true')
   })
 
   it('simulates scanning and refreshes deterministic networks', () => {

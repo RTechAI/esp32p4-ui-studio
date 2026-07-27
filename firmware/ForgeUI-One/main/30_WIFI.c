@@ -13,16 +13,13 @@
 #include "freertos/task.h"
 
 static const char *TAG = "FG_WIFI";
-#define FG_WIFI_SCAN_TIMEOUT_MS 15000
 #define FG_WIFI_CONNECT_TIMEOUT_MS 20000
 
 static bool g_ready;
 static bool g_connected;
-static volatile bool g_scan_done_pending;
 static volatile bool g_scan_in_progress;
 static fg_wifi_state_t g_state = FG_WIFI_STATE_OFF;
 static fg_wifi_result_t g_latest_result = FG_WIFI_OP_OK;
-static TickType_t g_scan_started;
 static TickType_t g_connect_started;
 static esp_netif_t *g_sta_netif;
 static char g_status[32] = "OFF";
@@ -38,6 +35,7 @@ static char g_saved_ssid[33];
 static bool g_has_saved;
 static fg_wifi_network_t g_networks[FG_WIFI_MAX_SCAN];
 static int g_network_count;
+static portMUX_TYPE g_network_lock = portMUX_INITIALIZER_UNLOCKED;
 
 static void set_status(const char *status, fg_wifi_result_t result)
 {
@@ -139,19 +137,20 @@ static void collect_scan_results(void)
         set_error("SCAN_READ_FAIL", FG_WIFI_OP_FAILED, "Unable to read scan results");
         return;
     }
+    fg_wifi_network_t collected[FG_WIFI_MAX_SCAN] = {0};
+    int collected_count = 0;
     char persisted[33] = "";
     bool has_saved = saved_ssid(persisted);
-    g_network_count = 0;
     for (int i = 0; i < requested; ++i) {
         const char *ssid = (const char *)records[i].ssid;
         if (!ssid[0]) continue;
         int duplicate = -1;
-        for (int j = 0; j < g_network_count; ++j) {
-            if (strcmp(g_networks[j].ssid, ssid) == 0) { duplicate = j; break; }
+        for (int j = 0; j < collected_count; ++j) {
+            if (strcmp(collected[j].ssid, ssid) == 0) { duplicate = j; break; }
         }
-        if (duplicate >= 0 && g_networks[duplicate].rssi >= records[i].rssi) continue;
-        int index = duplicate >= 0 ? duplicate : g_network_count++;
-        fg_wifi_network_t *network = &g_networks[index];
+        if (duplicate >= 0 && collected[duplicate].rssi >= records[i].rssi) continue;
+        int index = duplicate >= 0 ? duplicate : collected_count++;
+        fg_wifi_network_t *network = &collected[index];
         memset(network, 0, sizeof(*network));
         snprintf(network->ssid, sizeof(network->ssid), "%s", ssid);
         network->rssi = records[i].rssi;
@@ -161,10 +160,28 @@ static void collect_scan_results(void)
         network->connected = g_connected && strcmp(g_ssid, network->ssid) == 0;
         network->saved = has_saved && strcmp(persisted, network->ssid) == 0;
     }
-    qsort(g_networks, g_network_count, sizeof(g_networks[0]), network_compare);
+    qsort(collected, collected_count, sizeof(collected[0]), network_compare);
+    taskENTER_CRITICAL(&g_network_lock);
+    memcpy(g_networks, collected, sizeof(g_networks));
+    g_network_count = collected_count;
+    taskEXIT_CRITICAL(&g_network_lock);
     g_error[0] = 0;
-    set_status(g_network_count ? (g_connected ? "CONNECTED" : "SCAN_DONE") : "SCAN_EMPTY", FG_WIFI_OP_OK);
+    set_status(collected_count ? (g_connected ? "CONNECTED" : "SCAN_DONE") : "SCAN_EMPTY", FG_WIFI_OP_OK);
     if (!g_connected) g_state = FG_WIFI_STATE_READY;
+}
+
+static void hosted_scan_task(void *arg)
+{
+    (void)arg;
+    wifi_scan_config_t config = { .show_hidden = false };
+    esp_err_t err = esp_wifi_scan_start(&config, true);
+    if (err == ESP_OK) {
+        collect_scan_results();
+    } else {
+        set_error("SCAN_FAIL", FG_WIFI_OP_FAILED, esp_err_to_name(err));
+    }
+    g_scan_in_progress = false;
+    vTaskDelete(NULL);
 }
 
 static void event_handler(void *arg, esp_event_base_t base, int32_t id, void *data)
@@ -173,9 +190,6 @@ static void event_handler(void *arg, esp_event_base_t base, int32_t id, void *da
     if (base == WIFI_EVENT && id == WIFI_EVENT_STA_START) {
         g_state = FG_WIFI_STATE_READY;
         set_status("READY", FG_WIFI_OP_OK);
-    } else if (base == WIFI_EVENT && id == WIFI_EVENT_SCAN_DONE) {
-        g_scan_in_progress = false;
-        g_scan_done_pending = true;
     } else if (base == WIFI_EVENT && id == WIFI_EVENT_STA_DISCONNECTED) {
         wifi_event_sta_disconnected_t *event = data;
         bool was_connecting = g_state == FG_WIFI_STATE_CONNECTING;
@@ -235,15 +249,6 @@ void fg_wifi_init(void)
 void fg_wifi_pump(void)
 {
     TickType_t now = xTaskGetTickCount();
-    if (g_scan_done_pending) {
-        g_scan_done_pending = false;
-        collect_scan_results();
-    }
-    if (g_scan_in_progress && (now - g_scan_started) > pdMS_TO_TICKS(FG_WIFI_SCAN_TIMEOUT_MS)) {
-        esp_wifi_scan_stop();
-        g_scan_in_progress = false;
-        set_error("SCAN_TIMEOUT", FG_WIFI_OP_TIMEOUT, "Scan timed out");
-    }
     if (g_state == FG_WIFI_STATE_CONNECTING &&
         (now - g_connect_started) > pdMS_TO_TICKS(FG_WIFI_CONNECT_TIMEOUT_MS)) {
         esp_wifi_disconnect();
@@ -288,23 +293,27 @@ fg_wifi_result_t fg_wifi_scan_start(void)
     if (!g_ready) return g_latest_result = FG_WIFI_OP_NOT_READY;
     if (g_scan_in_progress) return g_latest_result = FG_WIFI_OP_ALREADY_RUNNING;
     if (g_state == FG_WIFI_STATE_CONNECTING || g_state == FG_WIFI_STATE_DISCONNECTING) return g_latest_result = FG_WIFI_OP_BUSY;
+    taskENTER_CRITICAL(&g_network_lock);
     memset(g_networks, 0, sizeof(g_networks));
     g_network_count = 0;
-    g_scan_done_pending = false;
-    wifi_scan_config_t config = { .show_hidden = false };
-    esp_err_t err = esp_wifi_scan_start(&config, false);
-    if (err != ESP_OK) { set_error("SCAN_FAIL", FG_WIFI_OP_FAILED, esp_err_to_name(err)); return FG_WIFI_OP_FAILED; }
+    taskEXIT_CRITICAL(&g_network_lock);
     g_scan_in_progress = true;
-    g_scan_started = xTaskGetTickCount();
     set_status("SCANNING", FG_WIFI_OP_ACCEPTED);
+    if (xTaskCreate(hosted_scan_task, "fg_wifi_scan", 4096, NULL, 5, NULL) != pdPASS) {
+        g_scan_in_progress = false;
+        set_error("SCAN_TASK_FAIL", FG_WIFI_OP_FAILED, "Unable to start scan task");
+        return FG_WIFI_OP_FAILED;
+    }
     return FG_WIFI_OP_ACCEPTED;
 }
 
 int fg_wifi_get_networks(fg_wifi_network_t *networks, int max)
 {
     if (!networks || max <= 0) return 0;
+    taskENTER_CRITICAL(&g_network_lock);
     int count = g_network_count < max ? g_network_count : max;
     memcpy(networks, g_networks, count * sizeof(networks[0]));
+    taskEXIT_CRITICAL(&g_network_lock);
     return count;
 }
 

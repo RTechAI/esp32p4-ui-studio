@@ -11,7 +11,7 @@
 
 ## Current Save Point
 
-**FORGEUI_WIFI_MANAGER__NATIVE_LVGL_KEYBOARD__BROWSER_PREVIEW_PARITY__PHYSICAL_ESP32P4_PROVEN__2026-07-27**
+**FORGEUI_SYSTEM_RUNTIME__COMPLETE_WIFI_MANAGER__NATIVE_LVGL_KEYBOARD__HOSTED_CONNECTIVITY__ESP32P4_PROVEN__READY_FOR_WIFI_UI_POLISH__2026-07-27**
 
 ## Current Proven Status..
 
@@ -66,7 +66,7 @@ Application
 
 Display brightness is physically connected to the ESP32-P4 backlight through `bsp_display_brightness_set()`. Brightness changes live while the slider is moved and remains in memory during the current device session.
 
-The Wi-Fi Manager is a physically proven reusable System Runtime feature rather than a backend demonstration. The complete workflow is proven on the ESP32-P4: Scan Networks, Refresh, SSID selection, live RSSI, Connected and Saved state display, password dialog, native LVGL keyboard password entry, Connect, Disconnect, Reconnect, Forget Network and connected details including RSSI, security and gateway. Studio and Browser Preview retain parity with the generated LVGL workflow. Only minor visual polish remains, including active-theme consistency for the Available Networks list.
+The Wi-Fi Manager is a physically proven reusable System Runtime feature rather than a backend demonstration. The complete workflow is proven on the ESP32-P4: Hosted Scan Networks, Refresh, live Available Networks population, SSID selection, RSSI and security display, Connected and Saved indicators, password dialog, native LVGL keyboard password entry, Connect, Disconnect, Reconnect, Forget Network and connected details. The complete Hosted scan pipeline, Browser Preview parity and generated LVGL parity are physically proven. Only minor visual polish remains.
 
 ## Built-in System Interface
 
@@ -94,7 +94,7 @@ ForgeUISystemPage
 └── diagnostics
 ```
 
-Launcher, Brightness and the complete Wi-Fi Manager are implemented and physically proven. The shared System Runtime owns Browser Preview parity for the Wi-Fi workflow, while the generated LVGL runtime owns the physical page, password dialog, reusable native keyboard, network interaction and connected details. The Hosted backend supplies live scan, connection, RSSI, security, gateway and saved-network data to that complete UI without changing the separation between System Runtime and Hosted Connectivity Runtime. Only minor visual polish remains, including active-theme consistency for the Available Networks list. Bluetooth, Sound, Storage, Device and Diagnostics remain visible future page identifiers and disabled launcher placeholders, and their system functions are not implemented.
+Launcher, Brightness and the complete Wi-Fi Manager are implemented and physically proven. The shared System Runtime owns Browser Preview parity for the Wi-Fi workflow, while the generated LVGL runtime owns the physical page, password dialog, reusable native keyboard, network interaction and connected details. The Hosted backend supplies live scan results through the complete Hosted scan pipeline into the generated LVGL interface, together with connection, RSSI, security, gateway and saved-network data, without changing the separation between System Runtime and Hosted Connectivity Runtime. Only minor visual polish remains. Bluetooth, Sound, Storage, Device and Diagnostics remain visible future page identifiers and disabled launcher placeholders, and their system functions are not implemented.
 
 The shared provider owns the active System page, open and back navigation, current-session brightness and the Browser Preview Wi-Fi workflow state. The shared surface renders the same built-in interface over the Studio Canvas and Browser Preview while keeping normal project components separate.
 
@@ -112,7 +112,7 @@ The current hardware-safe navigation implementation uses immediate container vis
 
 The generated gear launcher and System controls use internal LVGL event callbacks. The Brightness slider listens for live value changes, clamps the value to `10–100`, updates its percentage label and calls the Waveshare BSP through the generated internal `FG_Set_Display_Brightness()` wrapper and `bsp_display_brightness_set()`. Brightness is session-only and is not persisted.
 
-The generated Wi-Fi Manager owns its System page, scan list, selection state, password and forget dialogs, connected details and internal Wi-Fi callbacks. The Hosted backend remains the source of live network and connection data. The generated native `lv_keyboard` is created lazily on the LVGL top layer, retained as one reusable instance, attached through `lv_keyboard_set_textarea()`, and detached and hidden after Done or Cancel. It supports password entry, show/hide password, correct physical geometry, ForgeUI styling and Browser Preview parity without introducing generated user hooks. This reusable architecture is intended for future Device settings, MQTT, Ethernet, Bluetooth, API keys, Device naming, Login and other System dialogs; those future uses are not claimed as implemented or physically proven.
+The generated Wi-Fi Manager owns its System page, scan list, selection state, password and forget dialogs, connected details and internal Wi-Fi callbacks. The Hosted backend remains the source of live network and connection data and supplies live AP results through the complete Hosted scan pipeline into the generated LVGL interface. The generated native `lv_keyboard` is created lazily on the LVGL top layer, retained as one reusable instance, attached through `lv_keyboard_set_textarea()`, and detached and hidden after Done or Cancel. It supports password entry, show/hide password, correct physical geometry, ForgeUI styling and Browser Preview parity without introducing generated user hooks. This reusable architecture is intended for future Device settings, MQTT, Ethernet, Bluetooth, API keys, Device naming, Login and other System dialogs; those future uses are not claimed as implemented or physically proven.
 
 ## Hosted Wi-Fi Recovery
 
@@ -137,7 +137,7 @@ ESP-IDF Wi-Fi API
 
 The previous SPI Hosted configuration was incorrect for this hardware and prevented the Hosted transport from establishing. Restoring the SDIO Host Interface on SDMMC Slot 1 restored the intended transport.
 
-The recovered Hosted backend now drives the complete built-in Wi-Fi Manager UI, including scan results, selection, connection state, live RSSI, security, gateway, saved-network state and connected details. This extends the proven use of the existing Hosted service without changing its transport architecture, SDIO ownership or startup baseline.
+The recovered Hosted backend now drives the complete built-in Wi-Fi Manager UI, including hosted scanning, AP retrieval, live network list population, selection, connection workflow, live RSSI, security, gateway, saved-network state and connected details. This extends the proven use of the existing Hosted service without changing its transport architecture, SDIO ownership or startup baseline.
 
 ## SD Coexistence
 
@@ -1004,14 +1004,15 @@ The exporter owns the shared generated runtime implementations, unique per-insta
 
 - The complete generated Wi-Fi Manager workflow is physically proven on the ESP32-P4.
 - Scan Networks and Refresh populate and update the live Available Networks list from the Hosted backend.
-- SSID selection, live RSSI, security and Saved and Connected state display are physically proven.
+- Live SSID population, SSID selection, RSSI, security and Connected and Saved markers are physically proven.
 - Secured-network selection opens the generated password dialog and attaches the reusable native LVGL keyboard to the password textarea.
 - Password entry, show/hide password, Done and Cancel operate with the correct physical geometry and top-layer ownership.
 - Connect, Disconnect, Reconnect and Forget Network are physically proven through the complete UI workflow.
 - Connected details display the active SSID, IP address, gateway, RSSI and signal quality, security, station MAC, AP BSSID and current status.
+- Repeated Hosted scans replace prior results without duplicate rows or stale SSIDs.
 - Studio and Browser Preview reproduce the same navigation, password, connection and connected-details workflow without taking ownership away from the generated LVGL System Runtime.
 - Existing Interactive Assets and System navigation remain alive and stable throughout Wi-Fi interaction.
-- Only minor visual polish remains, including active-theme consistency for the Available Networks list.
+- Minor visual polish remains.
 
 ### Hosted Wi-Fi and SD coexistence
 
@@ -1133,9 +1134,9 @@ Generated Firmware
 
 The System Interface is not an Interactive Asset. It is a reusable platform service generated alongside the user's application. It does not enter the Interactive Asset registry, does not become a user project screen and does not generate user callbacks.
 
-Hosted Connectivity Runtime and Storage Runtime are reusable platform services independent of Interactive Assets. Hosted Connectivity owns ESP-Hosted, Wi-Fi Remote, the ESP32-C6 and SDIO Slot 1; Storage Runtime owns the SD Card on SDMMC Slot 0.
+Hosted Connectivity Runtime and Storage Runtime are reusable platform services independent of Interactive Assets. Hosted Connectivity owns ESP-Hosted, Wi-Fi Remote, the ESP32-C6 and SDIO Slot 1 and provides a complete reusable Hosted Wi-Fi service consumed by the built-in Wi-Fi Manager, including hosted scanning, AP retrieval and connection workflow; Storage Runtime owns the SD Card on SDMMC Slot 0.
 
-This separation lets built-in Wi-Fi and future Bluetooth, Sound, Storage, Device and Diagnostics services reuse the typed System page, shared navigation and generated container framework without affecting project screens or changing existing Interactive Asset runtime contracts. The System Launcher, Display / Brightness, complete Wi-Fi Manager and reusable native LVGL keyboard are implemented and physically proven. The Hosted backend drives the generated Wi-Fi Manager through Scan Networks, Refresh, SSID selection, password entry, Connect, Disconnect, Reconnect, Forget Network, live network state and connected details, while Browser Preview retains the same workflow and hierarchy. Only minor visual polish remains, including active-theme consistency for the Available Networks list.
+This separation lets built-in Wi-Fi and future Bluetooth, Sound, Storage, Device and Diagnostics services reuse the typed System page, shared navigation and generated container framework without affecting project screens or changing existing Interactive Asset runtime contracts. The System Launcher, Display / Brightness, complete Wi-Fi Manager and reusable native LVGL keyboard are implemented and physically proven. The Hosted backend drives the generated Wi-Fi Manager through the complete Hosted scan pipeline, Scan Networks, Refresh, live Available Networks population, SSID selection, password entry, Connect, Disconnect, Reconnect, Forget Network, live network state and connected details, while Browser Preview retains the same workflow and hierarchy. Only minor visual polish remains.
 
 Interactive Button established the first **Interactive Input Runtime** within the Interactive Asset Framework.
 
@@ -1250,19 +1251,26 @@ These remain future concepts only. They are not implemented or physically proven
 
 Save points are ordered newest to oldest. Detailed subsystem engineering is maintained in the Developer Code Maps.
 
+## FORGEUI_SYSTEM_RUNTIME__COMPLETE_WIFI_MANAGER__NATIVE_LVGL_KEYBOARD__HOSTED_CONNECTIVITY__ESP32P4_PROVEN__READY_FOR_WIFI_UI_POLISH__2026-07-27
+
+- **What changed:** Completed the Hosted scan pipeline, repaired Hosted scan result transfer, added live Available Networks population, made Refresh perform a real Hosted scan, established a stable reusable Wi-Fi Manager runtime and physically validated it on the ESP32-P4.
+- **Why it changed:** Native asynchronous assumptions were unsuitable for the Hosted transport.
+- **Final architecture:** A dedicated Hosted scan pipeline owns scanning and AP retrieval, atomically replaces the runtime network model, and leaves LVGL presentation-only.
+- **Proven result:** The physical ESP32-P4 shows live nearby SSIDs, RSSI, security, Connected and Saved state, the complete connection workflow and repeated scan replacement without stale entries.
+
 ## FORGEUI_WIFI_MANAGER__NATIVE_LVGL_KEYBOARD__BROWSER_PREVIEW_PARITY__PHYSICAL_ESP32P4_PROVEN__2026-07-27
 
 - **What changed:** Completed the built-in Wi-Fi Manager across Browser Preview and generated LVGL, including Scan Networks, Refresh, SSID selection, live RSSI, Connected and Saved state display, password and forget dialogs, Connect, Disconnect, Reconnect, Forget Network and connected details; added a lazily created reusable native LVGL keyboard with top-layer ownership, textarea attachment, password entry, show/hide, Done and Cancel; and completed the associated runtime performance optimisation.
 - **Why it changed:** The physically operational Hosted backend needed a complete reusable System Runtime workflow with responsive interaction, correct embedded text entry and Browser Preview parity rather than remaining a backend demonstration.
 - **Final architecture:** The generated System Runtime owns the Wi-Fi Manager page, dialogs, connected details and one reusable native LVGL keyboard, while the existing Hosted Connectivity Runtime continues to own ESP-Hosted, Wi-Fi Remote, the ESP32-C6 and SDIO Slot 1. Shared typed System state supplies Browser Preview parity without moving Wi-Fi behavior into Interactive Assets or generated user callbacks.
-- **Proven result:** The complete Wi-Fi interaction workflow, native keyboard geometry and behavior, Hosted-backed live data, connected details, Browser Preview parity and performance-optimised physical UI were validated on the ESP32-P4. Only minor visual polish remains, including active-theme consistency for the Available Networks list.
+- **Proven result:** The complete Wi-Fi interaction workflow, native keyboard geometry and behavior, Hosted-backed live data, connected details, Browser Preview parity and performance-optimised physical UI were validated on the ESP32-P4. Minor visual polish remains.
 
 ## FORGEUI_SYSTEM_INTERFACE__HOSTED_WIFI_SD_RECOVERY__SDIO_SLOT1_RESTORED__PHYSICAL_ESP32P4_PROVEN__2026-07-27
 
 - **What changed:** Recovered the original ForgeUI-P4 Hosted Wi-Fi architecture by restoring the ESP32-P4-to-ESP32-C6 ESP-Hosted SDIO transport on SDMMC Slot 1, documented the unchanged SD Card runtime on SDMMC Slot 0, and recorded the physically proven boot order and configuration baseline.
 - **Why it changed:** The previous SPI Hosted configuration did not match this hardware and prevented the Hosted transport from establishing.
 - **Final architecture:** Hosted Wi-Fi uses the SDIO Host Interface, 4-bit SDMMC Slot 1 and its dedicated GPIO/reset baseline; the SD Card continues unchanged on BSP GPIO39–44 using 4-bit SDMMC Slot 0, manual LDO control and FAT. The System Runtime exposes the operational Wi-Fi backend independently of Interactive Assets.
-- **Proven result:** ESP32-C6 identification, active Hosted transport, station startup, MAC read, automatic reconnect, DHCP and Wi-Fi connection were physically validated together with successful SD mount and write/read testing. Wi-Fi and SD operated simultaneously. The Wi-Fi System page still requires Scan Networks, Disconnect, live network list and refresh UI polish.
+- **Proven result:** ESP32-C6 identification, active Hosted transport, station startup, MAC read, automatic reconnect, DHCP and Wi-Fi connection were physically validated together with successful SD mount and write/read testing. Wi-Fi and SD operated simultaneously. The complete Hosted scan and Wi-Fi Manager workflow was proven at the later System Runtime save point above.
 
 ## FORGEUI_SYSTEM_INTERFACE__LVGL_RUNTIME__DISPLAY_BRIGHTNESS__ESP32P4_PROVEN__2026-07-27
 

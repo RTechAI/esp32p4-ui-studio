@@ -13,7 +13,7 @@
 
 ## Current save point
 
-**FORGEUI_SYSTEM_INTERFACE__HOSTED_WIFI_MANAGER__NATIVE_LVGL_KEYBOARD__PHYSICAL_UI_WORKFLOW__ESP32P4_PROVEN__2026-07-27**
+**FORGEUI_SYSTEM_RUNTIME__COMPLETE_WIFI_MANAGER__NATIVE_LVGL_KEYBOARD__HOSTED_CONNECTIVITY__ESP32P4_PROVEN__READY_FOR_WIFI_UI_POLISH__2026-07-27**
 
 ## Purpose
 
@@ -92,7 +92,7 @@ Application
 
 Display brightness is physically connected to the ESP32-P4 backlight through `bsp_display_brightness_set()`.
 
-Display / Brightness and the complete Wi-Fi Manager are physically proven. The generated Wi-Fi System page supports real non-blocking scans, structured SSID rows, RSSI, security, Connected and Saved badges, network selection, open-network connection, protected-network password entry through the reusable native LVGL keyboard, validation, Connect, Disconnect, Reconnect, Forget Network and connected details including IP address, gateway, station MAC, AP BSSID and backend status/error projection. Browser Preview provides deterministic hardware-independent parity while generated LVGL integrates with the live ESP32-P4 backend. Only minor visual polish remains, including complete active-theme integration for the Available Networks rows; this does not make the Wi-Fi workflow incomplete.
+Display / Brightness and the complete Wi-Fi Manager are physically proven. The generated Wi-Fi System page supports Hosted scan execution, immediate AP count and record retrieval, live structured SSID list population, RSSI, security, Connected and Saved badges, network selection, open-network connection, protected-network password entry through the reusable native LVGL keyboard, validation, Connect, Disconnect, Reconnect, Forget Network and connected details including IP address, gateway, station MAC, AP BSSID and backend status/error projection. Scan and Refresh use the same backend path. Repeated scans atomically replace prior results without duplicate or stale SSID rows. Browser Preview provides deterministic hardware-independent parity while generated LVGL integrates with the live ESP32-P4 backend. Only minor visual polish remains.
 
 ## System architecture
 
@@ -411,11 +411,17 @@ The non-generated Wi-Fi backend owns:
 - `esp_wifi_init()`
 - STA mode and Wi-Fi start
 - event handling
-- real non-blocking scan start and deferred scan-result processing
+- scan intent submission through `fg_wifi_scan_start()`
+- a dedicated FreeRTOS Wi-Fi backend task that owns Hosted scan execution
+- blocking Hosted scan execution in the backend task
+- immediate AP count and AP record retrieval in the same task after scan completion
 - a fixed-size structured scan cache of at most `FG_WIFI_MAX_SCAN` records
+- owned `fg_wifi_network_t` storage with no surviving temporary AP-record or SSID pointers
 - SSID deduplication with strongest-record retention
 - connected-first and RSSI-descending sorting
-- scan and connection timeouts
+- atomic complete-model replacement under a critical section
+- stale-result clearing before re-scan
+- connection timeouts
 - structured operation results and authentication/generic error projection
 - open- and protected-network connection handling
 - Connect, Disconnect, Reconnect and Forget intent
@@ -438,15 +444,21 @@ The structured public boundary includes the exact implemented APIs:
 Its locked execution rule is:
 
 ```text
-event handler
-→ update state / raise flag
+Generated Scan or Refresh callback
+→ fg_wifi_scan_start()
+→ dedicated Wi-Fi backend task
+→ blocking ESP-Hosted scan
+→ immediate AP count and record retrieval
+→ deduplicate and sort owned network records
+→ atomic model replacement
 
-main loop
-→ fg_wifi_pump()
-→ heavier processing
+LVGL timer
+→ reads completed snapshot/network model
+→ updates labels and pooled row visibility
+→ refreshes list layout
 ```
 
-The backend does not own LVGL or Studio UI.
+`fg_wifi_pump()` retains connection-timeout service but does not retrieve scan results. The LVGL/System projection reads completed snapshots only. The backend owns all physical Wi-Fi truth and does not own LVGL or Studio UI.
 
 ESP-IDF supports one persisted STA configuration in the current implementation. `esp_wifi_set_config()` uses flash-backed Wi-Fi storage when a network is remembered. Physical Saved badges reflect that real configuration, and `fg_wifi_forget()` clears the persisted STA configuration. ForgeUI does not currently implement a multi-network credential database.
 
@@ -2539,7 +2551,7 @@ Preserve these rules:
 71. `30_WIFI.c` remains the only owner of physical Wi-Fi truth and ESP-IDF Wi-Fi calls.
 72. The generated UI must not duplicate credential, connection, scan or reconnect logic.
 73. Physical firmware supports one persisted ESP-IDF STA configuration, not a multi-network credential database.
-74. Wi-Fi event handlers remain lightweight; deferred work runs through `fg_wifi_pump()`.
+74. Hosted scan execution and immediate AP retrieval belong to the dedicated Wi-Fi backend task; `fg_wifi_pump()` does not retrieve scan results.
 75. The native LVGL keyboard is created lazily and reused.
 76. System password fields attach through `lv_keyboard_set_textarea()`.
 77. Keyboard geometry sets `LV_ALIGN_TOP_LEFT` before absolute top-layer positioning.

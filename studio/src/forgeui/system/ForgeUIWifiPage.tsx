@@ -154,33 +154,71 @@ const WifiPage = () => {
           <Text fontSize="20px" fontWeight="bold" mb="9px">Available Networks</Text>
           <VStack align="stretch" spacing="6px" maxHeight="420px" overflowY="auto" data-testid="wifi-network-list">
             {wifi.scanInProgress && <Text py="18px">Scanning for nearby networks…</Text>}
-            {!wifi.scanInProgress && wifi.networks.map(network => (
-              <Button
-                key={network.ssid}
-                onClick={() => system.selectPreviewWifi(network.ssid)}
-                justifyContent="space-between"
-                minHeight="43px"
-                px="10px"
-                border={
-                  wifi.selectedSsid === network.ssid
-                    ? `2px solid ${palette.accent}` : '2px solid transparent'
-                }
-                bg={palette.surface2}
-                color="inherit"
-                data-testid={`wifi-network-${network.ssid}`}
-              >
-                <HStack minWidth={0}>
-                  <FiWifi />
-                  {network.security !== 'Open' && <FiLock />}
-                  <Text noOfLines={1}>{network.ssid}</Text>
-                </HStack>
-                <HStack>
-                  {network.connected && <Badge colorScheme="green">Connected</Badge>}
-                  {network.saved && <Badge colorScheme="blue">Saved</Badge>}
-                  <Text fontSize="12px">{network.rssi} dBm</Text>
-                </HStack>
-              </Button>
-            ))}
+            {!wifi.scanInProgress && wifi.networks.map(network => {
+              const selected = wifi.selectedSsid === network.ssid
+              const connecting = selected && wifi.state === 'connecting'
+              return (
+                <Button
+                  key={network.ssid}
+                  onClick={() => system.selectPreviewWifi(network.ssid)}
+                  justifyContent="space-between"
+                  minHeight="43px"
+                  px="10px"
+                  border="2px solid"
+                  borderColor={selected ? palette.accent : palette.border}
+                  bg={selected ? palette.accent : palette.surface2}
+                  color={selected ? palette.bg : palette.text}
+                  opacity={connecting ? 0.82 : 1}
+                  _hover={{
+                    bg: selected ? palette.accent : palette.surface,
+                    borderColor: palette.accent,
+                    color: selected ? palette.bg : palette.text,
+                  }}
+                  _active={{
+                    bg: palette.accent,
+                    borderColor: palette.accent,
+                    color: palette.bg,
+                    opacity: 0.88,
+                  }}
+                  _focusVisible={{
+                    bg: selected ? palette.accent : palette.surface,
+                    borderColor: palette.accent,
+                    color: selected ? palette.bg : palette.text,
+                    boxShadow: `0 0 0 2px ${palette.accent}`,
+                  }}
+                  _disabled={{
+                    bg: palette.surface2,
+                    borderColor: palette.border,
+                    color: palette.text,
+                    opacity: 0.45,
+                  }}
+                  data-selected={selected || undefined}
+                  data-connecting={connecting || undefined}
+                  data-testid={`wifi-network-${network.ssid}`}
+                >
+                  <HStack minWidth={0}>
+                    <Box as={FiWifi} color={selected ? palette.bg : palette.accent} />
+                    {network.security !== 'Open' && (
+                      <Box as={FiLock} color={selected ? palette.bg : palette.border} />
+                    )}
+                    <Text noOfLines={1}>{network.ssid}</Text>
+                  </HStack>
+                  <HStack>
+                    {network.connected && (
+                      <Badge bg={palette.accent} color={palette.bg}>Connected</Badge>
+                    )}
+                    {network.saved && (
+                      <Badge bg={palette.surface} color={palette.text} border="1px solid" borderColor={palette.border}>
+                        Saved
+                      </Badge>
+                    )}
+                    <Text fontSize="12px" color={selected ? palette.bg : palette.accent}>
+                      {network.rssi} dBm
+                    </Text>
+                  </HStack>
+                </Button>
+              )
+            })}
             {!wifi.scanInProgress && wifi.networks.length === 0 && (
               <Text py="18px">No networks found. Tap Scan Networks.</Text>
             )}

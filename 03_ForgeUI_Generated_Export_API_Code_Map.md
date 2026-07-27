@@ -13,7 +13,7 @@
 
 ## Current proven save point
 
-**FORGEUI_SYSTEM_INTERFACE__HOSTED_WIFI_MANAGER__NATIVE_LVGL_KEYBOARD__PHYSICAL_UI_WORKFLOW__ESP32P4_PROVEN__2026-07-27**
+**FORGEUI_SYSTEM_RUNTIME__COMPLETE_WIFI_MANAGER__NATIVE_LVGL_KEYBOARD__HOSTED_CONNECTIVITY__ESP32P4_PROVEN__READY_FOR_WIFI_UI_POLISH__2026-07-27**
 
 ## Purpose and scope
 
@@ -211,7 +211,7 @@ Current generated System pages are:
 - Wi-Fi Manager
 - Native LVGL Keyboard
 
-The generated Wi-Fi Manager owns LVGL presentation, a structured selectable network list, Connected and Saved badges, password and forget dialogs, a password textarea, Show / Hide, native keyboard attachment, Connect, Disconnect, Reconnect, Forget, connected details, status, RSSI, gateway, security, station MAC, AP BSSID and periodic backend snapshot projection. It sends UI intent but does not own `esp_wifi_init()`, scanning implementation, credentials, reconnect policy, DHCP, Hosted transport or ESP-IDF APIs; those remain `30_WIFI` backend responsibilities.
+The generated Wi-Fi Manager owns LVGL presentation, a structured selectable network list, Connected and Saved badges, password and forget dialogs, a password textarea, Show / Hide, native keyboard attachment, Connect, Disconnect, Reconnect, Forget, connected details, status, RSSI, gateway, security, station MAC, AP BSSID and periodic backend snapshot projection. Scan and Refresh both invoke the same `fg_wifi_scan_start()` backend path and initiate scan intent only. Generated LVGL never performs Hosted scanning itself; it projects completed backend models, rebuilds SSID row presentation from completed network data, and owns row visibility and layout only. It does not own `esp_wifi_init()`, scanning implementation, credentials, reconnect policy, DHCP, Hosted transport or ESP-IDF APIs; those remain `30_WIFI` backend responsibilities.
 
 ## Hosted Connectivity Runtime
 
@@ -231,7 +231,7 @@ ESP-Hosted
 ESP32-C6
 ```
 
-Generated code renders state. The non-generated firmware backend owns transport and physical Wi-Fi truth. Hosted Connectivity Runtime is generated platform infrastructure and must not enter any Interactive Asset runtime family.
+Generated code renders state. The non-generated firmware backend owns transport and physical Wi-Fi truth. Hosted scanning executes inside that backend through a blocking Hosted scan. AP count and AP records are retrieved immediately afterward in the same backend task, copied into owned runtime storage, deduplicated by SSID with strongest-record retention, sorted by Connected state and RSSI, and atomically installed as one completed model before LVGL projection. Hosted Connectivity Runtime is generated platform infrastructure and must not enter any Interactive Asset runtime family.
 
 The reusable asset-generation path feeding those runtime families is:
 
@@ -414,20 +414,22 @@ The generated System Runtime owns:
 - System Runtime page state
 - Wi-Fi Manager LVGL presentation, structured network rows and badges
 - password and forget dialogs, native keyboard and connected details
-- Scan, Refresh, selection, Connect, Disconnect, Reconnect and Forget callbacks
+- Scan and Refresh callbacks that invoke the same backend scan-intent path
+- selection, Connect, Disconnect, Reconnect and Forget callbacks
 - periodic structured backend snapshot/network projection
+- completed-model row visibility and list-layout projection
 - projection pause while password entry is active
 - internal Wi-Fi System navigation
 
 These responsibilities remain internal to generated `90_Studio_Export.c`. They are not added to `userEventHooks`, do not create declarations or stubs in `95_UserEvents.*`, and are not part of the public developer callback API.
 
-The generated System Runtime does not own scanning implementation, credentials, reconnect policy, transport, DHCP or ESP-IDF calls. Those responsibilities belong to `30_WIFI.c`.
+The generated System Runtime does not own Hosted scan execution, AP retrieval, credentials, reconnect policy, transport, DHCP or ESP-IDF calls. Those responsibilities belong to `30_WIFI.c`. Generated LVGL projects completed backend snapshots and network models only.
 
 ### Generated Wi-Fi API boundary
 
 No Wi-Fi User Event hooks are generated. No Wi-Fi public setter APIs are generated. The Wi-Fi System Runtime remains internally generated.
 
-The generated page owns presentation, password dialog, reusable keyboard, network rows, connected details, backend projection and UI intent. It consumes `fg_wifi_snapshot_t` and `fg_wifi_network_t` from `30_WIFI`; it never becomes the source of physical Wi-Fi truth. Scanning implementation, persisted credentials, reconnect policy, transport, DHCP and ESP-IDF remain backend-owned. Physical firmware currently supports one persisted ESP-IDF STA configuration, not a multi-network credential database. `95_UserEvents.c` remains unrelated to the Wi-Fi System UI.
+The generated page owns presentation, password dialog, reusable keyboard, network rows, row visibility and layout, connected details, completed-model backend projection and UI intent. Scan and Refresh both call `fg_wifi_scan_start()`. It consumes completed `fg_wifi_snapshot_t` and `fg_wifi_network_t` models from `30_WIFI`; it never becomes the source of physical Wi-Fi truth or performs Hosted scanning. Scanning implementation, AP retrieval, persisted credentials, reconnect policy, transport, DHCP and ESP-IDF remain backend-owned. Physical firmware currently supports one persisted ESP-IDF STA configuration, not a multi-network credential database. `95_UserEvents.c` remains unrelated to the Wi-Fi System UI.
 
 ## Hosted configuration boundary
 
@@ -1601,17 +1603,22 @@ Physically confirmed:
 - real ESP32-P4 brightness control through `bsp_display_brightness_set()`
 - current-session brightness retention
 - generated Wi-Fi Manager
-- Scan and Refresh with visible structured SSID rows
+- Scan and Refresh through the same Hosted backend path
+- live Hosted scan results and a populated Available Networks list
 - live RSSI and security
-- Connected and Saved badges
+- Connected and Saved markers
+- repeated Scan and Refresh replacing previous results
+- no duplicate or stale SSID rows observed
 - password dialog, password masking and Show / Hide
 - reusable native keyboard visibility, password entry, Done and Cancel
 - correct top-layer keyboard geometry and touch interaction
 - Connect, Disconnect, Reconnect and Forget workflows
+- complete connection workflow physically proven
 - connected details including gateway, station MAC and AP BSSID
 - deterministic Browser Preview parity
 - approximately 63 FPS after keyboard optimisation
 - Interactive Assets remain alive and operational while System Runtime pages are active and after return to the application
+- only minor UI polish remains
 
 ### Hosted Wi-Fi and SD coexistence path
 
@@ -1752,6 +1759,8 @@ Do not preserve historical suite totals here. Unrelated repository fixtures or p
 | Application disappears after closing System | generated application container | close callback, application hidden flag and foreground ordering |
 | Container visibility switching is incorrect | generated System callbacks | all persistent container pointers and hide/show order |
 | Hosted transport fails | `sdkconfig.defaults` | Hosted SDIO configuration |
+| Scan works but Refresh does not | generated Scan callback and generated Refresh callback | both invoke `fg_wifi_scan_start()` |
+| Rows remain blank after scan | backend completed network model and generated LVGL projection | row visibility assignment and list rebuild |
 | Structured network rows do not populate | generated backend projection | `30_WIFI` structured cache and `fg_wifi_get_networks()` |
 | Connected details are missing or unreadable | generated detail labels and explicit styles | `fg_wifi_snapshot_t`, text color and opacity |
 | Reconnect does nothing | generated reconnect callback | `fg_wifi_reconnect()` and persisted STA configuration |
@@ -1878,6 +1887,11 @@ Preserve these rules:
 63. `95_UserEvents.c` remains unrelated to Wi-Fi System UI.
 64. `sdkconfig.defaults` owns the permanent Hosted configuration.
 65. Generated firmware assumes, but does not define, Hosted transport configuration.
+66. Scan and Refresh must always use the same backend scan path.
+67. Generated LVGL owns Wi-Fi presentation only.
+68. Hosted Connectivity Runtime owns physical scan execution and AP retrieval.
+69. Completed backend models are projected into LVGL.
+70. Generated code must never duplicate Hosted scan logic.
 
 ## Extension rule
 

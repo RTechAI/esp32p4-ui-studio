@@ -108,6 +108,28 @@ describe('built-in System LVGL export', () => {
     expect(generated.code).toContain('fg_wifi_reconnect();')
     expect(generated.code).toContain('fg_system_wifi_password_dialog')
     expect(generated.code).toContain('fg_system_wifi_network_rows')
+    expect(generated.code).toContain('No Wi-Fi networks found')
+    expect(generated.code).toContain(
+      'lv_obj_update_layout(fg_system_wifi_network_container);',
+    )
+  })
+
+  it('styles every Wi-Fi network row state from the exported palette', () => {
+    ;[
+      'lv_color_hex(0x162436), 0',
+      'lv_color_hex(0x42E8FF), LV_STATE_PRESSED',
+      'lv_color_hex(0x42E8FF), LV_STATE_FOCUSED',
+      'lv_color_hex(0x42E8FF), LV_STATE_FOCUS_KEY',
+      'lv_color_hex(0x42E8FF), LV_STATE_CHECKED',
+      'lv_color_hex(0x162436), LV_STATE_DISABLED',
+      'LV_OPA_40, LV_STATE_DISABLED',
+    ].forEach(style => expect(generated.code).toContain(style))
+    expect(generated.code).toContain(
+      'lv_obj_add_state(fg_system_wifi_network_rows[i], LV_STATE_CHECKED)',
+    )
+    expect(generated.code).not.toContain(
+      'lv_obj_set_style_bg_color(fg_system_wifi_network_rows[i], lv_color_hex(0x0000FF)',
+    )
   })
 
   it('opens a shared native keyboard only when the password field is focused', () => {
@@ -156,6 +178,30 @@ describe('built-in System LVGL export', () => {
     expect(generated.code).toContain(
       'if (!fg_system_wifi_page || !fg_system_wifi_page_active) return;',
     )
+    expect(generated.code).toContain(
+      'if (!fg_wifi_scan_in_progress()) (void)fg_wifi_scan_start();',
+    )
+  })
+
+  it('uses one asynchronous hosted scan task and atomically replaces results', () => {
+    const runtime = fs.readFileSync(
+      path.resolve(__dirname, '../../../firmware/ForgeUI-One/main/30_WIFI.c'),
+      'utf8',
+    )
+    expect(runtime).toContain(
+      'esp_err_t err = esp_wifi_scan_start(&config, true);',
+    )
+    expect(runtime).toContain(
+      'xTaskCreate(hosted_scan_task, "fg_wifi_scan", 4096, NULL, 5, NULL)',
+    )
+    expect(runtime).toContain(
+      'memcpy(g_networks, collected, sizeof(g_networks));',
+    )
+    expect(runtime).toContain('g_network_count = collected_count;')
+    expect(runtime).toContain('memset(g_networks, 0, sizeof(g_networks));')
+    expect(runtime).toContain('g_network_count = 0;')
+    expect(runtime).toContain('taskENTER_CRITICAL(&g_network_lock);')
+    expect(runtime).not.toContain('g_scan_done_pending')
   })
 
   it('projects complete physical connected details from the backend snapshot', () => {
