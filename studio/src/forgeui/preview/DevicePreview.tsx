@@ -3,6 +3,7 @@ import { Box, Text, HStack } from '@chakra-ui/react'
 import { FORGEUI_ACTIVE_DEVICE } from '~forgeui/ForgeUIDeviceConfig'
 import { renderForgePreview } from './forgePreviewRenderer'
 import { useForgeTheme } from '~forgeui/theme/ForgeThemeContext'
+import { ForgeUISystemSurface } from '~forgeui/system'
 
 interface DevicePreviewProps {
   components: IComponents
@@ -119,12 +120,14 @@ const DevicePreview: React.FC<DevicePreviewProps> = ({
           borderRadius="12px"
           overflow="hidden"
         >
-          {root
-            ? renderForgePreview({
-                component: root,
-                components,
-              })
-            : null}
+          <ForgeUISystemSurface>
+            {root
+              ? renderForgePreview({
+                  component: root,
+                  components,
+                })
+              : null}
+          </ForgeUISystemSurface>
         </Box>
       </Box>
     </Box>

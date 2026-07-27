@@ -2,7 +2,7 @@
 
 ## Current proven save point
 
-**FORGEUI_INTERACTIVE_ASSETS__COMPLETE_WORKFLOW_PARITY__SHARED_VISIBLE_BOUNDS__CONTAIN_FIT_SCALING__READY_FOR_FEATURE_REVIEW__2026-07-27**
+**FORGEUI_SYSTEM_INTERFACE__LVGL_RUNTIME__DISPLAY_BRIGHTNESS__ESP32P4_PROVEN__2026-07-27**
 
 ## Purpose and scope
 
@@ -17,7 +17,7 @@ This document remains separate from `02_DEVELOPER_CODE_MAP.md`:
 
 ```text
 02_DEVELOPER_CODE_MAP.md
-  → Whole Studio and Interactive Asset subsystem map
+  → Whole Studio, System Runtime and Interactive Asset subsystem map
 
 03_ForgeUI_Generated_Export_API_Code_Map.md
   → Generated firmware API, file ownership, hook, and public-setter boundary
@@ -48,13 +48,30 @@ Three-Position Input Runtime
 Binary Output Runtime
 ├── Interactive Light
 └── Interactive Status Indicator
+
+System Runtime
+├── Application Container
+├── System Launcher
+└── Brightness Page
 ```
 
 Button is momentary input. Toggle Switch is persistent boolean input. Three-Position Toggle is persistent enum input. Light and Status Indicator are developer-controlled outputs.
 
+System Runtime is generated platform code. Its current implementation uses a persistent application container, System launcher container and Brightness container. Navigation follows:
+
+```text
+Application
+→ System
+→ Brightness
+→ System
+→ Application
+```
+
+Navigation currently switches container visibility. It does not recreate the application or its Interactive Assets. Interactive Assets remain alive while System pages are active.
+
 For all five placed Interactive Asset component branches, persisted Canvas `x/y/w/h` is the generated geometry source of truth. State-image controls use that final geometry for the parent object or transparent container and centre a non-clickable child image inside it. Every required state shares one safe contain-fit scale; state switching changes only the source, not geometry. Dimension resolution uses uploaded-asset registry metadata, PNG IHDR dimensions and generated LVGL descriptors, with scale 256 only as the final safe fallback and valid scales above or below 256. Linked fitted assets are consumed automatically when their IDs replace the original state references. Browser Preview wrappers preserve persisted component geometry, and type-specific preview renderers perform contain-fit rendering inside those bounds. Browser Preview therefore follows the same component-authoritative geometry model as Canvas and generated LVGL.
 
-Runtime direction remains unchanged:
+Interactive Asset API direction remains unchanged:
 
 ```text
 Button         -> FG_On_*_Clicked(void)
@@ -129,6 +146,26 @@ Generated FG_On_* hook
         ↓
 Developer application logic
 ```
+
+The generated System Runtime path is:
+
+```text
+Application
+        ↓
+Gear Launcher
+        ↓
+System Runtime
+        ↓
+Brightness Page
+        ↓
+FG_Set_Display_Brightness()
+        ↓
+bsp_display_brightness_set()
+        ↓
+ESP32-P4 Backlight
+```
+
+System Runtime is generated. It does not generate developer callbacks and is not an Interactive Asset. `FG_Set_Display_Brightness()` is an internal generated hardware bridge, not a public User Events API.
 
 The reusable asset-generation path feeding those runtime families is:
 
@@ -298,6 +335,20 @@ Input hooks may be void click hooks, bool state hooks or strongly typed enum sta
 
 Do not implement output controls as fake click hooks. Do not put input-event application logic inside generated UI code.
 
+### System Runtime: generated platform code remains internal
+
+The generated System Runtime owns:
+
+- `FG_Set_Display_Brightness()`
+- System page switching
+- container visibility state
+- gear launcher behavior
+- Brightness slider behavior
+- current-session brightness value
+- System Runtime page state
+
+These responsibilities remain internal to generated `90_Studio_Export.c`. They are not added to `userEventHooks`, do not create declarations or stubs in `95_UserEvents.*`, and are not part of the public developer callback API.
+
 ## LVGL code generator
 
 ### Primary file
@@ -356,6 +407,16 @@ Runtime generation assumes that its candidate result will pass the dedicated cli
 - generated public output APIs and declaration metadata
 - calls from generated runtime code into developer hooks
 - uniqueness of generated hook and setter names
+- persistent application container generation
+- System launcher container generation
+- Brightness container generation
+- generated gear launcher
+- generated Back navigation
+- container visibility switching
+- generated Brightness slider and percentage label
+- current-session System brightness state
+- internal `FG_Set_Display_Brightness()` bridge
+- `bsp_display_brightness_set()` hardware integration
 
 ### Does not own
 
@@ -371,6 +432,8 @@ Interactive Light introduced the Binary Output Runtime. Interactive Status Indic
 The exporter emits Three-Position runtime code that uses `fg_three_way_state_t`; the enum itself is materialized by the user-event header generator in `95_UserEvents.h`.
 
 Do not create a separate Button, Toggle, Three-Position, Light or Status Indicator exporter, or a parallel runtime generator.
+
+The same exporter owns the built-in System Runtime. It creates the application, System launcher and Brightness containers once, then generates internal callbacks that switch `LV_OBJ_FLAG_HIDDEN`. Interactive Assets remain instantiated inside the application container. System controls do not contribute developer hook metadata.
 
 ## Component export traversal
 
@@ -1017,9 +1080,18 @@ Owns generated implementation:
 - generated Button, Toggle, Three-Position and Binary Output LVGL descriptor fallback helpers
 - Light public setter implementations
 - Interactive Status Indicator public setter implementations
+- generated System Runtime
+- persistent application, System launcher and Brightness containers
+- generated gear launcher
+- generated Back navigation and container visibility switching
+- generated Brightness slider, percentage label and current-session value
+- internal `FG_Set_Display_Brightness()` brightness control
+- Waveshare backlight call through `bsp_display_brightness_set()`
 - `fg_studio_export_create(...)`
 
-It must not contain customer hardware behavior or permanent application logic.
+These System additions are generated automatically with the application. They are replaceable runtime integration, not developer-owned product logic.
+
+It must not contain customer product behavior or permanent application logic. The generated backlight bridge is built-in ForgeUI platform integration and remains internal.
 
 ### `90_Studio_Export.h`
 
@@ -1395,6 +1467,19 @@ Physically confirmed:
 
 The proof validates the current component instance and generated runtime. It does not imply unperformed multi-instance stress coverage.
 
+### System Runtime path
+
+Physically confirmed:
+
+- generated gear launcher
+- generated System launcher
+- generated Brightness page
+- generated Back navigation
+- generated Brightness slider and live percentage
+- real ESP32-P4 brightness control through `bsp_display_brightness_set()`
+- current-session brightness retention
+- Interactive Assets remain alive and operational while System Runtime pages are active and after return to the application
+
 ### System health
 
 - Wi-Fi READY
@@ -1402,12 +1487,14 @@ The proof validates the current component instance and generated runtime. It doe
 - SD READY
 - no crash after interaction
 
-The Button, exercised Toggle Switch, Three-Position input-hook path, and shared Light/Status Indicator Binary Output setter path are implemented and physically proven within the scopes stated above. Keyboard geometry, alignment, row fill and functional special keys are also proven on the 1024x600 ESP32-P4 display.
+The Button, exercised Toggle Switch, Three-Position input-hook path, shared Light/Status Indicator Binary Output setter path and generated System Runtime are implemented and physically proven within the scopes stated above. Keyboard geometry, alignment, row fill and functional special keys are also proven on the 1024x600 ESP32-P4 display.
 
 ## Automated Validation
 
 ### Current validation boundary
 
+- System Runtime exporter regressions cover persistent containers, gear generation, internal page callbacks, visibility switching, the `10–100` Brightness slider and hardware bridge;
+- Studio and Browser Preview System regressions cover navigation, live brightness, session retention, disabled placeholders and preservation of application interaction;
 - focused LVGL exporter regressions pass;
 - Keyboard exporter geometry, call-order and control-width regressions pass;
 - State Sheet and crop-pipeline tests pass;
@@ -1495,12 +1582,21 @@ Do not preserve historical suite totals here. Unrelated repository fixtures or p
 | Linker reports missing Binary Output setter | `90_Studio_Export.h/.c` | exact Light or Status Indicator setter declaration/definition |
 | Physical behavior differs from export | generated C and symbols | LVGL object wiring and copied asset sources |
 | Canvas, Browser Preview, live and standalone sizes differ | persisted component geometry and `generateForgeUILvglCode()` | shared generator result, contain-fit scale, centring and selected linked state assets |
+| Gear missing | `ForgeUILvglExport.ts` System Runtime generation | generated `system_gear`, application container and foreground ordering |
+| System Runtime is not generated | `generateForgeUILvglCode()` output | System container construction in generated `90_Studio_Export.c` |
+| System page does not open | generated `fg_system_open_cb()` | gear event registration, System container pointer and hidden flags |
+| Brightness slider is missing | generated Brightness container construction | `lv_slider_create`, range and object visibility |
+| Brightness updates preview only | generated `FG_Set_Display_Brightness()` | `bsp_display_brightness_set()`, BSP include and initialized display brightness |
+| Brightness updates hardware only | `ForgeUISystemContext.tsx` and `ForgeUISystemSurface.tsx` | preview slider state, label and brightness filter |
+| System navigation fails | generated `fg_system_show_page()` and Back callbacks | target container and `LV_OBJ_FLAG_HIDDEN` changes |
+| Application disappears after closing System | generated application container | close callback, application hidden flag and foreground ordering |
+| Container visibility switching is incorrect | generated System callbacks | all three persistent container pointers and hide/show order |
 
 ## File responsibility summary
 
 ### `studio/src/forgeui/ForgeUILvglExport.ts`
 
-Owns generated LVGL source, all five Interactive Asset branches, shared Button/Toggle/Three-Position/Binary Output runtimes, two-state and three-state contain-fit calculations and descriptor helpers, final persisted component geometry, component-sized parent/container objects, centred child images, Keyboard native map/alignment/control widths/styles/final geometry ordering, per-instance records, sanitized unique hook names, setter names, linked cropped asset consumption, and all exporter metadata. Never writes files directly.
+Owns generated LVGL source, all five Interactive Asset branches, shared Button/Toggle/Three-Position/Binary Output runtimes, the built-in System Runtime, persistent application/System/Brightness containers, internal System navigation, generated brightness hardware integration, two-state and three-state contain-fit calculations and descriptor helpers, final persisted component geometry, component-sized parent/container objects, centred child images, Keyboard native map/alignment/control widths/styles/final geometry ordering, per-instance records, sanitized unique hook names, setter names, linked cropped asset consumption, and all exporter metadata. Never writes files directly.
 
 ### `studio/src/forgeui/ForgeUIUploadedAssetRegistry.ts`
 
@@ -1528,7 +1624,7 @@ Owns validation of accepted metadata; normalization and generation of void, bool
 
 ### `90_Studio_Export.c`
 
-Owns generated UI plus shared Button, Toggle Input, Three-Position Input, and Binary Output runtime implementations; per-instance records; calls to all input hooks; and Light/Status Indicator setter implementations. Never contains developer product logic.
+Owns generated UI plus shared Button, Toggle Input, Three-Position Input, Binary Output and System Runtime implementations; persistent application/System/Brightness containers; gear and Back navigation; internal brightness state and hardware bridge; per-instance records; calls to all input hooks; and Light/Status Indicator setter implementations. Never contains developer product logic.
 
 ### `90_Studio_Export.h`
 
@@ -1595,8 +1691,34 @@ Preserve these rules:
 43. Canvas, Browser Preview, live firmware and standalone export must remain visually equivalent for the same persisted component geometry and state assets.
 44. Visible-artwork fitting exports linked cropped state assets and never modifies the original uploaded images.
 45. Browser Preview wrappers preserve persisted component geometry before type-specific contain-fit rendering.
+46. System Runtime is generated separately from Interactive Assets.
+47. System Runtime generates no User Event callbacks.
+48. Interactive Assets remain alive while System Runtime pages are active.
+49. System Runtime currently uses generated persistent-container visibility switching.
+50. Closing System restores the existing application container without recreating it.
+51. Future animation must preserve generated runtime ownership, application state and Interactive Asset lifetime.
 
 ## Extension rule
+
+### Future System Runtime pages
+
+Current implemented pages:
+
+- Launcher
+- Brightness
+
+Future pages:
+
+- Wi-Fi
+- Bluetooth
+- Sound
+- Storage
+- Device
+- Diagnostics
+
+Future pages reuse the existing generated System Runtime, internal navigation callbacks and persistent container ownership. They do not become Interactive Assets, do not generate User Event callbacks and extend the generated System Runtime alongside the application.
+
+These future pages are not implemented today. No future hardware or public API is defined by this extension rule.
 
 Current proven runtime families:
 
@@ -1611,6 +1733,11 @@ Three-Position Input Runtime
 Binary Output Runtime
   ├── Interactive Light
   └── Interactive Status Indicator
+
+System Runtime
+  ├── Application Container
+  ├── System Launcher
+  └── Brightness Page
 ```
 
 Future generated APIs must follow the established direction model:
@@ -1640,6 +1767,8 @@ Reusable generation workflow
 Toggle uses the pattern for two states and Three-Position uses it for three. The architectural extension point is an N-state generation workflow: one master, N linked crop regions, an explicit unique state mapping, and one atomic registration boundary. This describes how a future state set should feed an existing or deliberately extended runtime contract; it does not claim that additional widgets or runtime families are implemented.
 
 ## Permanent architecture statement
+
+The built-in System Runtime is part of the interface ForgeUI generates. It extends generated platform behavior alongside the application without changing the developer callback boundary or becoming an Interactive Asset.
 
 > ForgeUI generates the interface. ForgeUI exposes the interface. The developer supplies the application.
 

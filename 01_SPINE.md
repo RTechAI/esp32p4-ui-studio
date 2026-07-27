@@ -1,6 +1,6 @@
 # Current Save Point
 
-**FORGEUI_INTERACTIVE_ASSETS__COMPLETE_WORKFLOW_PARITY__SHARED_VISIBLE_BOUNDS__CONTAIN_FIT_SCALING__READY_FOR_FEATURE_REVIEW__2026-07-27**
+**FORGEUI_SYSTEM_INTERFACE__LVGL_RUNTIME__DISPLAY_BRIGHTNESS__ESP32P4_PROVEN__2026-07-27**
 
 ## Current Proven Status..
 
@@ -31,6 +31,67 @@ Interactive Button, Interactive Toggle Switch, Interactive Three-Position Toggle
 Two-state Button Normal/Pressed, Toggle OFF/ON, Light OFF/ON and Status Indicator OFF/ON assets use one stable union crop. Three-Position Toggle uses the compatible LEFT/CENTER/RIGHT union path. Registry updates invalidate stale same-ID measurements and refresh configured helpers and previews without component reselection. Canvas, Browser Preview and generated LVGL output retain parity where each workflow has been physically verified.
 
 Project Health Phases 1 and 2 are complete. The repository has clean TypeScript and ESLint baselines, protected asset references, and client- and server-side export validation before generated firmware files are written. Focused Creator, State Sheet, crop, image-pipeline and exporter regressions provide the current automated baseline. The project is ready for continued UI polish on top of its physically proven runtime families.
+
+ForgeUI now also includes a built-in System Interface in addition to the Interactive Asset Framework. The System Interface is proven through Studio, Browser Preview, generated LVGL and physical ESP32-P4 hardware.
+
+Current implemented System pages:
+
+- System Launcher
+- Display / Brightness
+
+Navigation is proven through the complete current hierarchy:
+
+```text
+Application
+→ System
+→ Display
+→ System
+→ Application
+```
+
+Display brightness is physically connected to the ESP32-P4 backlight through `bsp_display_brightness_set()`. Brightness changes live while the slider is moved and remains in memory during the current device session.
+
+## Built-in System Interface
+
+### Architecture
+
+The System Interface is a reusable built-in platform layer. It is intentionally separate from:
+
+- Interactive Assets
+- user project screens
+- generated user callbacks
+
+It is generated alongside the user's application without becoming part of the project component tree or the Interactive Asset registry. System-owned controls use internal navigation and hardware callbacks rather than generating `FG_On_*` user hooks.
+
+Studio and Browser Preview share a typed System page and session-state model through:
+
+```text
+ForgeUISystemPage
+├── launcher
+├── brightness
+├── wifi
+├── bluetooth
+├── sound
+├── storage
+├── device
+└── diagnostics
+```
+
+Only Launcher and Brightness are implemented today. Wi-Fi, Bluetooth, Sound, Storage, Device and Diagnostics are visible future page identifiers and disabled launcher placeholders; their system functions are not implemented.
+
+The shared provider owns the active System page, open and back navigation, and current-session brightness. The shared surface renders the same built-in interface over the Studio Canvas and Browser Preview while keeping normal project components separate.
+
+### LVGL runtime
+
+Generated LVGL creates:
+
+- one persistent application container
+- one System launcher container
+- one Brightness container
+
+The current hardware-safe navigation implementation uses immediate container visibility switching. It does not recreate screens, project widgets or Interactive Assets. Existing Interactive Assets remain instantiated and retain their state while the System Interface is open, then continue working after return to the application.
+
+The generated gear launcher and System controls use internal LVGL event callbacks. The Brightness slider listens for live value changes, clamps the value to `10–100`, updates its percentage label and calls the Waveshare BSP through the generated internal `FG_Set_Display_Brightness()` wrapper and `bsp_display_brightness_set()`. Brightness is session-only and is not persisted.
 
 ## Project Health Phase 1 — Clean Baseline
 
@@ -742,13 +803,25 @@ The current implementation does not introduce a separate `InteractiveToggleSwitc
 - `src/forgeui/ai/ForgeUIAIImagePipeline.ts`
 - `src/pages/api/forgeui-ai-hero.ts`
 
+### Built-in System Interface
+
+- `src/forgeui/system/`
+- `src/forgeui/system/ForgeUISystemContext.tsx` — typed page navigation and current-session brightness state
+- `src/forgeui/system/ForgeUISystemSurface.tsx` — shared Studio Canvas and Browser Preview System surface
+- `src/forgeui/system/ForgeUISystemSurface.test.tsx`
+- `src/forgeui/system/index.ts`
+- `src/pages/_app.tsx` — owns the shared System provider boundary
+- `src/components/editor/Editor.tsx` — hosts the System surface at the Studio device boundary
+- `src/forgeui/preview/DevicePreview.tsx` — hosts the same System surface at the Browser Preview device boundary
+
 ### Exporter
 
 - `src/forgeui/ForgeUILvglExport.ts`
+- `src/forgeui/ForgeUILvglExport.system.test.ts`
 - `src/forgeui/ForgeUILvglExport.keyboard.test.ts`
 - `export-server.js`
 
-The exporter owns the shared generated runtime implementations and unique per-instance records. `90_Studio_Export.*` remains generated and replaceable; live-firmware `95_UserEvents.*` may be regenerated, while standalone-export copies become developer-owned.
+The exporter owns the shared generated runtime implementations, unique per-instance records and built-in System containers and callbacks. `90_Studio_Export.*` remains generated and replaceable; live-firmware `95_UserEvents.*` may be regenerated, while standalone-export copies become developer-owned. The System Interface does not add generated user-event hooks.
 
 ### Generated firmware
 
@@ -810,6 +883,17 @@ The exporter owns the shared generated runtime implementations and unique per-in
 - Centred contain-fit scaling and correct OFF/ON rendering are physically proven.
 - The shared generated Binary Output runtime remained stable through the geometry parity check.
 
+### System Interface
+
+- The generated gear launcher is visible, touch-friendly and physically proven.
+- Application-to-System navigation operates through internal LVGL callbacks.
+- The System launcher and Display / Brightness page render correctly at `1024 × 600`.
+- The live Brightness slider updates its percentage while dragging.
+- Brightness physically controls the ESP32-P4 display backlight through `bsp_display_brightness_set()`.
+- Brightness remains selected while navigating during the current device session.
+- Back navigation returns from Display to System and from System to the existing application.
+- Existing Interactive Assets remain alive while System is open and continue working after leaving System.
+
 ### System health
 
 - Wi-Fi READY
@@ -840,6 +924,8 @@ LVGL normalizes width units independently within each row. The physical result n
 
 ## Verified Automated Status
 
+- Built-in System regressions cover launcher opening and closing, Display navigation, Back navigation, live brightness state, current-session retention, disabled placeholder behavior and preservation of existing application interaction.
+- LVGL System exporter regressions cover the persistent application container, internal gear callback, System and Brightness containers, disabled cards, immediate visibility navigation, live `10–100` slider behavior and Waveshare BSP brightness integration.
 - Focused configured-helper, direct Creator, registry measurement, shared selection-border resize, visible-bounds, Canvas preview, Browser Preview, persistence and exporter regressions pass across the five Interactive Assets.
 - Browser Preview wrapper geometry and Interactive Browser Preview parity regressions cover saved component bounds, positioning and centred contain-fit rendering.
 - Binary Output regressions cover the shared exporter path, Status Indicator LVGL scaling, component-sized container generation and centred child-image generation.
@@ -852,6 +938,35 @@ LVGL normalizes width units independently within each row. The physical result n
 - A known unrelated server fixture/source absence can fail the built-in theme-source preflight when the expected Neural Core or Carbon Fiber generated C files are not present; this does not weaken the validation boundary.
 
 ## Architectural Significance and Extension Pattern
+
+ForgeUI now consists of four major reusable layers:
+
+```text
+Studio
+├── AI
+├── Canvas
+└── Browser Preview
+
+System Runtime
+├── System Launcher
+├── Brightness
+└── Future System pages
+
+Interactive Asset Runtime
+├── Interactive Inputs
+├── Three-Position Inputs
+└── Binary Outputs
+
+Generated Firmware
+├── LVGL
+├── ESP-IDF
+├── User Events
+└── Hardware Integration
+```
+
+The System Interface is not an Interactive Asset. It is a reusable platform service generated alongside the user's application. It does not enter the Interactive Asset registry, does not become a user project screen and does not generate user callbacks.
+
+This separation lets future built-in Wi-Fi, Bluetooth, Sound, Storage, Device and Diagnostics services reuse the typed System page, shared navigation and generated container framework without affecting project screens or changing existing Interactive Asset runtime contracts. These services remain future work; only the System Launcher and Display / Brightness are implemented and physically proven today.
 
 Interactive Button established the first **Interactive Input Runtime** within the Interactive Asset Framework.
 
@@ -965,6 +1080,13 @@ These remain future concepts only. They are not implemented or physically proven
 # Save Point History
 
 Save points are ordered newest to oldest. Detailed subsystem engineering is maintained in the Developer Code Maps.
+
+## FORGEUI_SYSTEM_INTERFACE__LVGL_RUNTIME__DISPLAY_BRIGHTNESS__ESP32P4_PROVEN__2026-07-27
+
+- **What changed:** Introduced the built-in System Interface across Studio, Browser Preview and generated LVGL; implemented the System Launcher and Display / Brightness page; connected live brightness to the physical ESP32-P4 backlight.
+- **Why it changed:** Device-level platform functions needed a reusable home that remains separate from user project screens, Interactive Assets and generated user callbacks.
+- **Final architecture:** Shared typed System state drives Studio and Browser Preview, while generated LVGL keeps persistent application, System launcher and Brightness containers and navigates through immediate visibility switching. The Brightness slider calls `bsp_display_brightness_set()` through an internal clamped wrapper.
+- **Proven result:** Studio, Browser Preview, LVGL and physical ESP32-P4 parity are achieved for the current System hierarchy; live backlight control and return navigation are proven, existing Interactive Assets remain alive, and the framework is ready for future Wi-Fi, Bluetooth, Audio, Storage, Device and Diagnostics pages without claiming those services are implemented.
 
 ## FORGEUI_INTERACTIVE_ASSETS__COMPLETE_WORKFLOW_PARITY__SHARED_VISIBLE_BOUNDS__CONTAIN_FIT_SCALING__READY_FOR_FEATURE_REVIEW__2026-07-27
 

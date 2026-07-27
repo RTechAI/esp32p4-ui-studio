@@ -9,6 +9,7 @@ import { wrapper } from '~core/store'
 import { ErrorBoundary as BugsnagErrorBoundary } from '~utils/bugsnag'
 import AppErrorBoundary from '~components/errorBoundaries/AppErrorBoundary'
 import { ForgeThemeProvider } from '~forgeui/theme/ForgeThemeContext'
+import { ForgeUISystemProvider } from '~forgeui/system'
 import { AppProps } from 'next/app'
 
 const Main = ({ Component, pageProps }: AppProps) => {
@@ -40,7 +41,9 @@ const Main = ({ Component, pageProps }: AppProps) => {
 
       <AppErrorBoundary>
         <ForgeThemeProvider>
-          <Component {...pageProps} />
+          <ForgeUISystemProvider>
+            <Component {...pageProps} />
+          </ForgeUISystemProvider>
         </ForgeThemeProvider>
       </AppErrorBoundary>
     </ChakraProvider>

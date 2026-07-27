@@ -152,7 +152,7 @@ describe('Interactive Button LVGL export compatibility', () => {
     })
 
     expect(result.code).toContain(
-      'lv_obj_t * fg_system_status_output_obj = lv_obj_create(parent);',
+      'lv_obj_t * fg_system_status_output_obj = lv_obj_create(fg_application_page);',
     )
     expect(result.code).toContain(
       'lv_obj_set_pos(fg_system_status_output_obj, 200, 36);',
@@ -529,7 +529,7 @@ describe('Interactive Button LVGL export compatibility', () => {
     expect(result.code).toContain('typedef struct')
     expect(result.code).toContain('} fg_binary_output_t;')
     expect(result.code).toContain('static void fg_binary_output_set(')
-    expect(result.code).toContain('lv_obj_t * fg_status_light_output_obj = lv_obj_create(parent);')
+    expect(result.code).toContain('lv_obj_t * fg_status_light_output_obj = lv_obj_create(fg_application_page);')
     expect(result.code).toContain('fg_status_light_output.image = lv_image_create(fg_status_light_output_obj);')
     expect(result.code).toContain('fg_binary_output_set(&fg_status_light_output, false);')
     expect(result.code).toContain('lv_obj_set_pos(fg_status_light_output_obj, 12, 34);')
@@ -545,7 +545,9 @@ describe('Interactive Button LVGL export compatibility', () => {
     expect(result.code).toContain('.off_src = &fg_upload_status_off,')
     expect(result.code).toContain('.on_src = &fg_upload_status_on,')
     expect(result.code).not.toContain('FG_On_StatusLight')
-    expect(result.code).not.toContain('lv_button_create(parent);')
+    expect(result.code).not.toContain(
+      'fg_status_light_output_obj = lv_button_create',
+    )
   })
 
   it('contain-fits both Light states from registry dimensions and centres them', () => {

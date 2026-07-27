@@ -27,6 +27,7 @@ import {
   reloadInteractiveAssets,
 } from '~forgeui/interactive'
 import { useForgeTheme } from '~forgeui/theme/ForgeThemeContext'
+import { ForgeUISystemSurface } from '~forgeui/system'
 
 const GRID_SIZE = FORGEUI_ACTIVE_DEVICE.gridSize
 
@@ -233,6 +234,7 @@ const heroStyle = heroBackground
         alignItems="center"
         flexDirection="column"
       >
+       <ForgeUISystemSurface>
        {(heroBackground || (textureId && textureId !== 'none')) && (
   <Box
     position="absolute"
@@ -265,6 +267,7 @@ const heroStyle = heroBackground
        />
       ),
       )}
+      </ForgeUISystemSurface>
       </Box>
     </Box>
   )
