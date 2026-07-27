@@ -1,13 +1,17 @@
 import React from 'react'
 import {
   Box,
+  Badge,
   Button,
+  Flex,
   Grid,
+  HStack,
   Slider,
   SliderFilledTrack,
   SliderThumb,
   SliderTrack,
   Text,
+  VStack,
 } from '@chakra-ui/react'
 import {
   FiArrowLeft,
@@ -36,7 +40,7 @@ type SystemCard = {
 
 export const FORGEUI_SYSTEM_PAGES: readonly SystemCard[] = [
   { page: 'brightness', label: 'Display', icon: FiSun, enabled: true },
-  { page: 'wifi', label: 'Wi-Fi', icon: FiWifi, enabled: false },
+  { page: 'wifi', label: 'Wi-Fi', icon: FiWifi, enabled: true },
   { page: 'bluetooth', label: 'Bluetooth', icon: FiBluetooth, enabled: false },
   { page: 'sound', label: 'Sound', icon: FiSpeaker, enabled: false },
   { page: 'storage', label: 'Storage', icon: FiHardDrive, enabled: false },
@@ -206,6 +210,165 @@ const BrightnessPage = () => {
   )
 }
 
+const WifiPage = () => {
+  const {
+    previewWifi,
+    scanPreviewWifi,
+    disconnectPreviewWifi,
+    goBackInSystemInterface,
+  } = useForgeUISystem()
+  const { palette } = useForgeTheme()
+  const canDisconnect =
+    previewWifi.state === 'connected' ||
+    previewWifi.state === 'connecting'
+
+  return (
+    <Box height="100%" data-testid="system-wifi-page">
+      <Header title="Wi-Fi" onBack={goBackInSystemInterface} />
+      <Badge
+        position="absolute"
+        top="29px"
+        right="28px"
+        colorScheme="orange"
+        fontSize="12px"
+        px="10px"
+        py="4px"
+        data-testid="wifi-preview-badge"
+      >
+        Simulated Preview
+      </Badge>
+      <Flex
+        height="calc(100% - 82px)"
+        px="28px"
+        py="20px"
+        gap="20px"
+      >
+        <VStack width="45%" align="stretch" spacing="14px">
+          <Box
+            border={`1px solid ${palette.border}`}
+            bg={palette.surface}
+            borderRadius="12px"
+            px="20px"
+            py="16px"
+          >
+            <Text fontSize="13px" opacity={0.7}>Connection</Text>
+            <Text
+              data-testid="wifi-state"
+              fontSize="28px"
+              fontWeight="bold"
+              textTransform="capitalize"
+              color={palette.accent}
+            >
+              {previewWifi.scanInProgress
+                ? 'Scanning'
+                : previewWifi.state}
+            </Text>
+            <Grid
+              templateColumns="140px 1fr"
+              rowGap="7px"
+              mt="12px"
+              fontSize="15px"
+            >
+              <Text opacity={0.65}>Current network</Text>
+              <Text data-testid="wifi-ssid">
+                {previewWifi.ssid || '—'}
+              </Text>
+              <Text opacity={0.65}>IP address</Text>
+              <Text data-testid="wifi-ip">
+                {previewWifi.ip || '—'}
+              </Text>
+              <Text opacity={0.65}>Signal strength</Text>
+              <Text data-testid="wifi-rssi">
+                {previewWifi.rssi == null
+                  ? 'Unavailable'
+                  : `${previewWifi.rssi} dBm`}
+              </Text>
+              <Text opacity={0.65}>Status</Text>
+              <Text fontSize="13px">{previewWifi.statusText}</Text>
+            </Grid>
+          </Box>
+          <HStack spacing="10px">
+            <Button
+              flex="1"
+              onClick={scanPreviewWifi}
+              disabled={previewWifi.scanInProgress}
+              leftIcon={<FiWifi />}
+            >
+              {previewWifi.scanInProgress
+                ? 'Scanning…'
+                : 'Scan Networks'}
+            </Button>
+            <Button
+              flex="1"
+              onClick={disconnectPreviewWifi}
+              disabled={!canDisconnect}
+            >
+              Disconnect
+            </Button>
+          </HStack>
+          <Button disabled width="100%">
+            Connect
+          </Button>
+          <Text fontSize="12px" opacity={0.65} textAlign="center">
+            Select a network and enter a password in a future update.
+          </Text>
+        </VStack>
+        <Box
+          flex="1"
+          minWidth={0}
+          border={`1px solid ${palette.border}`}
+          bg={palette.surface}
+          borderRadius="12px"
+          px="18px"
+          py="14px"
+        >
+          <Text fontSize="20px" fontWeight="bold" mb="10px">
+            Available Networks
+          </Text>
+          <VStack
+            align="stretch"
+            spacing="6px"
+            maxHeight="400px"
+            overflowY="auto"
+            data-testid="wifi-network-list"
+          >
+            {previewWifi.scanInProgress && (
+              <Text py="18px" opacity={0.7}>
+                Scanning for nearby networks…
+              </Text>
+            )}
+            {!previewWifi.scanInProgress &&
+              previewWifi.networks.map(network => (
+                <Flex
+                  key={network.ssid}
+                  justify="space-between"
+                  align="center"
+                  minHeight="43px"
+                  px="12px"
+                  borderRadius="8px"
+                  bg={palette.surface2}
+                >
+                  <Text fontWeight="semibold">{network.ssid}</Text>
+                  <Text fontSize="13px" opacity={0.7}>
+                    {network.rssi == null
+                      ? ''
+                      : `${network.rssi} dBm`}
+                  </Text>
+                </Flex>
+              ))}
+            {!previewWifi.scanInProgress &&
+              previewWifi.networks.length === 0 && (
+                <Text py="18px" opacity={0.7}>
+                  No networks found. Tap Scan Networks.
+                </Text>
+              )}
+          </VStack>
+        </Box>
+      </Flex>
+    </Box>
+  )
+}
+
 const ForgeUISystemSurface: React.FC<{
   children: React.ReactNode
 }> = ({ children }) => {
@@ -280,9 +443,13 @@ const ForgeUISystemSurface: React.FC<{
           aria-hidden={!isOpen}
           data-testid="forgeui-system-panel"
         >
-          {page === 'brightness'
-            ? <BrightnessPage />
-            : <SystemLauncher />}
+          {page === 'brightness' ? (
+            <BrightnessPage />
+          ) : page === 'wifi' ? (
+            <WifiPage />
+          ) : (
+            <SystemLauncher />
+          )}
         </Box>
       </Box>
     </Box>

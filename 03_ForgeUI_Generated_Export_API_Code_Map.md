@@ -2,7 +2,7 @@
 
 ## Current proven save point
 
-**FORGEUI_SYSTEM_INTERFACE__LVGL_RUNTIME__DISPLAY_BRIGHTNESS__ESP32P4_PROVEN__2026-07-27**
+**FORGEUI_SYSTEM_INTERFACE__HOSTED_WIFI_SD_RECOVERY__SDIO_SLOT1_RESTORED__PHYSICAL_ESP32P4_PROVEN__2026-07-27**
 
 ## Purpose and scope
 
@@ -52,12 +52,19 @@ Binary Output Runtime
 System Runtime
 ├── Application Container
 ├── System Launcher
-└── Brightness Page
+├── Brightness Page
+└── Wi-Fi Page
+
+Hosted Connectivity Runtime
+├── ESP-Hosted
+├── Wi-Fi Remote
+├── ESP32-C6
+└── SDIO Slot 1
 ```
 
 Button is momentary input. Toggle Switch is persistent boolean input. Three-Position Toggle is persistent enum input. Light and Status Indicator are developer-controlled outputs.
 
-System Runtime is generated platform code. Its current implementation uses a persistent application container, System launcher container and Brightness container. Navigation follows:
+System Runtime is generated platform code. Its current implementation uses persistent Application, System Launcher, Brightness and Wi-Fi containers. Hosted Connectivity Runtime is platform infrastructure, not an Interactive Asset runtime.
 
 ```text
 Application
@@ -166,6 +173,35 @@ ESP32-P4 Backlight
 ```
 
 System Runtime is generated. It does not generate developer callbacks and is not an Interactive Asset. `FG_Set_Display_Brightness()` is an internal generated hardware bridge, not a public User Events API.
+
+Current generated System pages are:
+
+- Application
+- System Launcher
+- Brightness
+- Wi-Fi
+
+The generated Wi-Fi page owns labels, its Scan and Disconnect buttons, status text, SSID, RSSI, IP address and an internal refresh callback. It does not own `esp_wifi_init()`, scanning implementation, DHCP, Hosted transport or ESP-IDF APIs; those remain firmware backend responsibilities.
+
+## Hosted Connectivity Runtime
+
+The generated-to-platform boundary is:
+
+```text
+Generated LVGL Wi-Fi Page
+        ↓
+internal generated callbacks
+        ↓
+30_WIFI backend
+        ↓
+ESP-IDF Wi-Fi
+        ↓
+ESP-Hosted
+        ↓
+ESP32-C6
+```
+
+Generated code renders state. The non-generated firmware backend owns transport and physical Wi-Fi truth. Hosted Connectivity Runtime is generated platform infrastructure and must not enter any Interactive Asset runtime family.
 
 The reusable asset-generation path feeding those runtime families is:
 
@@ -346,8 +382,42 @@ The generated System Runtime owns:
 - Brightness slider behavior
 - current-session brightness value
 - System Runtime page state
+- Wi-Fi page LVGL objects and labels
+- Scan button and Disconnect button callbacks
+- periodic Wi-Fi state refresh
+- internal Wi-Fi System navigation
 
 These responsibilities remain internal to generated `90_Studio_Export.c`. They are not added to `userEventHooks`, do not create declarations or stubs in `95_UserEvents.*`, and are not part of the public developer callback API.
+
+The generated System Runtime does not own Wi-Fi credentials, scanning implementation, DHCP, reconnect logic or transport startup. Those responsibilities belong to `30_WIFI.c`.
+
+### Generated Wi-Fi API boundary
+
+No Wi-Fi User Event hooks are generated. No Wi-Fi public setter APIs are generated. The Wi-Fi System Runtime remains internally generated. Developer application code interacts with Wi-Fi through firmware APIs rather than generated `FG_On_*` or `FG_Set_*` functions.
+
+## Hosted configuration boundary
+
+Generated firmware assumes the proven Hosted configuration supplied by `firmware/ForgeUI-One/sdkconfig.defaults`:
+
+- ESP-Hosted enabled
+- SDIO Host Interface
+- SDMMC Slot 1
+- 4-bit
+- 40000 kHz
+- GPIO18
+- GPIO19
+- GPIO14
+- GPIO15
+- GPIO16
+- GPIO17
+- Reset GPIO54
+- active-high reset
+- reset delay 1500 ms
+- restart on failure
+- Wi-Fi Remote Hosted backend
+- ESP32-C6 target
+
+Generated firmware never hardcodes these values. They come from ESP-IDF configuration.
 
 ## LVGL code generator
 
@@ -410,6 +480,9 @@ Runtime generation assumes that its candidate result will pass the dedicated cli
 - persistent application container generation
 - System launcher container generation
 - Brightness container generation
+- Wi-Fi container, labels and actions
+- internal Wi-Fi Scan and Disconnect callbacks
+- periodic Wi-Fi backend-state refresh
 - generated gear launcher
 - generated Back navigation
 - container visibility switching
@@ -433,7 +506,7 @@ The exporter emits Three-Position runtime code that uses `fg_three_way_state_t`;
 
 Do not create a separate Button, Toggle, Three-Position, Light or Status Indicator exporter, or a parallel runtime generator.
 
-The same exporter owns the built-in System Runtime. It creates the application, System launcher and Brightness containers once, then generates internal callbacks that switch `LV_OBJ_FLAG_HIDDEN`. Interactive Assets remain instantiated inside the application container. System controls do not contribute developer hook metadata.
+The same exporter owns the built-in System Runtime. It creates the Application, System Launcher, Brightness and Wi-Fi containers once, then generates internal callbacks that switch `LV_OBJ_FLAG_HIDDEN`. Interactive Assets remain instantiated inside the application container. System controls do not contribute developer hook metadata. Generated Wi-Fi code renders backend state and sends Scan or Disconnect intent; it does not implement scanning, DHCP, reconnect logic or Hosted transport.
 
 ## Component export traversal
 
@@ -1081,7 +1154,9 @@ Owns generated implementation:
 - Light public setter implementations
 - Interactive Status Indicator public setter implementations
 - generated System Runtime
-- persistent application, System launcher and Brightness containers
+- persistent Application, System Launcher, Brightness and Wi-Fi containers
+- generated Wi-Fi labels, Scan button and Disconnect button
+- internal Wi-Fi callbacks and periodic backend-state refresh
 - generated gear launcher
 - generated Back navigation and container visibility switching
 - generated Brightness slider, percentage label and current-session value
@@ -1091,7 +1166,7 @@ Owns generated implementation:
 
 These System additions are generated automatically with the application. They are replaceable runtime integration, not developer-owned product logic.
 
-It must not contain customer product behavior or permanent application logic. The generated backlight bridge is built-in ForgeUI platform integration and remains internal.
+It must not contain customer product behavior or permanent application logic. The generated backlight bridge is built-in ForgeUI platform integration and remains internal. Wi-Fi credentials, scanning implementation, DHCP, reconnect logic and transport startup remain owned by `30_WIFI.c` and must not be generated.
 
 ### `90_Studio_Export.h`
 
@@ -1480,11 +1555,31 @@ Physically confirmed:
 - current-session brightness retention
 - Interactive Assets remain alive and operational while System Runtime pages are active and after return to the application
 
+### Hosted Wi-Fi and SD coexistence path
+
+The recovered physical proof includes:
+
+```text
+transport: Identified slave [esp32c6]
+H_API: Transport active
+FG_WIFI: STA started
+FG_WIFI: WiFi hosted init READY
+Station mode: Connected
+Got IP
+SD mounted OK
+SD TEST PASS
+```
+
+The physical ESP32-P4 run proved Hosted transport, Wi-Fi Runtime, SD coexistence, System Runtime and Interactive Asset Runtime operating simultaneously.
+
 ### System health
 
 - Wi-Fi READY
+- Wi-Fi connected
 - IP assigned
 - SD READY
+- SD TEST PASS
+- Hosted Wi-Fi and SD operating simultaneously
 - no crash after interaction
 
 The Button, exercised Toggle Switch, Three-Position input-hook path, shared Light/Status Indicator Binary Output setter path and generated System Runtime are implemented and physically proven within the scopes stated above. Keyboard geometry, alignment, row fill and functional special keys are also proven on the 1024x600 ESP32-P4 display.
@@ -1590,13 +1685,18 @@ Do not preserve historical suite totals here. Unrelated repository fixtures or p
 | Brightness updates hardware only | `ForgeUISystemContext.tsx` and `ForgeUISystemSurface.tsx` | preview slider state, label and brightness filter |
 | System navigation fails | generated `fg_system_show_page()` and Back callbacks | target container and `LV_OBJ_FLAG_HIDDEN` changes |
 | Application disappears after closing System | generated application container | close callback, application hidden flag and foreground ordering |
-| Container visibility switching is incorrect | generated System callbacks | all three persistent container pointers and hide/show order |
+| Container visibility switching is incorrect | generated System callbacks | all persistent container pointers and hide/show order |
+| Hosted transport fails | `sdkconfig.defaults` | Hosted SDIO configuration |
+| Generated Wi-Fi page empty | generated Wi-Fi refresh | backend status functions |
+| Scan button responds but list empty | generated refresh | `30_WIFI` scan processing |
+| Disconnect updates backend only | generated labels | periodic refresh |
+| Wi-Fi reconnects automatically | ESP-IDF Wi-Fi NVS | backend connect state |
 
 ## File responsibility summary
 
 ### `studio/src/forgeui/ForgeUILvglExport.ts`
 
-Owns generated LVGL source, all five Interactive Asset branches, shared Button/Toggle/Three-Position/Binary Output runtimes, the built-in System Runtime, persistent application/System/Brightness containers, internal System navigation, generated brightness hardware integration, two-state and three-state contain-fit calculations and descriptor helpers, final persisted component geometry, component-sized parent/container objects, centred child images, Keyboard native map/alignment/control widths/styles/final geometry ordering, per-instance records, sanitized unique hook names, setter names, linked cropped asset consumption, and all exporter metadata. Never writes files directly.
+Owns generated LVGL source, all five Interactive Asset branches, shared Button/Toggle/Three-Position/Binary Output runtimes, the built-in System Runtime, persistent Application/System/Brightness/Wi-Fi containers, internal System and Wi-Fi callbacks, Wi-Fi backend-state rendering and refresh, generated brightness hardware integration, two-state and three-state contain-fit calculations and descriptor helpers, final persisted component geometry, component-sized parent/container objects, centred child images, Keyboard native map/alignment/control widths/styles/final geometry ordering, per-instance records, sanitized unique hook names, setter names, linked cropped asset consumption, and all exporter metadata. Never writes files directly and never owns Hosted transport.
 
 ### `studio/src/forgeui/ForgeUIUploadedAssetRegistry.ts`
 
@@ -1624,7 +1724,7 @@ Owns validation of accepted metadata; normalization and generation of void, bool
 
 ### `90_Studio_Export.c`
 
-Owns generated UI plus shared Button, Toggle Input, Three-Position Input, Binary Output and System Runtime implementations; persistent application/System/Brightness containers; gear and Back navigation; internal brightness state and hardware bridge; per-instance records; calls to all input hooks; and Light/Status Indicator setter implementations. Never contains developer product logic.
+Owns generated UI plus shared Button, Toggle Input, Three-Position Input, Binary Output and System Runtime implementations; persistent Application/System/Brightness/Wi-Fi containers; gear and Back navigation; internal brightness state and hardware bridge; internal Wi-Fi labels, actions and refresh; per-instance records; calls to all input hooks; and Light/Status Indicator setter implementations. Never contains developer product logic, Wi-Fi credentials, DHCP, scanning implementation, reconnect logic or transport startup.
 
 ### `90_Studio_Export.h`
 
@@ -1697,6 +1797,15 @@ Preserve these rules:
 49. System Runtime currently uses generated persistent-container visibility switching.
 50. Closing System restores the existing application container without recreating it.
 51. Future animation must preserve generated runtime ownership, application state and Interactive Asset lifetime.
+52. Hosted Wi-Fi transport uses SDIO Slot 1.
+53. SD storage uses SDMMC Slot 0.
+54. Generated Wi-Fi page renders backend state only.
+55. Generated Wi-Fi page never owns transport startup.
+56. Wi-Fi backend owns ESP-IDF interaction.
+57. No Wi-Fi User Event callbacks are generated.
+58. No Wi-Fi public setter APIs are generated.
+59. `sdkconfig.defaults` owns the permanent Hosted configuration.
+60. Generated firmware assumes, but does not define, Hosted transport configuration.
 
 ## Extension rule
 
@@ -1704,19 +1813,30 @@ Preserve these rules:
 
 Current implemented pages:
 
+- Application
 - Launcher
 - Brightness
+- Wi-Fi
 
 Future pages:
 
-- Wi-Fi
 - Bluetooth
 - Sound
 - Storage
 - Device
 - Diagnostics
 
-Future pages reuse the existing generated System Runtime, internal navigation callbacks and persistent container ownership. They do not become Interactive Assets, do not generate User Event callbacks and extend the generated System Runtime alongside the application.
+Future pages reuse the existing generated System Runtime, internal navigation callbacks and persistent container ownership. They do not become Interactive Assets, do not generate User Event callbacks or public APIs, and extend the generated System Runtime alongside the application.
+
+Each future System page follows:
+
+```text
+Generated LVGL Page
++
+Internal callbacks
++
+Firmware backend
+```
 
 These future pages are not implemented today. No future hardware or public API is defined by this extension rule.
 
@@ -1737,7 +1857,14 @@ Binary Output Runtime
 System Runtime
   ├── Application Container
   ├── System Launcher
-  └── Brightness Page
+  ├── Brightness Page
+  └── Wi-Fi Page
+
+Hosted Connectivity Runtime
+  ├── ESP-Hosted
+  ├── Wi-Fi Remote
+  ├── ESP32-C6
+  └── SDIO Slot 1
 ```
 
 Future generated APIs must follow the established direction model:
@@ -1768,7 +1895,7 @@ Toggle uses the pattern for two states and Three-Position uses it for three. The
 
 ## Permanent architecture statement
 
-The built-in System Runtime is part of the interface ForgeUI generates. It extends generated platform behavior alongside the application without changing the developer callback boundary or becoming an Interactive Asset.
+The built-in System Runtime is part of the interface ForgeUI generates. It extends generated platform behavior alongside the application without changing the developer callback boundary or becoming an Interactive Asset. Its generated Wi-Fi page renders and controls the separate Hosted Connectivity Runtime through internal callbacks and the non-generated `30_WIFI` backend; generated code never owns the Hosted transport.
 
 > ForgeUI generates the interface. ForgeUI exposes the interface. The developer supplies the application.
 

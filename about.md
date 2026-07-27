@@ -1,368 +1,200 @@
-# 🛠️ ForgeUI Studio
+# 🛠️ About ForgeUI Studio
 
-An open-source **AI-assisted Visual HMI Studio** for **ESP32-P4**, combining a visual UI designer, guided AI layout generation, semantic icon resolution, offline asset pipeline, native LVGL v9 code generation and standalone ESP-IDF deployment into a single engineering workflow.
+ForgeUI Studio is an open-source, AI-assisted visual HMI Studio created to make embedded interface development easier, faster and more enjoyable.
 
-**Visual UI Designer, Low-Code HMI Layout Engine, Offline Asset Pipeline, and Automated Firmware Deployment Studio** engineered explicitly for the high-performance **Espressif ESP32-P4** SoC running native **LVGL v9** and **ESP-IDF**.
+It began with a simple idea: building a polished interface for real hardware should not require endless repetitive work. Designers and engineers should be able to explore an idea visually, refine it with useful tools, and still arrive at readable native code that belongs to them.
 
-ForgeUI Studio bridges the gap between high-level browser-based layout design and low-level production-ready embedded deployments. It completely eliminates manual coordinate calculations, automates standard LVGL code output structures, converts graphic assets locally, and streams compiled partitions directly to physical silicon within a unified development workspace.
-
----
-
-# 🤖 AI Design Studio
-
-ForgeUI Studio includes three integrated AI workflows:
-
-✓ AI Layout Designer — Generate complete embedded interfaces.
-
-✓ AI Asset Designer — Generate reusable ForgeUI widgets and industrial artwork.
-
-✓ AI Hero Designer — Generate production-ready themed backgrounds with automatic LVGL conversion.
-
-Every generated asset remains fully editable before being exported as native LVGL code for deployment to physical ESP32-P4 hardware.
-
----
-
-# ⚡ Key Architectural Advancement
-
-* **Guided AI Layout Builder:** Generate structured prompts using the built-in Layout Prompt Helper before sending requests to GPT.
-
-ForgeUI Studio supports two distinct execution paths within a single workflow:
-*   **Integrated Web-Serial Pipeline:** Cloud-free, browser-triggered build compilation and direct flashing over local serial ports (`COMx`).
-*   **Decoupled Project Exporter:** Instant generation of pristine, completely independent ESP-IDF application structures.
-
-Visual elements remain editable inside the drag-and-drop studio, while the resulting firmware repository is highly portable, completely isolated, and structured for long-term maintainability.
-
----
-
-# 📦 Standalone ESP-IDF Export Architecture
-
-Clicking **Export Standalone Project** produces a production-grade workspace directory that is 100% disconnected from the studio toolchain. 
-
-## Structural Advantages
-*   **Zero Proprietary Lock-In:** No subscription gates, no license validation checks, and no background phone-home telemetry.
-*   **IDE Interoperability:** Drop the generated workspace directly into **Visual Studio Code** or native command terminals.
-*   **Native Toolchain Compliance:** Automatically matches Espressif's rigorous workspace design guidelines and standard `CMakeLists.txt` component registrations.
-*   **Pristine Logic Isolation:** Only the visual components are generated and loaded through the target files:
-    ```text
-    main/90_Studio_Export.c
-    main/90_Studio_Export.h
-    ```
-    This clean separation allows product engineers to write complex low-level business logic inside `main.c` without worrying about layout iterations overwriting their work.
-
----
-
-# 🔄 Proven AI Workflows
-
-### AI Layout Generation
+ForgeUI has grown from a drag-and-drop editor into a complete creative and engineering workflow:
 
 ```text
-Natural Language Prompt
-          │
-          ▼
-AI Layout Prompt Helper
-          │
-          ▼
-OpenAI GPT
-          │
-          ▼
-Validated ForgeUI Layout
-          │
-          ▼
-Builder Canvas
-          │
-          ▼
+idea
+  ↓
+AI assistance
+  ↓
+visual editing
+  ↓
+native LVGL generation
+  ↓
+physical ESP32 hardware
+```
+
+Along the way, it has gained AI-assisted interface generation, reusable Interactive Assets, native LVGL output, integrated Build & Flash tools, standalone ESP-IDF export, and a generated System Interface. These capabilities matter because they bring the original vision closer: helping someone move from an idea to a working embedded product without losing control of the result.
+
+---
+
+## AI Design Studio
+
+ForgeUI uses AI to help turn ideas into editable layouts and artwork. AI generation uses configured OpenAI services; it is an optional creative starting point, not a replacement for visual editing or engineering judgment.
+
+```text
+idea
+  ↓
+AI-assisted layout
+  ↓
+editable Canvas
+  ↓
 Browser Preview
-          │
-          ▼
-Native LVGL Export
-          │
-          ▼
-Standalone ESP-IDF
-          │
-          ▼
-Build & Flash
-          │
-          ▼
-Physical ESP32-P4
+  ↓
+native LVGL
 ```
 
-### AI Hero & Artwork Generation
+Artwork follows the same principle:
 
 ```text
-Natural Language Prompt
-          │
-          ▼
-OpenAI Image Generation
-          │
-          ▼
-ForgeUI Asset Import
-          │
-          ▼
-Device-Aware Image Processing
-          │
-          ▼
-Native LVGL Asset Generation
-          │
-          ▼
-Theme Manager / Asset Library
-          │
-          ▼
-Builder & Preview
-          │
-          ▼
-ESP-IDF Export
-          │
-          ▼
-Physical ESP32-P4
+prompt or uploaded image
+  ↓
+AI generation where requested
+  ↓
+local image preprocessing
+  ↓
+editable ForgeUI asset
+  ↓
+native LVGL asset
 ```
 
-### AI Asset Designer
-
-```text
-Natural Language Prompt
-          │
-          ▼
-OpenAI Generation
-          │
-          ▼
-Live Asset Preview
-          │
-          ▼
-Save to Forge Asset Library
-          │
-          ▼
-Insert into Canvas
-          │
-          ▼
-Native LVGL Export
-          │
-          ▼
-Physical ESP32-P4
-```
-
-# 🎨 Unified Asset Pipelines (PROVEN)
-
-ForgeUI Studio handles all graphic assets entirely inside a local offline environment. No external APIs or cloud subscription transformation services are ever utilized.
-
-### 1. Uploaded Image Asset Pipeline
-*   **Proven Formats:** PNG, JPG, and SVG asset matrices.
-*   **Offline Transformations:** Local dragging and dropping automatically invokes a native Python helper utility (`tools/lvgl/LVGLImage.py`).
-*   **Low-Level Output:** Translates raw shapes into highly optimized `ARGB8888` rasterized pixel data, outputs clean static `.c` data arrays directly onto disk, and appends corresponding `LV_IMAGE_DECLARE(...)` mappings to the build profile.
-
-### 2. React Icon Conversion Pipeline
-ForgeUI Studio exports vector React Icons through the exact same asset engine used by high-contrast graphic layouts, eliminating the dependency friction of rendering heavy character sets.
-
-```text
-Semantic Icon Request
-        │
-        ▼
-ForgeUI Icon Resolver
-        │
-        ▼
-React Icon Registry
-        │
-        ▼
-Native-size PNG
-        │
-        ▼
-LVGLImage.py
-        │
-        ▼
-Native LVGL Asset
-```
-
-*   **Icon Metrics:** 9,514 indexed vector shapes, multi-select queuing cart panel, automated asset validation, and direct structural rendering down to physical silicon.
-*   *Note: Legacy `LV_SYMBOL_*` options remain preserved purely for backward-compatibility limits.*
+Image preprocessing, LVGL conversion, export, build and flash run locally.
 
 ---
 
-# 🚀 Core Feature Matrix
+## Key Architectural Advancement
 
-### Visual Designer Workspace
+ForgeUI connects a friendly visual workspace to a native embedded output. Designs remain editable in the Studio, while the generated result remains ordinary LVGL and ESP-IDF code rather than a browser runtime deployed to the device.
 
-### AI Studio
-
-* **Guided AI Layout Prompt Helper** — Build structured prompts for embedded HMIs and industrial dashboards.
-
-* **GPT Layout Generation** — Generate complete ForgeUI layouts from natural language.
-
-* **AI Hero Background Generation** — Create production-ready themed backgrounds with automatic device-aware preprocessing.
-
-* **AI Asset Designer** — Generate reusable ForgeUI widgets, controls and industrial artwork.
-
-* **Forge Asset Library** — Save, organise and reuse AI-generated assets across projects.
-
-* **Semantic Icon Resolution** — Automatically resolve AI-generated icon requests into native LVGL-ready assets.
-
-* **Native Icon Asset Generation** — Convert React Icons into optimized LVGL image resources.
-
-* **Editable Generated Layouts** — Every AI-generated layout remains fully editable inside the visual designer before export.
-
-* **Native LVGL Export** — Generate clean native LVGL v9 code ready for ESP-IDF deployment.
-
-* **WYSIWYG Layout Canvas** — Real-time drag-and-drop editing with absolute positioning and pixel-perfect layout control.
-
-* **Device-Aware Workspace** — Canvas dimensions automatically match the selected hardware display profile for accurate design-time rendering.
+Reusable Interactive Assets extend that approach with saved artwork and generated runtime behaviour. They help designers reuse proven controls without giving up native LVGL output. The README and architecture documents contain the detailed runtime families and API contracts.
 
 ---
 
-### Live Browser Preview
+## Standalone Export
 
-* **Real-Time Preview** — Instantly validate layouts, themes, AI-generated assets and runtime widgets before exporting or flashing hardware.
+ForgeUI can produce an independent ESP-IDF project that can be built, version-controlled and extended without ForgeUI Studio.
 
-* **Render Parity** — Browser Preview, generated LVGL code and physical ESP32-P4 hardware share the same rendering pipeline for consistent visual results.
+Generated, replaceable UI lives in `90_Studio_Export.*`. After standalone export, developer integration belongs in `95_UserEvents.*` and other developer-owned application modules. Product behaviour does not need to be concentrated in `main.c`, and it should not be placed in replaceable generated UI files.
 
----
-
-### Native Code Generation
-
-* **Native LVGL v9 Output** — Generates structured, readable LVGL C code using modern APIs and best-practice object creation patterns.
-
-* **Production-Ready Projects** — Export standalone ESP-IDF workspaces ready to build, version control and extend without ForgeUI Studio.
+Standalone exported firmware has no runtime dependency on ForgeUI Studio.
 
 ---
 
-### Toolchain Automation
+## Why ForgeUI exists
 
-* **One-Click Build & Flash** — Build, flash and monitor firmware directly from ForgeUI Studio.
+Embedded UI work is rewarding, but much of it can be unnecessarily repetitive. Layout coordinates, asset conversion, boilerplate code, build steps and hardware iteration can take attention away from the experience being created.
 
-* **Firmware Maintenance Tools** — Clean generated assets, regenerate project files, refresh CMake and perform clean ESP-IDF builds.
+ForgeUI exists to reduce that friction. It aims to make professional embedded interface development more approachable while respecting the realities of native firmware, physical hardware and long-term product ownership.
 
-* **Integrated Flash Console** — Stream live build output, compiler diagnostics and runtime logs directly inside the Studio.
-
----
-
-# 🧩 Validated Widget Registry
-The system features strict validation checking layers mapping elements securely along the following data path:
-```text
-Studio Canvas ➔ Browser Preview ➔ Generated C Layout ➔ Hardware Silicon
-```
-
-### Supported Component Objects
-*   **Structural Layouts:** Flex Boxes, Text Labels, High-Contrast Images.
-*   **User Inputs:** Fields, Structured Textareas, Multi-state Selection Lists.
-*   **Functional Controls:** Push Buttons, Toggle Switches, Checkboxes, Radio Sets, Variable Sliders.
-*   **Dynamic Status Displays:** Linear Progress Tracks, Circular Vector Arcs.
-
----
-
-# 🎨 Hardware-Validated Theme Engine
-Theme properties utilize specialized color weight tokens that synchronize perfectly from the visual editor straight into physical memory configurations. Built-in presets include:
-*   **Industrial Panels:** *Industrial Carbon, Reactor Hex, Cyber Teal Pro, Forge Orange, Military Steel.*
-*   **High-Contrast Operations:** *Midnight Terminal, OLED Black, Nordic Blue, Quantum Flow, Toxic Lime.*
-*   **Futuristic Conceptions:** *Neon Horizon, Nebula Purple, Matrix Green, Blueprint Slate, Carbon Red.*
-
----
-
-# 💻 Hardware Target Specifications
-
-*   **Primary System SoC Target:** Espressif ESP32-P4 (High-Performance dual-core RISC-V clocking up to 360MHz).
-*   **Verified Development Platform:** Waveshare ESP32-P4-WiFi6-Touch-LCD-7B.
-*   **Integrated Touch Hardware Controllers:** GT911 capacitive touch mapping registers.
-*   **Display Interface Link:** Multi-lane MIPI-DSI high-definition panel (1024×600 pixel tracking resolution).
-*   **Volatile Memory Architecture:** 32MB External Hex-PSRAM device running on a 200MHz bus clock.
-*   **Target Core Software Environment:** ESP-IDF v5.4 / v5.5 Toolchain + LVGL v9.2.2 Engine.
-
----
-
-# ✅ Proven Project Milestones
-*   ✓ WYSIWYG Browser UI Builder Canvas — **PROVEN**
-*   ✓ Native LVGL v9 Code Generation — **PROVEN**
-*   ✓ Standalone ESP-IDF Project Export — **PROVEN**
-*   ✓ Independent External VS Code Compilation — **PROVEN**
-*   ✓ Native Ninja Build & Flash Utilities — **PROVEN**
-*   ✓ Local Python `LVGLImage.py` Asset Transformation — **PROVEN**
-*   ✓ Local Local Upload Image Asset Pipeline — **PROVEN**
-*   ✓ Server-Side Next.js Secure OpenAI Routings — **PROVEN**
-*   ✓ React Icon SVG-to-Raster Conversion Engine — **PROVEN**
-*   ✓ Multiple Unique Icon Component Validation Loops — **PROVEN**
-*   ✓ High-Resolution Physical ESP32-P4 Execution — **PROVEN** (**63 FPS @ 2.5% CPU**)
-* ✓ AI Layout Prompt Helper — PROVEN
-* ✓ Semantic Icon Pipeline — PROVEN
-* ✓ Native Icon Asset Pipeline — PROVEN
-* ✓ Browser Preview / ESP32-P4 Parity — PROVEN
-* ✓ Firmware Maintenance Tools — PROVEN
-
----
-
-# 🏭 Target Use Cases
-*   **Industrial Controls:** Heavy machinery monitoring consoles, crane dashboards, and tactile field equipment.
-*   **IoT & Automation Display Hubs:** Luxury smart home control docks and high-speed energy analytics tracking portals.
-*   **Commercial Appliances:** High-resolution digital medical equipment panels and point-of-sale kiosk interfaces.
-
----
-
-# 🔮 Next-Phase Development Goals
-
-### AI & Design Studio
-
-* **AI Component Editing** — Modify existing layouts and widgets using natural language without regenerating the entire interface.
-
-* **Context-Aware AI Generation** — Enable selective updates that preserve existing layouts, assets and project structure.
-
-* **Dashboard & Widget Templates** — Expand the built-in library of industrial dashboards, reusable widgets and application templates.
-
----
-
-### Runtime & Hardware Integration
-
-* **Board Profile System** — Support multiple ESP32-P4 development boards with device-aware display, touch and peripheral configurations.
-
-* **Runtime Widget Generation** — AI-assisted creation of reusable runtime widgets including gauges, indicators, charts and industrial controls.
-
-* **GPIO & Peripheral Binding** — Bind switches, LEDs, relays, sensors and other hardware peripherals directly to generated UI components.
-
-* **Multi-Page Applications** — Native support for multi-screen projects with navigation, shared assets and page management.
-
----
-
-### Build & Project Management
-
-* **Smart Asset Management** — Automatic duplicate detection, unused asset cleanup and project footprint optimisation.
-
-* **Plugin & Extension Framework** — Support custom components, exporters and project generators.
-
-* **Enhanced Code Generation** — Expand native LVGL generation with additional widgets, runtime behaviours and reusable component libraries.
-
-* **Project Templates** — One-click generation of complete starter applications for industrial, IoT and commercial HMI projects.
----
-
-# 🤝 Open Source Credits
-ForgeUI Studio is built upon the visual design workspace structures originally engineered by Premier Octet. 
-
-The original codebase has been extensively customized, expanded, and optimized for:
-*   Native LVGL v9 API targets and core formatting modifications.
-*   ESP32-P4 deep silicon and MIPI-DSI display configurations.
-*   Automated local file compilation and direct Web-Serial deployment tracking.
-*   All original open-source attributions and licensing remain preserved on disk.
-
----
-
-# 👨‍💻 Project Maintainer
-
-**Scott Forster**  
-
-# About the Creator
-
-Hi, I'm **Scott Forster** from New Zealand.
-
-ForgeUI Studio began as a personal project to make embedded HMI development easier, faster and more enjoyable. As someone who enjoys solving real engineering problems, I wanted a tool that could take an idea from a simple prompt all the way through to a working interface running on physical ESP32 hardware.
-
-Every feature in ForgeUI is developed with a simple philosophy:
+The goal is not to hide engineering. It is to give engineers, makers and designers a clearer path through it.
 
 > **Build it. Prove it. Flash it. Improve it.**
 
-The project has grown into an open-source AI-assisted embedded UI platform combining visual design, AI-powered generation, LVGL, and ESP-IDF into a single workflow.
-
-ForgeUI is built in collaboration with ChatGPT, which has been an invaluable coding assistant, sounding board and development partner throughout the project. While I design the architecture, test the hardware and drive the vision, ChatGPT has helped accelerate development by assisting with implementation, refactoring and documentation.
-
-This project is shared with the community in the hope that it makes embedded development more accessible and inspires others to build amazing products.
-
-I welcome feedback, ideas and contributions from developers around the world.
+That phrase captures the way ForgeUI is developed: make something useful, test it honestly, run it on the real device, learn from the result, and keep improving.
 
 ---
 
-**Scott Forster**  
+## What the workflow brings together
+
+ForgeUI groups its current capabilities into a small set of connected themes:
+
+- **AI Studio** — assistance for layouts and artwork;
+- **Visual Designer** — editable Canvas and Browser Preview;
+- **Interactive Assets** — reusable controls with generated native behaviour;
+- **Native Export** — readable LVGL and standalone ESP-IDF output;
+- **Build & Flash** — a direct path from the Studio to physical hardware.
+
+ForgeUI supports a growing library of native LVGL widgets and reusable Interactive Assets. The focus is not the size of the component list, but a consistent path from visual editing to native firmware.
+
+Multiple industrial and modern themes provide practical starting points for different products while remaining editable within the same visual workflow.
+
+---
+
+## Built for real hardware
+
+ForgeUI is developed against physical ESP32-P4 hardware, not simulations alone. Browser previews are valuable, but a new runtime feature is considered proven only after it has been successfully exported, built, flashed and validated on the device.
+
+That discipline keeps the project grounded. The aim is not merely to create interfaces that look convincing in a design tool, but interfaces that become dependable native LVGL applications on real ESP32 hardware.
+
+The current reference platform is the Waveshare ESP32-P4-WiFi6-Touch-LCD-7B. Detailed hardware and runtime architecture belongs in the project documentation rather than on this page.
+
+## Current proven capabilities
+
+ForgeUI’s major proven achievements include AI-assisted layout and artwork workflows, reusable Interactive Assets, native LVGL generation, Canvas and Browser Preview parity, integrated Build & Flash, standalone ESP-IDF export, and continuous physical validation on ESP32-P4 hardware.
+
+---
+
+## AI as an engineering assistant
+
+AI is an important part of ForgeUI, both inside the product and during its development.
+
+ChatGPT and Codex act as engineering assistants that help accelerate implementation, documentation, testing and refactoring. They provide useful analysis, help explore alternatives and reduce repetitive development effort.
+
+The product vision, architecture, engineering direction and physical hardware validation remain under Scott’s direction. AI supports that process; it does not independently design or develop ForgeUI.
+
+This approach reflects the wider purpose of the project: use AI where it genuinely helps, while keeping human judgment, authorship and responsibility at the centre.
+
+---
+
+## Future direction
+
+ForgeUI is heading toward a broader, more flexible embedded UI platform while keeping the workflow approachable. Future work will deepen visual authoring, reusable controls, hardware integration and project portability without hiding the native code beneath the design experience.
+
+The direction is guided by a few lasting goals: reduce repetitive engineering, keep generated code readable, remain open and extensible, and help both hobbyists and professional engineers build real products faster.
+
+---
+
+## Open-source philosophy
+
+ForgeUI is open source because useful embedded tools should be understandable, adaptable and available to the people building with them.
+
+Standalone ESP-IDF projects are intended to remain ordinary developer-owned projects. Generated code should be readable, native and practical to extend—not locked behind a subscription or dependent on a ForgeUI runtime service.
+
+Open development also makes it possible for people to learn from the project, challenge its assumptions and help it grow in directions that serve real embedded work.
+
+ForgeUI welcomes feedback, ideas, testing and contributions from developers around the world.
+
+---
+
+## Acknowledgements
+
+ForgeUI Studio builds upon visual design workspace foundations originally created by Premier Octet and has since been extensively adapted for native LVGL, ESP-IDF and ESP32-P4 workflows.
+
+It also stands on the work of open-source communities behind LVGL, ESP-IDF, React, Next.js, Chakra UI and the project’s other dependencies. Their respective licenses and attribution remain preserved with the project.
+
+Thank you to everyone who shares knowledge, reports issues, tests new ideas or contributes to open-source embedded development.
+
+---
+
+## Learn More
+
+This About page intentionally stays focused on the project’s purpose and vision. Detailed features and architecture are documented in:
+
+- [README](README.md)
+- [Project Spine](01_SPINE.md)
+- [Developer Code Map](02_DEVELOPER_CODE_MAP.md)
+- [Generated Export API Code Map](03_ForgeUI_Generated_Export_API_Code_Map.md)
+
+---
+
+## About the Creator
+
+Hi, I’m **Scott Forster** from New Zealand.
+
+ForgeUI began as a personal experiment born from curiosity and a love of solving real engineering problems. I wanted a tool that could take a rough idea, help shape it visually, and carry it all the way to a working interface on physical ESP32 hardware.
+
+Through continuous building, testing and physical validation, that experiment has evolved into an open-source engineering platform. What keeps me excited about ForgeUI is the possibility of making embedded development feel more creative and approachable without making it less real. I want people to be able to experiment quickly, understand what is generated, and confidently turn their ideas into products they own.
+
+This project is shared with the community in the hope that it helps others learn, create and build something meaningful.
+
+**Scott Forster**
+
 Creator & Lead Developer — ForgeUI Studio
 
 📧 **forgeui.esp32@gmail.com**
+
+---
+
+## ForgeUI philosophy
+
+Build it.
+
+Prove it.
+
+Flash it.
+
+Improve it.

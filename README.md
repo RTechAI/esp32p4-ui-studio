@@ -56,7 +56,7 @@ Physical ESP32-P4
 
 Current AI-assisted workflows include full layouts, guided prompting, hero backgrounds, standalone artwork, semantic icons, and state artwork for Interactive Assets. Generated content enters the same component and asset pipelines as manually created content and remains editable before export.
 
-OpenAI-assisted layout and image generation use configured API access. Uploaded-asset preprocessing and LVGL conversion run locally. After artwork is generated or uploaded, asset processing, native conversion, validation, and firmware export are local operations. Standalone exported projects have no runtime dependency on OpenAI or ForgeUI Studio.
+OpenAI-assisted layout and image generation use configured OpenAI services. Studio editing, uploaded-image preprocessing, LVGL conversion, validation, export, ESP-IDF build and flashing run locally. Standalone exported ESP-IDF projects have no ForgeUI subscription, licensing, runtime phone-home, OpenAI, or ForgeUI Studio requirement.
 
 ---
 
@@ -78,14 +78,16 @@ Interactive Assets are reusable controls that store the artwork for each of thei
 - **Interactive Light** — application-controlled OFF and ON states
 - **Interactive Status Indicator** — application-controlled OFF and ON states
 
-All five share Interactive Asset identity, registry, persistence, uploaded state artwork, AI generation, Canvas assignment, Browser Preview, native LVGL export, and validation.
+All five share AI state-artwork generation, Interactive Asset registry and persistence, direct Creator workflows, Canvas assignment, configured Inspector workflows, Browser Preview, visible-artwork fitting, Canvas resizing, centred contain-fit rendering, native LVGL export, generated developer APIs, and physical ESP32-P4 validation within the recorded scope.
 
 Type-specific generated behavior remains explicit:
 
-- Button uses Normal/Pressed artwork and `FG_On_*_Clicked(void)`.
-- Toggle retains persistent OFF/ON state and calls `FG_On_*_Toggled(bool enabled)`.
-- Three-Position uses LEFT/CENTER/RIGHT state and calls `FG_On_*_Changed(fg_three_way_state_t state)`.
-- Light and Status Indicator are setter-controlled OFF/ON outputs.
+```text
+Button         → FG_On_*_Clicked(void)
+Toggle         → FG_On_*_Toggled(bool enabled)
+Three-Position → FG_On_*_Changed(fg_three_way_state_t state)
+Light/Status   → FG_Set_*(bool enabled)
+```
 
 Runtime support is shared where appropriate, while each exported component instance retains independent artwork, state, and callback or setter connection.
 
@@ -190,6 +192,41 @@ The native LVGL Keyboard exporter now owns an explicit map, relative key proport
 
 ---
 
+## ⚙️ Built-in System Interface
+
+ForgeUI also generates a built-in System Interface as platform infrastructure alongside the user application:
+
+- System Launcher
+- Display / Brightness
+- Wi-Fi Phase 1
+
+The application and System pages use persistent generated containers with internal navigation, so Interactive Assets remain alive while the System Interface is open. Display brightness changes live through `bsp_display_brightness_set()` and remains selected for the current device session.
+
+The Wi-Fi backend is physically operational. Scan Networks and Disconnect controls exist, while visible scan-result population and refresh behaviour still require polish. The current Wi-Fi UI workflow is not claimed complete.
+
+The built-in System Interface is separate from reusable multi-page authoring for user projects, which remains future work.
+
+## 📡 Hosted Wi-Fi and SD runtime
+
+The current Waveshare hardware uses two physically proven SDMMC paths:
+
+```text
+Hosted Wi-Fi
+→ ESP32-C6
+→ ESP-Hosted
+→ SDIO Slot 1
+→ GPIO14–19
+→ Reset GPIO54
+
+SD Storage
+→ SDMMC Slot 0
+→ GPIO39–44
+```
+
+Physical validation on the Waveshare ESP32-P4-WiFi6-Touch-LCD-7B confirmed an active ESP-Hosted transport, ESP32-C6 identification, automatic Wi-Fi reconnect, DHCP address acquisition, successful SD mount and write/read testing, and simultaneous Wi-Fi and SD operation.
+
+---
+
 # 🔌 Generated Runtime APIs
 
 ForgeUI keeps UI generation separate from application behavior.
@@ -226,7 +263,7 @@ The permanent integration rule is:
 
 > Input controls produce generated developer callbacks. Output controls expose generated public UI functions.
 
-Live Studio `95_UserEvents.c/.h` files may be regenerated. In a standalone export, those files become the developer-owned integration layer for input behavior, while application code calls output setters declared by the generated UI header. Hardware and business logic do not belong in `90_Studio_Export.c`.
+`90_Studio_Export.c/.h` contain generated, replaceable UI and runtime code. Live Studio `95_UserEvents.c/.h` files may also be regenerated, but after standalone export they become the developer-owned application integration layer. Developer GPIO, I/O, hardware actions and product behaviour belong in that standalone integration layer or other developer-owned application modules—not in generated `90_Studio_Export.c/.h`, and not necessarily directly in `main.c`.
 
 For the detailed ownership contract, see [03_ForgeUI_Generated_Export_API_Code_Map.md](03_ForgeUI_Generated_Export_API_Code_Map.md).
 
@@ -267,13 +304,34 @@ Proven paths include:
 - Interactive Three-Position LEFT/CENTER/RIGHT artwork, touch zones, and callback
 - Interactive Light and Status Indicator output-state export
 - generated public output setters
+- direct Creator workflow across all five Interactive Assets
+- shared Canvas resize and visible-artwork fitting
+- Canvas, Browser Preview, and generated LVGL contain-fit parity
+- built-in System Launcher and Display / Brightness page
+- physical backlight control through `bsp_display_brightness_set()`
+- Hosted Wi-Fi over SDIO Slot 1
+- SD Card storage over SDMMC Slot 0
+- simultaneous Wi-Fi and SD operation
 - full-size LVGL Keyboard alignment, four-row layout, special keys, and Studio parity
 - integrated Build & Flash
 - detached standalone ESP-IDF project build and flash
 
 Physical Three-Position testing confirmed that all three touch zones selected the matching state, the generated callback reported the correct readable value, initialization did not produce an unwanted notification, and repeated interaction remained stable.
 
-The current reference firmware targets ESP32-P4 with ESP-IDF 5.5.4, a 360 MHz CPU setting, external hex-PSRAM at 200 MHz, and a 16 MB flash layout.
+The current proven hardware and software baseline is:
+
+- Waveshare ESP32-P4-WiFi6-Touch-LCD-7B
+- ESP32-P4
+- ESP32-C6 Wi-Fi companion
+- ESP-IDF 5.5.4
+- LVGL 9.2.2
+- 1024 × 600 MIPI-DSI display
+- GT911 touch
+- 32 MB external PSRAM
+- ESP-Hosted 2.9.7
+- Wi-Fi Remote 1.3.0
+- Hosted SDIO Slot 1
+- SD storage on SDMMC Slot 0
 
 ---
 
@@ -300,11 +358,13 @@ Generated UI and runtime files remain replaceable. The standalone user-event fil
 The application boundary includes:
 
 ```text
-main/90_Studio_Export.c   generated UI and runtime implementation
-main/90_Studio_Export.h   generated public output APIs
-main/95_UserEvents.c      developer-owned standalone callback implementations
-main/95_UserEvents.h      developer-owned standalone callback declarations
+main/90_Studio_Export.c   generated and replaceable UI/runtime implementation
+main/90_Studio_Export.h   generated and replaceable UI/runtime declarations
+main/95_UserEvents.c      developer-owned standalone application integration
+main/95_UserEvents.h      developer-owned standalone integration declarations
 ```
+
+Developer GPIO, peripheral I/O, hardware actions and permanent product behaviour belong in the standalone project’s developer-owned integration layer and supporting application modules. They should not be placed in replaceable generated UI files.
 
 ---
 
@@ -397,11 +457,19 @@ Current proven milestones include:
 - local device-aware LVGL asset conversion
 - five implemented Interactive Asset types
 - all-five direct Creator workflows
+- shared Canvas resizing and visible-artwork fitting across all five
+- Canvas, Browser Preview, and LVGL centred contain-fit parity
 - reusable Toggle and Three-Position State Sheet workflows
 - linked crop editing and atomic state-asset registration
 - Interactive Button, Toggle Switch, Three-Position Toggle Switch, Light, and Status Indicator runtime paths
 - generated `95_UserEvents` hook layer for Button, Toggle, and Three-Position inputs
 - shared Binary Output Runtime and generated `FG_Set_*` Light/Status APIs
+- built-in System Launcher and Display / Brightness
+- physical display backlight control
+- Wi-Fi Phase 1 backend and generated System page
+- Hosted Wi-Fi over SDIO Slot 1
+- SD Card operation over SDMMC Slot 0
+- simultaneous Hosted Wi-Fi and SD operation
 - Three-Position State Sheet generation and linked crops
 - native LVGL Keyboard placement, sizing, and key proportions at 1024 × 600
 - client/server export validation before generated-file replacement
@@ -419,7 +487,9 @@ These are future concepts, not descriptions of implemented runtime support:
 
 - additional generated runtime families;
 - value controls, gauges, and numeric displays;
-- multi-page applications;
+- reusable user-project multi-screen authoring; the built-in System Interface already uses persistent generated pages;
+- Wi-Fi visible scan-result population and reliable network refresh;
+- Wi-Fi password entry, network selection, connect/forget workflow, and credential management;
 - GPIO and peripheral binding;
 - broader board and display profiles;
 - reusable project templates;

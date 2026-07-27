@@ -2,11 +2,11 @@
 
 ## Current save point
 
-**FORGEUI_SYSTEM_INTERFACE__LVGL_RUNTIME__DISPLAY_BRIGHTNESS__ESP32P4_PROVEN__2026-07-27**
+**FORGEUI_SYSTEM_INTERFACE__HOSTED_WIFI_SD_RECOVERY__SDIO_SLOT1_RESTORED__PHYSICAL_ESP32P4_PROVEN__2026-07-27**
 
 ## Purpose
 
-This is the permanent ownership, integration, and debugging map for the ForgeUI Interactive Asset Framework, System Runtime, generated LVGL runtime and export boundary. It describes the current implementation rather than its development history.
+This is the permanent ownership, integration, and debugging map for the ForgeUI Interactive Asset Framework, System Runtime, Hosted Connectivity Runtime, generated LVGL runtime and export boundary. It describes the current implementation rather than its development history.
 
 Use this document to answer:
 
@@ -57,6 +57,7 @@ Currently implemented System pages:
 
 - System Launcher
 - Display / Brightness
+- Wi-Fi Phase 1
 
 The System Runtime is proven across:
 
@@ -76,6 +77,8 @@ Application
 ```
 
 Display brightness is physically connected to the ESP32-P4 backlight through `bsp_display_brightness_set()`.
+
+Display / Brightness is complete and physically proven. The Wi-Fi backend and generated Wi-Fi System page are physically alive; the device automatically reconnects and receives an IP address. Scan and Disconnect controls exist. Scan-result list population and refresh behaviour still require polish, and Connect/password/credential-management UI is not part of the current Studio System page milestone. The Wi-Fi page workflow is not yet complete.
 
 ## System architecture
 
@@ -168,23 +171,62 @@ System Runtime
   ├── Application Container
   ├── System Launcher
   ├── Brightness Page
+  ├── Wi-Fi Phase 1
   └── Future Pages
 ```
 
 Current future placeholders:
 
-- Wi-Fi
 - Bluetooth
 - Sound
 - Storage
 - Device
 - Diagnostics
 
-Only System Launcher and Display / Brightness are implemented today. The future pages are typed identifiers and disabled launcher placeholders, not completed services.
+System Launcher and Display / Brightness are implemented, and Wi-Fi Phase 1 has a physically live backend and generated page. Its scan-result list and refresh behaviour remain incomplete. The future pages are typed identifiers and disabled launcher placeholders, not completed services.
 
 The System Runtime is not an Interactive Asset. It is not a user project screen. It is a reusable built-in platform layer generated alongside the user's application.
 
 Studio and Browser Preview share typed System page state, current-session brightness and navigation. Generated LVGL represents the same hierarchy through persistent sibling containers. The application and its Interactive Assets remain instantiated while a System page is visible.
+
+## Hosted Connectivity Runtime
+
+```text
+Hosted Connectivity Runtime
+├── ESP-Hosted
+├── Wi-Fi Remote
+├── ESP32-C6 companion
+├── SDIO Slot 1 transport
+└── ForgeUI Wi-Fi backend
+```
+
+Hosted Connectivity Runtime is a built-in platform service. It is separate from Interactive Assets and user project screens, is consumed by the System Runtime, and is configured partly through ESP-IDF Kconfig and partly through the non-generated firmware backend. It must not be modelled as an Interactive Asset.
+
+The physically proven transport split is:
+
+```text
+ESP-Hosted Wi-Fi
+├── SDMMC Host Slot 1
+├── CLK GPIO18
+├── CMD GPIO19
+├── D0 GPIO14
+├── D1 GPIO15
+├── D2 GPIO16
+├── D3 GPIO17
+└── ESP32-C6 reset GPIO54
+
+SD Storage
+├── SDMMC Host Slot 0
+├── CLK GPIO43
+├── CMD GPIO44
+├── D0 GPIO39
+├── D1 GPIO40
+├── D2 GPIO41
+├── D3 GPIO42
+└── LDO channel 4 at 2500 mV
+```
+
+Slot 0 and Slot 1 use distinct GPIOs. The previous active SPI Hosted configuration was wrong for this board and prevented the ESP32-C6 transport from becoming active.
 
 ## Project Health Architecture
 
@@ -305,6 +347,87 @@ Do not flatten momentary, binary input, three-position input and binary output a
 
 Paths in this section are relative to `studio/` unless stated otherwise.
 
+### Hosted configuration and firmware backend
+
+#### `firmware/ForgeUI-One/sdkconfig.defaults`
+
+This repository-level file owns the permanent ForgeUI firmware baseline for:
+
+- ESP-Hosted enabled
+- SDIO host interface
+- SDMMC Slot 1
+- 4-bit bus
+- 40000 kHz
+- GPIO18/19/14/15/16/17
+- reset GPIO54
+- active-high reset
+- 1500 ms reset delay
+- reset on every host boot
+- restart transport on failure
+- Wi-Fi Remote Hosted backend
+- ESP32-C6 slave target
+- PSRAM XIP disabled
+
+`sdkconfig` is the generated effective configuration and may be ignored by Git. `sdkconfig.defaults` is the permanent source of the required golden Hosted baseline.
+
+#### `firmware/ForgeUI-One/dependencies.lock`
+
+This repository-level file owns the exact resolved component graph. The physically proven relevant versions are:
+
+- ESP-IDF 5.5.4
+- `esp_hosted` 2.9.7
+- `esp_wifi_remote` 1.3.0
+- Waveshare BSP 1.0.2
+
+EPPP transitive components may be present while the active Wi-Fi Remote library remains Hosted.
+
+#### `firmware/ForgeUI-One/main/30_WIFI.c` and `30_WIFI.h`
+
+The non-generated Wi-Fi backend owns:
+
+- `esp_netif_init()`
+- default event-loop creation
+- default STA netif creation
+- `esp_wifi_init()`
+- STA mode and Wi-Fi start
+- event handling
+- scan start and deferred scan-result processing
+- connect and disconnect
+- current status and IP state
+- typed Wi-Fi state
+- current SSID and RSSI
+- scan-in-progress state
+
+Its locked execution rule is:
+
+```text
+event handler
+→ update state / raise flag
+
+main loop
+→ fg_wifi_pump()
+→ heavier processing
+```
+
+The backend does not own LVGL or Studio UI.
+
+#### `firmware/ForgeUI-One/main/main.c`
+
+This file owns boot order only. The proven normal sequence is:
+
+```text
+fg_wifi_init()
+vTaskDelay(pdMS_TO_TICKS(2500))
+fg_sd_init()
+fg_sd_test()
+```
+
+Wi-Fi must initialize before SD.
+
+#### `firmware/ForgeUI-One/main/40_SD.c`
+
+This file owns SDMMC Slot 0 SD Card and FAT filesystem operation. It does not configure or manipulate ESP-Hosted.
+
 ### System Runtime
 
 #### `src/forgeui/system/ForgeUISystemContext.tsx`
@@ -314,6 +437,10 @@ Owns:
 - the typed `ForgeUISystemPage` model
 - current System page
 - current-session brightness value
+- deterministic Browser Preview Wi-Fi session state
+- Wi-Fi connection state, SSID, IP and RSSI
+- Wi-Fi scan state and simulated scan results
+- preview Disconnect behaviour
 - open navigation
 - close navigation
 - Back navigation
@@ -322,7 +449,7 @@ Owns:
 - `closeSystemInterface()`
 - `goBackInSystemInterface()`
 
-The context owns session state and navigation intent. It does not render pages, mutate user project screens, register Interactive Assets or generate LVGL.
+The context owns session state and navigation intent. Its Wi-Fi data is simulated and deterministic for Browser Preview; it does not control the physical Wi-Fi backend. It does not render pages, mutate user project screens, register Interactive Assets or generate LVGL.
 
 #### `src/forgeui/system/ForgeUISystemSurface.tsx`
 
@@ -332,11 +459,16 @@ Owns:
 - the visible gear launcher in Studio and Browser Preview
 - System Launcher layout
 - Display / Brightness page layout
+- enabled Wi-Fi launcher card
+- current Wi-Fi status and SSID/IP/RSSI information
+- Scan and Disconnect actions
+- disabled Connect action where applicable
+- current network-list area
 - navigation UI
 - live preview brightness rendering
 - disabled future-page cards
 
-The surface consumes the shared context. It does not own generated hardware navigation or become part of the user component tree.
+The surface consumes the shared context. Browser Preview Wi-Fi data is simulated and deterministic. The surface does not own generated hardware navigation or become part of the user component tree.
 
 #### `src/forgeui/system/index.ts`
 
@@ -1520,6 +1652,11 @@ It owns:
 - generated LVGL descriptor-based dimension fallback
 - persistent application-container generation
 - System launcher and Brightness container generation
+- persistent Wi-Fi page container generation
+- Wi-Fi status, SSID, IP and RSSI labels
+- Scan and Disconnect controls and internal callbacks
+- periodic Wi-Fi refresh from the firmware backend
+- reuse of the existing application Wi-Fi service loop/timer
 - generated gear launcher
 - internal System page callbacks
 - container visibility navigation
@@ -1555,6 +1692,8 @@ The built-in System export path generates:
 Current navigation intentionally switches `LV_OBJ_FLAG_HIDDEN` between persistent containers. It does not load another LVGL screen and does not recreate the application. Interactive Assets remain alive while the System Runtime is open.
 
 The gear launcher, Display card, Brightness slider and Back controls are built-in controls. They do not generate `FG_On_*` user callbacks and do not enter the Interactive Asset Framework. Animated page transitions are future work.
+
+The generated System Runtime also owns one persistent Wi-Fi page container, Wi-Fi status and SSID/IP/RSSI labels, Scan and Disconnect buttons, internal Wi-Fi callbacks, and periodic refresh from the firmware backend through the existing application Wi-Fi service loop/timer. System Wi-Fi controls are internal and do not generate `FG_On_*` user hooks. The exporter consumes backend state and sends intent; it does not own ESP-IDF Wi-Fi truth or duplicate the backend.
 
 ### Button export branch
 
@@ -1759,6 +1898,8 @@ They contain:
 - generated runtime support
 - generated public UI APIs
 - persistent application, System launcher and Brightness containers
+- generated Wi-Fi System page container and status/network labels
+- internal Wi-Fi Scan, Disconnect and periodic-refresh callbacks
 - generated gear launcher
 - internal System page switching and container visibility
 - Brightness slider and live percentage label
@@ -1773,6 +1914,19 @@ They contain:
 Public APIs are declared in `90_Studio_Export.h` and implemented in `90_Studio_Export.c`.
 
 The current System Runtime implementation is generated in `90_Studio_Export.c`. Its callbacks are internal runtime ownership and do not belong in `95_UserEvents.*`. Immediate container visibility switching is intentional; animated transitions are not implemented.
+
+`90_Studio_Export.c/.h` may contain the generated Wi-Fi System page and its internal callbacks, but the actual Wi-Fi backend remains in `30_WIFI.c/.h`:
+
+```text
+Generated System Wi-Fi UI
+→ reads backend state
+→ sends Scan / Disconnect intent
+
+30_WIFI backend
+→ owns physical Wi-Fi truth and ESP-IDF calls
+```
+
+Backend logic must not move into generated code.
 
 Do not place permanent product logic in these files.
 
@@ -1904,11 +2058,50 @@ Physically confirmed:
 - current-session brightness retention
 - Interactive Assets remain operational after leaving System
 
+### Hosted Wi-Fi and SD coexistence
+
+The restored connectivity proof is:
+
+```text
+H_SDIO_DRV: Card init success, TRANSPORT_RX_ACTIVE
+transport: Identified slave [esp32c6]
+H_API: Transport active
+FG_WIFI: STA started
+FG_WIFI: MAC read err=ESP_OK
+FG_WIFI: WiFi hosted init READY
+RPC_WRAP: Station mode: Connected
+FG_WIFI: Got IP: 192.168.0.92
+FG_SD: SD mounted OK
+FG_SD: SD TEST PASS
+```
+
+The observed IP address is a runtime DHCP result, not a permanent configuration value. The SDMMC coexistence path also reported:
+
+```text
+sdmmc_host_init:
+SDMMC host already initialized,
+skipping init flow
+```
+
+Wi-Fi and SD were physically operating simultaneously.
+
+The transport also emitted this observed warning:
+
+```text
+Version mismatch:
+Host [2.9.0] > Co-proc [0.0.0]
+```
+
+This is recorded as an observed warning. It is not identified as the cause of the previous transport failure, and this documentation milestone makes no ESP32-C6 firmware-update recommendation.
+
 ### System health during interaction
 
 - Wi-Fi READY
+- Wi-Fi connected
 - IP assigned
 - SD READY
+- SD test passed
+- Wi-Fi and SD operating simultaneously
 - no crash after interaction
 
 Physical Button, Toggle, Three-Position, Light, the scoped Status Indicator Binary Output behavior and the built-in System Runtime behavior recorded above are proven. Toggle and Three-Position resized contain-fit output is not claimed as physically checked unless separately recorded.
@@ -2034,6 +2227,16 @@ Start at the ownership boundary matching the symptom.
 | System pages are recreated unexpectedly | `ForgeUILvglExport.ts` System Runtime construction | persistent container creation and visibility-only callbacks |
 | Interactive Assets disappear after leaving System | generated application container | `fg_system_show_page()`, application hidden flag and absence of object recreation |
 | System navigation differs between Browser Preview and LVGL | `ForgeUISystemContext.tsx` navigation contract | `ForgeUISystemSurface.tsx` and generated System callbacks in `ForgeUILvglExport.ts` |
+| Hosted slave transport fails before `esp_wifi_init()` | `sdkconfig` effective Hosted interface | `sdkconfig.defaults`, Slot 1 pins, reset GPIO54 |
+| Firmware unexpectedly uses SPI Hosted | `sdkconfig.defaults` | generated `sdkconfig`, Kconfig selection |
+| C6 is not identified | Hosted SDIO pins and reset | Slot 1, GPIO14–19, GPIO54, transport logs |
+| Wi-Fi works but SD fails | `main.c` boot order | `40_SD.c`, Slot 0, LDO, BSP SD pins |
+| SD works but Wi-Fi transport fails | Hosted interface selection | ensure SDIO Slot 1, not SPI |
+| Wi-Fi page shows READY but no IP | backend event/IP state | DHCP event and periodic System refresh |
+| Scan button starts but no networks appear | `30_WIFI.c` scan flags and `fg_wifi_pump()` | generated Wi-Fi page list rendering and refresh |
+| Disconnect works but scan list remains empty | backend scan-result retrieval | System page list population |
+| Browser Preview differs from hardware Wi-Fi | `ForgeUISystemContext.tsx` simulated state | generated LVGL backend refresh |
+| Wi-Fi credentials reconnect automatically | ESP-IDF Wi-Fi NVS | connect/forget behaviour in `30_WIFI.c` |
 
 ### Creation and editing paths
 
@@ -2223,12 +2426,34 @@ Preserve these rules:
 60. Built-in System controls do not generate user callbacks.
 61. Generated hardware and Browser Preview navigation remain equivalent.
 62. Current System navigation uses persistent container visibility switching; animated transitions remain future work.
+63. ESP-Hosted on this board uses SDIO Slot 1, not SPI.
+64. Hosted SDIO uses GPIO14–19 and reset GPIO54.
+65. SD storage remains on SDMMC Slot 0 using BSP GPIO39–44.
+66. Wi-Fi initializes before SD and retains the 2500 ms delay.
+67. `sdkconfig.defaults` must preserve the golden Hosted configuration.
+68. Generated System Wi-Fi UI does not own the physical Wi-Fi backend.
+69. `30_WIFI.c` owns runtime Wi-Fi truth and ESP-IDF Wi-Fi calls.
+70. Wi-Fi event handlers remain lightweight; deferred work runs through `fg_wifi_pump()`.
+71. System Wi-Fi controls use internal runtime callbacks and do not generate user hooks.
+72. Browser Preview Wi-Fi state is simulated and must not be described as physical connectivity.
+73. Scan-result UI polish remains incomplete until hardware results populate visibly and refresh reliably.
 
 ## Framework extension pattern
 
 Extend the framework by runtime family first, then by asset-specific model and artwork semantics.
 
 ### System Runtime extension
+
+Current System services are:
+
+```text
+System Runtime
+├── Launcher
+├── Display / Brightness
+└── Wi-Fi Phase 1
+```
+
+Display / Brightness is complete. Wi-Fi Phase 1 has a physically live backend and generated page, while scan-result population and refresh polish remain incomplete.
 
 Future built-in System pages should reuse:
 
@@ -2242,14 +2467,27 @@ Future built-in System pages should reuse:
 
 Future page identifiers currently include:
 
-- Wi-Fi
 - Bluetooth
 - Sound
 - Storage
 - Device
 - Diagnostics
 
-These pages and services are not implemented today. Adding one must extend the shared System Context, shared System Surface and single LVGL exporter without converting the page into an Interactive Asset or user project screen.
+These future pages and services are not implemented today. Adding one must extend the shared System Context, shared System Surface and single LVGL exporter without converting the page into an Interactive Asset or user project screen.
+
+Future System services must follow this ownership split:
+
+```text
+typed Studio/Preview state
++
+shared System Surface
++
+generated persistent LVGL page
++
+non-generated firmware backend
+```
+
+Hardware backends must not be duplicated inside the exporter.
 
 System Runtime extension is separate from the Interactive Asset extension pattern below.
 

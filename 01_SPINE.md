@@ -1,6 +1,6 @@
 # Current Save Point
 
-**FORGEUI_SYSTEM_INTERFACE__LVGL_RUNTIME__DISPLAY_BRIGHTNESS__ESP32P4_PROVEN__2026-07-27**
+**FORGEUI_SYSTEM_INTERFACE__HOSTED_WIFI_SD_RECOVERY__SDIO_SLOT1_RESTORED__PHYSICAL_ESP32P4_PROVEN__2026-07-27**
 
 ## Current Proven Status..
 
@@ -32,12 +32,13 @@ Two-state Button Normal/Pressed, Toggle OFF/ON, Light OFF/ON and Status Indicato
 
 Project Health Phases 1 and 2 are complete. The repository has clean TypeScript and ESLint baselines, protected asset references, and client- and server-side export validation before generated firmware files are written. Focused Creator, State Sheet, crop, image-pipeline and exporter regressions provide the current automated baseline. The project is ready for continued UI polish on top of its physically proven runtime families.
 
-ForgeUI now also includes a built-in System Interface in addition to the Interactive Asset Framework. The System Interface is proven through Studio, Browser Preview, generated LVGL and physical ESP32-P4 hardware.
+ForgeUI now also includes a built-in System Interface in addition to the Interactive Asset Framework. The System Interface is proven through Studio, Browser Preview, generated LVGL and physical ESP32-P4 hardware. ForgeUI now has a fully proven System Runtime together with a fully recovered Hosted Wi-Fi and SD coexistence baseline.
 
 Current implemented System pages:
 
 - System Launcher
 - Display / Brightness
+- Wi-Fi (backend physically operational; page workflows still require UI polish)
 
 Navigation is proven through the complete current hierarchy:
 
@@ -77,7 +78,7 @@ ForgeUISystemPage
 └── diagnostics
 ```
 
-Only Launcher and Brightness are implemented today. Wi-Fi, Bluetooth, Sound, Storage, Device and Diagnostics are visible future page identifiers and disabled launcher placeholders; their system functions are not implemented.
+Launcher and Brightness are implemented, and the Wi-Fi backend is now physically operational. The Wi-Fi System page still requires UI polish for Scan Networks, Disconnect, its live network list and refresh behaviour; those UI workflows are not complete. Bluetooth, Sound, Storage, Device and Diagnostics remain visible future page identifiers and disabled launcher placeholders, and their system functions are not implemented.
 
 The shared provider owns the active System page, open and back navigation, and current-session brightness. The shared surface renders the same built-in interface over the Studio Canvas and Browser Preview while keeping normal project components separate.
 
@@ -92,6 +93,88 @@ Generated LVGL creates:
 The current hardware-safe navigation implementation uses immediate container visibility switching. It does not recreate screens, project widgets or Interactive Assets. Existing Interactive Assets remain instantiated and retain their state while the System Interface is open, then continue working after return to the application.
 
 The generated gear launcher and System controls use internal LVGL event callbacks. The Brightness slider listens for live value changes, clamps the value to `10–100`, updates its percentage label and calls the Waveshare BSP through the generated internal `FG_Set_Display_Brightness()` wrapper and `bsp_display_brightness_set()`. Brightness is session-only and is not persisted.
+
+## Hosted Wi-Fi Recovery
+
+The original ForgeUI-P4 Hosted Wi-Fi architecture has been recovered and physically proven:
+
+```text
+ESP32-P4
+    │
+Hosted SDIO
+    │
+SDMMC Slot 1
+GPIO18/19
+GPIO14-17
+Reset GPIO54
+    │
+ESP32-C6
+    │
+Wi-Fi Remote
+    │
+ESP-IDF Wi-Fi API
+```
+
+The previous SPI Hosted configuration was incorrect for this hardware and prevented the Hosted transport from establishing. Restoring the SDIO Host Interface on SDMMC Slot 1 restored the intended transport.
+
+## SD Coexistence
+
+The physically proven coexistence architecture is:
+
+```text
+Hosted Wi-Fi
+→ SDMMC Slot 1
+
+SD Card
+→ SDMMC Slot 0
+```
+
+The SD Card continues to use the BSP SD pins on GPIO39–44, 4-bit SDMMC, manual LDO control and the FAT filesystem. No SD runtime changes were required.
+
+## Proven Boot Order
+
+The physically proven startup sequence is:
+
+```text
+NVS
+Display
+UI
+RTC
+fg_wifi_init()
+2500 ms delay
+fg_sd_init()
+fg_sd_test()
+```
+
+This ordering remains the stable baseline.
+
+## Hosted Configuration Baseline
+
+The recovered Hosted baseline is:
+
+- SDIO Host Interface
+- SDMMC Slot 1
+- 4-bit
+- 40000 kHz
+- GPIO18
+- GPIO19
+- GPIO14
+- GPIO15
+- GPIO16
+- GPIO17
+- Reset GPIO54
+- active-high reset
+- 1500 ms reset delay
+- reset every boot
+- restart transport on failure
+
+The associated platform baseline is:
+
+- PSRAM XIP disabled
+- ESP-IDF 5.5.4
+- esp_hosted 2.9.7
+- esp_wifi_remote 1.3.0
+- Waveshare BSP 1.0.2
 
 ## Project Health Phase 1 — Clean Baseline
 
@@ -894,12 +977,47 @@ The exporter owns the shared generated runtime implementations, unique per-insta
 - Back navigation returns from Display to System and from System to the existing application.
 - Existing Interactive Assets remain alive while System is open and continue working after leaving System.
 
+### Hosted Wi-Fi and SD coexistence
+
+Today's physical ESP32-P4 validation recovered the original Hosted Wi-Fi architecture and proved simultaneous Hosted connectivity and SD operation.
+
+Hosted transport reported:
+
+```text
+transport: Identified slave [esp32c6]
+H_API: Transport active
+FG_WIFI: STA started
+FG_WIFI: WiFi hosted init READY
+```
+
+The runtime validation proved:
+
+- MAC address read
+- automatic reconnect
+- DHCP address obtained
+- Wi-Fi Connected
+- SD mounted successfully
+- SD write/read test passed
+- Wi-Fi and SD operating simultaneously
+
+The observed coexistence message:
+
+```text
+sdmmc_host_init:
+SDMMC host already initialized,
+skipping init flow
+```
+
+confirms the intended use of SDMMC Slot 1 for Hosted Wi-Fi alongside SDMMC Slot 0 for the SD Card.
+
 ### System health
 
 - Wi-Fi READY
 - Wi-Fi connected
 - IP assigned
 - SD READY
+- SD write/read test passed
+- Hosted Wi-Fi and SD operating simultaneously
 - No crash after interaction
 
 ## LVGL Keyboard Visual Parity
@@ -939,7 +1057,7 @@ LVGL normalizes width units independently within each row. The physical result n
 
 ## Architectural Significance and Extension Pattern
 
-ForgeUI now consists of four major reusable layers:
+ForgeUI now contains these reusable platform layers and services:
 
 ```text
 Studio
@@ -950,12 +1068,22 @@ Studio
 System Runtime
 ├── System Launcher
 ├── Brightness
+├── Wi-Fi backend
 └── Future System pages
 
 Interactive Asset Runtime
 ├── Interactive Inputs
 ├── Three-Position Inputs
 └── Binary Outputs
+
+Hosted Connectivity Runtime
+├── ESP-Hosted
+├── Wi-Fi Remote
+├── ESP32-C6
+└── SDIO Slot 1
+
+Storage Runtime
+└── SDMMC Slot 0
 
 Generated Firmware
 ├── LVGL
@@ -966,7 +1094,9 @@ Generated Firmware
 
 The System Interface is not an Interactive Asset. It is a reusable platform service generated alongside the user's application. It does not enter the Interactive Asset registry, does not become a user project screen and does not generate user callbacks.
 
-This separation lets future built-in Wi-Fi, Bluetooth, Sound, Storage, Device and Diagnostics services reuse the typed System page, shared navigation and generated container framework without affecting project screens or changing existing Interactive Asset runtime contracts. These services remain future work; only the System Launcher and Display / Brightness are implemented and physically proven today.
+Hosted Connectivity Runtime and Storage Runtime are reusable platform services independent of Interactive Assets. Hosted Connectivity owns ESP-Hosted, Wi-Fi Remote, the ESP32-C6 and SDIO Slot 1; Storage Runtime owns the SD Card on SDMMC Slot 0.
+
+This separation lets built-in Wi-Fi and future Bluetooth, Sound, Storage, Device and Diagnostics services reuse the typed System page, shared navigation and generated container framework without affecting project screens or changing existing Interactive Asset runtime contracts. The System Launcher and Display / Brightness are implemented and physically proven, and the Wi-Fi backend is physically operational. Scan Networks, Disconnect, the live network list and refresh behaviour still require UI polish and are not claimed complete.
 
 Interactive Button established the first **Interactive Input Runtime** within the Interactive Asset Framework.
 
@@ -1080,6 +1210,13 @@ These remain future concepts only. They are not implemented or physically proven
 # Save Point History
 
 Save points are ordered newest to oldest. Detailed subsystem engineering is maintained in the Developer Code Maps.
+
+## FORGEUI_SYSTEM_INTERFACE__HOSTED_WIFI_SD_RECOVERY__SDIO_SLOT1_RESTORED__PHYSICAL_ESP32P4_PROVEN__2026-07-27
+
+- **What changed:** Recovered the original ForgeUI-P4 Hosted Wi-Fi architecture by restoring the ESP32-P4-to-ESP32-C6 ESP-Hosted SDIO transport on SDMMC Slot 1, documented the unchanged SD Card runtime on SDMMC Slot 0, and recorded the physically proven boot order and configuration baseline.
+- **Why it changed:** The previous SPI Hosted configuration did not match this hardware and prevented the Hosted transport from establishing.
+- **Final architecture:** Hosted Wi-Fi uses the SDIO Host Interface, 4-bit SDMMC Slot 1 and its dedicated GPIO/reset baseline; the SD Card continues unchanged on BSP GPIO39–44 using 4-bit SDMMC Slot 0, manual LDO control and FAT. The System Runtime exposes the operational Wi-Fi backend independently of Interactive Assets.
+- **Proven result:** ESP32-C6 identification, active Hosted transport, station startup, MAC read, automatic reconnect, DHCP and Wi-Fi connection were physically validated together with successful SD mount and write/read testing. Wi-Fi and SD operated simultaneously. The Wi-Fi System page still requires Scan Networks, Disconnect, live network list and refresh UI polish.
 
 ## FORGEUI_SYSTEM_INTERFACE__LVGL_RUNTIME__DISPLAY_BRIGHTNESS__ESP32P4_PROVEN__2026-07-27
 

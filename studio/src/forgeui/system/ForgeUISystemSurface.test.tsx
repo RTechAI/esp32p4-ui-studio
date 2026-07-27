@@ -1,5 +1,6 @@
 import React from 'react'
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -97,15 +98,80 @@ describe('ForgeUI System interface', () => {
       .toHaveTextContent('10%')
   })
 
-  it('does not navigate from placeholder cards', () => {
+  it('opens Wi-Fi and goes back to the launcher', () => {
     renderSurface()
     fireEvent.click(screen.getByLabelText('Open System'))
     fireEvent.click(screen.getByTestId('system-card-wifi'))
 
+    expect(screen.getByTestId('system-wifi-page'))
+      .toBeInTheDocument()
+    expect(screen.getByTestId('wifi-preview-badge'))
+      .toHaveTextContent('Simulated Preview')
+    expect(screen.getByTestId('wifi-state'))
+      .toHaveTextContent('connected')
+    expect(screen.getByTestId('wifi-ssid'))
+      .toHaveTextContent('ForgeUI-Lab')
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Back from Wi-Fi' }),
+    )
     expect(screen.getByTestId('system-launcher'))
       .toBeInTheDocument()
-    expect(screen.queryByTestId('system-brightness-page'))
-      .not.toBeInTheDocument()
+  })
+
+  it('simulates scanning and keeps Connect disabled', () => {
+    jest.useFakeTimers()
+    renderSurface()
+    fireEvent.click(screen.getByLabelText('Open System'))
+    fireEvent.click(screen.getByTestId('system-card-wifi'))
+
+    expect(screen.getByRole('button', { name: 'Connect' }))
+      .toBeDisabled()
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Scan Networks' }),
+    )
+    expect(screen.getByTestId('wifi-state'))
+      .toHaveTextContent('Scanning')
+    expect(screen.getByRole('button', { name: 'Scanning…' }))
+      .toBeDisabled()
+
+    act(() => {
+      jest.runAllTimers()
+    })
+    expect(screen.getByText('ESP32-Testbench'))
+      .toBeInTheDocument()
+    jest.useRealTimers()
+  })
+
+  it('disconnects locally and retains the state across navigation', () => {
+    renderSurface()
+    fireEvent.click(screen.getByLabelText('Open System'))
+    fireEvent.click(screen.getByTestId('system-card-wifi'))
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Disconnect' }),
+    )
+
+    expect(screen.getByTestId('wifi-state'))
+      .toHaveTextContent('disconnected')
+    expect(screen.getByTestId('wifi-ssid')).toHaveTextContent('—')
+    expect(screen.getByRole('button', { name: 'Disconnect' }))
+      .toBeDisabled()
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Back from Wi-Fi' }),
+    )
+    fireEvent.click(screen.getByTestId('system-card-wifi'))
+    expect(screen.getByTestId('wifi-state'))
+      .toHaveTextContent('disconnected')
+  })
+
+  it('does not navigate from future placeholder cards', () => {
+    renderSurface()
+    fireEvent.click(screen.getByLabelText('Open System'))
+    fireEvent.click(screen.getByTestId('system-card-bluetooth'))
+
+    expect(screen.getByTestId('system-launcher'))
+      .toBeInTheDocument()
   })
 
   it('leaves existing application interactions available when closed', () => {

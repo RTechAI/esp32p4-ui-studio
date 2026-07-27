@@ -79,11 +79,15 @@ static const char *TAG = "FG_WIFI";
 static bool g_wifi_ready = false;
 static bool g_wifi_connected = false;
 static volatile bool g_scan_done_pending = false;
+static volatile bool g_scan_in_progress = false;
+static fg_wifi_state_t g_wifi_state = FG_WIFI_STATE_OFF;
 
 static esp_netif_t *g_sta_netif = NULL;
 
 static char g_status[32] = "OFF";
 static char g_ip[32] = "-";
+static char g_ssid[33] = "-";
+static int g_rssi = 0;
 
 static char g_scan_ssids[FG_WIFI_MAX_SCAN][33];
 static int  g_scan_count = 0;
@@ -91,6 +95,36 @@ static int  g_scan_count = 0;
 static void fg_wifi_set_status(const char *s)
 {
     snprintf(g_status, sizeof(g_status), "%s", s ? s : "-");
+}
+
+static void fg_wifi_set_error(const char *status)
+{
+    fg_wifi_set_status(status);
+    g_wifi_state = FG_WIFI_STATE_ERROR;
+}
+
+static void fg_wifi_clear_station_info(void)
+{
+    snprintf(g_ip, sizeof(g_ip), "-");
+    snprintf(g_ssid, sizeof(g_ssid), "-");
+    g_rssi = 0;
+}
+
+static void fg_wifi_refresh_station_info(void)
+{
+    wifi_ap_record_t ap_info = {0};
+    if (esp_wifi_sta_get_ap_info(&ap_info) != ESP_OK)
+    {
+        g_rssi = 0;
+        if (!g_wifi_connected)
+        {
+            snprintf(g_ssid, sizeof(g_ssid), "-");
+        }
+        return;
+    }
+
+    snprintf(g_ssid, sizeof(g_ssid), "%s", (const char *)ap_info.ssid);
+    g_rssi = ap_info.rssi;
 }
 
 static void fg_wifi_event_handler(void *arg,
@@ -103,18 +137,21 @@ static void fg_wifi_event_handler(void *arg,
         if (event_id == WIFI_EVENT_STA_START)
         {
             ESP_LOGI(TAG, "STA started");
+            g_wifi_state = FG_WIFI_STATE_READY;
             fg_wifi_set_status("READY");
         }
         else if (event_id == WIFI_EVENT_SCAN_DONE)
         {
             ESP_LOGI(TAG, "SCAN DONE EVENT FIRED");
+            g_scan_in_progress = false;
             g_scan_done_pending = true;
         }
         else if (event_id == WIFI_EVENT_STA_DISCONNECTED)
 {
     ESP_LOGW(TAG, "STA disconnected");
     g_wifi_connected = false;
-    snprintf(g_ip, sizeof(g_ip), "-");
+    g_wifi_state = FG_WIFI_STATE_DISCONNECTED;
+    fg_wifi_clear_station_info();
     fg_wifi_set_status("DISCONNECTED");
 }
     }
@@ -125,6 +162,8 @@ static void fg_wifi_event_handler(void *arg,
         snprintf(g_ip, sizeof(g_ip), IPSTR, IP2STR(&event->ip_info.ip));
 
         g_wifi_connected = true;
+        g_wifi_state = FG_WIFI_STATE_CONNECTED;
+        fg_wifi_refresh_station_info();
         fg_wifi_set_status("CONNECTED");
 
         ESP_LOGI(TAG, "Got IP: %s", g_ip);
@@ -134,6 +173,7 @@ static void fg_wifi_event_handler(void *arg,
 void fg_wifi_init(void)
 {
     ESP_LOGI(TAG, "WiFi hosted init start");
+    g_wifi_state = FG_WIFI_STATE_INIT;
     fg_wifi_set_status("INIT");
 
     esp_err_t err;
@@ -142,7 +182,7 @@ void fg_wifi_init(void)
     if (err != ESP_OK && err != ESP_ERR_INVALID_STATE)
     {
         ESP_LOGE(TAG, "esp_netif_init failed: %s", esp_err_to_name(err));
-        fg_wifi_set_status("NETIF_FAIL");
+        fg_wifi_set_error("NETIF_FAIL");
         return;
     }
 
@@ -150,7 +190,7 @@ void fg_wifi_init(void)
     if (err != ESP_OK && err != ESP_ERR_INVALID_STATE)
     {
         ESP_LOGE(TAG, "event loop failed: %s", esp_err_to_name(err));
-        fg_wifi_set_status("EVENT_FAIL");
+        fg_wifi_set_error("EVENT_FAIL");
         return;
     }
 
@@ -165,7 +205,7 @@ void fg_wifi_init(void)
     if (err != ESP_OK && err != ESP_ERR_INVALID_STATE)
     {
         ESP_LOGE(TAG, "esp_wifi_init failed: %s", esp_err_to_name(err));
-        fg_wifi_set_status("WIFI_FAIL");
+        fg_wifi_set_error("WIFI_FAIL");
         return;
     }
 
@@ -189,7 +229,7 @@ void fg_wifi_init(void)
     if (err != ESP_OK)
     {
         ESP_LOGE(TAG, "set mode failed: %s", esp_err_to_name(err));
-        fg_wifi_set_status("MODE_FAIL");
+        fg_wifi_set_error("MODE_FAIL");
         return;
     }
 
@@ -197,7 +237,7 @@ void fg_wifi_init(void)
     if (err != ESP_OK && err != ESP_ERR_WIFI_CONN)
     {
         ESP_LOGE(TAG, "wifi start failed: %s", esp_err_to_name(err));
-        fg_wifi_set_status("START_FAIL");
+        fg_wifi_set_error("START_FAIL");
         return;
     }
 
@@ -212,6 +252,7 @@ void fg_wifi_init(void)
              mac[3], mac[4], mac[5]);
 
     g_wifi_ready = true;
+    g_wifi_state = FG_WIFI_STATE_READY;
     fg_wifi_set_status("READY");
 
     ESP_LOGI(TAG, "WiFi hosted init READY");
@@ -233,6 +274,7 @@ void fg_wifi_pump(void)
     {
         ESP_LOGE(TAG, "scan get count failed: %s", esp_err_to_name(err));
         fg_wifi_set_status("SCAN_COUNT_FAIL");
+        if (!g_wifi_connected) g_wifi_state = FG_WIFI_STATE_ERROR;
         return;
     }
 
@@ -243,7 +285,7 @@ void fg_wifi_pump(void)
 
     if (ap_count == 0)
     {
-        fg_wifi_set_status("SCAN_EMPTY");
+        fg_wifi_set_status(g_wifi_connected ? "CONNECTED" : "SCAN_EMPTY");
         return;
     }
 
@@ -257,6 +299,7 @@ void fg_wifi_pump(void)
     {
         ESP_LOGE(TAG, "scan records failed: %s", esp_err_to_name(err));
         fg_wifi_set_status("SCAN_READ_FAIL");
+        if (!g_wifi_connected) g_wifi_state = FG_WIFI_STATE_ERROR;
         return;
     }
 
@@ -275,7 +318,7 @@ void fg_wifi_pump(void)
                  records[i].rssi);
     }
 
-    fg_wifi_set_status("SCAN_DONE");
+    fg_wifi_set_status(g_wifi_connected ? "CONNECTED" : "SCAN_DONE");
 }
 
 bool fg_wifi_is_ready(void)
@@ -288,6 +331,15 @@ bool fg_wifi_is_connected(void)
     return g_wifi_connected;
 }
 
+fg_wifi_state_t fg_wifi_state(void)
+{
+    if (g_scan_in_progress && !g_wifi_connected)
+    {
+        return FG_WIFI_STATE_SCANNING;
+    }
+    return g_wifi_state;
+}
+
 const char *fg_wifi_status_text(void)
 {
     return g_status;
@@ -296,6 +348,29 @@ const char *fg_wifi_status_text(void)
 const char *fg_wifi_ip_text(void)
 {
     return g_ip;
+}
+
+const char *fg_wifi_ssid_text(void)
+{
+    if (g_wifi_connected)
+    {
+        fg_wifi_refresh_station_info();
+    }
+    return g_ssid;
+}
+
+int fg_wifi_rssi(void)
+{
+    if (g_wifi_connected)
+    {
+        fg_wifi_refresh_station_info();
+    }
+    return g_rssi;
+}
+
+bool fg_wifi_scan_in_progress(void)
+{
+    return g_scan_in_progress;
 }
 
 void fg_wifi_scan_start(void)
@@ -307,6 +382,7 @@ void fg_wifi_scan_start(void)
     }
 
     ESP_LOGI(TAG, "WiFi scan start");
+    g_scan_in_progress = true;
     fg_wifi_set_status("SCANNING");
 
     memset(g_scan_ssids, 0, sizeof(g_scan_ssids));
@@ -324,7 +400,9 @@ void fg_wifi_scan_start(void)
     if (err != ESP_OK)
     {
         ESP_LOGE(TAG, "scan failed: %s", esp_err_to_name(err));
+        g_scan_in_progress = false;
         fg_wifi_set_status("SCAN_FAIL");
+        if (!g_wifi_connected) g_wifi_state = FG_WIFI_STATE_ERROR;
         return;
     }
 }
@@ -362,6 +440,7 @@ void fg_wifi_connect(const char *ssid, const char *pass)
     }
 
     ESP_LOGI(TAG, "Connecting to SSID: %s", ssid);
+    g_wifi_state = FG_WIFI_STATE_CONNECTING;
     fg_wifi_set_status("CONNECTING");
 
     wifi_config_t wifi_config = {0};
@@ -387,7 +466,7 @@ void fg_wifi_connect(const char *ssid, const char *pass)
     if (err != ESP_OK)
     {
         ESP_LOGE(TAG, "set config failed: %s", esp_err_to_name(err));
-        fg_wifi_set_status("CONFIG_FAIL");
+        fg_wifi_set_error("CONFIG_FAIL");
         return;
     }
 
@@ -395,7 +474,7 @@ void fg_wifi_connect(const char *ssid, const char *pass)
     if (err != ESP_OK)
     {
         ESP_LOGE(TAG, "connect failed: %s", esp_err_to_name(err));
-        fg_wifi_set_status("CONNECT_FAIL");
+        fg_wifi_set_error("CONNECT_FAIL");
     }
 }
 
@@ -405,7 +484,8 @@ void fg_wifi_disconnect(void)
     esp_wifi_disconnect();
 
     g_wifi_connected = false;
-    snprintf(g_ip, sizeof(g_ip), "-");
+    g_wifi_state = FG_WIFI_STATE_DISCONNECTED;
+    fg_wifi_clear_station_info();
     fg_wifi_set_status("DISCONNECTED");
 }
 
@@ -421,7 +501,8 @@ void fg_wifi_forget(void)
     esp_wifi_set_config(WIFI_IF_STA, &blank);
 
     g_wifi_connected = false;
-    snprintf(g_ip, sizeof(g_ip), "-");
+    g_wifi_state = FG_WIFI_STATE_DISCONNECTED;
+    fg_wifi_clear_station_info();
 
     fg_wifi_set_status("FORGOTTEN");
 }

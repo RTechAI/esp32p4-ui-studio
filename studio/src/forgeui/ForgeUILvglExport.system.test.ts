@@ -55,12 +55,11 @@ describe('built-in System LVGL export', () => {
     expect(generated.userEventHooks).toEqual([])
   })
 
-  it('creates only Display as an interactive launcher card', () => {
+  it('creates Display and Wi-Fi as interactive launcher cards', () => {
     expect(generated.code).toContain(
       'fg_system_open_brightness_cb, LV_EVENT_CLICKED, NULL',
     )
     ;[
-      'Wi-Fi',
       'Bluetooth',
       'Sound',
       'Storage',
@@ -76,6 +75,60 @@ describe('built-in System LVGL export', () => {
         /fg_system_open_brightness_cb, LV_EVENT_CLICKED/g,
       ),
     ).toHaveLength(1)
+    expect(generated.code).toContain(
+      'fg_system_open_wifi_cb, LV_EVENT_CLICKED, NULL',
+    )
+    expect(generated.code).not.toContain(
+      'Wi-Fi\\nComing Later',
+    )
+  })
+
+  it('exports the persistent Wi-Fi page and internal navigation', () => {
+    expect(generated.code).toContain(
+      'fg_system_wifi_page = lv_obj_create(parent);',
+    )
+    expect(generated.code).toContain(
+      'lv_obj_add_flag(fg_system_wifi_page, LV_OBJ_FLAG_HIDDEN);',
+    )
+    expect(generated.code).toContain(
+      'fg_system_wifi_back_cb, LV_EVENT_CLICKED, NULL',
+    )
+    expect(generated.code).toContain(
+      'fg_system_show_page(fg_system_wifi_page);',
+    )
+  })
+
+  it('wires scan and disconnect but leaves Connect disabled', () => {
+    expect(generated.code).toContain('fg_wifi_scan_start();')
+    expect(generated.code).toContain('fg_wifi_disconnect();')
+    expect(generated.code).toContain(
+      'lv_obj_add_state(fg_system_wifi_connect_button, LV_STATE_DISABLED);',
+    )
+    expect(generated.code).not.toMatch(
+      /fg_system_wifi_connect_button,.*LV_EVENT_CLICKED/,
+    )
+  })
+
+  it('refreshes System Wi-Fi independently of an application widget', () => {
+    expect(generated.code).toContain('fg_wifi_state()')
+    expect(generated.code).toContain('fg_wifi_ssid_text()')
+    expect(generated.code).toContain('fg_wifi_rssi()')
+    expect(generated.code).toContain('fg_wifi_scan_in_progress()')
+    expect(generated.code).toContain(
+      'if (fg_wifi_label) {',
+    )
+    expect(generated.code).not.toContain(
+      'if (!fg_wifi_label)',
+    )
+    expect(generated.code.match(/lv_timer_create\(fg_wifi_tick_cb, 1000, NULL\)/g))
+      .toHaveLength(1)
+  })
+
+  it('keeps built-in Wi-Fi out of User Events', () => {
+    expect(generated.userEventHooks).toEqual([])
+    expect(generated.code).not.toContain(
+      'FG_UserEvent_System_Wifi',
+    )
   })
 
   it('exports a live 10-100 brightness slider through the board API', () => {

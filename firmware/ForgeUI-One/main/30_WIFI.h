@@ -55,6 +55,18 @@ extern "C" {
 // Runtime WiFi Init
 // ============================================================
 
+typedef enum
+{
+    FG_WIFI_STATE_OFF = 0,
+    FG_WIFI_STATE_INIT,
+    FG_WIFI_STATE_READY,
+    FG_WIFI_STATE_CONNECTING,
+    FG_WIFI_STATE_CONNECTED,
+    FG_WIFI_STATE_DISCONNECTED,
+    FG_WIFI_STATE_SCANNING,
+    FG_WIFI_STATE_ERROR
+} fg_wifi_state_t;
+
 // Initialise hosted WiFi backend
 void fg_wifi_init(void);
 
@@ -69,9 +81,18 @@ bool fg_wifi_is_ready(void);
 
 bool fg_wifi_is_connected(void);
 
+fg_wifi_state_t fg_wifi_state(void);
+
 const char *fg_wifi_status_text(void);
 
 const char *fg_wifi_ip_text(void);
+
+const char *fg_wifi_ssid_text(void);
+
+// Returns the current station RSSI in dBm, or 0 when unavailable.
+int fg_wifi_rssi(void);
+
+bool fg_wifi_scan_in_progress(void);
 
 // ============================================================
 // WiFi Scan Helpers
