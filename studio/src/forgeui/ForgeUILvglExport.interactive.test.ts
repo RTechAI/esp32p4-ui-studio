@@ -104,6 +104,137 @@ describe('Interactive Button LVGL export compatibility', () => {
     expect(first.assetSources.filter(source => source === onAsset.cFile)).toHaveLength(1)
   })
 
+  it('exports Status Indicator through the shared scaled Binary Output container', () => {
+    const offAsset = {
+      ...createUploadedAsset('status_indicator_off'),
+      width: 105,
+      height: 168,
+    }
+    const onAsset = {
+      ...createUploadedAsset('status_indicator_on'),
+      width: 100,
+      height: 160,
+    }
+    forgeUIAddUploadedAssets([offAsset, onAsset])
+    const indicator = {
+      ...createDefaultInteractiveStatusIndicatorAsset(
+        'status-indicator-asset',
+      ),
+      label: 'System Status',
+      offAssetId: offAsset.id,
+      onAssetId: onAsset.id,
+      initialState: 'on' as const,
+    }
+    registerInteractiveAsset(indicator)
+
+    const result = generateForgeUILvglCode({
+      root: {
+        id: 'root',
+        parent: 'root',
+        type: 'Box',
+        props: {},
+        children: ['status'],
+      },
+      status: {
+        id: 'status',
+        parent: 'root',
+        type: 'InteractiveStatusIndicator',
+        componentName: 'System_Status',
+        props: {
+          interactiveAssetId: indicator.id,
+          x: 200,
+          y: 36,
+          w: 255,
+          h: 408,
+        },
+        children: [],
+      },
+    })
+
+    expect(result.code).toContain(
+      'lv_obj_t * fg_system_status_output_obj = lv_obj_create(parent);',
+    )
+    expect(result.code).toContain(
+      'lv_obj_set_pos(fg_system_status_output_obj, 200, 36);',
+    )
+    expect(result.code).toContain(
+      'lv_obj_set_size(fg_system_status_output_obj, 255, 408);',
+    )
+    expect(result.code).toContain(
+      'lv_obj_set_style_bg_opa(fg_system_status_output_obj, LV_OPA_TRANSP, LV_PART_MAIN);',
+    )
+    expect(result.code).toContain(
+      'fg_system_status_output.image = lv_image_create(fg_system_status_output_obj);',
+    )
+    expect(result.code).toContain(
+      'fg_binary_output_set(&fg_system_status_output, true);',
+    )
+    expect(result.code).toContain(
+      'lv_image_set_scale(fg_system_status_output.image, 622);',
+    )
+    expect(result.code).toContain(
+      'lv_obj_center(fg_system_status_output.image);',
+    )
+    expect(result.code).toContain(
+      'enabled ? output->on_src : output->off_src',
+    )
+    expect(result.code).toContain(
+      'void FG_Set_System_Status(bool enabled)',
+    )
+    expect(result.code).toContain(
+      'fg_binary_output_set(&fg_system_status_output, enabled);',
+    )
+    expect(result.publicApiDeclarations).toContain(
+      'void FG_Set_System_Status(bool enabled);',
+    )
+    expect(result.code).not.toContain(
+      'lv_obj_set_size(fg_system_status_output.image, 255, 408);',
+    )
+  })
+
+  it('keeps descriptor fallback scaling for legacy Status Indicator assets', () => {
+    const offAsset = createUploadedAsset('legacy_status_off')
+    const onAsset = createUploadedAsset('legacy_status_on')
+    forgeUIAddUploadedAssets([offAsset, onAsset])
+    const indicator = {
+      ...createDefaultInteractiveStatusIndicatorAsset('legacy-status'),
+      offAssetId: offAsset.id,
+      onAssetId: onAsset.id,
+    }
+    registerInteractiveAsset(indicator)
+
+    const result = generateForgeUILvglCode({
+      root: {
+        id: 'root',
+        parent: 'root',
+        type: 'Box',
+        props: {},
+        children: ['status'],
+      },
+      status: {
+        id: 'status',
+        parent: 'root',
+        type: 'InteractiveStatusIndicator',
+        props: {
+          interactiveAssetId: indicator.id,
+          w: 255,
+          h: 408,
+        },
+        children: [],
+      },
+    })
+
+    expect(result.code).toContain(
+      'lv_image_set_scale(fg_status_indicator_output.image, fg_interactive_light_contain_scale(&fg_upload_legacy_status_off, &fg_upload_legacy_status_on, 255, 408));',
+    )
+    expect(result.code).toContain(
+      'fg_status_indicator_output.image = lv_image_create(fg_status_indicator_output_obj);',
+    )
+    expect(result.code).toContain(
+      'lv_obj_center(fg_status_indicator_output.image);',
+    )
+  })
+
   it('preserves generated callback names and fallback wiring', () => {
     const asset = {
       ...createDefaultInteractiveButtonAsset(

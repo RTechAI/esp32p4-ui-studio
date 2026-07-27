@@ -2,7 +2,7 @@
 
 ## Current save point
 
-**FORGEUI_ALL_FIVE_INTERACTIVE_ASSETS__CONFIGURED_INSPECTOR_PARITY__SHARED_SELECTION_BORDER_RESIZE__N_STATE_VISIBLE_BOUNDS__LVGL_CONTAIN_SCALING__ESP32P4_PROVEN__2026-07-27**
+**FORGEUI_INTERACTIVE_ASSETS__COMPLETE_WORKFLOW_PARITY__SHARED_VISIBLE_BOUNDS__CONTAIN_FIT_SCALING__READY_FOR_FEATURE_REVIEW__2026-07-27**
 
 ## Purpose
 
@@ -45,7 +45,7 @@ The shared framework is proven through:
 
 All five Interactive Assets use the completed post-placement architecture: configured and unconfigured Inspector helpers, exact linked Creator reopening, registry-driven preview refresh, shared selection-border resizing with eight edge/corner hit zones, continuous Canvas clamping, live Inspector geometry, and component-authoritative geometry after placement. Rendered states record intrinsic dimensions and alpha-content bounds. Explicit `Fit Bounds to Visible Artwork` creates linked fitted assets while preserving originals and is idempotent. Canvas previews scale continuously with contain-fit rendering, and generated LVGL uses a common safe contain scale across each control's required states.
 
-The Physical ESP32-P4 proof section records the current Button, Toggle Switch, Three-Position Toggle and Light hardware results. Three-Position LEFT/CENTER/RIGHT touch selection, generated callback output and stable runtime are proven. Status Indicator remains documented at the level supported by its current project record. State Sheet generation, linked crop editing and keyboard LVGL parity extend the proven Studio-to-runtime pipeline.
+The Physical ESP32-P4 proof section records the current Button, Toggle Switch, Three-Position Toggle, Light and Status Indicator hardware results. Three-Position LEFT/CENTER/RIGHT touch selection, generated callback output and stable runtime are proven. Status Indicator Binary Output runtime, OFF/ON rendering, resized geometry, Browser Preview parity, centred contain-fit scaling and stable generated runtime are proven. State Sheet generation, linked crop editing and keyboard LVGL parity extend the proven Studio-to-runtime pipeline.
 
 All five controls are separate discriminated models inside one framework. They share infrastructure. Interactive Button and Interactive Toggle Switch belong to the Interactive Input Runtime, Interactive Three-Position Toggle Switch owns the Three-Position Input Runtime, and Interactive Light and Interactive Status Indicator belong to the Binary Output Runtime.
 
@@ -785,7 +785,7 @@ CLICKED    → generated developer hook
 Example hook:
 
 ```c
-FG_On_Button_Clicked();
+FG_On_<Name>_Clicked();
 ```
 
 Runtime path:
@@ -797,7 +797,7 @@ LVGL Button
   ↓
 fg_interactive_button_event_cb(...)
   ↓
-FG_On_Button_Clicked()
+FG_On_<Name>_Clicked()
   ↓
 95_UserEvents.c
   ↓
@@ -1075,7 +1075,7 @@ The exporter emits Light as a transparent component-sized container with a centr
 Example generated API:
 
 ```c
-void FG_Set_Status_Light(bool enabled);
+void FG_Set_<Name>(bool enabled);
 ```
 
 Behavior:
@@ -1090,7 +1090,7 @@ Runtime path:
 ```text
 Developer application logic
   ↓
-FG_Set_Status_Light(enabled)
+FG_Set_<Name>(enabled)
   ↓
 90_Studio_Export.c
   ↓
@@ -1119,7 +1119,7 @@ The exporter generates the Binary Output Runtime implementation once per export.
 - its saved initial state
 - its deterministic `FG_Set_*` public setter
 
-Every generated setter delegates to `fg_binary_output_set()`. Runtime records and setter APIs are unique per Canvas instance; the runtime structure and state-switching function are not duplicated.
+Every generated setter delegates to `fg_binary_output_set()`. Light and Status Indicator also share the same exported geometry implementation. Runtime records and setter APIs are unique per Canvas instance; the runtime structure, state-switching function and geometry implementation are not duplicated. The previous legacy Status Indicator direct-image export path no longer exists.
 
 Runtime ownership:
 
@@ -1215,12 +1215,10 @@ The exporter emits each Status Indicator as a non-clickable LVGL image backed by
 - a deterministic public setter controls the instance
 - multiple instances remain independent even when they reuse the same artwork
 
-Example generated APIs:
+Example generated API:
 
 ```c
-void FG_Set_WiFi_Status(bool enabled);
-void FG_Set_MQTT_Status(bool enabled);
-void FG_Set_Alarm(bool enabled);
+void FG_Set_<Name>(bool enabled);
 ```
 
 Runtime path:
@@ -1733,7 +1731,14 @@ Studio, persistence, preview, export, shared runtime and bool-hook generation ar
 
 ### Interactive Status Indicator
 
-The recorded physical result covers Binary OFF/ON output and the generated `FG_Set_*` control path. Configured-helper, measurement, fitting, resize and contain-scaling parity are automated-test proven; those automated results are not presented as a separate resized-output hardware check.
+Physically confirmed:
+
+- Binary Output runtime
+- OFF and ON rendering
+- resized component geometry
+- Browser Preview parity
+- centred contain-fit scaling
+- stable generated runtime
 
 ### Interactive Three-Position Toggle Switch
 
@@ -1800,6 +1805,7 @@ Start at the ownership boundary matching the symptom.
 | Three-Position LEFT/CENTER/RIGHT preview is wrong | `InteractiveThreePositionTogglePreview.tsx` | Canvas preview, resolver, uploaded assets |
 | Three-Position jumps to top-left | `ComponentPreview.tsx` | `PreviewContainer`, `useDropComponent.ts`, component `x/y/w/h` |
 | Three-Position Browser Preview is missing | `forgePreviewRenderer.tsx` | positioned output insertion and Canvas preview component |
+| Browser Preview ignores resized component bounds | `forgePreviewRenderer.tsx` | `commonStyle`, Browser Preview wrapper, `fillContainer`, type-specific preview renderer |
 | Three-Position is hard to click | `ForgeUILvglExport.ts` Three-Position branch | full parent bounds, child flags, artwork transparent margins |
 | Three-Position selects the wrong zone | generated `fg_three_way_input_event_cb()` | `local_x`, button coordinates and configured width |
 | Three-Position has stale artwork references | `ForgeUIInteractiveAssetResolver.ts` | Uploaded Asset Registry, persistence, reference protection |
@@ -2036,6 +2042,7 @@ Preserve these rules:
 51. Multi-state assets use one common safe contain scale across their state images.
 52. Intrinsic image dimensions resolve through registry metadata, PNG IHDR and generated LVGL descriptors before the safe fallback.
 53. Canvas, Browser Preview, generated LVGL and physical output must remain visually equivalent within the recorded hardware-proof scope.
+54. Browser Preview wrappers preserve final component geometry before type-specific previews perform contain-fit rendering.
 
 ## Framework extension pattern
 

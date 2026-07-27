@@ -342,7 +342,6 @@ const createThreeWayInputExports = (components: IComponents, usedAssetSources: S
 type BinaryOutputExport = {
   apiName: string
   runtimeName: string
-  isInteractiveLight: boolean
   offSymbol?: string
   onSymbol?: string
   initialState: 'off' | 'on'
@@ -408,7 +407,7 @@ const createBinaryOutputExports = (
         ? forgeUIResolveUploadedAssetDimensions(onAsset)
         : undefined
       const resolvedScale =
-        !isStatusIndicator && ready
+        ready
           ? calculateInteractiveButtonContainScale(
               componentWidth,
               componentHeight,
@@ -424,7 +423,6 @@ const createBinaryOutputExports = (
       exportsByComponent.set(component.id, {
         apiName,
         runtimeName: `fg_${runtimeStem}_output`,
-        isInteractiveLight: !isStatusIndicator,
         offSymbol: ready ? offAsset?.lvgl : undefined,
         onSymbol: ready ? onAsset?.lvgl : undefined,
         initialState: isStatusIndicator
@@ -432,7 +430,7 @@ const createBinaryOutputExports = (
           : getInteractiveLightInitialState(asset),
         ready,
         imageScale:
-          !isStatusIndicator && ready
+          ready
             ? resolvedScale ??
               `fg_interactive_light_contain_scale(&${offAsset?.lvgl}, &${onAsset?.lvgl}, ${componentWidth}, ${componentHeight})`
             : undefined,
@@ -840,57 +838,42 @@ case 'InteractiveStatusIndicator': {
     lightExport.offSymbol &&
     lightExport.onSymbol
   ) {
-    if (lightExport.isInteractiveLight) {
-      lines.push(
-        `lv_obj_t * ${lightExport.runtimeName}_obj = lv_obj_create(${parentVar});`,
-      )
-      lines.push(
-        `lv_obj_set_pos(${lightExport.runtimeName}_obj, ${x}, ${y});`,
-      )
-      lines.push(
-        `lv_obj_set_size(${lightExport.runtimeName}_obj, ${safeLightWidth}, ${safeLightHeight});`,
-      )
-      lines.push(
-        `lv_obj_set_style_bg_opa(${lightExport.runtimeName}_obj, LV_OPA_TRANSP, LV_PART_MAIN);`,
-      )
-      lines.push(
-        `lv_obj_set_style_border_width(${lightExport.runtimeName}_obj, 0, LV_PART_MAIN);`,
-      )
-      lines.push(
-        `lv_obj_set_style_pad_all(${lightExport.runtimeName}_obj, 0, LV_PART_MAIN);`,
-      )
-      lines.push(
-        `${lightExport.runtimeName}.image = lv_image_create(${lightExport.runtimeName}_obj);`,
-      )
-      lines.push(
-        `fg_binary_output_set(&${lightExport.runtimeName}, ${lightExport.initialState === 'on' ? 'true' : 'false'});`,
-      )
-      lines.push(
-        `lv_image_set_scale(${lightExport.runtimeName}.image, ${lightExport.imageScale});`,
-      )
-      lines.push(
-        `lv_obj_center(${lightExport.runtimeName}.image);`,
-      )
-      lines.push(
-        `lv_obj_clear_flag(${lightExport.runtimeName}_obj, LV_OBJ_FLAG_CLICKABLE);`,
-      )
-      lines.push(
-        `lv_obj_clear_flag(${lightExport.runtimeName}_obj, LV_OBJ_FLAG_SCROLLABLE);`,
-      )
-    } else {
-      lines.push(
-        `${lightExport.runtimeName}.image = lv_image_create(${parentVar});`,
-      )
-      lines.push(
-        `fg_binary_output_set(&${lightExport.runtimeName}, ${lightExport.initialState === 'on' ? 'true' : 'false'});`,
-      )
-      lines.push(
-        `lv_obj_set_pos(${lightExport.runtimeName}.image, ${x}, ${y});`,
-      )
-      lines.push(
-        `lv_obj_set_size(${lightExport.runtimeName}.image, ${safeLightWidth}, ${safeLightHeight});`,
-      )
-    }
+    lines.push(
+      `lv_obj_t * ${lightExport.runtimeName}_obj = lv_obj_create(${parentVar});`,
+    )
+    lines.push(
+      `lv_obj_set_pos(${lightExport.runtimeName}_obj, ${x}, ${y});`,
+    )
+    lines.push(
+      `lv_obj_set_size(${lightExport.runtimeName}_obj, ${safeLightWidth}, ${safeLightHeight});`,
+    )
+    lines.push(
+      `lv_obj_set_style_bg_opa(${lightExport.runtimeName}_obj, LV_OPA_TRANSP, LV_PART_MAIN);`,
+    )
+    lines.push(
+      `lv_obj_set_style_border_width(${lightExport.runtimeName}_obj, 0, LV_PART_MAIN);`,
+    )
+    lines.push(
+      `lv_obj_set_style_pad_all(${lightExport.runtimeName}_obj, 0, LV_PART_MAIN);`,
+    )
+    lines.push(
+      `${lightExport.runtimeName}.image = lv_image_create(${lightExport.runtimeName}_obj);`,
+    )
+    lines.push(
+      `fg_binary_output_set(&${lightExport.runtimeName}, ${lightExport.initialState === 'on' ? 'true' : 'false'});`,
+    )
+    lines.push(
+      `lv_image_set_scale(${lightExport.runtimeName}.image, ${lightExport.imageScale});`,
+    )
+    lines.push(
+      `lv_obj_center(${lightExport.runtimeName}.image);`,
+    )
+    lines.push(
+      `lv_obj_clear_flag(${lightExport.runtimeName}_obj, LV_OBJ_FLAG_CLICKABLE);`,
+    )
+    lines.push(
+      `lv_obj_clear_flag(${lightExport.runtimeName}_obj, LV_OBJ_FLAG_SCROLLABLE);`,
+    )
     lines.push(
       `lv_obj_clear_flag(${lightExport.runtimeName}.image, LV_OBJ_FLAG_CLICKABLE);`,
     )
@@ -1732,8 +1715,10 @@ export const generateForgeUILvglCode = (
   const hasInteractiveButtons = Object.values(components).some(
     component => component.type === 'InteractiveButton',
   )
-  const hasInteractiveLights = Object.values(components).some(
-    component => component.type === 'InteractiveLight',
+  const hasBinaryOutputs = Object.values(components).some(
+    component =>
+      component.type === 'InteractiveLight' ||
+      component.type === 'InteractiveStatusIndicator',
   )
   const binaryOutputExports = createBinaryOutputExports(
     components,
@@ -1817,7 +1802,7 @@ const backgroundMode =
   lines.push(`#include <stdbool.h>`)
   if (
     hasInteractiveButtons ||
-    hasInteractiveLights ||
+    hasBinaryOutputs ||
     toggleInputExports.size > 0 ||
     threeWayInputExports.size > 0
   ) {
@@ -1993,7 +1978,7 @@ const backgroundMode =
     lines.push(`}`)
     lines.push(``)
   }
-  if (hasInteractiveLights) {
+  if (hasBinaryOutputs) {
     lines.push(`static uint32_t fg_interactive_light_axis_scale(int32_t target, uint32_t source)`)
     lines.push(`{`)
     lines.push(`    if (target <= 0 || source == 0) return 256;`)

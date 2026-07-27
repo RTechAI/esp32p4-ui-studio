@@ -1,6 +1,6 @@
 # Current Save Point
 
-**FORGEUI_ALL_FIVE_INTERACTIVE_ASSETS__CONFIGURED_INSPECTOR_PARITY__SHARED_SELECTION_BORDER_RESIZE__VISIBLE_ARTWORK_FITTING__LVGL_CONTAIN_SCALING__ESP32P4_PROVEN__2026-07-27**
+**FORGEUI_INTERACTIVE_ASSETS__COMPLETE_WORKFLOW_PARITY__SHARED_VISIBLE_BOUNDS__CONTAIN_FIT_SCALING__READY_FOR_FEATURE_REVIEW__2026-07-27**
 
 ## Current Proven Status..
 
@@ -24,7 +24,9 @@ All five types are proven through Studio creation, AI state-image generation, as
 
 The Studio presents all five types through one coherent Interactive Assets creation flow. Each runtime family owns its generated runtime while every type shares the common Interactive Asset Framework and retains type-specific asset models, designers, state mappings, preview behaviour, export behaviour and runtime behaviour.
 
-All five Interactive Assets now have the same configured and unconfigured Inspector workflow, exact linked-asset Creator reopening, registry-driven preview refresh, shared cyan selection-border resizing with four edge and four corner hit zones, continuous Canvas clamping, and live Inspector geometry. Component geometry is authoritative after placement. Intrinsic dimensions and alpha bounds feed an explicit `Fit Bounds to Visible Artwork` action that preserves original uploads, creates linked same-size fitted state assets, and is idempotent. Configured artwork scales continuously inside Canvas component bounds, and the shared LVGL exporter applies centred contain-fit scaling.
+All five Interactive Assets now have the same configured and unconfigured Inspector workflow, exact linked-asset Creator reopening, registry-driven preview refresh, shared cyan selection-border resizing with four edge and four corner hit zones, continuous Canvas clamping, and live Inspector geometry. Component geometry is authoritative after placement. Intrinsic dimensions and alpha bounds feed an explicit `Fit Bounds to Visible Artwork` action that preserves original uploads, creates linked same-size fitted state assets, and is idempotent. Canvas and Browser Preview preserve the saved component width and height and render artwork centred with contain-fit, so intrinsic artwork dimensions no longer limit component size. The shared LVGL exporter applies the same centred contain-fit rule against final component geometry.
+
+Interactive Button, Interactive Toggle Switch, Interactive Three-Position Toggle Switch, Interactive Light and Interactive Status Indicator all use centred contain-fit rendering from final component geometry across Canvas, Browser Preview and generated LVGL output.
 
 Two-state Button Normal/Pressed, Toggle OFF/ON, Light OFF/ON and Status Indicator OFF/ON assets use one stable union crop. Three-Position Toggle uses the compatible LEFT/CENTER/RIGHT union path. Registry updates invalidate stale same-ID measurements and refresh configured helpers and previews without component reselection. Canvas, Browser Preview and generated LVGL output retain parity where each workflow has been physically verified.
 
@@ -144,6 +146,7 @@ The shared framework owns:
 - Same-size fitted state crops, inactive-state preload and duplicate-write suppression
 - Same-ID artwork replacement invalidation so stale measurement readiness is cleared
 - Shared legacy image-dimension recovery
+- Shared Browser Preview wrappers that preserve final component geometry
 - Shared contain-fit LVGL scaling through registry, PNG IHDR and LVGL descriptor dimensions
 - Registry-driven configured and unconfigured preview refresh
 - LVGL export integration
@@ -420,7 +423,7 @@ The generated runtime owns:
 
 Both Interactive Asset types generate independent runtime records while reusing the same implementation.
 
-Interactive Light and Interactive Status Indicator use a transparent component-sized LVGL container and a centred child image in the shared runtime record. OFF and ON use one contain-fit scale derived from final component geometry. Dimension resolution follows uploaded-asset registry metadata, PNG IHDR data and generated `lv_image_dsc_t` descriptors, with scale 256 used only when no reliable dimensions remain. This design-time geometry and fitting parity does not change the Binary Output direction: both controls remain non-clickable and application-controlled through `FG_Set_*`.
+Interactive Light and Interactive Status Indicator use the exact same exported geometry path: a transparent component-sized LVGL container and a centred child image in the shared runtime record. OFF and ON use one contain-fit scale derived from final component geometry, supporting both upscaling and downscaling while preserving aspect ratio. Dimension resolution follows uploaded-asset registry metadata, PNG IHDR data and generated `lv_image_dsc_t` descriptors, with scale 256 used only when no reliable dimensions remain. The previous legacy Status Indicator direct-image export path has been removed. This design-time geometry and fitting parity does not change the Binary Output direction: both controls remain non-clickable and application-controlled through `FG_Set_*`.
 
 Developer-facing APIs follow the same pattern:
 
@@ -485,6 +488,7 @@ Application code controls state entirely through the generated public API.
 - Selected configured and unconfigured Status Indicators use the shared cyan selection border with four edge and four corner hit zones, continuous Canvas clamping and live Inspector geometry.
 - Browser Preview and Canvas Preview use the same centered contain-fit renderer, with final component width and height controlling continuous artwork scaling rather than imposing intrinsic dimensions as a maximum.
 - Intrinsic artwork aspect ratio is preserved: square artwork remains square and non-square artwork is not stretched to fill width and height independently.
+- Browser Preview wrappers use the saved component bounds, making Browser Preview geometry equivalent to Canvas geometry.
 - Canvas click toggles a temporary preview state.
 - Preview toggling is local visual verification only; it does not mutate the saved initial state, persistence or exported firmware.
 - The asset can be assigned to an `InteractiveStatusIndicator` Canvas component.
@@ -494,7 +498,7 @@ Application code controls state entirely through the generated public API.
 
 ### LVGL runtime behavior
 
-Interactive Status Indicator exports as a non-clickable LVGL image. Its initial source uses the saved `initialState`.
+Interactive Status Indicator exports through the same Binary Output geometry path as Interactive Light. A transparent container owns the final component position and size, while a centred child image uses one OFF/ON contain-fit scale that supports both upscaling and downscaling without stretching. Component geometry remains authoritative across Canvas Preview, Browser Preview and generated LVGL output. Its initial source uses the saved `initialState`.
 
 - It has no Button-style event callback.
 - It generates no Status Indicator hook in `95_UserEvents`.
@@ -802,8 +806,9 @@ The exporter owns the shared generated runtime implementations and unique per-in
 ### Interactive Status Indicator
 
 - Binary OFF/ON output and the generated `FG_Set_*` control path are physically proven within the recorded scope.
-- Configured Inspector, measurement, fitting, shared resize and contain-scaling parity are established in Studio and automated regressions.
-- Automated geometry parity is not presented as an additional physical resized-output check.
+- Resized component geometry matches Browser Preview on the physical ESP32-P4.
+- Centred contain-fit scaling and correct OFF/ON rendering are physically proven.
+- The shared generated Binary Output runtime remained stable through the geometry parity check.
 
 ### System health
 
@@ -836,6 +841,8 @@ LVGL normalizes width units independently within each row. The physical result n
 ## Verified Automated Status
 
 - Focused configured-helper, direct Creator, registry measurement, shared selection-border resize, visible-bounds, Canvas preview, Browser Preview, persistence and exporter regressions pass across the five Interactive Assets.
+- Browser Preview wrapper geometry and Interactive Browser Preview parity regressions cover saved component bounds, positioning and centred contain-fit rendering.
+- Binary Output regressions cover the shared exporter path, Status Indicator LVGL scaling, component-sized container generation and centred child-image generation.
 - Toggle State Sheet and Three-Position State Sheet, linked-crop, row-remapping and atomic-registration regressions pass; the State Sheet suite may require its longer timeout.
 - Keyboard exporter geometry, ordering, style and relative-width regressions pass.
 - Shared union geometry, intrinsic and alpha-bound metadata, linked crop, same-ID invalidation, duplicate-write suppression and idempotent fitting regressions pass.
@@ -870,6 +877,7 @@ ForgeUI also has reusable creation architecture, with direct Creator coverage no
 
 All five Interactive Assets now share reusable post-placement geometry architecture:
 
+- configured Inspector and direct Creator workflows;
 - one shared selection-border resize capability with eight edge and corner zones;
 - continuous Canvas-boundary clamping with live Inspector updates;
 - component-authoritative geometry after placement;
@@ -877,7 +885,9 @@ All five Interactive Assets now share reusable post-placement geometry architect
 - one stable two-state visible-bounds union for Button, Toggle, Light and Status Indicator, plus the compatible three-state union path for Three-Position Toggle;
 - preserved original uploads and idempotent fitted assets;
 - intrinsic and alpha-bound measurement with same-ID invalidation and deduplicated registry writes;
-- centred continuously scaling Canvas previews and shared contain-fit LVGL generation.
+- saved component geometry across Canvas and Browser Preview;
+- centred contain-fit rendering across Canvas, Browser Preview and generated LVGL output;
+- final component-authoritative LVGL export geometry.
 
 This keeps artwork ownership on reusable Interactive Assets while component placement, size and export geometry remain owned by each Canvas component. Runtime semantics remain type-specific: Button and Toggle retain their input callbacks, Three-Position retains its enum and thirds-based selection, and Light and Status Indicator retain non-clickable `FG_Set_*` output control.
 
@@ -955,6 +965,13 @@ These remain future concepts only. They are not implemented or physically proven
 # Save Point History
 
 Save points are ordered newest to oldest. Detailed subsystem engineering is maintained in the Developer Code Maps.
+
+## FORGEUI_INTERACTIVE_ASSETS__COMPLETE_WORKFLOW_PARITY__SHARED_VISIBLE_BOUNDS__CONTAIN_FIT_SCALING__READY_FOR_FEATURE_REVIEW__2026-07-27
+
+- **What changed:** Completed Browser Preview geometry parity and shared contain-fit rendering, removed the legacy Status Indicator LVGL export path, and moved both Binary Output types onto one exported geometry implementation. Interactive Status Indicator now matches Canvas, Browser Preview and ESP32-P4.
+- **Why it changed:** Eliminate the remaining visual inconsistencies between Studio previews and generated firmware.
+- **Final architecture:** All five Interactive Assets now share one post-placement geometry model across Canvas, Browser Preview and generated LVGL while preserving their existing runtime behaviour.
+- **Proven result:** Geometry parity is confirmed on the physical ESP32-P4, automated regressions are expanded, and the existing runtime families remain unchanged.
 
 ## FORGEUI_ALL_FIVE_INTERACTIVE_ASSETS__CONFIGURED_INSPECTOR_PARITY__SHARED_SELECTION_BORDER_RESIZE__VISIBLE_ARTWORK_FITTING__LVGL_CONTAIN_SCALING__ESP32P4_PROVEN__2026-07-27
 

@@ -205,9 +205,7 @@ case 'WiFi': {
         output.push(
           <Box
             key={child.id}
-            position="absolute"
-            left={`${x}px`}
-            top={`${y}px`}
+            {...commonStyle}
           >
             <InteractiveLightCanvasPreview component={child} />
           </Box>,
@@ -217,7 +215,7 @@ case 'WiFi': {
 
       case 'InteractiveStatusIndicator': {
         output.push(
-          <Box key={child.id} position="absolute" left={`${x}px`} top={`${y}px`}>
+          <Box key={child.id} {...commonStyle}>
             <InteractiveStatusIndicatorCanvasPreview component={child} />
           </Box>,
         )
@@ -226,7 +224,7 @@ case 'WiFi': {
 
       case 'InteractiveToggleSwitch': {
         output.push(
-          <Box key={child.id} position="absolute" left={`${x}px`} top={`${y}px`}>
+          <Box key={child.id} {...commonStyle}>
             <InteractiveToggleSwitchCanvasPreview component={child} />
           </Box>,
         )
@@ -234,7 +232,7 @@ case 'WiFi': {
       }
       case 'InteractiveThreePositionToggleSwitch': {
         output.push(
-          <Box key={child.id} position="absolute" left={`${x}px`} top={`${y}px`}>
+          <Box key={child.id} {...commonStyle}>
             <InteractiveThreePositionToggleCanvasPreview component={child} />
           </Box>,
         )

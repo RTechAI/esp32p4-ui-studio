@@ -2,7 +2,7 @@
 
 ## Current proven save point
 
-**FORGEUI_ALL_FIVE_INTERACTIVE_ASSETS__CONFIGURED_INSPECTOR_PARITY__SHARED_SELECTION_BORDER_RESIZE__N_STATE_VISIBLE_BOUNDS__LVGL_CONTAIN_SCALING__ESP32P4_PROVEN__2026-07-27**
+**FORGEUI_INTERACTIVE_ASSETS__COMPLETE_WORKFLOW_PARITY__SHARED_VISIBLE_BOUNDS__CONTAIN_FIT_SCALING__READY_FOR_FEATURE_REVIEW__2026-07-27**
 
 ## Purpose and scope
 
@@ -52,7 +52,7 @@ Binary Output Runtime
 
 Button is momentary input. Toggle Switch is persistent boolean input. Three-Position Toggle is persistent enum input. Light and Status Indicator are developer-controlled outputs.
 
-For all five placed Interactive Asset component branches, persisted Canvas `x/y/w/h` is the generated geometry source of truth. State-image controls use that final geometry for the parent object or transparent container and centre a non-clickable child image inside it. Every required state shares one safe contain-fit scale; state switching changes only the source, not geometry. Dimension resolution uses uploaded-asset registry metadata, PNG IHDR dimensions and generated LVGL descriptors, with scale 256 only as the final safe fallback and valid scales above or below 256. Linked fitted assets are consumed automatically when their IDs replace the original state references. Browser Preview, live firmware and standalone export use the same persisted geometry model.
+For all five placed Interactive Asset component branches, persisted Canvas `x/y/w/h` is the generated geometry source of truth. State-image controls use that final geometry for the parent object or transparent container and centre a non-clickable child image inside it. Every required state shares one safe contain-fit scale; state switching changes only the source, not geometry. Dimension resolution uses uploaded-asset registry metadata, PNG IHDR dimensions and generated LVGL descriptors, with scale 256 only as the final safe fallback and valid scales above or below 256. Linked fitted assets are consumed automatically when their IDs replace the original state references. Browser Preview wrappers preserve persisted component geometry, and type-specific preview renderers perform contain-fit rendering inside those bounds. Browser Preview therefore follows the same component-authoritative geometry model as Canvas and generated LVGL.
 
 Runtime direction remains unchanged:
 
@@ -366,7 +366,7 @@ Runtime generation assumes that its candidate result will pass the dedicated cli
 - developer application logic
 - GPIO, sensors, motors, relays, networking policy, or business logic
 
-Interactive Light introduced the Binary Output Runtime. Interactive Status Indicator reuses it through the same export descriptor, runtime-record, and setter-generation path.
+Interactive Light introduced the Binary Output Runtime. Interactive Status Indicator reuses it through the same export descriptor, exported geometry, runtime-record, and setter-generation path. Both use a transparent component-sized container, centred child image and common contain-fit scaling. The previous Status Indicator legacy direct-image export path no longer exists.
 
 The exporter emits Three-Position runtime code that uses `fg_three_way_state_t`; the enum itself is materialized by the user-event header generator in `95_UserEvents.h`.
 
@@ -1369,13 +1369,16 @@ This proof does not claim unperformed multi-instance or stress coverage.
 
 Physically confirmed:
 
-- OFF and ON artwork exported through the Binary Output path
-- saved initial state displayed
-- generated `FG_Set_*` API controlled the Status Indicator
-- Status Indicator remained non-clickable and generated no event hook
-- Interactive Light and Status Indicator consumed the same `fg_binary_output_t` / `fg_binary_output_set()` implementation
-- multiple Binary Output instance records remained independent
-- generated setter APIs addressed the correct instances
+- Binary Output runtime
+- generated `FG_Set_*` control path
+- shared Binary Output runtime
+- shared Binary Output exported geometry
+- component-sized transparent container
+- centred child image
+- contain-fit scaling
+- Browser Preview parity
+- resized component geometry
+- stable runtime behaviour
 
 Design-time local preview clicking is intentionally not exported and is not physical input behavior.
 
@@ -1459,6 +1462,7 @@ Do not preserve historical suite totals here. Unrelated repository fixtures or p
 | Status Indicator setter is missing | Binary Output export preparation in `ForgeUILvglExport.ts` | kind-aware lookup, LVGL readiness, and unique API name |
 | Status Indicator starts in wrong state | Status Indicator export branch | saved `initialState` and per-instance runtime record |
 | Status Indicator looks stretched in Canvas or Browser Preview | `InteractiveStatusIndicatorPreview.tsx` | intrinsic image dimensions and centered contain-fit styles; this is outside generated firmware ownership |
+| Browser Preview ignores resized component bounds | `forgePreviewRenderer.tsx` | `commonStyle`, Browser Preview wrapper, `fillContainer`, type-specific preview renderer and centred contain-fit rendering |
 | Status Indicator Canvas click does nothing | `InteractiveStatusIndicatorCanvasPreview.tsx` | temporary local preview state; do not debug generated `FG_Set_*` for this design-time issue |
 | Status Indicator is clickable on hardware | `ForgeUILvglExport.ts` Status Indicator branch | verify no event callback or clickable flag was emitted |
 | Status Indicator setter does not change state | generated `fg_binary_output_t` record and `FG_Set_*` | saved OFF/ON symbols and setter-to-runtime-record mapping |
@@ -1590,6 +1594,7 @@ Preserve these rules:
 42. Button Normal/Pressed, Toggle OFF/ON, Light OFF/ON and Status Indicator OFF/ON each use one common state-pair scale and centred child-image placement; Three-Position LEFT/CENTER/RIGHT uses one common three-state scale.
 43. Canvas, Browser Preview, live firmware and standalone export must remain visually equivalent for the same persisted component geometry and state assets.
 44. Visible-artwork fitting exports linked cropped state assets and never modifies the original uploaded images.
+45. Browser Preview wrappers preserve persisted component geometry before type-specific contain-fit rendering.
 
 ## Extension rule
 
