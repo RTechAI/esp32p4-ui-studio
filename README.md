@@ -15,11 +15,12 @@ If ForgeUI helps your embedded work, consider leaving the project a GitHub star.
 - Drag-and-drop screen design with resize and property controls
 - AI-assisted layout and artwork generation
 - Reusable multi-state Interactive Assets
+- Standard LVGL Component Runtime APIs
 - Canvas and Browser Preview workflows
 - Reusable built-in System Runtime with a physically proven Wi-Fi Manager
 - Local conversion of images into LVGL-ready C assets
 - Native LVGL v9 UI and runtime generation
-- Generated input callbacks and output setter APIs
+- Generated input callbacks, output setters, and semantic runtime APIs for supported standard LVGL widgets
 - Integrated ESP-IDF Build & Flash workflow
 - Standalone ESP-IDF project export for normal application development
 
@@ -266,9 +267,33 @@ The permanent integration rule is:
 
 > Input controls produce generated developer callbacks. Output controls expose generated public UI functions.
 
-`90_Studio_Export.c/.h` contain generated, replaceable UI and runtime code. Live Studio `95_UserEvents.c/.h` files may also be regenerated, but after standalone export they become the developer-owned application integration layer. Developer GPIO, I/O, hardware actions and product behaviour belong in that standalone integration layer or other developer-owned application modules—not in generated `90_Studio_Export.c/.h`, and not necessarily directly in `main.c`.
+`90_Studio_Export.c/.h` contain generated, replaceable UI and runtime code. Live Studio regeneration preserves matching developer-written hook bodies and adds missing declarations or stubs. After standalone export, `95_UserEvents.c/.h` become the developer-owned application integration layer. Developer GPIO, I/O, hardware actions and product behaviour belong in that standalone integration layer or other developer-owned application modules—not in generated `90_Studio_Export.c/.h`, and not necessarily directly in `main.c`.
 
 For the detailed ownership contract, see [03_ForgeUI_Generated_Export_API_Code_Map.md](03_ForgeUI_Generated_Export_API_Code_Map.md).
+
+---
+
+## Standard LVGL Component Runtime
+
+ForgeUI now generates retained runtime APIs for supported standard LVGL widgets when the widget has meaningful state or actions to expose. Generated code retains the required LVGL objects and state, applies safe transition rules, and connects semantic developer hooks where appropriate.
+
+This runtime is separate from both reusable Interactive Assets and the built-in System Runtime:
+
+```text
+Standard LVGL Component Runtime
+├── Led
+├── Bar
+├── Arc
+├── Chart
+├── Keyboard
+├── Calendar
+├── Roller
+└── Button Matrix
+```
+
+The APIs reflect each widget rather than forcing every component into a generic value model. Examples include setting LED, Bar and Arc values, adding or clearing Chart points, showing or hiding the standard Canvas Keyboard, selecting Calendar dates, and selecting Roller or Button Matrix options.
+
+Runtime APIs and hooks are generated consistently through both the integrated Build & Flash workflow and standalone ESP-IDF export. Scale remains API-free because it is a visual tick-and-label renderer and does not own a runtime value.
 
 ---
 
@@ -431,6 +456,7 @@ ForgeUI validates exports before replacing generated firmware:
 - locally converted image assets
 - generated input callbacks
 - generated output setters
+- retained semantic runtime APIs for supported standard LVGL widgets
 - complete generated Wi-Fi Manager and structured backend projection
 - generated connected details, selectable network rows, badges, password and forget dialogs
 - reusable native LVGL keyboard with generated attachment and callbacks
@@ -464,6 +490,10 @@ Detailed subsystem ownership and debugging information belongs in the code maps:
 
 ## ✅ Project milestones
 
+Current architecture save point:
+
+`FORGEUI_STANDARD_LVGL_RUNTIME_APIS__LED_BAR_ARC_CHART_KEYBOARD_CALENDAR_ROLLER_MESSAGE_BOX_BUTTON_MATRIX__LIVE_AND_STANDALONE_PROVEN__2026-07-29`
+
 Current proven milestones include:
 
 - visual Builder, Canvas, themes, and Browser Preview
@@ -478,6 +508,7 @@ Current proven milestones include:
 - Interactive Button, Toggle Switch, Three-Position Toggle Switch, Light, and Status Indicator runtime paths
 - generated `95_UserEvents` hook layer for Button, Toggle, and Three-Position inputs
 - shared Binary Output Runtime and generated `FG_Set_*` Light/Status APIs
+- Standard LVGL Component Runtime APIs for Led, Bar, Arc, Chart, Keyboard, Calendar, Roller, Message Box, and Button Matrix
 - built-in System Launcher and Display / Brightness
 - physical display backlight control
 - reusable built-in System Runtime

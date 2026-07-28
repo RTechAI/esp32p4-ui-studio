@@ -964,7 +964,14 @@ function normalizePublicApiDeclarations(declarations) {
       (Array.isArray(declarations) ? declarations : [])
         .map((declaration) => String(declaration || '').trim())
         .filter((declaration) =>
-          /^void FG_Set_[A-Za-z0-9_]+\(bool enabled\);$/.test(declaration)
+          (
+            /^void FG_Set_[A-Za-z0-9_]+\((?:bool (?:enabled|on)|int32_t value)\);$/.test(declaration) ||
+            /^void FG_Add_[A-Za-z0-9_]+_Point\(int32_t value\);$/.test(declaration) ||
+            /^void FG_Clear_[A-Za-z0-9_]+\(void\);$/.test(declaration) ||
+            /^void FG_(?:Show|Hide|Close)_[A-Za-z0-9_]+\(void\);$/.test(declaration) ||
+            /^void FG_Set_[A-Za-z0-9_]+_Date\(uint16_t year, uint8_t month, uint8_t day\);$/.test(declaration) ||
+            /^void FG_Set_[A-Za-z0-9_]+_Selected\(uint32_t (?:index|button_index)\);$/.test(declaration)
+          )
         )
     )
   )
@@ -1054,6 +1061,7 @@ function generateStudioExportHeader(publicApiDeclarations) {
 
 #include "lvgl.h"
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -1068,7 +1076,67 @@ ${declarations.join('\n')}
 `
 }
 
-function generateUserEventFiles(userEventHooks) {
+function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
+  const booleanChanged = new Set()
+  const integerChanged = new Set()
+  const integerPointAdded = new Set()
+  const cleared = new Set()
+  const shown = new Set()
+  const hidden = new Set()
+  const closed = new Set()
+  const dateChanged = new Set()
+  const rollerChanged = new Set()
+  normalizePublicApiDeclarations(publicApiDeclarations)
+    .forEach((declaration) => {
+      const addMatch = declaration.match(
+        /^void FG_Add_([A-Za-z0-9_]+)_Point\(int32_t value\);$/
+      )
+      if (addMatch) {
+        integerPointAdded.add(`FG_On_${addMatch[1]}_Point_Added`)
+        return
+      }
+      const clearMatch = declaration.match(
+        /^void FG_Clear_([A-Za-z0-9_]+)\(void\);$/
+      )
+      if (clearMatch) {
+        cleared.add(`FG_On_${clearMatch[1]}_Cleared`)
+        return
+      }
+      const visibilityMatch = declaration.match(
+        /^void FG_(Show|Hide|Close)_([A-Za-z0-9_]+)\(void\);$/
+      )
+      if (visibilityMatch) {
+        const ending = visibilityMatch[1] === 'Show'
+          ? 'Shown'
+          : visibilityMatch[1] === 'Close' ? 'Closed' : 'Hidden'
+        const hook = `FG_On_${visibilityMatch[2]}_${ending}`
+        ;(visibilityMatch[1] === 'Show'
+          ? shown
+          : visibilityMatch[1] === 'Close' ? closed : hidden).add(hook)
+        return
+      }
+      const dateMatch = declaration.match(
+        /^void FG_Set_([A-Za-z0-9_]+)_Date\(uint16_t year, uint8_t month, uint8_t day\);$/
+      )
+      if (dateMatch) {
+        dateChanged.add(`FG_On_${dateMatch[1]}_Date_Changed`)
+        return
+      }
+      const rollerMatch = declaration.match(
+        /^void FG_Set_([A-Za-z0-9_]+)_Selected\(uint32_t (?:index|button_index)\);$/
+      )
+      if (rollerMatch) {
+        rollerChanged.add(`FG_On_${rollerMatch[1]}_Changed`)
+        return
+      }
+      const match = declaration.match(
+        /^void FG_Set_([A-Za-z0-9_]+)\((bool|int32_t) /
+      )
+      if (!match) return
+      const hook = `FG_On_${match[1]}_Changed`
+      if (match[2] === 'int32_t') integerChanged.add(hook)
+      else booleanChanged.add(hook)
+    })
   const uniqueHooks = Array.from(
     new Set(
       (Array.isArray(userEventHooks)
@@ -1077,7 +1145,7 @@ function generateUserEventFiles(userEventHooks) {
       )
         .map((hook) => String(hook || '').trim())
         .filter((hook) =>
-          /^FG_On_[A-Za-z0-9_]+_(Clicked|Toggled|Changed)$/.test(hook)
+          /^FG_On_[A-Za-z0-9_]+_(Clicked|Toggled|Changed|Point_Added|Cleared|Shown|Hidden|Closed|Button_Pressed|Button_Selected)$/.test(hook)
         )
     )
   )
@@ -1085,16 +1153,88 @@ function generateUserEventFiles(userEventHooks) {
   
 
   const declarations = uniqueHooks
-    .map((hook) => hook.endsWith('_Toggled')
+    .map((hook) => integerChanged.has(hook) || integerPointAdded.has(hook)
+      ? `void ${hook}(int32_t value);`
+      : cleared.has(hook)
+        ? `void ${hook}(void);`
+      : shown.has(hook) || hidden.has(hook) || closed.has(hook)
+        ? `void ${hook}(void);`
+      : hook.endsWith('_Button_Pressed')
+        ? `void ${hook}(uint32_t index, const char * text);`
+      : hook.endsWith('_Button_Selected')
+        ? `void ${hook}(uint32_t index, const char * text);`
+      : dateChanged.has(hook)
+        ? `void ${hook}(uint16_t year, uint8_t month, uint8_t day);`
+      : rollerChanged.has(hook)
+        ? `void ${hook}(uint32_t index, const char * text);`
+      : hook.endsWith('_Toggled') || booleanChanged.has(hook)
       ? `void ${hook}(bool enabled);`
       : hook.endsWith('_Changed') ? `void ${hook}(fg_three_way_state_t state);` : `void ${hook}(void);`)
     .join('\n')
 
   const definitions = uniqueHooks
-    .map((hook) => hook.endsWith('_Toggled')
+    .map((hook) => integerPointAdded.has(hook)
+      ? `void ${hook}(int32_t value)
+{
+    printf("[ForgeUI User Event] ${hook.replace(/^FG_On_|_Point_Added$/g, '').replace(/_/g, ' ')} point added: %ld\\n",
+           (long)value);
+}`
+      : cleared.has(hook)
+        ? `void ${hook}(void)
+{
+    printf("[ForgeUI User Event] ${hook.replace(/^FG_On_|_Cleared$/g, '').replace(/_/g, ' ')} cleared\\n");
+}`
+      : shown.has(hook) || hidden.has(hook) || closed.has(hook)
+        ? `void ${hook}(void)
+{
+    printf("[ForgeUI User Event] ${hook.replace(/^FG_On_|_(?:Shown|Hidden|Closed)$/g, '').replace(/_/g, ' ')} ${shown.has(hook) ? 'shown' : closed.has(hook) ? 'closed' : 'hidden'}\\n");
+}`
+      : hook.endsWith('_Button_Pressed')
+        ? `void ${hook}(uint32_t index, const char * text)
+{
+    printf(
+        "[ForgeUI User Event] ${hook.replace(/^FG_On_|_Button_Pressed$/g, '').replace(/_/g, ' ')} button: %lu - %s\\n",
+        (unsigned long)index,
+        text ? text : "");
+}`
+      : hook.endsWith('_Button_Selected')
+        ? `void ${hook}(uint32_t index, const char * text)
+{
+    printf(
+        "[ForgeUI User Event] ${hook.replace(/^FG_On_|_Button_Selected$/g, '').replace(/_/g, ' ')} button: %lu - %s\\n",
+        (unsigned long)index,
+        text ? text : "");
+}`
+      : dateChanged.has(hook)
+        ? `void ${hook}(uint16_t year, uint8_t month, uint8_t day)
+{
+    printf(
+        "[ForgeUI User Event] ${hook.replace(/^FG_On_|_Date_Changed$/g, '').replace(/_/g, ' ')} date changed: %04u-%02u-%02u\\n",
+        year,
+        month,
+        day);
+}`
+      : rollerChanged.has(hook)
+        ? `void ${hook}(uint32_t index, const char * text)
+{
+    printf(
+        "[ForgeUI User Event] ${hook.replace(/^FG_On_|_Changed$/g, '').replace(/_/g, ' ')} changed: %lu - %s\\n",
+        (unsigned long)index,
+        text ? text : "");
+}`
+      : integerChanged.has(hook)
+      ? `void ${hook}(int32_t value)
+{
+    printf("[ForgeUI User Event] ${hook.replace(/^FG_On_|_Changed$/g, '').replace(/_/g, ' ')} changed: %ld\\n",
+           (long)value);
+}`
+      : hook.endsWith('_Toggled') || booleanChanged.has(hook)
       ? `void ${hook}(bool enabled)
 {
-    printf("[ForgeUI User Event] ${hook}: %s\\n", enabled ? "ON" : "OFF");
+    ${booleanChanged.has(hook)
+      ? `printf("[ForgeUI User Event] ${hook.replace(/^FG_On_|_Changed$/g, '').replace(/_/g, ' ')} changed: %s\\n",
+           enabled ? "ON" : "OFF");`
+      : `printf("[ForgeUI User Event] ${hook}: %s\\n", enabled ? "ON" : "OFF");`}
 }`
       : hook.endsWith('_Changed') ? `void ${hook}(fg_three_way_state_t state)
 {
@@ -1122,6 +1262,7 @@ function generateUserEventFiles(userEventHooks) {
 #pragma once
 
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef enum
 {
@@ -1172,6 +1313,58 @@ ${definitions}
   }
 }
 
+function preserveUserEventFiles(existingSource, existingHeader, generated) {
+  let source = String(existingSource || '').trim()
+    ? String(existingSource).replace(/\s*$/, '\n')
+    : generated.source
+  let header = String(existingHeader || '').trim()
+    ? String(existingHeader)
+    : generated.header
+
+  ;['stdbool.h', 'stdint.h'].forEach((include) => {
+    const directive = `#include <${include}>`
+    if (
+      generated.header.includes(directive) &&
+      !header.includes(directive)
+    ) {
+      const pragmaEnd = header.indexOf('\n', header.indexOf('#pragma once'))
+      header = pragmaEnd >= 0
+        ? `${header.slice(0, pragmaEnd + 1)}\n${directive}${header.slice(pragmaEnd + 1)}`
+        : `${directive}\n${header}`
+    }
+  })
+
+  generated.hooks.forEach((hook) => {
+    const definitionPattern = new RegExp(
+      `\\bvoid\\s+${hook}\\s*\\([^;]*\\)\\s*\\{`
+    )
+    if (!definitionPattern.test(source)) {
+      const definition = generated.source.match(
+        new RegExp(`void\\s+${hook}\\s*\\([^)]*\\)\\s*\\{[\\s\\S]*?\\n\\}`)
+      )
+      if (definition) source = `${source.trimEnd()}\n\n${definition[0]}\n`
+    }
+
+    const declarationPattern = new RegExp(
+      `\\bvoid\\s+${hook}\\s*\\([^;]*\\)\\s*;`
+    )
+    if (!declarationPattern.test(header)) {
+      const declaration = generated.header.match(
+        new RegExp(`void\\s+${hook}\\s*\\([^;]*\\);`)
+      )
+      if (declaration) {
+        const insertion = `\n${declaration[0]}\n`
+        const footer = header.lastIndexOf('#ifdef __cplusplus')
+        header = footer >= 0
+          ? `${header.slice(0, footer).trimEnd()}${insertion}\n${header.slice(footer)}`
+          : `${header.trimEnd()}${insertion}`
+      }
+    }
+  })
+
+  return { ...generated, source, header }
+}
+
 app.post('/export', (req, res) => {
   try {
     const validated = validateExportPayload(req.body || {})
@@ -1184,7 +1377,7 @@ const publicApiDeclarations = normalizePublicApiDeclarations(
 )
 
 const userEvents =
-  generateUserEventFiles(userEventHooks)
+  generateUserEventFiles(userEventHooks, publicApiDeclarations)
 
   const developerGuide =
   generateDeveloperGuide(userEvents.hooks)
@@ -1294,15 +1487,21 @@ target_compile_definitions(\${COMPONENT_LIB} PRIVATE
     fs.writeFileSync(cTarget, code, 'utf8')
 fs.writeFileSync(hTarget, header, 'utf8')
 
+const preservedUserEvents = preserveUserEventFiles(
+  fs.existsSync(userEventsCTarget) ? fs.readFileSync(userEventsCTarget, 'utf8') : '',
+  fs.existsSync(userEventsHTarget) ? fs.readFileSync(userEventsHTarget, 'utf8') : '',
+  userEvents
+)
+
 fs.writeFileSync(
   userEventsCTarget,
-  userEvents.source,
+  preservedUserEvents.source,
   'utf8'
 )
 
 fs.writeFileSync(
   userEventsHTarget,
-  userEvents.header,
+  preservedUserEvents.header,
   'utf8'
 )
 
@@ -1372,7 +1571,7 @@ const publicApiDeclarations = normalizePublicApiDeclarations(
 )
 
 const userEvents =
-  generateUserEventFiles(userEventHooks)
+  generateUserEventFiles(userEventHooks, publicApiDeclarations)
 
 const developerGuide =
   generateDeveloperGuide(userEvents.hooks)
@@ -1767,6 +1966,7 @@ if (require.main === module) {
 module.exports = {
   generateStudioExportHeader,
   generateUserEventFiles,
+  preserveUserEventFiles,
   normalizePublicApiDeclarations,
   validateExportPayload,
 }

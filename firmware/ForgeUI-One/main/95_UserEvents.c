@@ -18,4 +18,92 @@
 #include "95_UserEvents.h"
 #include <stdio.h>
 
+void FG_On_Status_LED_Changed(bool enabled)
+{
+    printf("[ForgeUI User Event] Status LED changed: %s\n",
+           enabled ? "ON" : "OFF");
+}
 
+void FG_On_Progress_Bar_Changed(int32_t value)
+{
+    printf("[ForgeUI User Event] Progress Bar changed: %ld\n",
+           (long)value);
+}
+
+void FG_On_Value_Arc_Changed(int32_t value)
+{
+    printf("[ForgeUI User Event] Value Arc changed: %ld\n",
+           (long)value);
+}
+
+void FG_On_Data_Chart_Point_Added(int32_t value)
+{
+    printf("[ForgeUI User Event] Data Chart point added: %ld\n",
+           (long)value);
+}
+
+void FG_On_Data_Chart_Cleared(void)
+{
+    printf("[ForgeUI User Event] Data Chart cleared\n");
+}
+
+void FG_On_Keyboard_Shown(void)
+{
+    printf("[ForgeUI User Event] Keyboard shown\n");
+}
+
+void FG_On_Keyboard_Hidden(void)
+{
+    printf("[ForgeUI User Event] Keyboard hidden\n");
+}
+
+void FG_On_Calendar_Date_Changed(uint16_t year, uint8_t month, uint8_t day)
+{
+    printf(
+        "[ForgeUI User Event] Calendar date changed: %04u-%02u-%02u\n",
+        year,
+        month,
+        day);
+}
+
+void FG_On_Option_Roller_Changed(uint32_t index, const char * text)
+{
+    printf(
+        "[ForgeUI User Event] Option Roller changed: %lu - %s\n",
+        (unsigned long)index,
+        text ? text : "");
+}
+
+void FG_On_Option_Roller_2_Changed(uint32_t index, const char * text)
+{
+    printf(
+        "[ForgeUI User Event] Option Roller 2 changed: %lu - %s\n",
+        (unsigned long)index,
+        text ? text : "");
+}
+
+void FG_On_Message_Shown(void)
+{
+    printf("[ForgeUI User Event] Message shown\n");
+}
+
+void FG_On_Message_Closed(void)
+{
+    printf("[ForgeUI User Event] Message closed\n");
+}
+
+void FG_On_Message_Button_Pressed(uint32_t index, const char * text)
+{
+    printf(
+        "[ForgeUI User Event] Message button: %lu - %s\n",
+        (unsigned long)index,
+        text ? text : "");
+}
+
+void FG_On_Menu_Matrix_Button_Selected(uint32_t index, const char * text)
+{
+    printf(
+        "[ForgeUI User Event] Menu Matrix button: %lu - %s\n",
+        (unsigned long)index,
+        text ? text : "");
+}

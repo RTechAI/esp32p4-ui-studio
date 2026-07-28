@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include <stdint.h>
 #include <stdbool.h>
 
 typedef enum
@@ -23,8 +24,20 @@ typedef enum
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-
+void FG_On_Status_LED_Changed(bool enabled);
+void FG_On_Progress_Bar_Changed(int32_t value);
+void FG_On_Value_Arc_Changed(int32_t value);
+void FG_On_Data_Chart_Point_Added(int32_t value);
+void FG_On_Data_Chart_Cleared(void);
+void FG_On_Keyboard_Shown(void);
+void FG_On_Keyboard_Hidden(void);
+void FG_On_Calendar_Date_Changed(uint16_t year, uint8_t month, uint8_t day);
+void FG_On_Option_Roller_Changed(uint32_t index, const char * text);
+void FG_On_Option_Roller_2_Changed(uint32_t index, const char * text);
+void FG_On_Message_Shown(void);
+void FG_On_Message_Closed(void);
+void FG_On_Message_Button_Pressed(uint32_t index, const char * text);
+void FG_On_Menu_Matrix_Button_Selected(uint32_t index, const char * text);
 
 #ifdef __cplusplus
 }

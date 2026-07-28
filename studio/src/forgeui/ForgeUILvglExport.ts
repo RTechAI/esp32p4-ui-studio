@@ -349,6 +349,835 @@ type BinaryOutputExport = {
   imageScale?: number | string
 }
 
+type LedExport = {
+  apiName: string
+  hookName: string
+  objectName: string
+  stateName: string
+  initialState: boolean
+}
+
+type BarExport = {
+  apiName: string
+  hookName: string
+  objectName: string
+  stateName: string
+  minimumName: string
+  maximumName: string
+  minimum: number
+  maximum: number
+  initialValue: number
+}
+
+type ArcExport = {
+  apiName: string
+  hookName: string
+  objectName: string
+  stateName: string
+  minimumName: string
+  maximumName: string
+  minimum: number
+  maximum: number
+  initialValue: number
+  rotation?: number
+  backgroundStartAngle?: number
+  backgroundEndAngle?: number
+  mode?: 'LV_ARC_MODE_NORMAL' | 'LV_ARC_MODE_REVERSE' | 'LV_ARC_MODE_SYMMETRICAL'
+}
+
+type ChartExport = {
+  addApiName: string
+  clearApiName: string
+  pointAddedHookName: string
+  clearedHookName: string
+  objectName: string
+  seriesName: string
+  minimumName: string
+  maximumName: string
+  minimum: number
+  maximum: number
+  pointCount: number
+  initialData: number[]
+  seriesColor: string
+  horizontalDivisions?: number
+  verticalDivisions?: number
+  updateMode?: 'LV_CHART_UPDATE_MODE_SHIFT' | 'LV_CHART_UPDATE_MODE_CIRCULAR'
+}
+
+type KeyboardExport = {
+  showApiName: string
+  hideApiName: string
+  shownHookName: string
+  hiddenHookName: string
+  objectName: string
+  textareaName: string
+}
+
+type CalendarExport = {
+  apiName: string
+  hookName: string
+  objectName: string
+  selectedDateName: string
+  eventCallbackName: string
+}
+
+type RollerExport = {
+  apiName: string
+  hookName: string
+  objectName: string
+  selectedIndexName: string
+  optionCountName: string
+  transitionName: string
+  eventCallbackName: string
+  options: string[]
+  initialIndex: number
+  visibleRowCount: number
+  mode: 'LV_ROLLER_MODE_NORMAL' | 'LV_ROLLER_MODE_INFINITE'
+  textBufferSize: number
+}
+
+type MessageBoxExport = {
+  showApiName: string
+  closeApiName: string
+  shownHookName: string
+  closedHookName: string
+  buttonHookName: string
+  objectName: string
+  visibleName: string
+  title: string
+  bodyText: string
+  buttons: string[]
+  buttonDataNames: string[]
+}
+
+type ButtonMatrixExport = {
+  apiName: string
+  hookName: string
+  objectName: string
+  selectedIndexName: string
+  buttonCountName: string
+  transitionName: string
+  eventCallbackName: string
+  mapTokens: string[]
+  buttonLabels: string[]
+  initialIndex: number
+  oneCheck: boolean
+  disabledButtons: number[]
+}
+
+const integerProp = (value: unknown, fallback: number) => {
+  const numeric = Number(value)
+  return Number.isFinite(numeric) ? Math.trunc(numeric) : fallback
+}
+
+const createCalendarExports = (
+  components: IComponents,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+  existingApiNames: Iterable<string>,
+): Map<string, CalendarExport> => {
+  const exportsByComponent = new Map<string, CalendarExport>()
+  const usedApiNames = new Set(existingApiNames)
+
+  Object.values(components)
+    .filter(component => component.type === 'Calendar')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const baseName = toCIdentifier(
+        component.componentName ||
+        component.props.name ||
+        component.props.label ||
+        'Calendar',
+        'Calendar',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let allocatedBase = baseName
+      let suffix = 2
+      while (usedApiNames.has(`FG_Set_${allocatedBase}_Date`)) {
+        allocatedBase = `${baseName}_${suffix++}`
+      }
+      const apiName = `FG_Set_${allocatedBase}_Date`
+      usedApiNames.add(apiName)
+
+      let hookName = `FG_On_${allocatedBase}_Date_Changed`
+      suffix = 2
+      while (usedHookNames.has(hookName)) {
+        hookName = `FG_On_${allocatedBase}_${suffix++}_Date_Changed`
+      }
+      usedHookNames.add(hookName)
+      userEventHooks.add(hookName)
+
+      const runtimeStem = allocatedBase.toLowerCase()
+      exportsByComponent.set(component.id, {
+        apiName,
+        hookName,
+        objectName: `fg_${runtimeStem}_calendar`,
+        selectedDateName: `fg_${runtimeStem}_calendar_selected_date`,
+        eventCallbackName: `fg_${runtimeStem}_calendar_value_changed_cb`,
+      })
+    })
+
+  return exportsByComponent
+}
+
+const createRollerExports = (
+  components: IComponents,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+  existingApiNames: Iterable<string>,
+): Map<string, RollerExport> => {
+  const exportsByComponent = new Map<string, RollerExport>()
+  const usedApiNames = new Set(existingApiNames)
+
+  Object.values(components)
+    .filter(component => component.type === 'Roller')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const baseName = toCIdentifier(
+        component.componentName ||
+        component.props.name ||
+        component.props.label ||
+        'Option_Roller',
+        'Option_Roller',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let allocatedBase = baseName
+      let suffix = 2
+      while (usedApiNames.has(`FG_Set_${allocatedBase}_Selected`)) {
+        allocatedBase = `${baseName}_${suffix++}`
+      }
+      const apiName = `FG_Set_${allocatedBase}_Selected`
+      usedApiNames.add(apiName)
+
+      let hookName = `FG_On_${allocatedBase}_Changed`
+      suffix = 2
+      while (usedHookNames.has(hookName)) {
+        hookName = `FG_On_${allocatedBase}_${suffix++}_Changed`
+      }
+      usedHookNames.add(hookName)
+      userEventHooks.add(hookName)
+
+      const configuredOptions: unknown[] = Array.isArray(component.props.options)
+        ? component.props.options
+        : typeof component.props.options === 'string'
+          ? component.props.options.split('\n')
+          : ['One', 'Two', 'Three', 'Four']
+      const options: string[] = configuredOptions
+        .map(option => String(option))
+        .filter(option => option.length > 0)
+      if (options.length === 0) options.push('One', 'Two', 'Three', 'Four')
+      const initialIndex = Math.min(
+        options.length - 1,
+        Math.max(0, integerProp(component.props.selectedIndex, 0)),
+      )
+      const visibleRowCount = Math.max(
+        1,
+        integerProp(component.props.visibleRowCount, 3),
+      )
+      const configuredMode = String(component.props.mode || '').toLowerCase()
+      const mode = configuredMode === 'infinite' ||
+        configuredMode === 'lv_roller_mode_infinite'
+        ? 'LV_ROLLER_MODE_INFINITE'
+        : 'LV_ROLLER_MODE_NORMAL'
+      const runtimeStem = allocatedBase.toLowerCase()
+      const longestOption = options.reduce(
+        (longest, option) => Math.max(
+          longest,
+          Array.from(option).reduce((length, character) => {
+            const codePoint = character.codePointAt(0) || 0
+            return length + (
+              codePoint <= 0x7f ? 1 :
+              codePoint <= 0x7ff ? 2 :
+              codePoint <= 0xffff ? 3 : 4
+            )
+          }, 0),
+        ),
+        0,
+      )
+
+      exportsByComponent.set(component.id, {
+        apiName,
+        hookName,
+        objectName: `fg_${runtimeStem}_roller`,
+        selectedIndexName: `fg_${runtimeStem}_roller_selected_index`,
+        optionCountName: `fg_${runtimeStem}_roller_option_count`,
+        transitionName: `fg_${runtimeStem}_roller_apply_selection`,
+        eventCallbackName: `fg_${runtimeStem}_roller_value_changed_cb`,
+        options,
+        initialIndex,
+        visibleRowCount,
+        mode,
+        textBufferSize: Math.max(1, longestOption + 1),
+      })
+    })
+
+  return exportsByComponent
+}
+
+const createMessageBoxExports = (
+  components: IComponents,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+  existingApiNames: Iterable<string>,
+): Map<string, MessageBoxExport> => {
+  const exportsByComponent = new Map<string, MessageBoxExport>()
+  const usedApiNames = new Set(existingApiNames)
+
+  Object.values(components)
+    .filter(component => component.type === 'Msgbox')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const baseName = toCIdentifier(
+        component.componentName ||
+        component.props.name ||
+        component.props.label ||
+        'Message',
+        'Message',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let allocatedBase = baseName
+      let suffix = 2
+      while (
+        usedApiNames.has(`FG_Show_${allocatedBase}`) ||
+        usedApiNames.has(`FG_Close_${allocatedBase}`)
+      ) {
+        allocatedBase = `${baseName}_${suffix++}`
+      }
+      const showApiName = `FG_Show_${allocatedBase}`
+      const closeApiName = `FG_Close_${allocatedBase}`
+      usedApiNames.add(showApiName)
+      usedApiNames.add(closeApiName)
+
+      const allocateHook = (ending: string) => {
+        let hookName = `FG_On_${allocatedBase}_${ending}`
+        let hookSuffix = 2
+        while (usedHookNames.has(hookName)) {
+          hookName = `FG_On_${allocatedBase}_${hookSuffix++}_${ending}`
+        }
+        usedHookNames.add(hookName)
+        userEventHooks.add(hookName)
+        return hookName
+      }
+      const shownHookName = allocateHook('Shown')
+      const closedHookName = allocateHook('Closed')
+      const buttonHookName = allocateHook('Button_Pressed')
+
+      const configuredButtons: unknown[] = Array.isArray(component.props.buttons)
+        ? component.props.buttons
+        : ['OK', 'Cancel']
+      const buttons: string[] = configuredButtons
+        .map(button => String(button))
+        .filter(button => button.length > 0)
+      if (buttons.length === 0) buttons.push('OK', 'Cancel')
+      const runtimeStem = allocatedBase.toLowerCase()
+
+      exportsByComponent.set(component.id, {
+        showApiName,
+        closeApiName,
+        shownHookName,
+        closedHookName,
+        buttonHookName,
+        objectName: `fg_${runtimeStem}_message_box`,
+        visibleName: `fg_${runtimeStem}_message_box_visible`,
+        title: String(component.props.title || 'Message'),
+        bodyText: String(
+          component.props.bodyText ??
+          component.props.text ??
+          'Example message text',
+        ),
+        buttons,
+        buttonDataNames: buttons.map(
+          (_, index) => `fg_${runtimeStem}_message_button_${index}_data`,
+        ),
+      })
+    })
+
+  return exportsByComponent
+}
+
+const createButtonMatrixExports = (
+  components: IComponents,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+  existingApiNames: Iterable<string>,
+): Map<string, ButtonMatrixExport> => {
+  const exportsByComponent = new Map<string, ButtonMatrixExport>()
+  const usedApiNames = new Set(existingApiNames)
+
+  Object.values(components)
+    .filter(component => component.type === 'ButtonMatrix')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const baseName = toCIdentifier(
+        component.componentName ||
+        component.props.name ||
+        component.props.label ||
+        'Menu_Matrix',
+        'Menu_Matrix',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let allocatedBase = baseName
+      let suffix = 2
+      while (usedApiNames.has(`FG_Set_${allocatedBase}_Selected`)) {
+        allocatedBase = `${baseName}_${suffix++}`
+      }
+      const apiName = `FG_Set_${allocatedBase}_Selected`
+      usedApiNames.add(apiName)
+
+      let hookName = `FG_On_${allocatedBase}_Button_Selected`
+      suffix = 2
+      while (usedHookNames.has(hookName)) {
+        hookName = `FG_On_${allocatedBase}_${suffix++}_Button_Selected`
+      }
+      usedHookNames.add(hookName)
+      userEventHooks.add(hookName)
+
+      const configuredMap = component.props.map ??
+        component.props.buttonMap ??
+        component.props.buttons
+      let mapTokens: string[]
+      if (
+        Array.isArray(configuredMap) &&
+        configuredMap.some(value => Array.isArray(value))
+      ) {
+        mapTokens = []
+        configuredMap.forEach((row, rowIndex) => {
+          if (!Array.isArray(row)) return
+          row.forEach(value => mapTokens.push(String(value)))
+          if (rowIndex < configuredMap.length - 1) mapTokens.push('\n')
+        })
+      } else if (Array.isArray(configuredMap)) {
+        mapTokens = configuredMap.map(value => String(value))
+      } else {
+        mapTokens = ['One', 'Two', 'Three', '\n', 'Four', 'Five', 'Six']
+      }
+      mapTokens = mapTokens.filter(token => token !== '')
+      const buttonLabels = mapTokens.filter(token => token !== '\n')
+      if (buttonLabels.length === 0) {
+        mapTokens = ['One', 'Two', 'Three', '\n', 'Four', 'Five', 'Six']
+        buttonLabels.push('One', 'Two', 'Three', 'Four', 'Five', 'Six')
+      }
+      const initialIndex = Math.min(
+        buttonLabels.length - 1,
+        Math.max(
+          0,
+          integerProp(
+            component.props.selectedIndex ??
+            component.props.checkedButton,
+            1,
+          ),
+        ),
+      )
+      const oneCheck = component.props.oneCheck === true
+      const disabledButtons: number[] = Array.isArray(component.props.disabledButtons)
+        ? Array.from(new Set<number>(
+          component.props.disabledButtons
+            .map((value: unknown) => integerProp(value, -1))
+            .filter((index: number) =>
+              index >= 0 && index < buttonLabels.length),
+        )).sort((left, right) => left - right)
+        : []
+      const runtimeStem = allocatedBase.toLowerCase()
+
+      exportsByComponent.set(component.id, {
+        apiName,
+        hookName,
+        objectName: `fg_${runtimeStem}_button_matrix`,
+        selectedIndexName: `fg_${runtimeStem}_button_matrix_selected_index`,
+        buttonCountName: `fg_${runtimeStem}_button_matrix_button_count`,
+        transitionName: `fg_${runtimeStem}_button_matrix_apply_selection`,
+        eventCallbackName: `fg_${runtimeStem}_button_matrix_value_changed_cb`,
+        mapTokens,
+        buttonLabels,
+        initialIndex,
+        oneCheck,
+        disabledButtons,
+      })
+    })
+
+  return exportsByComponent
+}
+
+const createKeyboardExports = (
+  components: IComponents,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+  existingApiNames: Iterable<string>,
+): Map<string, KeyboardExport> => {
+  const exportsByComponent = new Map<string, KeyboardExport>()
+  const usedApiNames = new Set(existingApiNames)
+
+  Object.values(components)
+    .filter(component => component.type === 'Keyboard')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const baseName = toCIdentifier(
+        component.componentName ||
+        component.props.name ||
+        component.props.label ||
+        'Keyboard',
+        'Keyboard',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let allocatedBase = baseName
+      let suffix = 2
+      while (
+        usedApiNames.has(`FG_Show_${allocatedBase}`) ||
+        usedApiNames.has(`FG_Hide_${allocatedBase}`)
+      ) {
+        allocatedBase = `${baseName}_${suffix++}`
+      }
+      const showApiName = `FG_Show_${allocatedBase}`
+      const hideApiName = `FG_Hide_${allocatedBase}`
+      usedApiNames.add(showApiName)
+      usedApiNames.add(hideApiName)
+
+      let shownHookName = `FG_On_${allocatedBase}_Shown`
+      suffix = 2
+      while (usedHookNames.has(shownHookName)) {
+        shownHookName = `FG_On_${allocatedBase}_${suffix++}_Shown`
+      }
+      usedHookNames.add(shownHookName)
+      userEventHooks.add(shownHookName)
+
+      let hiddenHookName = `FG_On_${allocatedBase}_Hidden`
+      suffix = 2
+      while (usedHookNames.has(hiddenHookName)) {
+        hiddenHookName = `FG_On_${allocatedBase}_${suffix++}_Hidden`
+      }
+      usedHookNames.add(hiddenHookName)
+      userEventHooks.add(hiddenHookName)
+
+      const runtimeStem = allocatedBase.toLowerCase()
+      exportsByComponent.set(component.id, {
+        showApiName,
+        hideApiName,
+        shownHookName,
+        hiddenHookName,
+        objectName: `fg_${runtimeStem}_keyboard`,
+        textareaName: `fg_${runtimeStem}_keyboard_textarea`,
+      })
+    })
+
+  return exportsByComponent
+}
+
+const createChartExports = (
+  components: IComponents,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+  existingApiNames: Iterable<string>,
+): Map<string, ChartExport> => {
+  const exportsByComponent = new Map<string, ChartExport>()
+  const usedApiNames = new Set(existingApiNames)
+
+  Object.values(components)
+    .filter(component => component.type === 'Chart')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const baseName = toCIdentifier(
+        component.componentName ||
+        component.props.name ||
+        component.props.label ||
+        'Data_Chart',
+        'Data_Chart',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let allocatedBase = baseName
+      let suffix = 2
+      while (
+        usedApiNames.has(`FG_Add_${allocatedBase}_Point`) ||
+        usedApiNames.has(`FG_Clear_${allocatedBase}`)
+      ) {
+        allocatedBase = `${baseName}_${suffix++}`
+      }
+      const addApiName = `FG_Add_${allocatedBase}_Point`
+      const clearApiName = `FG_Clear_${allocatedBase}`
+      usedApiNames.add(addApiName)
+      usedApiNames.add(clearApiName)
+
+      let pointAddedHookName = `FG_On_${allocatedBase}_Point_Added`
+      suffix = 2
+      while (usedHookNames.has(pointAddedHookName)) {
+        pointAddedHookName = `FG_On_${allocatedBase}_${suffix++}_Point_Added`
+      }
+      usedHookNames.add(pointAddedHookName)
+      userEventHooks.add(pointAddedHookName)
+
+      let clearedHookName = `FG_On_${allocatedBase}_Cleared`
+      suffix = 2
+      while (usedHookNames.has(clearedHookName)) {
+        clearedHookName = `FG_On_${allocatedBase}_${suffix++}_Cleared`
+      }
+      usedHookNames.add(clearedHookName)
+      userEventHooks.add(clearedHookName)
+
+      const firstRangeValue = integerProp(
+        component.props.yMin ?? component.props.min,
+        0,
+      )
+      const secondRangeValue = integerProp(
+        component.props.yMax ?? component.props.max,
+        100,
+      )
+      const minimum = Math.min(firstRangeValue, secondRangeValue)
+      const maximum = Math.max(firstRangeValue, secondRangeValue)
+      const pointCount = Math.max(
+        1,
+        integerProp(component.props.pointCount, 7),
+      )
+      const configuredData = Array.isArray(component.props.initialData)
+        ? component.props.initialData
+        : [10, 30, 20, 50, 40, 70, 60]
+      const initialData = configuredData
+        .slice(0, pointCount)
+        .map((value: unknown) =>
+          Math.max(
+            minimum,
+            Math.min(maximum, integerProp(value, minimum)),
+          ),
+        )
+      const runtimeStem = allocatedBase.toLowerCase()
+      const rawUpdateMode = String(component.props.updateMode ?? '')
+        .toLowerCase()
+      const rawSeriesColor = component.props.seriesColor
+      const normalizedSeriesColor =
+        typeof rawSeriesColor === 'string'
+          ? rawSeriesColor.replace(/^#/, '')
+          : ''
+      const seriesColor =
+        /^[0-9a-fA-F]{6}$/.test(normalizedSeriesColor)
+          ? `lv_color_hex(0x${normalizedSeriesColor.toUpperCase()})`
+          : typeof rawSeriesColor === 'number' &&
+            Number.isFinite(rawSeriesColor)
+            ? `lv_color_hex(0x${Math.max(0, Math.min(0xFFFFFF, Math.trunc(rawSeriesColor))).toString(16).toUpperCase().padStart(6, '0')})`
+            : 'lv_palette_main(LV_PALETTE_BLUE)'
+
+      exportsByComponent.set(component.id, {
+        addApiName,
+        clearApiName,
+        pointAddedHookName,
+        clearedHookName,
+        objectName: `fg_${runtimeStem}_chart`,
+        seriesName: `fg_${runtimeStem}_chart_series`,
+        minimumName: `fg_${runtimeStem}_chart_y_minimum`,
+        maximumName: `fg_${runtimeStem}_chart_y_maximum`,
+        minimum,
+        maximum,
+        pointCount,
+        initialData,
+        seriesColor,
+        horizontalDivisions:
+          component.props.horizontalDivisions === undefined &&
+          component.props.hdiv === undefined &&
+          component.props.verticalDivisions === undefined &&
+          component.props.vdiv === undefined
+            ? undefined
+            : Math.max(0, integerProp(
+                component.props.horizontalDivisions ?? component.props.hdiv,
+                3,
+              )),
+        verticalDivisions:
+          component.props.horizontalDivisions === undefined &&
+          component.props.hdiv === undefined &&
+          component.props.verticalDivisions === undefined &&
+          component.props.vdiv === undefined
+            ? undefined
+            : Math.max(0, integerProp(
+                component.props.verticalDivisions ?? component.props.vdiv,
+                5,
+              )),
+        updateMode: rawUpdateMode === 'circular'
+          ? 'LV_CHART_UPDATE_MODE_CIRCULAR'
+          : rawUpdateMode === 'shift'
+            ? 'LV_CHART_UPDATE_MODE_SHIFT'
+            : undefined,
+      })
+    })
+
+  return exportsByComponent
+}
+
+const createArcExports = (
+  components: IComponents,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+  existingApiNames: Iterable<string>,
+): Map<string, ArcExport> => {
+  const exportsByComponent = new Map<string, ArcExport>()
+  const usedApiNames = new Set(existingApiNames)
+
+  Object.values(components)
+    .filter(component => component.type === 'Arc')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const baseName = toCIdentifier(
+        component.componentName ||
+        component.props.name ||
+        component.props.label ||
+        'Value_Arc',
+        'Value_Arc',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      const apiName = allocateUniqueOutputApiName(baseName, usedApiNames)
+      const allocatedBase = apiName.replace(/^FG_Set_/, '')
+      let hookName = `FG_On_${allocatedBase}_Changed`
+      let suffix = 2
+      while (usedHookNames.has(hookName)) {
+        hookName = `FG_On_${allocatedBase}_${suffix++}_Changed`
+      }
+      usedHookNames.add(hookName)
+      userEventHooks.add(hookName)
+
+      const firstRangeValue = integerProp(component.props.min, 0)
+      const secondRangeValue = integerProp(component.props.max, 100)
+      const minimum = Math.min(firstRangeValue, secondRangeValue)
+      const maximum = Math.max(firstRangeValue, secondRangeValue)
+      const configuredValue = integerProp(component.props.value, 65)
+      const initialValue = Math.max(minimum, Math.min(maximum, configuredValue))
+      const runtimeStem = allocatedBase.toLowerCase()
+      const rawMode = String(component.props.mode ?? component.props.arcMode ?? '')
+        .toLowerCase()
+      const mode = rawMode === 'reverse'
+        ? 'LV_ARC_MODE_REVERSE'
+        : rawMode === 'symmetrical' || rawMode === 'symmetric'
+          ? 'LV_ARC_MODE_SYMMETRICAL'
+          : rawMode === 'normal'
+            ? 'LV_ARC_MODE_NORMAL'
+            : undefined
+
+      exportsByComponent.set(component.id, {
+        apiName,
+        hookName,
+        objectName: `fg_${runtimeStem}_arc`,
+        stateName: `fg_${runtimeStem}_arc_value`,
+        minimumName: `fg_${runtimeStem}_arc_minimum`,
+        maximumName: `fg_${runtimeStem}_arc_maximum`,
+        minimum,
+        maximum,
+        initialValue,
+        rotation: component.props.rotation === undefined
+          ? undefined
+          : integerProp(component.props.rotation, 0),
+        backgroundStartAngle:
+          component.props.bgStartAngle === undefined &&
+          component.props.backgroundStartAngle === undefined
+            ? undefined
+            : integerProp(
+                component.props.bgStartAngle ??
+                component.props.backgroundStartAngle,
+                135,
+              ),
+        backgroundEndAngle:
+          component.props.bgEndAngle === undefined &&
+          component.props.backgroundEndAngle === undefined
+            ? undefined
+            : integerProp(
+                component.props.bgEndAngle ??
+                component.props.backgroundEndAngle,
+                45,
+              ),
+        mode,
+      })
+    })
+
+  return exportsByComponent
+}
+
+const createBarExports = (
+  components: IComponents,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+  existingApiNames: Iterable<string>,
+): Map<string, BarExport> => {
+  const exportsByComponent = new Map<string, BarExport>()
+  const usedApiNames = new Set(existingApiNames)
+
+  Object.values(components)
+    .filter(component => component.type === 'Bar')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const baseName = toCIdentifier(
+        component.componentName ||
+        component.props.name ||
+        component.props.label ||
+        'Progress_Bar',
+        'Progress_Bar',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      const apiName = allocateUniqueOutputApiName(baseName, usedApiNames)
+      const allocatedBase = apiName.replace(/^FG_Set_/, '')
+      let hookName = `FG_On_${allocatedBase}_Changed`
+      let suffix = 2
+      while (usedHookNames.has(hookName)) {
+        hookName = `FG_On_${allocatedBase}_${suffix++}_Changed`
+      }
+      usedHookNames.add(hookName)
+      userEventHooks.add(hookName)
+
+      const firstRangeValue = integerProp(component.props.min, 0)
+      const secondRangeValue = integerProp(component.props.max, 100)
+      const minimum = Math.min(firstRangeValue, secondRangeValue)
+      const maximum = Math.max(firstRangeValue, secondRangeValue)
+      const configuredValue = integerProp(component.props.value, 70)
+      const initialValue = Math.max(minimum, Math.min(maximum, configuredValue))
+      const runtimeStem = allocatedBase.toLowerCase()
+
+      exportsByComponent.set(component.id, {
+        apiName,
+        hookName,
+        objectName: `fg_${runtimeStem}_bar`,
+        stateName: `fg_${runtimeStem}_bar_value`,
+        minimumName: `fg_${runtimeStem}_bar_minimum`,
+        maximumName: `fg_${runtimeStem}_bar_maximum`,
+        minimum,
+        maximum,
+        initialValue,
+      })
+    })
+
+  return exportsByComponent
+}
+
+const createLedExports = (
+  components: IComponents,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+  existingApiNames: Iterable<string>,
+): Map<string, LedExport> => {
+  const exportsByComponent = new Map<string, LedExport>()
+  const usedApiNames = new Set(existingApiNames)
+
+  Object.values(components)
+    .filter(component => component.type === 'Led')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const baseName = toCIdentifier(
+        component.componentName ||
+        component.props.name ||
+        component.props.label ||
+        'Status_LED',
+        'Status_LED',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      const apiName = allocateUniqueOutputApiName(baseName, usedApiNames)
+      const allocatedBase = apiName.replace(/^FG_Set_/, '')
+      let hookName = `FG_On_${allocatedBase}_Changed`
+      let suffix = 2
+      while (usedHookNames.has(hookName)) {
+        hookName = `FG_On_${allocatedBase}_${suffix++}_Changed`
+      }
+      usedHookNames.add(hookName)
+      userEventHooks.add(hookName)
+      const runtimeStem = allocatedBase.toLowerCase()
+      exportsByComponent.set(component.id, {
+        apiName,
+        hookName,
+        objectName: `fg_${runtimeStem}_led`,
+        stateName: `fg_${runtimeStem}_led_on`,
+        initialState:
+          component.props.on ??
+          component.props.isOn ??
+          component.props.isChecked ??
+          component.props.enabled ??
+          true,
+      })
+    })
+
+  return exportsByComponent
+}
+
 const createBinaryOutputExports = (
   components: IComponents,
   usedAssetSources: Set<string>,
@@ -453,6 +1282,15 @@ const buildLvglBlock = (
   binaryOutputExports: Map<string, BinaryOutputExport>,
   toggleInputExports: Map<string, ToggleInputExport>,
   threeWayInputExports: Map<string, ThreeWayInputExport>,
+  ledExports: Map<string, LedExport>,
+  barExports: Map<string, BarExport>,
+  arcExports: Map<string, ArcExport>,
+  chartExports: Map<string, ChartExport>,
+  keyboardExports: Map<string, KeyboardExport>,
+  calendarExports: Map<string, CalendarExport>,
+  rollerExports: Map<string, RollerExport>,
+  messageBoxExports: Map<string, MessageBoxExport>,
+  buttonMatrixExports: Map<string, ButtonMatrixExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -1271,41 +2109,92 @@ case 'CircularProgress': {
 
 case 'Led': {
   const size = Math.min(Number(w), Number(h), 48)
+  const ledExport = ledExports.get(child.id)
 
-  lines.push(`lv_obj_t * ${varName} = lv_led_create(${parentVar});`)
-  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
-  lines.push(`lv_obj_set_size(${varName}, ${size}, ${size});`)
-  lines.push(`lv_led_set_color(${varName}, lv_palette_main(LV_PALETTE_GREEN));`)
-  lines.push(`lv_led_set_brightness(${varName}, 255);`)
-  lines.push(`lv_led_on(${varName});`)
+  const ledObject = ledExport?.objectName || varName
+  lines.push(`${ledObject} = lv_led_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${ledObject}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${ledObject}, ${size}, ${size});`)
+  lines.push(`lv_led_set_color(${ledObject}, lv_palette_main(LV_PALETTE_GREEN));`)
+  lines.push(`lv_led_set_brightness(${ledObject}, 255);`)
+  if (ledExport?.initialState === false) {
+    lines.push(`lv_led_off(${ledObject});`)
+  } else {
+    lines.push(`lv_led_on(${ledObject});`)
+  }
+  if (ledExport) {
+    lines.push(`${ledExport.stateName} = ${ledExport.initialState ? 'true' : 'false'};`)
+  }
   lines.push(``)
   break
 }
 
 case 'Bar': {
-  lines.push(`lv_obj_t * ${varName} = lv_bar_create(${parentVar});`)
-  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
-  lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
-  lines.push(`lv_bar_set_range(${varName}, 0, 100);`)
-  lines.push(`lv_bar_set_value(${varName}, 70, LV_ANIM_OFF);`)
+  const barExport = barExports.get(child.id)
+  const barObject = barExport?.objectName || varName
+  const minimum = barExport?.minimum ?? 0
+  const maximum = barExport?.maximum ?? 100
+  const initialValue = barExport?.initialValue ?? 70
+  lines.push(`${barObject} = lv_bar_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${barObject}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${barObject}, ${w}, ${h});`)
+  lines.push(`lv_bar_set_range(${barObject}, ${minimum}, ${maximum});`)
+  lines.push(`lv_bar_set_value(${barObject}, ${initialValue}, LV_ANIM_OFF);`)
+  if (barExport) {
+    lines.push(`${barExport.stateName} = ${initialValue};`)
+  }
   lines.push(``)
   break
 }
 
 case 'Arc': {
-  lines.push(`lv_obj_t * ${varName} = lv_arc_create(${parentVar});`)
-  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
-  lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
-  lines.push(`lv_arc_set_range(${varName}, 0, 100);`)
-  lines.push(`lv_arc_set_value(${varName}, 65);`)
+  const arcExport = arcExports.get(child.id)
+  const arcObject = arcExport?.objectName || varName
+  const minimum = arcExport?.minimum ?? 0
+  const maximum = arcExport?.maximum ?? 100
+  const initialValue = arcExport?.initialValue ?? 65
+  lines.push(`${arcObject} = lv_arc_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${arcObject}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${arcObject}, ${w}, ${h});`)
+  lines.push(`lv_arc_set_range(${arcObject}, ${minimum}, ${maximum});`)
+  if (arcExport?.rotation !== undefined) {
+    lines.push(`lv_arc_set_rotation(${arcObject}, ${arcExport.rotation});`)
+  }
+  if (
+    arcExport?.backgroundStartAngle !== undefined &&
+    arcExport.backgroundEndAngle !== undefined
+  ) {
+    lines.push(`lv_arc_set_bg_angles(${arcObject}, ${arcExport.backgroundStartAngle}, ${arcExport.backgroundEndAngle});`)
+  }
+  if (arcExport?.mode) {
+    lines.push(`lv_arc_set_mode(${arcObject}, ${arcExport.mode});`)
+  }
+  lines.push(`lv_arc_set_value(${arcObject}, ${initialValue});`)
+  if (arcExport) {
+    lines.push(`${arcExport.stateName} = ${initialValue};`)
+  }
   lines.push(``)
   break
 }
 
 case 'Roller': {
-  lines.push(`lv_obj_t * ${varName} = lv_roller_create(${parentVar});`)
-  lines.push(`lv_roller_set_options(${varName}, "One\\nTwo\\nThree\\nFour", LV_ROLLER_MODE_NORMAL);`)
-  lines.push(`lv_roller_set_visible_row_count(${varName}, 3);`)
+  const rollerExport = rollerExports.get(child.id)
+  const rollerObject = rollerExport?.objectName || varName
+  const optionLiteral = rollerExport
+    ? rollerExport.options.map(option => esc(option)).join('\\n')
+    : 'One\\nTwo\\nThree\\nFour'
+  const rollerMode = rollerExport?.mode || 'LV_ROLLER_MODE_NORMAL'
+  const visibleRowCount = rollerExport?.visibleRowCount ?? 3
+  const initialIndex = rollerExport?.initialIndex ?? 0
+  lines.push(`${rollerObject} = lv_roller_create(${parentVar});`)
+  lines.push(`lv_obj_t * ${varName} = ${rollerObject};`)
+  lines.push(`lv_roller_set_options(${varName}, "${optionLiteral}", ${rollerMode});`)
+  lines.push(`lv_roller_set_visible_row_count(${varName}, ${visibleRowCount});`)
+  lines.push(`lv_roller_set_selected(${varName}, ${initialIndex}, LV_ANIM_OFF);`)
+  if (rollerExport) {
+    lines.push(`${rollerExport.selectedIndexName} = ${initialIndex};`)
+    lines.push(`lv_obj_add_event_cb(${varName}, ${rollerExport.eventCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
+  }
   lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
   lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
   lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
@@ -1451,9 +2340,18 @@ case 'AnimImage': {
 
 
 case 'ButtonMatrix': {
-  lines.push(`static const char * ${varName}_map[] = {"One", "Two", "Three", "\\n", "Four", "Five", "Six", ""};`)
+  const matrixExport = buttonMatrixExports.get(child.id)
+  const matrixObject = matrixExport?.objectName || varName
+  const matrixMap = matrixExport?.mapTokens ||
+    ['One', 'Two', 'Three', '\n', 'Four', 'Five', 'Six']
+  const mapLiteral = matrixMap
+    .map(token => token === '\n' ? '"\\n"' : `"${esc(token)}"`)
+    .concat('""')
+    .join(', ')
+  lines.push(`static const char * ${varName}_map[] = {${mapLiteral}};`)
 
-  lines.push(`lv_obj_t * ${varName} = lv_buttonmatrix_create(${parentVar});`)
+  lines.push(`${matrixObject} = lv_buttonmatrix_create(${parentVar});`)
+  lines.push(`lv_obj_t * ${varName} = ${matrixObject};`)
   lines.push(`lv_buttonmatrix_set_map(${varName}, ${varName}_map);`)
   lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
   lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
@@ -1472,14 +2370,33 @@ case 'ButtonMatrix': {
   lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.border}), LV_PART_ITEMS | LV_STATE_CHECKED);`)
   lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.bg}), LV_PART_ITEMS | LV_STATE_CHECKED);`)
 
-  lines.push(`lv_buttonmatrix_set_selected_button(${varName}, 1);`)
+  const initialIndex = matrixExport?.initialIndex ?? 1
+  lines.push(`lv_buttonmatrix_set_selected_button(${varName}, ${initialIndex});`)
+  if (matrixExport) {
+    if (matrixExport.oneCheck) {
+      lines.push(`lv_buttonmatrix_set_button_ctrl_all(${varName}, LV_BUTTONMATRIX_CTRL_CHECKABLE);`)
+      lines.push(`lv_buttonmatrix_set_one_checked(${varName}, true);`)
+      lines.push(`lv_buttonmatrix_set_button_ctrl(${varName}, ${initialIndex}, LV_BUTTONMATRIX_CTRL_CHECKED);`)
+    }
+    matrixExport.disabledButtons.forEach(index => {
+      lines.push(`lv_buttonmatrix_set_button_ctrl(${varName}, ${index}, LV_BUTTONMATRIX_CTRL_DISABLED);`)
+    })
+    lines.push(`${matrixExport.selectedIndexName} = ${initialIndex};`)
+    lines.push(`lv_obj_add_event_cb(${varName}, ${matrixExport.eventCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
+  }
 
   lines.push(``)
   break
 }
 
 case 'Msgbox': {
-  lines.push(`lv_obj_t * ${varName} = lv_obj_create(${parentVar});`)
+  const messageExport = messageBoxExports.get(child.id)
+  const messageObject = messageExport?.objectName || varName
+  const messageTitle = messageExport?.title || 'Message'
+  const messageBody = messageExport?.bodyText || 'Example message text'
+  const messageButtons = messageExport?.buttons || ['OK', 'Cancel']
+  lines.push(`${messageObject} = lv_obj_create(${parentVar});`)
+  lines.push(`lv_obj_t * ${varName} = ${messageObject};`)
   lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
   lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
 
@@ -1493,30 +2410,36 @@ case 'Msgbox': {
   lines.push(``)
 
   lines.push(`lv_obj_t * ${varName}_title = lv_label_create(${varName});`)
-  lines.push(`lv_label_set_text(${varName}_title, "Message");`)
+  lines.push(`lv_label_set_text(${varName}_title, "${esc(messageTitle)}");`)
   lines.push(`lv_obj_align(${varName}_title, LV_ALIGN_TOP_LEFT, 10, 8);`)
 
   lines.push(`lv_obj_t * ${varName}_text = lv_label_create(${varName});`)
-  lines.push(`lv_label_set_text(${varName}_text, "Example message text");`)
+  lines.push(`lv_label_set_text(${varName}_text, "${esc(messageBody)}");`)
   lines.push(`lv_obj_set_width(${varName}_text, ${Math.max(80, w - 20)});`)
   lines.push(`lv_label_set_long_mode(${varName}_text, LV_LABEL_LONG_WRAP);`)
   lines.push(`lv_obj_align(${varName}_text, LV_ALIGN_TOP_LEFT, 10, 30);`)
 
-  lines.push(`lv_obj_t * ${varName}_ok = lv_button_create(${varName});`)
-  lines.push(`lv_obj_set_size(${varName}_ok, 56, 26);`)
-  lines.push(`lv_obj_align(${varName}_ok, LV_ALIGN_BOTTOM_RIGHT, -74, -4);`)
-
-  lines.push(`lv_obj_t * ${varName}_ok_lbl = lv_label_create(${varName}_ok);`)
-  lines.push(`lv_label_set_text(${varName}_ok_lbl, "OK");`)
-  lines.push(`lv_obj_center(${varName}_ok_lbl);`)
-
-  lines.push(`lv_obj_t * ${varName}_cancel = lv_button_create(${varName});`)
-  lines.push(`lv_obj_set_size(${varName}_cancel, 64, 26);`)
-  lines.push(`lv_obj_align(${varName}_cancel, LV_ALIGN_BOTTOM_RIGHT, -4, -4);`)
-
-  lines.push(`lv_obj_t * ${varName}_cancel_lbl = lv_label_create(${varName}_cancel);`)
-  lines.push(`lv_label_set_text(${varName}_cancel_lbl, "Cancel");`)
-  lines.push(`lv_obj_center(${varName}_cancel_lbl);`)
+  messageButtons.forEach((buttonText, buttonIndex) => {
+    const buttonName = `${varName}_button_${buttonIndex}`
+    const isDefaultPair = messageButtons.length === 2 &&
+      messageButtons[0] === 'OK' && messageButtons[1] === 'Cancel'
+    const buttonWidth = isDefaultPair && buttonIndex === 0 ? 56 : 64
+    const rightOffset = isDefaultPair
+      ? buttonIndex === 0 ? -74 : -4
+      : -(4 + (messageButtons.length - buttonIndex - 1) * 70)
+    lines.push(`lv_obj_t * ${buttonName} = lv_button_create(${varName});`)
+    lines.push(`lv_obj_set_size(${buttonName}, ${buttonWidth}, 26);`)
+    lines.push(`lv_obj_align(${buttonName}, LV_ALIGN_BOTTOM_RIGHT, ${rightOffset}, -4);`)
+    lines.push(`lv_obj_t * ${buttonName}_label = lv_label_create(${buttonName});`)
+    lines.push(`lv_label_set_text(${buttonName}_label, "${esc(buttonText)}");`)
+    lines.push(`lv_obj_center(${buttonName}_label);`)
+    if (messageExport) {
+      lines.push(`lv_obj_add_event_cb(${buttonName}, fg_message_button_clicked_cb, LV_EVENT_CLICKED, (void *)&${messageExport.buttonDataNames[buttonIndex]});`)
+    }
+  })
+  if (messageExport) {
+    lines.push(`${messageExport.visibleName} = true;`)
+  }
 
   lines.push(``)
   break
@@ -1561,6 +2484,9 @@ case 'Scale': {
 }
 
 case 'Keyboard': {
+  const keyboardExport = keyboardExports.get(child.id)
+  const keyboardObject = keyboardExport?.objectName || varName
+  const textareaObject = keyboardExport?.textareaName || `${varName}_ta`
   lines.push(`// ForgeUI Keyboard component ${esc(child.id)} -> ${varName}`)
   lines.push(`static const char * const ${varName}_map[] = {`)
   lines.push(`    "1#", "q", "w", "e", "r", "t", "y", "u", "i", "o", "p", LV_SYMBOL_BACKSPACE, "\\n",`)
@@ -1575,13 +2501,15 @@ case 'Keyboard': {
   lines.push(`    LV_KEYBOARD_CTRL_BUTTON_FLAGS | 2, LV_BUTTONMATRIX_CTRL_CHECKED | 2, 12, LV_BUTTONMATRIX_CTRL_CHECKED | 2, LV_KEYBOARD_CTRL_BUTTON_FLAGS | 2`)
   lines.push(`};`)
 
-  lines.push(`lv_obj_t * ${varName}_ta = lv_textarea_create(${parentVar});`)
-  lines.push(`lv_textarea_set_one_line(${varName}_ta, true);`)
-  lines.push(`lv_textarea_set_placeholder_text(${varName}_ta, "Keyboard input");`)
-  lines.push(`lv_obj_set_pos(${varName}_ta, ${x}, ${Math.max(0, Number(y) - 55)});`)
-  lines.push(`lv_obj_set_size(${varName}_ta, ${w}, 45);`)
+  lines.push(`${textareaObject} = lv_textarea_create(${parentVar});`)
+  if (keyboardExport) lines.push(`lv_obj_t * ${varName}_ta = ${textareaObject};`)
+  lines.push(`lv_textarea_set_one_line(${textareaObject}, true);`)
+  lines.push(`lv_textarea_set_placeholder_text(${textareaObject}, "Keyboard input");`)
+  lines.push(`lv_obj_set_pos(${textareaObject}, ${x}, ${Math.max(0, Number(y) - 55)});`)
+  lines.push(`lv_obj_set_size(${textareaObject}, ${w}, 45);`)
 
-  lines.push(`lv_obj_t * ${varName} = lv_keyboard_create(${parentVar});`)
+  lines.push(`${keyboardObject} = lv_keyboard_create(${parentVar});`)
+  lines.push(`lv_obj_t * ${varName} = ${keyboardObject};`)
   lines.push(`lv_keyboard_set_map(${varName}, LV_KEYBOARD_MODE_TEXT_LOWER, ${varName}_map, ${varName}_ctrl);`)
   lines.push(`lv_keyboard_set_textarea(${varName}, ${varName}_ta);`)
   lines.push(`lv_keyboard_set_mode(${varName}, LV_KEYBOARD_MODE_TEXT_LOWER);`)
@@ -1625,12 +2553,18 @@ case 'Keyboard': {
 }
 
 case 'Calendar': {
-  lines.push(`lv_obj_t * ${varName} = lv_calendar_create(${parentVar});`)
+  const calendarExport = calendarExports.get(child.id)
+  const calendarObject = calendarExport?.objectName || varName
+  lines.push(`${calendarObject} = lv_calendar_create(${parentVar});`)
+  lines.push(`lv_obj_t * ${varName} = ${calendarObject};`)
   lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
   lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
 
   lines.push(`lv_calendar_set_today_date(${varName}, 2026, 6, 18);`)
   lines.push(`lv_calendar_set_showed_date(${varName}, 2026, 6);`)
+  if (calendarExport) {
+    lines.push(`lv_obj_add_event_cb(${varName}, ${calendarExport.eventCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
+  }
 
   lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
@@ -1642,26 +2576,36 @@ case 'Calendar': {
 }
 
 case 'Chart': {
-  lines.push(`lv_obj_t * ${varName} = lv_chart_create(${parentVar});`)
-  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
-  lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
-
-  lines.push(`lv_chart_set_type(${varName}, LV_CHART_TYPE_LINE);`)
-  lines.push(`lv_chart_set_point_count(${varName}, 7);`)
-
+  const chartExport = chartExports.get(child.id)
+  const chartObject = chartExport?.objectName || varName
+  const chartSeries = chartExport?.seriesName || `${varName}_ser`
+  const pointCount = chartExport?.pointCount ?? 7
+  const initialData = chartExport?.initialData ??
+    [10, 30, 20, 50, 40, 70, 60]
+  lines.push(`${chartObject} = lv_chart_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${chartObject}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${chartObject}, ${w}, ${h});`)
+  lines.push(`lv_chart_set_type(${chartObject}, LV_CHART_TYPE_LINE);`)
+  lines.push(`lv_chart_set_point_count(${chartObject}, ${pointCount});`)
+  if (chartExport) {
+    lines.push(`lv_chart_set_range(${chartObject}, LV_CHART_AXIS_PRIMARY_Y, ${chartExport.minimum}, ${chartExport.maximum});`)
+    if (
+      chartExport.horizontalDivisions !== undefined &&
+      chartExport.verticalDivisions !== undefined
+    ) {
+      lines.push(`lv_chart_set_div_line_count(${chartObject}, ${chartExport.horizontalDivisions}, ${chartExport.verticalDivisions});`)
+    }
+    if (chartExport.updateMode) {
+      lines.push(`lv_chart_set_update_mode(${chartObject}, ${chartExport.updateMode});`)
+    }
+  }
   lines.push(
-    `lv_chart_series_t * ${varName}_ser = lv_chart_add_series(${varName}, lv_palette_main(LV_PALETTE_BLUE), LV_CHART_AXIS_PRIMARY_Y);`
+    `${chartSeries} = lv_chart_add_series(${chartObject}, ${chartExport?.seriesColor || 'lv_palette_main(LV_PALETTE_BLUE)'}, LV_CHART_AXIS_PRIMARY_Y);`
   )
-
-  lines.push(`lv_chart_set_next_value(${varName}, ${varName}_ser, 10);`)
-  lines.push(`lv_chart_set_next_value(${varName}, ${varName}_ser, 30);`)
-  lines.push(`lv_chart_set_next_value(${varName}, ${varName}_ser, 20);`)
-  lines.push(`lv_chart_set_next_value(${varName}, ${varName}_ser, 50);`)
-  lines.push(`lv_chart_set_next_value(${varName}, ${varName}_ser, 40);`)
-  lines.push(`lv_chart_set_next_value(${varName}, ${varName}_ser, 70);`)
-  lines.push(`lv_chart_set_next_value(${varName}, ${varName}_ser, 60);`)
-
-  lines.push(`lv_chart_refresh(${varName});`)
+  initialData.forEach(value => {
+    lines.push(`lv_chart_set_next_value(${chartObject}, ${chartSeries}, ${value});`)
+  })
+  lines.push(`lv_chart_refresh(${chartObject});`)
   lines.push(``)
   break
 }
@@ -1698,6 +2642,15 @@ case 'Chart': {
         binaryOutputExports,
         toggleInputExports,
         threeWayInputExports,
+        ledExports,
+        barExports,
+        arcExports,
+        chartExports,
+        keyboardExports,
+        calendarExports,
+        rollerExports,
+        messageBoxExports,
+        buttonMatrixExports,
       )
     }
   })
@@ -1729,6 +2682,142 @@ export const generateForgeUILvglCode = (
     components, usedAssetSources, usedHookNames, userEventHooks,
   )
   const threeWayInputExports = createThreeWayInputExports(components, usedAssetSources, usedHookNames, userEventHooks)
+  const ledExports = createLedExports(
+    components,
+    usedHookNames,
+    userEventHooks,
+    Array.from(binaryOutputExports.values()).map(output => output.apiName),
+  )
+  const barExports = createBarExports(
+    components,
+    usedHookNames,
+    userEventHooks,
+    [
+      ...Array.from(binaryOutputExports.values()).map(output => output.apiName),
+      ...Array.from(ledExports.values()).map(output => output.apiName),
+    ],
+  )
+  const arcExports = createArcExports(
+    components,
+    usedHookNames,
+    userEventHooks,
+    [
+      ...Array.from(binaryOutputExports.values()).map(output => output.apiName),
+      ...Array.from(ledExports.values()).map(output => output.apiName),
+      ...Array.from(barExports.values()).map(output => output.apiName),
+    ],
+  )
+  const chartExports = createChartExports(
+    components,
+    usedHookNames,
+    userEventHooks,
+    [
+      ...Array.from(binaryOutputExports.values()).map(output => output.apiName),
+      ...Array.from(ledExports.values()).map(output => output.apiName),
+      ...Array.from(barExports.values()).map(output => output.apiName),
+      ...Array.from(arcExports.values()).map(output => output.apiName),
+    ],
+  )
+  const keyboardExports = createKeyboardExports(
+    components,
+    usedHookNames,
+    userEventHooks,
+    [
+      ...Array.from(binaryOutputExports.values()).map(output => output.apiName),
+      ...Array.from(ledExports.values()).map(output => output.apiName),
+      ...Array.from(barExports.values()).map(output => output.apiName),
+      ...Array.from(arcExports.values()).map(output => output.apiName),
+      ...Array.from(chartExports.values()).flatMap(output => [
+        output.addApiName,
+        output.clearApiName,
+      ]),
+    ],
+  )
+  const calendarExports = createCalendarExports(
+    components,
+    usedHookNames,
+    userEventHooks,
+    [
+      ...Array.from(binaryOutputExports.values()).map(value => value.apiName),
+      ...Array.from(ledExports.values()).map(value => value.apiName),
+      ...Array.from(barExports.values()).map(value => value.apiName),
+      ...Array.from(arcExports.values()).map(value => value.apiName),
+      ...Array.from(chartExports.values()).flatMap(value => [
+        value.addApiName,
+        value.clearApiName,
+      ]),
+      ...Array.from(keyboardExports.values()).flatMap(value => [
+        value.showApiName,
+        value.hideApiName,
+      ]),
+    ],
+  )
+  const rollerExports = createRollerExports(
+    components,
+    usedHookNames,
+    userEventHooks,
+    [
+      ...Array.from(binaryOutputExports.values()).map(value => value.apiName),
+      ...Array.from(ledExports.values()).map(value => value.apiName),
+      ...Array.from(barExports.values()).map(value => value.apiName),
+      ...Array.from(arcExports.values()).map(value => value.apiName),
+      ...Array.from(chartExports.values()).flatMap(value => [
+        value.addApiName,
+        value.clearApiName,
+      ]),
+      ...Array.from(keyboardExports.values()).flatMap(value => [
+        value.showApiName,
+        value.hideApiName,
+      ]),
+      ...Array.from(calendarExports.values()).map(value => value.apiName),
+    ],
+  )
+  const messageBoxExports = createMessageBoxExports(
+    components,
+    usedHookNames,
+    userEventHooks,
+    [
+      ...Array.from(binaryOutputExports.values()).map(value => value.apiName),
+      ...Array.from(ledExports.values()).map(value => value.apiName),
+      ...Array.from(barExports.values()).map(value => value.apiName),
+      ...Array.from(arcExports.values()).map(value => value.apiName),
+      ...Array.from(chartExports.values()).flatMap(value => [
+        value.addApiName,
+        value.clearApiName,
+      ]),
+      ...Array.from(keyboardExports.values()).flatMap(value => [
+        value.showApiName,
+        value.hideApiName,
+      ]),
+      ...Array.from(calendarExports.values()).map(value => value.apiName),
+      ...Array.from(rollerExports.values()).map(value => value.apiName),
+    ],
+  )
+  const buttonMatrixExports = createButtonMatrixExports(
+    components,
+    usedHookNames,
+    userEventHooks,
+    [
+      ...Array.from(binaryOutputExports.values()).map(value => value.apiName),
+      ...Array.from(ledExports.values()).map(value => value.apiName),
+      ...Array.from(barExports.values()).map(value => value.apiName),
+      ...Array.from(arcExports.values()).map(value => value.apiName),
+      ...Array.from(chartExports.values()).flatMap(value => [
+        value.addApiName,
+        value.clearApiName,
+      ]),
+      ...Array.from(keyboardExports.values()).flatMap(value => [
+        value.showApiName,
+        value.hideApiName,
+      ]),
+      ...Array.from(calendarExports.values()).map(value => value.apiName),
+      ...Array.from(rollerExports.values()).map(value => value.apiName),
+      ...Array.from(messageBoxExports.values()).flatMap(value => [
+        value.showApiName,
+        value.closeApiName,
+      ]),
+    ],
+  )
 
   const previewPalette =
   FG_PREVIEW_PALETTES[themeId as ForgeThemeId] ||
@@ -1803,7 +2892,7 @@ const backgroundMode =
   lines.push(`#include "freertos/queue.h"`)
   lines.push(`#include "freertos/semphr.h"`)
   lines.push(`#include "freertos/task.h"`)
-  if (hasInteractiveButtons || toggleInputExports.size > 0 || threeWayInputExports.size > 0) {
+  if (hasInteractiveButtons || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0) {
     lines.push(`#include "95_UserEvents.h"`)
   }
   lines.push(`#include <stdbool.h>`)
@@ -1817,6 +2906,57 @@ const backgroundMode =
   lines.push(`static lv_obj_t * fg_system_launcher_page = NULL;`)
   lines.push(`static lv_obj_t * fg_system_brightness_page = NULL;`)
   lines.push(`static lv_obj_t * fg_system_brightness_label = NULL;`)
+  ledExports.forEach(ledExport => {
+    lines.push(`static lv_obj_t * ${ledExport.objectName} = NULL;`)
+    lines.push(`static bool ${ledExport.stateName} = ${ledExport.initialState ? 'true' : 'false'};`)
+  })
+  barExports.forEach(barExport => {
+    lines.push(`static lv_obj_t * ${barExport.objectName} = NULL;`)
+    lines.push(`static int32_t ${barExport.stateName} = ${barExport.initialValue};`)
+    lines.push(`static const int32_t ${barExport.minimumName} = ${barExport.minimum};`)
+    lines.push(`static const int32_t ${barExport.maximumName} = ${barExport.maximum};`)
+  })
+  arcExports.forEach(arcExport => {
+    lines.push(`static lv_obj_t * ${arcExport.objectName} = NULL;`)
+    lines.push(`static int32_t ${arcExport.stateName} = ${arcExport.initialValue};`)
+    lines.push(`static const int32_t ${arcExport.minimumName} = ${arcExport.minimum};`)
+    lines.push(`static const int32_t ${arcExport.maximumName} = ${arcExport.maximum};`)
+  })
+  chartExports.forEach(chartExport => {
+    lines.push(`static lv_obj_t * ${chartExport.objectName} = NULL;`)
+    lines.push(`static lv_chart_series_t * ${chartExport.seriesName} = NULL;`)
+    lines.push(`static const int32_t ${chartExport.minimumName} = ${chartExport.minimum};`)
+    lines.push(`static const int32_t ${chartExport.maximumName} = ${chartExport.maximum};`)
+  })
+  keyboardExports.forEach(keyboardExport => {
+    lines.push(`static lv_obj_t * ${keyboardExport.objectName} = NULL;`)
+    lines.push(`static lv_obj_t * ${keyboardExport.textareaName} = NULL;`)
+  })
+  calendarExports.forEach(calendarExport => {
+    lines.push(`static lv_obj_t * ${calendarExport.objectName} = NULL;`)
+    lines.push(`static lv_calendar_date_t ${calendarExport.selectedDateName} = {0};`)
+  })
+  rollerExports.forEach(rollerExport => {
+    lines.push(`static lv_obj_t * ${rollerExport.objectName} = NULL;`)
+    lines.push(`static uint32_t ${rollerExport.selectedIndexName} = ${rollerExport.initialIndex};`)
+    lines.push(`static const uint32_t ${rollerExport.optionCountName} = ${rollerExport.options.length};`)
+  })
+  if (messageBoxExports.size > 0) {
+    lines.push(`typedef void (*fg_message_button_hook_t)(uint32_t index, const char * text);`)
+    lines.push(`typedef struct { uint32_t index; const char * text; fg_message_button_hook_t hook; } fg_message_button_event_data_t;`)
+  }
+  messageBoxExports.forEach(messageExport => {
+    lines.push(`static lv_obj_t * ${messageExport.objectName} = NULL;`)
+    lines.push(`static bool ${messageExport.visibleName} = true;`)
+    messageExport.buttons.forEach((buttonText, buttonIndex) => {
+      lines.push(`static const fg_message_button_event_data_t ${messageExport.buttonDataNames[buttonIndex]} = { ${buttonIndex}, "${esc(buttonText)}", ${messageExport.buttonHookName} };`)
+    })
+  })
+  buttonMatrixExports.forEach(matrixExport => {
+    lines.push(`static lv_obj_t * ${matrixExport.objectName} = NULL;`)
+    lines.push(`static uint32_t ${matrixExport.selectedIndexName} = ${matrixExport.initialIndex};`)
+    lines.push(`static const uint32_t ${matrixExport.buttonCountName} = ${matrixExport.buttonLabels.length};`)
+  })
   lines.push(`static lv_obj_t * fg_system_wifi_page = NULL;`)
   lines.push(`static lv_obj_t * fg_system_wifi_state_label = NULL;`)
   lines.push(`static lv_obj_t * fg_system_wifi_ssid_label = NULL;`)
@@ -1933,6 +3073,242 @@ const backgroundMode =
         declaredLightSymbols.add(symbol)
       }
     })
+  })
+
+  ledExports.forEach(ledExport => {
+    lines.push(`void ${ledExport.apiName}(bool on)`)
+    lines.push(`{`)
+    lines.push(`    if (${ledExport.objectName} == NULL || ${ledExport.stateName} == on) return;`)
+    lines.push(`    ${ledExport.stateName} = on;`)
+    lines.push(`    if (on) lv_led_on(${ledExport.objectName}); else lv_led_off(${ledExport.objectName});`)
+    lines.push(`    ${ledExport.hookName}(on);`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
+  barExports.forEach(barExport => {
+    lines.push(`void ${barExport.apiName}(int32_t value)`)
+    lines.push(`{`)
+    lines.push(`    if (value < ${barExport.minimumName}) value = ${barExport.minimumName};`)
+    lines.push(`    if (value > ${barExport.maximumName}) value = ${barExport.maximumName};`)
+    lines.push(`    if (${barExport.objectName} == NULL || ${barExport.stateName} == value) return;`)
+    lines.push(`    lv_bar_set_value(${barExport.objectName}, value, LV_ANIM_OFF);`)
+    lines.push(`    ${barExport.stateName} = value;`)
+    lines.push(`    ${barExport.hookName}(value);`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
+  arcExports.forEach(arcExport => {
+    lines.push(`void ${arcExport.apiName}(int32_t value)`)
+    lines.push(`{`)
+    lines.push(`    if (value < ${arcExport.minimumName}) value = ${arcExport.minimumName};`)
+    lines.push(`    if (value > ${arcExport.maximumName}) value = ${arcExport.maximumName};`)
+    lines.push(`    if (${arcExport.objectName} == NULL || ${arcExport.stateName} == value) return;`)
+    lines.push(`    lv_arc_set_value(${arcExport.objectName}, value);`)
+    lines.push(`    ${arcExport.stateName} = value;`)
+    lines.push(`    ${arcExport.hookName}(value);`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
+  chartExports.forEach(chartExport => {
+    lines.push(`void ${chartExport.addApiName}(int32_t value)`)
+    lines.push(`{`)
+    lines.push(`    if (${chartExport.objectName} == NULL || ${chartExport.seriesName} == NULL) return;`)
+    lines.push(`    if (value < ${chartExport.minimumName}) value = ${chartExport.minimumName};`)
+    lines.push(`    if (value > ${chartExport.maximumName}) value = ${chartExport.maximumName};`)
+    lines.push(`    lv_chart_set_next_value(${chartExport.objectName}, ${chartExport.seriesName}, value);`)
+    lines.push(`    ${chartExport.pointAddedHookName}(value);`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${chartExport.clearApiName}(void)`)
+    lines.push(`{`)
+    lines.push(`    if (${chartExport.objectName} == NULL || ${chartExport.seriesName} == NULL) return;`)
+    lines.push(`    lv_chart_set_all_value(${chartExport.objectName}, ${chartExport.seriesName}, LV_CHART_POINT_NONE);`)
+    lines.push(`    ${chartExport.clearedHookName}();`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
+  if (keyboardExports.size > 0) {
+    lines.push(`static bool fg_component_keyboard_set_visible(lv_obj_t * keyboard, lv_obj_t * textarea, bool visible)`)
+    lines.push(`{`)
+    lines.push(`    if (keyboard == NULL) return false;`)
+    lines.push(`    bool hidden = lv_obj_has_flag(keyboard, LV_OBJ_FLAG_HIDDEN);`)
+    lines.push(`    if (visible) {`)
+    lines.push(`        if (!hidden) return false;`)
+    lines.push(`        if (textarea != NULL) lv_keyboard_set_textarea(keyboard, textarea);`)
+    lines.push(`        lv_obj_clear_flag(keyboard, LV_OBJ_FLAG_HIDDEN);`)
+    lines.push(`        lv_obj_move_foreground(keyboard);`)
+    lines.push(`        return true;`)
+    lines.push(`    }`)
+    lines.push(`    if (hidden) return false;`)
+    lines.push(`    lv_keyboard_set_textarea(keyboard, NULL);`)
+    lines.push(`    lv_obj_add_flag(keyboard, LV_OBJ_FLAG_HIDDEN);`)
+    lines.push(`    return true;`)
+    lines.push(`}`)
+    lines.push(``)
+  }
+
+  keyboardExports.forEach(keyboardExport => {
+    lines.push(`void ${keyboardExport.showApiName}(void)`)
+    lines.push(`{`)
+    lines.push(`    if (fg_component_keyboard_set_visible(${keyboardExport.objectName}, ${keyboardExport.textareaName}, true)) {`)
+    lines.push(`        ${keyboardExport.shownHookName}();`)
+    lines.push(`    }`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${keyboardExport.hideApiName}(void)`)
+    lines.push(`{`)
+    lines.push(`    if (fg_component_keyboard_set_visible(${keyboardExport.objectName}, ${keyboardExport.textareaName}, false)) {`)
+    lines.push(`        ${keyboardExport.hiddenHookName}();`)
+    lines.push(`    }`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
+  if (calendarExports.size > 0) {
+    lines.push(`static bool fg_calendar_date_is_valid(uint16_t year, uint8_t month, uint8_t day)`)
+    lines.push(`{`)
+    lines.push(`    if (year == 0 || month < 1 || month > 12 || day < 1) return false;`)
+    lines.push(`    static const uint8_t days_per_month[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };`)
+    lines.push(`    uint8_t maximum_day = days_per_month[month - 1];`)
+    lines.push(`    if (month == 2 && ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0)) maximum_day = 29;`)
+    lines.push(`    return day <= maximum_day;`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`static bool fg_calendar_apply_date(lv_obj_t * calendar, lv_calendar_date_t * selected_date, uint16_t year, uint8_t month, uint8_t day)`)
+    lines.push(`{`)
+    lines.push(`    if (calendar == NULL || !fg_calendar_date_is_valid(year, month, day)) return false;`)
+    lines.push(`    if (selected_date->year == year && selected_date->month == month && selected_date->day == day) return false;`)
+    lines.push(`    selected_date->year = year;`)
+    lines.push(`    selected_date->month = month;`)
+    lines.push(`    selected_date->day = day;`)
+    lines.push(`    lv_calendar_set_showed_date(calendar, year, month);`)
+    lines.push(`    lv_calendar_set_highlighted_dates(calendar, selected_date, 1);`)
+    lines.push(`    return true;`)
+    lines.push(`}`)
+    lines.push(``)
+  }
+
+  calendarExports.forEach(calendarExport => {
+    lines.push(`static void ${calendarExport.eventCallbackName}(lv_event_t * event)`)
+    lines.push(`{`)
+    lines.push(`    lv_calendar_date_t date;`)
+    lines.push(`    lv_obj_t * calendar = lv_event_get_current_target(event);`)
+    lines.push(`    if (lv_calendar_get_pressed_date(calendar, &date) != LV_RESULT_OK) return;`)
+    lines.push(`    if (fg_calendar_apply_date(calendar, &${calendarExport.selectedDateName}, date.year, date.month, date.day)) {`)
+    lines.push(`        ${calendarExport.hookName}((uint16_t)date.year, (uint8_t)date.month, (uint8_t)date.day);`)
+    lines.push(`    }`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${calendarExport.apiName}(uint16_t year, uint8_t month, uint8_t day)`)
+    lines.push(`{`)
+    lines.push(`    if (fg_calendar_apply_date(${calendarExport.objectName}, &${calendarExport.selectedDateName}, year, month, day)) {`)
+    lines.push(`        ${calendarExport.hookName}(year, month, day);`)
+    lines.push(`    }`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
+  rollerExports.forEach(rollerExport => {
+    lines.push(`static void ${rollerExport.transitionName}(uint32_t index, bool update_widget)`)
+    lines.push(`{`)
+    lines.push(`    if (${rollerExport.objectName} == NULL || ${rollerExport.optionCountName} == 0) return;`)
+    lines.push(`    if (index >= ${rollerExport.optionCountName}) index = ${rollerExport.optionCountName} - 1;`)
+    lines.push(`    if (index == ${rollerExport.selectedIndexName}) return;`)
+    lines.push(`    ${rollerExport.selectedIndexName} = index;`)
+    lines.push(`    if (update_widget) lv_roller_set_selected(${rollerExport.objectName}, index, LV_ANIM_OFF);`)
+    lines.push(`    char selected_text[${rollerExport.textBufferSize}];`)
+    lines.push(`    lv_roller_get_selected_str(${rollerExport.objectName}, selected_text, sizeof(selected_text));`)
+    lines.push(`    ${rollerExport.hookName}(index, selected_text);`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`static void ${rollerExport.eventCallbackName}(lv_event_t * event)`)
+    lines.push(`{`)
+    lines.push(`    lv_obj_t * roller = lv_event_get_current_target(event);`)
+    lines.push(`    if (roller != ${rollerExport.objectName}) return;`)
+    lines.push(`    ${rollerExport.transitionName}(lv_roller_get_selected(roller), false);`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${rollerExport.apiName}(uint32_t index)`)
+    lines.push(`{`)
+    lines.push(`    ${rollerExport.transitionName}(index, true);`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
+  if (messageBoxExports.size > 0) {
+    lines.push(`static bool fg_message_box_set_visible(lv_obj_t * message_box, bool * current_visibility, bool visible)`)
+    lines.push(`{`)
+    lines.push(`    if (message_box == NULL || current_visibility == NULL || *current_visibility == visible) return false;`)
+    lines.push(`    *current_visibility = visible;`)
+    lines.push(`    if (visible) {`)
+    lines.push(`        lv_obj_clear_flag(message_box, LV_OBJ_FLAG_HIDDEN);`)
+    lines.push(`        lv_obj_move_foreground(message_box);`)
+    lines.push(`    } else {`)
+    lines.push(`        lv_obj_add_flag(message_box, LV_OBJ_FLAG_HIDDEN);`)
+    lines.push(`    }`)
+    lines.push(`    return true;`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`static void fg_message_button_clicked_cb(lv_event_t * event)`)
+    lines.push(`{`)
+    lines.push(`    const fg_message_button_event_data_t * data = lv_event_get_user_data(event);`)
+    lines.push(`    if (data == NULL || data->hook == NULL) return;`)
+    lines.push(`    data->hook(data->index, data->text);`)
+    lines.push(`}`)
+    lines.push(``)
+  }
+  messageBoxExports.forEach(messageExport => {
+    lines.push(`void ${messageExport.showApiName}(void)`)
+    lines.push(`{`)
+    lines.push(`    if (fg_message_box_set_visible(${messageExport.objectName}, &${messageExport.visibleName}, true)) {`)
+    lines.push(`        ${messageExport.shownHookName}();`)
+    lines.push(`    }`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${messageExport.closeApiName}(void)`)
+    lines.push(`{`)
+    lines.push(`    if (fg_message_box_set_visible(${messageExport.objectName}, &${messageExport.visibleName}, false)) {`)
+    lines.push(`        ${messageExport.closedHookName}();`)
+    lines.push(`    }`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
+  buttonMatrixExports.forEach(matrixExport => {
+    lines.push(`static void ${matrixExport.transitionName}(uint32_t button_index, bool update_widget)`)
+    lines.push(`{`)
+    lines.push(`    if (${matrixExport.objectName} == NULL || ${matrixExport.buttonCountName} == 0) return;`)
+    lines.push(`    if (button_index >= ${matrixExport.buttonCountName}) button_index = ${matrixExport.buttonCountName} - 1;`)
+    lines.push(`    if (lv_buttonmatrix_has_button_ctrl(${matrixExport.objectName}, button_index, LV_BUTTONMATRIX_CTRL_DISABLED)) return;`)
+    lines.push(`    if (button_index == ${matrixExport.selectedIndexName}) return;`)
+    lines.push(`    ${matrixExport.selectedIndexName} = button_index;`)
+    lines.push(`    if (update_widget) {`)
+    lines.push(`        lv_buttonmatrix_set_selected_button(${matrixExport.objectName}, button_index);`)
+    if (matrixExport.oneCheck) {
+      lines.push(`        lv_buttonmatrix_clear_button_ctrl_all(${matrixExport.objectName}, LV_BUTTONMATRIX_CTRL_CHECKED);`)
+      lines.push(`        lv_buttonmatrix_set_button_ctrl(${matrixExport.objectName}, button_index, LV_BUTTONMATRIX_CTRL_CHECKED);`)
+    }
+    lines.push(`    }`)
+    lines.push(`    const char * text = lv_buttonmatrix_get_button_text(${matrixExport.objectName}, button_index);`)
+    lines.push(`    ${matrixExport.hookName}(button_index, text);`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`static void ${matrixExport.eventCallbackName}(lv_event_t * event)`)
+    lines.push(`{`)
+    lines.push(`    lv_obj_t * matrix = lv_event_get_current_target(event);`)
+    lines.push(`    if (matrix != ${matrixExport.objectName}) return;`)
+    lines.push(`    ${matrixExport.transitionName}(lv_buttonmatrix_get_selected_button(matrix), false);`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${matrixExport.apiName}(uint32_t button_index)`)
+    lines.push(`{`)
+    lines.push(`    ${matrixExport.transitionName}(button_index, true);`)
+    lines.push(`}`)
+    lines.push(``)
   })
 
   lines.push(`static void FG_Set_Display_Brightness(uint8_t percent)`)
@@ -3011,6 +4387,15 @@ lines.push(`    fg_system_root = parent;`)
         binaryOutputExports,
         toggleInputExports,
         threeWayInputExports,
+        ledExports,
+        barExports,
+        arcExports,
+        chartExports,
+        keyboardExports,
+        calendarExports,
+        rollerExports,
+        messageBoxExports,
+        buttonMatrixExports,
       )
   }
 
@@ -3483,6 +4868,36 @@ lines.push(`}`)
       .filter(lightExport => lightExport.ready)
       .map(lightExport =>
         `void ${lightExport.apiName}(bool enabled);`,
-      ),
+      ).concat(Array.from(ledExports.values()).map(
+        ledExport => `void ${ledExport.apiName}(bool on);`,
+      )).concat(Array.from(barExports.values()).map(
+        barExport => `void ${barExport.apiName}(int32_t value);`,
+      )).concat(Array.from(arcExports.values()).map(
+        arcExport => `void ${arcExport.apiName}(int32_t value);`,
+      )).concat(Array.from(chartExports.values()).flatMap(
+        chartExport => [
+          `void ${chartExport.addApiName}(int32_t value);`,
+          `void ${chartExport.clearApiName}(void);`,
+        ],
+      )).concat(Array.from(keyboardExports.values()).flatMap(
+        keyboardExport => [
+          `void ${keyboardExport.showApiName}(void);`,
+          `void ${keyboardExport.hideApiName}(void);`,
+        ],
+      )).concat(Array.from(calendarExports.values()).map(
+        calendarExport =>
+          `void ${calendarExport.apiName}(uint16_t year, uint8_t month, uint8_t day);`,
+      )).concat(Array.from(rollerExports.values()).map(
+        rollerExport =>
+          `void ${rollerExport.apiName}(uint32_t index);`,
+      )).concat(Array.from(messageBoxExports.values()).flatMap(
+        messageExport => [
+          `void ${messageExport.showApiName}(void);`,
+          `void ${messageExport.closeApiName}(void);`,
+        ],
+      )).concat(Array.from(buttonMatrixExports.values()).map(
+        matrixExport =>
+          `void ${matrixExport.apiName}(uint32_t button_index);`,
+      )),
   }
 }

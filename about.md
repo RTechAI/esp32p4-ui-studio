@@ -404,7 +404,9 @@ Every feature in ForgeUI is developed with a simple philosophy:
 
 > **Build it. Prove it. Flash it. Improve it.**
 
-The project has grown into an open-source AI-assisted embedded UI platform combining AI Studio, Interactive Assets, a generated System Runtime with Wi-Fi and Storage tools, Browser Preview, physically proven Hosted Connectivity, native LVGL generation and ESP-IDF into a single workflow.
+The project has grown into an open-source AI-assisted embedded UI platform combining AI Studio, reusable Interactive Assets, a generated Standard LVGL Component Runtime, a built-in System Runtime with Wi-Fi and Storage tools, Browser Preview, native LVGL v9 generation, ESP-IDF export and physically validated ESP32-P4 workflows into a single engineering environment.
+
+Today ForgeUI generates both reusable Interactive Asset runtimes and semantic runtime APIs for supported standard LVGL widgets, allowing developers to work visually while still producing clean, native LVGL applications with clear ownership boundaries between generated UI and application code.
 
 ForgeUI is built in collaboration with ChatGPT, which has been an invaluable coding assistant, sounding board and development partner throughout the project. While I design the architecture, test the hardware and drive the vision, ChatGPT has helped accelerate development by assisting with implementation, refactoring and documentation.
 

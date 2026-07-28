@@ -43,13 +43,13 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- None
+- `FG_On_Menu_Matrix_Button_Selected()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| None | - | - |
+| Menu_Matrix_Button_Selected | Click | `FG_On_Menu_Matrix_Button_Selected()` |
 
 ---
 

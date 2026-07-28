@@ -1,3 +1,4 @@
+import fs from 'fs'
 import { generateForgeUILvglCode } from './ForgeUILvglExport'
 
 describe('Keyboard LVGL export geometry', () => {
@@ -25,13 +26,24 @@ describe('Keyboard LVGL export geometry', () => {
       },
     }
 
-    const { code } = generateForgeUILvglCode(components, 'graphite')
+    const { code, publicApiDeclarations, userEventHooks } =
+      generateForgeUILvglCode(components, 'graphite')
 
-    expect(code).toContain('lv_obj_t * obj1 = lv_keyboard_create(fg_application_page);')
+    expect(code).toContain('static lv_obj_t * fg_keyboard_keyboard = NULL;')
+    expect(code).toContain('static lv_obj_t * fg_keyboard_keyboard_textarea = NULL;')
+    expect(code).toContain('fg_keyboard_keyboard = lv_keyboard_create(fg_application_page);')
+    expect(publicApiDeclarations).toEqual(expect.arrayContaining([
+      'void FG_Show_Keyboard(void);',
+      'void FG_Hide_Keyboard(void);',
+    ]))
+    expect(userEventHooks).toEqual(expect.arrayContaining([
+      'FG_On_Keyboard_Shown',
+      'FG_On_Keyboard_Hidden',
+    ]))
     expect(code).toContain('lv_obj_set_pos(obj1, 0, 408);')
     expect(code).toContain('lv_obj_set_size(obj1, 654, 192);')
-    expect(code).toContain('lv_obj_set_pos(obj1_ta, 0, 353);')
-    expect(code).toContain('lv_obj_set_size(obj1_ta, 654, 45);')
+    expect(code).toContain('lv_obj_set_pos(fg_keyboard_keyboard_textarea, 0, 353);')
+    expect(code).toContain('lv_obj_set_size(fg_keyboard_keyboard_textarea, 654, 45);')
     expect(code).toContain(
       'lv_keyboard_set_map(obj1, LV_KEYBOARD_MODE_TEXT_LOWER, obj1_map, obj1_ctrl);',
     )
@@ -94,6 +106,102 @@ describe('Keyboard LVGL export geometry', () => {
     expect(afterFinalGeometry).not.toMatch(/lv_obj_(?:align|center)\(obj1/)
     expect(afterFinalGeometry).not.toMatch(
       /lv_obj_set_(?:pos|x|y|size|width|height|align)\(obj1,/,
+    )
+  })
+
+  it('uses one transition helper for safe Show and Hide behavior', () => {
+    const components: IComponents = {
+      root: {
+        id: 'root', parent: 'root', type: 'Box', props: {},
+        children: ['keyboard'],
+      },
+      keyboard: {
+        id: 'keyboard', parent: 'root', type: 'Keyboard',
+        componentName: 'Keyboard',
+        props: { x: 0, y: 408, w: 654, h: 192 },
+        children: [],
+      },
+    }
+    const { code } = generateForgeUILvglCode(components, 'graphite')
+
+    expect(code).toContain('if (keyboard == NULL) return false;')
+    expect(code).toContain('bool hidden = lv_obj_has_flag(keyboard, LV_OBJ_FLAG_HIDDEN);')
+    expect(code).toContain('if (!hidden) return false;')
+    expect(code).toContain('if (hidden) return false;')
+    expect(code).toContain('lv_keyboard_set_textarea(keyboard, NULL);')
+    expect(code).toContain('lv_obj_clear_flag(keyboard, LV_OBJ_FLAG_HIDDEN);')
+    expect(code).toContain('lv_obj_add_flag(keyboard, LV_OBJ_FLAG_HIDDEN);')
+    expect(code).toContain('lv_obj_move_foreground(keyboard);')
+    expect(code).toContain(
+      'if (fg_component_keyboard_set_visible(fg_keyboard_keyboard, fg_keyboard_keyboard_textarea, true)) {',
+    )
+    expect(code).toContain('FG_On_Keyboard_Shown();')
+    expect(code).toContain('FG_On_Keyboard_Hidden();')
+
+    const creation = code.slice(code.indexOf('void fg_studio_export_create'))
+    expect(creation).not.toContain('FG_On_Keyboard_Shown();')
+    expect(creation).not.toContain('FG_On_Keyboard_Hidden();')
+  })
+
+  it('allocates collision-safe names for two same-named keyboards', () => {
+    const component = (id: string): IComponent => ({
+      id, parent: 'root', type: 'Keyboard', componentName: 'Keyboard',
+      props: { x: 0, y: 408, w: 654, h: 192 }, children: [],
+    })
+    const components: IComponents = {
+      root: {
+        id: 'root', parent: 'root', type: 'Box', props: {},
+        children: ['a', 'b'],
+      },
+      a: component('a'),
+      b: component('b'),
+    }
+    const generated = generateForgeUILvglCode(components, 'graphite')
+
+    expect(generated.publicApiDeclarations).toEqual(expect.arrayContaining([
+      'void FG_Show_Keyboard(void);',
+      'void FG_Hide_Keyboard(void);',
+      'void FG_Show_Keyboard_2(void);',
+      'void FG_Hide_Keyboard_2(void);',
+    ]))
+    expect(generated.code).toContain('static lv_obj_t * fg_keyboard_keyboard = NULL;')
+    expect(generated.code).toContain('static lv_obj_t * fg_keyboard_2_keyboard = NULL;')
+  })
+
+  it('can dump the live validation project payload', () => {
+    if (!process.env.FORGEUI_DUMP_KEYBOARD_PAYLOAD) return
+    const child = (
+      id: string, type: string, props: Record<string, unknown>,
+    ): IComponent => ({
+      id, parent: 'root', type: type as IComponent['type'], props, children: [],
+    })
+    const children = [
+      child('comp-MS54VF7PP1FCD', 'Led',
+        { positionMode: 'absolute', x: 585, y: 167, w: 32, h: 32 }),
+      child('comp-MS55EHNT4YJCW', 'Bar',
+        { positionMode: 'absolute', x: 486, y: 117, w: 240, h: 43 }),
+      child('comp-MS55RH11ZZV74', 'Arc',
+        { positionMode: 'absolute', x: 40, y: 3, w: 120, h: 120 }),
+      child('comp-MS563F9M1YGRA', 'Chart',
+        { positionMode: 'absolute', x: 114, y: 161, w: 240, h: 120 }),
+      child('keyboard', 'Keyboard',
+        { positionMode: 'absolute', x: 370, y: 408, w: 654, h: 192 }),
+    ]
+    const components: IComponents = {
+      root: {
+        id: 'root', parent: 'root', type: 'Box', props: {},
+        children: children.map(component => component.id),
+      },
+      ...Object.fromEntries(children.map(component => [component.id, component])),
+    }
+    fs.writeFileSync(
+      process.env.FORGEUI_DUMP_KEYBOARD_PAYLOAD,
+      JSON.stringify(generateForgeUILvglCode(
+        components,
+        'graphite',
+        undefined,
+        { includeThemeTexture: false },
+      )),
     )
   })
 })

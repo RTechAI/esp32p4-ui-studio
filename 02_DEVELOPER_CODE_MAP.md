@@ -13,7 +13,7 @@
 
 ## Current save point
 
-**FORGEUI_SYSTEM_RUNTIME__LAZY_SD_STORAGE_BROWSER__SAFE_RUNTIME__DELETE_EMPTY_FOLDER__ESP32P4_PROVEN__READY_FOR_CANVAS_PREVIEW_PARITY__2026-07-28**
+**FORGEUI_STANDARD_LVGL_RUNTIME_APIS__LED_BAR_ARC_CHART_KEYBOARD_CALENDAR_ROLLER_MESSAGE_BOX_BUTTON_MATRIX__LIVE_AND_STANDALONE_PROVEN__2026-07-29**
 
 ## Purpose
 
@@ -288,6 +288,104 @@ Generated UI
 ```
 
 Filesystem logic must not move into generated LVGL, and `40_SD.c` must never own LVGL.
+
+## Standard LVGL Component Runtime
+
+ForgeUI has two independent generated widget runtime systems:
+
+- Interactive Asset Runtime generates shared runtime families for artwork-backed Interactive Assets.
+- Standard LVGL Component Runtime generates retained runtime APIs appropriate to ordinary LVGL widgets.
+
+Standard components are not Interactive Assets. They do not use the Interactive Asset registry, persistence models, designers or artwork state machinery.
+
+```text
+Standard LVGL Component Runtime
+├── Scalar Outputs
+│   ├── Led
+│   ├── Bar
+│   └── Arc
+├── Streaming Output
+│   └── Chart
+├── Visibility Services
+│   ├── Keyboard
+│   └── Message Box
+├── Date Selection
+│   └── Calendar
+└── Option Selection
+    ├── Roller
+    └── Button Matrix
+```
+
+### Generated ownership
+
+| File | Ownership |
+| --- | --- |
+| `90_Studio_Export.c` | Retained LVGL objects, retained runtime state, transition helpers, LVGL callbacks and public API implementations |
+| `90_Studio_Export.h` | Public API declarations |
+| `95_UserEvents.h` | Generated hook declarations |
+| `95_UserEvents.c` | Developer hook bodies, preservation-merged in live firmware |
+| `studio/export-server.js` | Declaration merge, missing-stub merge and preservation of existing developer function bodies |
+
+Live Studio safely regenerates required hooks while preserving matching bodies and unrelated existing hooks. Missing declarations and stubs are appended. In a standalone export, the exported `95_UserEvents.*` files become developer-owned.
+
+### Led
+
+Serialized type `Led` generates `FG_Set_Status_LED(bool)` and `FG_On_Status_LED_Changed(bool)`. It retains the LED object and boolean state, uses `lv_led_on()` / `lv_led_off()`, and suppresses duplicate transitions.
+
+This is not Interactive Light or Interactive Status Indicator. Those remain separate setter-only Binary Output Runtime assets with no changed hook.
+
+### Bar
+
+`FG_Set_Progress_Bar(int32_t)` and `FG_On_Progress_Bar_Changed(int32_t)` retain the Bar object, current value and range. The runtime uses `lv_bar_set_value()`, honors custom and negative ranges, clamps before comparison and suppresses duplicate effective transitions.
+
+### Arc
+
+`FG_Set_Value_Arc(int32_t)` and `FG_On_Value_Arc_Changed(int32_t)` retain the Arc object, current value and range and use `lv_arc_set_value()`. The existing LVGL knob and native touch behavior are preserved; this API did not add another input callback.
+
+### Chart
+
+`FG_Add_Data_Chart_Point(int32_t)` and `FG_Clear_Data_Chart(void)` generate Point Added and Cleared hooks. The runtime retains the chart and primary-Y series, uses `lv_chart_set_next_value()` for samples and `lv_chart_set_all_value()` for reset. The current implementation is intentionally single-series.
+
+### Standard Canvas Keyboard
+
+`FG_Show_Keyboard()` and `FG_Hide_Keyboard()` generate Shown and Hidden hooks and retain the standard Canvas keyboard and its private textarea. This eager standard component is not the reusable lazy System keyboard used by System/Wi-Fi dialogs.
+
+### Calendar
+
+`FG_Set_Calendar_Date()` and the Date Changed hook retain the Calendar and selected date. Dates are Gregorian-validated, including leap years. Touch and programmatic updates share retained transition state.
+
+### Roller
+
+`FG_Set_Option_Roller_Selected()` and `FG_On_Option_Roller_Changed()` retain the Roller object, selected index and option count. Normal and infinite modes are supported, and deterministic allocation produces collision-safe names.
+
+### Message Box
+
+The serialized `Msgbox` is a ForgeUI custom panel, not LVGL `lv_msgbox`. `FG_Show_Message()` and `FG_Close_Message()` generate Shown, Closed and Button Pressed hooks and retain the panel and visibility state.
+
+### Button Matrix
+
+`FG_Set_Menu_Matrix_Selected()` and `FG_On_Menu_Matrix_Button_Selected()` retain the matrix object, selected index and row-break-aware button count. The shared transition path supports disabled buttons, one-check mode, checked buttons, duplicate suppression, and touch/programmatic parity.
+
+Initial Button Matrix verification used a stale running Studio exporter bundle. Restarting Studio regenerated the correct retained runtime through `/export`. This was a stale running generator bundle, not an exporter architecture split.
+
+### Scale inspection
+
+The standard `Scale` is the visual LVGL 9 `lv_scale` tick/label renderer. It owns no runtime value, so it has no setter, hook or generator changes. Value APIs belong to controls that actually own values.
+
+### Major files and focused tests
+
+- `studio/src/forgeui/ForgeUILvglExport.ts`
+- `studio/src/forgeui/ForgeUILvglExport.led.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.bar.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.arc.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.chart.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.keyboard.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.calendar.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.roller.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.msgbox.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.buttonmatrix.test.ts`
+- `studio/export-server.js`
+- `studio/export-server.test.js`
 
 ## Project Health Architecture
 
@@ -1783,6 +1881,10 @@ It owns:
 - shared Binary Output setter generation
 - per-instance Binary Output runtime records
 - public API collection
+- standard-component retained LVGL object and state generation
+- standard-component public API and transition-helper generation
+- standard-component LVGL event adapters and hook metadata
+- deterministic sanitized and collision-safe standard-component names
 - generated runtime support
 - single shared Binary Output Runtime generation
 - single shared Toggle Input Runtime generation
@@ -2001,7 +2103,7 @@ It sends generated export payloads to:
 - `POST /export`
 - `POST /export-idf-project`
 
-The frontend generates LVGL code through the single exporter and forwards `code`, validated `assetSources`, `userEventHooks`, and `publicApiDeclarations`. `userEventHooks` carries Button click hooks, Toggle bool hooks and Three-Position state hooks. Binary Output setters travel through `publicApiDeclarations`. It does not write firmware files directly.
+The frontend generates LVGL code through the single exporter and forwards `code`, validated `assetSources`, `userEventHooks`, and `publicApiDeclarations`. `userEventHooks` carries Interactive Input hooks and the standard-component hooks collected by the exporter. Binary Output setters and standard-component APIs travel through `publicApiDeclarations`. It does not write firmware files directly.
 
 ### Export server
 
@@ -2013,7 +2115,9 @@ Owns filesystem-side export work:
 - validating generated C sources, paths, existence, expected symbols, and code references
 - returning the validated asset-source list to filesystem-side generation
 - writing generated UI source and header
-- writing the Studio-generated user hook layer
+- merging the Studio-generated user hook layer
+- appending missing hook declarations and stubs
+- preserving matching developer-written function bodies and unrelated existing hooks
 - copying generated image sources
 - creating CMake source lists
 - live firmware export
@@ -2079,6 +2183,9 @@ They contain:
 - shared Three-Position Input Runtime, enum-dependent state and per-instance records
 - shared Binary Output Runtime and per-instance records
 - Light setter implementations and declarations
+- standard-component retained LVGL objects and runtime state
+- standard-component public API implementations and declarations
+- shared transition helpers and LVGL event adapters
 
 Public APIs are declared in `90_Studio_Export.h` and implemented in `90_Studio_Export.c`.
 
@@ -2103,9 +2210,9 @@ Do not place permanent product logic in these files.
 
 ### `95_UserEvents.c` and `95_UserEvents.h`
 
-Studio creates these as the generated user hook layer. They are not manually created in the live firmware workflow.
+Studio creates these as the generated user hook layer. They are not manually created in the live firmware workflow. Live regeneration preservation-merges the required API: existing matching function bodies and developer code remain intact, while missing declarations and missing stubs are appended.
 
-Interactive Button click hooks, Interactive Toggle Switch bool hooks and Interactive Three-Position Toggle enum-state hooks are declared and stubbed here. The server recognizes the `Clicked`, `Toggled` and `Changed` hook suffixes and generates the corresponding signatures. Interactive Light and Interactive Status Indicator do not generate event hooks because Binary Output assets are controlled through public setters.
+Interactive Button click hooks, Interactive Toggle Switch bool hooks, Interactive Three-Position Toggle enum-state hooks, and standard-component hooks are declared and stubbed here. Hook metadata supplies the required signatures for each standard widget contract. Interactive Light and Interactive Status Indicator do not generate event hooks because Binary Output assets are controlled through public setters.
 
 `fg_three_way_state_t` and its LEFT/CENTER/RIGHT enum values are generated in `95_UserEvents.h`, which is included by generated Studio export code before the Three-Position runtime structures use that type.
 
@@ -2115,11 +2222,11 @@ Interactive Button click hooks, Interactive Toggle Switch bool hooks and Interac
 |---|---|---|
 | Location | `firmware/ForgeUI-One` | Exported project under `C:\ForgeUI-Exports` |
 | `90_Studio_Export.c/.h` | Generated and replaceable | Generated export output |
-| `95_UserEvents.c/.h` | Studio-generated test hooks; may be regenerated | Developer-owned hook/application layer after export |
+| `95_UserEvents.c/.h` | Safely regenerated hooks; developer bodies are preserved and missing declarations/stubs appended | Developer-owned hook/application layer after export |
 | GPIO, I/O, and product logic | Do not keep permanently here | Add to `95_UserEvents.c` |
 | Studio build/flash ownership | Studio may regenerate, build, and flash | Studio does not continuously update or flash it |
 
-Studio writes `95_UserEvents.c/.h` when creating both live firmware output and a standalone export. Ownership changes after standalone export: the exported copies become the developer's application integration layer.
+Studio preservation-merges `95_UserEvents.c/.h` when creating live firmware and generates them for standalone export. Ownership changes after standalone export: the exported copies become the developer's application integration layer.
 
 ### CMake integration
 
@@ -2320,14 +2427,20 @@ Physical Button, Toggle, Three-Position, Light, the scoped Status Indicator Bina
 - all five workflows have focused configured-helper, resize, measurement, fit, preview and exporter coverage where implemented
 - Creator, Toggle and Three-Position State Sheet, crop interaction, row-remapping, image-pipeline, linked-crop and atomic-registration regressions pass; unchanged State Sheet suites may require the established longer timeout in combined runs
 - keyboard exporter lazy-creation, reusable-instance, attachment, geometry, ordering and relative-width regressions pass
+- focused LED, Bar, Arc, Chart, standard Keyboard, Calendar, Roller, Message Box and Button Matrix runtime exporter tests pass
+- standard-component range, clamping, duplicate suppression, transition, touch/programmatic sharing, collision naming and no-creation-hook coverage passes where applicable
+- developer hook declaration/stub merge and existing-body preservation coverage passes in `export-server.test.js`
+- live `/export` and standalone `/export-idf-project` validation pass for the standard-component runtime
 - Button and Light hardware-backed resize/contain behavior retains its focused automated coverage
 - Toggle, Status Indicator and Three-Position configured-helper, Canvas resize, registry refresh, measurement, visible-bounds fitting, preview scaling and LVGL contain regressions pass
 - shared intrinsic and alpha measurement, state-set union geometry, same-ID invalidation, metadata-write deduplication, linked crop, idempotence and legacy dimension recovery regressions pass
 - TypeScript validation passes
 - generated-output verification passes
-- ESP-IDF firmware build passes for the recorded Wi-Fi Manager implementation
+- ESP-IDF firmware build passes for the recorded Wi-Fi Manager implementation and the standard LVGL runtime API milestone
 - scoped diff checks pass
 - known unrelated fixture/source absences are reported separately rather than weakening export validation
+
+This validation does not claim separate physical touch proof for every standard component.
 
 ## Debugging map
 
@@ -2419,6 +2532,15 @@ Start at the ownership boundary matching the symptom.
 | Generated Setter API is wrong | `ForgeUILvglExport.ts` | deterministic output API allocation and export validation |
 | Shared Binary Output Runtime switches the wrong artwork | generated `fg_binary_output_set()` inputs | per-instance runtime record and OFF/ON symbols |
 | Button hook is missing | `ForgeUILvglExport.ts` | `Header.tsx`, `export-server.js`, `95_UserEvents.*` |
+| LED runtime API or changed hook is missing | `ForgeUILvglExport.ts` | `export-server.js`, generated `90_Studio_Export.*`, `95_UserEvents.*` |
+| Bar runtime API, range or changed hook is wrong | `ForgeUILvglExport.ts` | `export-server.js`, generated `90_Studio_Export.*`, `95_UserEvents.*` |
+| Arc runtime API, range or changed hook is wrong | `ForgeUILvglExport.ts` | `export-server.js`, generated `90_Studio_Export.*`, `95_UserEvents.*` |
+| Chart add/clear API or hooks are wrong | `ForgeUILvglExport.ts` | `export-server.js`, generated chart/series state, `95_UserEvents.*` |
+| Standard Keyboard Show/Hide API or hooks are wrong | `ForgeUILvglExport.ts` | `export-server.js`, retained keyboard/textarea, `95_UserEvents.*` |
+| Calendar setter, validation or hook is wrong | `ForgeUILvglExport.ts` | `export-server.js`, retained selected date, `95_UserEvents.*` |
+| Roller selection API, text or hook is wrong | `ForgeUILvglExport.ts` | `export-server.js`, option metadata, `95_UserEvents.*` |
+| Message Box visibility/button hooks are wrong | `ForgeUILvglExport.ts` | `export-server.js`, retained panel metadata, `95_UserEvents.*` |
+| Button Matrix selection API or hook is wrong | `ForgeUILvglExport.ts` | `export-server.js`, map/count/disabled metadata, `95_UserEvents.*` |
 | Light unexpectedly has a click hook | `ForgeUILvglExport.ts` | ensure Light remains image/setter based |
 | Export rejected before flash | `ForgeUIExportValidation.ts` | `Header.tsx`, `export-server.js` |
 | Missing generated C source | `export-server.js` | Uploaded Asset Registry, Theme ownership |
@@ -2543,6 +2665,15 @@ Start at the ownership boundary matching the symptom.
 - generated `fg_three_way_state_t`, `fg_three_way_input_t`, setter and local-coordinate event callback
 - generated `95_UserEvents.*` enum-state hooks
 
+### Standard LVGL Component Runtime paths
+
+- `src/forgeui/ForgeUILvglExport.ts`
+- `export-server.js`
+- generated `90_Studio_Export.c/.h` retained objects, state, helpers and public APIs
+- generated and preservation-merged `95_UserEvents.c/.h`
+- focused `ForgeUILvglExport.{led,bar,arc,chart,keyboard,calendar,roller,msgbox,buttonmatrix}.test.ts`
+- `export-server.test.js`
+
 ### System Runtime paths
 
 - `src/forgeui/system/ForgeUISystemContext.tsx`
@@ -2596,7 +2727,7 @@ Preserve these rules:
 8. All five kinds keep separate discriminated data models.
 9. Button uses momentary click hooks, Toggle uses generated bool-state hooks, Three-Position uses a strongly typed enum callback, and Binary Output types use generated public setters.
 10. Generated UI APIs live in `90_Studio_Export.h/.c`.
-11. Live `95_UserEvents.*` files are Studio-generated, not manually created.
+11. Live `95_UserEvents.*` files are Studio-generated and preservation-merged, not manually created; existing developer bodies are preserved and missing declarations/stubs are appended.
 12. Standalone exported `95_UserEvents.*` files become developer-owned after export.
 13. Export validation always occurs before filesystem mutation.
 14. Reference protection prevents deletion of in-use assets.
@@ -2675,6 +2806,21 @@ Preserve these rules:
 87. `fg_storage_request_t` remains compact: operation kind, one path and one name.
 88. The shared Storage projection model remains compact.
 89. Delete File remains disconnected from generated LVGL until separately proven.
+90. Standard LVGL Component Runtime is independent from Interactive Asset Runtime and System Runtime.
+91. Standard-component public APIs and retained LVGL state belong in generated `90_Studio_Export.*`.
+92. Standard-component developer hooks belong in preservation-merged `95_UserEvents.*`.
+93. Interactive Status Indicator remains a setter-only Binary Output Runtime asset and must not inherit the standard `Led` changed hook.
+94. Scale remains API-free while it owns no runtime value.
+
+## Save Point History
+
+Save points are ordered newest to oldest.
+
+### FORGEUI_STANDARD_LVGL_RUNTIME_APIS__LED_BAR_ARC_CHART_KEYBOARD_CALENDAR_ROLLER_MESSAGE_BOX_BUTTON_MATRIX__LIVE_AND_STANDALONE_PROVEN__2026-07-29
+
+- **What changed:** Added retained runtime APIs and preserved developer hooks for the standard Led, Bar, Arc, Chart, Keyboard, Calendar, Roller, Message Box and Button Matrix. Scale remained API-free after inspection.
+- **Final architecture:** `ForgeUILvglExport.ts` generates retained objects, state, APIs, transition helpers, callbacks, hook metadata and collision-safe names; `export-server.js` safely merges the live hook layer for both export workflows.
+- **Validation:** Focused runtime and preservation tests, TypeScript, live `/export`, standalone `/export-idf-project` and ESP-IDF build passed. Separate physical touch proof for every standard widget is not claimed.
 
 ## Framework extension pattern
 

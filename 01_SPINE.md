@@ -11,7 +11,7 @@
 
 ## Current Save Point
 
-**FORGEUI_SYSTEM_RUNTIME__LAZY_SD_STORAGE_BROWSER__SAFE_RUNTIME__DELETE_EMPTY_FOLDER__ESP32P4_PROVEN__READY_FOR_CANVAS_PREVIEW_PARITY__2026-07-28**
+**FORGEUI_STANDARD_LVGL_RUNTIME_APIS__LED_BAR_ARC_CHART_KEYBOARD_CALENDAR_ROLLER_MESSAGE_BOX_BUTTON_MATRIX__LIVE_AND_STANDALONE_PROVEN__2026-07-29**
 
 ## Current Proven Status..
 
@@ -70,6 +70,97 @@ Display brightness is physically connected to the ESP32-P4 backlight through `bs
 The Wi-Fi Manager is a physically proven reusable System Runtime feature rather than a backend demonstration. The complete workflow is proven on the ESP32-P4: Hosted Scan Networks, Refresh, live Available Networks population, SSID selection, RSSI and security display, Connected and Saved indicators, password dialog, native LVGL keyboard password entry, Connect, Disconnect, Reconnect, Forget Network and connected details. The complete Hosted scan pipeline, Browser Preview parity and generated LVGL parity are physically proven. Only minor visual polish remains.
 
 The Storage Runtime is physically proven through lazy page creation, page reuse, SD status, capacity display, root and folder browsing, parent navigation, Previous / Next paging, Refresh, Read / Write Test, Select Item mode, Delete Empty Folder and Hosted Wi-Fi coexistence. Only Browser Preview / Canvas parity polish remains.
+
+## Standard LVGL Component Runtime APIs
+
+ForgeUI's standard LVGL components now have generated developer APIs appropriate to the state each widget actually owns. This runtime is separate from the Interactive Asset runtimes.
+
+Ownership and generation rules:
+
+- `90_Studio_Export.h` declares public `FG_*` APIs.
+- `90_Studio_Export.c` retains private LVGL objects and runtime state and implements the APIs, transition helpers and LVGL event adapters.
+- `95_UserEvents.h` declares generated developer hooks.
+- `95_UserEvents.c` is merged in live firmware: matching developer-written function bodies are preserved and only missing declarations or stubs are appended. Existing hooks are not deleted.
+- In a standalone exported project, `95_UserEvents.*` becomes developer-owned application code.
+- Live `/export` and standalone `/export-idf-project` both use `studio/export-server.js` and the shared `studio/src/forgeui/ForgeUILvglExport.ts` generator.
+- Generated firmware is evidence and build input, never the source of the fix; these files must not be manually patched.
+- Standard runtime APIs intentionally notify their matching `FG_On_*` hooks after accepted runtime transitions. Interactive Asset hook ownership remains separate.
+- Component instances are sorted deterministically, C identifiers are sanitized, and collisions receive deterministic suffixes such as `_2`.
+
+### Standard Component API Summary
+
+| Serialized type | Public API | Developer hook | Runtime semantics |
+| --- | --- | --- | --- |
+| `Led` | `FG_Set_<Name>(bool on)` | `FG_On_<Name>_Changed(bool enabled)` | Retained boolean output |
+| `Bar` | `FG_Set_<Name>(int32_t value)` | `FG_On_<Name>_Changed(int32_t value)` | Clamped scalar output |
+| `Arc` | `FG_Set_<Name>(int32_t value)` | `FG_On_<Name>_Changed(int32_t value)` | Clamped scalar output |
+| `Chart` | `FG_Add_<Name>_Point(int32_t value)`, `FG_Clear_<Name>(void)` | `FG_On_<Name>_Point_Added(int32_t value)`, `FG_On_<Name>_Cleared(void)` | Single-series streaming output |
+| `Keyboard` | `FG_Show_<Name>(void)`, `FG_Hide_<Name>(void)` | `FG_On_<Name>_Shown(void)`, `FG_On_<Name>_Hidden(void)` | Visibility service |
+| `Calendar` | `FG_Set_<Name>_Date(uint16_t year, uint8_t month, uint8_t day)` | `FG_On_<Name>_Date_Changed(uint16_t year, uint8_t month, uint8_t day)` | Date selection |
+| `Roller` | `FG_Set_<Name>_Selected(uint32_t index)` | `FG_On_<Name>_Changed(uint32_t index, const char * text)` | Option selection |
+| `Msgbox` | `FG_Show_<Name>(void)`, `FG_Close_<Name>(void)` | shown, closed and button-pressed hooks | Temporary dialog visibility and button actions |
+| `ButtonMatrix` | `FG_Set_<Name>_Selected(uint32_t button_index)` | `FG_On_<Name>_Button_Selected(uint32_t index, const char * text)` | Button selection |
+| `Scale` | None | None | Visual scale/tick renderer; owns no value |
+
+### LED
+
+The basic LED is serialized as `Led`, distinct from Interactive Light and Interactive Status Indicator. It retains its `lv_obj_t *` and boolean state, defaults to initially ON, and uses `lv_led_on()` / `lv_led_off()`. `FG_Set_<Name>(bool on)` returns when the requested state is already current and calls `FG_On_<Name>_Changed(bool enabled)` only after a real transition. Creation initializes state without firing the hook.
+
+### Bar
+
+The basic Bar is serialized as `Bar`. It retains its `lv_obj_t *`, current integer value and configured minimum and maximum. Defaults are range `0..100` and initial value `70`; persisted range and value properties are honored, including negative ranges. The setter clamps before comparison, suppresses repeated effective values, calls `lv_bar_set_value(..., LV_ANIM_OFF)`, updates retained state and then calls the changed hook. Creation does not notify.
+
+### Arc
+
+The basic Arc is serialized as `Arc`. Defaults are range `0..100`, initial value `65`, normal mode, LVGL default background angles, and the existing enabled knob/native clickability. Persisted range, value, rotation, background angles and mode are honored, including negative ranges. Its setter clamps before comparison, calls `lv_arc_set_value()`, updates retained state and notifies only on a real programmatic transition. No new input event was added; existing native touch behavior and appearance are preserved.
+
+### Chart
+
+The Chart is serialized as `Chart` and remains a line chart with one primary-Y series. Defaults are seven points, Y range `0..100`, SHIFT update mode, `LV_PALETTE_BLUE`, and startup data `10, 30, 20, 50, 40, 70, 60`. Its chart and series pointers are retained. Persisted point count, range, division lines, update mode, series color and initial data are honored when present.
+
+`FG_Add_<Name>_Point()` clamps each sample and calls `lv_chart_set_next_value()`. Identical consecutive values remain valid samples and each accepted sample fires the point-added hook. `FG_Clear_<Name>()` resets the series points to `LV_CHART_POINT_NONE`, refreshes the chart and fires the cleared hook. Startup data is created directly and does not fire hooks. This milestone intentionally supports the current single-series architecture only.
+
+### Standard Keyboard
+
+The standard `Keyboard` component is eagerly created with a private one-line textarea. Both pointers are retained and the component is initially visible. Show reattaches the textarea, clears hidden state and moves the keyboard to the foreground; Hide detaches the textarea and hides the keyboard. Repeated visibility requests are suppressed and creation does not notify. Only Show and Hide are public: LVGL objects, modes, textarea attachment and key injection remain private.
+
+This standard Canvas Keyboard is separate from the built-in System/Wi-Fi native keyboard, whose lazy top-layer architecture is unchanged.
+
+### Calendar
+
+The Calendar is serialized as `Calendar`. Current hardcoded defaults are today's date `2026-06-18`, the shown month June 2026, and no initial selected or highlighted date. The selected date is retained separately from today. The generated setter validates Gregorian dates including leap years, suppresses identical selections, updates the shown date and highlighted selection, and then calls the hook. Touch selection already uses `LV_EVENT_VALUE_CHANGED` and `lv_calendar_get_pressed_date()`; touch and programmatic changes share retained state without duplicate notifications. Creation does not fire a hook. No Calendar Inspector controls were introduced.
+
+### Roller
+
+The Roller is serialized as `Roller`. Defaults are options `One`, `Two`, `Three`, `Four`, selected index `0`, three visible rows, normal mode and `LV_ANIM_OFF`. Persisted options, selection, visible row count and normal/infinite mode are honored. The object, selected index and option count are retained. Programmatic and `LV_EVENT_VALUE_CHANGED` touch paths share one transition helper, clamp to the final valid option, suppress repeats and pass selected text through a generated UTF-8-sized buffer valid for the duration of the callback. Creation does not notify.
+
+### Message Box
+
+The Message Box is serialized as `Msgbox`. It is a custom ForgeUI panel built from ordinary LVGL objects, not `lv_msgbox`. Defaults are title `Message`, body `Example message text`, buttons `OK`, `Cancel`, initially visible, and non-modal as a child of the application container. Persisted title, body and button arrays are honored.
+
+The panel object and visibility are retained. Show/Close use shared visibility handling, suppress repeats, and Show moves the panel to the foreground. Button click callbacks use stable generated metadata to report index and text. Buttons do not automatically close the panel because that was not its existing behavior. Creation does not fire shown, closed or button hooks.
+
+### Button Matrix
+
+The Button Matrix is serialized as `ButtonMatrix`. Its default map is `One Two Three` / `Four Five Six`; row breaks do not count as buttons. The default selected index is `1` (`Two`), one-check is disabled, and there are no initially checked or disabled buttons. Persisted maps, selected index, checked state, one-check mode and disabled-button indexes are honored. Selected and checked remain distinct LVGL concepts.
+
+The matrix object, button count and current selection are retained. Programmatic and `LV_EVENT_VALUE_CHANGED` touch paths share one transition helper. It clamps to a valid button, rejects disabled buttons, suppresses repeats, updates retained state before the LVGL selected-button call to prevent duplicate events, and passes text from the persistent generated map. Creation does not notify.
+
+The first live Button Matrix inspection used a stale running Studio exporter bundle: it produced an old `90_Studio_Export.*` result while `95_UserEvents.*` reflected the newer hooks. Restarting Studio and regenerating through `/export` corrected all four files. This was stale running Studio/dev-server code, not a split between the live and standalone generators.
+
+### Scale
+
+Scale is the LVGL 9 `lv_scale` widget and is currently only a visual ruler/tick renderer. Its hardcoded export is range `0..100`, 11 total ticks, a major tick every 2 ticks, horizontal-bottom mode and labels below the scale. It owns no current value, receives no value event, retains no runtime object after creation, and generates no API or hook. No runtime API was added because a setter would invent semantics unsupported by LVGL. Runtime value APIs belong on value-owning controls such as Slider, Arc or Meter.
+
+### Validation Record
+
+- Focused standard-component exporter tests cover LED, Bar, Arc, Chart, Keyboard, Calendar, Roller, Message Box and Button Matrix, including ranges, clamping, repeated transitions, initial creation, touch/programmatic sharing where applicable, collision-safe names and hook preservation.
+- `studio/export-server.test.js` covers server API generation and live `95_UserEvents` merge/preservation behavior.
+- TypeScript validation, live `/export`, standalone `/export-idf-project`, and ESP-IDF 5.5.4 builds passed for the milestone.
+- Generated firmware was regenerated through the live pipeline and built; it was not manually patched.
+- Existing developer-written hook bodies were preserved while missing declarations and stubs were appended.
+- The generated standard Keyboard was build-validated and its existing textarea behavior was retained; separate physical keyboard interaction was not performed for this milestone.
+- This milestone does not make a blanket claim that every new touch path was separately exercised on physical hardware.
 
 ## Built-in System Interface
 
@@ -664,7 +755,7 @@ It supports:
 - generated public setter
 - multiple independent instances
 
-Status Indicator does not generate user hooks.
+The Interactive Status Indicator remains setter-only and does not generate user hooks; this is separate from the standard `Led` component and its changed hook.
 
 Application code controls state entirely through the generated public API.
 
@@ -833,9 +924,9 @@ Studio regenerates these files. Generated public UI APIs, including Interactive 
 - `95_UserEvents.c`
 - `95_UserEvents.h`
 
-Studio currently creates and writes these files when it generates live Studio firmware and when it creates a standalone export. In live Studio firmware they contain regenerated test hooks. After a standalone project is exported, its copies become the developer-owned hook and application-logic layer. Developers add GPIO, I/O, hardware actions, and product behavior to the standalone project's `95_UserEvents.c` while preserving generated hook names.
+Studio creates these files for live Studio firmware and standalone export. In live firmware, the exporter merges the required declarations and stubs: matching developer-written function bodies are preserved, missing hooks are appended, and unrelated existing hooks are not deleted. After a standalone project is exported, its copies become the developer-owned hook and application-logic layer. Developers add GPIO, I/O, hardware actions and product behavior to the standalone project's `95_UserEvents.c` while preserving generated hook names.
 
-Interactive Button click hooks, Interactive Toggle Switch toggled hooks and Interactive Three-Position Toggle changed hooks cross into this layer. Binary Output Runtime setters remain generated public UI APIs in `90_Studio_Export.h/.c` and do not create Light or Status Indicator hooks in `95_UserEvents`.
+Interactive Button click hooks, Interactive Toggle Switch toggled hooks and Interactive Three-Position Toggle changed hooks cross into this layer. Interactive Light and Interactive Status Indicator remain setter-only Binary Output Runtime controls and do not create `95_UserEvents` hooks. Separately, standard LVGL components such as `Led`, `Bar`, `Arc`, `Chart`, `Keyboard`, `Calendar`, `Roller`, `Msgbox` and `ButtonMatrix` intentionally notify their generated hooks after accepted runtime transitions.
 
 ## Major Files
 
@@ -954,10 +1045,19 @@ The current implementation does not introduce a separate `InteractiveToggleSwitc
 
 - `src/forgeui/ForgeUILvglExport.ts`
 - `src/forgeui/ForgeUILvglExport.system.test.ts`
+- `src/forgeui/ForgeUILvglExport.led.test.ts`
+- `src/forgeui/ForgeUILvglExport.bar.test.ts`
+- `src/forgeui/ForgeUILvglExport.arc.test.ts`
+- `src/forgeui/ForgeUILvglExport.chart.test.ts`
 - `src/forgeui/ForgeUILvglExport.keyboard.test.ts`
+- `src/forgeui/ForgeUILvglExport.calendar.test.ts`
+- `src/forgeui/ForgeUILvglExport.roller.test.ts`
+- `src/forgeui/ForgeUILvglExport.msgbox.test.ts`
+- `src/forgeui/ForgeUILvglExport.buttonmatrix.test.ts`
 - `export-server.js`
+- `export-server.test.js`
 
-The exporter owns the shared generated runtime implementations, unique per-instance records and built-in System containers and callbacks. `90_Studio_Export.*` remains generated and replaceable; live-firmware `95_UserEvents.*` may be regenerated, while standalone-export copies become developer-owned. The System Interface does not add generated user-event hooks.
+The exporter owns shared generated runtime implementations, retained per-instance objects and state, public APIs, transition helpers, LVGL event adapters, generated hook declarations/stubs, deterministic collision-safe names, and built-in System containers and callbacks. Both live `/export` and standalone `/export-idf-project` use this generator through `export-server.js`. `90_Studio_Export.*` remains generated and replaceable; live-firmware `95_UserEvents.*` is preservation-merged, while standalone-export copies become developer-owned. The System Interface does not add generated user-event hooks.
 
 ### Generated firmware
 
@@ -1133,6 +1233,9 @@ The keyboard runtime is reusable architecture for future Device settings, MQTT, 
 - Keyboard exporter lazy-creation, reusable-instance, textarea attachment, top-layer ownership, geometry, ordering, style and relative-width regressions pass.
 - Shared union geometry, intrinsic and alpha-bound metadata, linked crop, same-ID invalidation, duplicate-write suppression and idempotent fitting regressions pass.
 - TypeScript validation passes with `tsc --noEmit`.
+- Focused `ForgeUILvglExport.{led,bar,arc,chart,keyboard,calendar,roller,msgbox,buttonmatrix}.test.ts` suites pass for retained runtime APIs, transition semantics, deterministic collision handling and hook preservation.
+- `export-server.test.js` passes for live and standalone generation, server API behavior and preservation-merging of developer-owned hook bodies.
+- Live `/export`, standalone `/export-idf-project`, and ESP-IDF 5.5.4 build validation pass for the standard LVGL runtime API milestone.
 - Scoped diff validation passes for the current implementation work.
 - Client/server export validation and reference-protection coverage remain in place for all five Interactive Asset types.
 - A known unrelated server fixture/source absence can fail the built-in theme-source preflight when the expected Neural Core or Carbon Fiber generated C files are not present; this does not weaken the validation boundary.
@@ -1159,6 +1262,15 @@ Interactive Asset Runtime
 ├── Interactive Inputs
 ├── Three-Position Inputs
 └── Binary Outputs
+
+Standard LVGL Component Runtime
+├── Scalar Outputs: Led, Bar, Arc
+├── Streaming Output: Chart
+├── Visibility Services: Keyboard, Msgbox
+├── Date Selection: Calendar
+└── Option Selection: Roller, ButtonMatrix
+
+Scale is excluded because it renders ticks and labels but owns no runtime value.
 
 Hosted Connectivity Runtime
 ├── ESP-Hosted
@@ -1278,7 +1390,6 @@ Potential future runtime families include:
 
 - Slider
 - Gauge
-- Progress Bar
 - Numeric Display
 
 ### Selection Runtime
@@ -1298,6 +1409,13 @@ These remain future concepts only. They are not implemented or physically proven
 # Save Point History
 
 Save points are ordered newest to oldest. Detailed subsystem engineering is maintained in the Developer Code Maps.
+
+## FORGEUI_STANDARD_LVGL_RUNTIME_APIS__LED_BAR_ARC_CHART_KEYBOARD_CALENDAR_ROLLER_MESSAGE_BOX_BUTTON_MATRIX__LIVE_AND_STANDALONE_PROVEN__2026-07-29
+
+- **What changed:** Added retained runtime objects/state, public `90_Studio_Export` APIs and preservation-merged `95_UserEvents` hooks for the standard LED, Bar, Arc, Chart, Keyboard, Calendar, Roller, Message Box and Button Matrix; Scale was inspected and deliberately remained API-free.
+- **Why it changed:** Standard LVGL Canvas components rendered correctly but lacked a consistent, supported developer control surface in real generated firmware.
+- **Final architecture:** The shared LVGL exporter generates deterministic per-instance APIs, private runtime state, transition helpers and hooks for both live `/export` and standalone `/export-idf-project`; live hook files preserve matching developer bodies and append only missing generated hooks.
+- **Proven result:** Focused component and server preservation tests, TypeScript validation, both export paths and ESP-IDF 5.5.4 firmware builds passed. Generated firmware was not manually patched. Keyboard hardware interaction and blanket physical touch validation are not claimed by this save point.
 
 ## FORGEUI_SYSTEM_RUNTIME__LAZY_SD_STORAGE_BROWSER__SAFE_RUNTIME__DELETE_EMPTY_FOLDER__ESP32P4_PROVEN__READY_FOR_CANVAS_PREVIEW_PARITY__2026-07-28
 
