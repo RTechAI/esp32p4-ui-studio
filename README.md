@@ -17,6 +17,11 @@ If ForgeUI helps your embedded work, consider leaving the project a GitHub star.
 - Reusable multi-state Interactive Assets
 - Standard LVGL Component Runtime APIs
 - Canvas and Browser Preview workflows
+- Shared Standard component rendering across Canvas and Browser Preview
+- Semantic Standard theme pipeline for generated LVGL
+- Editable Line endpoints with native LVGL export
+- Native-style Standard Canvas artwork rendering
+- Improved Standard Browser Preview parity
 - Reusable built-in System Runtime with a physically proven Wi-Fi Manager
 - Local conversion of images into LVGL-ready C assets
 - Native LVGL v9 UI and runtime generation
@@ -188,7 +193,9 @@ The exported Status Indicator remains non-clickable. Application code changes it
 
 ## Visual Designer and Preview
 
-The Canvas provides drag-and-drop placement, selection, resizing, properties, themes, uploaded artwork, and direct Interactive Asset editing. Browser Preview and Canvas aim to match generated LVGL behavior, while acknowledging that native LVGL widgets can require explicit exporter styling and geometry corrections. Browser Preview now mirrors the Wi-Fi Manager, password workflow and connected details through deterministic hardware-independent network simulation.
+The Canvas provides drag-and-drop placement, selection, resizing, properties, themes, uploaded artwork, and direct Interactive Asset editing. Canvas and Browser Preview now share common Standard component renderers where practical. Recent parity work includes Canvas artwork rendering, TabView, TileView, Text, Heading, and Standard Wi-Fi presentation.
+
+Browser Preview continues to approximate native LVGL while preserving the generated runtime contract. It also mirrors the Wi-Fi Manager, password workflow and connected details through deterministic hardware-independent network simulation.
 
 The generated System Runtime owns one reusable native LVGL keyboard for password entry. It is created lazily on the LVGL top layer, attaches to the active password textarea, supports Show / Hide, Done and Cancel, and retains physically validated geometry and touch interaction on the 1024 × 600 ESP32-P4 display.
 
@@ -285,19 +292,58 @@ Standard LVGL Component Runtime
 ├── Bar
 ├── Arc
 ├── Chart
+├── Table
 ├── Keyboard
 ├── Calendar
+├── Scale
 ├── Roller
-└── Button Matrix
+├── MsgBox
+└── ButtonMatrix
 ```
 
 The APIs reflect each widget rather than forcing every component into a generic value model. Examples include setting LED, Bar and Arc values, adding or clearing Chart points, showing or hiding the standard Canvas Keyboard, selecting Calendar dates, and selecting Roller or Button Matrix options.
+
+These eleven Standard components are physically proven across Canvas, Browser Preview, generated LVGL, and ESP32-P4: Led, Bar, Arc, Chart, Table, Keyboard, Calendar, Scale, Roller, MsgBox, and ButtonMatrix. Later runtime-complete Standard controls remain outside this physical validation milestone.
+
+Current parity work continues on Canvas, TabView, TileView, Line, Text, Heading, and Standard Wi-Fi presentation. These components have completed source-level and automated parity work but remain pending final physical ESP32-P4 confirmation before joining the proven hardware group.
+
+ForgeUI treats the flashed ESP32-P4 as the final visual authority. Canvas, Browser Preview, and generated LVGL are aligned toward the physical device, and new Standard components are promoted to proven only after successful **Generate → Build → Flash** validation.
+
+Chart retains native `lv_chart`, themed rendering, runtime streaming and clear behavior. Responsive gutters support Y-axis range labels and deterministic X-axis point-index labels without inventing categories, dates, or timestamps. Its Canvas, Browser Preview, generated LVGL, and ESP32-P4 output are physically aligned.
 
 Runtime APIs and hooks are generated consistently through both the integrated Build & Flash workflow and standalone ESP-IDF export. Presentation-only components remain API-free when they own no meaningful runtime state. Scale is a visual tick-and-label renderer, Line is decorative geometry, Icon is a Studio authoring convenience for the built-in icon picker, and Divider is visual separation only.
 
 At export, Icon becomes a normal LVGL image backed by the existing generated image symbol. It has no runtime setter or developer hook. Applications that need runtime image swapping should use the Standard Image component and `FG_Set_<Image_Name>_Source(const void * src)`; ForgeUI intentionally does not duplicate that capability as an Icon API.
 
 Divider also has no runtime setter or developer hook. If a Divider must appear or disappear dynamically, place it inside the relevant parent Box and use `FG_Set_<Parent_Box_Name>_Visible(bool visible)` so visibility remains owned by the layout container.
+
+---
+
+## Semantic Standard theme architecture
+
+ForgeUI’s proven Standard components share one selected-theme pipeline:
+
+```text
+Theme Manager
+        ↓
+Semantic Theme Resolver
+        ↓
+Canvas
+        ↓
+Browser Preview
+        ↓
+LVGL Export
+        ↓
+Generated Firmware
+        ↓
+ESP32-P4
+```
+
+Canvas follows the selected ForgeUI theme, Browser Preview consumes the same semantic palette, and generated LVGL exports equivalent semantic colours. Custom palettes follow the same path. Decorative colours are no longer hard-coded for the eleven proven Standard components, while meaningful status colours such as Standard LED green may remain intentionally independent.
+
+Recent Standard parity work extends semantic theme usage to Text through `textPrimary`, Heading through `textPrimary`, and Line through `surfaceBorder`. These additions remain pending final hardware confirmation.
+
+The ESP32-P4 matches the selected theme after **Generate → Build → Flash**. Runtime hot theme switching is not currently implemented.
 
 ---
 
@@ -319,7 +365,7 @@ Canvas and Browser Preview
 Native firmware export
 ```
 
-The pipeline supports hero backgrounds, standalone artwork, icons, and Interactive Asset state images. Preprocessing and LVGL conversion are local once an image is generated or uploaded. Generated C assets and their build registrations are included automatically in exported firmware; no image-conversion runtime is deployed to the ESP32-P4.
+The pipeline supports hero backgrounds, standalone artwork, icons, and Interactive Asset state images. Standard Canvas also exports configured artwork through a native LVGL child image while preserving centred contain-fit rendering and clipping. Preprocessing and LVGL conversion are local once an image is generated or uploaded. Generated C assets and their build registrations are included automatically in exported firmware; no image-conversion runtime is deployed to the ESP32-P4.
 
 ---
 
@@ -330,6 +376,9 @@ ForgeUI is developed and validated on the **Waveshare ESP32-P4-WiFi6-Touch-LCD-7
 Proven paths include:
 
 - Canvas → Browser Preview → LVGL export → ESP-IDF → physical ESP32-P4
+- Standard Led, Bar, Arc, Chart, Table, Keyboard, Calendar, Scale, Roller, MsgBox, and ButtonMatrix through Canvas → Browser Preview → generated LVGL → ESP32-P4
+- selected-theme parity for Graphite/orange, Cyber teal, Nordic light, and custom palette export
+- native Chart rendering with themed divisions, Y-axis labels, X-axis point indexes, and responsive gutters
 - AI-generated layouts and artwork through editable Canvas workflows
 - Interactive Button Normal/Pressed behavior and generated callback
 - Interactive Toggle Switch OFF/ON touch behavior
@@ -428,6 +477,16 @@ ForgeUI validates exports before replacing generated firmware:
 - component resizing and property editing
 - broad LVGL widget catalog
 - Browser Preview
+- semantic Standard theme engine
+- shared Standard preview rendering
+- shared Standard Canvas/Browser renderers
+- Standard Canvas artwork rendering
+- Standard TabView parity
+- Standard TileView parity
+- Standard Text/Heading semantic rendering
+- editable Standard Line endpoints
+- Standard Wi-Fi presentation parity
+- Canvas, Browser Preview, generated LVGL, and ESP32-P4 theme parity
 - deterministic Wi-Fi Manager, password-workflow, and connected-detail preview parity
 - Theme Manager
 - hero backgrounds and uploaded artwork
@@ -461,6 +520,8 @@ ForgeUI validates exports before replacing generated firmware:
 - generated input callbacks
 - generated output setters
 - retained semantic runtime APIs for supported standard LVGL widgets
+- selected semantic palette propagation into generated LVGL
+- physical validation of eleven Standard components
 - complete generated Wi-Fi Manager and structured backend projection
 - generated connected details, selectable network rows, badges, password and forget dialogs
 - reusable native LVGL keyboard with generated attachment and callbacks
@@ -496,11 +557,38 @@ Detailed subsystem ownership and debugging information belongs in the code maps:
 
 Current architecture save point:
 
-`FORGEUI_STANDARD_LVGL_RUNTIME_APIS__LED_BAR_ARC_CHART_KEYBOARD_CALENDAR_ROLLER_MESSAGE_BOX_BUTTON_MATRIX__LIVE_AND_STANDALONE_PROVEN__2026-07-29`
+`FORGEUI_STANDARD_LVGL_THEME_PARITY__ELEVEN_COMPONENTS__CANVAS_BROWSER_GENERATED_LVGL_ESP32P4_PROVEN__2026-07-29`
+
+Current next Standard parity milestone:
+
+- Standard Canvas
+- TabView
+- TileView
+- Line
+- Text
+- Heading
+- Standard Wi-Fi presentation
+
+Current status:
+
+- Canvas parity complete
+- Browser Preview parity complete
+- generated LVGL support complete
+- semantic theme integration complete
+- Line endpoint editing complete
+- focused automated validation complete
+- final ESP32-P4 proof pending
 
 Current proven milestones include:
 
 - visual Builder, Canvas, themes, and Browser Preview
+- semantic Standard theme engine
+- Canvas selected-theme parity
+- Browser Preview selected-theme parity
+- generated LVGL selected-theme parity
+- ESP32-P4 selected-theme parity after Generate, Build, and Flash
+- completed Chart Y-axis and X-axis labels
+- completed physical validation of eleven Standard components
 - AI layout, hero, artwork, and semantic icon workflows
 - local device-aware LVGL asset conversion
 - five implemented Interactive Asset types
@@ -512,7 +600,7 @@ Current proven milestones include:
 - Interactive Button, Toggle Switch, Three-Position Toggle Switch, Light, and Status Indicator runtime paths
 - generated `95_UserEvents` hook layer for Button, Toggle, and Three-Position inputs
 - shared Binary Output Runtime and generated `FG_Set_*` Light/Status APIs
-- Standard LVGL Component Runtime APIs for Led, Bar, Arc, Chart, Keyboard, Calendar, Roller, Message Box, and Button Matrix
+- Standard LVGL component architecture for the proven Led, Bar, Arc, Chart, Table, Keyboard, Calendar, Scale, Roller, MsgBox, and ButtonMatrix group, with semantic runtime APIs where applicable
 - built-in System Launcher and Display / Brightness
 - physical display backlight control
 - reusable built-in System Runtime
@@ -543,6 +631,9 @@ These are future concepts, not descriptions of implemented runtime support:
 - additional built-in System pages including Bluetooth and Device settings;
 - MQTT, OTA and Ethernet platform integrations;
 - continued visual theme polish for generated System surfaces;
+- ongoing native LVGL visual-fidelity refinement;
+- additional Standard widgets;
+- broader physical hardware validation;
 - GPIO and peripheral binding;
 - broader board and display profiles;
 - reusable project templates;

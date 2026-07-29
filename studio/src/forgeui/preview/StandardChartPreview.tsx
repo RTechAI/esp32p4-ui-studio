@@ -1,29 +1,39 @@
 import React from 'react'
 import { Box } from '@chakra-ui/react'
-import { getForgeUIStandardChartModel } from '~forgeui/ForgeUIStandardChart'
+import {
+  getForgeUIStandardChartLayout,
+  getForgeUIStandardChartModel,
+} from '~forgeui/ForgeUIStandardChart'
+import {
+  FG_PREVIEW_PALETTES,
+  ForgePreviewPalette,
+  resolveForgeSemanticPalette,
+} from './forgeThemeMap'
 
-const VIEWBOX_WIDTH = 240
-const VIEWBOX_HEIGHT = 120
-const PADDING = 10
-const PLOT_WIDTH = VIEWBOX_WIDTH - PADDING * 2
-const PLOT_HEIGHT = VIEWBOX_HEIGHT - PADDING * 2
-const LVGL_LIGHT_CARD = '#ffffff'
-const LVGL_LIGHT_GREY = '#b0bec5'
 const LVGL_LARGE_RADIUS = '12px'
 
-const StandardChartPreview: React.FC<IPreviewProps> = ({ component }) => {
+type StandardChartPreviewProps = IPreviewProps & {
+  palette?: ForgePreviewPalette
+}
+
+const StandardChartPreview: React.FC<StandardChartPreviewProps> = ({
+  component,
+  palette = FG_PREVIEW_PALETTES.graphite,
+}) => {
   const chart = getForgeUIStandardChartModel(component.props)
+  const layout = getForgeUIStandardChartLayout(component.props)
+  const theme = resolveForgeSemanticPalette(palette)
   const segments: string[] = []
   let currentSegment: string[] = []
 
-  chart.points.forEach(point => {
+  chart.points.forEach((point, index) => {
     if (point.y === null) {
       if (currentSegment.length > 0) segments.push(currentSegment.join(' '))
       currentSegment = []
       return
     }
     currentSegment.push(
-      `${PADDING + point.x * PLOT_WIDTH},${PADDING + point.y * PLOT_HEIGHT}`,
+      `${layout.xPointPositions[index]},${layout.plotTop + point.y * layout.plotHeight}`,
     )
   })
   if (currentSegment.length > 0) segments.push(currentSegment.join(' '))
@@ -33,8 +43,8 @@ const StandardChartPreview: React.FC<IPreviewProps> = ({ component }) => {
       width="100%"
       height="100%"
       overflow="hidden"
-      bg={LVGL_LIGHT_CARD}
-      border={`2px solid ${LVGL_LIGHT_GREY}`}
+      bg={theme.surface}
+      border={`2px solid ${theme.surfaceBorder}`}
       borderRadius={LVGL_LARGE_RADIUS}
       pointerEvents="none"
       data-testid="standard-chart-preview"
@@ -47,37 +57,74 @@ const StandardChartPreview: React.FC<IPreviewProps> = ({ component }) => {
       <svg
         width="100%"
         height="100%"
-        viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
+        viewBox={`0 0 ${layout.width} ${layout.height}`}
         preserveAspectRatio="none"
         aria-hidden="true"
       >
         <defs>
           <clipPath id={`standard-chart-clip-${component.id}`}>
             <rect
-              x={PADDING}
-              y={PADDING}
-              width={PLOT_WIDTH}
-              height={PLOT_HEIGHT}
+              x={layout.plotLeft}
+              y={layout.plotTop}
+              width={layout.plotWidth}
+              height={layout.plotHeight}
             />
           </clipPath>
         </defs>
         <g
-          stroke={LVGL_LIGHT_GREY}
+          stroke={theme.textSecondary}
           strokeWidth="1"
           data-testid="standard-chart-grid"
         >
           {Array.from({ length: chart.horizontalDivisions }, (_, index) => {
-            const y = PADDING +
-              ((index + 1) / (chart.horizontalDivisions + 1)) * PLOT_HEIGHT
-            return <line key={`h-${index}`} x1={PADDING} y1={y}
-              x2={PADDING + PLOT_WIDTH} y2={y} />
+            const y = layout.plotTop +
+              ((index + 1) / (chart.horizontalDivisions + 1)) *
+              layout.plotHeight
+            return <line key={`h-${index}`} x1={layout.plotLeft} y1={y}
+              x2={layout.plotRight} y2={y} />
           })}
-          {Array.from({ length: chart.verticalDivisions }, (_, index) => {
-            const x = PADDING +
-              ((index + 1) / (chart.verticalDivisions + 1)) * PLOT_WIDTH
-            return <line key={`v-${index}`} x1={x} y1={PADDING}
-              x2={x} y2={PADDING + PLOT_HEIGHT} />
+          {layout.xPointPositions.map((x, index) => {
+            return <line key={`v-${index}`} x1={x} y1={layout.plotTop}
+              x2={x} y2={layout.plotBottom} />
           })}
+        </g>
+        <g
+          fill={theme.textSecondary}
+          fontSize={Math.max(8, Math.min(11, layout.labelGutter * 0.28))}
+          textAnchor="end"
+          dominantBaseline="middle"
+          data-testid="standard-chart-y-labels"
+        >
+          {layout.yAxisLabels.map((label, index) => (
+            <text
+              key={index}
+              x={layout.plotLeft - 4}
+              y={label.y}
+              data-testid="standard-chart-y-label"
+            >
+              {label.value}
+            </text>
+          ))}
+        </g>
+        <g
+          fill={theme.textSecondary}
+          fontSize={Math.max(8, Math.min(11, layout.labelGutter * 0.28))}
+          textAnchor="middle"
+          dominantBaseline="hanging"
+          data-testid="standard-chart-x-labels"
+        >
+          {layout.xAxisLabels
+            .filter(label => label.visible)
+            .map(label => (
+              <text
+                key={label.value}
+                x={label.x}
+                y={layout.plotBottom + 3}
+                data-testid="standard-chart-x-label"
+              >
+                {label.value}
+              </text>
+            ))}
         </g>
         <g clipPath={`url(#standard-chart-clip-${component.id})`}>
           {segments.map((points, index) => (

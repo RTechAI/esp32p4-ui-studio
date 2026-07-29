@@ -13,7 +13,19 @@
 
 ## Current save point
 
-**FORGEUI_STANDARD_LVGL_RUNTIME_V1__DEVELOPER_API_SURFACE__INTERACTIVE_OUTPUT_PRESENTATION_CLASSIFICATION__ARCHITECTURE_COMPLETE__2026-07-29**
+**FORGEUI_STANDARD_LVGL_THEME_PARITY__ELEVEN_COMPONENTS__CANVAS_BROWSER_GENERATED_LVGL_ESP32P4_PROVEN__2026-07-29**
+
+Current source-level and automated parity work outside the physically proven eleven-component group includes:
+
+- Canvas
+- TabView
+- TileView
+- Line
+- Text
+- Heading
+- Standard Wi-Fi presentation
+
+Shared preview and exporter architecture is implemented, and automated validation is complete within the recorded scope. Current-project Generate -> Build -> Flash -> visual confirmation is still required. These components are not yet added to the physically proven group.
 
 ## Purpose
 
@@ -298,6 +310,34 @@ ForgeUI has two independent generated widget runtime systems:
 
 Standard components are not Interactive Assets. They do not use the Interactive Asset registry, persistence models, designers or artwork state machinery.
 
+The current physical Standard validation group is proven across Canvas, Browser Preview, generated LVGL and ESP32-P4:
+
+- Led
+- Bar
+- Arc
+- Chart
+- Table
+- Keyboard
+- Calendar
+- Scale
+- Roller
+- MsgBox
+- ButtonMatrix
+
+TabView, TileView, Input, Textarea, Switch, Checkbox, Radio, Progress, NumberInput, Select, Image, Box and IconButton remain runtime-complete but are outside this physical validation milestone. Their existing automated and architectural status is unchanged.
+
+### Current next-group parity architecture
+
+- Canvas — shared artwork-aware preview and LVGL image-child export
+- TabView — shared preview, serialized selected state and explicit geometry
+- TileView — shared visible `2 × 2` panel contract
+- Line — editable serialized endpoints with native `lv_line_set_points()`
+- Text — shared renderer using semantic `textPrimary`
+- Heading — shared renderer using semantic `textPrimary`
+- Wi-Fi presentation — shared multiline renderer preserving `WIFI_FAIL`
+
+This next group is not yet physically proven.
+
 Interactive runtime components:
 
 - ✓ Input
@@ -404,6 +444,60 @@ Live Studio safely regenerates required hooks while preserving matching bodies a
 
 `ForgeUILvglExport.ts` owns generation for the older Standard components and for Input, Textarea, Switch, Checkbox, Radio, Progress, NumberInput, Select, Image, Box and IconButton. Interactive components retain their object and semantic state, expose guarded setters, adapt LVGL user events and contribute developer-hook metadata. Output components retain object/state and expose setters only. Serialized or API-free presentation contributes no runtime API.
 
+## Standard LVGL Theme Runtime
+
+The completed Standard semantic theme path is:
+
+```text
+Theme Manager
+    |
+    v
+Semantic Theme Resolver
+    |
+    v
+Canvas
+    |
+    v
+Browser Preview
+    |
+    v
+LVGL Export
+    |
+    v
+Generated Firmware
+    |
+    v
+ESP32-P4
+```
+
+Canvas and Browser Preview consume the same semantic palette. `ForgeUILvglExport.ts` exports the resolved roles into equivalent LVGL styles. The ESP32-P4 follows the selected theme after Generate -> Build -> Flash. Runtime live theme switching on the P4 was not added.
+
+Semantic roles:
+
+- `surface`
+- `surfaceSecondary`
+- `surfaceBorder`
+- `textPrimary`
+- `textSecondary`
+- `accent`
+- `accentText`
+- `disabledText`
+- `selectedSurface`
+
+Decorative colours are no longer hard-coded for the proven Standard components. Semantic status colours, including the Standard LED green, intentionally remain independent where appropriate.
+
+### Theme ownership
+
+| File | Ownership |
+| --- | --- |
+| `src/forgeui/theme/ForgeThemeContext.tsx` | Supplies the active selected-theme palette to preview consumers |
+| `src/forgeui/preview/forgeThemeMap.ts` | Resolves raw theme values into semantic roles and owns deterministic fallback/contrast behavior |
+| `src/forgeui/preview/forgePreviewRenderer.tsx` | Passes the active semantic palette into shared Browser Preview renderers |
+| `src/components/editor/ComponentPreview.tsx` | Connects Canvas Standard previews to the active palette |
+| `src/forgeui/ForgeUILvglExport.ts` | Converts the resolved semantic roles into generated LVGL colour/style calls |
+
+Shared Standard preview renderers consume semantic roles; they do not resolve or hard-code a separate decorative theme. Canvas and Browser Preview may retain separate interaction ownership, but their component visuals resolve from the same palette.
+
 ### Led
 
 Serialized type `Led` generates `FG_Set_Status_LED(bool)` and `FG_On_Status_LED_Changed(bool)`. It retains the LED object and boolean state, uses `lv_led_on()` / `lv_led_off()`, and suppresses duplicate transitions.
@@ -420,11 +514,29 @@ This is not Interactive Light or Interactive Status Indicator. Those remain sepa
 
 ### Chart
 
-`FG_Add_Data_Chart_Point(int32_t)` and `FG_Clear_Data_Chart(void)` generate Point Added and Cleared hooks. The runtime retains the chart and primary-Y series, uses `lv_chart_set_next_value()` for samples and `lv_chart_set_all_value()` for reset. The current implementation is intentionally single-series.
+`FG_Add_Data_Chart_Point(int32_t)` and `FG_Clear_Data_Chart(void)` generate Point Added and Cleared hooks. The runtime retains the native `lv_chart` and primary-Y series, uses `lv_chart_set_next_value()` for samples and `lv_chart_set_all_value()` for reset. The current implementation is intentionally single-series.
+
+`ForgeUIStandardChart.ts` owns normalized Chart data plus shared responsive plot and axis geometry. `StandardChartPreview.tsx` uses that geometry for Canvas and Browser Preview. The exporter retains native `lv_chart`, reserves responsive Y and bottom gutters, and generates non-clickable sibling `lv_label` objects for Y-axis values and X-axis point indexes. X labels derive only from `0..pointCount - 1`; no category, date, timestamp or other X-axis semantics are invented.
+
+### Table
+
+Table remains a native data/presentation component with no invented runtime API. The proven semantic styling covers the main surface, cell surface, grid/border and primary text across shared previews and generated LVGL.
+
+### Standard Canvas ownership
+
+`src/forgeui/preview/StandardCanvasPreview.tsx` owns shared Canvas and Browser Preview rendering, configured artwork resolution, actual serialized asset-source selection, contain scaling, centred alignment, clipping, transparency and component-bound rendering.
+
+`src/components/editor/ComponentPreview.tsx` owns Canvas integration, active semantic-palette injection, serialized property handoff and integration with the existing selection/movement wrapper.
+
+`src/forgeui/preview/forgePreviewRenderer.tsx` owns Browser Preview integration, active-palette injection and current component geometry/property handoff.
+
+`src/forgeui/ForgeUILvglExport.ts` owns the clipped parent `lv_obj`, child `lv_image`, generated-symbol resolution, image scale, centred placement and asset-source collection.
+
+Invariant: the Canvas renderer must neither invent decorative SVG artwork nor discard configured artwork and emit only an empty surface. The exporter and uploaded-asset registry remain authoritative for generated image symbols. Generated `90_Studio_Export.c` is replaceable output and is not the source of this fix.
 
 ### Standard Canvas Keyboard
 
-`FG_Show_Keyboard()` and `FG_Hide_Keyboard()` generate Shown and Hidden hooks and retain the standard Canvas keyboard and its private textarea. This eager standard component is not the reusable lazy System keyboard used by System/Wi-Fi dialogs.
+`FG_Show_Keyboard()` and `FG_Hide_Keyboard()` generate Shown and Hidden hooks and retain the standalone Standard keyboard. It is exported without an owned textarea and remains unattached by default. This eager standard component is not the reusable lazy System keyboard used by System/Wi-Fi dialogs.
 
 ### Calendar
 
@@ -446,11 +558,30 @@ Initial Button Matrix verification used a stale running Studio exporter bundle. 
 
 ### TabView
 
-Serialized `Tabview` retains its LVGL object, selected index and tab count. One shared transition helper owns touch and programmatic changes. Programmatic selection uses `lv_tabview_set_active(..., LV_ANIM_OFF)`; `LV_EVENT_VALUE_CHANGED` touch handling reads `lv_tabview_get_tab_active()`. The runtime suppresses repeated effective selections and generates collision-safe identifiers, the public `FG_Set_<Name>_Selected(uint32_t tab_index)` setter and `FG_On_<Name>_Changed(uint32_t tab_index)` hook.
+`src/forgeui/preview/StandardTabViewPreview.tsx` owns shared Canvas and Browser Preview rendering for the three fixed tabs, serialized initial selection, direct preview switching, selected and inactive states, 34 px tab bar, equal/remainder tab widths, square outer bounds, explicit content area, accent bottom indicator and semantic text/surface roles.
+
+`src/forgeui/ForgeUIStandardTabTileGeometry.ts` owns shared TabView and TileView geometry calculations.
+
+`src/forgeui/ForgeUILvglExport.ts` owns explicit internal TabView geometry, retained selected index, the transition helper, existing setter and hook, generated semantic styling and native LVGL tab-selection behavior. Programmatic selection uses `lv_tabview_set_active(..., LV_ANIM_OFF)`; `LV_EVENT_VALUE_CHANGED` handling reads `lv_tabview_get_tab_active()`. The runtime suppresses repeated effective selections and generates collision-safe identifiers.
+
+Browser Preview does not simulate native swipe animation. Physical proof remains pending.
 
 ### Tileview
 
-Serialized `Tileview` retains its LVGL object, explicit tile object map, selected row and column, and row and column counts. The explicit coordinate map connects retained coordinates to generated tile objects. One shared transition helper owns touch and programmatic changes. Programmatic selection uses `lv_tileview_set_tile(..., LV_ANIM_OFF)`; `LV_EVENT_VALUE_CHANGED` touch handling reads `lv_tileview_get_tile_active()` and resolves it through the map. The runtime generates collision-safe identifiers, the public `FG_Set_<Name>_Selected(uint32_t column, uint32_t row)` setter and `FG_On_<Name>_Changed(uint32_t column, uint32_t row)` hook.
+Serialized type remains `Tileview`. The current ForgeUI TileView is a simultaneous visible `2 × 2` panel:
+
+- Tile 1 = column 0, row 0
+- Tile 2 = column 1, row 0
+- Tile 3 = column 0, row 1
+- Tile 4 = column 1, row 1
+
+`src/forgeui/preview/StandardTileViewPreview.tsx` owns the shared Canvas/Browser renderer, four visible tiles, `2 × 2` layout, current selected column/row, direct preview selection, semantic styling and label centring.
+
+`src/forgeui/ForgeUIStandardTabTileGeometry.ts` owns 8 px padding, 6 px gaps, equal row/column sizing, child coordinates/dimensions and clipping calculations.
+
+`src/forgeui/ForgeUILvglExport.ts` owns the bounded parent `lv_obj`, four visible child tile objects, retained selected row/column, `LV_STATE_CHECKED` synchronization, existing public setter/hook names, silent startup and click selection.
+
+Invariant: the current TileView contract is a visible four-tile panel, not native LVGL swipe paging. The current architecture does not use `lv_tileview_create()`, `lv_tileview_add_tile()`, `lv_tileview_set_tile()` or `lv_tileview_get_tile_active()`.
 
 ### Input
 
@@ -506,7 +637,30 @@ The standard `Scale` is the visual LVGL 9 `lv_scale` tick/label renderer. It own
 
 ### Line inspection
 
-The standard `Line` exporter creates `lv_line` with exactly two points. It retains no runtime object or semantic state and generates no public API or hook. Line is intentionally API-free.
+The standard `Line` remains presentation-only and API-free. Its serialized endpoint fields are `startX`, `startY`, `endX` and `endY`.
+
+`src/forgeui/ForgeUIStandardLine.ts` owns endpoint defaults and resolution, backward compatibility, bounding-box normalization, endpoint crossing, horizontal/vertical one-pixel bounds and the legacy fallback from start `(0,0)` to end `(width,height)`.
+
+`src/components/editor/previews/StandardLineCanvasPreview.tsx` owns selected Canvas endpoint handles, pointer interaction, immediate redraw, `x` / `y` rebasing, `w` / `h` recalculation, normalized relative endpoints and coexistence with the existing whole-line movement wrapper.
+
+`src/forgeui/preview/StandardLinePreview.tsx` owns shared endpoint-aware Canvas/Browser visual rendering, semantic `surfaceBorder` and line geometry presentation.
+
+`src/components/inspector/panels/components/LinePanel.tsx` owns Start X, Start Y, End X, End Y and Line Width.
+
+`src/forgeui/ForgeUILvglExport.ts` owns native output:
+
+```c
+static lv_point_precise_t <name>_pts[] = {
+    {startX, startY},
+    {endX, endY}
+};
+
+lv_obj_t * <name> = lv_line_create(parent);
+lv_line_set_points(<name>, <name>_pts, 2);
+lv_obj_set_pos(<name>, x, y);
+```
+
+Line retains no runtime object or semantic state and generates no public API or hook.
 
 ### Icon inspection
 
@@ -528,11 +682,23 @@ Property `buttonText` is owned across the Button Inspector, Canvas Preview, Brow
 
 #### Text Value
 
-Property `textValue` is owned across the Text Inspector, Canvas Preview, Browser Preview, `ForgeUILvglExport.ts` and project JSON persistence. It controls visible LVGL label content only and generates no runtime API.
+Property `textValue` is owned across the Text Inspector, shared `StandardTextPreview.tsx`, Canvas integration, Browser Preview, `ForgeUILvglExport.ts` and project JSON persistence. It controls visible LVGL label content only, uses semantic `textPrimary`, explicitly exports `lv_obj_set_style_text_color(...)`, and generates no runtime API.
 
 #### Heading Text
 
-Property `headingText` is owned across the Heading Inspector, Canvas Preview, Browser Preview, `ForgeUILvglExport.ts` and project JSON persistence. It controls visible heading content only and generates no runtime API.
+Property `headingText` is owned across the Heading Inspector, shared `StandardHeadingPreview.tsx`, Canvas integration, Browser Preview, `ForgeUILvglExport.ts` and project JSON persistence. It controls visible heading content only, uses semantic `textPrimary`, explicitly exports the resolved LVGL text colour, and generates no runtime API.
+
+#### Standard Wi-Fi presentation
+
+`src/forgeui/preview/StandardWifiPreview.tsx` owns the shared Canvas/Browser three-line presentation. It preserves the established runtime vocabulary:
+
+```text
+WIFI
+WIFI_FAIL
+IP: -
+```
+
+`src/components/editor/ComponentPreview.tsx` and `src/forgeui/preview/forgePreviewRenderer.tsx` own Canvas and Browser integration respectively. Runtime polling and `fg_wifi_status_text()` remain authoritative for firmware state mapping. The presentation renderer must not substitute `DISCONNECTED`, introduce wrapping or create a fourth clipped visual line. No new runtime API or behavior is introduced.
 
 #### Clock Presentation
 
@@ -541,6 +707,18 @@ Properties `hourFormat`, `showSeconds` and `blinkSeparator` are owned across the
 ### Major files and focused tests
 
 - `studio/src/forgeui/ForgeUILvglExport.ts`
+- `studio/src/forgeui/ForgeUIStandardTabTileGeometry.ts`
+- `studio/src/forgeui/ForgeUIStandardLine.ts`
+- `studio/src/forgeui/ForgeUIStandardLine.test.tsx`
+- `studio/src/forgeui/preview/StandardCanvasPreview.tsx`
+- `studio/src/forgeui/preview/StandardTabViewPreview.tsx`
+- `studio/src/forgeui/preview/StandardTileViewPreview.tsx`
+- `studio/src/forgeui/preview/StandardLinePreview.tsx`
+- `studio/src/forgeui/preview/StandardTextPreview.tsx`
+- `studio/src/forgeui/preview/StandardHeadingPreview.tsx`
+- `studio/src/forgeui/preview/StandardWifiPreview.tsx`
+- `studio/src/components/editor/previews/StandardLineCanvasPreview.tsx`
+- `studio/src/components/inspector/panels/components/LinePanel.tsx`
 - `studio/src/forgeui/ForgeUILvglExport.led.test.ts`
 - `studio/src/forgeui/ForgeUILvglExport.bar.test.ts`
 - `studio/src/forgeui/ForgeUILvglExport.arc.test.ts`
@@ -2088,7 +2266,7 @@ It owns:
 - standard-component LVGL event adapters and hook metadata
 - deterministic sanitized and collision-safe standard-component names
 - TabView retained active-index runtime generation
-- Tileview retained active-coordinate and tile-map runtime generation
+- Tileview retained active-coordinate and visible four-child panel runtime generation
 - Button Text serialization
 - Text Value serialization
 - Heading Text serialization
@@ -2399,7 +2577,7 @@ They contain:
 - standard-component public API implementations and declarations
 - shared transition helpers and LVGL event adapters
 - TabView retained object, active index, tab count, transition helper, callback and setter
-- Tileview retained object, explicit tile map, active coordinates, transition helper, callback and setter
+- Tileview bounded parent, four visible child objects, active coordinates, checked-state synchronization, click callback and setter
 - serialized Button Text, Text Value and Heading Text label generation
 - per-instance Clock Presentation labels, timers, separator state and formatter callbacks
 
@@ -2651,6 +2829,12 @@ Physical Button, Toggle, Three-Position, Light, the scoped Status Indicator Bina
 
 ### Current validation
 
+- the eleven-component Standard theme/parity regression passes 158/158
+- Graphite/orange, Cyber teal and Nordic light are verified through the semantic theme pipeline
+- custom palette export is verified
+- Canvas, Browser Preview, generated LVGL and physical ESP32-P4 theme parity are verified for Led, Bar, Arc, Chart, Table, Keyboard, Calendar, Scale, Roller, MsgBox and ButtonMatrix
+- Chart validation covers native series geometry, Y-axis labels, X-axis point-index labels, responsive gutters and non-clickable sibling labels
+- TypeScript, ESP-IDF 5.5.4 / LVGL 9.2.2 firmware build, firmware flash, physical review and `git diff --check` pass for this milestone
 - System Context and Surface regressions cover open, close, Back, Display navigation, live brightness state, session retention, disabled placeholders and preservation of existing application interaction
 - System Context and Surface regressions also cover deterministic Wi-Fi scan, structured rows, selection, open/protected branching, password and forget workflows, connected details, Disconnect and Reconnect
 - System LVGL exporter regressions cover persistent containers, internal callbacks, gear generation, visibility switching, the `10–100` slider, Waveshare BSP brightness integration and the complete Wi-Fi Manager projection contract
@@ -2680,7 +2864,7 @@ Physical Button, Toggle, Three-Position, Light, the scoped Status Indicator Bina
 - scoped diff checks pass
 - the complete export-server suite is not claimed as passing while `fg_upload_1024x600_neural_core_67dd4ba0.c` and `fg_upload_carbon_fiber_be774fd2.c` are absent; this unrelated fixture issue does not weaken export validation
 
-This validation does not claim separate physical touch proof for every standard component.
+This physical validation is limited to the named eleven-component Standard group. Later runtime-complete Standard components retain automated proof but are not claimed as physically reviewed by this milestone.
 
 ## Debugging map
 
@@ -2776,13 +2960,14 @@ Start at the ownership boundary matching the symptom.
 | Bar runtime API, range or changed hook is wrong | `ForgeUILvglExport.ts` | `export-server.js`, generated `90_Studio_Export.*`, `95_UserEvents.*` |
 | Arc runtime API, range or changed hook is wrong | `ForgeUILvglExport.ts` | `export-server.js`, generated `90_Studio_Export.*`, `95_UserEvents.*` |
 | Chart add/clear API or hooks are wrong | `ForgeUILvglExport.ts` | `export-server.js`, generated chart/series state, `95_UserEvents.*` |
-| Standard Keyboard Show/Hide API or hooks are wrong | `ForgeUILvglExport.ts` | `export-server.js`, retained keyboard/textarea, `95_UserEvents.*` |
+| Chart axis labels do not align with series points | `ForgeUIStandardChart.ts` shared layout | `StandardChartPreview.tsx`, Chart export branch and generated sibling `lv_label` positions |
+| Standard Keyboard Show/Hide API or hooks are wrong | `ForgeUILvglExport.ts` | `export-server.js`, retained unattached keyboard, `95_UserEvents.*` |
 | Calendar setter, validation or hook is wrong | `ForgeUILvglExport.ts` | `export-server.js`, retained selected date, `95_UserEvents.*` |
 | Roller selection API, text or hook is wrong | `ForgeUILvglExport.ts` | `export-server.js`, option metadata, `95_UserEvents.*` |
 | Message Box visibility/button hooks are wrong | `ForgeUILvglExport.ts` | `export-server.js`, retained panel metadata, `95_UserEvents.*` |
 | Button Matrix selection API or hook is wrong | `ForgeUILvglExport.ts` | `export-server.js`, map/count/disabled metadata, `95_UserEvents.*` |
 | TabView selects the wrong tab | `ForgeUILvglExport.ts` Tabview branch and transition helper | retained selected index/count, `lv_tabview_set_active()`, `lv_tabview_get_tab_active()` |
-| Tileview selects the wrong tile | `ForgeUILvglExport.ts` Tileview branch and transition helper | retained coordinate map, `lv_tileview_set_tile()`, `lv_tileview_get_tile_active()` |
+| Tileview selects the wrong tile | `ForgeUILvglExport.ts` Tileview branch and `ForgeUIStandardTabTileGeometry.ts` | retained coordinates, four visible child objects, click selection and `LV_STATE_CHECKED` synchronization |
 | Input setter or genuine-user hook is wrong | `ForgeUILvglExport.ts` Input export map/branch | retained text, programmatic guard, textarea event adapter, `export-server.js`, `95_UserEvents.*` |
 | Textarea setter or hook is wrong | `ForgeUILvglExport.ts` Textarea export map/branch | multiline retained text, programmatic guard, placeholder ownership, `95_UserEvents.*` |
 | Switch checked runtime is wrong | `ForgeUILvglExport.ts` Switch export map/branch | retained checked state, `lv_switch`, setter guard, Preview local state |
@@ -2804,6 +2989,12 @@ Start at the ownership boundary matching the symptom.
 | Clock separator does not blink correctly | Clock presentation resolver and generated callback | `blinkSeparator`, retained separator-visible state, one-second timer |
 | Clock 12-hour formatting is wrong | Clock formatter generation | hour modulo conversion, midnight/noon handling, AM/PM suffix |
 | Clock seconds formatting is wrong | Clock formatter generation | `showSeconds`, generated format string and RTC seconds field |
+| Selected theme does not propagate | `ForgeThemeContext.tsx` | `forgeThemeMap.ts`, active Theme Manager palette |
+| Canvas uses the wrong Standard theme | `ComponentPreview.tsx` | active palette subscription, shared Standard preview palette props |
+| Browser Preview uses the wrong Standard theme | `forgePreviewRenderer.tsx` | `ForgeThemeContext.tsx`, shared Standard preview renderer |
+| Generated LVGL uses the wrong theme | `ForgeUILvglExport.ts` semantic palette resolution | generated LVGL style calls and export payload palette |
+| Canvas, Browser and P4 theme parity differs | `forgeThemeMap.ts` semantic roles | shared preview renderer, generated LVGL, Generate -> Build -> Flash state |
+| Custom palette is lost during export | `generateForgeUILvglCode()` palette option | semantic resolver, Code Preview, live and standalone export call sites |
 | Light unexpectedly has a click hook | `ForgeUILvglExport.ts` | ensure Light remains image/setter based |
 | Export rejected before flash | `ForgeUIExportValidation.ts` | `Header.tsx`, `export-server.js` |
 | Missing generated C source | `export-server.js` | Uploaded Asset Registry, Theme ownership |
@@ -2931,6 +3122,18 @@ Start at the ownership boundary matching the symptom.
 ### Standard LVGL Component Runtime paths
 
 - `src/forgeui/ForgeUILvglExport.ts`
+- `src/forgeui/theme/ForgeThemeContext.tsx`
+- `src/forgeui/preview/forgeThemeMap.ts`
+- `src/forgeui/preview/forgePreviewRenderer.tsx`
+- `src/forgeui/ForgeUIStandardChart.ts`
+- `src/forgeui/preview/StandardChartPreview.tsx`
+- `src/forgeui/preview/StandardCalendarPreview.tsx`
+- `src/forgeui/preview/StandardScalePreview.tsx`
+- `src/forgeui/preview/StandardRollerPreview.tsx`
+- `src/forgeui/preview/StandardMessageBoxPreview.tsx`
+- `src/forgeui/preview/StandardButtonMatrixPreview.tsx`
+- `src/components/editor/previews/BarPreview.tsx`
+- `src/components/editor/previews/ArcPreview.tsx`
 - `export-server.js`
 - generated `90_Studio_Export.c/.h` retained objects, state, helpers and public APIs
 - generated and preservation-merged `95_UserEvents.c/.h`
@@ -3092,10 +3295,23 @@ Preserve these rules:
 104. Serialized presentation generates no runtime API.
 105. Components with no semantic runtime state, including Icon and Divider, remain intentionally API-free.
 106. Slider Canvas interaction repair does not imply a completed Slider runtime setter or hook.
+107. Proven Standard components consume semantic theme roles rather than hard-coded decorative colours.
+108. Canvas, Browser Preview and LVGL export resolve equivalent Standard semantic roles.
+109. Missing semantic theme values use the deterministic graphite fallback.
+110. Semantic status colours may remain theme-independent where their status meaning requires it.
+111. Selected-theme export parity does not imply runtime hot theme switching on the ESP32-P4.
+112. Chart X labels remain deterministic point indexes unless a future serialized X-axis model is explicitly introduced.
 
 ## Save Point History
 
 Save points are ordered newest to oldest.
+
+### FORGEUI_STANDARD_LVGL_THEME_PARITY__ELEVEN_COMPONENTS__CANVAS_BROWSER_GENERATED_LVGL_ESP32P4_PROVEN__2026-07-29
+
+- **What changed:** Added one semantic theme architecture across Canvas, Browser Preview and LVGL export for Led, Bar, Arc, Chart, Table, Keyboard, Calendar, Scale, Roller, MsgBox and ButtonMatrix; completed Chart Y-axis labels and deterministic X-axis point-index labels; and verified custom palette propagation.
+- **Why:** Standard authoring, preview, generated firmware and the physical device needed to follow the same selected-theme semantics without duplicating renderers, hard-coding decorative colours or changing native LVGL runtime behavior.
+- **Final architecture:** `ForgeThemeContext.tsx` supplies the selected palette, `forgeThemeMap.ts` resolves semantic roles and deterministic fallback, shared preview renderers consume those roles, and `ForgeUILvglExport.ts` emits equivalent LVGL styling. Runtime APIs, hooks, silent startup and native interaction remain unchanged; runtime P4 theme switching was not added.
+- **Validation:** The eleven-component regression passes 158/158. Graphite/orange, Cyber teal, Nordic light, custom palette export, Canvas parity, Browser parity, generated LVGL parity, ESP-IDF 5.5.4 / LVGL 9.2.2 build, firmware flash, physical ESP32-P4 review, TypeScript and `git diff --check` are proven.
 
 ### FORGEUI_STANDARD_LVGL_RUNTIME_V1__DEVELOPER_API_SURFACE__INTERACTIVE_OUTPUT_PRESENTATION_CLASSIFICATION__ARCHITECTURE_COMPLETE__2026-07-29
 

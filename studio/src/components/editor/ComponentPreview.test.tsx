@@ -161,6 +161,84 @@ test('Canvas Slider stays selectable and leaves drag gestures to its wrapper', (
     .toBe(35)
 })
 
+test('Canvas Line endpoint handles edit geometry while its body remains movable', () => {
+  // @ts-ignore Rematch's inferred plugin type is wider than this test needs.
+  const store = init(storeConfig)
+  store.dispatch.components.addComponent({
+    parentName: 'root',
+    type: 'Line',
+    rootParentType: 'Line',
+    testId: 'line',
+    props: {
+      positionMode: 'absolute',
+      x: 40,
+      y: 50,
+      w: 100,
+      h: 80,
+      startX: 0,
+      startY: 0,
+      endX: 100,
+      endY: 80,
+      lineWidth: 3,
+    },
+  })
+
+  // @ts-ignore Test helper preserves its historical loosely typed options shape.
+  renderWithRedux(<ComponentPreview componentName="line" />, { store })
+
+  const preview = screen.getByTestId('standard-line-canvas-preview')
+  const stroke = screen.getByTestId('standard-line-stroke')
+  const startHandle = screen.getByTestId('standard-line-start-handle')
+  const moveSurface = preview.closest('[draggable="true"]')
+
+  expect(moveSurface).toHaveAttribute('draggable', 'true')
+  Object.defineProperty(preview, 'getBoundingClientRect', {
+    configurable: true,
+    value: () => ({
+      left: 0, right: 100, top: 0, bottom: 80,
+      width: 100, height: 80, x: 0, y: 0,
+      toJSON: () => ({}),
+    }),
+  })
+
+  const captured = new Set<number>()
+  startHandle.setPointerCapture = pointerId => captured.add(pointerId)
+  startHandle.hasPointerCapture = pointerId => captured.has(pointerId)
+  startHandle.releasePointerCapture = pointerId => captured.delete(pointerId)
+  const pointerEvent = (type: string, clientX: number, clientY: number) => {
+    const event = new Event(type, { bubbles: true, cancelable: true })
+    Object.defineProperties(event, {
+      pointerId: { value: 1 },
+      clientX: { value: clientX },
+      clientY: { value: clientY },
+    })
+    return event
+  }
+
+  const bodyPointerDown = pointerEvent('pointerdown', 50, 40)
+  fireEvent(stroke, bodyPointerDown)
+  expect(bodyPointerDown.defaultPrevented).toBe(false)
+
+  const handlePointerDown = pointerEvent('pointerdown', 0, 0)
+  fireEvent(startHandle, handlePointerDown)
+  expect(handlePointerDown.defaultPrevented).toBe(true)
+  fireEvent(startHandle, pointerEvent('pointermove', 20, 30))
+  fireEvent(startHandle, pointerEvent('pointerup', 20, 30))
+
+  // @ts-ignore Store state is wrapped by redux-undo in production and tests.
+  expect(store.getState().components.present.components.line.props)
+    .toMatchObject({
+      x: '60',
+      y: '80',
+      w: '80',
+      h: '50',
+      startX: '0',
+      startY: '0',
+      endX: '80',
+      endY: '50',
+    })
+})
+
 test('Canvas Bar keeps track interaction separate from wrapper movement', () => {
   // @ts-ignore Rematch's inferred plugin type is wider than this test needs.
   const store = init(storeConfig)

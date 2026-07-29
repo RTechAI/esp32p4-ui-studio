@@ -63,6 +63,65 @@ describe('Message Box generated developer API', () => {
     )
   })
 
+  it('emits the approved root, typography and outlined button styles', () => {
+    const { code } = generate(messageBox())
+
+    expect(code).toContain(
+      'lv_obj_set_style_bg_opa(obj1, LV_OPA_COVER, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_border_width(obj1, 1, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_radius(obj1, 8, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_shadow_width(obj1, 0, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_outline_width(obj1, 0, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_pad_all(obj1, 8, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_text_font(obj1_title, &lv_font_montserrat_16, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_text_font(obj1_text, &lv_font_montserrat_14, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_align(obj1_title, LV_ALIGN_TOP_LEFT, 0, 0);',
+    )
+    expect(code).toContain(
+      'lv_obj_align(obj1_text, LV_ALIGN_TOP_LEFT, 0, 38);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_bg_opa(obj1_button_0, LV_OPA_TRANSP, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_border_width(obj1_button_0, 1, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_radius(obj1_button_0, 0, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_shadow_width(obj1_button_0, 0, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_outline_width(obj1_button_0, 0, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_pad_all(obj1_button_0, 0, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_align(obj1_button_0, LV_ALIGN_BOTTOM_RIGHT, -70, 0);',
+    )
+    expect(code).toContain(
+      'lv_obj_align(obj1_button_1, LV_ALIGN_BOTTOM_RIGHT, 0, 0);',
+    )
+  })
+
   it('uses one guarded Show and Close visibility helper', () => {
     const { code } = generate(messageBox())
 

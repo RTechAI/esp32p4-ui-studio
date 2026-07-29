@@ -40,6 +40,10 @@ void FG_On_Message_Button_Pressed(uint32_t index, const char * text);
 void FG_On_Menu_Matrix_Button_Selected(uint32_t index, const char * text);
 void FG_On_Tab_View_Changed(uint32_t tab_index);
 void FG_On_Tileview_Changed(uint32_t column, uint32_t row);
+void FG_On_Tab_View_2_Changed(uint32_t tab_index);
+void FG_On_Tileview_2_Changed(uint32_t column, uint32_t row);
+void FG_On_Data_Chart_2_Point_Added(int32_t value);
+void FG_On_Data_Chart_2_Cleared(void);
 
 #ifdef __cplusplus
 }

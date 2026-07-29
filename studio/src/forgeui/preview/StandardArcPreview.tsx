@@ -5,12 +5,25 @@ import {
   FORGEUI_ARC_STROKE_WIDTH,
   getForgeUIStandardArcValues,
 } from '~forgeui/ForgeUIStandardArc'
+import {
+  FG_PREVIEW_PALETTES,
+  ForgePreviewPalette,
+  resolveForgeSemanticPalette,
+} from './forgeThemeMap'
 
 const ARC_RADIUS = FORGEUI_ARC_RADIUS
 const ARC_CIRCUMFERENCE = 2 * Math.PI * ARC_RADIUS
 
-const StandardArcPreview: React.FC<IPreviewProps> = ({ component }) => {
+type StandardArcPreviewProps = IPreviewProps & {
+  palette?: ForgePreviewPalette
+}
+
+const StandardArcPreview: React.FC<StandardArcPreviewProps> = ({
+  component,
+  palette = FG_PREVIEW_PALETTES.graphite,
+}) => {
   const arc = getForgeUIStandardArcValues(component.props)
+  const theme = resolveForgeSemanticPalette(palette)
   const trackLength = arc.sweepAngle / 360 * ARC_CIRCUMFERENCE
   let indicatorStart = arc.backgroundStartAngle
   let indicatorAngle = arc.sweepAngle * arc.fraction
@@ -51,7 +64,7 @@ const StandardArcPreview: React.FC<IPreviewProps> = ({ component }) => {
           cy="50"
           r={ARC_RADIUS}
           fill="none"
-          stroke="#374151"
+          stroke={theme.surfaceSecondary}
           strokeWidth={FORGEUI_ARC_STROKE_WIDTH}
           strokeLinecap="round"
           strokeDasharray={`${trackLength} ${ARC_CIRCUMFERENCE}`}
@@ -62,7 +75,7 @@ const StandardArcPreview: React.FC<IPreviewProps> = ({ component }) => {
           cy="50"
           r={ARC_RADIUS}
           fill="none"
-          stroke="#22d3ee"
+          stroke={theme.accent}
           strokeWidth={FORGEUI_ARC_STROKE_WIDTH}
           strokeLinecap="round"
           strokeDasharray={`${indicatorLength} ${ARC_CIRCUMFERENCE}`}

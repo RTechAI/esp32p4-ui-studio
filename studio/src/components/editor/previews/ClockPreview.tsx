@@ -4,14 +4,23 @@ import {
   formatForgeUIStandardClockTime,
   getForgeUIStandardClockPresentation,
 } from '~forgeui/ForgeUIStandardClock'
+import { useForgePreviewPalette } from '~forgeui/theme/ForgeThemeContext'
+import {
+  ForgePreviewPalette,
+  resolveForgeSemanticPalette,
+} from '~forgeui/preview/forgeThemeMap'
 
 const ClockPreview = ({
   component,
-  justifyContent = 'center',
+  justifyContent = 'flex-start',
+  palette,
 }: {
   component: IComponent
   justifyContent?: 'center' | 'flex-start'
+  palette?: ForgePreviewPalette
 }) => {
+  const contextPalette = useForgePreviewPalette()
+  const theme = resolveForgeSemanticPalette(palette || contextPalette)
   const [now, setNow] = React.useState(() => new Date())
   const [separatorVisible, setSeparatorVisible] = React.useState(true)
   const presentation = getForgeUIStandardClockPresentation(component.props)
@@ -32,12 +41,18 @@ const ClockPreview = ({
       width="100%"
       height="100%"
       display="flex"
-      alignItems="center"
+      alignItems="flex-start"
       justifyContent={justifyContent}
-      color={component.props.color || '#00d4ff'}
+      overflow="hidden"
+      m="0"
+      p="0"
+      color={component.props.color || theme.accent}
       fontSize={`${component.props.fontSize || 32}px`}
-      fontWeight="bold"
-      fontFamily="monospace"
+      fontWeight="normal"
+      fontFamily="Montserrat, Arial, sans-serif"
+      lineHeight="1"
+      letterSpacing="0"
+      data-testid="standard-clock-preview"
     >
       {formatForgeUIStandardClockTime(
         now,

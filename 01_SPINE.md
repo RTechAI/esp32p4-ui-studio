@@ -11,7 +11,7 @@
 
 ## Current Save Point
 
-**FORGEUI_STANDARD_LVGL_RUNTIME_V1__DEVELOPER_API_SURFACE__INTERACTIVE_OUTPUT_PRESENTATION_CLASSIFICATION__ARCHITECTURE_COMPLETE__2026-07-29**
+**FORGEUI_STANDARD_LVGL_CANVAS_TABVIEW_TILEVIEW_LINE_TEXT_HEADING_WIFI_PARITY__SHARED_PREVIEWS__SEMANTIC_THEME__LINE_ENDPOINTS__READY_FOR_P4_PROOF__2026-07-29**
 
 ## Current Proven Status..
 
@@ -73,7 +73,87 @@ The Storage Runtime is physically proven through lazy page creation, page reuse,
 
 The Standard LVGL Runtime now provides a consistent developer-facing SDK layer for the currently reviewed exported components. Application code controls generated UI through public `FG_Set_*`, `FG_Show_*`, `FG_Hide_*`, `FG_Add_*` and `FG_Clear_*` declarations in `90_Studio_Export.h`. Genuine user interaction crosses back into application code through generated `FG_On_*` declarations and preservation-merged bodies in `95_UserEvents.h/.c`. Interactive setters use per-instance guards so programmatic updates remain silent and cannot be misreported as genuine user events.
 
-This Standard Runtime is independent from the artwork-backed Interactive Asset runtimes, built-in System Runtime, Hosted Connectivity Runtime and Storage Runtime. The current automated proof covers the reviewed API, Preview and export architecture described below; it does not claim blanket physical ESP32-P4 proof for every newly added Standard component.
+This Standard Runtime is independent from the artwork-backed Interactive Asset runtimes, built-in System Runtime, Hosted Connectivity Runtime and Storage Runtime.
+
+The current Standard LVGL physical validation group is fully reviewed and signed off across Canvas, Browser Preview, generated LVGL and the ESP32-P4:
+
+- Led
+- Bar
+- Arc
+- Chart
+- Table
+- Keyboard
+- Calendar
+- Scale
+- Roller
+- MsgBox
+- ButtonMatrix
+
+The next Standard parity group has completed source-level and automated repair:
+
+- Canvas
+- TabView
+- TileView
+- Line
+- Text
+- Heading
+- Wi-Fi status presentation
+
+Current status:
+
+- Canvas and Browser Preview shared rendering: complete
+- semantic theme integration: complete at source level
+- generated LVGL exporter support: complete
+- focused automated validation: complete
+- physical ESP32-P4 sign-off: pending final Generate -> Build -> Flash confirmation
+
+The flashed ESP32-P4 remains the authoritative final reference. This group remains outside the eleven-component physical validation milestone until that final confirmation is complete.
+
+## Standard LVGL Semantic Theme Milestone
+
+ForgeUI now uses one semantic theme pipeline for the physically proven Standard component group:
+
+```text
+Selected Theme
+        |
+        v
+Semantic Theme Resolver
+        |-- Canvas
+        |-- Browser Preview
+        `-- LVGL Export
+                |
+                v
+        Generated Firmware
+                |
+                v
+           ESP32-P4
+```
+
+Canvas and Browser Preview follow the selected theme. Generated LVGL consumes the same semantic theme resolution, and the ESP32-P4 follows the selected theme after Generate -> Build -> Flash. Runtime live theme switching on the device was not added.
+
+The Standard semantic palette is:
+
+- `surface`
+- `surfaceSecondary`
+- `surfaceBorder`
+- `textPrimary`
+- `textSecondary`
+- `accent`
+- `accentText`
+- `disabledText`
+- `selectedSurface`
+
+Standard components consume these semantic roles instead of hard-coded decorative colours. Primary text is independent from accent, accent text is chosen by contrast, and missing values resolve through the deterministic graphite fallback. Custom palettes export correctly.
+
+Selected-theme changes propagate through:
+
+- Canvas
+- Browser Preview
+- Code Preview
+- live firmware generation
+- Build & Flash
+- Clean Build & Flash
+- standalone ESP-IDF export
 
 ## Standard LVGL Component Runtime APIs
 
@@ -233,11 +313,19 @@ The matrix object, button count and current selection are retained. Programmatic
 
 The first live Button Matrix inspection used a stale running Studio exporter bundle: it produced an old `90_Studio_Export.*` result while `95_UserEvents.*` reflected the newer hooks. Restarting Studio and regenerating through `/export` corrected all four files. This was stale running Studio/dev-server code, not a split between the live and standalone generators.
 
+### Standard Canvas
+
+Standard Canvas is a bounded LVGL container and may contain configured serialized artwork. The generic renderer must neither invent decorative SVG artwork nor discard configured artwork and render only an empty surface. Artwork resolves through the existing serialized fields and uploaded-asset registry, and Canvas and Browser Preview use the same artwork-aware renderer.
+
+Artwork preserves contain scaling, centred alignment, clipping, transparency and serialized `x` / `y` / `w` / `h`. Generated LVGL emits a clipped Canvas parent with a centred child `lv_image`, the configured generated image symbol and the saved scale. The exporter and asset registry remain the source of truth. Physical proof of the restored image remains pending final regeneration and flash.
+
 ### TabView
 
-TabView is serialized as `Tabview`. The current exporter creates three fixed tabs named `Tab 1`, `Tab 2` and `Tab 3`, and each tab contains matching hardcoded text. Tab labels and tab count are not Inspector-configurable. Active selection defaults to index `0`; a persisted `selectedIndex` is honored defensively when present.
+TabView is serialized as `Tabview`. Three fixed tabs remain: `Tab 1`, `Tab 2` and `Tab 3`. Tab labels and tab count are not Inspector-configurable. Active selection defaults to index `0`, and persisted `selectedIndex` is honored.
 
-Active tab is genuine semantic runtime state. The generated runtime retains the TabView object pointer, selected index and tab count. Touch and programmatic selection share one transition helper. The public setter clamps indexes above the final tab, suppresses repeated effective selections, updates retained state before LVGL and calls `lv_tabview_set_active(..., LV_ANIM_OFF)`. Touch parity uses `LV_EVENT_VALUE_CHANGED` and reads `lv_tabview_get_tab_active()`. Creation is silent, and the hook fires exactly once after a real transition. Same-named components receive deterministic `_2` suffixes.
+Canvas and Browser Preview use a shared renderer. Preview selection initializes from serialized state and direct preview tab switching is supported. Current geometry uses a 34 px tab bar, equal/remainder tab widths, square outer bounds and explicit content/page sizing. Selected styling uses a muted accent or selected-surface treatment, an accent bottom indicator and semantic text colours. Browser Preview does not simulate native swipe animation.
+
+Active tab is genuine semantic retained runtime state. Touch and programmatic selection share the existing transition helper, API and hook ownership. The public setter clamps indexes above the final tab, suppresses repeated effective selections, updates retained state before LVGL and calls `lv_tabview_set_active(..., LV_ANIM_OFF)`. Touch parity uses `LV_EVENT_VALUE_CHANGED` and reads `lv_tabview_get_tab_active()`. Creation is silent, and the hook fires exactly once after a real transition. Same-named components receive deterministic `_2` suffixes. Physical proof remains pending.
 
 Generated example:
 
@@ -248,18 +336,18 @@ void FG_On_Main_Tabs_Changed(uint32_t tab_index);
 
 ### Tileview
 
-Tileview is serialized as `Tileview`. Its current layout is a fixed complete `2 × 2` grid:
+Tileview is serialized as `Tileview`. The current ForgeUI contract is a simultaneous visible `2 × 2` panel:
 
 - Tile 1 = column 0, row 0
 - Tile 2 = column 1, row 0
 - Tile 3 = column 0, row 1
 - Tile 4 = column 1, row 1
 
-Every tile currently uses `LV_DIR_ALL`. Labels, grid size and navigation directions are not Inspector-configurable. Initial selection is column `0`, row `0`; persisted `selectedColumn` / `selectedRow` or `initialColumn` / `initialRow` values are honored defensively when present.
+Shared geometry uses 8 px padding, 6 px gaps, equal two-column/two-row layout and clipped child bounds. Canvas and Browser Preview use the same renderer. Generated LVGL uses a bounded parent with four visible child tile objects; the active tile receives `LV_STATE_CHECKED`.
 
-Active coordinates are genuine semantic runtime state. The generated runtime retains the Tileview object, an explicit tile object map `[2][2]`, selected column and row, and column and row counts. Invalid coordinates clamp safely because the generated grid is complete. Unavailable objects and missing mapped tiles are rejected, repeated effective selections are suppressed, and retained coordinates update before LVGL. Programmatic changes call `lv_tileview_set_tile(..., LV_ANIM_OFF)`.
+Initial selection is column `0`, row `0`; persisted `selectedColumn` / `selectedRow` or `initialColumn` / `initialRow` values are honored. Active column and row remain genuine retained runtime state, and the existing setter and hook names remain unchanged. Invalid coordinates clamp safely, unavailable objects and missing mapped tiles are rejected, repeated effective selections are suppressed, and creation remains silent.
 
-Touch reads `lv_tileview_get_tile_active()` and resolves the active object through the explicit retained map. Touch and programmatic paths share one helper, creation is silent, and the hook fires exactly once after a real transition. Duplicate names receive deterministic suffixes.
+Tileview consumes the semantic roles `surface`, `surfaceSecondary`, `surfaceBorder`, `textPrimary`, `accent`, `accentText` and `selectedSurface`. Swipe paging is not part of the current TileView contract. Labels, grid size and navigation directions remain non-configurable. Physical proof remains pending.
 
 Generated example:
 
@@ -324,9 +412,11 @@ Scale is the LVGL 9 `lv_scale` widget and is currently only a visual ruler/tick 
 
 ### Line
 
-Line is serialized as `Line` and exports an LVGL `lv_line` with exactly two points: `0,0` and `width,height`. Position comes from saved `x` and `y`, while the endpoint comes from saved `w` and `h`. The current line width remains hardcoded and the current theme line colour is exported.
+Line is serialized as `Line`, remains presentation-only and API-free, and continues to export native LVGL `lv_line`. Its persisted endpoint properties are `startX`, `startY`, `endX` and `endY`, relative to the Line origin.
 
-Line retains no runtime object, owns no value or touch state, and has no getter, setter or event semantics requiring a public API. It is intentionally API-free.
+Selected Canvas Lines expose draggable start/end handles. Endpoint dragging redraws immediately, rebases `x` / `y`, recalculates `w` / `h` and preserves relative endpoint coordinates. The existing wrapper continues to own whole-component movement. The Inspector exposes the four endpoint coordinates and Line Width. Canvas and Browser Preview share the endpoint-aware renderer.
+
+Generated LVGL emits the stored endpoints through `lv_line_set_points()`. Legacy projects without endpoint properties resolve to start `(0,0)` and end `(width,height)`. Horizontal, vertical, 45-degree, crossed and arbitrary-angle lines are supported. Shift snapping is not implemented. Line consumes semantic `surfaceBorder`. Physical proof remains pending.
 
 ### Icon runtime decision
 
@@ -360,23 +450,46 @@ Button, Text and Heading now have real serialized visible-text properties. These
 - Property: `textValue`
 - Default: `"Text value"`
 - Inspector field: Text Value
-- Canvas Preview, Browser Preview, live and standalone export use the saved value.
+- Canvas Preview and Browser Preview use the shared Standard Text renderer; live and standalone export use the saved value.
 - Empty text is valid, and component naming remains independent from displayed text.
 - Legacy `children`, `text` and `value` fields are supported.
+- The default semantic role is `textPrimary`; legacy literal white does not override the active semantic theme by default.
+- Generated LVGL explicitly applies the resolved colour with `lv_obj_set_style_text_color(...)`.
+- Serialized content, `x` / `y` / `w` / `h`, font size, alignment and wrapping are preserved.
+- Browser Preview polish uses top-left alignment and the current serialized/default size without preview-only centring.
+- Non-default custom-theme tests prove `textPrimary` reaches Canvas, Browser Preview and exporter output.
 - Shared C escaping handles backslashes, quotes, newlines, carriage returns and tabs.
 - No runtime API or `95_UserEvents` hook was added.
+- Physical theme confirmation remains pending final flash.
 
 #### Heading Text
 
 - Property: `headingText`
 - Default: `"Heading title"`
 - Inspector field: Heading Text
-- Canvas Preview, Browser Preview, live and standalone export use the saved value.
+- Canvas Preview and Browser Preview use the shared Standard Heading renderer; live and standalone export use the saved value.
 - Component naming remains independent from displayed text.
 - Legacy `children`, `text` and `value` fields are supported.
-- Existing font, colour, alignment, position, size and styling remain unchanged.
+- The default semantic role is `textPrimary`; legacy literal white does not override the active semantic theme by default.
+- Generated LVGL explicitly applies the resolved text colour.
+- Serialized content, `x` / `y` / `w` / `h`, size, weight and alignment are preserved.
+- Browser Preview polish uses top-left alignment, stronger visual hierarchy and no preview-only centring.
+- Non-default custom-theme tests prove `textPrimary` reaches Canvas, Browser Preview and exporter output.
 - Safe C-string escaping remains shared.
 - No runtime API or `95_UserEvents` hook was added.
+- Physical theme confirmation remains pending final flash.
+
+### Standard Wi-Fi Status Presentation
+
+Standard Wi-Fi remains presentation driven by the existing runtime polling and status mappings. No new Wi-Fi behaviour or runtime API was introduced. The established failed/disconnected display format is:
+
+```text
+WIFI
+WIFI_FAIL
+IP: -
+```
+
+Canvas and Browser Preview use the same three-line text structure inside the serialized component bounds. The restored structure prevents status wrapping and clipping while retaining semantic theme colours. Runtime ownership remains with `fg_wifi_status_text()` and the existing polling path. Physical confirmation remains pending final regeneration and flash.
 
 ### Clock Presentation
 
@@ -398,6 +511,11 @@ No timezone feature, RTC setter, `FG_Set_Clock_Time` API or `FG_On_Clock_Changed
 
 ### Validation Record
 
+- The eleven-component Standard theme/parity regression reached 158/158.
+- Graphite/orange, Cyber teal and Nordic light were verified across the shared semantic theme pipeline.
+- Custom palette export was verified.
+- Theme parity was physically reviewed through Canvas, Browser Preview, generated LVGL and ESP32-P4.
+- Parity/export tests, three-theme verification, TypeScript, ESP-IDF 5.5.4, LVGL 9.2.2, firmware build, firmware flash, physical ESP32-P4 review and `git diff --check` passed for the eleven-component group.
 - Focused Input, Textarea, Switch, Checkbox, Radio, Progress, NumberInput, Select, Image, Box and IconButton suites passed.
 - The complete exporter regression reached 212/212 after IconButton.
 - The Canvas regression suite reached 51/51 in the later Standard Runtime passes.
@@ -407,7 +525,7 @@ No timezone feature, RTC setter, `FG_Set_Clock_Time` API or `FG_On_Clock_Changed
 - Earlier Standard Runtime milestones also validated live `/export`, standalone `/export-idf-project` and ESP-IDF 5.5.4 builds. Generated firmware was not manually patched.
 - Existing developer-written hook bodies remain preserved while only missing declarations and stubs are appended.
 - The full export-server suite can still report one unrelated fixture failure when `fg_upload_1024x600_neural_core_67dd4ba0.c` and `fg_upload_carbon_fiber_be774fd2.c` are already absent. The full suite is not claimed as passing in that state, and the export safety boundary remains intact.
-- No blanket physical ESP32-P4 proof is claimed for the newly completed Standard Runtime set.
+- Physical proof is limited to the explicitly named eleven-component group; no physical claim is made here for later Standard controls.
 
 ## Built-in System Interface
 
@@ -1359,6 +1477,20 @@ The current implementation does not introduce a separate `InteractiveToggleSwitc
 
 The exporter owns shared generated runtime implementations, retained per-instance objects and state, public APIs, transition helpers, LVGL event adapters, generated hook declarations/stubs, deterministic collision-safe names, and built-in System containers and callbacks. Both live `/export` and standalone `/export-idf-project` use this generator through `export-server.js`. `90_Studio_Export.*` remains generated and replaceable; live-firmware `95_UserEvents.*` is preservation-merged, while standalone-export copies become developer-owned. The System Interface does not add generated user-event hooks.
 
+### Standard semantic theme and shared previews
+
+- `src/forgeui/preview/forgeThemeMap.ts`
+- `src/forgeui/theme/ForgeThemeContext.tsx`
+- `src/forgeui/preview/forgePreviewRenderer.tsx`
+- `src/forgeui/preview/StandardChartPreview.tsx`
+- `src/forgeui/preview/StandardCalendarPreview.tsx`
+- `src/forgeui/preview/StandardScalePreview.tsx`
+- `src/forgeui/preview/StandardRollerPreview.tsx`
+- `src/forgeui/preview/StandardMessageBoxPreview.tsx`
+- `src/forgeui/preview/StandardButtonMatrixPreview.tsx`
+- `src/components/editor/previews/BarPreview.tsx`
+- `src/components/editor/previews/ArcPreview.tsx`
+
 ### Generated firmware
 
 - `firmware/ForgeUI-One/main/90_Studio_Export.c`
@@ -1367,6 +1499,79 @@ The exporter owns shared generated runtime implementations, retained per-instanc
 - `firmware/ForgeUI-One/main/95_UserEvents.h`
 
 ## Physical ESP32-P4 Proof
+
+### Standard LVGL eleven-component theme parity
+
+The following Standard components are physically proven across Canvas, Browser Preview, generated LVGL and ESP32-P4.
+
+#### LED
+
+- Runtime setter, hook and silent startup are verified.
+- Semantic green is intentionally retained as a status colour independent of decorative theme colours.
+
+#### Bar
+
+- Canvas interaction, Browser Preview, generated LVGL, ESP32-P4, runtime setter and hook are verified.
+- Negative and reversed ranges are verified.
+- Track uses `surfaceSecondary`, border uses `surfaceBorder`, and indicator uses `accent`.
+
+#### Arc
+
+- Canvas, Browser Preview, generated LVGL, ESP32-P4, runtime setter, hook and silent startup are verified.
+- Background arc uses `surfaceSecondary`, indicator uses `accent`, and knob uses `accentText`.
+
+#### Chart
+
+- Canvas, Browser Preview, generated LVGL and ESP32-P4 are verified.
+- The native single-series `lv_chart` remains responsible for point count, runtime streaming and runtime clear.
+- Parity includes themed surface, border and divisions; responsive gutters; Y-axis labels; X-axis point indexes; non-clickable sibling `lv_label` axis labels; and selected-theme text colours.
+- Default Y labels are `100`, `75`, `50`, `25`, `0`.
+- Default X labels are `0`, `1`, `2`, `3`, `4`, `5`, `6`.
+- Runtime APIs and hooks are unchanged, and startup remains silent.
+
+#### Table
+
+- Canvas, Browser Preview, generated LVGL and ESP32-P4 are verified.
+- Surface, cells, grid and primary text are theme-driven.
+- No Table runtime API is claimed or invented.
+
+#### Keyboard
+
+- Canvas, Browser Preview, generated LVGL and ESP32-P4 are verified.
+- Keyboard surface, keys, borders, pressed and disabled keys, and text are theme-driven.
+- Show/Hide APIs and their existing hooks are preserved.
+
+#### Calendar
+
+- Canvas, Browser Preview, generated LVGL and ESP32-P4 are verified.
+- The fixed model remains June 2026, Sunday-first, 42 date cells, six weeks, spill dates and today outline.
+- Surface, border, `textPrimary`, `textSecondary` and `accent` are theme-driven.
+
+#### Scale
+
+- Canvas, Browser Preview, generated LVGL and ESP32-P4 are verified.
+- The model remains horizontal-bottom, `0..100`, 11 ticks, labels and no surrounding panel.
+- Ticks use `accent`; labels use `textPrimary`.
+- Scale remains API-free.
+
+#### Roller
+
+- Canvas, Browser Preview, generated LVGL and ESP32-P4 are verified.
+- The opaque surface, border, normal text, selected row and selected text are theme-driven.
+- Selection behavior is unchanged.
+
+#### Message Box
+
+- Canvas, Browser Preview, generated LVGL and ESP32-P4 are verified.
+- The current architecture remains a custom ForgeUI panel with title, body and buttons; it does not use `lv_msgbox_create`.
+- Surface, border, text and outlined buttons are theme-driven.
+- Show, Close and button hooks are preserved.
+
+#### Button Matrix
+
+- Canvas, Browser Preview, generated LVGL and ESP32-P4 are verified.
+- Surface, button surface, border, text, selected state and disabled state are theme-driven.
+- Runtime behavior is unchanged.
 
 ### Interactive Button
 
@@ -1543,6 +1748,20 @@ The keyboard runtime is reusable architecture for future Device settings, MQTT, 
 - A known unrelated server fixture/source absence can fail the built-in theme-source preflight when the expected Neural Core or Carbon Fiber generated C files are not present; this does not weaken the validation boundary.
 
 ## Architectural Significance and Extension Pattern
+
+### Standard LVGL semantic theme architecture
+
+ForgeUI Standard LVGL components now share one semantic theme architecture. Future Standard components should:
+
+- consume semantic theme roles;
+- share Canvas and Browser rendering where practical;
+- emit equivalent LVGL styling;
+- preserve native LVGL interaction;
+- avoid hard-coded decorative colours;
+- retain the deterministic fallback;
+- keep semantic status colours independent where appropriate.
+
+This architecture provides authoring, preview and generated-firmware parity without adding runtime device theme switching.
 
 ForgeUI now contains these reusable platform layers and services:
 
@@ -1740,6 +1959,20 @@ These remain future concepts only. Existing Radio and Checkbox runtimes are impl
 # Save Point History
 
 Save points are ordered newest to oldest. Detailed subsystem engineering is maintained in the Developer Code Maps.
+
+## FORGEUI_STANDARD_LVGL_CANVAS_TABVIEW_TILEVIEW_LINE_TEXT_HEADING_WIFI_PARITY__SHARED_PREVIEWS__SEMANTIC_THEME__LINE_ENDPOINTS__READY_FOR_P4_PROOF__2026-07-29
+
+- **What changed:** Standard Canvas, TabView, TileView, Text, Heading, Line and Wi-Fi now use shared Canvas / Browser Preview renderers where practical. Canvas decorative placeholder artwork was removed and configured artwork support was restored through the existing serialized asset path. TabView was aligned with generated/native LVGL geometry, selection and styling. TileView preview and generated LVGL were aligned around the simultaneous visible `2 × 2` ForgeUI contract. Standard Line gained persisted editable endpoints. Text and Heading consume semantic `textPrimary`, while Line consumes semantic `surfaceBorder`. Wi-Fi restored the established `WIFI` / `WIFI_FAIL` / `IP: -` vocabulary without wrapping or clipping. Browser Preview visual polish aligned Button, Text, Heading, Clock and Wi-Fi without changing serialized geometry or runtime behaviour.
+- **Why it changed:** Duplicated preview implementations had drifted from generated LVGL; Canvas discarded configured artwork; TabView and TileView preview selection did not follow serialized startup state; TileView generated selection did not synchronize checked visual state; Text and Heading allowed legacy literal-colour paths to bypass the semantic theme; Line was fixed to `(0,0) -> (width,height)` and used a legacy border-colour path; Wi-Fi wording, wrapping and clipping regressed; and Browser Preview typography and alignment had drifted from generated LVGL/P4 presentation.
+- **Final architecture:** Canvas and Browser Preview share Standard renderers where practical, while generated LVGL remains the firmware implementation. Canvas artwork resolves through serialized uploaded assets and exports as a clipped parent plus centred child `lv_image`. TabView retains native active-index semantics and existing API/hook ownership. TileView retains active column/row semantics and the simultaneous visible `2 × 2` panel contract. Line remains presentation-only and API-free while storing `startX`, `startY`, `endX` and `endY`. Text and Heading use `textPrimary`; Line uses `surfaceBorder`. Wi-Fi text remains owned by existing runtime polling and `fg_wifi_status_text()`. Generated firmware remains replaceable output and is not the source of fixes.
+- **Proven result:** Focused geometry, preview, semantic-theme, Wi-Fi and exporter regressions passed. Horizontal, vertical, 45-degree and arbitrary-angle Line exports passed, together with legacy compatibility and endpoint rebasing. Text, Heading and Line passed non-default custom-theme proof. Wi-Fi coverage confirmed `WIFI_FAIL`, `IP: -` and no wrapping. TypeScript and `git diff --check` passed. Runtime APIs, hooks, persistence, Inspector behaviour and interaction contracts remain unchanged. Physical ESP32-P4 sign-off remains pending for this group; final Generate -> Build -> Flash -> visual comparison is required before promotion to physically proven status.
+
+## FORGEUI_STANDARD_LVGL_THEME_PARITY__ELEVEN_COMPONENTS__CANVAS_BROWSER_GENERATED_LVGL_ESP32P4_PROVEN__2026-07-29
+
+- **What changed:** Unified the semantic theme engine across Canvas, Browser Preview and LVGL export for Led, Bar, Arc, Chart, Table, Keyboard, Calendar, Scale, Roller, MsgBox and ButtonMatrix; completed Chart Y-axis numeric labels and X-axis point-index labels; and verified custom palette export.
+- **Why it changed:** The selected Studio theme needed to remain authoritative through authoring, preview, generation and the flashed device, while Standard controls retained their native LVGL interaction and existing developer contracts.
+- **Final architecture:** Selected themes resolve into shared semantic roles consumed by Canvas, Browser Preview, Code Preview and generated LVGL. Generated firmware reproduces that styling after Generate -> Build -> Flash. Deterministic graphite fallback remains available, status colours may remain semantically independent, and runtime hot theme switching is intentionally absent.
+- **Proven result:** Canvas parity, Browser Preview parity, generated LVGL parity and physical ESP32-P4 parity are complete for the eleven named components across Graphite/orange, Cyber teal and Nordic light. Chart axes, custom palette export, runtime APIs, hooks and silent startup are preserved. Focused regressions reached 158/158, TypeScript and `git diff --check` passed, and ESP-IDF 5.5.4 / LVGL 9.2.2 firmware was generated, built, flashed and physically reviewed.
 
 ## FORGEUI_STANDARD_LVGL_RUNTIME_V1__DEVELOPER_API_SURFACE__INTERACTIVE_OUTPUT_PRESENTATION_CLASSIFICATION__ARCHITECTURE_COMPLETE__2026-07-29
 

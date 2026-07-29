@@ -7,6 +7,17 @@ import { allocateUniqueOutputApiName } from './ForgeUIGeneratedApiNames'
 import { getForgeUIStandardButtonText } from './ForgeUIStandardButton'
 import { getForgeUIStandardTextValue } from './ForgeUIStandardText'
 import { getForgeUIStandardHeadingText } from './ForgeUIStandardHeading'
+import { getForgeUIStandardLineGeometry } from './ForgeUIStandardLine'
+import {
+  FORGEUI_STANDARD_CHART_DEFAULT_DATA,
+  FORGEUI_STANDARD_CHART_DEFAULT_POINT_COUNT,
+  getForgeUIStandardChartLayout,
+} from './ForgeUIStandardChart'
+import {
+  FORGEUI_TAB_TILE_BORDER_WIDTH,
+  getForgeUITabViewGeometry,
+  getForgeUITileViewGeometry,
+} from './ForgeUIStandardTabTileGeometry'
 import {
   getForgeUIStandardClockPresentation,
   type ForgeUIClockHourFormat,
@@ -35,7 +46,9 @@ import {
 
 import {
   FG_PREVIEW_PALETTES,
+  type ForgePreviewPalette,
   type ForgeThemeId,
+  resolveForgeSemanticPalette,
 } from './preview/forgeThemeMap'
 
 const toLvHex = (
@@ -439,7 +452,7 @@ type IconButtonExport = {
 }
 
 const resolveStandardImageAsset = (component: IComponent) => {
-  const src = component.props.src || ''
+  const src = component.props.src || component.props.browserSrc || ''
   const presetAsset = FORGEUI_IMAGE_ASSETS.find(
     (asset: any) => asset.src === src,
   )
@@ -1404,11 +1417,14 @@ const createChartExports = (
       const maximum = Math.max(firstRangeValue, secondRangeValue)
       const pointCount = Math.max(
         1,
-        integerProp(component.props.pointCount, 7),
+        integerProp(
+          component.props.pointCount,
+          FORGEUI_STANDARD_CHART_DEFAULT_POINT_COUNT,
+        ),
       )
       const configuredData = Array.isArray(component.props.initialData)
         ? component.props.initialData
-        : [10, 30, 20, 50, 40, 70, 60]
+        : FORGEUI_STANDARD_CHART_DEFAULT_DATA
       const initialData = configuredData
         .slice(0, pointCount)
         .map((value: unknown) =>
@@ -1448,25 +1464,11 @@ const createChartExports = (
         initialData,
         seriesColor,
         horizontalDivisions:
-          component.props.horizontalDivisions === undefined &&
-          component.props.hdiv === undefined &&
-          component.props.verticalDivisions === undefined &&
-          component.props.vdiv === undefined
-            ? undefined
-            : Math.max(0, integerProp(
-                component.props.horizontalDivisions ?? component.props.hdiv,
-                3,
-              )),
-        verticalDivisions:
-          component.props.horizontalDivisions === undefined &&
-          component.props.hdiv === undefined &&
-          component.props.verticalDivisions === undefined &&
-          component.props.vdiv === undefined
-            ? undefined
-            : Math.max(0, integerProp(
-                component.props.verticalDivisions ?? component.props.vdiv,
-                5,
-              )),
+          Math.max(0, integerProp(
+            component.props.horizontalDivisions ?? component.props.hdiv,
+            3,
+          )),
+        verticalDivisions: pointCount,
         updateMode: rawUpdateMode === 'circular'
           ? 'LV_CHART_UPDATE_MODE_CIRCULAR'
           : rawUpdateMode === 'shift'
@@ -2158,9 +2160,7 @@ const buildLvglBlock = (
 
 
 
-        const color = child.props.color
-          ? `0x${String(child.props.color).replace('#', '')}`
-          : palette.text
+        const color = palette.textPrimary
 
         const fontSize = lv(child.props.fontSize, 24)
 
@@ -2176,9 +2176,7 @@ const buildLvglBlock = (
       case 'Heading': {
   const text = esc(getForgeUIStandardHeadingText(child.props))
 
-    const color = child.props.color
-    ? `0x${String(child.props.color).replace('#', '')}`
-    : palette.text
+  const color = palette.textPrimary
 
   lines.push(`lv_obj_t * ${varName} = lv_label_create(${parentVar});`)
   lines.push(`lv_label_set_text(${varName}, "${text}");`)
@@ -2203,20 +2201,23 @@ case 'Clock': {
   lines.push(`lv_label_set_text(${clockLabel}, "${text}");`)
   lines.push(`lv_obj_set_pos(${clockLabel}, ${x}, ${y});`)
   lines.push(`lv_obj_set_size(${clockLabel}, ${w}, ${h});`)
-  lines.push(`lv_obj_set_style_text_color(${clockLabel}, lv_color_hex(0x00D4FF), 0);`)
+  lines.push(`lv_obj_set_style_text_color(${clockLabel}, lv_color_hex(${palette.accent}), 0);`)
   lines.push(`lv_obj_set_style_text_font(${clockLabel}, &lv_font_montserrat_32, 0);`)
+  lines.push(`lv_obj_set_style_text_align(${clockLabel}, LV_TEXT_ALIGN_LEFT, 0);`)
   lines.push(``)
   break
 }
 
 case 'WiFi': {
   lines.push(`fg_wifi_label = lv_label_create(${parentVar});`)
-  lines.push(`lv_label_set_text(fg_wifi_label, "WIFI\\nDISCONNECTED\\nIP: -");`)
+  lines.push(`lv_label_set_text(fg_wifi_label, "WIFI\\nWIFI_FAIL\\nIP: -");`)
   lines.push(`lv_obj_set_pos(fg_wifi_label, ${x}, ${y});`)
   lines.push(`lv_obj_set_size(fg_wifi_label, ${w}, ${h});`)
-  lines.push(`lv_obj_set_style_text_color(fg_wifi_label, lv_color_hex(0x00D4FF), 0);`)
+  lines.push(`lv_obj_set_style_text_color(fg_wifi_label, lv_color_hex(${palette.accent}), 0);`)
   lines.push(`lv_obj_set_style_text_font(fg_wifi_label, &lv_font_montserrat_20, 0);`)
-  lines.push(`lv_label_set_long_mode(fg_wifi_label, LV_LABEL_LONG_WRAP);`)
+  lines.push(`lv_obj_set_style_text_align(fg_wifi_label, LV_TEXT_ALIGN_LEFT, 0);`)
+  lines.push(`lv_obj_set_style_text_line_space(fg_wifi_label, -2, 0);`)
+  lines.push(`lv_label_set_long_mode(fg_wifi_label, LV_LABEL_LONG_CLIP);`)
   lines.push(``)
   break
 }
@@ -2230,12 +2231,14 @@ case 'WiFi': {
         lines.push(`lv_obj_set_style_radius(${varName}, 12, 0);`)
         lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), 0);`)
         lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_COVER, 0);`)
-        lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), 0);`)
+        lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.surfaceBorder}), 0);`)
         lines.push(`lv_obj_set_style_border_width(${varName}, 2, 0);`)
 
         lines.push(`lv_obj_t * ${varName}_label = lv_label_create(${varName});`)
         lines.push(`lv_label_set_text(${varName}_label, "${text}");`)
-        lines.push(`lv_obj_set_style_text_color(${varName}_label, lv_color_hex(${palette.text}), 0);`)
+        lines.push(`lv_obj_set_style_text_color(${varName}_label, lv_color_hex(${palette.textPrimary}), 0);`)
+        lines.push(`lv_obj_set_style_text_font(${varName}_label, &lv_font_montserrat_14, 0);`)
+        lines.push(`lv_obj_set_style_text_align(${varName}_label, LV_TEXT_ALIGN_CENTER, 0);`)
         lines.push(`lv_obj_center(${varName}_label);`)
         lines.push(``)
         break
@@ -3061,6 +3064,14 @@ case 'Bar': {
   lines.push(`lv_obj_set_size(${barObject}, ${w}, ${h});`)
   lines.push(`lv_bar_set_range(${barObject}, ${minimum}, ${maximum});`)
   lines.push(`lv_bar_set_value(${barObject}, ${initialValue}, LV_ANIM_OFF);`)
+  lines.push(`lv_obj_set_style_bg_color(${barObject}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_opa(${barObject}, LV_OPA_COVER, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${barObject}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${barObject}, 1, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${barObject}, LV_RADIUS_CIRCLE, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_color(${barObject}, lv_color_hex(${palette.accent}), LV_PART_INDICATOR);`)
+  lines.push(`lv_obj_set_style_bg_opa(${barObject}, LV_OPA_COVER, LV_PART_INDICATOR);`)
+  lines.push(`lv_obj_set_style_radius(${barObject}, LV_RADIUS_CIRCLE, LV_PART_INDICATOR);`)
   if (barExport) {
     lines.push(`${barExport.stateName} = ${initialValue};`)
   }
@@ -3091,6 +3102,9 @@ case 'Arc': {
     lines.push(`lv_arc_set_mode(${arcObject}, ${arcExport.mode});`)
   }
   lines.push(`lv_arc_set_value(${arcObject}, ${initialValue});`)
+  lines.push(`lv_obj_set_style_arc_color(${arcObject}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_arc_color(${arcObject}, lv_color_hex(${palette.accent}), LV_PART_INDICATOR);`)
+  lines.push(`lv_obj_set_style_bg_color(${arcObject}, lv_color_hex(${palette.accentText}), LV_PART_KNOB);`)
   if (arcExport) {
     lines.push(`${arcExport.stateName} = ${initialValue};`)
   }
@@ -3119,41 +3133,67 @@ case 'Roller': {
   lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
   lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
   lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.border}), LV_PART_SELECTED);`)
-  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.bg}), LV_PART_SELECTED);`)
+  lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_COVER, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_font(${varName}, &lv_font_montserrat_16, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_align(${varName}, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_line_space(${varName}, 5, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${varName}, 1, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${varName}, 8, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_pad_all(${varName}, 0, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_TRANSP, LV_PART_SELECTED);`)
+  lines.push(`lv_obj_set_style_border_width(${varName}, 0, LV_PART_SELECTED);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.accent}), LV_PART_SELECTED);`)
+  lines.push(`lv_obj_set_style_text_font(${varName}, &lv_font_montserrat_16, LV_PART_SELECTED);`)
+  lines.push(`lv_obj_set_style_text_align(${varName}, LV_TEXT_ALIGN_CENTER, LV_PART_SELECTED);`)
   lines.push(``)
   break
 }
 
 case 'Canvas': {
+  const asset: any = resolveStandardImageAsset(child)
+  const hasImage = Boolean(asset?.lvgl || asset?.symbolName)
   lines.push(`lv_obj_t * ${varName} = lv_obj_create(${parentVar});`)
   lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
   lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
 
   lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_COVER, LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_border_width(${varName}, 2, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_opa(${varName}, ${hasImage ? 'LV_OPA_TRANSP' : 'LV_OPA_COVER'}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${varName}, ${hasImage ? 0 : 2}, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_radius(${varName}, 8, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_pad_all(${varName}, 0, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_clip_corner(${varName}, true, LV_PART_MAIN);`)
+  lines.push(`lv_obj_clear_flag(${varName}, LV_OBJ_FLAG_SCROLLABLE);`)
+  if (hasImage) {
+    const symbol = asset.lvgl || asset.symbolName
+    const cFile = asset.cFile || asset.assetSource
+    if (cFile) usedAssetSources.add(cFile)
+    lines.push(`LV_IMAGE_DECLARE(${symbol});`)
+    lines.push(`lv_obj_t * ${varName}_image = lv_image_create(${varName});`)
+    lines.push(`lv_image_set_src(${varName}_image, &${symbol});`)
+    lines.push(`lv_image_set_scale(${varName}_image, ${Number(child.props.imageScale || 256)});`)
+    lines.push(`lv_obj_center(${varName}_image);`)
+  }
 
   lines.push(``)
   break
 }
 
 case 'Line': {
+  const lineGeometry = getForgeUIStandardLineGeometry(child.props)
   lines.push(`static lv_point_precise_t ${varName}_pts[] = {`)
-  lines.push(`  {0, 0},`)
-  lines.push(`  {${w}, ${h}}`)
+  lines.push(`  {${lineGeometry.startX}, ${lineGeometry.startY}},`)
+  lines.push(`  {${lineGeometry.endX}, ${lineGeometry.endY}}`)
   lines.push(`};`)
 
   lines.push(`lv_obj_t * ${varName} = lv_line_create(${parentVar});`)
   lines.push(`lv_line_set_points(${varName}, ${varName}_pts, 2);`)
   lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
 
-  lines.push(`lv_obj_set_style_line_color(${varName}, lv_color_hex(${palette.border}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_line_width(${varName}, 3, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_line_color(${varName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_line_width(${varName}, ${lv(child.props.lineWidth, 3)}, LV_PART_MAIN);`)
 
   lines.push(``)
   break
@@ -3162,6 +3202,7 @@ case 'Line': {
 case 'Tabview': {
   const tabViewExport = tabViewExports.get(child.id)
   const tabViewObject = tabViewExport?.objectName || varName
+  const tabGeometry = getForgeUITabViewGeometry(child.props)
   lines.push(`${tabViewObject} = lv_tabview_create(${parentVar});`)
   lines.push(`lv_obj_t * ${varName} = ${tabViewObject};`)
   lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
@@ -3169,26 +3210,75 @@ case 'Tabview': {
 
   lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_COVER, LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_border_width(${varName}, 2, LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${varName}, ${FORGEUI_TAB_TILE_BORDER_WIDTH}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${varName}, 0, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_clip_corner(${varName}, true, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_pad_all(${varName}, 0, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_pad_row(${varName}, 0, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_pad_column(${varName}, 0, LV_PART_MAIN);`)
+  lines.push(`lv_obj_clear_flag(${varName}, LV_OBJ_FLAG_SCROLLABLE);`)
+  lines.push(`lv_tabview_set_tab_bar_position(${varName}, LV_DIR_TOP);`)
+  lines.push(`lv_tabview_set_tab_bar_size(${varName}, ${tabGeometry.tabBarHeight});`)
+  lines.push(`lv_obj_t * ${varName}_tab_bar = lv_tabview_get_tab_bar(${varName});`)
+  lines.push(`lv_obj_t * ${varName}_content = lv_tabview_get_content(${varName});`)
+  lines.push(`lv_obj_set_size(${varName}_tab_bar, ${tabGeometry.innerWidth}, ${tabGeometry.tabBarHeight});`)
+  lines.push(`lv_obj_set_flex_grow(${varName}_tab_bar, 0);`)
+  lines.push(`lv_obj_set_style_pad_all(${varName}_tab_bar, 0, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_pad_row(${varName}_tab_bar, 0, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_pad_column(${varName}_tab_bar, 0, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${varName}_tab_bar, 0, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${varName}_tab_bar, 0, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}_tab_bar, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_opa(${varName}_tab_bar, LV_OPA_COVER, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_size(${varName}_content, ${tabGeometry.innerWidth}, ${tabGeometry.contentHeight});`)
+  lines.push(`lv_obj_set_flex_grow(${varName}_content, 0);`)
+  lines.push(`lv_obj_set_style_pad_all(${varName}_content, 0, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_pad_row(${varName}_content, 0, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_pad_column(${varName}_content, 0, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${varName}_content, 0, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${varName}_content, 0, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}_content, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_opa(${varName}_content, LV_OPA_COVER, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_scrollbar_mode(${varName}_content, LV_SCROLLBAR_MODE_OFF);`)
 
   lines.push(`lv_obj_t * ${varName}_tab1 = lv_tabview_add_tab(${varName}, "Tab 1");`)
   lines.push(`lv_obj_t * ${varName}_tab2 = lv_tabview_add_tab(${varName}, "Tab 2");`)
   lines.push(`lv_obj_t * ${varName}_tab3 = lv_tabview_add_tab(${varName}, "Tab 3");`)
+  ;[1, 2, 3].forEach((tabNumber, index) => {
+    lines.push(`lv_obj_t * ${varName}_tab_button_${tabNumber} = lv_obj_get_child(${varName}_tab_bar, ${index});`)
+    lines.push(`lv_obj_set_flex_grow(${varName}_tab_button_${tabNumber}, 0);`)
+    lines.push(`lv_obj_set_size(${varName}_tab_button_${tabNumber}, ${tabGeometry.tabWidths[index]}, ${tabGeometry.tabBarHeight});`)
+    lines.push(`lv_obj_set_style_pad_all(${varName}_tab_button_${tabNumber}, 0, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_radius(${varName}_tab_button_${tabNumber}, 0, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_bg_opa(${varName}_tab_button_${tabNumber}, LV_OPA_TRANSP, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_color(${varName}_tab_button_${tabNumber}, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_bg_color(${varName}_tab_button_${tabNumber}, lv_color_hex(${palette.selectedSurface}), LV_PART_MAIN | LV_STATE_CHECKED);`)
+    lines.push(`lv_obj_set_style_bg_opa(${varName}_tab_button_${tabNumber}, LV_OPA_20, LV_PART_MAIN | LV_STATE_CHECKED);`)
+    lines.push(`lv_obj_set_style_text_color(${varName}_tab_button_${tabNumber}, lv_color_hex(${palette.accent}), LV_PART_MAIN | LV_STATE_CHECKED);`)
+    lines.push(`lv_obj_set_style_border_color(${varName}_tab_button_${tabNumber}, lv_color_hex(${palette.accent}), LV_PART_MAIN | LV_STATE_CHECKED);`)
+    lines.push(`lv_obj_set_style_border_width(${varName}_tab_button_${tabNumber}, 3, LV_PART_MAIN | LV_STATE_CHECKED);`)
+    lines.push(`lv_obj_set_style_border_side(${varName}_tab_button_${tabNumber}, LV_BORDER_SIDE_BOTTOM, LV_PART_MAIN | LV_STATE_CHECKED);`)
+    lines.push(`lv_obj_t * ${varName}_tab_button_label_${tabNumber} = lv_obj_get_child(${varName}_tab_button_${tabNumber}, 0);`)
+    lines.push(`lv_obj_center(${varName}_tab_button_label_${tabNumber});`)
+    lines.push(`lv_obj_set_size(${varName}_tab${tabNumber}, ${tabGeometry.innerWidth}, ${tabGeometry.contentHeight});`)
+    lines.push(`lv_obj_set_style_pad_all(${varName}_tab${tabNumber}, 0, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_border_width(${varName}_tab${tabNumber}, 0, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_radius(${varName}_tab${tabNumber}, 0, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_bg_color(${varName}_tab${tabNumber}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_bg_opa(${varName}_tab${tabNumber}, LV_OPA_COVER, LV_PART_MAIN);`)
+    lines.push(`lv_obj_clear_flag(${varName}_tab${tabNumber}, LV_OBJ_FLAG_SCROLLABLE);`)
+  })
   if (tabViewExport) {
     lines.push(`lv_tabview_set_active(${varName}, ${tabViewExport.initialIndex}, LV_ANIM_OFF);`)
     lines.push(`${tabViewExport.selectedIndexName} = ${tabViewExport.initialIndex};`)
     lines.push(`lv_obj_add_event_cb(${varName}, ${tabViewExport.eventCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
   }
 
-  lines.push(`lv_obj_set_style_bg_color(${varName}_tab1, lv_color_hex(${palette.surface2}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}_tab2, lv_color_hex(${palette.surface2}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}_tab3, lv_color_hex(${palette.surface2}), LV_PART_MAIN);`)
-
   lines.push(`lv_obj_t * ${varName}_lbl1 = lv_label_create(${varName}_tab1);`)
   lines.push(`lv_label_set_text(${varName}_lbl1, "Tab 1 content");`)
-  lines.push(`lv_obj_set_style_text_color(${varName}_lbl1, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}_lbl1, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
   lines.push(`lv_obj_center(${varName}_lbl1);`)
 
   lines.push(`lv_obj_t * ${varName}_lbl2 = lv_label_create(${varName}_tab2);`)
@@ -3208,20 +3298,32 @@ case 'Tabview': {
 case 'Tileview': {
   const tileViewExport = tileViewExports.get(child.id)
   const tileViewObject = tileViewExport?.objectName || varName
-  lines.push(`${tileViewObject} = lv_tileview_create(${parentVar});`)
+  const tileGeometry = getForgeUITileViewGeometry(child.props)
+  lines.push(`${tileViewObject} = lv_obj_create(${parentVar});`)
   lines.push(`lv_obj_t * ${varName} = ${tileViewObject};`)
   lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
   lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
 
   lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_COVER, LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_border_width(${varName}, 2, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${varName}, ${FORGEUI_TAB_TILE_BORDER_WIDTH}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${varName}, 10, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_pad_all(${varName}, 0, LV_PART_MAIN);`)
+  lines.push(`lv_obj_clear_flag(${varName}, LV_OBJ_FLAG_SCROLLABLE);`)
+  lines.push(`lv_obj_set_style_clip_corner(${varName}, true, LV_PART_MAIN);`)
 
-  lines.push(`lv_obj_t * ${varName}_tile1 = lv_tileview_add_tile(${varName}, 0, 0, LV_DIR_ALL);`)
-  lines.push(`lv_obj_t * ${varName}_tile2 = lv_tileview_add_tile(${varName}, 1, 0, LV_DIR_ALL);`)
-  lines.push(`lv_obj_t * ${varName}_tile3 = lv_tileview_add_tile(${varName}, 0, 1, LV_DIR_ALL);`)
-  lines.push(`lv_obj_t * ${varName}_tile4 = lv_tileview_add_tile(${varName}, 1, 1, LV_DIR_ALL);`)
+  ;[
+    { number: 1, column: 0, row: 0 },
+    { number: 2, column: 1, row: 0 },
+    { number: 3, column: 0, row: 1 },
+    { number: 4, column: 1, row: 1 },
+  ].forEach(({ number, column, row }) => {
+    lines.push(`lv_obj_t * ${varName}_tile${number} = lv_obj_create(${varName});`)
+    lines.push(`lv_obj_set_pos(${varName}_tile${number}, ${tileGeometry.columnX[column]}, ${tileGeometry.rowY[row]});`)
+    lines.push(`lv_obj_set_size(${varName}_tile${number}, ${tileGeometry.columnWidths[column]}, ${tileGeometry.rowHeights[row]});`)
+    lines.push(`lv_obj_set_style_pad_all(${varName}_tile${number}, 0, LV_PART_MAIN);`)
+  })
   if (tileViewExport) {
     lines.push(`${tileViewExport.tilesName}[0][0] = ${varName}_tile1;`)
     lines.push(`${tileViewExport.tilesName}[1][0] = ${varName}_tile2;`)
@@ -3230,36 +3332,45 @@ case 'Tileview': {
   }
 
   ;[1, 2, 3, 4].forEach((n) => {
-    lines.push(`lv_obj_set_style_bg_color(${varName}_tile${n}, lv_color_hex(${n === 1 ? palette.border : palette.surface2}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_bg_color(${varName}_tile${n}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
     lines.push(`lv_obj_set_style_bg_opa(${varName}_tile${n}, LV_OPA_COVER, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_color(${varName}_tile${n}, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_border_color(${varName}_tile${n}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_border_width(${varName}_tile${n}, 1, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_radius(${varName}_tile${n}, 10, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_bg_color(${varName}_tile${n}, lv_color_hex(${palette.selectedSurface}), LV_PART_MAIN | LV_STATE_CHECKED);`)
+    lines.push(`lv_obj_set_style_bg_opa(${varName}_tile${n}, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_CHECKED);`)
+    lines.push(`lv_obj_set_style_text_color(${varName}_tile${n}, lv_color_hex(${palette.accentText}), LV_PART_MAIN | LV_STATE_CHECKED);`)
     lines.push(`lv_obj_clear_flag(${varName}_tile${n}, LV_OBJ_FLAG_SCROLLABLE);`)
+    if (tileViewExport) {
+      lines.push(`lv_obj_add_event_cb(${varName}_tile${n}, ${tileViewExport.eventCallbackName}, LV_EVENT_CLICKED, NULL);`)
+    }
   })
 
   lines.push(`lv_obj_t * ${varName}_lbl1 = lv_label_create(${varName}_tile1);`)
   lines.push(`lv_label_set_text(${varName}_lbl1, "Tile 1");`)
-  lines.push(`lv_obj_set_style_text_color(${varName}_lbl1, lv_color_hex(${palette.bg}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_clear_flag(${varName}_lbl1, LV_OBJ_FLAG_CLICKABLE);`)
   lines.push(`lv_obj_center(${varName}_lbl1);`)
 
   lines.push(`lv_obj_t * ${varName}_lbl2 = lv_label_create(${varName}_tile2);`)
   lines.push(`lv_label_set_text(${varName}_lbl2, "Tile 2");`)
-  lines.push(`lv_obj_set_style_text_color(${varName}_lbl2, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_clear_flag(${varName}_lbl2, LV_OBJ_FLAG_CLICKABLE);`)
   lines.push(`lv_obj_center(${varName}_lbl2);`)
 
   lines.push(`lv_obj_t * ${varName}_lbl3 = lv_label_create(${varName}_tile3);`)
   lines.push(`lv_label_set_text(${varName}_lbl3, "Tile 3");`)
-  lines.push(`lv_obj_set_style_text_color(${varName}_lbl3, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_clear_flag(${varName}_lbl3, LV_OBJ_FLAG_CLICKABLE);`)
   lines.push(`lv_obj_center(${varName}_lbl3);`)
 
   lines.push(`lv_obj_t * ${varName}_lbl4 = lv_label_create(${varName}_tile4);`)
   lines.push(`lv_label_set_text(${varName}_lbl4, "Tile 4");`)
-  lines.push(`lv_obj_set_style_text_color(${varName}_lbl4, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_clear_flag(${varName}_lbl4, LV_OBJ_FLAG_CLICKABLE);`)
   lines.push(`lv_obj_center(${varName}_lbl4);`)
 
   if (tileViewExport) {
-    lines.push(`lv_tileview_set_tile(${varName}, ${tileViewExport.tilesName}[${tileViewExport.initialColumn}][${tileViewExport.initialRow}], LV_ANIM_OFF);`)
     lines.push(`${tileViewExport.selectedColumnName} = ${tileViewExport.initialColumn};`)
     lines.push(`${tileViewExport.selectedRowName} = ${tileViewExport.initialRow};`)
-    lines.push(`lv_obj_add_event_cb(${varName}, ${tileViewExport.eventCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
+    lines.push(`lv_obj_add_state(${tileViewExport.tilesName}[${tileViewExport.initialColumn}][${tileViewExport.initialRow}], LV_STATE_CHECKED);`)
   }
 
   lines.push(``)
@@ -3309,11 +3420,13 @@ case 'ButtonMatrix': {
 
   lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface2}), LV_PART_ITEMS);`)
   lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.text}), LV_PART_ITEMS);`)
-  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), LV_PART_ITEMS);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_ITEMS);`)
   lines.push(`lv_obj_set_style_border_width(${varName}, 1, LV_PART_ITEMS);`)
 
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.border}), LV_PART_ITEMS | LV_STATE_CHECKED);`)
-  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.bg}), LV_PART_ITEMS | LV_STATE_CHECKED);`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.selectedSurface}), LV_PART_ITEMS | LV_STATE_CHECKED);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.accentText}), LV_PART_ITEMS | LV_STATE_CHECKED);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.disabledText}), LV_PART_ITEMS | LV_STATE_DISABLED);`)
+  lines.push(`lv_obj_set_style_opa(${varName}, LV_OPA_50, LV_PART_ITEMS | LV_STATE_DISABLED);`)
 
   const initialIndex = matrixExport?.initialIndex ?? 1
   lines.push(`lv_buttonmatrix_set_selected_button(${varName}, ${initialIndex});`)
@@ -3346,23 +3459,32 @@ case 'Msgbox': {
   lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
 
   lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_border_width(${varName}, 2, LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_radius(${varName}, 6, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_COVER, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${varName}, 1, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${varName}, 8, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_shadow_width(${varName}, 0, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_outline_width(${varName}, 0, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_pad_all(${varName}, 8, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_clip_corner(${varName}, true, LV_PART_MAIN);`)
   lines.push(`lv_obj_clear_flag(${varName}, LV_OBJ_FLAG_SCROLLABLE);`)
 
   lines.push(``)
 
   lines.push(`lv_obj_t * ${varName}_title = lv_label_create(${varName});`)
   lines.push(`lv_label_set_text(${varName}_title, "${esc(messageTitle)}");`)
-  lines.push(`lv_obj_align(${varName}_title, LV_ALIGN_TOP_LEFT, 10, 8);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}_title, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_font(${varName}_title, &lv_font_montserrat_16, LV_PART_MAIN);`)
+  lines.push(`lv_obj_align(${varName}_title, LV_ALIGN_TOP_LEFT, 0, 0);`)
 
   lines.push(`lv_obj_t * ${varName}_text = lv_label_create(${varName});`)
   lines.push(`lv_label_set_text(${varName}_text, "${esc(messageBody)}");`)
-  lines.push(`lv_obj_set_width(${varName}_text, ${Math.max(80, w - 20)});`)
+  lines.push(`lv_obj_set_width(${varName}_text, ${Math.max(80, w - 16)});`)
   lines.push(`lv_label_set_long_mode(${varName}_text, LV_LABEL_LONG_WRAP);`)
-  lines.push(`lv_obj_align(${varName}_text, LV_ALIGN_TOP_LEFT, 10, 30);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}_text, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_font(${varName}_text, &lv_font_montserrat_14, LV_PART_MAIN);`)
+  lines.push(`lv_obj_align(${varName}_text, LV_ALIGN_TOP_LEFT, 0, 38);`)
 
   messageButtons.forEach((buttonText, buttonIndex) => {
     const buttonName = `${varName}_button_${buttonIndex}`
@@ -3370,13 +3492,25 @@ case 'Msgbox': {
       messageButtons[0] === 'OK' && messageButtons[1] === 'Cancel'
     const buttonWidth = isDefaultPair && buttonIndex === 0 ? 56 : 64
     const rightOffset = isDefaultPair
-      ? buttonIndex === 0 ? -74 : -4
-      : -(4 + (messageButtons.length - buttonIndex - 1) * 70)
+      ? buttonIndex === 0 ? -70 : 0
+      : -((messageButtons.length - buttonIndex - 1) * 70)
     lines.push(`lv_obj_t * ${buttonName} = lv_button_create(${varName});`)
-    lines.push(`lv_obj_set_size(${buttonName}, ${buttonWidth}, 26);`)
-    lines.push(`lv_obj_align(${buttonName}, LV_ALIGN_BOTTOM_RIGHT, ${rightOffset}, -4);`)
+    lines.push(`lv_obj_set_size(${buttonName}, ${buttonWidth}, 30);`)
+    lines.push(`lv_obj_align(${buttonName}, LV_ALIGN_BOTTOM_RIGHT, ${rightOffset}, 0);`)
+    lines.push(`lv_obj_set_style_bg_color(${buttonName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_bg_opa(${buttonName}, LV_OPA_TRANSP, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_border_color(${buttonName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_border_width(${buttonName}, 1, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_radius(${buttonName}, 0, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_shadow_width(${buttonName}, 0, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_outline_width(${buttonName}, 0, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_pad_all(${buttonName}, 0, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_color(${buttonName}, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_font(${buttonName}, &lv_font_montserrat_16, LV_PART_MAIN);`)
     lines.push(`lv_obj_t * ${buttonName}_label = lv_label_create(${buttonName});`)
     lines.push(`lv_label_set_text(${buttonName}_label, "${esc(buttonText)}");`)
+    lines.push(`lv_obj_set_style_text_color(${buttonName}_label, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_font(${buttonName}_label, &lv_font_montserrat_16, LV_PART_MAIN);`)
     lines.push(`lv_obj_center(${buttonName}_label);`)
     if (messageExport) {
       lines.push(`lv_obj_add_event_cb(${buttonName}, fg_message_button_clicked_cb, LV_EVENT_CLICKED, (void *)&${messageExport.buttonDataNames[buttonIndex]});`)
@@ -3403,18 +3537,18 @@ case 'Table': {
   // Theme styling
   lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_COVER, LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_border_width(${varName}, 1, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_radius(${varName}, 8, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_pad_all(${varName}, 0, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_clip_corner(${varName}, true, LV_PART_MAIN);`)
 
-  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.text}), LV_PART_ITEMS);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.textPrimary}), LV_PART_ITEMS);`)
 
-  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), LV_PART_ITEMS);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_ITEMS);`)
   lines.push(`lv_obj_set_style_border_width(${varName}, 1, LV_PART_ITEMS);`)
 
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface2}), LV_PART_ITEMS);`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_ITEMS);`)
   lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_COVER, LV_PART_ITEMS);`)
   lines.push(`lv_obj_set_style_radius(${varName}, 0, LV_PART_ITEMS);`)
   lines.push(`lv_obj_set_style_pad_all(${varName}, 8, LV_PART_ITEMS);`)
@@ -3431,6 +3565,11 @@ case 'Scale': {
   lines.push(`lv_scale_set_range(${varName}, 0, 100);`)
   lines.push(`lv_scale_set_total_tick_count(${varName}, 11);`)
   lines.push(`lv_scale_set_major_tick_every(${varName}, 2);`)
+  lines.push(`lv_obj_set_style_line_color(${varName}, lv_color_hex(${palette.accent}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_line_color(${varName}, lv_color_hex(${palette.accent}), LV_PART_ITEMS);`)
+  lines.push(`lv_obj_set_style_line_color(${varName}, lv_color_hex(${palette.accent}), LV_PART_INDICATOR);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.textPrimary}), LV_PART_INDICATOR);`)
   lines.push(``)
   break
 }
@@ -3461,32 +3600,32 @@ case 'Keyboard': {
   lines.push(`lv_obj_set_style_pad_row(${varName}, 6, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_pad_column(${varName}, 6, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_border_width(${varName}, 1, LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(0x00D4FF), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_radius(${varName}, 8, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_outline_width(${varName}, 0, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_shadow_width(${varName}, 0, LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(0xFFFFFF), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_70, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_pad_all(${varName}, 0, LV_PART_ITEMS);`)
   lines.push(`lv_obj_set_style_border_width(${varName}, 1, LV_PART_ITEMS);`)
-  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(0xCBD5E1), LV_PART_ITEMS);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_ITEMS);`)
   lines.push(`lv_obj_set_style_radius(${varName}, 6, LV_PART_ITEMS);`)
   lines.push(`lv_obj_set_style_outline_width(${varName}, 0, LV_PART_ITEMS);`)
   lines.push(`lv_obj_set_style_shadow_width(${varName}, 0, LV_PART_ITEMS);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(0xF8FAFC), LV_PART_ITEMS);`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_ITEMS);`)
   lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_COVER, LV_PART_ITEMS);`)
-  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(0x4A5568), LV_PART_ITEMS);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(0xE2E8F0), LV_PART_ITEMS | LV_STATE_PRESSED);`)
-  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(0x4A5568), LV_PART_ITEMS | LV_STATE_PRESSED);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(0xF8FAFC), LV_PART_ITEMS | LV_STATE_CHECKED);`)
-  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(0x4A5568), LV_PART_ITEMS | LV_STATE_CHECKED);`)
-  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(0xCBD5E1), LV_PART_ITEMS | LV_STATE_CHECKED);`)
-  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(0x00D4FF), LV_PART_ITEMS | LV_STATE_FOCUSED);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.textPrimary}), LV_PART_ITEMS);`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.selectedSurface}), LV_PART_ITEMS | LV_STATE_PRESSED);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.accentText}), LV_PART_ITEMS | LV_STATE_PRESSED);`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_ITEMS | LV_STATE_CHECKED);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.textPrimary}), LV_PART_ITEMS | LV_STATE_CHECKED);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_ITEMS | LV_STATE_CHECKED);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.accent}), LV_PART_ITEMS | LV_STATE_FOCUSED);`)
   lines.push(`lv_obj_set_style_border_width(${varName}, 2, LV_PART_ITEMS | LV_STATE_FOCUSED);`)
-  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(0x00D4FF), LV_PART_ITEMS | LV_STATE_FOCUS_KEY);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.accent}), LV_PART_ITEMS | LV_STATE_FOCUS_KEY);`)
   lines.push(`lv_obj_set_style_border_width(${varName}, 2, LV_PART_ITEMS | LV_STATE_FOCUS_KEY);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(0xE5E7EB), LV_PART_ITEMS | LV_STATE_DISABLED);`)
-  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(0x718096), LV_PART_ITEMS | LV_STATE_DISABLED);`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_ITEMS | LV_STATE_DISABLED);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.disabledText}), LV_PART_ITEMS | LV_STATE_DISABLED);`)
   lines.push(`lv_obj_set_style_opa(${varName}, LV_OPA_60, LV_PART_ITEMS | LV_STATE_DISABLED);`)
   lines.push(`lv_obj_set_style_text_font(${varName}, &lv_font_montserrat_12, LV_PART_ITEMS);`)
   lines.push(`lv_obj_set_style_text_line_space(${varName}, 0, LV_PART_ITEMS);`)
@@ -3524,9 +3663,19 @@ case 'Calendar': {
   }
 
   lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_COVER, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_border_width(${varName}, 2, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.textPrimary}), LV_PART_ITEMS);`)
+  lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_TRANSP, LV_PART_ITEMS);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.textSecondary}), LV_PART_ITEMS | LV_STATE_DISABLED);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.accent}), LV_PART_ITEMS | LV_STATE_FOCUSED);`)
+  lines.push(`lv_obj_set_style_border_width(${varName}, 2, LV_PART_ITEMS | LV_STATE_FOCUSED);`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.selectedSurface}), LV_PART_ITEMS | LV_STATE_CHECKED);`)
+  lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_40, LV_PART_ITEMS | LV_STATE_CHECKED);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.textPrimary}), LV_PART_ITEMS | LV_STATE_CHECKED);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.accent}), LV_PART_ITEMS | LV_STATE_CHECKED);`)
 
   lines.push(``)
   break
@@ -3536,12 +3685,24 @@ case 'Chart': {
   const chartExport = chartExports.get(child.id)
   const chartObject = chartExport?.objectName || varName
   const chartSeries = chartExport?.seriesName || `${varName}_ser`
-  const pointCount = chartExport?.pointCount ?? 7
+  const chartLayout = getForgeUIStandardChartLayout(child.props)
+  const pointCount = chartExport?.pointCount ??
+    FORGEUI_STANDARD_CHART_DEFAULT_POINT_COUNT
   const initialData = chartExport?.initialData ??
-    [10, 30, 20, 50, 40, 70, 60]
+    FORGEUI_STANDARD_CHART_DEFAULT_DATA
   lines.push(`${chartObject} = lv_chart_create(${parentVar});`)
   lines.push(`lv_obj_set_pos(${chartObject}, ${x}, ${y});`)
   lines.push(`lv_obj_set_size(${chartObject}, ${w}, ${h});`)
+  lines.push(`lv_obj_set_style_bg_color(${chartObject}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_opa(${chartObject}, LV_OPA_COVER, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${chartObject}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${chartObject}, 2, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${chartObject}, 12, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_line_color(${chartObject}, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_pad_left(${chartObject}, ${chartLayout.labelGutter}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_pad_right(${chartObject}, ${chartLayout.rightPadding}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_pad_top(${chartObject}, ${chartLayout.topPadding}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_pad_bottom(${chartObject}, ${chartLayout.bottomLabelGutter}, LV_PART_MAIN);`)
   lines.push(`lv_chart_set_type(${chartObject}, LV_CHART_TYPE_LINE);`)
   lines.push(`lv_chart_set_point_count(${chartObject}, ${pointCount});`)
   if (chartExport) {
@@ -3563,6 +3724,34 @@ case 'Chart': {
     lines.push(`lv_chart_set_next_value(${chartObject}, ${chartSeries}, ${value});`)
   })
   lines.push(`lv_chart_refresh(${chartObject});`)
+  chartLayout.yAxisLabels.forEach((label, index) => {
+    const labelObject = `${varName}_y_label_${index}`
+    lines.push(`lv_obj_t * ${labelObject} = lv_label_create(${parentVar});`)
+    lines.push(`lv_label_set_text(${labelObject}, "${label.value}");`)
+    lines.push(`lv_obj_set_pos(${labelObject}, ${x} + 2, ${y} + ${Math.round(label.y - 7)});`)
+    lines.push(`lv_obj_set_size(${labelObject}, ${Math.max(12, chartLayout.plotLeft - 6)}, 14);`)
+    lines.push(`lv_obj_set_style_text_color(${labelObject}, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_font(${labelObject}, &lv_font_montserrat_12, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_align(${labelObject}, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);`)
+    lines.push(`lv_obj_clear_flag(${labelObject}, LV_OBJ_FLAG_CLICKABLE);`)
+  })
+  chartLayout.xAxisLabels
+    .filter(label => label.visible)
+    .forEach(label => {
+      const labelObject = `${varName}_x_label_${label.value}`
+      const labelWidth = Math.max(
+        16,
+        Math.min(36, (String(label.value).length + 1) * 7),
+      )
+      lines.push(`lv_obj_t * ${labelObject} = lv_label_create(${parentVar});`)
+      lines.push(`lv_label_set_text(${labelObject}, "${label.value}");`)
+      lines.push(`lv_obj_set_pos(${labelObject}, ${x} + ${Math.round(label.x - labelWidth / 2)}, ${y} + ${Math.round(chartLayout.plotBottom + 3)});`)
+      lines.push(`lv_obj_set_size(${labelObject}, ${labelWidth}, 14);`)
+      lines.push(`lv_obj_set_style_text_color(${labelObject}, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
+      lines.push(`lv_obj_set_style_text_font(${labelObject}, &lv_font_montserrat_12, LV_PART_MAIN);`)
+      lines.push(`lv_obj_set_style_text_align(${labelObject}, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);`)
+      lines.push(`lv_obj_clear_flag(${labelObject}, LV_OBJ_FLAG_CLICKABLE);`)
+    })
   lines.push(``)
   break
 }
@@ -3640,7 +3829,10 @@ export const generateForgeUILvglCode = (
   components: IComponents,
   themeId: string = 'graphite',
   heroBackground?: any,
-  options?: { includeThemeTexture?: boolean },
+  options?: {
+    includeThemeTexture?: boolean
+    palette?: ForgePreviewPalette
+  },
 ) => {
    const lines: string[] = []
   const usedAssetSources = new Set<string>()
@@ -4179,8 +4371,11 @@ export const generateForgeUILvglCode = (
   const clockExports = createClockExports(components)
 
   const previewPalette =
+  options?.palette ||
   FG_PREVIEW_PALETTES[themeId as ForgeThemeId] ||
   FG_PREVIEW_PALETTES.graphite
+  const semanticPalette =
+    resolveForgeSemanticPalette(previewPalette)
 
 const fullscreenTextures = new Set([
   'ai_mesh',
@@ -4207,6 +4402,13 @@ const palette = {
   text: toLvHex(previewPalette.text),
 
   accent: toLvHex(previewPalette.accent),
+  surfaceBorder: toLvHex(semanticPalette.surfaceBorder),
+  surfaceSecondary: toLvHex(semanticPalette.surfaceSecondary),
+  textPrimary: toLvHex(semanticPalette.textPrimary),
+  textSecondary: toLvHex(semanticPalette.textSecondary),
+  accentText: toLvHex(semanticPalette.accentText),
+  disabledText: toLvHex(semanticPalette.disabledText),
+  selectedSurface: toLvHex(semanticPalette.selectedSurface),
 
   textureAsset:
     textureId !== 'none'
@@ -4970,27 +5172,28 @@ const backgroundMode =
   tileViewExports.forEach(tileViewExport => {
     lines.push(`static void ${tileViewExport.transitionName}(uint32_t column, uint32_t row, bool update_widget)`)
     lines.push(`{`)
+    lines.push(`    (void)update_widget;`)
     lines.push(`    if (${tileViewExport.objectName} == NULL || ${tileViewExport.columnCountName} == 0 || ${tileViewExport.rowCountName} == 0) return;`)
     lines.push(`    if (column >= ${tileViewExport.columnCountName}) column = ${tileViewExport.columnCountName} - 1;`)
     lines.push(`    if (row >= ${tileViewExport.rowCountName}) row = ${tileViewExport.rowCountName} - 1;`)
     lines.push(`    if (column == ${tileViewExport.selectedColumnName} && row == ${tileViewExport.selectedRowName}) return;`)
     lines.push(`    lv_obj_t * tile = ${tileViewExport.tilesName}[column][row];`)
     lines.push(`    if (tile == NULL) return;`)
+    lines.push(`    lv_obj_t * previous_tile = ${tileViewExport.tilesName}[${tileViewExport.selectedColumnName}][${tileViewExport.selectedRowName}];`)
+    lines.push(`    if (previous_tile != NULL) lv_obj_clear_state(previous_tile, LV_STATE_CHECKED);`)
     lines.push(`    ${tileViewExport.selectedColumnName} = column;`)
     lines.push(`    ${tileViewExport.selectedRowName} = row;`)
-    lines.push(`    if (update_widget) lv_tileview_set_tile(${tileViewExport.objectName}, tile, LV_ANIM_OFF);`)
+    lines.push(`    lv_obj_add_state(tile, LV_STATE_CHECKED);`)
     lines.push(`    ${tileViewExport.hookName}(column, row);`)
     lines.push(`}`)
     lines.push(``)
     lines.push(`static void ${tileViewExport.eventCallbackName}(lv_event_t * event)`)
     lines.push(`{`)
-    lines.push(`    lv_obj_t * tileview = lv_event_get_current_target(event);`)
-    lines.push(`    if (tileview != ${tileViewExport.objectName}) return;`)
-    lines.push(`    lv_obj_t * active_tile = lv_tileview_get_tile_active(tileview);`)
-    lines.push(`    if (active_tile == NULL) return;`)
+    lines.push(`    lv_obj_t * selected_tile = lv_event_get_current_target(event);`)
+    lines.push(`    if (selected_tile == NULL) return;`)
     lines.push(`    for (uint32_t column = 0; column < ${tileViewExport.columnCountName}; ++column) {`)
     lines.push(`        for (uint32_t row = 0; row < ${tileViewExport.rowCountName}; ++row) {`)
-    lines.push(`            if (${tileViewExport.tilesName}[column][row] == active_tile) {`)
+    lines.push(`            if (${tileViewExport.tilesName}[column][row] == selected_tile) {`)
     lines.push(`                ${tileViewExport.transitionName}(column, row, false);`)
     lines.push(`                return;`)
     lines.push(`            }`)

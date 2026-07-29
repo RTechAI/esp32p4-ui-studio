@@ -283,6 +283,18 @@ WiFi: {
   width: '100px',
   imageScale: 256,
   },
+  Line: {
+    positionMode: 'absolute',
+    x: 40,
+    y: 40,
+    w: 120,
+    h: 120,
+    startX: 0,
+    startY: 0,
+    endX: 120,
+    endY: 120,
+    lineWidth: 3,
+  },
   InputLeftAddon: { children: 'left' },
   InputRightAddon: {
     children: 'right',

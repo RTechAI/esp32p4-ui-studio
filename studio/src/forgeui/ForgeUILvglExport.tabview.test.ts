@@ -47,6 +47,58 @@ describe('TabView generated developer API', () => {
     )
   })
 
+  it('emits explicit full-width tab bar and remaining-content geometry', () => {
+    const { code } = generate(tabView())
+
+    expect(code).toContain('lv_obj_set_pos(obj1, 20, 30);')
+    expect(code).toContain('lv_obj_set_size(obj1, 420, 240);')
+    expect(code).toContain(
+      'lv_obj_set_style_border_width(obj1, 1, LV_PART_MAIN);',
+    )
+    expect(code).toContain('lv_tabview_set_tab_bar_size(obj1, 34);')
+    expect(code).toContain(
+      'lv_obj_set_size(obj1_tab_bar, 418, 34);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_size(obj1_content, 418, 204);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_size(obj1_tab_button_1, 139, 34);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_size(obj1_tab_button_2, 139, 34);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_size(obj1_tab_button_3, 140, 34);',
+    )
+    expect(code).toContain('lv_obj_set_size(obj1_tab1, 418, 204);')
+    expect(code).toContain('lv_obj_set_size(obj1_tab3, 418, 204);')
+    expect(code).toContain('lv_obj_center(obj1_tab_button_label_1);')
+    expect(code).toContain(
+      'lv_obj_set_style_pad_all(obj1_content, 0, LV_PART_MAIN);',
+    )
+  })
+
+  it('emits native-style semantic tab and page states', () => {
+    const { code } = generate(tabView())
+
+    expect(code).toContain(
+      'lv_obj_set_style_radius(obj1, 0, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_bg_opa(obj1_tab_button_1, LV_OPA_TRANSP, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_bg_opa(obj1_tab_button_1, LV_OPA_20, LV_PART_MAIN | LV_STATE_CHECKED);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_border_side(obj1_tab_button_1, LV_BORDER_SIDE_BOTTOM, LV_PART_MAIN | LV_STATE_CHECKED);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_bg_color(obj1_tab1, lv_color_hex(0x2A3138), LV_PART_MAIN);',
+    )
+  })
+
   it('shares a guarded transition for programmatic and touch changes', () => {
     const { code } = generate(tabView())
 

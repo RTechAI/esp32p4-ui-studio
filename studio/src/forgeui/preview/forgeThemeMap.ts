@@ -34,6 +34,106 @@ export type ForgePreviewPalette = {
   borderStyle: ForgeBorderStyle
 }
 
+export type ForgeSemanticPalette = {
+  surface: string
+  surfaceSecondary: string
+  surfaceBorder: string
+  textPrimary: string
+  textSecondary: string
+  accent: string
+  accentText: string
+  disabledText: string
+  selectedSurface: string
+}
+
+const parseHexColour = (value: string) => {
+  const normalized = value.replace('#', '')
+  const parsed = Number.parseInt(normalized, 16)
+
+  return {
+    r: (parsed >> 16) & 0xff,
+    g: (parsed >> 8) & 0xff,
+    b: parsed & 0xff,
+  }
+}
+
+const formatHexColour = (colour: {
+  r: number
+  g: number
+  b: number
+}) =>
+  `#${[colour.r, colour.g, colour.b]
+    .map(channel =>
+      Math.round(channel)
+        .toString(16)
+        .padStart(2, '0'),
+    )
+    .join('')
+    .toUpperCase()}`
+
+const blendHexColours = (
+  background: string,
+  foreground: string,
+  foregroundWeight: number,
+) => {
+  const bg = parseHexColour(background)
+  const fg = parseHexColour(foreground)
+
+  return formatHexColour({
+    r: bg.r + (fg.r - bg.r) * foregroundWeight,
+    g: bg.g + (fg.g - bg.g) * foregroundWeight,
+    b: bg.b + (fg.b - bg.b) * foregroundWeight,
+  })
+}
+
+const relativeLuminance = (value: string) => {
+  const colour = parseHexColour(value)
+  const linear = [colour.r, colour.g, colour.b].map(channel => {
+    const normalized = channel / 255
+    return normalized <= 0.04045
+      ? normalized / 12.92
+      : ((normalized + 0.055) / 1.055) ** 2.4
+  })
+
+  return 0.2126 * linear[0] +
+    0.7152 * linear[1] +
+    0.0722 * linear[2]
+}
+
+const contrastRatio = (first: string, second: string) => {
+  const firstLuminance = relativeLuminance(first)
+  const secondLuminance = relativeLuminance(second)
+  const light = Math.max(firstLuminance, secondLuminance)
+  const dark = Math.min(firstLuminance, secondLuminance)
+  return (light + 0.05) / (dark + 0.05)
+}
+
+export const resolveForgeSemanticPalette = (
+  palette: ForgePreviewPalette,
+): ForgeSemanticPalette => ({
+  surface: palette.surface,
+  surfaceSecondary: palette.surface2,
+  surfaceBorder: palette.border,
+  textPrimary: palette.text,
+  textSecondary: blendHexColours(
+    palette.surface,
+    palette.text,
+    0.7,
+  ),
+  accent: palette.accent,
+  accentText:
+    contrastRatio(palette.accent, palette.bg) >=
+    contrastRatio(palette.accent, palette.text)
+      ? palette.bg
+      : palette.text,
+  disabledText: blendHexColours(
+    palette.surface,
+    palette.text,
+    0.45,
+  ),
+  selectedSurface: palette.accent,
+})
+
 export const ACTIVE_BACKGROUND_FLAVOUR = 'graphite'
 
 export const FG_PREVIEW_PALETTES = {

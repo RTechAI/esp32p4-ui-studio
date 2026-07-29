@@ -143,6 +143,7 @@ const ExportProjectButton = ({
 const Header = () => {
   const {
     themeId,
+    palette,
     heroBackground,
     setThemeId,
     setHeroBackground,
@@ -320,7 +321,12 @@ const exportToForgeUIOne = async () => {
       components,
       getAllInteractiveAssets(),
       forgeUIGetUploadedAssets(),
-      generateForgeUILvglCode(components, themeId, selectedHeroAsset),
+      generateForgeUILvglCode(
+        components,
+        themeId,
+        selectedHeroAsset,
+        { palette },
+      ),
     )
   } catch (error) {
     const message = error instanceof ForgeUIExportValidationError
@@ -366,7 +372,12 @@ const exportToForgeUIOne = async () => {
       components,
       getAllInteractiveAssets(),
       forgeUIGetUploadedAssets(),
-      generateForgeUILvglCode(components, themeId, selectedHeroAsset),
+      generateForgeUILvglCode(
+        components,
+        themeId,
+        selectedHeroAsset,
+        { palette },
+      ),
     )
   } catch (error) {
     const message = error instanceof ForgeUIExportValidationError
@@ -422,7 +433,12 @@ const cleanBuildFlashForgeUIOne = async () => {
       components,
       getAllInteractiveAssets(),
       forgeUIGetUploadedAssets(),
-      generateForgeUILvglCode(components, themeId, selectedHeroAsset),
+      generateForgeUILvglCode(
+        components,
+        themeId,
+        selectedHeroAsset,
+        { palette },
+      ),
     )
   } catch (error) {
     const message = error instanceof ForgeUIExportValidationError

@@ -82,28 +82,25 @@ describe('Keyboard LVGL export geometry', () => {
     expect(code).toContain('lv_obj_set_style_pad_row(obj1, 6, LV_PART_MAIN);')
     expect(code).toContain('lv_obj_set_style_pad_column(obj1, 6, LV_PART_MAIN);')
     expect(code).toContain(
-      'lv_obj_set_style_bg_color(obj1, lv_color_hex(0xFFFFFF), LV_PART_MAIN);',
+      'lv_obj_set_style_bg_color(obj1, lv_color_hex(0x1E2328), LV_PART_MAIN);',
     )
     expect(code).toContain(
       'lv_obj_set_style_bg_opa(obj1, LV_OPA_70, LV_PART_MAIN);',
     )
     expect(code).toContain(
-      'lv_obj_set_style_bg_color(obj1, lv_color_hex(0xF8FAFC), LV_PART_ITEMS);',
-    )
-    expect(code).toContain(
-      'lv_obj_set_style_text_color(obj1, lv_color_hex(0x4A5568), LV_PART_ITEMS);',
-    )
-    expect(code).toContain(
-      'lv_obj_set_style_bg_color(obj1, lv_color_hex(0xE2E8F0), LV_PART_ITEMS | LV_STATE_PRESSED);',
-    )
-    expect(code).toContain(
-      'lv_obj_set_style_bg_color(obj1, lv_color_hex(0xF8FAFC), LV_PART_ITEMS | LV_STATE_CHECKED);',
-    )
-    expect(code).not.toContain(
-      'lv_obj_set_style_bg_color(obj1, lv_color_hex(0x1E2328), LV_PART_MAIN);',
-    )
-    expect(code).not.toContain(
       'lv_obj_set_style_bg_color(obj1, lv_color_hex(0x2A3138), LV_PART_ITEMS);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_text_color(obj1, lv_color_hex(0xF5F5F5), LV_PART_ITEMS);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_bg_color(obj1, lv_color_hex(0xF2A900), LV_PART_ITEMS | LV_STATE_PRESSED);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_bg_color(obj1, lv_color_hex(0x2A3138), LV_PART_ITEMS | LV_STATE_CHECKED);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_text_color(obj1, lv_color_hex(0x7F8284), LV_PART_ITEMS | LV_STATE_DISABLED);',
     )
     expect(code).toContain('lv_obj_set_style_radius(obj1, 8, LV_PART_MAIN);')
     expect(code).toContain('lv_obj_set_style_radius(obj1, 6, LV_PART_ITEMS);')

@@ -1,6 +1,6 @@
 import React from 'react'
 import icons from '~iconsList'
-import { useForgeTheme } from '~forgeui/theme/ForgeThemeContext'
+import { useForgePreviewPalette } from '~forgeui/theme/ForgeThemeContext'
 import {
   Box,
   Text,
@@ -17,9 +17,6 @@ import InteractiveLightCanvasPreview from '~components/editor/previews/Interacti
 import InteractiveStatusIndicatorCanvasPreview from '~components/editor/previews/InteractiveStatusIndicatorCanvasPreview'
 import InteractiveToggleSwitchCanvasPreview from '~components/editor/previews/InteractiveToggleSwitchCanvasPreview'
 import InteractiveThreePositionToggleCanvasPreview from '~components/editor/previews/InteractiveThreePositionToggleCanvasPreview'
-import { getForgeUIStandardButtonText } from '~forgeui/ForgeUIStandardButton'
-import { getForgeUIStandardTextValue } from '~forgeui/ForgeUIStandardText'
-import { getForgeUIStandardHeadingText } from '~forgeui/ForgeUIStandardHeading'
 import ClockPreview from '~components/editor/previews/ClockPreview'
 import StandardSwitchPreview from './StandardSwitchPreview'
 import StandardCheckboxPreview from './StandardCheckboxPreview'
@@ -31,6 +28,20 @@ import StandardIconButtonPreview from './StandardIconButtonPreview'
 import StandardArcPreview from './StandardArcPreview'
 import StandardChartPreview from './StandardChartPreview'
 import StandardBarPreview from './StandardBarPreview'
+import StandardScalePreview from './StandardScalePreview'
+import StandardRollerPreview from './StandardRollerPreview'
+import StandardMessageBoxPreview from './StandardMessageBoxPreview'
+import StandardButtonMatrixPreview from './StandardButtonMatrixPreview'
+import StandardCanvasPreview from './StandardCanvasPreview'
+import StandardTabViewPreview from './StandardTabViewPreview'
+import StandardTileViewPreview from './StandardTileViewPreview'
+import StandardButtonPreview from './StandardButtonPreview'
+import StandardTextPreview from './StandardTextPreview'
+import StandardHeadingPreview from './StandardHeadingPreview'
+import StandardWifiPreview from './StandardWifiPreview'
+import StandardLinePreview from './StandardLinePreview'
+import StandardCalendarPreview from './StandardCalendarPreview'
+import { resolveForgeSemanticPalette } from './forgeThemeMap'
 
 const lv = (v: any, d: any = 0) =>
   v !== undefined && v !== null && v !== '' ? v : d
@@ -49,7 +60,8 @@ export const renderForgePreview = ({
   // This legacy renderer recurses as a plain function. Moving theme lookup
   // to a component boundary requires architectural review.
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  const { palette } = useForgeTheme()
+  const palette = useForgePreviewPalette()
+  const theme = resolveForgeSemanticPalette(palette)
   const output: React.ReactNode[] = []
 
   ;(component.children || []).forEach((key: string) => {
@@ -79,18 +91,9 @@ export const renderForgePreview = ({
 
       case 'Heading': {
         output.push(
-          <Text
-            key={child.id}
-            {...commonStyle}
-            color={child.props.color || palette.text}
-            fontSize={`${lv(child.props.fontSize, 32)}px`}
-            fontWeight="bold"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-          >
-            {getForgeUIStandardHeadingText(child.props)}
-          </Text>,
+          <Box key={child.id} {...commonStyle}>
+            <StandardHeadingPreview component={child} palette={palette} />
+          </Box>,
         )
         break
       }
@@ -101,7 +104,11 @@ export const renderForgePreview = ({
       key={child.id}
       {...commonStyle}
     >
-      <ClockPreview component={child} justifyContent="flex-start" />
+      <ClockPreview
+        component={child}
+        justifyContent="flex-start"
+        palette={palette}
+      />
     </Box>,
   )
   break
@@ -109,39 +116,8 @@ export const renderForgePreview = ({
 
 case 'WiFi': {
   output.push(
-    <Box
-      key={child.id}
-      {...commonStyle}
-      p="10px"
-      border={`1px solid ${palette.border}`}
-      borderRadius="8px"
-      bg={palette.surface}
-      display="flex"
-      flexDirection="column"
-      justifyContent="center"
-    >
-      <Text
-        color={palette.accent}
-        fontWeight="bold"
-        fontSize="14px"
-      >
-        WIFI
-      </Text>
-
-      <Text
-        color={palette.text}
-        fontSize="13px"
-      >
-        DISCONNECTED
-      </Text>
-
-      <Text
-        color={palette.text}
-        opacity={0.7}
-        fontSize="12px"
-      >
-        IP: -
-      </Text>
+    <Box key={child.id} {...commonStyle}>
+      <StandardWifiPreview palette={palette} />
     </Box>,
   )
   break
@@ -149,36 +125,17 @@ case 'WiFi': {
 
       case 'Text': {
         output.push(
-          <Text
-            key={child.id}
-            position="absolute"
-            left={`${x}px`}
-            top={`${y}px`}
-            color={child.props.color || palette.text}
-            fontSize={`${lv(child.props.fontSize, 24)}px`}
-          >
-            {getForgeUIStandardTextValue(child.props)}
-          </Text>,
+          <Box key={child.id} {...commonStyle}>
+            <StandardTextPreview component={child} palette={palette} />
+          </Box>,
         )
         break
       }
 
       case 'Button': {
         output.push(
-          <Box
-            key={child.id}
-            {...commonStyle}
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            borderRadius="10px"
-            background={palette.surface}
-            border={`2px solid ${palette.border}`}
-            color={child.props.color || palette.text}
-            fontSize={`${lv(child.props.fontSize, 18)}px`}
-            fontWeight="bold"
-          >
-            {getForgeUIStandardButtonText(child.props)}
+          <Box key={child.id} {...commonStyle}>
+            <StandardButtonPreview component={child} palette={palette} />
           </Box>,
         )
         break
@@ -548,6 +505,7 @@ case 'Led': {
         borderRadius="999px"
         bg="green.400"
         boxShadow="0 0 12px rgba(72,255,120,0.8)"
+        data-testid="standard-led-preview"
       />
     </Box>,
   )
@@ -560,7 +518,7 @@ case 'Bar': {
       key={child.id}
       {...commonStyle}
     >
-      <StandardBarPreview component={child} />
+      <StandardBarPreview component={child} palette={palette} />
     </Box>,
   )
   break
@@ -572,7 +530,7 @@ case 'Arc': {
       key={child.id}
       {...commonStyle}
     >
-      <StandardArcPreview component={child} />
+      <StandardArcPreview component={child} palette={palette} />
     </Box>,
   )
   break
@@ -596,7 +554,8 @@ case 'Keyboard': {
       gap="6px"
       border={`1px solid ${palette.border}`}
       borderRadius="8px"
-      bg="rgba(255,255,255,0.75)"
+      bg={`${theme.surface}B3`}
+      data-testid="standard-keyboard-browser"
     >
       {rows.map((row, rowIndex) => (
         <Box
@@ -613,9 +572,11 @@ case 'Keyboard': {
               alignItems="center"
               justifyContent="center"
               borderRadius="6px"
-              bg="rgba(255,255,255,0.45)"
-              color="gray.700"
+              border={`1px solid ${theme.surfaceBorder}`}
+              bg={theme.surfaceSecondary}
+              color={theme.textPrimary}
               fontSize="11px"
+              data-testid="standard-keyboard-key"
             >
               {key}
             </Box>
@@ -628,35 +589,15 @@ case 'Keyboard': {
 }
 
 case 'Calendar': {
-  const days = Array.from({ length: 35 }, (_, i) => i + 1)
-
   output.push(
     <Box
       key={child.id}
       {...commonStyle}
-      p="8px"
-      display="grid"
-      gridTemplateColumns="repeat(7, 1fr)"
-      gap="4px"
-      border={`1px solid ${palette.border}`}
-      borderRadius="8px"
-      bg={palette.surface}
-      color={palette.text}
-      fontSize="10px"
     >
-      {days.map((day) => (
-        <Box
-          key={day}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          borderRadius="4px"
-          bg={day === 18 ? palette.accent : palette.surface2}
-          color={day === 18 ? palette.bg : palette.text}
-        >
-          {day <= 30 ? day : ''}
-        </Box>
-      ))}
+      <StandardCalendarPreview
+        component={child}
+        palette={palette}
+      />
     </Box>,
   )
   break
@@ -668,7 +609,7 @@ case 'Chart': {
       key={child.id}
       {...commonStyle}
     >
-      <StandardChartPreview component={child} />
+      <StandardChartPreview component={child} palette={palette} />
     </Box>,
   )
   break
@@ -679,35 +620,11 @@ case 'Scale': {
     <Box
       key={child.id}
       {...commonStyle}
-      p="8px"
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
-      border={`1px solid ${palette.border}`}
-      borderRadius="8px"
-      bg={palette.surface}
     >
-      <svg width="90%" height="40">
-        <line
-          x1="10"
-          y1="20"
-          x2="190"
-          y2="20"
-          stroke={palette.accent}
-          strokeWidth="2"
-        />
-        {[...Array(11)].map((_, i) => (
-          <line
-            key={i}
-            x1={10 + i * 18}
-            y1="10"
-            x2={10 + i * 18}
-            y2="30"
-            stroke={palette.accent}
-            strokeWidth="2"
-          />
-        ))}
-      </svg>
+      <StandardScalePreview
+        component={child}
+        palette={palette}
+      />
     </Box>,
   )
   break
@@ -726,11 +643,11 @@ case 'Table': {
       {...commonStyle}
       display="grid"
       gridTemplateColumns="repeat(2, 1fr)"
-      border={`1px solid ${palette.border}`}
+      border={`1px solid ${theme.surfaceBorder}`}
       borderRadius="8px"
       overflow="hidden"
-      bg={palette.surface}
-      color={palette.text}
+      bg={theme.surface}
+      color={theme.textPrimary}
       fontSize="12px"
       data-testid="standard-table-browser"
     >
@@ -740,8 +657,8 @@ case 'Table': {
           display="flex"
           alignItems="center"
           justifyContent="center"
-          border={`1px solid ${palette.border}`}
-          bg={palette.surface2}
+          border={`1px solid ${theme.surfaceBorder}`}
+          bg={theme.surfaceSecondary}
           p="8px"
         >
           {cell}
@@ -756,40 +673,11 @@ case 'Msgbox': {
     <Box
       key={child.id}
       {...commonStyle}
-      border={`1px solid ${palette.border}`}
-      borderRadius="8px"
-      bg={palette.surface}
-      color={palette.text}
-      display="flex"
-      flexDirection="column"
-      justifyContent="space-between"
-      p="8px"
     >
-      <Text fontWeight="bold">
-        Message
-      </Text>
-
-      <Text fontSize="sm">
-        Example message text
-      </Text>
-
-      <Box display="flex" justifyContent="flex-end" gap="6px">
-        <Box
-          px="8px"
-          py="2px"
-          border={`1px solid ${palette.border}`}
-        >
-          OK
-        </Box>
-
-        <Box
-          px="8px"
-          py="2px"
-          border={`1px solid ${palette.border}`}
-        >
-          Cancel
-        </Box>
-      </Box>
+      <StandardMessageBoxPreview
+        component={child}
+        palette={palette}
+      />
     </Box>,
   )
   break
@@ -801,19 +689,11 @@ case 'Roller': {
     <Box
       key={child.id}
       {...commonStyle}
-      display="flex"
-      flexDirection="column"
-      justifyContent="center"
-      alignItems="center"
-      bg="rgba(0,212,255,0.08)"
-      border={`1px solid ${palette.border}`}
-      borderRadius="8px"
     >
-      <Text color="gray.500">Item 1</Text>
-      <Text color={palette.accent} fontWeight="bold">
-        Item 2
-      </Text>
-      <Text color="gray.500">Item 3</Text>
+      <StandardRollerPreview
+        component={child}
+        palette={palette}
+      />
     </Box>,
   )
   break
@@ -824,30 +704,11 @@ case 'ButtonMatrix': {
     <Box
       key={child.id}
       {...commonStyle}
-      display="grid"
-      gridTemplateColumns="repeat(3, 1fr)"
-      gridTemplateRows="repeat(2, 1fr)"
-      gap="6px"
-      p="8px"
-      border={`1px solid ${palette.border}`}
-      borderRadius="8px"
-      bg={palette.surface}
     >
-      {['One', 'Two', 'Three', 'Four', 'Five', 'Six'].map((label, i) => (
-        <Box
-          key={label}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          borderRadius="6px"
-          bg={i === 1 ? palette.accent : palette.surface2}
-          color={i === 1 ? palette.bg : palette.text}
-          fontSize="12px"
-          fontWeight="bold"
-        >
-          {label}
-        </Box>
-      ))}
+      <StandardButtonMatrixPreview
+        component={child}
+        palette={palette}
+      />
     </Box>,
   )
   break
@@ -855,50 +716,8 @@ case 'ButtonMatrix': {
 
 case 'Canvas': {
   output.push(
-    <Box
-      key={child.id}
-      {...commonStyle}
-      bg={palette.surface}
-      border={`1px solid ${palette.border}`}
-      borderRadius="8px"
-      overflow="hidden"
-    >
-      <svg width="100%" height="100%" viewBox="0 0 200 120">
-        <line
-          x1="10"
-          y1="10"
-          x2="190"
-          y2="110"
-          stroke={palette.accent}
-          strokeWidth="2"
-        />
-
-        <line
-          x1="190"
-          y1="10"
-          x2="10"
-          y2="110"
-          stroke={palette.accent}
-          strokeWidth="2"
-        />
-
-        <rect
-          x="60"
-          y="30"
-          width="80"
-          height="40"
-          fill="none"
-          stroke={palette.accent}
-          strokeWidth="2"
-        />
-
-        <circle
-          cx="100"
-          cy="80"
-          r="15"
-          fill={palette.accent}
-        />
-      </svg>
+    <Box key={child.id} {...commonStyle}>
+      <StandardCanvasPreview component={child} palette={palette} />
     </Box>,
   )
   break
@@ -906,21 +725,8 @@ case 'Canvas': {
 
 case 'Line': {
   output.push(
-    <Box
-      key={child.id}
-      {...commonStyle}
-      overflow="hidden"
-    >
-      <svg width="100%" height="100%" viewBox="0 0 100 100">
-        <line
-          x1="0"
-          y1="0"
-          x2="100"
-          y2="100"
-          stroke={palette.border}
-          strokeWidth="3"
-        />
-      </svg>
+    <Box key={child.id} {...commonStyle} overflow="hidden">
+      <StandardLinePreview component={child} palette={palette} />
     </Box>,
   )
   break
@@ -928,79 +734,17 @@ case 'Line': {
 
 case 'Tabview': {
   output.push(
-    <Box
-      key={child.id}
-      {...commonStyle}
-      border={`1px solid ${palette.border}`}
-      borderRadius="8px"
-      overflow="hidden"
-      bg={palette.surface}
-    >
-      <Box display="flex" height="34px">
-        {['Tab 1', 'Tab 2', 'Tab 3'].map((tab, i) => (
-          <Box
-            key={tab}
-            flex="1"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            bg={i === 0 ? palette.accent : palette.surface2}
-            color={i === 0 ? palette.bg : palette.text}
-            fontSize="12px"
-            fontWeight="bold"
-            borderRight={i < 2 ? `1px solid ${palette.border}` : 'none'}
-          >
-            {tab}
-          </Box>
-        ))}
-      </Box>
-
-      <Box
-        height="calc(100% - 34px)"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-        color={palette.text}
-        fontSize="13px"
-      >
-        Tab 1 content
-      </Box>
+    <Box key={child.id} {...commonStyle}>
+      <StandardTabViewPreview component={child} palette={palette} />
     </Box>,
   )
   break
 }
 
 case 'Tileview': {
-  const tiles = ['Tile 1', 'Tile 2', 'Tile 3', 'Tile 4']
-
   output.push(
-    <Box
-      key={child.id}
-      {...commonStyle}
-      display="grid"
-      gridTemplateColumns="repeat(2, 1fr)"
-      gridTemplateRows="repeat(2, 1fr)"
-      gap="6px"
-      p="8px"
-      border={`1px solid ${palette.border}`}
-      borderRadius="8px"
-      bg={palette.surface}
-    >
-      {tiles.map((tile, i) => (
-        <Box
-          key={tile}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          borderRadius="6px"
-          bg={i === 0 ? palette.accent : palette.surface2}
-          color={i === 0 ? palette.bg : palette.text}
-          fontSize="12px"
-          fontWeight="bold"
-        >
-          {tile}
-        </Box>
-      ))}
+    <Box key={child.id} {...commonStyle}>
+      <StandardTileViewPreview component={child} palette={palette} />
     </Box>,
   )
   break

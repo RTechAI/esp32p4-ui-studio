@@ -122,3 +122,29 @@ void FG_On_Tileview_Changed(uint32_t column, uint32_t row)
         (unsigned long)column,
         (unsigned long)row);
 }
+
+void FG_On_Tab_View_2_Changed(uint32_t tab_index)
+{
+    printf(
+        "[ForgeUI User Event] Tab View 2 changed: %lu\n",
+        (unsigned long)tab_index);
+}
+
+void FG_On_Tileview_2_Changed(uint32_t column, uint32_t row)
+{
+    printf(
+        "[ForgeUI User Event] Tileview 2 changed: column %lu, row %lu\n",
+        (unsigned long)column,
+        (unsigned long)row);
+}
+
+void FG_On_Data_Chart_2_Point_Added(int32_t value)
+{
+    printf("[ForgeUI User Event] Data Chart 2 point added: %ld\n",
+           (long)value);
+}
+
+void FG_On_Data_Chart_2_Cleared(void)
+{
+    printf("[ForgeUI User Event] Data Chart 2 cleared\n");
+}

@@ -3,6 +3,7 @@ import * as Chakra from '@chakra-ui/react'
 import { getForgeUIStandardBarValues } from '~forgeui/ForgeUIStandardBar'
 import StandardBarPreview from '~forgeui/preview/StandardBarPreview'
 import useDispatch from '~hooks/useDispatch'
+import { ForgePreviewPalette } from '~forgeui/preview/forgeThemeMap'
 
 export const getStandardBarCanvasGrabStrip = (height: unknown) => {
   const parsedHeight = Number(height)
@@ -20,7 +21,9 @@ export const getStandardBarCanvasGrabStrip = (height: unknown) => {
   )
 }
 
-const BarPreview: React.FC<IPreviewProps> = ({ component }) => {
+const BarPreview: React.FC<IPreviewProps & {
+  palette?: ForgePreviewPalette
+}> = ({ component, palette }) => {
   const dispatch = useDispatch()
   const bar = getForgeUIStandardBarValues(component.props)
   const activePointerId = useRef<number | null>(null)
@@ -63,7 +66,7 @@ const BarPreview: React.FC<IPreviewProps> = ({ component }) => {
       position="relative"
       data-testid="standard-bar-canvas-preview"
     >
-      <StandardBarPreview component={component} />
+      <StandardBarPreview component={component} palette={palette} />
       <Chakra.Box
         position="absolute"
         left="0"

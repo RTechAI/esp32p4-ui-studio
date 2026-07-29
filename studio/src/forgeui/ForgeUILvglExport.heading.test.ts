@@ -42,8 +42,9 @@ describe('standard Heading LVGL export', () => {
     )
     expect(code).toContain('lv_obj_set_pos(obj1, 17, 29);')
     expect(code).toContain(
-      'lv_obj_set_style_text_color(obj1, lv_color_hex(0xAABBCC), 0);',
+      'lv_obj_set_style_text_color(obj1, lv_color_hex(0xF5F5F5), 0);',
     )
+    expect(code).not.toContain('lv_color_hex(0xAABBCC)')
     expect(code).toContain(
       'lv_obj_set_style_text_font(obj1, &lv_font_montserrat_32, 0);',
     )

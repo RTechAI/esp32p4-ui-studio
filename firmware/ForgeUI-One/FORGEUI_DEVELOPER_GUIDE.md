@@ -43,25 +43,29 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- `FG_On_Status_LED_Changed()`
-- `FG_On_Progress_Bar_Changed()`
-- `FG_On_Value_Arc_Changed()`
 - `FG_On_Data_Chart_Point_Added()`
 - `FG_On_Data_Chart_Cleared()`
-- `FG_On_Keyboard_Shown()`
-- `FG_On_Keyboard_Hidden()`
+- `FG_On_Data_Chart_2_Point_Added()`
+- `FG_On_Data_Chart_2_Cleared()`
+- `FG_On_Calendar_Date_Changed()`
+- `FG_On_Tab_View_Changed()`
+- `FG_On_Tab_View_2_Changed()`
+- `FG_On_Tileview_Changed()`
+- `FG_On_Tileview_2_Changed()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| Status_LED_Changed | Click | `FG_On_Status_LED_Changed()` |
-| Progress_Bar_Changed | Click | `FG_On_Progress_Bar_Changed()` |
-| Value_Arc_Changed | Click | `FG_On_Value_Arc_Changed()` |
 | Data_Chart_Point_Added | Click | `FG_On_Data_Chart_Point_Added()` |
 | Data_Chart_Cleared | Click | `FG_On_Data_Chart_Cleared()` |
-| Keyboard_Shown | Click | `FG_On_Keyboard_Shown()` |
-| Keyboard_Hidden | Click | `FG_On_Keyboard_Hidden()` |
+| Data_Chart_2_Point_Added | Click | `FG_On_Data_Chart_2_Point_Added()` |
+| Data_Chart_2_Cleared | Click | `FG_On_Data_Chart_2_Cleared()` |
+| Calendar_Date_Changed | Click | `FG_On_Calendar_Date_Changed()` |
+| Tab_View_Changed | Click | `FG_On_Tab_View_Changed()` |
+| Tab_View_2_Changed | Click | `FG_On_Tab_View_2_Changed()` |
+| Tileview_Changed | Click | `FG_On_Tileview_Changed()` |
+| Tileview_2_Changed | Click | `FG_On_Tileview_2_Changed()` |
 
 ---
 

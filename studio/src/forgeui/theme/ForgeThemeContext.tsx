@@ -170,3 +170,8 @@ export const useForgeTheme = () => {
 
   return ctx
 }
+
+export const useForgePreviewPalette = (): ForgePreviewPalette => {
+  const ctx = useContext(ForgeThemeContext)
+  return ctx?.palette ?? FG_PREVIEW_PALETTES.graphite
+}

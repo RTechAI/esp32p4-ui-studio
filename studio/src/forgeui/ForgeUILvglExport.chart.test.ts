@@ -35,7 +35,7 @@ const generate = (components: IComponents) =>
 
 describe('Chart generated developer API', () => {
   it('retains the default line chart, series, and startup shape', () => {
-    const generated = generate(rootWith(chart('data-chart')))
+    const generated = generate(rootWith(chart('data-chart', { w: 388 })))
 
     expect(generated.publicApiDeclarations).toEqual(expect.arrayContaining([
       'void FG_Add_Data_Chart_Point(int32_t value);',
@@ -55,9 +55,62 @@ describe('Chart generated developer API', () => {
       'lv_chart_set_type(fg_data_chart_chart, LV_CHART_TYPE_LINE);',
     )
     expect(generated.code).toContain(
-      'lv_chart_set_point_count(fg_data_chart_chart, 7);',
+      'lv_chart_set_point_count(fg_data_chart_chart, 11);',
     )
-    ;[10, 30, 20, 50, 40, 70, 60].forEach(value => {
+    expect(generated.code).toContain(
+      'lv_chart_set_div_line_count(fg_data_chart_chart, 3, 11);',
+    )
+    expect(generated.code).toContain(
+      'lv_obj_set_style_pad_left(fg_data_chart_chart, 42, LV_PART_MAIN);',
+    )
+    expect(generated.code).toContain(
+      'lv_obj_set_style_pad_right(fg_data_chart_chart, 8, LV_PART_MAIN);',
+    )
+    expect(generated.code).toContain(
+      'lv_obj_set_style_pad_top(fg_data_chart_chart, 10, LV_PART_MAIN);',
+    )
+    expect(generated.code).toContain(
+      'lv_obj_set_style_pad_bottom(fg_data_chart_chart, 22, LV_PART_MAIN);',
+    )
+    ;[100, 75, 50, 25, 0].forEach((value, index) => {
+      expect(generated.code).toContain(
+        `lv_obj_t * obj1_y_label_${index} = lv_label_create(fg_application_page);`,
+      )
+      expect(generated.code).toContain(
+        `lv_label_set_text(obj1_y_label_${index}, "${value}");`,
+      )
+      expect(generated.code).toContain(
+        `lv_obj_clear_flag(obj1_y_label_${index}, LV_OBJ_FLAG_CLICKABLE);`,
+      )
+    })
+    expect(generated.code).toContain(
+      'lv_obj_set_style_text_color(obj1_y_label_0, lv_color_hex(0xB5B6B8), LV_PART_MAIN);',
+    )
+    ;[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].forEach(value => {
+      expect(generated.code).toContain(
+        `lv_obj_t * obj1_x_label_${value} = lv_label_create(fg_application_page);`,
+      )
+      expect(generated.code).toContain(
+        `lv_label_set_text(obj1_x_label_${value}, "${value}");`,
+      )
+      expect(generated.code).toContain(
+        `lv_obj_clear_flag(obj1_x_label_${value}, LV_OBJ_FLAG_CLICKABLE);`,
+      )
+    })
+    expect(generated.code).toContain(
+      'lv_obj_set_pos(obj1_x_label_0, 114 + 36, 161 + 99);',
+    )
+    expect(generated.code).toContain(
+      'lv_obj_set_pos(obj1_x_label_10, 114 + 368, 161 + 99);',
+    )
+    ;[
+      36, 69, 102, 136, 169, 203, 236, 269, 303, 336, 368,
+    ].forEach((position, index) => {
+      expect(generated.code).toContain(
+        `lv_obj_set_pos(obj1_x_label_${index}, 114 + ${position}, 161 + 99);`,
+      )
+    })
+    ;[10, 30, 20, 50, 40, 70, 60, 75, 68, 58, 50].forEach(value => {
       expect(generated.code).toContain(
         `lv_chart_set_next_value(fg_data_chart_chart, fg_data_chart_chart_series, ${value});`,
       )
@@ -123,13 +176,30 @@ describe('Chart generated developer API', () => {
       seriesColor: '#12AB34',
     }, 'ConfiguredChart')))
     expect(generated.code).toContain(
-      'lv_chart_set_div_line_count(fg_configured_chart_chart, 4, 6);',
+      'lv_chart_set_div_line_count(fg_configured_chart_chart, 4, 11);',
     )
     expect(generated.code).toContain(
       'lv_chart_set_update_mode(fg_configured_chart_chart, LV_CHART_UPDATE_MODE_CIRCULAR);',
     )
     expect(generated.code).toContain(
       'lv_chart_add_series(fg_configured_chart_chart, lv_color_hex(0x12AB34), LV_CHART_AXIS_PRIMARY_Y);',
+    )
+  })
+
+  it('generates nearest-integer labels from normalized ranges and divisions', () => {
+    const generated = generate(rootWith(chart('labels', {
+      yMin: 50,
+      yMax: -50,
+      horizontalDivisions: 2,
+    })))
+
+    ;['50', '17', '-17', '-50'].forEach((value, index) => {
+      expect(generated.code).toContain(
+        `lv_label_set_text(obj1_y_label_${index}, "${value}");`,
+      )
+    })
+    expect(generated.code).not.toContain(
+      'lv_label_set_text(obj1_y_label_4,',
     )
   })
 

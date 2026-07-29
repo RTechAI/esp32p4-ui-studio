@@ -21,9 +21,6 @@ import { getComponentBy } from '~core/selectors/components'
 import { InputRightElementPreview } from '~components/editor/previews/InputRightElement'
 import { InputLeftElementPreview } from '~components/editor/previews/InputLeftElement'
 import AspectRatioPreview from '~components/editor/previews/AspectRatioBoxPreview'
-import ButtonPreview from '~components/editor/previews/ButtonPreview'
-import TextPreview from '~components/editor/previews/TextPreview'
-import HeadingPreview from '~components/editor/previews/HeadingPreview'
 import PreviewContainer from '~components/editor/PreviewContainer'
 import WithChildrenPreviewContainer from '~components/editor/WithChildrenPreviewContainer'
 import IconPreview from './previews/IconPreview'
@@ -38,6 +35,21 @@ import ProgressPreview from '~components/editor/previews/ProgressPreview'
 import BarPreview from '~components/editor/previews/BarPreview'
 import ArcPreview from '~components/editor/previews/ArcPreview'
 import StandardChartPreview from '~forgeui/preview/StandardChartPreview'
+import StandardScalePreview from '~forgeui/preview/StandardScalePreview'
+import StandardRollerPreview from '~forgeui/preview/StandardRollerPreview'
+import StandardMessageBoxPreview from '~forgeui/preview/StandardMessageBoxPreview'
+import StandardButtonMatrixPreview from '~forgeui/preview/StandardButtonMatrixPreview'
+import StandardCalendarPreview from '~forgeui/preview/StandardCalendarPreview'
+import StandardCanvasPreview from '~forgeui/preview/StandardCanvasPreview'
+import StandardTabViewPreview from '~forgeui/preview/StandardTabViewPreview'
+import StandardTileViewPreview from '~forgeui/preview/StandardTileViewPreview'
+import StandardButtonPreview from '~forgeui/preview/StandardButtonPreview'
+import StandardTextPreview from '~forgeui/preview/StandardTextPreview'
+import StandardHeadingPreview from '~forgeui/preview/StandardHeadingPreview'
+import StandardWifiPreview from '~forgeui/preview/StandardWifiPreview'
+import StandardLineCanvasPreview from './previews/StandardLineCanvasPreview'
+import { useForgePreviewPalette } from '~forgeui/theme/ForgeThemeContext'
+import { resolveForgeSemanticPalette } from '~forgeui/preview/forgeThemeMap'
 import InteractiveButtonCanvasPreview, {
   getInteractiveButtonCanvasAspectRatio,
 } from './previews/InteractiveButtonCanvasPreview'
@@ -72,6 +84,8 @@ const ComponentPreview: React.FC<{
   componentName: string
 }> = ({ componentName, ...forwardedProps }) => {
   const component = useSelector(getComponentBy(componentName))
+  const previewPalette = useForgePreviewPalette()
+  const previewTheme = resolveForgeSemanticPalette(previewPalette)
   const [, setUploadedAssetsVersion] = useState(0)
 
   useEffect(() => {
@@ -412,7 +426,10 @@ case 'Button':
       component={component}
       {...forwardedProps}
     >
-      <ButtonPreview component={component} />
+      <StandardButtonPreview
+        component={component}
+        palette={previewPalette}
+      />
     </PreviewContainer>
   )
 
@@ -522,7 +539,10 @@ case 'Select':
       enableVisualHelper
       {...forwardedProps}
     >
-      <HeadingPreview component={component} />
+      <StandardHeadingPreview
+        component={component}
+        palette={previewPalette}
+      />
     </PreviewContainer>
   )
 
@@ -533,7 +553,7 @@ case 'Select':
       enableVisualHelper
       {...forwardedProps}
     >
-      <ClockPreview component={component} />
+      <ClockPreview component={component} palette={previewPalette} />
     </PreviewContainer>
   )
 
@@ -544,33 +564,7 @@ case 'Select':
       enableVisualHelper
       {...forwardedProps}
     >
-      <Chakra.Box
-        width="100%"
-        height="100%"
-        p="10px"
-        border="1px solid #00d4ff"
-        borderRadius="8px"
-        bg="rgba(0,212,255,0.08)"
-        display="flex"
-        flexDirection="column"
-        justifyContent="center"
-      >
-        <Chakra.Text
-          color="#00d4ff"
-          fontWeight="bold"
-          fontSize="14px"
-        >
-          WIFI
-        </Chakra.Text>
-
-        <Chakra.Text color="white" fontSize="13px">
-          DISCONNECTED
-        </Chakra.Text>
-
-        <Chakra.Text color="gray.300" fontSize="12px">
-          IP: -
-        </Chakra.Text>
-      </Chakra.Box>
+      <StandardWifiPreview palette={previewPalette} />
     </PreviewContainer>
   )
 
@@ -680,7 +674,10 @@ case 'Textarea':
         enableVisualHelper
         {...forwardedProps}
     >
-      <TextPreview component={component} />
+      <StandardTextPreview
+        component={component}
+        palette={previewPalette}
+      />
     </PreviewContainer>
   )
 
@@ -742,6 +739,7 @@ case 'Led':
           borderRadius="999px"
           bg="green.400"
           boxShadow="0 0 12px rgba(72,255,120,0.8)"
+          data-testid="standard-led-preview"
         />
       </Chakra.Box>
     </PreviewContainer>
@@ -754,7 +752,7 @@ case 'Bar':
       enableVisualHelper
       {...forwardedProps}
     >
-      <BarPreview component={component} />
+      <BarPreview component={component} palette={previewPalette} />
     </PreviewContainer>
   )
 
@@ -765,7 +763,7 @@ case 'Arc':
       enableVisualHelper
       {...forwardedProps}
     >
-      <ArcPreview component={component} />
+      <ArcPreview component={component} palette={previewPalette} />
     </PreviewContainer>
   )
 
@@ -778,30 +776,10 @@ case 'Calendar':
       enableVisualHelper
       {...forwardedProps}
     >
-      <Chakra.Box
-        width="100%"
-        height="100%"
-        p="6px"
-        display="grid"
-        gridTemplateColumns="repeat(7, 1fr)"
-        gap="2px"
-        bg="#1e2328"
-      >
-        {Array.from({ length: 35 }, (_, i) => (
-          <Chakra.Box
-            key={i}
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            fontSize="10px"
-            borderRadius="2px"
-            bg={i === 17 ? 'cyan.400' : 'gray.700'}
-            color={i === 17 ? 'black' : 'white'}
-          >
-            {i < 30 ? i + 1 : ''}
-          </Chakra.Box>
-        ))}
-      </Chakra.Box>
+      <StandardCalendarPreview
+        component={component}
+        palette={previewPalette}
+      />
     </PreviewContainer>
   )
 
@@ -812,7 +790,10 @@ case 'Calendar':
       enableVisualHelper
       {...forwardedProps}
     >
-      <StandardChartPreview component={component} />
+      <StandardChartPreview
+        component={component}
+        palette={previewPalette}
+      />
     </PreviewContainer>
   )
 
@@ -823,42 +804,10 @@ case 'Calendar':
       enableVisualHelper
       {...forwardedProps}
     >
-      <Chakra.Box
-        width="100%"
-        height="100%"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-        overflow="hidden"
-      >
-        <svg
-          width="100%"
-          height="100%"
-          viewBox="0 0 200 40"
-          preserveAspectRatio="none"
-        >
-          <line
-            x1="10"
-            y1="20"
-            x2="190"
-            y2="20"
-            stroke="#00d4ff"
-            strokeWidth="2"
-          />
-
-          {[...Array(11)].map((_, i) => (
-            <line
-              key={i}
-              x1={10 + i * 18}
-              y1="10"
-              x2={10 + i * 18}
-              y2="30"
-              stroke="#00d4ff"
-              strokeWidth="2"
-            />
-          ))}
-        </svg>
-      </Chakra.Box>
+      <StandardScalePreview
+        component={component}
+        palette={previewPalette}
+      />
     </PreviewContainer>
   )
 
@@ -876,11 +825,11 @@ case 'Table':
         height="100%"
         display="grid"
         gridTemplateColumns="repeat(2, 1fr)"
-        border="1px solid #f2a900"
+        border={`1px solid ${previewTheme.surfaceBorder}`}
         borderRadius="8px"
         overflow="hidden"
-        bg="#1e2328"
-        color="#f5f5f5"
+        bg={previewTheme.surface}
+        color={previewTheme.textPrimary}
         fontSize="12px"
         data-testid="standard-table-canvas"
       >
@@ -890,8 +839,8 @@ case 'Table':
             display="flex"
             alignItems="center"
             justifyContent="center"
-            border="1px solid #f2a900"
-            bg="#2a3138"
+            border={`1px solid ${previewTheme.surfaceBorder}`}
+            bg={previewTheme.surfaceSecondary}
             p="8px"
           >
             {cell}
@@ -904,11 +853,11 @@ case 'Table':
   case 'Keyboard':
   return (
     <PreviewContainer component={component} enableVisualHelper {...forwardedProps}>
-      <Chakra.Box width="100%" height="100%" p="8px" display="flex" flexDirection="column" gap="6px" border="1px solid #00d4ff" borderRadius="8px" bg="rgba(255,255,255,0.75)">
+      <Chakra.Box width="100%" height="100%" p="8px" display="flex" flexDirection="column" gap="6px" border={`1px solid ${previewTheme.surfaceBorder}`} borderRadius="8px" bg={`${previewTheme.surface}B3`} data-testid="standard-keyboard-canvas">
         {[['1#','q','w','e','r','t','y','u','i','o','p','⌫'], ['ABC','a','s','d','f','g','h','j','k','l','↵'], ['_','-','z','x','c','v','b','n','m','.',',',':'], ['⌨','<','','','','','','','>','✓']].map((row, r) => (
           <Chakra.Box key={r} flex="1" display="grid" gridTemplateColumns={`repeat(${row.length}, 1fr)`} gap="6px">
             {row.map((key, i) => (
-              <Chakra.Box key={`${r}-${i}`} display="flex" alignItems="center" justifyContent="center" borderRadius="6px" bg="rgba(255,255,255,0.45)" color="gray.700" fontSize="11px">
+              <Chakra.Box key={`${r}-${i}`} display="flex" alignItems="center" justifyContent="center" border={`1px solid ${previewTheme.surfaceBorder}`} borderRadius="6px" bg={previewTheme.surfaceSecondary} color={previewTheme.textPrimary} fontSize="11px" data-testid="standard-keyboard-key">
                 {key}
               </Chakra.Box>
             ))}
@@ -925,52 +874,10 @@ case 'Table':
       enableVisualHelper
       {...forwardedProps}
     >
-      <Chakra.Box
-        width="100%"
-        height="100%"
-        border="1px solid #00d4ff"
-        borderRadius="8px"
-        bg="#1e2328"
-        color="white"
-        display="flex"
-        flexDirection="column"
-        p="12px"
-      >
-        <Chakra.Text
-          fontSize="lg"
-          fontWeight="bold"
-          mb="10px"
-        >
-          Message
-        </Chakra.Text>
-
-        <Chakra.Text
-          fontSize="md"
-          color="white"
-          opacity={0.95}
-          flex="1"
-        >
-          Example message text
-        </Chakra.Text>
-
-        <Chakra.HStack justify="flex-end" mt="12px">
-          <Chakra.Button
-            size="sm"
-            bg="#00d4ff"
-            color="black"
-          >
-            OK
-          </Chakra.Button>
-
-          <Chakra.Button
-            size="sm"
-            bg="#3a3f46"
-            color="white"
-          >
-            Cancel
-          </Chakra.Button>
-        </Chakra.HStack>
-      </Chakra.Box>
+      <StandardMessageBoxPreview
+        component={component}
+        palette={previewPalette}
+      />
     </PreviewContainer>
   )
 
@@ -981,37 +888,10 @@ case 'Table':
       enableVisualHelper
       {...forwardedProps}
     >
-      <Chakra.Box
-        width="100%"
-        height="100%"
-        display="flex"
-        flexDirection="column"
-        justifyContent="center"
-        alignItems="center"
-        overflow="hidden"
-      >
-        <Chakra.Text
-          color="gray.500"
-          fontSize="sm"
-        >
-          Item 1
-        </Chakra.Text>
-
-        <Chakra.Text
-          color="#00d4ff"
-          fontSize="lg"
-          fontWeight="bold"
-        >
-          Item 2
-        </Chakra.Text>
-
-        <Chakra.Text
-          color="gray.500"
-          fontSize="sm"
-        >
-          Item 3
-        </Chakra.Text>
-      </Chakra.Box>
+      <StandardRollerPreview
+        component={component}
+        palette={previewPalette}
+      />
     </PreviewContainer>
   )
 
@@ -1022,34 +902,10 @@ case 'Table':
       enableVisualHelper
       {...forwardedProps}
     >
-      <Chakra.Box
-        width="100%"
-        height="100%"
-        display="grid"
-        gridTemplateColumns="repeat(3, 1fr)"
-        gridTemplateRows="repeat(2, 1fr)"
-        gap="6px"
-        p="8px"
-        bg="rgba(0,212,255,0.08)"
-        border="1px solid #00d4ff"
-        borderRadius="8px"
-      >
-        {['One', 'Two', 'Three', 'Four', 'Five', 'Six'].map((label, i) => (
-          <Chakra.Box
-            key={label}
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            borderRadius="6px"
-            bg={i === 1 ? '#00d4ff' : '#2a3138'}
-            color={i === 1 ? 'black' : 'white'}
-            fontSize="13px"
-            fontWeight="bold"
-          >
-            {label}
-          </Chakra.Box>
-        ))}
-      </Chakra.Box>
+      <StandardButtonMatrixPreview
+        component={component}
+        palette={previewPalette}
+      />
     </PreviewContainer>
   )
 
@@ -1060,52 +916,10 @@ case 'Table':
       enableVisualHelper
       {...forwardedProps}
     >
-      <Chakra.Box
-        width="100%"
-        height="100%"
-        bg="#1e2328"
-        border="1px solid #00d4ff"
-        borderRadius="8px"
-        position="relative"
-        overflow="hidden"
-      >
-        <svg width="100%" height="100%" viewBox="0 0 200 120">
-          <line
-            x1="10"
-            y1="10"
-            x2="190"
-            y2="110"
-            stroke="#00d4ff"
-            strokeWidth="2"
-          />
-
-          <line
-            x1="190"
-            y1="10"
-            x2="10"
-            y2="110"
-            stroke="#00d4ff"
-            strokeWidth="2"
-          />
-
-          <rect
-            x="60"
-            y="30"
-            width="80"
-            height="40"
-            fill="none"
-            stroke="#00d4ff"
-            strokeWidth="2"
-          />
-
-          <circle
-            cx="100"
-            cy="80"
-            r="15"
-            fill="#00d4ff"
-          />
-        </svg>
-      </Chakra.Box>
+      <StandardCanvasPreview
+        component={component}
+        palette={previewPalette}
+      />
     </PreviewContainer>
   )
 
@@ -1116,22 +930,10 @@ case 'Line':
       enableVisualHelper
       {...forwardedProps}
     >
-      <Chakra.Box
-        width="100%"
-        height="100%"
-        overflow="hidden"
-      >
-        <svg width="100%" height="100%" viewBox="0 0 100 100">
-          <line
-            x1="0"
-            y1="0"
-            x2="100"
-            y2="100"
-            stroke="#00d4ff"
-            strokeWidth="3"
-          />
-        </svg>
-      </Chakra.Box>
+      <StandardLineCanvasPreview
+        component={component}
+        palette={previewPalette}
+      />
     </PreviewContainer>
   )
 
@@ -1142,42 +944,10 @@ case 'Tabview':
       enableVisualHelper
       {...forwardedProps}
     >
-      <Chakra.Box
-        width="100%"
-        height="100%"
-        border="1px solid #00d4ff"
-        borderRadius="8px"
-        overflow="hidden"
-        bg="#1e2328"
-      >
-        <Chakra.Box display="flex" height="34px">
-          {['Tab 1', 'Tab 2', 'Tab 3'].map((tab, i) => (
-            <Chakra.Box
-              key={tab}
-              flex="1"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              bg={i === 0 ? '#00d4ff' : '#2a3138'}
-              color={i === 0 ? 'black' : 'white'}
-              fontSize="12px"
-              fontWeight="bold"
-            >
-              {tab}
-            </Chakra.Box>
-          ))}
-        </Chakra.Box>
-
-        <Chakra.Box
-          height="calc(100% - 34px)"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          color="white"
-        >
-          Tab 1 content
-        </Chakra.Box>
-      </Chakra.Box>
+      <StandardTabViewPreview
+        component={component}
+        palette={previewPalette}
+      />
     </PreviewContainer>
   )
 
@@ -1213,34 +983,10 @@ case 'Tileview':
       enableVisualHelper
       {...forwardedProps}
     >
-      <Chakra.Box
-        width="100%"
-        height="100%"
-        display="grid"
-        gridTemplateColumns="repeat(2, 1fr)"
-        gridTemplateRows="repeat(2, 1fr)"
-        gap="6px"
-        p="8px"
-        border="1px solid #00d4ff"
-        borderRadius="8px"
-        bg="#1e2328"
-      >
-        {['Tile 1', 'Tile 2', 'Tile 3', 'Tile 4'].map((tile, i) => (
-          <Chakra.Box
-            key={tile}
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            borderRadius="6px"
-            bg={i === 0 ? '#00d4ff' : '#2a3138'}
-            color={i === 0 ? 'black' : 'white'}
-            fontSize="12px"
-            fontWeight="bold"
-          >
-            {tile}
-          </Chakra.Box>
-        ))}
-      </Chakra.Box>
+      <StandardTileViewPreview
+        component={component}
+        palette={previewPalette}
+      />
     </PreviewContainer>
   )
 

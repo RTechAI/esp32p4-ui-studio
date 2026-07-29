@@ -59,6 +59,7 @@ import SkeletonPanel from './components/SkeletonPanel'
 import ForgeUILayoutPanel from '~forgeui/ForgeUILayoutPanel'
 import StandardTextPanel from './components/StandardTextPanel'
 import ClockPanel from './components/ClockPanel'
+import LinePanel from './components/LinePanel'
 
 const Panels: React.FC<{ component: IComponent; isRoot: boolean }> = ({
   component,
@@ -97,6 +98,7 @@ const Panels: React.FC<{ component: IComponent; isRoot: boolean }> = ({
       {type === 'CircularProgress' && <CircularProgressPanel />}
       {type === 'Heading' && <HeadingPanel />}
       {type === 'Clock' && <ClockPanel />}
+      {type === 'Line' && <LinePanel />}
       {type === 'Highlight' && <HighlightPanel />}
       {type === 'SimpleGrid' && <SimpleGridPanel />}
       {type === 'Switch' && <SwitchPanel />}

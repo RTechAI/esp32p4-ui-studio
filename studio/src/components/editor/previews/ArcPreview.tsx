@@ -7,8 +7,11 @@ import {
   isForgeUIStandardArcTrackHit,
 } from '~forgeui/ForgeUIStandardArc'
 import StandardArcPreview from '~forgeui/preview/StandardArcPreview'
+import { ForgePreviewPalette } from '~forgeui/preview/forgeThemeMap'
 
-const ArcPreview: React.FC<IPreviewProps> = ({ component }) => {
+const ArcPreview: React.FC<IPreviewProps & {
+  palette?: ForgePreviewPalette
+}> = ({ component, palette }) => {
   const dispatch = useDispatch()
   const arc = getForgeUIStandardArcValues(component.props)
   const activePointerId = useRef<number | null>(null)
@@ -89,7 +92,7 @@ const ArcPreview: React.FC<IPreviewProps> = ({ component }) => {
         activePointerId.current = null
       }}
     >
-      <StandardArcPreview component={component} />
+      <StandardArcPreview component={component} palette={palette} />
     </Box>
   )
 }

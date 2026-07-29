@@ -10,7 +10,7 @@ import { forgeUIGetUploadedAssets } from '~forgeui/ForgeUIUploadedAssetRegistry'
 
 const CodePanel = () => {
   const components = useSelector(getComponents)
-  const { themeId, heroBackground } = useForgeTheme()
+  const { themeId, heroBackground, palette } = useForgeTheme()
 
   const [code, setCode] = useState<string | undefined>(undefined)
 
@@ -25,10 +25,11 @@ const CodePanel = () => {
       components,
       themeId,
       selectedHeroAsset,
+      { palette },
     )
 
     setCode(result.code)
-  }, [components, themeId, heroBackground])
+  }, [components, themeId, heroBackground, palette])
 
   const { onCopy, hasCopied } = useClipboard(code!)
 

@@ -60,6 +60,50 @@ describe('Roller generated developer API', () => {
     )
   })
 
+  it('emits the preferred Browser visual treatment with native parts', () => {
+    const { code } = generate(roller())
+
+    expect(code).toContain(
+      'lv_obj_set_style_bg_color(obj1, lv_color_hex(0x1E2328), LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_bg_opa(obj1, LV_OPA_COVER, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_text_color(obj1, lv_color_hex(0xB5B6B8), LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_text_font(obj1, &lv_font_montserrat_16, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_text_align(obj1, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_text_line_space(obj1, 5, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_border_width(obj1, 1, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_radius(obj1, 8, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_pad_all(obj1, 0, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_bg_opa(obj1, LV_OPA_TRANSP, LV_PART_SELECTED);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_border_width(obj1, 0, LV_PART_SELECTED);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_text_color(obj1, lv_color_hex(0xF2A900), LV_PART_SELECTED);',
+    )
+    expect(code).not.toContain(
+      'lv_obj_remove_style_all(obj1)',
+    )
+  })
+
   it('shares one guarded transition for programmatic and touch changes', () => {
     const { code } = generate(roller())
 

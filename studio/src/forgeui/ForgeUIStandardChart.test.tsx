@@ -3,7 +3,9 @@ import { ChakraProvider } from '@chakra-ui/react'
 import { render, screen } from '@testing-library/react'
 import {
   FORGEUI_STANDARD_CHART_DEFAULT_DATA,
+  getForgeUIStandardChartLayout,
   getForgeUIStandardChartModel,
+  getForgeUIStandardChartPointOffsetX,
 } from './ForgeUIStandardChart'
 import StandardChartPreview from './preview/StandardChartPreview'
 import { renderForgePreview } from './preview/forgePreviewRenderer'
@@ -34,14 +36,16 @@ describe('Standard Chart preview parity', () => {
     expect(model).toMatchObject({
       minimum: 0,
       maximum: 100,
-      pointCount: 7,
+      pointCount: 11,
       data: FORGEUI_STANDARD_CHART_DEFAULT_DATA,
       seriesColor: '#2196f3',
       horizontalDivisions: 3,
-      verticalDivisions: 5,
+      verticalDivisions: 11,
     })
     expect(model.points.map(point => point.y)).toEqual([
       0.9, 0.7, 0.8, 0.5, 0.6, 0.30000000000000004, 0.4,
+      0.25, 0.31999999999999995, 0.42000000000000004,
+      0.5,
     ])
   })
 
@@ -73,6 +77,75 @@ describe('Standard Chart preview parity', () => {
     }).data).toEqual([null, null, 10, 20])
   })
 
+  it('derives grid-aligned Y labels for default and normalized ranges', () => {
+    const defaults = getForgeUIStandardChartLayout({ w: 388, h: 120 })
+    expect(defaults.yAxisLabels.map(label => label.value))
+      .toEqual([100, 75, 50, 25, 0])
+    expect(defaults.yAxisLabels.map(label => label.y))
+      .toEqual([12, 33, 54, 75, 96])
+    expect(defaults.xAxisLabels.map(label => label.value))
+      .toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    expect(defaults.xAxisLabels.map(label => label.x)).toEqual([
+      44, 77, 110, 144, 177, 211, 244, 277, 311, 344, 378,
+    ])
+    expect(defaults.xAxisLabels.every(label => label.visible)).toBe(true)
+    expect(defaults.xPointPositions)
+      .toEqual(defaults.xAxisLabels.map(label => label.x))
+    expect(defaults.xPointPositions).toEqual(
+      getForgeUIStandardChartModel({}).points.map((_, index) =>
+        defaults.plotLeft + getForgeUIStandardChartPointOffsetX(
+          index,
+          11,
+          defaults.plotWidth,
+        )),
+    )
+    expect(defaults.xPointPositions[0]).toBe(defaults.plotLeft)
+    expect(defaults.xPointPositions[10]).toBe(defaults.plotRight)
+    expect(defaults.bottomLabelGutter).toBe(22)
+
+    const reversed = getForgeUIStandardChartLayout({
+      w: 120,
+      h: 60,
+      yMin: 50,
+      yMax: -50,
+      horizontalDivisions: 3,
+    })
+    expect(reversed.yAxisLabels.map(label => label.value))
+      .toEqual([50, 25, 0, -25, -50])
+    expect(reversed.plotLeft).toBe(21)
+
+    const nonEven = getForgeUIStandardChartLayout({
+      yMin: 0,
+      yMax: 10,
+      horizontalDivisions: 2,
+    })
+    expect(nonEven.yAxisLabels.map(label => label.value))
+      .toEqual([10, 7, 3, 0])
+  })
+
+  it('thins dense X labels deterministically while retaining endpoints', () => {
+    const dense = getForgeUIStandardChartLayout({
+      w: 120,
+      h: 60,
+      pointCount: 20,
+    })
+    const visible = dense.xAxisLabels
+      .filter(label => label.visible)
+      .map(label => label.value)
+    expect(visible[0]).toBe(0)
+    expect(visible[visible.length - 1]).toBe(19)
+    expect(visible.length).toBeLessThan(20)
+    dense.xAxisLabels.forEach((label, index) => {
+      expect(label.x).toBe(
+        dense.plotLeft + getForgeUIStandardChartPointOffsetX(
+          index,
+          20,
+          dense.plotWidth,
+        ),
+      )
+    })
+  })
+
   it('renders an opaque divided plot with serialized data and color', () => {
     render(
       <ChakraProvider>
@@ -89,19 +162,75 @@ describe('Standard Chart preview parity', () => {
     )
     const preview = screen.getByTestId('standard-chart-preview')
     expect(preview).toHaveStyle({
-      background: '#ffffff',
-      border: '2px solid #b0bec5',
+      background: '#1E2328',
+      border: '2px solid #F2A900',
       borderRadius: '12px',
     })
     expect(preview).toHaveAttribute('data-chart-surface', 'opaque-lvgl')
     expect(preview).toHaveAttribute('data-chart-points', '-50,0,50')
     expect(preview).toHaveAttribute('data-horizontal-divisions', '2')
-    expect(preview).toHaveAttribute('data-vertical-divisions', '4')
+    expect(preview).toHaveAttribute('data-vertical-divisions', '3')
     const grid = screen.getByTestId('standard-chart-grid')
-    expect(grid.querySelectorAll('line')).toHaveLength(6)
-    expect(grid).toHaveAttribute('stroke', '#b0bec5')
+    expect(grid.querySelectorAll('line')).toHaveLength(5)
+    const verticalGrid = Array.from(grid.querySelectorAll('line'))
+      .slice(2)
+      .map(line => line.getAttribute('x1'))
+    const labels = screen.getAllByTestId('standard-chart-x-label')
+    expect(verticalGrid).toEqual(labels.map(label => label.getAttribute('x')))
+    const seriesX = screen.getByTestId('standard-chart-series')
+      .getAttribute('points')!
+      .trim()
+      .split(/\s+/)
+      .map(point => point.split(',')[0])
+    expect(verticalGrid).toEqual(seriesX)
+    expect(grid).toHaveAttribute('stroke', '#B5B6B8')
+    expect(screen.getByTestId('standard-chart-y-labels'))
+      .toHaveAttribute('fill', '#B5B6B8')
+    expect(screen.getAllByTestId('standard-chart-y-label')
+      .map(label => label.textContent))
+      .toEqual(['50', '17', '-17', '-50'])
+    expect(screen.getAllByTestId('standard-chart-x-label')
+      .map(label => label.textContent))
+      .toEqual(['0', '1', '2'])
     expect(screen.getByTestId('standard-chart-series'))
       .toHaveAttribute('stroke', '#12AB34')
+  })
+
+  it('renders all eleven default point positions on Canvas and Browser Preview', () => {
+    const component = chart({ w: 388 })
+    const { rerender } = render(
+      <ChakraProvider>
+        <StandardChartPreview component={component} />
+      </ChakraProvider>,
+    )
+
+    const expectedLabels = Array.from({ length: 11 }, (_, index) =>
+      String(index))
+    const canvasSeries = screen.getByTestId('standard-chart-series')
+      .getAttribute('points')!
+      .trim()
+      .split(/\s+/)
+    expect(canvasSeries).toHaveLength(11)
+    expect(screen.getAllByTestId('standard-chart-x-label')
+      .map(label => label.textContent))
+      .toEqual(expectedLabels)
+
+    rerender(
+      <ChakraProvider>
+        <ForgeThemeProvider>
+          <BrowserChart component={component} />
+        </ForgeThemeProvider>
+      </ChakraProvider>,
+    )
+
+    const browserSeries = screen.getByTestId('standard-chart-series')
+      .getAttribute('points')!
+      .trim()
+      .split(/\s+/)
+    expect(browserSeries).toHaveLength(11)
+    expect(screen.getAllByTestId('standard-chart-x-label')
+      .map(label => label.textContent))
+      .toEqual(expectedLabels)
   })
 
   it('uses the exact shared renderer and model in Browser Preview', () => {
@@ -116,6 +245,18 @@ describe('Standard Chart preview parity', () => {
     )
     const canvasPoints = screen.getByTestId('standard-chart-series')
       .getAttribute('points')
+    const canvasLabels = screen.getAllByTestId('standard-chart-y-label')
+      .map(label => ({
+        text: label.textContent,
+        x: label.getAttribute('x'),
+        y: label.getAttribute('y'),
+      }))
+    const canvasXLabels = screen.getAllByTestId('standard-chart-x-label')
+      .map(label => ({
+        text: label.textContent,
+        x: label.getAttribute('x'),
+        y: label.getAttribute('y'),
+      }))
 
     rerender(
       <ChakraProvider>
@@ -127,13 +268,26 @@ describe('Standard Chart preview parity', () => {
     const preview = screen.getByTestId('standard-chart-preview')
     expect(screen.getByTestId('standard-chart-series'))
       .toHaveAttribute('points', canvasPoints)
+    expect(screen.getAllByTestId('standard-chart-y-label')
+      .map(label => ({
+        text: label.textContent,
+        x: label.getAttribute('x'),
+        y: label.getAttribute('y'),
+      }))).toEqual(canvasLabels)
+    expect(screen.getAllByTestId('standard-chart-x-label')
+      .map(label => ({
+        text: label.textContent,
+        x: label.getAttribute('x'),
+        y: label.getAttribute('y'),
+      }))).toEqual(canvasXLabels)
     expect(preview.parentElement).toHaveStyle({
       width: '300px',
       height: '140px',
     })
     expect(preview).toHaveAttribute('data-chart-surface', 'opaque-lvgl')
     expect(preview).toHaveStyle({
-      background: '#ffffff',
+      background: '#120824',
+      border: '2px solid #D946EF',
       borderRadius: '12px',
     })
   })
