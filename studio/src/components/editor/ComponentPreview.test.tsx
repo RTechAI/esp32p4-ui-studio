@@ -161,6 +161,124 @@ test('Canvas Slider stays selectable and leaves drag gestures to its wrapper', (
     .toBe(35)
 })
 
+test('Canvas Bar keeps track interaction separate from wrapper movement', () => {
+  // @ts-ignore Rematch's inferred plugin type is wider than this test needs.
+  const store = init(storeConfig)
+  store.dispatch.components.addComponent({
+    parentName: 'root',
+    type: 'Bar',
+    rootParentType: 'Bar',
+    testId: 'bar',
+    props: {
+      positionMode: 'absolute',
+      x: 100,
+      y: 80,
+      w: 240,
+      h: 40,
+      value: 35,
+      min: 0,
+      max: 100,
+    },
+  })
+
+  // @ts-ignore Test helper preserves its historical loosely typed options shape.
+  renderWithRedux(<ComponentPreview componentName="bar" />, { store })
+
+  const preview = screen.getByTestId('standard-bar-canvas-preview')
+  const control = screen.getByTestId('standard-bar-canvas-control')
+  const draggable = control.closest('.react-draggable')
+  const moveSurface = control.closest('[draggable="true"]')
+
+  expect(draggable).not.toBeNull()
+  expect(moveSurface).toHaveAttribute('draggable', 'true')
+  expect(control).toHaveClass('forgeui-canvas-control-interactive')
+  expect(control).toHaveAttribute('data-bar-grab-strip', '8')
+  Object.defineProperty(control, 'getBoundingClientRect', {
+    configurable: true,
+    value: () => ({
+      left: 0, right: 240, top: 8, bottom: 32,
+      width: 240, height: 24, x: 0, y: 8,
+      toJSON: () => ({}),
+    }),
+  })
+  const captured = new Set<number>()
+  control.setPointerCapture = pointerId => captured.add(pointerId)
+  control.hasPointerCapture = pointerId => captured.has(pointerId)
+  control.releasePointerCapture = pointerId => captured.delete(pointerId)
+  const pointerEvent = (type: string) => {
+    const event = new Event(type, { bubbles: true, cancelable: true })
+    Object.defineProperties(event, {
+      pointerId: { value: 1 },
+      clientX: { value: 120 },
+      clientY: { value: 20 },
+    })
+    return event
+  }
+  fireEvent(control, pointerEvent('pointerdown'))
+  expect(fireEvent.dragStart(control)).toBe(false)
+  fireEvent(control, pointerEvent('pointerup'))
+  expect(fireEvent.dragStart(preview)).toBe(true)
+  expect(fireEvent.dragStart(moveSurface as HTMLElement)).toBe(true)
+  // @ts-ignore Store state is wrapped by redux-undo in production and tests.
+  expect(store.getState().components.present.components.bar.props)
+    .toMatchObject({ x: 100, y: 80, value: 50 })
+})
+
+test('Canvas Arc keeps angle interaction separate from wrapper movement', () => {
+  // @ts-ignore Rematch's inferred plugin type is wider than this test needs.
+  const store = init(storeConfig)
+  store.dispatch.components.addComponent({
+    parentName: 'root',
+    type: 'Arc',
+    rootParentType: 'Arc',
+    testId: 'arc',
+    props: {
+      positionMode: 'absolute',
+      x: 100,
+      y: 80,
+      w: 120,
+      h: 120,
+      value: 65,
+      min: 0,
+      max: 100,
+    },
+  })
+
+  // @ts-ignore Test helper preserves its historical loosely typed options shape.
+  renderWithRedux(<ComponentPreview componentName="arc" />, { store })
+
+  const control = screen.getByTestId('standard-arc-canvas-control')
+  const draggable = control.closest('.react-draggable')
+  const moveSurface = control.closest('[draggable="true"]')
+
+  expect(draggable).not.toBeNull()
+  expect(moveSurface).toHaveAttribute('draggable', 'true')
+  expect(control).toHaveClass('forgeui-canvas-control-interactive')
+  Object.defineProperty(control, 'getBoundingClientRect', {
+    configurable: true,
+    value: () => ({
+      left: 0, right: 120, top: 0, bottom: 120,
+      width: 120, height: 120, x: 0, y: 0,
+      toJSON: () => ({}),
+    }),
+  })
+  const pointerEvent = (type: string, clientX: number, clientY: number) => {
+    const event = new Event(type, { bubbles: true, cancelable: true })
+    Object.defineProperties(event, {
+      pointerId: { value: 1 },
+      clientX: { value: clientX },
+      clientY: { value: clientY },
+    })
+    return event
+  }
+  fireEvent(control, pointerEvent('pointerdown', 60, 0))
+  expect(fireEvent.dragStart(control)).toBe(false)
+  fireEvent(control, pointerEvent('pointerup', 60, 0))
+  fireEvent(control, pointerEvent('pointerdown', 60, 60))
+  expect(fireEvent.dragStart(control)).toBe(true)
+  expect(fireEvent.dragStart(moveSurface as HTMLElement)).toBe(true)
+})
+
 test('Three-Position Toggle uses the shared positioned, selectable preview container', () => {
   // @ts-ignore Rematch's inferred plugin type is wider than this test needs.
   const store = init(storeConfig)

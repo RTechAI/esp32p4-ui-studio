@@ -91,6 +91,8 @@ type PreviewDefaultProps = {
   Image?: PropsWithForm<ImageProps>
   Text?: PropsWithForm<TextProps> & { textValue?: string }
   Progress?: PropsWithForm<ProgressProps>
+  Bar?: PropsWithForm<ProgressProps>
+  Arc?: PropsWithForm<ProgressProps>
   AvatarBadge?: PropsWithForm<AvatarBadgeProps>
   AvatarGroup?: PropsWithForm<Omit<AvatarGroupProps, 'children'>>
   Avatar?: PropsWithForm<AvatarProps>
@@ -304,6 +306,16 @@ WiFi: {
     value: 60,
     min: 0,
     max: 100,
+  },
+  Bar: {
+    min: 0,
+    max: 100,
+    value: 70,
+  },
+  Arc: {
+    min: 0,
+    max: 100,
+    value: 65,
   },
   Radio: { children: 'Radio' },
   Select: {

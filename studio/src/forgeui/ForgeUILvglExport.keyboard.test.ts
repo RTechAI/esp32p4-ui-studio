@@ -28,10 +28,19 @@ describe('Keyboard LVGL export geometry', () => {
 
     const { code, publicApiDeclarations, userEventHooks } =
       generateForgeUILvglCode(components, 'graphite')
+    const keyboardStart = code.indexOf('// ForgeUI Keyboard component keyboard')
+    const keyboardEnd = code.indexOf(
+      '    fg_system_launcher_page =',
+      keyboardStart,
+    )
+    const keyboardBlock = code.slice(keyboardStart, keyboardEnd)
 
     expect(code).toContain('static lv_obj_t * fg_keyboard_keyboard = NULL;')
-    expect(code).toContain('static lv_obj_t * fg_keyboard_keyboard_textarea = NULL;')
+    expect(code).not.toContain('fg_keyboard_keyboard_textarea')
     expect(code).toContain('fg_keyboard_keyboard = lv_keyboard_create(fg_application_page);')
+    expect(keyboardBlock).not.toContain('lv_textarea_create')
+    expect(keyboardBlock).not.toContain('"Keyboard input"')
+    expect(keyboardBlock).not.toMatch(/\bobj\d+_ta\b/)
     expect(publicApiDeclarations).toEqual(expect.arrayContaining([
       'void FG_Show_Keyboard(void);',
       'void FG_Hide_Keyboard(void);',
@@ -42,8 +51,7 @@ describe('Keyboard LVGL export geometry', () => {
     ]))
     expect(code).toContain('lv_obj_set_pos(obj1, 0, 408);')
     expect(code).toContain('lv_obj_set_size(obj1, 654, 192);')
-    expect(code).toContain('lv_obj_set_pos(fg_keyboard_keyboard_textarea, 0, 353);')
-    expect(code).toContain('lv_obj_set_size(fg_keyboard_keyboard_textarea, 654, 45);')
+    expect(code).toContain('lv_keyboard_set_textarea(obj1, NULL);')
     expect(code).toContain(
       'lv_keyboard_set_map(obj1, LV_KEYBOARD_MODE_TEXT_LOWER, obj1_map, obj1_ctrl);',
     )
@@ -73,6 +81,32 @@ describe('Keyboard LVGL export geometry', () => {
     expect(code).toContain('lv_obj_set_style_pad_all(obj1, 8, LV_PART_MAIN);')
     expect(code).toContain('lv_obj_set_style_pad_row(obj1, 6, LV_PART_MAIN);')
     expect(code).toContain('lv_obj_set_style_pad_column(obj1, 6, LV_PART_MAIN);')
+    expect(code).toContain(
+      'lv_obj_set_style_bg_color(obj1, lv_color_hex(0xFFFFFF), LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_bg_opa(obj1, LV_OPA_70, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_bg_color(obj1, lv_color_hex(0xF8FAFC), LV_PART_ITEMS);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_text_color(obj1, lv_color_hex(0x4A5568), LV_PART_ITEMS);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_bg_color(obj1, lv_color_hex(0xE2E8F0), LV_PART_ITEMS | LV_STATE_PRESSED);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_bg_color(obj1, lv_color_hex(0xF8FAFC), LV_PART_ITEMS | LV_STATE_CHECKED);',
+    )
+    expect(code).not.toContain(
+      'lv_obj_set_style_bg_color(obj1, lv_color_hex(0x1E2328), LV_PART_MAIN);',
+    )
+    expect(code).not.toContain(
+      'lv_obj_set_style_bg_color(obj1, lv_color_hex(0x2A3138), LV_PART_ITEMS);',
+    )
+    expect(code).toContain('lv_obj_set_style_radius(obj1, 8, LV_PART_MAIN);')
+    expect(code).toContain('lv_obj_set_style_radius(obj1, 6, LV_PART_ITEMS);')
     expect(code).toContain(
       'lv_obj_set_style_text_font(obj1, &lv_font_montserrat_12, LV_PART_ITEMS);',
     )
@@ -133,7 +167,10 @@ describe('Keyboard LVGL export geometry', () => {
     expect(code).toContain('lv_obj_add_flag(keyboard, LV_OBJ_FLAG_HIDDEN);')
     expect(code).toContain('lv_obj_move_foreground(keyboard);')
     expect(code).toContain(
-      'if (fg_component_keyboard_set_visible(fg_keyboard_keyboard, fg_keyboard_keyboard_textarea, true)) {',
+      'if (fg_component_keyboard_set_visible(fg_keyboard_keyboard, true)) {',
+    )
+    expect(code).toContain(
+      'if (fg_component_keyboard_set_visible(fg_keyboard_keyboard, false)) {',
     )
     expect(code).toContain('FG_On_Keyboard_Shown();')
     expect(code).toContain('FG_On_Keyboard_Hidden();')

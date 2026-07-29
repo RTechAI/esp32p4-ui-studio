@@ -8,9 +8,12 @@
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
 #include "freertos/task.h"
+#include "95_UserEvents.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include <limits.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 static lv_obj_t * fg_wifi_label = NULL;
@@ -18,6 +21,21 @@ static lv_obj_t * fg_application_page = NULL;
 static lv_obj_t * fg_system_launcher_page = NULL;
 static lv_obj_t * fg_system_brightness_page = NULL;
 static lv_obj_t * fg_system_brightness_label = NULL;
+static lv_obj_t * fg_status_led_led = NULL;
+static bool fg_status_led_led_on = true;
+static lv_obj_t * fg_progress_bar_bar = NULL;
+static int32_t fg_progress_bar_bar_value = 42;
+static const int32_t fg_progress_bar_bar_minimum = 0;
+static const int32_t fg_progress_bar_bar_maximum = 100;
+static lv_obj_t * fg_value_arc_arc = NULL;
+static int32_t fg_value_arc_arc_value = 74;
+static const int32_t fg_value_arc_arc_minimum = 0;
+static const int32_t fg_value_arc_arc_maximum = 100;
+static lv_obj_t * fg_data_chart_chart = NULL;
+static lv_chart_series_t * fg_data_chart_chart_series = NULL;
+static const int32_t fg_data_chart_chart_y_minimum = 0;
+static const int32_t fg_data_chart_chart_y_maximum = 100;
+static lv_obj_t * fg_keyboard_keyboard = NULL;
 static lv_obj_t * fg_system_wifi_page = NULL;
 static lv_obj_t * fg_system_wifi_state_label = NULL;
 static lv_obj_t * fg_system_wifi_ssid_label = NULL;
@@ -115,6 +133,80 @@ static bool fg_system_storage_create_format_dialog(void);
 static bool fg_system_storage_create_delete_folder_dialog(void);
 static void fg_system_storage_worker(void * arg);
 static void fg_system_storage_tick_cb(lv_timer_t * timer);
+
+void FG_Set_Status_LED(bool on)
+{
+    if (fg_status_led_led == NULL || fg_status_led_led_on == on) return;
+    fg_status_led_led_on = on;
+    if (on) lv_led_on(fg_status_led_led); else lv_led_off(fg_status_led_led);
+    FG_On_Status_LED_Changed(on);
+}
+
+void FG_Set_Progress_Bar(int32_t value)
+{
+    if (value < fg_progress_bar_bar_minimum) value = fg_progress_bar_bar_minimum;
+    if (value > fg_progress_bar_bar_maximum) value = fg_progress_bar_bar_maximum;
+    if (fg_progress_bar_bar == NULL || fg_progress_bar_bar_value == value) return;
+    lv_bar_set_value(fg_progress_bar_bar, value, LV_ANIM_OFF);
+    fg_progress_bar_bar_value = value;
+    FG_On_Progress_Bar_Changed(value);
+}
+
+void FG_Set_Value_Arc(int32_t value)
+{
+    if (value < fg_value_arc_arc_minimum) value = fg_value_arc_arc_minimum;
+    if (value > fg_value_arc_arc_maximum) value = fg_value_arc_arc_maximum;
+    if (fg_value_arc_arc == NULL || fg_value_arc_arc_value == value) return;
+    lv_arc_set_value(fg_value_arc_arc, value);
+    fg_value_arc_arc_value = value;
+    FG_On_Value_Arc_Changed(value);
+}
+
+void FG_Add_Data_Chart_Point(int32_t value)
+{
+    if (fg_data_chart_chart == NULL || fg_data_chart_chart_series == NULL) return;
+    if (value < fg_data_chart_chart_y_minimum) value = fg_data_chart_chart_y_minimum;
+    if (value > fg_data_chart_chart_y_maximum) value = fg_data_chart_chart_y_maximum;
+    lv_chart_set_next_value(fg_data_chart_chart, fg_data_chart_chart_series, value);
+    FG_On_Data_Chart_Point_Added(value);
+}
+
+void FG_Clear_Data_Chart(void)
+{
+    if (fg_data_chart_chart == NULL || fg_data_chart_chart_series == NULL) return;
+    lv_chart_set_all_value(fg_data_chart_chart, fg_data_chart_chart_series, LV_CHART_POINT_NONE);
+    FG_On_Data_Chart_Cleared();
+}
+
+static bool fg_component_keyboard_set_visible(lv_obj_t * keyboard, bool visible)
+{
+    if (keyboard == NULL) return false;
+    bool hidden = lv_obj_has_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
+    if (visible) {
+        if (!hidden) return false;
+        lv_obj_clear_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_move_foreground(keyboard);
+        return true;
+    }
+    if (hidden) return false;
+    lv_keyboard_set_textarea(keyboard, NULL);
+    lv_obj_add_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
+    return true;
+}
+
+void FG_Show_Keyboard(void)
+{
+    if (fg_component_keyboard_set_visible(fg_keyboard_keyboard, true)) {
+        FG_On_Keyboard_Shown();
+    }
+}
+
+void FG_Hide_Keyboard(void)
+{
+    if (fg_component_keyboard_set_visible(fg_keyboard_keyboard, false)) {
+        FG_On_Keyboard_Hidden();
+    }
+}
 
 static void FG_Set_Display_Brightness(uint8_t percent)
 {
@@ -819,13 +911,131 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_size(bg_texture_0, 1024, 600);
     lv_obj_move_background(bg_texture_0);
 
-    fg_wifi_label = lv_label_create(fg_application_page);
-    lv_label_set_text(fg_wifi_label, "WIFI\nDISCONNECTED\nIP: -");
-    lv_obj_set_pos(fg_wifi_label, 126, 234);
-    lv_obj_set_size(fg_wifi_label, 120, 60);
-    lv_obj_set_style_text_color(fg_wifi_label, lv_color_hex(0x00D4FF), 0);
-    lv_obj_set_style_text_font(fg_wifi_label, &lv_font_montserrat_20, 0);
-    lv_label_set_long_mode(fg_wifi_label, LV_LABEL_LONG_WRAP);
+    fg_status_led_led = lv_led_create(fg_application_page);
+    lv_obj_set_pos(fg_status_led_led, 894, 235);
+    lv_obj_set_size(fg_status_led_led, 32, 32);
+    lv_led_set_color(fg_status_led_led, lv_palette_main(LV_PALETTE_GREEN));
+    lv_led_set_brightness(fg_status_led_led, 255);
+    lv_led_on(fg_status_led_led);
+    fg_status_led_led_on = true;
+
+    fg_progress_bar_bar = lv_bar_create(fg_application_page);
+    lv_obj_set_pos(fg_progress_bar_bar, 574.0000152587891, 22);
+    lv_obj_set_size(fg_progress_bar_bar, 240, 36);
+    lv_bar_set_range(fg_progress_bar_bar, 0, 100);
+    lv_bar_set_value(fg_progress_bar_bar, 42, LV_ANIM_OFF);
+    fg_progress_bar_bar_value = 42;
+
+    fg_value_arc_arc = lv_arc_create(fg_application_page);
+    lv_obj_set_pos(fg_value_arc_arc, 846, 195);
+    lv_obj_set_size(fg_value_arc_arc, 128, 104);
+    lv_arc_set_range(fg_value_arc_arc, 0, 100);
+    lv_arc_set_value(fg_value_arc_arc, 74);
+    fg_value_arc_arc_value = 74;
+
+    fg_data_chart_chart = lv_chart_create(fg_application_page);
+    lv_obj_set_pos(fg_data_chart_chart, 581, 107);
+    lv_obj_set_size(fg_data_chart_chart, 240, 120);
+    lv_chart_set_type(fg_data_chart_chart, LV_CHART_TYPE_LINE);
+    lv_chart_set_point_count(fg_data_chart_chart, 7);
+    lv_chart_set_range(fg_data_chart_chart, LV_CHART_AXIS_PRIMARY_Y, 0, 100);
+    fg_data_chart_chart_series = lv_chart_add_series(fg_data_chart_chart, lv_palette_main(LV_PALETTE_BLUE), LV_CHART_AXIS_PRIMARY_Y);
+    lv_chart_set_next_value(fg_data_chart_chart, fg_data_chart_chart_series, 10);
+    lv_chart_set_next_value(fg_data_chart_chart, fg_data_chart_chart_series, 30);
+    lv_chart_set_next_value(fg_data_chart_chart, fg_data_chart_chart_series, 20);
+    lv_chart_set_next_value(fg_data_chart_chart, fg_data_chart_chart_series, 50);
+    lv_chart_set_next_value(fg_data_chart_chart, fg_data_chart_chart_series, 40);
+    lv_chart_set_next_value(fg_data_chart_chart, fg_data_chart_chart_series, 70);
+    lv_chart_set_next_value(fg_data_chart_chart, fg_data_chart_chart_series, 60);
+    lv_chart_refresh(fg_data_chart_chart);
+
+    lv_obj_t * obj5 = lv_table_create(fg_application_page);
+    lv_obj_set_pos(obj5, 168, 66);
+    lv_obj_set_size(obj5, 240, 120);
+    lv_table_set_cell_value(obj5, 0, 0, "A1");
+    lv_table_set_cell_value(obj5, 0, 1, "B1");
+    lv_table_set_cell_value(obj5, 1, 0, "A2");
+    lv_table_set_cell_value(obj5, 1, 1, "B2");
+    lv_obj_set_style_bg_color(obj5, lv_color_hex(0x1E2328), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(obj5, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_border_color(obj5, lv_color_hex(0xF2A900), LV_PART_MAIN);
+    lv_obj_set_style_border_width(obj5, 1, LV_PART_MAIN);
+    lv_obj_set_style_radius(obj5, 8, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(obj5, 0, LV_PART_MAIN);
+    lv_obj_set_style_clip_corner(obj5, true, LV_PART_MAIN);
+    lv_obj_set_style_text_color(obj5, lv_color_hex(0xF5F5F5), LV_PART_ITEMS);
+    lv_obj_set_style_border_color(obj5, lv_color_hex(0xF2A900), LV_PART_ITEMS);
+    lv_obj_set_style_border_width(obj5, 1, LV_PART_ITEMS);
+    lv_obj_set_style_bg_color(obj5, lv_color_hex(0x2A3138), LV_PART_ITEMS);
+    lv_obj_set_style_bg_opa(obj5, LV_OPA_COVER, LV_PART_ITEMS);
+    lv_obj_set_style_radius(obj5, 0, LV_PART_ITEMS);
+    lv_obj_set_style_pad_all(obj5, 8, LV_PART_ITEMS);
+
+    // ForgeUI Keyboard component comp-MS5LVQJNPYZ6H -> obj6
+    static const char * const obj6_map[] = {
+        "1#", "q", "w", "e", "r", "t", "y", "u", "i", "o", "p", LV_SYMBOL_BACKSPACE, "\n",
+        "ABC", "a", "s", "d", "f", "g", "h", "j", "k", "l", LV_SYMBOL_NEW_LINE, "\n",
+        "_", "-", "z", "x", "c", "v", "b", "n", "m", ".", ",", ":", "\n",
+        LV_SYMBOL_KEYBOARD, LV_SYMBOL_LEFT, " ", LV_SYMBOL_RIGHT, LV_SYMBOL_OK, ""
+    };
+    static const lv_buttonmatrix_ctrl_t obj6_ctrl[] = {
+        LV_KEYBOARD_CTRL_BUTTON_FLAGS | 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, LV_BUTTONMATRIX_CTRL_CHECKED | 4,
+        LV_KEYBOARD_CTRL_BUTTON_FLAGS | 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, LV_BUTTONMATRIX_CTRL_CHECKED | 3,
+        LV_BUTTONMATRIX_CTRL_CHECKED | 1, LV_BUTTONMATRIX_CTRL_CHECKED | 1, 1, 1, 1, 1, 1, 1, 1, LV_BUTTONMATRIX_CTRL_CHECKED | 1, LV_BUTTONMATRIX_CTRL_CHECKED | 1, LV_BUTTONMATRIX_CTRL_CHECKED | 1,
+        LV_KEYBOARD_CTRL_BUTTON_FLAGS | 2, LV_BUTTONMATRIX_CTRL_CHECKED | 2, 12, LV_BUTTONMATRIX_CTRL_CHECKED | 2, LV_KEYBOARD_CTRL_BUTTON_FLAGS | 2
+    };
+    fg_keyboard_keyboard = lv_keyboard_create(fg_application_page);
+    lv_obj_t * obj6 = fg_keyboard_keyboard;
+    lv_keyboard_set_map(obj6, LV_KEYBOARD_MODE_TEXT_LOWER, obj6_map, obj6_ctrl);
+    lv_keyboard_set_textarea(obj6, NULL);
+    lv_keyboard_set_mode(obj6, LV_KEYBOARD_MODE_TEXT_LOWER);
+    lv_obj_set_style_pad_all(obj6, 8, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(obj6, 6, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(obj6, 6, LV_PART_MAIN);
+    lv_obj_set_style_border_width(obj6, 1, LV_PART_MAIN);
+    lv_obj_set_style_border_color(obj6, lv_color_hex(0x00D4FF), LV_PART_MAIN);
+    lv_obj_set_style_radius(obj6, 8, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(obj6, 0, LV_PART_MAIN);
+    lv_obj_set_style_shadow_width(obj6, 0, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(obj6, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(obj6, LV_OPA_80, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(obj6, 0, LV_PART_ITEMS);
+    lv_obj_set_style_border_width(obj6, 1, LV_PART_ITEMS);
+    lv_obj_set_style_border_color(obj6, lv_color_hex(0xCBD5E1), LV_PART_ITEMS);
+    lv_obj_set_style_radius(obj6, 6, LV_PART_ITEMS);
+    lv_obj_set_style_outline_width(obj6, 0, LV_PART_ITEMS);
+    lv_obj_set_style_shadow_width(obj6, 0, LV_PART_ITEMS);
+    lv_obj_set_style_bg_color(obj6, lv_color_hex(0xF8FAFC), LV_PART_ITEMS);
+    lv_obj_set_style_bg_opa(obj6, LV_OPA_COVER, LV_PART_ITEMS);
+    lv_obj_set_style_text_color(obj6, lv_color_hex(0x4A5568), LV_PART_ITEMS);
+    lv_obj_set_style_bg_color(obj6, lv_color_hex(0xE2E8F0), LV_PART_ITEMS | LV_STATE_PRESSED);
+    lv_obj_set_style_text_color(obj6, lv_color_hex(0x4A5568), LV_PART_ITEMS | LV_STATE_PRESSED);
+    lv_obj_set_style_bg_color(obj6, lv_color_hex(0xF8FAFC), LV_PART_ITEMS | LV_STATE_CHECKED);
+    lv_obj_set_style_text_color(obj6, lv_color_hex(0x4A5568), LV_PART_ITEMS | LV_STATE_CHECKED);
+    lv_obj_set_style_border_color(obj6, lv_color_hex(0xCBD5E1), LV_PART_ITEMS | LV_STATE_CHECKED);
+    lv_obj_set_style_border_color(obj6, lv_color_hex(0x00D4FF), LV_PART_ITEMS | LV_STATE_FOCUSED);
+    lv_obj_set_style_border_width(obj6, 2, LV_PART_ITEMS | LV_STATE_FOCUSED);
+    lv_obj_set_style_border_color(obj6, lv_color_hex(0x00D4FF), LV_PART_ITEMS | LV_STATE_FOCUS_KEY);
+    lv_obj_set_style_border_width(obj6, 2, LV_PART_ITEMS | LV_STATE_FOCUS_KEY);
+    lv_obj_set_style_bg_color(obj6, lv_color_hex(0xE5E7EB), LV_PART_ITEMS | LV_STATE_DISABLED);
+    lv_obj_set_style_text_color(obj6, lv_color_hex(0x718096), LV_PART_ITEMS | LV_STATE_DISABLED);
+    lv_obj_set_style_opa(obj6, LV_OPA_60, LV_PART_ITEMS | LV_STATE_DISABLED);
+    lv_obj_set_style_text_font(obj6, &lv_font_montserrat_12, LV_PART_ITEMS);
+    lv_obj_set_style_text_line_space(obj6, 0, LV_PART_ITEMS);
+    lv_obj_set_align(obj6, LV_ALIGN_TOP_LEFT);
+    lv_obj_set_pos(obj6, 23, 301);
+    lv_obj_set_size(obj6, 538, 220);
+    lv_obj_update_layout(lv_screen_active());
+    lv_area_t obj6_coords;
+    lv_obj_get_coords(obj6, &obj6_coords);
+    printf("[ForgeUI][Keyboard comp-MS5LVQJNPYZ6H] obj=obj6 parent=%p local=(%ld,%ld) size=%ldx%ld content=%ldx%ld abs=(%ld,%ld)-(%ld,%ld) parent=%ldx%ld virtual_buttonmatrix=%ldx%ld children=%lu\n",
+        (void *)fg_application_page, (long)lv_obj_get_x(obj6), (long)lv_obj_get_y(obj6),
+        (long)lv_obj_get_width(obj6), (long)lv_obj_get_height(obj6),
+        (long)lv_obj_get_content_width(obj6), (long)lv_obj_get_content_height(obj6),
+        (long)obj6_coords.x1, (long)obj6_coords.y1, (long)obj6_coords.x2, (long)obj6_coords.y2,
+        (long)lv_obj_get_width(fg_application_page), (long)lv_obj_get_height(fg_application_page),
+        (long)lv_obj_get_width(obj6), (long)lv_obj_get_height(obj6),
+        (unsigned long)lv_obj_get_child_count(obj6));
 
 
     lv_obj_t * system_gear = fg_system_create_button(fg_application_page, LV_SYMBOL_SETTINGS, 922, 18, 84, 84);

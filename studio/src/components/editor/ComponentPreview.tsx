@@ -35,6 +35,9 @@ import BreadcrumbItemPreview from './previews/BreadcrumbItemPreview'
 import HighlightPreview from './previews/HighlightPreview'
 import SliderPreview from '~components/editor/previews/SliderPreview'
 import ProgressPreview from '~components/editor/previews/ProgressPreview'
+import BarPreview from '~components/editor/previews/BarPreview'
+import ArcPreview from '~components/editor/previews/ArcPreview'
+import StandardChartPreview from '~forgeui/preview/StandardChartPreview'
 import InteractiveButtonCanvasPreview, {
   getInteractiveButtonCanvasAspectRatio,
 } from './previews/InteractiveButtonCanvasPreview'
@@ -751,11 +754,7 @@ case 'Bar':
       enableVisualHelper
       {...forwardedProps}
     >
-      <Chakra.Progress
-        value={70}
-        width="100%"
-        height="100%"
-      />
+      <BarPreview component={component} />
     </PreviewContainer>
   )
 
@@ -766,23 +765,7 @@ case 'Arc':
       enableVisualHelper
       {...forwardedProps}
     >
-      <Chakra.Box
-        width="100%"
-        height="100%"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-        boxSizing="border-box"
-      >
-        <Chakra.Box
-          width="100%"
-          height="100%"
-          boxSizing="border-box"
-          borderRadius="50%"
-          border="8px solid"
-          borderColor="cyan.300"
-        />
-      </Chakra.Box>
+      <ArcPreview component={component} />
     </PreviewContainer>
   )
 
@@ -829,25 +812,7 @@ case 'Calendar':
       enableVisualHelper
       {...forwardedProps}
     >
-      <Chakra.Box
-        width="100%"
-        height="100%"
-        overflow="hidden"
-      >
-        <svg
-          width="100%"
-          height="100%"
-          viewBox="0 0 100 60"
-          preserveAspectRatio="none"
-        >
-          <polyline
-            fill="none"
-            stroke="#00d4ff"
-            strokeWidth="2"
-            points="5,50 20,35 35,40 50,20 65,25 80,10 95,15"
-          />
-        </svg>
-      </Chakra.Box>
+      <StandardChartPreview component={component} />
     </PreviewContainer>
   )
 
@@ -911,9 +876,13 @@ case 'Table':
         height="100%"
         display="grid"
         gridTemplateColumns="repeat(2, 1fr)"
-        border="1px solid #00d4ff"
-        color="white"
+        border="1px solid #f2a900"
+        borderRadius="8px"
+        overflow="hidden"
+        bg="#1e2328"
+        color="#f5f5f5"
         fontSize="12px"
+        data-testid="standard-table-canvas"
       >
         {['A1', 'B1', 'A2', 'B2'].map((cell) => (
           <Chakra.Box
@@ -921,7 +890,9 @@ case 'Table':
             display="flex"
             alignItems="center"
             justifyContent="center"
-            border="1px solid #00d4ff"
+            border="1px solid #f2a900"
+            bg="#2a3138"
+            p="8px"
           >
             {cell}
           </Chakra.Box>

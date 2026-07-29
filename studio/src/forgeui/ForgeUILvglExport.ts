@@ -495,7 +495,6 @@ type KeyboardExport = {
   shownHookName: string
   hiddenHookName: string
   objectName: string
-  textareaName: string
 }
 
 type CalendarExport = {
@@ -1338,7 +1337,6 @@ const createKeyboardExports = (
         shownHookName,
         hiddenHookName,
         objectName: `fg_${runtimeStem}_keyboard`,
-        textareaName: `fg_${runtimeStem}_keyboard_textarea`,
       })
     })
 
@@ -3405,6 +3403,11 @@ case 'Table': {
   // Theme styling
   lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_COVER, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${varName}, 1, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${varName}, 8, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_pad_all(${varName}, 0, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_clip_corner(${varName}, true, LV_PART_MAIN);`)
 
   lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.text}), LV_PART_ITEMS);`)
 
@@ -3413,6 +3416,8 @@ case 'Table': {
 
   lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface2}), LV_PART_ITEMS);`)
   lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_COVER, LV_PART_ITEMS);`)
+  lines.push(`lv_obj_set_style_radius(${varName}, 0, LV_PART_ITEMS);`)
+  lines.push(`lv_obj_set_style_pad_all(${varName}, 8, LV_PART_ITEMS);`)
 
   lines.push(``)
   break
@@ -3433,7 +3438,6 @@ case 'Scale': {
 case 'Keyboard': {
   const keyboardExport = keyboardExports.get(child.id)
   const keyboardObject = keyboardExport?.objectName || varName
-  const textareaObject = keyboardExport?.textareaName || `${varName}_ta`
   lines.push(`// ForgeUI Keyboard component ${esc(child.id)} -> ${varName}`)
   lines.push(`static const char * const ${varName}_map[] = {`)
   lines.push(`    "1#", "q", "w", "e", "r", "t", "y", "u", "i", "o", "p", LV_SYMBOL_BACKSPACE, "\\n",`)
@@ -3448,36 +3452,42 @@ case 'Keyboard': {
   lines.push(`    LV_KEYBOARD_CTRL_BUTTON_FLAGS | 2, LV_BUTTONMATRIX_CTRL_CHECKED | 2, 12, LV_BUTTONMATRIX_CTRL_CHECKED | 2, LV_KEYBOARD_CTRL_BUTTON_FLAGS | 2`)
   lines.push(`};`)
 
-  lines.push(`${textareaObject} = lv_textarea_create(${parentVar});`)
-  if (keyboardExport) lines.push(`lv_obj_t * ${varName}_ta = ${textareaObject};`)
-  lines.push(`lv_textarea_set_one_line(${textareaObject}, true);`)
-  lines.push(`lv_textarea_set_placeholder_text(${textareaObject}, "Keyboard input");`)
-  lines.push(`lv_obj_set_pos(${textareaObject}, ${x}, ${Math.max(0, Number(y) - 55)});`)
-  lines.push(`lv_obj_set_size(${textareaObject}, ${w}, 45);`)
-
   lines.push(`${keyboardObject} = lv_keyboard_create(${parentVar});`)
   lines.push(`lv_obj_t * ${varName} = ${keyboardObject};`)
   lines.push(`lv_keyboard_set_map(${varName}, LV_KEYBOARD_MODE_TEXT_LOWER, ${varName}_map, ${varName}_ctrl);`)
-  lines.push(`lv_keyboard_set_textarea(${varName}, ${varName}_ta);`)
+  lines.push(`lv_keyboard_set_textarea(${varName}, NULL);`)
   lines.push(`lv_keyboard_set_mode(${varName}, LV_KEYBOARD_MODE_TEXT_LOWER);`)
   lines.push(`lv_obj_set_style_pad_all(${varName}, 8, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_pad_row(${varName}, 6, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_pad_column(${varName}, 6, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_border_width(${varName}, 1, LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(0x00D4FF), LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_radius(${varName}, 8, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_outline_width(${varName}, 0, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_shadow_width(${varName}, 0, LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_COVER, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(0xFFFFFF), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_70, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_pad_all(${varName}, 0, LV_PART_ITEMS);`)
-  lines.push(`lv_obj_set_style_border_width(${varName}, 0, LV_PART_ITEMS);`)
+  lines.push(`lv_obj_set_style_border_width(${varName}, 1, LV_PART_ITEMS);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(0xCBD5E1), LV_PART_ITEMS);`)
   lines.push(`lv_obj_set_style_radius(${varName}, 6, LV_PART_ITEMS);`)
   lines.push(`lv_obj_set_style_outline_width(${varName}, 0, LV_PART_ITEMS);`)
   lines.push(`lv_obj_set_style_shadow_width(${varName}, 0, LV_PART_ITEMS);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface2}), LV_PART_ITEMS);`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(0xF8FAFC), LV_PART_ITEMS);`)
   lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_COVER, LV_PART_ITEMS);`)
-  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.text}), LV_PART_ITEMS);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(0x4A5568), LV_PART_ITEMS);`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(0xE2E8F0), LV_PART_ITEMS | LV_STATE_PRESSED);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(0x4A5568), LV_PART_ITEMS | LV_STATE_PRESSED);`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(0xF8FAFC), LV_PART_ITEMS | LV_STATE_CHECKED);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(0x4A5568), LV_PART_ITEMS | LV_STATE_CHECKED);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(0xCBD5E1), LV_PART_ITEMS | LV_STATE_CHECKED);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(0x00D4FF), LV_PART_ITEMS | LV_STATE_FOCUSED);`)
+  lines.push(`lv_obj_set_style_border_width(${varName}, 2, LV_PART_ITEMS | LV_STATE_FOCUSED);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(0x00D4FF), LV_PART_ITEMS | LV_STATE_FOCUS_KEY);`)
+  lines.push(`lv_obj_set_style_border_width(${varName}, 2, LV_PART_ITEMS | LV_STATE_FOCUS_KEY);`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(0xE5E7EB), LV_PART_ITEMS | LV_STATE_DISABLED);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(0x718096), LV_PART_ITEMS | LV_STATE_DISABLED);`)
+  lines.push(`lv_obj_set_style_opa(${varName}, LV_OPA_60, LV_PART_ITEMS | LV_STATE_DISABLED);`)
   lines.push(`lv_obj_set_style_text_font(${varName}, &lv_font_montserrat_12, LV_PART_ITEMS);`)
   lines.push(`lv_obj_set_style_text_line_space(${varName}, 0, LV_PART_ITEMS);`)
   lines.push(`lv_obj_set_align(${varName}, LV_ALIGN_TOP_LEFT);`)
@@ -4317,7 +4327,6 @@ const backgroundMode =
   })
   keyboardExports.forEach(keyboardExport => {
     lines.push(`static lv_obj_t * ${keyboardExport.objectName} = NULL;`)
-    lines.push(`static lv_obj_t * ${keyboardExport.textareaName} = NULL;`)
   })
   calendarExports.forEach(calendarExport => {
     lines.push(`static lv_obj_t * ${calendarExport.objectName} = NULL;`)
@@ -4755,13 +4764,12 @@ const backgroundMode =
   })
 
   if (keyboardExports.size > 0) {
-    lines.push(`static bool fg_component_keyboard_set_visible(lv_obj_t * keyboard, lv_obj_t * textarea, bool visible)`)
+    lines.push(`static bool fg_component_keyboard_set_visible(lv_obj_t * keyboard, bool visible)`)
     lines.push(`{`)
     lines.push(`    if (keyboard == NULL) return false;`)
     lines.push(`    bool hidden = lv_obj_has_flag(keyboard, LV_OBJ_FLAG_HIDDEN);`)
     lines.push(`    if (visible) {`)
     lines.push(`        if (!hidden) return false;`)
-    lines.push(`        if (textarea != NULL) lv_keyboard_set_textarea(keyboard, textarea);`)
     lines.push(`        lv_obj_clear_flag(keyboard, LV_OBJ_FLAG_HIDDEN);`)
     lines.push(`        lv_obj_move_foreground(keyboard);`)
     lines.push(`        return true;`)
@@ -4777,14 +4785,14 @@ const backgroundMode =
   keyboardExports.forEach(keyboardExport => {
     lines.push(`void ${keyboardExport.showApiName}(void)`)
     lines.push(`{`)
-    lines.push(`    if (fg_component_keyboard_set_visible(${keyboardExport.objectName}, ${keyboardExport.textareaName}, true)) {`)
+    lines.push(`    if (fg_component_keyboard_set_visible(${keyboardExport.objectName}, true)) {`)
     lines.push(`        ${keyboardExport.shownHookName}();`)
     lines.push(`    }`)
     lines.push(`}`)
     lines.push(``)
     lines.push(`void ${keyboardExport.hideApiName}(void)`)
     lines.push(`{`)
-    lines.push(`    if (fg_component_keyboard_set_visible(${keyboardExport.objectName}, ${keyboardExport.textareaName}, false)) {`)
+    lines.push(`    if (fg_component_keyboard_set_visible(${keyboardExport.objectName}, false)) {`)
     lines.push(`        ${keyboardExport.hiddenHookName}();`)
     lines.push(`    }`)
     lines.push(`}`)

@@ -43,13 +43,25 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- None
+- `FG_On_Status_LED_Changed()`
+- `FG_On_Progress_Bar_Changed()`
+- `FG_On_Value_Arc_Changed()`
+- `FG_On_Data_Chart_Point_Added()`
+- `FG_On_Data_Chart_Cleared()`
+- `FG_On_Keyboard_Shown()`
+- `FG_On_Keyboard_Hidden()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| None | - | - |
+| Status_LED_Changed | Click | `FG_On_Status_LED_Changed()` |
+| Progress_Bar_Changed | Click | `FG_On_Progress_Bar_Changed()` |
+| Value_Arc_Changed | Click | `FG_On_Value_Arc_Changed()` |
+| Data_Chart_Point_Added | Click | `FG_On_Data_Chart_Point_Added()` |
+| Data_Chart_Cleared | Click | `FG_On_Data_Chart_Cleared()` |
+| Keyboard_Shown | Click | `FG_On_Keyboard_Shown()` |
+| Keyboard_Hidden | Click | `FG_On_Keyboard_Hidden()` |
 
 ---
 

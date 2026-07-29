@@ -12,6 +12,8 @@ import AvatarBadgePanel from '~components/inspector/panels/components/AvatarBadg
 import CheckboxPanel from '~components/inspector/panels/components/CheckboxPanel'
 import IconButtonPanel from '~components/inspector/panels/components/IconButtonPanel'
 import ProgressPanel from '~components/inspector/panels/components/ProgressPanel'
+import BarPanel from '~components/inspector/panels/components/BarPanel'
+import ArcPanel from '~components/inspector/panels/components/ArcPanel'
 import LinkPanel from '~components/inspector/panels/components/LinkPanel'
 import SpinnerPanel from '~components/inspector/panels/components/SpinnerPanel'
 import CloseButtonPanel from '~components/inspector/panels/components/CloseButtonPanel'
@@ -80,6 +82,8 @@ const Panels: React.FC<{ component: IComponent; isRoot: boolean }> = ({
       {type === 'Icon' && <IconPanel />}
       {type === 'IconButton' && <IconButtonPanel />}
       {type === 'Progress' && <ProgressPanel />}
+      {type === 'Bar' && <BarPanel />}
+      {type === 'Arc' && <ArcPanel />}
       {type === 'Text' && <StandardTextPanel />}
       {type === 'Link' && <LinkPanel />}
       {type === 'Avatar' && <AvatarPanel />}

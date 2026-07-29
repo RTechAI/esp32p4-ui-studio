@@ -28,6 +28,9 @@ import StandardSliderPreview from './StandardSliderPreview'
 import StandardNumberInputPreview from './StandardNumberInputPreview'
 import StandardSelectPreview from './StandardSelectPreview'
 import StandardIconButtonPreview from './StandardIconButtonPreview'
+import StandardArcPreview from './StandardArcPreview'
+import StandardChartPreview from './StandardChartPreview'
+import StandardBarPreview from './StandardBarPreview'
 
 const lv = (v: any, d: any = 0) =>
   v !== undefined && v !== null && v !== '' ? v : d
@@ -553,11 +556,12 @@ case 'Led': {
 
 case 'Bar': {
   output.push(
-    <Progress
+    <Box
       key={child.id}
-      value={70}
       {...commonStyle}
-    />
+    >
+      <StandardBarPreview component={child} />
+    </Box>,
   )
   break
 }
@@ -567,17 +571,8 @@ case 'Arc': {
     <Box
       key={child.id}
       {...commonStyle}
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
     >
-      <Box
-        width="64px"
-        height="64px"
-        borderRadius="50%"
-        border="8px solid"
-        borderColor="cyan.300"
-      />
+      <StandardArcPreview component={child} />
     </Box>,
   )
   break
@@ -672,20 +667,8 @@ case 'Chart': {
     <Box
       key={child.id}
       {...commonStyle}
-      p="8px"
-      border={`1px solid ${palette.border}`}
-      borderRadius="8px"
-      bg={palette.surface}
-      position="absolute"
     >
-      <svg width="100%" height="100%" viewBox="0 0 100 60">
-        <polyline
-          fill="none"
-          stroke={palette.accent}
-          strokeWidth="2"
-          points="5,50 20,35 35,40 50,20 65,25 80,10 95,15"
-        />
-      </svg>
+      <StandardChartPreview component={child} />
     </Box>,
   )
   break
@@ -744,9 +727,12 @@ case 'Table': {
       display="grid"
       gridTemplateColumns="repeat(2, 1fr)"
       border={`1px solid ${palette.border}`}
+      borderRadius="8px"
+      overflow="hidden"
       bg={palette.surface}
       color={palette.text}
       fontSize="12px"
+      data-testid="standard-table-browser"
     >
       {rows.flat().map((cell, i) => (
         <Box
@@ -755,6 +741,8 @@ case 'Table': {
           alignItems="center"
           justifyContent="center"
           border={`1px solid ${palette.border}`}
+          bg={palette.surface2}
+          p="8px"
         >
           {cell}
         </Box>

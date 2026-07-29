@@ -57,6 +57,8 @@ describe('Bar generated developer API', () => {
     )
     expect(generated.code.indexOf('fg_progress_bar_bar_value = value;'))
       .toBeLessThan(generated.code.indexOf('FG_On_Progress_Bar_Changed(value);'))
+    expect(generated.code.match(/FG_On_Progress_Bar_Changed\(value\);/g))
+      .toHaveLength(1)
   })
 
   it('uses and clamps a configured negative-to-positive range', () => {
