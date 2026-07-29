@@ -5,17 +5,9 @@ import {
   Box,
   Text,
   Progress,
-  Checkbox,
-  Switch,
-  Slider,
-  SliderTrack,
-  SliderFilledTrack,
-  SliderThumb,
   CircularProgress,
   Input,
   Textarea,
-  NumberInput,
-  NumberInputField,
   Select,
   Image,
 } from '@chakra-ui/react'
@@ -25,6 +17,17 @@ import InteractiveLightCanvasPreview from '~components/editor/previews/Interacti
 import InteractiveStatusIndicatorCanvasPreview from '~components/editor/previews/InteractiveStatusIndicatorCanvasPreview'
 import InteractiveToggleSwitchCanvasPreview from '~components/editor/previews/InteractiveToggleSwitchCanvasPreview'
 import InteractiveThreePositionToggleCanvasPreview from '~components/editor/previews/InteractiveThreePositionToggleCanvasPreview'
+import { getForgeUIStandardButtonText } from '~forgeui/ForgeUIStandardButton'
+import { getForgeUIStandardTextValue } from '~forgeui/ForgeUIStandardText'
+import { getForgeUIStandardHeadingText } from '~forgeui/ForgeUIStandardHeading'
+import ClockPreview from '~components/editor/previews/ClockPreview'
+import StandardSwitchPreview from './StandardSwitchPreview'
+import StandardCheckboxPreview from './StandardCheckboxPreview'
+import StandardRadioPreview from './StandardRadioPreview'
+import StandardSliderPreview from './StandardSliderPreview'
+import StandardNumberInputPreview from './StandardNumberInputPreview'
+import StandardSelectPreview from './StandardSelectPreview'
+import StandardIconButtonPreview from './StandardIconButtonPreview'
 
 const lv = (v: any, d: any = 0) =>
   v !== undefined && v !== null && v !== '' ? v : d
@@ -83,7 +86,7 @@ export const renderForgePreview = ({
             alignItems="center"
             justifyContent="center"
           >
-            {label || 'Heading'}
+            {getForgeUIStandardHeadingText(child.props)}
           </Text>,
         )
         break
@@ -91,19 +94,12 @@ export const renderForgePreview = ({
 
      case 'Clock': {
   output.push(
-    <Text
+    <Box
       key={child.id}
       {...commonStyle}
-      color={child.props.color || '#00d4ff'}
-      fontSize={`${lv(child.props.fontSize, 32)}px`}
-      fontWeight="bold"
-      fontFamily="monospace"
-      display="flex"
-      alignItems="center"
-      justifyContent="flex-start"
     >
-      {label || '12:34'}
-    </Text>,
+      <ClockPreview component={child} justifyContent="flex-start" />
+    </Box>,
   )
   break
 }
@@ -158,7 +154,7 @@ case 'WiFi': {
             color={child.props.color || palette.text}
             fontSize={`${lv(child.props.fontSize, 24)}px`}
           >
-            {label || 'Text'}
+            {getForgeUIStandardTextValue(child.props)}
           </Text>,
         )
         break
@@ -179,7 +175,7 @@ case 'WiFi': {
             fontSize={`${lv(child.props.fontSize, 18)}px`}
             fontWeight="bold"
           >
-            {label || 'Button'}
+            {getForgeUIStandardButtonText(child.props)}
           </Box>,
         )
         break
@@ -244,17 +240,14 @@ case 'WiFi': {
     <Box
       key={child.id}
       {...commonStyle}
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
-      borderRadius="8px"
-      background={palette.surface}
-      border={`2px solid ${palette.border}`}
-      color={palette.text}
-      fontSize="24px"
-      fontWeight="bold"
     >
-      ⧉
+      <StandardIconButtonPreview
+        component={child}
+        mode="browser"
+        surface={palette.surface}
+        border={palette.border}
+        text={palette.text}
+      />
     </Box>,
   )
   break
@@ -321,9 +314,9 @@ case 'WiFi': {
           <Input
             key={child.id}
             {...commonStyle}
-            value={String(label || '')}
+            value={String(child.props.value || '')}
             readOnly
-            placeholder="Input"
+            placeholder={String(child.props.placeholder || 'Input')}
             color={palette.text}
             borderColor={palette.border}
             background={palette.surface}
@@ -337,9 +330,9 @@ case 'WiFi': {
           <Textarea
             key={child.id}
             {...commonStyle}
-            value={String(label || '')}
+            value={String(child.props.value || '')}
             readOnly
-            placeholder="Textarea"
+            placeholder={String(child.props.placeholder || 'Textarea')}
             color={palette.text}
             borderColor={palette.border}
             background={palette.surface}
@@ -350,41 +343,49 @@ case 'WiFi': {
 
       case 'NumberInput': {
         output.push(
-          <NumberInput
+          <Box
             key={child.id}
             {...commonStyle}
-            value={String(lv(child.props.value, 0))}
           >
-            <NumberInputField
-              color={palette.text}
+            <StandardNumberInputPreview
+              mode="browser"
+              value={child.props.value}
+              min={child.props.min}
+              max={child.props.max}
+              step={child.props.step}
+              precision={child.props.precision}
+              isDisabled={Boolean(child.props.isDisabled)}
+              isReadOnly={Boolean(child.props.isReadOnly)}
+              textColor={palette.text}
               borderColor={palette.border}
-              background={palette.surface}
+              backgroundColor={palette.surface}
             />
-          </NumberInput>,
+          </Box>,
         )
         break
       }
 
       case 'Select': {
-  output.push(
-    <Box
-      key={child.id}
-      {...commonStyle}
-      display="flex"
-      alignItems="center"
-      justifyContent="space-between"
-      px="10px"
-      border={`1px solid ${palette.border}`}
-      borderRadius="8px"
-      bg={palette.surface}
-      color={palette.text}
-    >
-      <Text>Select</Text>
-      <Text>▼</Text>
-    </Box>,
-  )
-  break
-}
+        const SelectIcon = child.props.icon
+          ? icons[child.props.icon as keyof typeof icons]
+          : undefined
+        output.push(
+          <Box key={child.id} {...commonStyle}>
+            <StandardSelectPreview
+              mode="browser"
+              options={child.props.options}
+              selectedIndex={child.props.selectedIndex}
+              legacyValue={child.props.value}
+              isDisabled={Boolean(child.props.isDisabled)}
+              icon={SelectIcon ? <SelectIcon path="" /> : undefined}
+              textColor={palette.text}
+              backgroundColor={palette.surface}
+              borderColor={palette.border}
+            />
+          </Box>,
+        )
+        break
+      }
 
       case 'Switch': {
         output.push(
@@ -394,18 +395,12 @@ case 'WiFi': {
       display="flex"
       alignItems="center"
     >
-      <Switch
-        isChecked={Boolean(child.props.isChecked)}
-        sx={{
-          '.chakra-switch__track': {
-            bg: Boolean(child.props.isChecked)
-              ? palette.accent
-              : palette.surface2,
-          },
-          '.chakra-switch__thumb': {
-            bg: palette.text,
-          },
-        }}
+      <StandardSwitchPreview
+        initialChecked={Boolean(child.props.isChecked)}
+        isDisabled={Boolean(child.props.isDisabled)}
+        accent={palette.accent}
+        surface={palette.surface2}
+        thumb={palette.text}
       />
     </Box>,
   )
@@ -414,26 +409,22 @@ case 'WiFi': {
 
       case 'Checkbox': {
   output.push(
-    <Checkbox
+    <Box
       key={child.id}
-      position="absolute"
-      left={`${x}px`}
-      top={`${y}px`}
-      isChecked={Boolean(child.props.isChecked)}
-      color={palette.text}
-      sx={{
-        '.chakra-checkbox__control': {
-          bg: palette.surface,
-          borderColor: palette.border,
-        },
-        '.chakra-checkbox__control[data-checked]': {
-          bg: palette.accent,
-          borderColor: palette.accent,
-        },
-      }}
+      {...commonStyle}
+      display="flex"
+      alignItems="center"
     >
-      {label || 'Checkbox'}
-    </Checkbox>,
+      <StandardCheckboxPreview
+        initialChecked={Boolean(child.props.isChecked)}
+        isDisabled={Boolean(child.props.isDisabled)}
+        label={label || 'Checkbox'}
+        textColor={palette.text}
+        accent={palette.accent}
+        surface={palette.surface}
+        border={palette.border}
+      />
+    </Box>,
   )
   break
 }
@@ -449,19 +440,14 @@ case 'WiFi': {
       gap="8px"
       color={palette.text}
     >
-      <Box
-        width="18px"
-        height="18px"
-        borderRadius="999px"
-        border={`2px solid ${palette.border}`}
-        bg={Boolean(child.props.isChecked)
-          ? palette.accent
-          : 'transparent'}
+      <StandardRadioPreview
+        initialSelected={Boolean(child.props.isChecked)}
+        isDisabled={Boolean(child.props.isDisabled)}
+        label={label || 'Radio'}
+        textColor={palette.text}
+        accent={palette.accent}
+        border={palette.border}
       />
-
-      <Text color={palette.text}>
-        {label || 'Radio'}
-      </Text>
     </Box>,
   )
   break
@@ -470,13 +456,18 @@ case 'WiFi': {
       case 'Slider': {
   output.push(
     <Box key={child.id} {...commonStyle} display="flex" alignItems="center">
-      <Slider value={lv(child.props.value, 50)}>
-        <SliderTrack bg={palette.surface2}>
-          <SliderFilledTrack bg={palette.accent} />
-        </SliderTrack>
-
-        <SliderThumb bg={palette.text} />
-      </Slider>
+      <StandardSliderPreview
+        mode="browser"
+        value={child.props.value}
+        min={child.props.min}
+        max={child.props.max}
+        step={child.props.step}
+        orientation={child.props.orientation}
+        isDisabled={Boolean(child.props.isDisabled)}
+        trackColor={palette.surface2}
+        fillColor={palette.accent}
+        thumbColor={palette.text}
+      />
     </Box>,
   )
   break
@@ -486,7 +477,9 @@ case 'WiFi': {
   output.push(
     <Progress
       key={child.id}
-      value={lv(child.props.value, 65)}
+      value={lv(child.props.value, 60)}
+      min={lv(child.props.min, 0)}
+      max={lv(child.props.max, 100)}
       {...commonStyle}
       borderRadius="md"
       bg={palette.surface2}

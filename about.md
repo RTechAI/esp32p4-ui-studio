@@ -1,10 +1,18 @@
 # 🛠️ ForgeUI Studio 
 
-An open-source **AI-assisted Visual HMI Studio** for **ESP32-P4**, combining a visual UI designer, guided AI layout generation, semantic icon resolution, offline asset pipeline, native LVGL v9 code generation and standalone ESP-IDF deployment into a single engineering workflow.
+An open-source **AI-assisted embedded application generation platform** for **ESP32-P4**, combining visual design, semantic runtime APIs, native LVGL v9 generation and standalone ESP-IDF deployment in one engineering workflow.
 
 **Visual UI Designer, Low-Code HMI Layout Engine, Offline Asset Pipeline, and Automated Firmware Deployment Studio** engineered explicitly for the high-performance **Espressif ESP32-P4** SoC running native **LVGL v9** and **ESP-IDF**.
 
-ForgeUI Studio bridges the gap between high-level browser-based layout design and low-level production-ready embedded deployments. It completely eliminates manual coordinate calculations, automates standard LVGL code output structures, converts graphic assets locally, and streams compiled partitions directly to physical silicon within a unified development workspace.
+ForgeUI Studio bridges the gap between high-level browser-based design and production-ready embedded applications. It can produce AI-generated interfaces, reusable runtime widgets, generated platform services, semantic LVGL APIs, Browser Preview, independent ESP-IDF projects and physically validated ESP32-P4 firmware.
+
+ForgeUI is organized into five separate platform layers with clear ownership:
+
+* **AI Studio** — Creates editable layouts, artwork, hero backgrounds and reusable assets.
+* **Interactive Asset Framework** — Owns artwork-backed controls and their reusable runtime families.
+* **Standard LVGL Component Runtime** — Generates semantic APIs and genuine user-event hooks for supported native widgets.
+* **Built-in System Runtime** — Generates reusable device services independently from user project screens.
+* **Native ESP-IDF Export Pipeline** — Materializes native LVGL, assets, public APIs, developer hooks and standalone projects.
 
 ---
 
@@ -44,12 +52,22 @@ Clicking **Export Standalone Project** produces a production-grade workspace dir
 *   **Zero Proprietary Lock-In:** No subscription gates, no license validation checks, and no background phone-home telemetry.
 *   **IDE Interoperability:** Drop the generated workspace directly into **Visual Studio Code** or native command terminals.
 *   **Native Toolchain Compliance:** Automatically matches Espressif's rigorous workspace design guidelines and standard `CMakeLists.txt` component registrations.
-*   **Pristine Logic Isolation:** Only the visual components are generated and loaded through the target files:
+*   **Pristine Logic Isolation:** Generated UI and developer integration have explicit ownership:
     ```text
     main/90_Studio_Export.c
     main/90_Studio_Export.h
+    main/95_UserEvents.c
+    main/95_UserEvents.h
     ```
-    This clean separation allows product engineers to write complex low-level business logic inside `main.c` without worrying about layout iterations overwriting their work.
+    `90_Studio_Export.*` owns generated UI, retained runtime state and public APIs. In a standalone project, `95_UserEvents.*` becomes the developer-owned hook and application-integration layer.
+
+```text
+Generated UI
+      ↓
+Developer application code
+```
+
+This boundary lets product engineers extend application behavior without placing permanent logic inside replaceable generated UI files. Layout iterations regenerate the UI layer without overwriting developer-owned application logic.
 
 ---
 
@@ -226,13 +244,38 @@ Native LVGL Asset
 
 * **Native LVGL v9 Output** — Generates structured, readable LVGL C code using modern APIs and best-practice object creation patterns.
 
+* **Retained Runtime State** — Generates the private component objects and semantic state required by supported runtime widgets.
+
+* **Public Runtime APIs** — Exposes application-to-UI control through generated `FG_Set_*`, `FG_Show_*`, `FG_Hide_*`, `FG_Add_*` and `FG_Clear_*` functions.
+
+* **Developer Hook Layer** — Exposes genuine UI-to-application events through generated `FG_On_*` hooks while keeping guarded programmatic updates silent where appropriate.
+
 * **Production-Ready Projects** — Export standalone ESP-IDF workspaces ready to build, version control and extend without ForgeUI Studio.
+
+---
+
+### Standard LVGL Component Runtime
+
+ForgeUI now exports more than static layouts. Supported Standard LVGL components receive semantic retained runtime APIs that match the state or action they genuinely own, while generated UI code remains strictly separated from developer-owned application logic. Generated projects expose public APIs such as `FG_Set_<Component>()` and developer hooks such as `FG_On_<Component>()` where user interaction exists.
+
+The current reviewed Standard Runtime includes:
+
+* LED, Bar, Arc and Progress
+* Chart
+* Keyboard, Calendar and Message Box
+* Roller, Select, Button Matrix, TabView and Tileview
+* Input, Textarea and NumberInput
+* Switch, Checkbox and Radio
+* Image and Box
+* IconButton
+
+Presentation-only components remain intentionally API-free when they own no meaningful runtime state. Icon, Divider, Scale and Line generate no runtime setter or developer hook. Runtime image replacement belongs to Image rather than Icon, and dynamic Divider visibility belongs to its parent Box.
 
 ---
 
 ### Interactive Asset Framework
 
-ForgeUI's complete Interactive Asset Framework includes Interactive Button, Interactive Toggle Switch, Interactive Three-Position Toggle Switch, Interactive Light and Interactive Status Indicator. All five use direct Creator workflows and retain Canvas, Browser Preview, generated LVGL and physical ESP32-P4 parity within the recorded validation scope.
+Interactive Assets remain completely separate from the Standard Runtime. The five current families are Interactive Button, Interactive Toggle Switch, Interactive Three-Position Toggle Switch, Interactive Light and Interactive Status Indicator. They combine reusable state artwork with shared runtime families, while Standard LVGL widgets generate component-specific semantic APIs. All five use direct Creator workflows and retain Canvas, Browser Preview, generated LVGL and physical ESP32-P4 parity within the recorded validation scope.
 
 ---
 
@@ -244,10 +287,11 @@ ForgeUI now includes a reusable generated System Runtime providing:
 * Display / Brightness
 * Wi-Fi Manager
 * Storage Browser
+* Native LVGL Keyboard
 
-Browser Preview and generated LVGL share the same System architecture while remaining separate from user project screens and Interactive Assets.
+These are generated platform services rather than user project screens. Browser Preview and generated LVGL share the same System architecture while it remains separate from both Interactive Assets and the Standard LVGL Component Runtime.
 
-The System Runtime also owns one reusable native LVGL keyboard and now includes a physically proven lazy Storage Browser supporting:
+The System Runtime owns one reusable native LVGL keyboard and includes a physically proven lazy Storage Browser supporting:
 
 * SD status
 * directory browsing

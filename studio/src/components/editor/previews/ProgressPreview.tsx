@@ -19,7 +19,7 @@ const ProgressPreview = ({
     >
       <Chakra.Progress
         {...component.props}
-        value={65}
+        value={component.props.value ?? 60}
         width="100%"
         borderRadius="md"
       />

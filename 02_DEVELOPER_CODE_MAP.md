@@ -13,7 +13,7 @@
 
 ## Current save point
 
-**FORGEUI_STANDARD_LVGL_RUNTIME_APIS__LED_BAR_ARC_CHART_KEYBOARD_CALENDAR_ROLLER_MESSAGE_BOX_BUTTON_MATRIX__LIVE_AND_STANDALONE_PROVEN__2026-07-29**
+**FORGEUI_STANDARD_LVGL_RUNTIME_V1__DEVELOPER_API_SURFACE__INTERACTIVE_OUTPUT_PRESENTATION_CLASSIFICATION__ARCHITECTURE_COMPLETE__2026-07-29**
 
 ## Purpose
 
@@ -298,22 +298,96 @@ ForgeUI has two independent generated widget runtime systems:
 
 Standard components are not Interactive Assets. They do not use the Interactive Asset registry, persistence models, designers or artwork state machinery.
 
+Interactive runtime components:
+
+- ✓ Input
+- ✓ Textarea
+- ✓ Switch
+- ✓ Checkbox
+- ✓ Radio
+- ✓ NumberInput
+- ✓ Select
+- ✓ IconButton
+
+Output runtime components:
+
+- ✓ Led
+- ✓ Bar
+- ✓ Arc
+- ✓ Chart
+- ✓ Progress
+- ✓ Image
+- ✓ Box
+
+Previously completed runtime components:
+
+- ✓ Keyboard
+- ✓ Calendar
+- ✓ Roller
+- ✓ Message Box
+- ✓ Button Matrix
+- ✓ TabView
+- ✓ Tileview
+
+Completed serialized presentation properties:
+
+- ✓ Button Text
+- ✓ Text Value
+- ✓ Heading Text
+- ✓ Clock Presentation
+
+Presentation/API-free:
+
+- ✓ Scale
+- ✓ Line
+- ✓ Icon
+- ✓ Divider
+
+Slider has repaired Canvas interaction and Browser Preview parity, but no completed runtime API is claimed by this save point.
+
 ```text
 Standard LVGL Component Runtime
-├── Scalar Outputs
+├── Scalar / visual output
 │   ├── Led
 │   ├── Bar
-│   └── Arc
-├── Streaming Output
+│   ├── Arc
+│   └── Progress
+├── Streaming output
 │   └── Chart
-├── Visibility Services
+├── Text entry
+│   ├── Input
+│   ├── Textarea
+│   └── NumberInput
+├── Boolean / selectable input
+│   ├── Switch
+│   ├── Checkbox
+│   └── Radio
+├── Option selection
+│   ├── Roller
+│   ├── Select
+│   ├── ButtonMatrix
+│   ├── TabView
+│   └── Tileview
+├── Actions
+│   └── IconButton
+├── Visibility services
 │   ├── Keyboard
-│   └── Message Box
-├── Date Selection
+│   ├── Message Box
+│   └── Box
+├── Date selection
 │   └── Calendar
-└── Option Selection
-    ├── Roller
-    └── Button Matrix
+├── Runtime image output
+│   └── Image
+├── Serialized presentation
+│   ├── Button
+│   ├── Text
+│   ├── Heading
+│   └── Clock
+└── API-free presentation
+    ├── Scale
+    ├── Line
+    ├── Icon
+    └── Divider
 ```
 
 ### Generated ownership
@@ -327,6 +401,8 @@ Standard LVGL Component Runtime
 | `studio/export-server.js` | Declaration merge, missing-stub merge and preservation of existing developer function bodies |
 
 Live Studio safely regenerates required hooks while preserving matching bodies and unrelated existing hooks. Missing declarations and stubs are appended. In a standalone export, the exported `95_UserEvents.*` files become developer-owned.
+
+`ForgeUILvglExport.ts` owns generation for the older Standard components and for Input, Textarea, Switch, Checkbox, Radio, Progress, NumberInput, Select, Image, Box and IconButton. Interactive components retain their object and semantic state, expose guarded setters, adapt LVGL user events and contribute developer-hook metadata. Output components retain object/state and expose setters only. Serialized or API-free presentation contributes no runtime API.
 
 ### Led
 
@@ -368,9 +444,99 @@ The serialized `Msgbox` is a ForgeUI custom panel, not LVGL `lv_msgbox`. `FG_Sho
 
 Initial Button Matrix verification used a stale running Studio exporter bundle. Restarting Studio regenerated the correct retained runtime through `/export`. This was a stale running generator bundle, not an exporter architecture split.
 
+### TabView
+
+Serialized `Tabview` retains its LVGL object, selected index and tab count. One shared transition helper owns touch and programmatic changes. Programmatic selection uses `lv_tabview_set_active(..., LV_ANIM_OFF)`; `LV_EVENT_VALUE_CHANGED` touch handling reads `lv_tabview_get_tab_active()`. The runtime suppresses repeated effective selections and generates collision-safe identifiers, the public `FG_Set_<Name>_Selected(uint32_t tab_index)` setter and `FG_On_<Name>_Changed(uint32_t tab_index)` hook.
+
+### Tileview
+
+Serialized `Tileview` retains its LVGL object, explicit tile object map, selected row and column, and row and column counts. The explicit coordinate map connects retained coordinates to generated tile objects. One shared transition helper owns touch and programmatic changes. Programmatic selection uses `lv_tileview_set_tile(..., LV_ANIM_OFF)`; `LV_EVENT_VALUE_CHANGED` touch handling reads `lv_tileview_get_tile_active()` and resolves it through the map. The runtime generates collision-safe identifiers, the public `FG_Set_<Name>_Selected(uint32_t column, uint32_t row)` setter and `FG_On_<Name>_Changed(uint32_t column, uint32_t row)` hook.
+
+### Input
+
+Serialized `Input` exports the existing native LVGL textarea in single-line mode. Runtime owns current text only; placeholder and editing presentation remain serialized. `FG_Set_<Name>_Text(const char * text)` uses a per-instance guard and does not invoke `FG_On_<Name>_Changed(const char * text)`. Only genuine user edits notify. Creation is silent. Canvas and Browser Preview preserve their established ownership without project mutation, and generated names are collision-safe.
+
+### Textarea
+
+Serialized `Textarea` exports native multiline `lv_textarea`. Runtime owns current multiline text only; placeholder remains serialized. Its guarded text setter is silent, while genuine `LV_EVENT_VALUE_CHANGED` edits invoke the changed hook. Creation is silent, Preview behavior remains local, and generated LVGL retains the native widget.
+
+### Switch
+
+Serialized `Switch` exports native `lv_switch` and retains checked state only. `FG_Set_<Name>_Checked(bool checked)` is guarded and silent; genuine user changes invoke `FG_On_<Name>_Changed(bool checked)`. Canvas and Browser Preview use temporary local state, and generated instances are collision-safe.
+
+### Checkbox
+
+Serialized `Checkbox` exports native `lv_checkbox`. The label remains serialized while runtime owns checked state only. Its guarded checked setter remains silent, genuine user changes invoke the changed hook, and creation does not notify. Preview state is local and generated LVGL owns the native checkbox object.
+
+### Radio
+
+Serialized `Radio` currently exports a retained `lv_checkbox` styled with a circular indicator. Runtime owns independent selected state and generates `FG_Set_<Name>_Selected(bool selected)` plus `FG_On_<Name>_Changed(bool selected)`. The setter is guarded and silent. There is no grouping or mutual-exclusion architecture, so multiple Radio components may remain selected.
+
+### Progress
+
+Serialized `Progress` is output-only and uses the retained native bar implementation. Runtime owns current progress value and serialized range. `FG_Set_<Name>_Value(int32_t value)` clamps and suppresses repeated effective values. No hook exists because there is no genuine user transition. Preview and generated appearance remain unchanged.
+
+### NumberInput
+
+Serialized `NumberInput` keeps the existing textarea-based generated LVGL implementation and exposes an `int32_t` runtime boundary. It retains current integer value, range and step. The guarded `FG_Set_<Name>_Value(int32_t value)` clamps silently; genuine user edits invoke the integer changed hook. Canvas and Browser Preview use temporary local state. No native device-side steppers or Spinbox were invented.
+
+### Select
+
+Serialized `Select` exports native `lv_dropdown`. Options remain serialized Studio configuration while runtime owns selected index. `FG_Set_<Name>_Selected_Index(uint32_t index)` clamps and uses a per-instance guard; genuine selection invokes `FG_On_<Name>_Changed(uint32_t index, const char * text)`. No runtime option add/remove/replace API exists.
+
+### Image
+
+Serialized `Image` is output-only. LVGL-ready instances retain native `lv_image` and the current raw source pointer. `FG_Set_<Name>_Source(const void * src)` safely ignores `NULL`, unavailable objects and unchanged sources and generates no hook. Pending assets keep their placeholder and the setter safely no-ops. No asset-ID, path lookup or runtime conversion layer was added.
+
+### Box
+
+Serialized `Box` remains a presentation/layout container with runtime visibility only. Non-root generated Boxes retain the native object and visibility and expose `FG_Set_<Name>_Visible(bool visible)`. Children stay attached to the retained Box. Root screen Boxes are excluded. The setter suppresses repeated state and no hook exists.
+
+### IconButton
+
+Serialized `IconButton` is an interactive native button. Runtime owns enabled state only and generates `FG_Set_<Name>_Enabled(bool enabled)` plus `FG_On_<Name>_Clicked(void)`. Creation and setter calls are silent, and disabled buttons do not notify. Canvas remains selectable, draggable and resizable; Browser Preview uses temporary pressed state. Icon selection remains serialized and Image exclusively owns runtime source replacement.
+
+### Slider Canvas interaction
+
+Slider received an interaction repair only. Its shared Preview distinguishes Canvas editing from Browser interaction: track/thumb interaction uses temporary preview state, surrounding Canvas gestures can move the component, and project JSON is not mutated. Generated LVGL was unchanged. No Slider runtime setter or hook is documented as complete.
+
 ### Scale inspection
 
 The standard `Scale` is the visual LVGL 9 `lv_scale` tick/label renderer. It owns no runtime value, so it has no setter, hook or generator changes. Value APIs belong to controls that actually own values.
+
+### Line inspection
+
+The standard `Line` exporter creates `lv_line` with exactly two points. It retains no runtime object or semantic state and generates no public API or hook. Line is intentionally API-free.
+
+### Icon inspection
+
+The standard `Icon` is a Studio authoring convenience for choosing artwork from the built-in icon library. Export resolves that selection through the existing image-symbol pipeline and emits a normal LVGL `lv_image`; Icon is not a distinct generated runtime family.
+
+Icon remains serialized presentation and owns no runtime state. It generates no public setter and no `95_UserEvents` hook. Runtime image replacement belongs exclusively to the standard `Image` component through `FG_Set_<Image_Name>_Source(const void * src)`. Use Image, not Icon, when application code must swap an image at runtime.
+
+### Divider inspection
+
+The standard `Divider` is a visual separator only. It owns no runtime state, receives no meaningful application interaction, and generates no public API or `95_UserEvents` hook. Divider is intentionally part of the API-free presentation category with Scale, Line and Icon.
+
+Dynamic visibility belongs to layout ownership. Place the Divider inside the relevant parent `Box` and use `FG_Set_<Parent_Box_Name>_Visible(bool visible)` instead of introducing a Divider-specific setter.
+
+### Serialized presentation ownership
+
+#### Button Text
+
+Property `buttonText` is owned across the Button Inspector, Canvas Preview, Browser Preview, `ForgeUILvglExport.ts` and project JSON persistence. It controls visible label content only and generates no runtime API or hook.
+
+#### Text Value
+
+Property `textValue` is owned across the Text Inspector, Canvas Preview, Browser Preview, `ForgeUILvglExport.ts` and project JSON persistence. It controls visible LVGL label content only and generates no runtime API.
+
+#### Heading Text
+
+Property `headingText` is owned across the Heading Inspector, Canvas Preview, Browser Preview, `ForgeUILvglExport.ts` and project JSON persistence. It controls visible heading content only and generates no runtime API.
+
+#### Clock Presentation
+
+Properties `hourFormat`, `showSeconds` and `blinkSeparator` are owned across the Clock Inspector, Canvas Preview, Browser Preview and `ForgeUILvglExport.ts`. RTC/system time owns the live value; Clock presentation owns formatting only. There is no editable Clock Time, runtime time setter or developer hook.
 
 ### Major files and focused tests
 
@@ -384,6 +550,42 @@ The standard `Scale` is the visual LVGL 9 `lv_scale` tick/label renderer. It own
 - `studio/src/forgeui/ForgeUILvglExport.roller.test.ts`
 - `studio/src/forgeui/ForgeUILvglExport.msgbox.test.ts`
 - `studio/src/forgeui/ForgeUILvglExport.buttonmatrix.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.tabview.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.tileview.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.button.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.text.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.heading.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.clock.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.input.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.textarea.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.switch.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.checkbox.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.radio.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.progress.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.numberinput.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.select.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.image.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.box.test.ts`
+- `studio/src/forgeui/ForgeUILvglExport.iconbutton.test.ts`
+- `studio/src/forgeui/preview/StandardSwitchPreview.tsx`
+- `studio/src/forgeui/preview/StandardCheckboxPreview.tsx`
+- `studio/src/forgeui/preview/StandardRadioPreview.tsx`
+- `studio/src/forgeui/preview/StandardSliderPreview.tsx`
+- `studio/src/forgeui/preview/StandardNumberInputPreview.tsx`
+- `studio/src/forgeui/preview/StandardSelectPreview.tsx`
+- `studio/src/forgeui/preview/StandardIconButtonPreview.tsx`
+- `studio/src/forgeui/ForgeUIStandardButton.ts`
+- `studio/src/forgeui/ForgeUIStandardText.ts`
+- `studio/src/forgeui/ForgeUIStandardHeading.ts`
+- `studio/src/forgeui/ForgeUIStandardClock.ts`
+- `studio/src/components/inspector/panels/components/ButtonPanel.tsx`
+- `studio/src/components/inspector/panels/components/StandardTextPanel.tsx`
+- `studio/src/components/inspector/panels/components/HeadingPanel.tsx`
+- `studio/src/components/inspector/panels/components/ClockPanel.tsx`
+- `studio/src/components/editor/previews/ButtonPreview.tsx`
+- `studio/src/components/editor/previews/TextPreview.tsx`
+- `studio/src/components/editor/previews/HeadingPreview.tsx`
+- `studio/src/components/editor/previews/ClockPreview.tsx`
 - `studio/export-server.js`
 - `studio/export-server.test.js`
 
@@ -1885,6 +2087,13 @@ It owns:
 - standard-component public API and transition-helper generation
 - standard-component LVGL event adapters and hook metadata
 - deterministic sanitized and collision-safe standard-component names
+- TabView retained active-index runtime generation
+- Tileview retained active-coordinate and tile-map runtime generation
+- Button Text serialization
+- Text Value serialization
+- Heading Text serialization
+- Clock Presentation serialization
+- per-instance Clock formatter generation and RTC field integration
 - generated runtime support
 - single shared Binary Output Runtime generation
 - single shared Toggle Input Runtime generation
@@ -2118,12 +2327,15 @@ Owns filesystem-side export work:
 - merging the Studio-generated user hook layer
 - appending missing hook declarations and stubs
 - preserving matching developer-written function bodies and unrelated existing hooks
+- merging TabView and Tileview hook declarations and missing stubs
 - copying generated image sources
 - creating CMake source lists
 - live firmware export
 - standalone ESP-IDF project export
 
 No firmware mutation occurs before validation succeeds. The server validation boundary is independent of the client preflight.
+
+Button Text, Text Value, Heading Text and Clock Presentation introduce no new hook declarations. TabView and Tileview hooks use the same preservation merge as the existing standard-component hooks.
 
 The server writes:
 
@@ -2186,6 +2398,10 @@ They contain:
 - standard-component retained LVGL objects and runtime state
 - standard-component public API implementations and declarations
 - shared transition helpers and LVGL event adapters
+- TabView retained object, active index, tab count, transition helper, callback and setter
+- Tileview retained object, explicit tile map, active coordinates, transition helper, callback and setter
+- serialized Button Text, Text Value and Heading Text label generation
+- per-instance Clock Presentation labels, timers, separator state and formatter callbacks
 
 Public APIs are declared in `90_Studio_Export.h` and implemented in `90_Studio_Export.c`.
 
@@ -2212,7 +2428,22 @@ Do not place permanent product logic in these files.
 
 Studio creates these as the generated user hook layer. They are not manually created in the live firmware workflow. Live regeneration preservation-merges the required API: existing matching function bodies and developer code remain intact, while missing declarations and missing stubs are appended.
 
-Interactive Button click hooks, Interactive Toggle Switch bool hooks, Interactive Three-Position Toggle enum-state hooks, and standard-component hooks are declared and stubbed here. Hook metadata supplies the required signatures for each standard widget contract. Interactive Light and Interactive Status Indicator do not generate event hooks because Binary Output assets are controlled through public setters.
+Interactive Button click hooks, Interactive Toggle Switch bool hooks, Interactive Three-Position Toggle enum-state hooks, and standard-component hooks are declared and stubbed here. Hook metadata supplies the required signatures for each standard widget contract. Current Standard hook signatures include:
+
+```c
+FG_On_<Input>_Changed(const char * text);
+FG_On_<Textarea>_Changed(const char * text);
+FG_On_<Switch>_Changed(bool checked);
+FG_On_<Checkbox>_Changed(bool checked);
+FG_On_<Radio>_Changed(bool selected);
+FG_On_<NumberInput>_Changed(int32_t value);
+FG_On_<Select>_Changed(uint32_t index, const char * text);
+FG_On_<IconButton>_Clicked(void);
+```
+
+Programmatic setters for these interactive components are guarded and silent; hooks represent genuine user interaction. Interactive Light and Interactive Status Indicator do not generate event hooks because Binary Output assets are controlled through public setters.
+
+Progress, Image and Box are setter-only and generate no hooks. Icon, Divider, Scale, Line, Clock, Button Text, Text and Heading also generate no hooks. In particular, there is no Clock changed hook.
 
 `fg_three_way_state_t` and its LEFT/CENTER/RIGHT enum values are generated in `95_UserEvents.h`, which is included by generated Studio export code before the Three-Position runtime structures use that type.
 
@@ -2427,7 +2658,11 @@ Physical Button, Toggle, Three-Position, Light, the scoped Status Indicator Bina
 - all five workflows have focused configured-helper, resize, measurement, fit, preview and exporter coverage where implemented
 - Creator, Toggle and Three-Position State Sheet, crop interaction, row-remapping, image-pipeline, linked-crop and atomic-registration regressions pass; unchanged State Sheet suites may require the established longer timeout in combined runs
 - keyboard exporter lazy-creation, reusable-instance, attachment, geometry, ordering and relative-width regressions pass
-- focused LED, Bar, Arc, Chart, standard Keyboard, Calendar, Roller, Message Box and Button Matrix runtime exporter tests pass
+- focused LED, Bar, Arc, Chart, standard Keyboard, Calendar, Roller, Message Box, Button Matrix, TabView and Tileview runtime exporter tests pass
+- focused Input, Textarea, Switch, Checkbox, Radio, Progress, NumberInput, Select, Image, Box and IconButton tests pass
+- focused Button Text, Text Value, Heading Text and Clock Presentation serialization, preview and exporter tests pass
+- TabView exporter tests pass 5/5 and Tileview exporter tests pass 7/7
+- Heading focused tests pass 7/7, Clock tests pass 7/7, and the Button/Text/Heading/Clock presentation regression passes 29/29
 - standard-component range, clamping, duplicate suppression, transition, touch/programmatic sharing, collision naming and no-creation-hook coverage passes where applicable
 - developer hook declaration/stub merge and existing-body preservation coverage passes in `export-server.test.js`
 - live `/export` and standalone `/export-idf-project` validation pass for the standard-component runtime
@@ -2435,10 +2670,15 @@ Physical Button, Toggle, Three-Position, Light, the scoped Status Indicator Bina
 - Toggle, Status Indicator and Three-Position configured-helper, Canvas resize, registry refresh, measurement, visible-bounds fitting, preview scaling and LVGL contain regressions pass
 - shared intrinsic and alpha measurement, state-set union geometry, same-ID invalidation, metadata-write deduplication, linked crop, idempotence and legacy dimension recovery regressions pass
 - TypeScript validation passes
+- the complete exporter regression reached 212/212 after IconButton
+- the Canvas regression suite reached 51/51
+- generated API and preservation tests reached 33/33
+- `export-server.js` syntax validation passes
+- interactive Standard hook preservation passes through live and standalone generation coverage
 - generated-output verification passes
 - ESP-IDF firmware build passes for the recorded Wi-Fi Manager implementation and the standard LVGL runtime API milestone
 - scoped diff checks pass
-- known unrelated fixture/source absences are reported separately rather than weakening export validation
+- the complete export-server suite is not claimed as passing while `fg_upload_1024x600_neural_core_67dd4ba0.c` and `fg_upload_carbon_fiber_be774fd2.c` are absent; this unrelated fixture issue does not weaken export validation
 
 This validation does not claim separate physical touch proof for every standard component.
 
@@ -2541,6 +2781,29 @@ Start at the ownership boundary matching the symptom.
 | Roller selection API, text or hook is wrong | `ForgeUILvglExport.ts` | `export-server.js`, option metadata, `95_UserEvents.*` |
 | Message Box visibility/button hooks are wrong | `ForgeUILvglExport.ts` | `export-server.js`, retained panel metadata, `95_UserEvents.*` |
 | Button Matrix selection API or hook is wrong | `ForgeUILvglExport.ts` | `export-server.js`, map/count/disabled metadata, `95_UserEvents.*` |
+| TabView selects the wrong tab | `ForgeUILvglExport.ts` Tabview branch and transition helper | retained selected index/count, `lv_tabview_set_active()`, `lv_tabview_get_tab_active()` |
+| Tileview selects the wrong tile | `ForgeUILvglExport.ts` Tileview branch and transition helper | retained coordinate map, `lv_tileview_set_tile()`, `lv_tileview_get_tile_active()` |
+| Input setter or genuine-user hook is wrong | `ForgeUILvglExport.ts` Input export map/branch | retained text, programmatic guard, textarea event adapter, `export-server.js`, `95_UserEvents.*` |
+| Textarea setter or hook is wrong | `ForgeUILvglExport.ts` Textarea export map/branch | multiline retained text, programmatic guard, placeholder ownership, `95_UserEvents.*` |
+| Switch checked runtime is wrong | `ForgeUILvglExport.ts` Switch export map/branch | retained checked state, `lv_switch`, setter guard, Preview local state |
+| Checkbox checked runtime is wrong | `ForgeUILvglExport.ts` Checkbox export map/branch | retained checked state, serialized label, setter guard, `lv_checkbox` |
+| Radio selected runtime is wrong | `ForgeUILvglExport.ts` Radio export map/branch | retained independent selection, circular `lv_checkbox`, no grouping model |
+| Progress setter or clamping is wrong | `ForgeUILvglExport.ts` Progress export map/branch | retained value/range, output-only setter, absence of hook |
+| NumberInput value runtime is wrong | `ForgeUILvglExport.ts` NumberInput export map/branch | textarea-based LVGL, `int32_t` parsing/range/step, guard, Preview local state |
+| Select selected index or text is wrong | `ForgeUILvglExport.ts` Select export map/branch | `lv_dropdown`, serialized options/count, selected-index guard and text buffer |
+| Image source runtime is wrong | `ForgeUILvglExport.ts` Image export map/branch | LVGL-ready asset resolution, retained pointer, `NULL`/pending no-op behavior |
+| Box visibility runtime is wrong | `ForgeUILvglExport.ts` Box export map/branch | retained non-root object, hidden flag, child parent alias, root exclusion |
+| IconButton enabled state or click hook is wrong | `ForgeUILvglExport.ts` IconButton export map/branch | retained enabled state, disabled LVGL state, `LV_EVENT_CLICKED`, hook preservation |
+| Slider captures Canvas movement or mutates saved value | `StandardSliderPreview.tsx` and Slider preview call sites | explicit Canvas/Browser mode, local state, Canvas wrapper gesture ownership |
+| Button Text does not export | `ForgeUIStandardButton.ts` | `ButtonPanel.tsx`, `ButtonPreview.tsx`, `forgePreviewRenderer.tsx`, Button exporter branch |
+| Text Value does not export | `ForgeUIStandardText.ts` | `StandardTextPanel.tsx`, `TextPreview.tsx`, `forgePreviewRenderer.tsx`, Text exporter branch |
+| Heading text is wrong | `ForgeUIStandardHeading.ts` | `HeadingPanel.tsx`, `HeadingPreview.tsx`, Heading exporter branch |
+| Clock formatting is wrong | `ForgeUIStandardClock.ts` and Clock exporter generation | serialized presentation props, generated `snprintf()` format, `fg_rtc_get()` |
+| Clock Preview differs from generated output | `ClockPreview.tsx` | `ForgeUIStandardClock.ts`, `forgePreviewRenderer.tsx`, Clock exporter branch |
+| Multiple Clocks overwrite one another | `ForgeUILvglExport.ts` Clock allocation | per-instance label, timer, separator state and collision-safe identifiers |
+| Clock separator does not blink correctly | Clock presentation resolver and generated callback | `blinkSeparator`, retained separator-visible state, one-second timer |
+| Clock 12-hour formatting is wrong | Clock formatter generation | hour modulo conversion, midnight/noon handling, AM/PM suffix |
+| Clock seconds formatting is wrong | Clock formatter generation | `showSeconds`, generated format string and RTC seconds field |
 | Light unexpectedly has a click hook | `ForgeUILvglExport.ts` | ensure Light remains image/setter based |
 | Export rejected before flash | `ForgeUIExportValidation.ts` | `Header.tsx`, `export-server.js` |
 | Missing generated C source | `export-server.js` | Uploaded Asset Registry, Theme ownership |
@@ -2671,7 +2934,13 @@ Start at the ownership boundary matching the symptom.
 - `export-server.js`
 - generated `90_Studio_Export.c/.h` retained objects, state, helpers and public APIs
 - generated and preservation-merged `95_UserEvents.c/.h`
-- focused `ForgeUILvglExport.{led,bar,arc,chart,keyboard,calendar,roller,msgbox,buttonmatrix}.test.ts`
+- focused `ForgeUILvglExport.{led,bar,arc,chart,keyboard,calendar,roller,msgbox,buttonmatrix,tabview,tileview,input,textarea,switch,checkbox,radio,progress,numberinput,select,image,box,iconbutton,button,text,heading,clock}.test.ts`
+- `src/forgeui/ForgeUIStandardButton.ts`
+- `src/forgeui/ForgeUIStandardText.ts`
+- `src/forgeui/ForgeUIStandardHeading.ts`
+- `src/forgeui/ForgeUIStandardClock.ts`
+- standard Button, Text, Heading and Clock Inspector/Preview components
+- shared Standard Switch, Checkbox, Radio, Slider, NumberInput, Select and IconButton Preview components
 - `export-server.test.js`
 
 ### System Runtime paths
@@ -2811,10 +3080,36 @@ Preserve these rules:
 92. Standard-component developer hooks belong in preservation-merged `95_UserEvents.*`.
 93. Interactive Status Indicator remains a setter-only Binary Output Runtime asset and must not inherit the standard `Led` changed hook.
 94. Scale remains API-free while it owns no runtime value.
+95. TabView active tab is semantic runtime state.
+96. Tileview active coordinates are semantic runtime state.
+97. Button, Text and Heading own serialized visible content only; those properties do not create runtime transitions or hooks.
+98. Clock owns presentation configuration only; RTC/system time owns the live value.
+99. Line remains API-free while it owns no semantic runtime state.
+100. Generated Clock code exposes no runtime time setter.
+101. Generated Clock code exposes no user hook.
+102. Interactive Standard semantic state uses a retained object/state, guarded setter, LVGL event adapter and genuine-user hook.
+103. Output Standard semantic state uses a retained object/state and setter only when no genuine user transition exists.
+104. Serialized presentation generates no runtime API.
+105. Components with no semantic runtime state, including Icon and Divider, remain intentionally API-free.
+106. Slider Canvas interaction repair does not imply a completed Slider runtime setter or hook.
 
 ## Save Point History
 
 Save points are ordered newest to oldest.
+
+### FORGEUI_STANDARD_LVGL_RUNTIME_V1__DEVELOPER_API_SURFACE__INTERACTIVE_OUTPUT_PRESENTATION_CLASSIFICATION__ARCHITECTURE_COMPLETE__2026-07-29
+
+- **What changed:** Added Standard Runtime ownership, APIs, hook metadata and Preview parity for Input, Textarea, Switch, Checkbox, Radio, Progress, NumberInput, Select, Image, Box and IconButton; repaired Slider Canvas interaction without adding its runtime API; and classified Icon and Divider as presentation/API-free.
+- **Why:** Exported applications needed a consistent application-to-UI API and genuine UI-to-application event boundary without inventing runtime surfaces for presentation-only components.
+- **Final architecture:** Interactive semantic state uses retained state, guarded silent setters and genuine-user hooks; output semantic state uses retained state and setter-only APIs; serialized presentation and components without semantic state expose no runtime API. Live and standalone exports share `ForgeUILvglExport.ts`, while live `95_UserEvents.*` remains preservation-merged and standalone copies become developer-owned.
+- **Validation:** Exporter regression reached 212/212, Canvas regression reached 51/51, generated API/preservation coverage reached 33/33, focused component suites and TypeScript/syntax/diff checks passed. The unrelated missing-theme-source fixture remains recorded, and no blanket physical hardware proof is claimed.
+
+### FORGEUI_STANDARD_LVGL_RUNTIME_APIS__TABVIEW_TILEVIEW__TEXT_COMPONENT_PROPERTIES__CLOCK_PRESENTATION__ARCHITECTURE_COMPLETE__2026-07-29
+
+- **What changed:** Added TabView active-index runtime, Tileview active-coordinate runtime, Button Text, Text Value, Heading Text and Clock Presentation; repaired per-instance retained ownership for multiple Clocks; kept Scale and Line intentionally API-free.
+- **Why:** Genuine semantic selection state required supported APIs and hooks, static visible content required persisted editor properties, and Clock required configurable presentation without serializing live RTC time.
+- **Final architecture:** `ForgeUILvglExport.ts` owns shared live/standalone generation for semantic runtime state, static text presentation and per-instance Clock formatting; `export-server.js` preservation-merges TabView and Tileview hooks while text and Clock presentation add none.
+- **Validation:** Focused exporter, preview, persistence and preservation tests, TypeScript validation, export-server syntax checks and diff checks passed. No new physical hardware proof is claimed for these features.
 
 ### FORGEUI_STANDARD_LVGL_RUNTIME_APIS__LED_BAR_ARC_CHART_KEYBOARD_CALENDAR_ROLLER_MESSAGE_BOX_BUTTON_MATRIX__LIVE_AND_STANDALONE_PROVEN__2026-07-29
 
@@ -2825,6 +3120,28 @@ Save points are ordered newest to oldest.
 ## Framework extension pattern
 
 Extend the framework by runtime family first, then by asset-specific model and artwork semantics.
+
+### Standard LVGL Runtime extension
+
+```text
+Interactive semantic state
+  → retained runtime object/state
+  → guarded setter
+  → LVGL event adapter
+  → genuine-user hook
+
+Output semantic state
+  → retained runtime object/state
+  → setter only
+
+Serialized presentation
+  → no runtime API
+
+No semantic state
+  → intentionally API-free
+```
+
+Icon and Divider are explicit API-free examples. Icon is a Studio icon-picker convenience whose export uses the existing image-symbol path; runtime image replacement belongs to Image. Divider is visual separation only; dynamic visibility belongs to its parent Box.
 
 ### System Runtime extension
 
@@ -2968,14 +3285,6 @@ strongly typed runtime state
 
 This is extension guidance, not a claim that additional N-state controls are implemented.
 
-Potential future runtime families:
-
-- Value Runtime
-- Selection Runtime
-- Gauge Runtime
-- Numeric Display Runtime
-- Progress Runtime
-
-These are future concepts only and are not implemented.
+Potential future Standard Runtime concepts include Slider runtime control, Gauge, Meter, Seven Segment Display, Numeric Display, Radio Group ownership, dynamic Select options and a native Spinbox/stepper runtime. These are future only. Existing Progress, Checkbox, Radio, NumberInput and Select support must not be described as unimplemented.
 
 Do not create a new registry, persistence system, AI pipeline, uploaded-asset store, exporter, or duplicate runtime generator for a future type. Reuse an existing runtime family whenever its state and API contract match. Create a new runtime family only when the existing momentary input, persistent binary input, persistent three-position input and binary output contracts cannot represent the control.

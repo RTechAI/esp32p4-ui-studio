@@ -107,3 +107,18 @@ void FG_On_Menu_Matrix_Button_Selected(uint32_t index, const char * text)
         (unsigned long)index,
         text ? text : "");
 }
+
+void FG_On_Tab_View_Changed(uint32_t tab_index)
+{
+    printf(
+        "[ForgeUI User Event] Tab View changed: %lu\n",
+        (unsigned long)tab_index);
+}
+
+void FG_On_Tileview_Changed(uint32_t column, uint32_t row)
+{
+    printf(
+        "[ForgeUI User Event] Tileview changed: column %lu, row %lu\n",
+        (unsigned long)column,
+        (unsigned long)row);
+}

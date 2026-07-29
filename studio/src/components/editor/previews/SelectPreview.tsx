@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 import iconsList from '~iconsList'
-import { Select } from '@chakra-ui/react'
+import StandardSelectPreview from '~forgeui/preview/StandardSelectPreview'
 
 interface IProps {
   component: IComponent
@@ -18,16 +18,14 @@ const SelectPreview = ({ component }: IProps) => {
   }, [icon])
 
   return (
-    <Select
-      {...props}
-      width="100%"
-      height="100%"
+    <StandardSelectPreview
+      mode="canvas"
+      options={props.options}
+      selectedIndex={props.selectedIndex}
+      legacyValue={props.value}
+      isDisabled={Boolean(props.isDisabled)}
       icon={Icon ? <Icon path="" /> : undefined}
-    >
-      <option value="option1">Option 1</option>
-      <option value="option2">Option 2</option>
-      <option value="option3">Option 3</option>
-    </Select>
+    />
   )
 }
 

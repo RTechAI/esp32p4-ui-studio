@@ -7,11 +7,17 @@ import usePropsSelector from '~hooks/usePropsSelector'
 type SwitchControlPropsType = {
   name: string
   label: string | ReactNode
+  defaultValue?: boolean
 }
 
-const SwitchControl: React.FC<SwitchControlPropsType> = ({ name, label }) => {
+const SwitchControl: React.FC<SwitchControlPropsType> = ({
+  name,
+  label,
+  defaultValue = false,
+}) => {
   const { setValue } = useForm()
   const value = usePropsSelector(name)
+  const checked = typeof value === 'boolean' ? value : defaultValue
 
   return (
     <FormControl label={label} htmlFor={name}>
@@ -20,8 +26,8 @@ const SwitchControl: React.FC<SwitchControlPropsType> = ({ name, label }) => {
       id={name}
       size="sm"
       colorScheme="cyan"
-      isChecked={value || false}
-      onChange={() => setValue(name, !value)}
+      isChecked={checked}
+      onChange={() => setValue(name, !checked)}
 />
     </FormControl>
   )

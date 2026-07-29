@@ -293,7 +293,11 @@ Standard LVGL Component Runtime
 
 The APIs reflect each widget rather than forcing every component into a generic value model. Examples include setting LED, Bar and Arc values, adding or clearing Chart points, showing or hiding the standard Canvas Keyboard, selecting Calendar dates, and selecting Roller or Button Matrix options.
 
-Runtime APIs and hooks are generated consistently through both the integrated Build & Flash workflow and standalone ESP-IDF export. Scale remains API-free because it is a visual tick-and-label renderer and does not own a runtime value.
+Runtime APIs and hooks are generated consistently through both the integrated Build & Flash workflow and standalone ESP-IDF export. Presentation-only components remain API-free when they own no meaningful runtime state. Scale is a visual tick-and-label renderer, Line is decorative geometry, Icon is a Studio authoring convenience for the built-in icon picker, and Divider is visual separation only.
+
+At export, Icon becomes a normal LVGL image backed by the existing generated image symbol. It has no runtime setter or developer hook. Applications that need runtime image swapping should use the Standard Image component and `FG_Set_<Image_Name>_Source(const void * src)`; ForgeUI intentionally does not duplicate that capability as an Icon API.
+
+Divider also has no runtime setter or developer hook. If a Divider must appear or disappear dynamically, place it inside the relevant parent Box and use `FG_Set_<Parent_Box_Name>_Visible(bool visible)` so visibility remains owned by the layout container.
 
 ---
 

@@ -4,6 +4,13 @@ import {
 } from './ForgeUIUploadedAssetRegistry'
 import { FORGEUI_IMAGE_ASSETS } from './ForgeUIAssetRegistry'
 import { allocateUniqueOutputApiName } from './ForgeUIGeneratedApiNames'
+import { getForgeUIStandardButtonText } from './ForgeUIStandardButton'
+import { getForgeUIStandardTextValue } from './ForgeUIStandardText'
+import { getForgeUIStandardHeadingText } from './ForgeUIStandardHeading'
+import {
+  getForgeUIStandardClockPresentation,
+  type ForgeUIClockHourFormat,
+} from './ForgeUIStandardClock'
 
 import {
   getInteractiveButtonAsset,
@@ -142,7 +149,12 @@ const lv = (v: any, d: any = 0) =>
   v !== undefined && v !== null && v !== '' ? v : d
 
 const esc = (v: string = '') =>
-  String(v).replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+  String(v)
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/\r/g, '\\r')
+    .replace(/\n/g, '\\n')
+    .replace(/\t/g, '\\t')
 
 const toCIdentifier = (
   value: string,
@@ -357,9 +369,8 @@ type LedExport = {
   initialState: boolean
 }
 
-type BarExport = {
+type BarRuntimeExport = {
   apiName: string
-  hookName: string
   objectName: string
   stateName: string
   minimumName: string
@@ -367,6 +378,80 @@ type BarExport = {
   minimum: number
   maximum: number
   initialValue: number
+}
+
+type BarExport = BarRuntimeExport & {
+  hookName: string
+}
+
+type ProgressExport = BarRuntimeExport
+
+type NumberInputExport = {
+  apiName: string
+  hookName: string
+  objectName: string
+  stateName: string
+  programmaticUpdateName: string
+  minimumName: string
+  maximumName: string
+  stepName: string
+  eventCallbackName: string
+  minimum: number
+  maximum: number
+  step: number
+  initialValue: number
+  initialText: string
+}
+
+type SelectExport = {
+  apiName: string
+  hookName: string
+  objectName: string
+  selectedIndexName: string
+  programmaticUpdateName: string
+  optionCountName: string
+  eventCallbackName: string
+  options: string[]
+  initialIndex: number
+  textBufferSize: number
+}
+
+type ImageExport = {
+  apiName: string
+  objectName: string
+  sourceName: string
+  asset?: any
+}
+
+type BoxExport = {
+  apiName: string
+  objectName: string
+  visibleName: string
+}
+
+type IconButtonExport = {
+  apiName: string
+  hookName: string
+  objectName: string
+  enabledName: string
+  eventCallbackName: string
+  initialEnabled: boolean
+}
+
+const resolveStandardImageAsset = (component: IComponent) => {
+  const src = component.props.src || ''
+  const presetAsset = FORGEUI_IMAGE_ASSETS.find(
+    (asset: any) => asset.src === src,
+  )
+  const uploadedAsset = forgeUIGetUploadedAssets().find((asset: any) =>
+    asset.id === component.props.uploadedAssetId ||
+    asset.browserSrc === src ||
+    asset.browserSrc === component.props.src ||
+    asset.name === component.props.assetName ||
+    asset.name === component.props.alt,
+  )
+
+  return presetAsset || uploadedAsset
 }
 
 type ArcExport = {
@@ -465,9 +550,412 @@ type ButtonMatrixExport = {
   disabledButtons: number[]
 }
 
+type TabViewExport = {
+  apiName: string
+  hookName: string
+  objectName: string
+  selectedIndexName: string
+  tabCountName: string
+  transitionName: string
+  eventCallbackName: string
+  initialIndex: number
+  tabCount: number
+}
+
+type TileViewExport = {
+  apiName: string
+  hookName: string
+  objectName: string
+  tilesName: string
+  selectedColumnName: string
+  selectedRowName: string
+  columnCountName: string
+  rowCountName: string
+  transitionName: string
+  eventCallbackName: string
+  initialColumn: number
+  initialRow: number
+  columnCount: number
+  rowCount: number
+}
+
+type ClockExport = {
+  labelName: string
+  timerName: string
+  separatorVisibleName: string
+  tickCallbackName: string
+  hourFormat: ForgeUIClockHourFormat
+  showSeconds: boolean
+  blinkSeparator: boolean
+}
+
+type InputExport = {
+  apiName: string
+  hookName: string
+  objectName: string
+  programmaticUpdateName: string
+  eventCallbackName: string
+}
+
+type SwitchExport = {
+  apiName: string
+  hookName: string
+  objectName: string
+  programmaticUpdateName: string
+  eventCallbackName: string
+  initialChecked: boolean
+}
+
+type RadioExport = {
+  apiName: string
+  hookName: string
+  objectName: string
+  programmaticUpdateName: string
+  eventCallbackName: string
+  initialSelected: boolean
+}
+
+const createRadioExports = (
+  components: IComponents,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+  existingApiNames: Iterable<string>,
+): Map<string, RadioExport> => {
+  const exportsByComponent = new Map<string, RadioExport>()
+  const usedApiNames = new Set(existingApiNames)
+
+  Object.values(components)
+    .filter(component => component.type === 'Radio')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const baseName = toCIdentifier(
+        component.componentName ||
+        component.props.name ||
+        component.props.label ||
+        'Radio',
+        'Radio',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let allocatedBase = baseName
+      let suffix = 2
+      while (usedApiNames.has(`FG_Set_${allocatedBase}_Selected`)) {
+        allocatedBase = `${baseName}_${suffix++}`
+      }
+      const apiName = `FG_Set_${allocatedBase}_Selected`
+      usedApiNames.add(apiName)
+
+      let hookName = `FG_On_${allocatedBase}_Changed`
+      suffix = 2
+      while (usedHookNames.has(hookName)) {
+        hookName = `FG_On_${allocatedBase}_${suffix++}_Changed`
+      }
+      usedHookNames.add(hookName)
+      userEventHooks.add(hookName)
+
+      const runtimeStem = allocatedBase.toLowerCase()
+      exportsByComponent.set(component.id, {
+        apiName,
+        hookName,
+        objectName: `fg_${runtimeStem}_radio`,
+        programmaticUpdateName:
+          `fg_${runtimeStem}_radio_programmatic_update`,
+        eventCallbackName:
+          `fg_${runtimeStem}_radio_value_changed_cb`,
+        initialSelected: Boolean(component.props.isChecked),
+      })
+    })
+
+  return exportsByComponent
+}
+
+const createCheckedControlExports = (
+  components: IComponents,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+  existingApiNames: Iterable<string>,
+  componentType: 'Switch' | 'Checkbox',
+  fallbackName: string,
+  runtimeKind: 'switch' | 'checkbox',
+): Map<string, SwitchExport> => {
+  const exportsByComponent = new Map<string, SwitchExport>()
+  const usedApiNames = new Set(existingApiNames)
+
+  Object.values(components)
+    .filter(component => component.type === componentType)
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const baseName = toCIdentifier(
+        component.componentName ||
+        component.props.name ||
+        component.props.label ||
+        fallbackName,
+        fallbackName,
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let allocatedBase = baseName
+      let suffix = 2
+      while (usedApiNames.has(`FG_Set_${allocatedBase}_Checked`)) {
+        allocatedBase = `${baseName}_${suffix++}`
+      }
+      const apiName = `FG_Set_${allocatedBase}_Checked`
+      usedApiNames.add(apiName)
+
+      let hookName = `FG_On_${allocatedBase}_Changed`
+      suffix = 2
+      while (usedHookNames.has(hookName)) {
+        hookName = `FG_On_${allocatedBase}_${suffix++}_Changed`
+      }
+      usedHookNames.add(hookName)
+      userEventHooks.add(hookName)
+
+      const runtimeStem = allocatedBase.toLowerCase()
+      exportsByComponent.set(component.id, {
+        apiName,
+        hookName,
+        objectName: `fg_${runtimeStem}_${runtimeKind}`,
+        programmaticUpdateName:
+          `fg_${runtimeStem}_${runtimeKind}_programmatic_update`,
+        eventCallbackName:
+          `fg_${runtimeStem}_${runtimeKind}_value_changed_cb`,
+        initialChecked: Boolean(component.props.isChecked),
+      })
+    })
+
+  return exportsByComponent
+}
+
+const createInputExports = (
+  components: IComponents,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+  existingApiNames: Iterable<string>,
+): Map<string, InputExport> => {
+  const exportsByComponent = new Map<string, InputExport>()
+  const usedApiNames = new Set(existingApiNames)
+
+  Object.values(components)
+    .filter(component =>
+      component.type === 'Input' || component.type === 'Textarea',
+    )
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const isTextarea = component.type === 'Textarea'
+      const fallbackName = isTextarea ? 'Textarea' : 'Input'
+      const baseName = toCIdentifier(
+        component.componentName ||
+        component.props.name ||
+        component.props.label ||
+        fallbackName,
+        fallbackName,
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let allocatedBase = baseName
+      let suffix = 2
+      while (usedApiNames.has(`FG_Set_${allocatedBase}_Text`)) {
+        allocatedBase = `${baseName}_${suffix++}`
+      }
+      const apiName = `FG_Set_${allocatedBase}_Text`
+      usedApiNames.add(apiName)
+
+      let hookName = `FG_On_${allocatedBase}_Changed`
+      suffix = 2
+      while (usedHookNames.has(hookName)) {
+        hookName = `FG_On_${allocatedBase}_${suffix++}_Changed`
+      }
+      usedHookNames.add(hookName)
+      userEventHooks.add(hookName)
+
+      const runtimeStem = allocatedBase.toLowerCase()
+      const runtimeKind = isTextarea ? 'textarea' : 'input'
+      exportsByComponent.set(component.id, {
+        apiName,
+        hookName,
+        objectName: `fg_${runtimeStem}_${runtimeKind}`,
+        programmaticUpdateName:
+          `fg_${runtimeStem}_${runtimeKind}_programmatic_update`,
+        eventCallbackName:
+          `fg_${runtimeStem}_${runtimeKind}_value_changed_cb`,
+      })
+    })
+
+  return exportsByComponent
+}
+
 const integerProp = (value: unknown, fallback: number) => {
   const numeric = Number(value)
   return Number.isFinite(numeric) ? Math.trunc(numeric) : fallback
+}
+
+const createClockExports = (
+  components: IComponents,
+): Map<string, ClockExport> => {
+  const exportsByComponent = new Map<string, ClockExport>()
+  const usedStems = new Set<string>()
+
+  Object.values(components)
+    .filter(component => component.type === 'Clock')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const baseStem = toCIdentifier(
+        component.componentName || component.props.name || 'Clock',
+        'Clock',
+      )
+        .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+        .toLowerCase()
+      let stem = baseStem
+      let suffix = 2
+      while (usedStems.has(stem)) {
+        stem = `${baseStem}_${suffix++}`
+      }
+      usedStems.add(stem)
+
+      const presentation =
+        getForgeUIStandardClockPresentation(component.props)
+      exportsByComponent.set(component.id, {
+        labelName: `fg_${stem}_label`,
+        timerName: `fg_${stem}_timer`,
+        separatorVisibleName: `fg_${stem}_separator_visible`,
+        tickCallbackName: `fg_${stem}_tick_cb`,
+        ...presentation,
+      })
+    })
+
+  return exportsByComponent
+}
+
+const createTabViewExports = (
+  components: IComponents,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+  existingApiNames: Iterable<string>,
+): Map<string, TabViewExport> => {
+  const exportsByComponent = new Map<string, TabViewExport>()
+  const usedApiNames = new Set(existingApiNames)
+
+  Object.values(components)
+    .filter(component => component.type === 'Tabview')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const baseName = toCIdentifier(
+        component.componentName ||
+        component.props.name ||
+        component.props.label ||
+        'Tab_View',
+        'Tab_View',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let allocatedBase = baseName
+      let suffix = 2
+      while (usedApiNames.has(`FG_Set_${allocatedBase}_Selected`)) {
+        allocatedBase = `${baseName}_${suffix++}`
+      }
+      const apiName = `FG_Set_${allocatedBase}_Selected`
+      usedApiNames.add(apiName)
+
+      let hookName = `FG_On_${allocatedBase}_Changed`
+      suffix = 2
+      while (usedHookNames.has(hookName)) {
+        hookName = `FG_On_${allocatedBase}_${suffix++}_Changed`
+      }
+      usedHookNames.add(hookName)
+      userEventHooks.add(hookName)
+
+      const tabCount = 3
+      const initialIndex = Math.min(
+        tabCount - 1,
+        Math.max(0, integerProp(component.props.selectedIndex, 0)),
+      )
+      const runtimeStem = allocatedBase.toLowerCase()
+      exportsByComponent.set(component.id, {
+        apiName,
+        hookName,
+        objectName: `fg_${runtimeStem}_tabview`,
+        selectedIndexName: `fg_${runtimeStem}_tabview_selected_index`,
+        tabCountName: `fg_${runtimeStem}_tabview_tab_count`,
+        transitionName: `fg_${runtimeStem}_tabview_apply_selection`,
+        eventCallbackName: `fg_${runtimeStem}_tabview_value_changed_cb`,
+        initialIndex,
+        tabCount,
+      })
+    })
+
+  return exportsByComponent
+}
+
+const createTileViewExports = (
+  components: IComponents,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+  existingApiNames: Iterable<string>,
+): Map<string, TileViewExport> => {
+  const exportsByComponent = new Map<string, TileViewExport>()
+  const usedApiNames = new Set(existingApiNames)
+
+  Object.values(components)
+    .filter(component => component.type === 'Tileview')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const baseName = toCIdentifier(
+        component.componentName ||
+        component.props.name ||
+        component.props.label ||
+        'Tileview',
+        'Tileview',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let allocatedBase = baseName
+      let suffix = 2
+      while (usedApiNames.has(`FG_Set_${allocatedBase}_Selected`)) {
+        allocatedBase = `${baseName}_${suffix++}`
+      }
+      const apiName = `FG_Set_${allocatedBase}_Selected`
+      usedApiNames.add(apiName)
+
+      let hookName = `FG_On_${allocatedBase}_Changed`
+      suffix = 2
+      while (usedHookNames.has(hookName)) {
+        hookName = `FG_On_${allocatedBase}_${suffix++}_Changed`
+      }
+      usedHookNames.add(hookName)
+      userEventHooks.add(hookName)
+
+      const columnCount = 2
+      const rowCount = 2
+      const initialColumn = Math.min(
+        columnCount - 1,
+        Math.max(
+          0,
+          integerProp(
+            component.props.selectedColumn ?? component.props.initialColumn,
+            0,
+          ),
+        ),
+      )
+      const initialRow = Math.min(
+        rowCount - 1,
+        Math.max(
+          0,
+          integerProp(
+            component.props.selectedRow ?? component.props.initialRow,
+            0,
+          ),
+        ),
+      )
+      const runtimeStem = allocatedBase.toLowerCase()
+      exportsByComponent.set(component.id, {
+        apiName,
+        hookName,
+        objectName: `fg_${runtimeStem}_tileview`,
+        tilesName: `fg_${runtimeStem}_tileview_tiles`,
+        selectedColumnName: `fg_${runtimeStem}_tileview_selected_column`,
+        selectedRowName: `fg_${runtimeStem}_tileview_selected_row`,
+        columnCountName: `fg_${runtimeStem}_tileview_column_count`,
+        rowCountName: `fg_${runtimeStem}_tileview_row_count`,
+        transitionName: `fg_${runtimeStem}_tileview_apply_selection`,
+        eventCallbackName: `fg_${runtimeStem}_tileview_value_changed_cb`,
+        initialColumn,
+        initialRow,
+        columnCount,
+        rowCount,
+      })
+    })
+
+  return exportsByComponent
 }
 
 const createCalendarExports = (
@@ -1131,6 +1619,355 @@ const createBarExports = (
   return exportsByComponent
 }
 
+const createProgressExports = (
+  components: IComponents,
+  existingApiNames: Iterable<string>,
+): Map<string, ProgressExport> => {
+  const exportsByComponent = new Map<string, ProgressExport>()
+  const usedApiNames = new Set(existingApiNames)
+
+  Object.values(components)
+    .filter(component => component.type === 'Progress')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const baseName = toCIdentifier(
+        component.componentName ||
+        component.props.name ||
+        component.props.label ||
+        'Progress',
+        'Progress',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let allocatedBase = baseName
+      let suffix = 2
+      while (usedApiNames.has(`FG_Set_${allocatedBase}_Value`)) {
+        allocatedBase = `${baseName}_${suffix++}`
+      }
+      const apiName = `FG_Set_${allocatedBase}_Value`
+      usedApiNames.add(apiName)
+
+      const firstRangeValue = integerProp(component.props.min, 0)
+      const secondRangeValue = integerProp(component.props.max, 100)
+      const minimum = Math.min(firstRangeValue, secondRangeValue)
+      const maximum = Math.max(firstRangeValue, secondRangeValue)
+      const configuredValue = integerProp(component.props.value, 60)
+      const initialValue = Math.max(minimum, Math.min(maximum, configuredValue))
+      const runtimeStem = allocatedBase.toLowerCase()
+
+      exportsByComponent.set(component.id, {
+        apiName,
+        objectName: `fg_${runtimeStem}_progress`,
+        stateName: `fg_${runtimeStem}_progress_value`,
+        minimumName: `fg_${runtimeStem}_progress_minimum`,
+        maximumName: `fg_${runtimeStem}_progress_maximum`,
+        minimum,
+        maximum,
+        initialValue,
+      })
+    })
+
+  return exportsByComponent
+}
+
+const createNumberInputExports = (
+  components: IComponents,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+  existingApiNames: Iterable<string>,
+): Map<string, NumberInputExport> => {
+  const exportsByComponent = new Map<string, NumberInputExport>()
+  const usedApiNames = new Set(existingApiNames)
+
+  Object.values(components)
+    .filter(component => component.type === 'NumberInput')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const baseName = toCIdentifier(
+        component.componentName ||
+        component.props.name ||
+        component.props.label ||
+        'Number_Input',
+        'Number_Input',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let allocatedBase = baseName
+      let suffix = 2
+      while (usedApiNames.has(`FG_Set_${allocatedBase}_Value`)) {
+        allocatedBase = `${baseName}_${suffix++}`
+      }
+      const apiName = `FG_Set_${allocatedBase}_Value`
+      usedApiNames.add(apiName)
+
+      let hookName = `FG_On_${allocatedBase}_Changed`
+      suffix = 2
+      while (usedHookNames.has(hookName)) {
+        hookName = `FG_On_${allocatedBase}_${suffix++}_Changed`
+      }
+      usedHookNames.add(hookName)
+      userEventHooks.add(hookName)
+
+      const firstRangeValue = integerProp(component.props.min, 0)
+      const secondRangeValue = integerProp(component.props.max, 100)
+      const minimum = Math.min(firstRangeValue, secondRangeValue)
+      const maximum = Math.max(firstRangeValue, secondRangeValue)
+      const configuredValue = integerProp(component.props.value, 50)
+      const initialValue = Math.max(minimum, Math.min(maximum, configuredValue))
+      const step = Math.max(1, Math.abs(integerProp(component.props.step, 1)))
+      const precision = Math.max(0, Math.min(
+        20,
+        integerProp(component.props.precision, 0),
+      ))
+      const numericInitialValue = Number(component.props.value)
+      const clampedDisplayValue = Number.isFinite(numericInitialValue)
+        ? Math.max(minimum, Math.min(maximum, numericInitialValue))
+        : initialValue
+      const runtimeStem = allocatedBase.toLowerCase()
+
+      exportsByComponent.set(component.id, {
+        apiName,
+        hookName,
+        objectName: `fg_${runtimeStem}`,
+        stateName: `fg_${runtimeStem}_value`,
+        programmaticUpdateName:
+          `fg_${runtimeStem}_programmatic_update`,
+        minimumName: `fg_${runtimeStem}_minimum`,
+        maximumName: `fg_${runtimeStem}_maximum`,
+        stepName: `fg_${runtimeStem}_step`,
+        eventCallbackName: `fg_${runtimeStem}_value_changed_cb`,
+        minimum,
+        maximum,
+        step,
+        initialValue,
+        initialText: precision > 0
+          ? clampedDisplayValue.toFixed(precision)
+          : String(Math.trunc(clampedDisplayValue)),
+      })
+    })
+
+  return exportsByComponent
+}
+
+const createSelectExports = (
+  components: IComponents,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+  existingApiNames: Iterable<string>,
+): Map<string, SelectExport> => {
+  const exportsByComponent = new Map<string, SelectExport>()
+  const usedApiNames = new Set(existingApiNames)
+
+  Object.values(components)
+    .filter(component => component.type === 'Select')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const baseName = toCIdentifier(
+        component.componentName ||
+        component.props.name ||
+        component.props.label ||
+        'Select',
+        'Select',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let allocatedBase = baseName
+      let suffix = 2
+      while (usedApiNames.has(
+        `FG_Set_${allocatedBase}_Selected_Index`,
+      )) {
+        allocatedBase = `${baseName}_${suffix++}`
+      }
+      const apiName = `FG_Set_${allocatedBase}_Selected_Index`
+      usedApiNames.add(apiName)
+
+      let hookName = `FG_On_${allocatedBase}_Changed`
+      suffix = 2
+      while (usedHookNames.has(hookName)) {
+        hookName = `FG_On_${allocatedBase}_${suffix++}_Changed`
+      }
+      usedHookNames.add(hookName)
+      userEventHooks.add(hookName)
+
+      const configuredOptions: unknown[] = Array.isArray(
+        component.props.options,
+      )
+        ? component.props.options
+        : typeof component.props.options === 'string'
+          ? component.props.options.length > 0
+            ? component.props.options.split('\n')
+            : []
+          : ['Option 1', 'Option 2', 'Option 3']
+      const options = configuredOptions.map(option => String(option))
+      const legacyValue = String(component.props.value ?? '')
+      const legacyOptionMatch = legacyValue.match(/^option(\d+)$/i)
+      const configuredIndex = component.props.selectedIndex ??
+        (legacyOptionMatch ? Number(legacyOptionMatch[1]) - 1 : 0)
+      const initialIndex = options.length > 0
+        ? Math.min(
+            options.length - 1,
+            Math.max(0, integerProp(configuredIndex, 0)),
+          )
+        : 0
+      const longestOption = options.reduce(
+        (longest, option) => Math.max(
+          longest,
+          Array.from(option).reduce((length, character) => {
+            const codePoint = character.codePointAt(0) || 0
+            return length + (
+              codePoint <= 0x7f ? 1 :
+              codePoint <= 0x7ff ? 2 :
+              codePoint <= 0xffff ? 3 : 4
+            )
+          }, 0),
+        ),
+        0,
+      )
+      const runtimeStem = allocatedBase.toLowerCase()
+
+      exportsByComponent.set(component.id, {
+        apiName,
+        hookName,
+        objectName: `fg_${runtimeStem}`,
+        selectedIndexName: `fg_${runtimeStem}_selected_index`,
+        programmaticUpdateName:
+          `fg_${runtimeStem}_programmatic_update`,
+        optionCountName: `fg_${runtimeStem}_option_count`,
+        eventCallbackName: `fg_${runtimeStem}_value_changed_cb`,
+        options,
+        initialIndex,
+        textBufferSize: Math.max(1, longestOption + 1),
+      })
+    })
+
+  return exportsByComponent
+}
+
+const createImageExports = (
+  components: IComponents,
+  existingApiNames: Iterable<string>,
+): Map<string, ImageExport> => {
+  const exportsByComponent = new Map<string, ImageExport>()
+  const usedApiNames = new Set(existingApiNames)
+
+  Object.values(components)
+    .filter(component => component.type === 'Image')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const baseName = toCIdentifier(
+        component.componentName ||
+        component.props.name ||
+        component.props.label ||
+        'Image',
+        'Image',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let allocatedBase = baseName
+      let suffix = 2
+      while (usedApiNames.has(`FG_Set_${allocatedBase}_Source`)) {
+        allocatedBase = `${baseName}_${suffix++}`
+      }
+      const apiName = `FG_Set_${allocatedBase}_Source`
+      usedApiNames.add(apiName)
+      const runtimeStem = allocatedBase.toLowerCase()
+      const asset: any = resolveStandardImageAsset(component)
+
+      exportsByComponent.set(component.id, {
+        apiName,
+        objectName: `fg_${runtimeStem}`,
+        sourceName: `fg_${runtimeStem}_source`,
+        asset: asset?.lvgl || asset?.symbolName ? asset : undefined,
+      })
+    })
+
+  return exportsByComponent
+}
+
+const createBoxExports = (
+  components: IComponents,
+  existingApiNames: Iterable<string>,
+): Map<string, BoxExport> => {
+  const exportsByComponent = new Map<string, BoxExport>()
+  const usedApiNames = new Set(existingApiNames)
+  const exportedComponentIds = new Set(
+    Object.values(components).flatMap(component => component.children || []),
+  )
+
+  Object.values(components)
+    .filter(component =>
+      component.type === 'Box' && exportedComponentIds.has(component.id),
+    )
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const baseName = toCIdentifier(
+        component.componentName ||
+        component.props.name ||
+        component.props.label ||
+        'Box',
+        'Box',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let allocatedBase = baseName
+      let suffix = 2
+      while (usedApiNames.has(`FG_Set_${allocatedBase}_Visible`)) {
+        allocatedBase = `${baseName}_${suffix++}`
+      }
+      const apiName = `FG_Set_${allocatedBase}_Visible`
+      usedApiNames.add(apiName)
+      const runtimeStem = allocatedBase.toLowerCase()
+
+      exportsByComponent.set(component.id, {
+        apiName,
+        objectName: `fg_${runtimeStem}`,
+        visibleName: `fg_${runtimeStem}_visible`,
+      })
+    })
+
+  return exportsByComponent
+}
+
+const createIconButtonExports = (
+  components: IComponents,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+  existingApiNames: Iterable<string>,
+): Map<string, IconButtonExport> => {
+  const exportsByComponent = new Map<string, IconButtonExport>()
+  const usedApiNames = new Set(existingApiNames)
+
+  Object.values(components)
+    .filter(component => component.type === 'IconButton')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const baseName = toCIdentifier(
+        component.componentName ||
+        component.props.name ||
+        component.props.label ||
+        'IconButton',
+        'IconButton',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let allocatedBase = baseName
+      let suffix = 2
+      while (
+        usedApiNames.has(`FG_Set_${allocatedBase}_Enabled`) ||
+        usedHookNames.has(`FG_On_${allocatedBase}_Clicked`)
+      ) {
+        allocatedBase = `${baseName}_${suffix++}`
+      }
+      const apiName = `FG_Set_${allocatedBase}_Enabled`
+      const hookName = `FG_On_${allocatedBase}_Clicked`
+      usedApiNames.add(apiName)
+      usedHookNames.add(hookName)
+      userEventHooks.add(hookName)
+      const runtimeStem = allocatedBase.toLowerCase()
+
+      exportsByComponent.set(component.id, {
+        apiName,
+        hookName,
+        objectName: `fg_${runtimeStem}`,
+        enabledName: `fg_${runtimeStem}_enabled`,
+        eventCallbackName: `fg_${runtimeStem}_clicked_cb`,
+        initialEnabled: !Boolean(
+          component.props.isDisabled || component.props.disabled,
+        ),
+      })
+    })
+
+  return exportsByComponent
+}
+
 const createLedExports = (
   components: IComponents,
   usedHookNames: Set<string>,
@@ -1284,6 +2121,12 @@ const buildLvglBlock = (
   threeWayInputExports: Map<string, ThreeWayInputExport>,
   ledExports: Map<string, LedExport>,
   barExports: Map<string, BarExport>,
+  progressExports: Map<string, ProgressExport>,
+  numberInputExports: Map<string, NumberInputExport>,
+  selectExports: Map<string, SelectExport>,
+  imageExports: Map<string, ImageExport>,
+  boxExports: Map<string, BoxExport>,
+  iconButtonExports: Map<string, IconButtonExport>,
   arcExports: Map<string, ArcExport>,
   chartExports: Map<string, ChartExport>,
   keyboardExports: Map<string, KeyboardExport>,
@@ -1291,6 +2134,13 @@ const buildLvglBlock = (
   rollerExports: Map<string, RollerExport>,
   messageBoxExports: Map<string, MessageBoxExport>,
   buttonMatrixExports: Map<string, ButtonMatrixExport>,
+  tabViewExports: Map<string, TabViewExport>,
+  tileViewExports: Map<string, TileViewExport>,
+  clockExports: Map<string, ClockExport>,
+  inputExports: Map<string, InputExport>,
+  switchExports: Map<string, SwitchExport>,
+  checkboxExports: Map<string, SwitchExport>,
+  radioExports: Map<string, RadioExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -1306,12 +2156,7 @@ const buildLvglBlock = (
 
     switch (child.type) {
       case 'Text': {
-        const text = esc(
-          child.props.children ||
-            child.props.text ||
-            child.props.value ||
-            'Text'
-        )
+        const text = esc(getForgeUIStandardTextValue(child.props))
 
 
 
@@ -1331,12 +2176,7 @@ const buildLvglBlock = (
       }
 
       case 'Heading': {
-  const text = esc(
-    child.props.children ||
-    child.props.text ||
-    child.props.value ||
-    'Heading'
-  )
+  const text = esc(getForgeUIStandardHeadingText(child.props))
 
     const color = child.props.color
     ? `0x${String(child.props.color).replace('#', '')}`
@@ -1352,6 +2192,7 @@ const buildLvglBlock = (
 }
 
 case 'Clock': {
+  const clockExport = clockExports.get(child.id)
   const text = esc(
     child.props.children ||
       child.props.text ||
@@ -1359,12 +2200,13 @@ case 'Clock': {
       '12:34'
   )
 
-  lines.push(`fg_clock_label = lv_label_create(${parentVar});`)
-  lines.push(`lv_label_set_text(fg_clock_label, "${text}");`)
-  lines.push(`lv_obj_set_pos(fg_clock_label, ${x}, ${y});`)
-  lines.push(`lv_obj_set_size(fg_clock_label, ${w}, ${h});`)
-  lines.push(`lv_obj_set_style_text_color(fg_clock_label, lv_color_hex(0x00D4FF), 0);`)
-  lines.push(`lv_obj_set_style_text_font(fg_clock_label, &lv_font_montserrat_32, 0);`)
+  const clockLabel = clockExport?.labelName || varName
+  lines.push(`${clockLabel} = lv_label_create(${parentVar});`)
+  lines.push(`lv_label_set_text(${clockLabel}, "${text}");`)
+  lines.push(`lv_obj_set_pos(${clockLabel}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${clockLabel}, ${w}, ${h});`)
+  lines.push(`lv_obj_set_style_text_color(${clockLabel}, lv_color_hex(0x00D4FF), 0);`)
+  lines.push(`lv_obj_set_style_text_font(${clockLabel}, &lv_font_montserrat_32, 0);`)
   lines.push(``)
   break
 }
@@ -1382,12 +2224,7 @@ case 'WiFi': {
 }
       
             case 'Button': {
-        const text = esc(
-          child.props.children ||
-            child.props.text ||
-            child.props.label ||
-            'Button'
-        )
+        const text = esc(getForgeUIStandardButtonText(child.props))
 
         lines.push(`lv_obj_t * ${varName} = lv_button_create(${parentVar});`)
         lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
@@ -1796,18 +2633,29 @@ case 'InteractiveThreePositionToggleSwitch': {
 }
 
       case 'IconButton': {
-  lines.push(`lv_obj_t * ${varName} = lv_button_create(${parentVar});`)
-  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
-  lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
+  const iconButtonExport = iconButtonExports.get(child.id)
+  const buttonObject = iconButtonExport?.objectName || varName
+  lines.push(iconButtonExport
+    ? `${buttonObject} = lv_button_create(${parentVar});`
+    : `lv_obj_t * ${buttonObject} = lv_button_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${buttonObject}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${buttonObject}, ${w}, ${h});`)
 
-  lines.push(`lv_obj_set_style_radius(${varName}, 12, 0);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), 0);`)
-  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), 0);`)
-  lines.push(`lv_obj_set_style_border_width(${varName}, 2, 0);`)
+  lines.push(`lv_obj_set_style_radius(${buttonObject}, 12, 0);`)
+  lines.push(`lv_obj_set_style_bg_color(${buttonObject}, lv_color_hex(${palette.surface}), 0);`)
+  lines.push(`lv_obj_set_style_border_color(${buttonObject}, lv_color_hex(${palette.border}), 0);`)
+  lines.push(`lv_obj_set_style_border_width(${buttonObject}, 2, 0);`)
 
-  lines.push(`lv_obj_t * ${varName}_label = lv_label_create(${varName});`)
+  lines.push(`lv_obj_t * ${varName}_label = lv_label_create(${buttonObject});`)
   lines.push(`lv_label_set_text(${varName}_label, LV_SYMBOL_OK);`)
   lines.push(`lv_obj_center(${varName}_label);`)
+  if (iconButtonExport) {
+    lines.push(`${iconButtonExport.enabledName} = ${iconButtonExport.initialEnabled ? 'true' : 'false'};`)
+    if (!iconButtonExport.initialEnabled) {
+      lines.push(`lv_obj_add_state(${buttonObject}, LV_STATE_DISABLED);`)
+    }
+    lines.push(`lv_obj_add_event_cb(${buttonObject}, ${iconButtonExport.eventCallbackName}, LV_EVENT_CLICKED, NULL);`)
+  }
 
   lines.push(``)
   break
@@ -1899,53 +2747,71 @@ case 'Icon': {
 }
 
             case 'Input': {
-        const text = esc(child.props.placeholder || child.props.value || 'Input')
+        const inputExport = inputExports.get(child.id)
+        const placeholder = esc(child.props.placeholder || 'Input')
+        const initialText = esc(String(child.props.value || ''))
 
-        lines.push(`lv_obj_t * ${varName} = lv_textarea_create(${parentVar});`)
-        lines.push(`lv_textarea_set_one_line(${varName}, true);`)
-        lines.push(`lv_textarea_set_placeholder_text(${varName}, "${text}");`)
-        lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
-        lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
-        lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), 0);`)
-        lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.text}), 0);`)
-        lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), 0);`)
+        if (!inputExport) break
+        lines.push(`${inputExport.objectName} = lv_textarea_create(${parentVar});`)
+        lines.push(`lv_textarea_set_one_line(${inputExport.objectName}, true);`)
+        lines.push(`lv_textarea_set_placeholder_text(${inputExport.objectName}, "${placeholder}");`)
+        if (initialText) {
+          lines.push(`lv_textarea_set_text(${inputExport.objectName}, "${initialText}");`)
+        }
+        lines.push(`lv_obj_set_pos(${inputExport.objectName}, ${x}, ${y});`)
+        lines.push(`lv_obj_set_size(${inputExport.objectName}, ${w}, ${h});`)
+        lines.push(`lv_obj_set_style_bg_color(${inputExport.objectName}, lv_color_hex(${palette.surface}), 0);`)
+        lines.push(`lv_obj_set_style_text_color(${inputExport.objectName}, lv_color_hex(${palette.text}), 0);`)
+        lines.push(`lv_obj_set_style_border_color(${inputExport.objectName}, lv_color_hex(${palette.border}), 0);`)
+        lines.push(`lv_obj_add_event_cb(${inputExport.objectName}, ${inputExport.eventCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
         lines.push(``)
         break
       }
 
       case 'Textarea': {
-        const text = esc(child.props.placeholder || child.props.value || 'Textarea')
+        const textareaExport = inputExports.get(child.id)
+        const placeholder = esc(child.props.placeholder || 'Textarea')
+        const initialText = esc(String(child.props.value || ''))
 
-        lines.push(`lv_obj_t * ${varName} = lv_textarea_create(${parentVar});`)
-        lines.push(`lv_textarea_set_placeholder_text(${varName}, "${text}");`)
-        lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
-        lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
-        lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), 0);`)
-        lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.text}), 0);`)
-        lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), 0);`)
+        if (!textareaExport) break
+        lines.push(`${textareaExport.objectName} = lv_textarea_create(${parentVar});`)
+        lines.push(`lv_textarea_set_placeholder_text(${textareaExport.objectName}, "${placeholder}");`)
+        if (initialText) {
+          lines.push(`lv_textarea_set_text(${textareaExport.objectName}, "${initialText}");`)
+        }
+        lines.push(`lv_obj_set_pos(${textareaExport.objectName}, ${x}, ${y});`)
+        lines.push(`lv_obj_set_size(${textareaExport.objectName}, ${w}, ${h});`)
+        lines.push(`lv_obj_set_style_bg_color(${textareaExport.objectName}, lv_color_hex(${palette.surface}), 0);`)
+        lines.push(`lv_obj_set_style_text_color(${textareaExport.objectName}, lv_color_hex(${palette.text}), 0);`)
+        lines.push(`lv_obj_set_style_border_color(${textareaExport.objectName}, lv_color_hex(${palette.border}), 0);`)
+        lines.push(`lv_obj_add_event_cb(${textareaExport.objectName}, ${textareaExport.eventCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
         lines.push(``)
         break
       }
       
       case 'Switch': {
-  const checked = Boolean(child.props.isChecked)
+  const switchExport = switchExports.get(child.id)
+  if (!switchExport) break
 
-  lines.push(`lv_obj_t * ${varName} = lv_switch_create(${parentVar});`)
-  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
-  lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
+  lines.push(`${switchExport.objectName} = lv_switch_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${switchExport.objectName}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${switchExport.objectName}, ${w}, ${h});`)
 
-  if (checked) {
-    lines.push(`lv_obj_add_state(${varName}, LV_STATE_CHECKED);`)
+  if (switchExport.initialChecked) {
+    lines.push(`lv_obj_add_state(${switchExport.objectName}, LV_STATE_CHECKED);`)
   }
 
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.border}), LV_PART_INDICATOR);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.text}), LV_PART_KNOB);`)
+  lines.push(`lv_obj_set_style_bg_color(${switchExport.objectName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_color(${switchExport.objectName}, lv_color_hex(${palette.border}), LV_PART_INDICATOR);`)
+  lines.push(`lv_obj_set_style_bg_color(${switchExport.objectName}, lv_color_hex(${palette.text}), LV_PART_KNOB);`)
+  lines.push(`lv_obj_add_event_cb(${switchExport.objectName}, ${switchExport.eventCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
   lines.push(``)
   break
 }
 
       case 'Checkbox': {
+  const checkboxExport = checkboxExports.get(child.id)
+  if (!checkboxExport) break
   const text = esc(
     child.props.children ||
       child.props.text ||
@@ -1953,21 +2819,49 @@ case 'Icon': {
       'Checkbox'
   )
 
-  const checked = Boolean(child.props.isChecked)
+  lines.push(`${checkboxExport.objectName} = lv_checkbox_create(${parentVar});`)
+  lines.push(`lv_checkbox_set_text(${checkboxExport.objectName}, "${text}");`)
+  lines.push(`lv_obj_set_pos(${checkboxExport.objectName}, ${x}, ${y});`)
 
-  lines.push(`lv_obj_t * ${varName} = lv_checkbox_create(${parentVar});`)
-  lines.push(`lv_checkbox_set_text(${varName}, "${text}");`)
-  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
-
-  if (checked) {
-    lines.push(`lv_obj_add_state(${varName}, LV_STATE_CHECKED);`)
+  if (checkboxExport.initialChecked) {
+    lines.push(`lv_obj_add_state(${checkboxExport.objectName}, LV_STATE_CHECKED);`)
   }
 
-  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), LV_PART_INDICATOR);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_INDICATOR);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.accent}), LV_PART_INDICATOR | LV_STATE_CHECKED);`)
-  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.text}), LV_PART_INDICATOR | LV_STATE_CHECKED);`)
+  lines.push(`lv_obj_set_style_text_color(${checkboxExport.objectName}, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${checkboxExport.objectName}, lv_color_hex(${palette.border}), LV_PART_INDICATOR);`)
+  lines.push(`lv_obj_set_style_bg_color(${checkboxExport.objectName}, lv_color_hex(${palette.surface}), LV_PART_INDICATOR);`)
+  lines.push(`lv_obj_set_style_bg_color(${checkboxExport.objectName}, lv_color_hex(${palette.accent}), LV_PART_INDICATOR | LV_STATE_CHECKED);`)
+  lines.push(`lv_obj_set_style_text_color(${checkboxExport.objectName}, lv_color_hex(${palette.text}), LV_PART_INDICATOR | LV_STATE_CHECKED);`)
+  lines.push(`lv_obj_add_event_cb(${checkboxExport.objectName}, ${checkboxExport.eventCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
+  lines.push(``)
+  break
+}
+
+      case 'Radio': {
+  const radioExport = radioExports.get(child.id)
+  if (!radioExport) break
+  const text = esc(
+    child.props.children ||
+      child.props.text ||
+      child.props.label ||
+      'Radio'
+  )
+
+  lines.push(`${radioExport.objectName} = lv_checkbox_create(${parentVar});`)
+  lines.push(`lv_checkbox_set_text(${radioExport.objectName}, "${text}");`)
+  lines.push(`lv_obj_set_pos(${radioExport.objectName}, ${x}, ${y});`)
+
+  if (radioExport.initialSelected) {
+    lines.push(`lv_obj_add_state(${radioExport.objectName}, LV_STATE_CHECKED);`)
+  }
+
+  lines.push(`lv_obj_set_style_text_color(${radioExport.objectName}, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${radioExport.objectName}, LV_RADIUS_CIRCLE, LV_PART_INDICATOR);`)
+  lines.push(`lv_obj_set_style_border_color(${radioExport.objectName}, lv_color_hex(${palette.border}), LV_PART_INDICATOR);`)
+  lines.push(`lv_obj_set_style_bg_color(${radioExport.objectName}, lv_color_hex(${palette.surface}), LV_PART_INDICATOR);`)
+  lines.push(`lv_obj_set_style_bg_color(${radioExport.objectName}, lv_color_hex(${palette.accent}), LV_PART_INDICATOR | LV_STATE_CHECKED);`)
+  lines.push(`lv_obj_set_style_text_color(${radioExport.objectName}, lv_color_hex(${palette.text}), LV_PART_INDICATOR | LV_STATE_CHECKED);`)
+  lines.push(`lv_obj_add_event_cb(${radioExport.objectName}, ${radioExport.eventCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
   lines.push(``)
   break
 }
@@ -1975,52 +2869,70 @@ case 'Icon': {
   
         
       case 'NumberInput': {
-        const text = esc(String(child.props.value || '123'))
+        const numberInputExport = numberInputExports.get(child.id)
+        const numberInputObject = numberInputExport?.objectName || varName
+        const initialText = esc(
+          numberInputExport?.initialText ??
+          String(child.props.value ?? 50),
+        )
 
-        lines.push(`lv_obj_t * ${varName} = lv_textarea_create(${parentVar});`)
-        lines.push(`lv_textarea_set_one_line(${varName}, true);`)
-        lines.push(`lv_textarea_set_text(${varName}, "${text}");`)
-        lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
-        lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
-        lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), 0);`)
-        lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.text}), 0);`)
-        lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), 0);`)
+        lines.push(`${numberInputObject} = lv_textarea_create(${parentVar});`)
+        lines.push(`lv_textarea_set_one_line(${numberInputObject}, true);`)
+        lines.push(`lv_textarea_set_text(${numberInputObject}, "${initialText}");`)
+        lines.push(`lv_obj_set_pos(${numberInputObject}, ${x}, ${y});`)
+        lines.push(`lv_obj_set_size(${numberInputObject}, ${w}, ${h});`)
+        lines.push(`lv_obj_set_style_bg_color(${numberInputObject}, lv_color_hex(${palette.surface}), 0);`)
+        lines.push(`lv_obj_set_style_text_color(${numberInputObject}, lv_color_hex(${palette.text}), 0);`)
+        lines.push(`lv_obj_set_style_border_color(${numberInputObject}, lv_color_hex(${palette.border}), 0);`)
+        if (child.props.isDisabled) {
+          lines.push(`lv_obj_add_state(${numberInputObject}, LV_STATE_DISABLED);`)
+        }
+        if (numberInputExport) {
+          lines.push(`${numberInputExport.stateName} = ${numberInputExport.initialValue};`)
+          lines.push(`lv_obj_add_event_cb(${numberInputObject}, ${numberInputExport.eventCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
+        }
         lines.push(``)
         break
       }
 
       case 'Select': {
-  lines.push(`lv_obj_t * ${varName} = lv_dropdown_create(${parentVar});`)
-  lines.push(`lv_dropdown_set_options(${varName}, "Option 1\\nOption 2\\nOption 3");`)
-  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
-  lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
+        const selectExport = selectExports.get(child.id)
+        const selectObject = selectExport?.objectName || varName
+        const optionLiteral = selectExport
+          ? selectExport.options.map(option => esc(option)).join('\\n')
+          : 'Option 1\\nOption 2\\nOption 3'
+        lines.push(`${selectObject} = lv_dropdown_create(${parentVar});`)
+        lines.push(`lv_dropdown_set_options(${selectObject}, "${optionLiteral}");`)
+        if (selectExport && selectExport.options.length > 0) {
+          lines.push(`lv_dropdown_set_selected(${selectObject}, ${selectExport.initialIndex});`)
+          lines.push(`${selectExport.selectedIndexName} = ${selectExport.initialIndex};`)
+        }
+        lines.push(`lv_obj_set_pos(${selectObject}, ${x}, ${y});`)
+        lines.push(`lv_obj_set_size(${selectObject}, ${w}, ${h});`)
 
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), 0);`)
-  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.text}), 0);`)
-  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), 0);`)
-  lines.push(`lv_obj_set_style_border_width(${varName}, 2, 0);`)
+        lines.push(`lv_obj_set_style_bg_color(${selectObject}, lv_color_hex(${palette.surface}), 0);`)
+        lines.push(`lv_obj_set_style_text_color(${selectObject}, lv_color_hex(${palette.text}), 0);`)
+        lines.push(`lv_obj_set_style_border_color(${selectObject}, lv_color_hex(${palette.border}), 0);`)
+        lines.push(`lv_obj_set_style_border_width(${selectObject}, 2, 0);`)
+        if (child.props.isDisabled) {
+          lines.push(`lv_obj_add_state(${selectObject}, LV_STATE_DISABLED);`)
+        }
+        if (selectExport) {
+          lines.push(`lv_obj_add_event_cb(${selectObject}, ${selectExport.eventCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
+        }
 
-  lines.push(``)
-  break
-}
+        lines.push(``)
+        break
+      }
 
 case 'Image': {
-  const src = child.props.src || ''
-  const uploadedAssets = forgeUIGetUploadedAssets()
-
-  const presetAsset = FORGEUI_IMAGE_ASSETS.find(
-    (a: any) => a.src === src
-  )
-
-  const uploadedAsset = uploadedAssets.find((a: any) =>
-  a.id === child.props.uploadedAssetId ||
-  a.browserSrc === src ||
-  a.browserSrc === child.props.src ||
-  a.name === child.props.assetName ||
-  a.name === child.props.alt
-)
-
-  const asset: any = presetAsset || uploadedAsset
+  const imageExport = imageExports.get(child.id)
+  const asset: any = imageExport?.asset ||
+    resolveStandardImageAsset(child)
+  const imageObject = imageExport?.objectName || varName
+  const renderObject = asset?.lvgl || asset?.symbolName
+    ? imageObject
+    : varName
 
   if (asset?.lvgl || asset?.symbolName) {
     const symbol = asset.lvgl || asset.symbolName
@@ -2033,9 +2945,12 @@ case 'Image': {
     const imageScale = Number(child.props.imageScale || 256)
 
     lines.push(`LV_IMAGE_DECLARE(${symbol});`)
-    lines.push(`lv_obj_t * ${varName} = lv_image_create(${parentVar});`)
-    lines.push(`lv_image_set_src(${varName}, &${symbol});`)
-    lines.push(`lv_image_set_scale(${varName}, ${imageScale});`)
+    lines.push(`${imageObject} = lv_image_create(${parentVar});`)
+    lines.push(`lv_image_set_src(${imageObject}, &${symbol});`)
+    if (imageExport) {
+      lines.push(`${imageExport.sourceName} = &${symbol};`)
+    }
+    lines.push(`lv_image_set_scale(${imageObject}, ${imageScale});`)
   } else {
     const uploadName = esc(
       child.props.alt ||
@@ -2057,14 +2972,14 @@ case 'Image': {
     lines.push(`lv_obj_center(${varName}_label);`)
   }
 
-  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
-  lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
+  lines.push(`lv_obj_set_pos(${renderObject}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${renderObject}, ${w}, ${h});`)
 
-  lines.push(`lv_obj_add_flag(${varName}, LV_OBJ_FLAG_CLICKABLE);`)
-  lines.push(`lv_obj_set_style_transform_pivot_x(${varName}, ${Math.floor(w / 2)}, 0);`)
-  lines.push(`lv_obj_set_style_transform_pivot_y(${varName}, ${Math.floor(h / 2)}, 0);`)
-  lines.push(`lv_obj_set_style_transform_scale(${varName}, 256, 0);`)
-  lines.push(`lv_obj_set_style_transform_scale(${varName}, 235, LV_STATE_PRESSED);`)
+  lines.push(`lv_obj_add_flag(${renderObject}, LV_OBJ_FLAG_CLICKABLE);`)
+  lines.push(`lv_obj_set_style_transform_pivot_x(${renderObject}, ${Math.floor(w / 2)}, 0);`)
+  lines.push(`lv_obj_set_style_transform_pivot_y(${renderObject}, ${Math.floor(h / 2)}, 0);`)
+  lines.push(`lv_obj_set_style_transform_scale(${renderObject}, 256, 0);`)
+  lines.push(`lv_obj_set_style_transform_scale(${renderObject}, 235, LV_STATE_PRESSED);`)
 
   lines.push(``)
   break
@@ -2083,13 +2998,21 @@ case 'Slider': {
 }
 
 case 'Progress': {
-  lines.push(`lv_obj_t * ${varName} = lv_bar_create(${parentVar});`)
-  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
-  lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
-  lines.push(`lv_bar_set_range(${varName}, 0, 100);`)
-  lines.push(`lv_bar_set_value(${varName}, ${lv(child.props.value, 65)}, LV_ANIM_OFF);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.border}), LV_PART_INDICATOR);`)
+  const progressExport = progressExports.get(child.id)
+  const progressObject = progressExport?.objectName || varName
+  const minimum = progressExport?.minimum ?? 0
+  const maximum = progressExport?.maximum ?? 100
+  const initialValue = progressExport?.initialValue ?? 60
+  lines.push(`${progressObject} = lv_bar_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${progressObject}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${progressObject}, ${w}, ${h});`)
+  lines.push(`lv_bar_set_range(${progressObject}, ${minimum}, ${maximum});`)
+  lines.push(`lv_bar_set_value(${progressObject}, ${initialValue}, LV_ANIM_OFF);`)
+  if (progressExport) {
+    lines.push(`${progressExport.stateName} = ${initialValue};`)
+  }
+  lines.push(`lv_obj_set_style_bg_color(${progressObject}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_color(${progressObject}, lv_color_hex(${palette.border}), LV_PART_INDICATOR);`)
   lines.push(``)
   break
 }
@@ -2239,7 +3162,10 @@ case 'Line': {
 }
 
 case 'Tabview': {
-  lines.push(`lv_obj_t * ${varName} = lv_tabview_create(${parentVar});`)
+  const tabViewExport = tabViewExports.get(child.id)
+  const tabViewObject = tabViewExport?.objectName || varName
+  lines.push(`${tabViewObject} = lv_tabview_create(${parentVar});`)
+  lines.push(`lv_obj_t * ${varName} = ${tabViewObject};`)
   lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
   lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
 
@@ -2252,6 +3178,11 @@ case 'Tabview': {
   lines.push(`lv_obj_t * ${varName}_tab1 = lv_tabview_add_tab(${varName}, "Tab 1");`)
   lines.push(`lv_obj_t * ${varName}_tab2 = lv_tabview_add_tab(${varName}, "Tab 2");`)
   lines.push(`lv_obj_t * ${varName}_tab3 = lv_tabview_add_tab(${varName}, "Tab 3");`)
+  if (tabViewExport) {
+    lines.push(`lv_tabview_set_active(${varName}, ${tabViewExport.initialIndex}, LV_ANIM_OFF);`)
+    lines.push(`${tabViewExport.selectedIndexName} = ${tabViewExport.initialIndex};`)
+    lines.push(`lv_obj_add_event_cb(${varName}, ${tabViewExport.eventCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
+  }
 
   lines.push(`lv_obj_set_style_bg_color(${varName}_tab1, lv_color_hex(${palette.surface2}), LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_bg_color(${varName}_tab2, lv_color_hex(${palette.surface2}), LV_PART_MAIN);`)
@@ -2277,7 +3208,10 @@ case 'Tabview': {
 }
 
 case 'Tileview': {
-  lines.push(`lv_obj_t * ${varName} = lv_tileview_create(${parentVar});`)
+  const tileViewExport = tileViewExports.get(child.id)
+  const tileViewObject = tileViewExport?.objectName || varName
+  lines.push(`${tileViewObject} = lv_tileview_create(${parentVar});`)
+  lines.push(`lv_obj_t * ${varName} = ${tileViewObject};`)
   lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
   lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
 
@@ -2290,6 +3224,12 @@ case 'Tileview': {
   lines.push(`lv_obj_t * ${varName}_tile2 = lv_tileview_add_tile(${varName}, 1, 0, LV_DIR_ALL);`)
   lines.push(`lv_obj_t * ${varName}_tile3 = lv_tileview_add_tile(${varName}, 0, 1, LV_DIR_ALL);`)
   lines.push(`lv_obj_t * ${varName}_tile4 = lv_tileview_add_tile(${varName}, 1, 1, LV_DIR_ALL);`)
+  if (tileViewExport) {
+    lines.push(`${tileViewExport.tilesName}[0][0] = ${varName}_tile1;`)
+    lines.push(`${tileViewExport.tilesName}[1][0] = ${varName}_tile2;`)
+    lines.push(`${tileViewExport.tilesName}[0][1] = ${varName}_tile3;`)
+    lines.push(`${tileViewExport.tilesName}[1][1] = ${varName}_tile4;`)
+  }
 
   ;[1, 2, 3, 4].forEach((n) => {
     lines.push(`lv_obj_set_style_bg_color(${varName}_tile${n}, lv_color_hex(${n === 1 ? palette.border : palette.surface2}), LV_PART_MAIN);`)
@@ -2316,6 +3256,13 @@ case 'Tileview': {
   lines.push(`lv_label_set_text(${varName}_lbl4, "Tile 4");`)
   lines.push(`lv_obj_set_style_text_color(${varName}_lbl4, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
   lines.push(`lv_obj_center(${varName}_lbl4);`)
+
+  if (tileViewExport) {
+    lines.push(`lv_tileview_set_tile(${varName}, ${tileViewExport.tilesName}[${tileViewExport.initialColumn}][${tileViewExport.initialRow}], LV_ANIM_OFF);`)
+    lines.push(`${tileViewExport.selectedColumnName} = ${tileViewExport.initialColumn};`)
+    lines.push(`${tileViewExport.selectedRowName} = ${tileViewExport.initialRow};`)
+    lines.push(`lv_obj_add_event_cb(${varName}, ${tileViewExport.eventCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
+  }
 
   lines.push(``)
   break
@@ -2612,14 +3559,24 @@ case 'Chart': {
 
 
       case 'Box':
-        lines.push(`lv_obj_t * ${varName} = lv_obj_create(${parentVar});`)
-        lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
-        lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
-        lines.push(`lv_obj_set_style_radius(${varName}, 12, 0);`)
-        lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), 0);`)
-        lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_80, 0);`)
-        lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), 0);`)
-        lines.push(`lv_obj_set_style_border_width(${varName}, 2, 0);`)
+        {
+          const boxExport = boxExports.get(child.id)
+          const boxObject = boxExport?.objectName || varName
+          lines.push(boxExport
+            ? `${boxObject} = lv_obj_create(${parentVar});`
+            : `lv_obj_t * ${boxObject} = lv_obj_create(${parentVar});`)
+          if (boxExport) {
+            lines.push(`lv_obj_t * ${varName} = ${boxObject};`)
+            lines.push(`${boxExport.visibleName} = true;`)
+          }
+          lines.push(`lv_obj_set_pos(${boxObject}, ${x}, ${y});`)
+          lines.push(`lv_obj_set_size(${boxObject}, ${w}, ${h});`)
+          lines.push(`lv_obj_set_style_radius(${boxObject}, 12, 0);`)
+          lines.push(`lv_obj_set_style_bg_color(${boxObject}, lv_color_hex(${palette.surface}), 0);`)
+          lines.push(`lv_obj_set_style_bg_opa(${boxObject}, LV_OPA_80, 0);`)
+          lines.push(`lv_obj_set_style_border_color(${boxObject}, lv_color_hex(${palette.border}), 0);`)
+          lines.push(`lv_obj_set_style_border_width(${boxObject}, 2, 0);`)
+        }
         lines.push(``)
         break
 
@@ -2644,6 +3601,12 @@ case 'Chart': {
         threeWayInputExports,
         ledExports,
         barExports,
+        progressExports,
+        numberInputExports,
+        selectExports,
+        imageExports,
+        boxExports,
+        iconButtonExports,
         arcExports,
         chartExports,
         keyboardExports,
@@ -2651,6 +3614,13 @@ case 'Chart': {
         rollerExports,
         messageBoxExports,
         buttonMatrixExports,
+        tabViewExports,
+        tileViewExports,
+        clockExports,
+        inputExports,
+        switchExports,
+        checkboxExports,
+        radioExports,
       )
     }
   })
@@ -2818,6 +3788,385 @@ export const generateForgeUILvglCode = (
       ]),
     ],
   )
+  const tabViewExports = createTabViewExports(
+    components,
+    usedHookNames,
+    userEventHooks,
+    [
+      ...Array.from(binaryOutputExports.values()).map(value => value.apiName),
+      ...Array.from(ledExports.values()).map(value => value.apiName),
+      ...Array.from(barExports.values()).map(value => value.apiName),
+      ...Array.from(arcExports.values()).map(value => value.apiName),
+      ...Array.from(chartExports.values()).flatMap(value => [
+        value.addApiName,
+        value.clearApiName,
+      ]),
+      ...Array.from(keyboardExports.values()).flatMap(value => [
+        value.showApiName,
+        value.hideApiName,
+      ]),
+      ...Array.from(calendarExports.values()).map(value => value.apiName),
+      ...Array.from(rollerExports.values()).map(value => value.apiName),
+      ...Array.from(messageBoxExports.values()).flatMap(value => [
+        value.showApiName,
+        value.closeApiName,
+      ]),
+      ...Array.from(buttonMatrixExports.values()).map(value => value.apiName),
+    ],
+  )
+  const tileViewExports = createTileViewExports(
+    components,
+    usedHookNames,
+    userEventHooks,
+    [
+      ...Array.from(binaryOutputExports.values()).map(value => value.apiName),
+      ...Array.from(ledExports.values()).map(value => value.apiName),
+      ...Array.from(barExports.values()).map(value => value.apiName),
+      ...Array.from(arcExports.values()).map(value => value.apiName),
+      ...Array.from(chartExports.values()).flatMap(value => [
+        value.addApiName,
+        value.clearApiName,
+      ]),
+      ...Array.from(keyboardExports.values()).flatMap(value => [
+        value.showApiName,
+        value.hideApiName,
+      ]),
+      ...Array.from(calendarExports.values()).map(value => value.apiName),
+      ...Array.from(rollerExports.values()).map(value => value.apiName),
+      ...Array.from(messageBoxExports.values()).flatMap(value => [
+        value.showApiName,
+        value.closeApiName,
+      ]),
+      ...Array.from(buttonMatrixExports.values()).map(value => value.apiName),
+      ...Array.from(tabViewExports.values()).map(value => value.apiName),
+    ],
+  )
+  const inputExports = createInputExports(
+    components,
+    usedHookNames,
+    userEventHooks,
+    [
+      ...Array.from(binaryOutputExports.values()).map(value => value.apiName),
+      ...Array.from(ledExports.values()).map(value => value.apiName),
+      ...Array.from(barExports.values()).map(value => value.apiName),
+      ...Array.from(arcExports.values()).map(value => value.apiName),
+      ...Array.from(chartExports.values()).flatMap(value => [
+        value.addApiName,
+        value.clearApiName,
+      ]),
+      ...Array.from(keyboardExports.values()).flatMap(value => [
+        value.showApiName,
+        value.hideApiName,
+      ]),
+      ...Array.from(calendarExports.values()).map(value => value.apiName),
+      ...Array.from(rollerExports.values()).map(value => value.apiName),
+      ...Array.from(messageBoxExports.values()).flatMap(value => [
+        value.showApiName,
+        value.closeApiName,
+      ]),
+      ...Array.from(buttonMatrixExports.values()).map(value => value.apiName),
+      ...Array.from(tabViewExports.values()).map(value => value.apiName),
+      ...Array.from(tileViewExports.values()).map(value => value.apiName),
+    ],
+  )
+  const switchExports = createCheckedControlExports(
+    components,
+    usedHookNames,
+    userEventHooks,
+    [
+      ...Array.from(binaryOutputExports.values()).map(value => value.apiName),
+      ...Array.from(ledExports.values()).map(value => value.apiName),
+      ...Array.from(barExports.values()).map(value => value.apiName),
+      ...Array.from(arcExports.values()).map(value => value.apiName),
+      ...Array.from(chartExports.values()).flatMap(value => [
+        value.addApiName,
+        value.clearApiName,
+      ]),
+      ...Array.from(keyboardExports.values()).flatMap(value => [
+        value.showApiName,
+        value.hideApiName,
+      ]),
+      ...Array.from(calendarExports.values()).map(value => value.apiName),
+      ...Array.from(rollerExports.values()).map(value => value.apiName),
+      ...Array.from(messageBoxExports.values()).flatMap(value => [
+        value.showApiName,
+        value.closeApiName,
+      ]),
+      ...Array.from(buttonMatrixExports.values()).map(value => value.apiName),
+      ...Array.from(tabViewExports.values()).map(value => value.apiName),
+      ...Array.from(tileViewExports.values()).map(value => value.apiName),
+      ...Array.from(inputExports.values()).map(value => value.apiName),
+    ],
+    'Switch',
+    'Switch',
+    'switch',
+  )
+  const checkboxExports = createCheckedControlExports(
+    components,
+    usedHookNames,
+    userEventHooks,
+    [
+      ...Array.from(binaryOutputExports.values()).map(value => value.apiName),
+      ...Array.from(ledExports.values()).map(value => value.apiName),
+      ...Array.from(barExports.values()).map(value => value.apiName),
+      ...Array.from(arcExports.values()).map(value => value.apiName),
+      ...Array.from(chartExports.values()).flatMap(value => [
+        value.addApiName,
+        value.clearApiName,
+      ]),
+      ...Array.from(keyboardExports.values()).flatMap(value => [
+        value.showApiName,
+        value.hideApiName,
+      ]),
+      ...Array.from(calendarExports.values()).map(value => value.apiName),
+      ...Array.from(rollerExports.values()).map(value => value.apiName),
+      ...Array.from(messageBoxExports.values()).flatMap(value => [
+        value.showApiName,
+        value.closeApiName,
+      ]),
+      ...Array.from(buttonMatrixExports.values()).map(value => value.apiName),
+      ...Array.from(tabViewExports.values()).map(value => value.apiName),
+      ...Array.from(tileViewExports.values()).map(value => value.apiName),
+      ...Array.from(inputExports.values()).map(value => value.apiName),
+      ...Array.from(switchExports.values()).map(value => value.apiName),
+    ],
+    'Checkbox',
+    'Checkbox',
+    'checkbox',
+  )
+  const radioExports = createRadioExports(
+    components,
+    usedHookNames,
+    userEventHooks,
+    [
+      ...Array.from(binaryOutputExports.values()).map(value => value.apiName),
+      ...Array.from(ledExports.values()).map(value => value.apiName),
+      ...Array.from(barExports.values()).map(value => value.apiName),
+      ...Array.from(arcExports.values()).map(value => value.apiName),
+      ...Array.from(chartExports.values()).flatMap(value => [
+        value.addApiName,
+        value.clearApiName,
+      ]),
+      ...Array.from(keyboardExports.values()).flatMap(value => [
+        value.showApiName,
+        value.hideApiName,
+      ]),
+      ...Array.from(calendarExports.values()).map(value => value.apiName),
+      ...Array.from(rollerExports.values()).map(value => value.apiName),
+      ...Array.from(messageBoxExports.values()).flatMap(value => [
+        value.showApiName,
+        value.closeApiName,
+      ]),
+      ...Array.from(buttonMatrixExports.values()).map(value => value.apiName),
+      ...Array.from(tabViewExports.values()).map(value => value.apiName),
+      ...Array.from(tileViewExports.values()).map(value => value.apiName),
+      ...Array.from(inputExports.values()).map(value => value.apiName),
+      ...Array.from(switchExports.values()).map(value => value.apiName),
+      ...Array.from(checkboxExports.values()).map(value => value.apiName),
+    ],
+  )
+  const progressExports = createProgressExports(
+    components,
+    [
+      ...Array.from(binaryOutputExports.values()).map(value => value.apiName),
+      ...Array.from(ledExports.values()).map(value => value.apiName),
+      ...Array.from(barExports.values()).map(value => value.apiName),
+      ...Array.from(arcExports.values()).map(value => value.apiName),
+      ...Array.from(chartExports.values()).flatMap(value => [
+        value.addApiName,
+        value.clearApiName,
+      ]),
+      ...Array.from(keyboardExports.values()).flatMap(value => [
+        value.showApiName,
+        value.hideApiName,
+      ]),
+      ...Array.from(calendarExports.values()).map(value => value.apiName),
+      ...Array.from(rollerExports.values()).map(value => value.apiName),
+      ...Array.from(messageBoxExports.values()).flatMap(value => [
+        value.showApiName,
+        value.closeApiName,
+      ]),
+      ...Array.from(buttonMatrixExports.values()).map(value => value.apiName),
+      ...Array.from(tabViewExports.values()).map(value => value.apiName),
+      ...Array.from(tileViewExports.values()).map(value => value.apiName),
+      ...Array.from(inputExports.values()).map(value => value.apiName),
+      ...Array.from(switchExports.values()).map(value => value.apiName),
+      ...Array.from(checkboxExports.values()).map(value => value.apiName),
+      ...Array.from(radioExports.values()).map(value => value.apiName),
+    ],
+  )
+  const numberInputExports = createNumberInputExports(
+    components,
+    usedHookNames,
+    userEventHooks,
+    [
+      ...Array.from(binaryOutputExports.values()).map(value => value.apiName),
+      ...Array.from(ledExports.values()).map(value => value.apiName),
+      ...Array.from(barExports.values()).map(value => value.apiName),
+      ...Array.from(arcExports.values()).map(value => value.apiName),
+      ...Array.from(chartExports.values()).flatMap(value => [
+        value.addApiName,
+        value.clearApiName,
+      ]),
+      ...Array.from(keyboardExports.values()).flatMap(value => [
+        value.showApiName,
+        value.hideApiName,
+      ]),
+      ...Array.from(calendarExports.values()).map(value => value.apiName),
+      ...Array.from(rollerExports.values()).map(value => value.apiName),
+      ...Array.from(messageBoxExports.values()).flatMap(value => [
+        value.showApiName,
+        value.closeApiName,
+      ]),
+      ...Array.from(buttonMatrixExports.values()).map(value => value.apiName),
+      ...Array.from(tabViewExports.values()).map(value => value.apiName),
+      ...Array.from(tileViewExports.values()).map(value => value.apiName),
+      ...Array.from(inputExports.values()).map(value => value.apiName),
+      ...Array.from(switchExports.values()).map(value => value.apiName),
+      ...Array.from(checkboxExports.values()).map(value => value.apiName),
+      ...Array.from(radioExports.values()).map(value => value.apiName),
+      ...Array.from(progressExports.values()).map(value => value.apiName),
+    ],
+  )
+  const selectExports = createSelectExports(
+    components,
+    usedHookNames,
+    userEventHooks,
+    [
+      ...Array.from(binaryOutputExports.values()).map(value => value.apiName),
+      ...Array.from(ledExports.values()).map(value => value.apiName),
+      ...Array.from(barExports.values()).map(value => value.apiName),
+      ...Array.from(arcExports.values()).map(value => value.apiName),
+      ...Array.from(chartExports.values()).flatMap(value => [
+        value.addApiName,
+        value.clearApiName,
+      ]),
+      ...Array.from(keyboardExports.values()).flatMap(value => [
+        value.showApiName,
+        value.hideApiName,
+      ]),
+      ...Array.from(calendarExports.values()).map(value => value.apiName),
+      ...Array.from(rollerExports.values()).map(value => value.apiName),
+      ...Array.from(messageBoxExports.values()).flatMap(value => [
+        value.showApiName,
+        value.closeApiName,
+      ]),
+      ...Array.from(buttonMatrixExports.values()).map(value => value.apiName),
+      ...Array.from(tabViewExports.values()).map(value => value.apiName),
+      ...Array.from(tileViewExports.values()).map(value => value.apiName),
+      ...Array.from(inputExports.values()).map(value => value.apiName),
+      ...Array.from(switchExports.values()).map(value => value.apiName),
+      ...Array.from(checkboxExports.values()).map(value => value.apiName),
+      ...Array.from(radioExports.values()).map(value => value.apiName),
+      ...Array.from(progressExports.values()).map(value => value.apiName),
+      ...Array.from(numberInputExports.values()).map(value => value.apiName),
+    ],
+  )
+  const imageExports = createImageExports(
+    components,
+    [
+      ...Array.from(binaryOutputExports.values()).map(value => value.apiName),
+      ...Array.from(ledExports.values()).map(value => value.apiName),
+      ...Array.from(barExports.values()).map(value => value.apiName),
+      ...Array.from(arcExports.values()).map(value => value.apiName),
+      ...Array.from(chartExports.values()).flatMap(value => [
+        value.addApiName,
+        value.clearApiName,
+      ]),
+      ...Array.from(keyboardExports.values()).flatMap(value => [
+        value.showApiName,
+        value.hideApiName,
+      ]),
+      ...Array.from(calendarExports.values()).map(value => value.apiName),
+      ...Array.from(rollerExports.values()).map(value => value.apiName),
+      ...Array.from(messageBoxExports.values()).flatMap(value => [
+        value.showApiName,
+        value.closeApiName,
+      ]),
+      ...Array.from(buttonMatrixExports.values()).map(value => value.apiName),
+      ...Array.from(tabViewExports.values()).map(value => value.apiName),
+      ...Array.from(tileViewExports.values()).map(value => value.apiName),
+      ...Array.from(inputExports.values()).map(value => value.apiName),
+      ...Array.from(switchExports.values()).map(value => value.apiName),
+      ...Array.from(checkboxExports.values()).map(value => value.apiName),
+      ...Array.from(radioExports.values()).map(value => value.apiName),
+      ...Array.from(progressExports.values()).map(value => value.apiName),
+      ...Array.from(numberInputExports.values()).map(value => value.apiName),
+      ...Array.from(selectExports.values()).map(value => value.apiName),
+    ],
+  )
+  const boxExports = createBoxExports(
+    components,
+    [
+      ...Array.from(binaryOutputExports.values()).map(value => value.apiName),
+      ...Array.from(ledExports.values()).map(value => value.apiName),
+      ...Array.from(barExports.values()).map(value => value.apiName),
+      ...Array.from(arcExports.values()).map(value => value.apiName),
+      ...Array.from(chartExports.values()).flatMap(value => [
+        value.addApiName,
+        value.clearApiName,
+      ]),
+      ...Array.from(keyboardExports.values()).flatMap(value => [
+        value.showApiName,
+        value.hideApiName,
+      ]),
+      ...Array.from(calendarExports.values()).map(value => value.apiName),
+      ...Array.from(rollerExports.values()).map(value => value.apiName),
+      ...Array.from(messageBoxExports.values()).flatMap(value => [
+        value.showApiName,
+        value.closeApiName,
+      ]),
+      ...Array.from(buttonMatrixExports.values()).map(value => value.apiName),
+      ...Array.from(tabViewExports.values()).map(value => value.apiName),
+      ...Array.from(tileViewExports.values()).map(value => value.apiName),
+      ...Array.from(inputExports.values()).map(value => value.apiName),
+      ...Array.from(switchExports.values()).map(value => value.apiName),
+      ...Array.from(checkboxExports.values()).map(value => value.apiName),
+      ...Array.from(radioExports.values()).map(value => value.apiName),
+      ...Array.from(progressExports.values()).map(value => value.apiName),
+      ...Array.from(numberInputExports.values()).map(value => value.apiName),
+      ...Array.from(selectExports.values()).map(value => value.apiName),
+      ...Array.from(imageExports.values()).map(value => value.apiName),
+    ],
+  )
+  const iconButtonExports = createIconButtonExports(
+    components,
+    usedHookNames,
+    userEventHooks,
+    [
+      ...Array.from(binaryOutputExports.values()).map(value => value.apiName),
+      ...Array.from(ledExports.values()).map(value => value.apiName),
+      ...Array.from(barExports.values()).map(value => value.apiName),
+      ...Array.from(arcExports.values()).map(value => value.apiName),
+      ...Array.from(chartExports.values()).flatMap(value => [
+        value.addApiName,
+        value.clearApiName,
+      ]),
+      ...Array.from(keyboardExports.values()).flatMap(value => [
+        value.showApiName,
+        value.hideApiName,
+      ]),
+      ...Array.from(calendarExports.values()).map(value => value.apiName),
+      ...Array.from(rollerExports.values()).map(value => value.apiName),
+      ...Array.from(messageBoxExports.values()).flatMap(value => [
+        value.showApiName,
+        value.closeApiName,
+      ]),
+      ...Array.from(buttonMatrixExports.values()).map(value => value.apiName),
+      ...Array.from(tabViewExports.values()).map(value => value.apiName),
+      ...Array.from(tileViewExports.values()).map(value => value.apiName),
+      ...Array.from(inputExports.values()).map(value => value.apiName),
+      ...Array.from(switchExports.values()).map(value => value.apiName),
+      ...Array.from(checkboxExports.values()).map(value => value.apiName),
+      ...Array.from(radioExports.values()).map(value => value.apiName),
+      ...Array.from(progressExports.values()).map(value => value.apiName),
+      ...Array.from(numberInputExports.values()).map(value => value.apiName),
+      ...Array.from(selectExports.values()).map(value => value.apiName),
+      ...Array.from(imageExports.values()).map(value => value.apiName),
+      ...Array.from(boxExports.values()).map(value => value.apiName),
+    ],
+  )
+  const clockExports = createClockExports(components)
 
   const previewPalette =
   FG_PREVIEW_PALETTES[themeId as ForgeThemeId] ||
@@ -2892,15 +4241,21 @@ const backgroundMode =
   lines.push(`#include "freertos/queue.h"`)
   lines.push(`#include "freertos/semphr.h"`)
   lines.push(`#include "freertos/task.h"`)
-  if (hasInteractiveButtons || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0) {
+  if (hasInteractiveButtons || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0) {
     lines.push(`#include "95_UserEvents.h"`)
   }
   lines.push(`#include <stdbool.h>`)
   lines.push(`#include <stdint.h>`)
+  lines.push(`#include <limits.h>`)
   lines.push(`#include <stdio.h>`)
+  lines.push(`#include <stdlib.h>`)
   lines.push(`#include <string.h>`)
   lines.push(``)
-  lines.push(`static lv_obj_t * fg_clock_label = NULL;`)
+  clockExports.forEach(clockExport => {
+    lines.push(`static lv_obj_t * ${clockExport.labelName} = NULL;`)
+    lines.push(`static lv_timer_t * ${clockExport.timerName} = NULL;`)
+    lines.push(`static bool ${clockExport.separatorVisibleName} = true;`)
+  })
   lines.push(`static lv_obj_t * fg_wifi_label = NULL;`)
   lines.push(`static lv_obj_t * fg_application_page = NULL;`)
   lines.push(`static lv_obj_t * fg_system_launcher_page = NULL;`)
@@ -2915,6 +4270,38 @@ const backgroundMode =
     lines.push(`static int32_t ${barExport.stateName} = ${barExport.initialValue};`)
     lines.push(`static const int32_t ${barExport.minimumName} = ${barExport.minimum};`)
     lines.push(`static const int32_t ${barExport.maximumName} = ${barExport.maximum};`)
+  })
+  progressExports.forEach(progressExport => {
+    lines.push(`static lv_obj_t * ${progressExport.objectName} = NULL;`)
+    lines.push(`static int32_t ${progressExport.stateName} = ${progressExport.initialValue};`)
+    lines.push(`static const int32_t ${progressExport.minimumName} = ${progressExport.minimum};`)
+    lines.push(`static const int32_t ${progressExport.maximumName} = ${progressExport.maximum};`)
+  })
+  numberInputExports.forEach(numberInputExport => {
+    lines.push(`static lv_obj_t * ${numberInputExport.objectName} = NULL;`)
+    lines.push(`static int32_t ${numberInputExport.stateName} = ${numberInputExport.initialValue};`)
+    lines.push(`static bool ${numberInputExport.programmaticUpdateName} = false;`)
+    lines.push(`static const int32_t ${numberInputExport.minimumName} = ${numberInputExport.minimum};`)
+    lines.push(`static const int32_t ${numberInputExport.maximumName} = ${numberInputExport.maximum};`)
+    lines.push(`static const int32_t ${numberInputExport.stepName} = ${numberInputExport.step};`)
+  })
+  selectExports.forEach(selectExport => {
+    lines.push(`static lv_obj_t * ${selectExport.objectName} = NULL;`)
+    lines.push(`static uint32_t ${selectExport.selectedIndexName} = ${selectExport.initialIndex};`)
+    lines.push(`static bool ${selectExport.programmaticUpdateName} = false;`)
+    lines.push(`static const uint32_t ${selectExport.optionCountName} = ${selectExport.options.length};`)
+  })
+  imageExports.forEach(imageExport => {
+    lines.push(`static lv_obj_t * ${imageExport.objectName} = NULL;`)
+    lines.push(`static const void * ${imageExport.sourceName} = NULL;`)
+  })
+  boxExports.forEach(boxExport => {
+    lines.push(`static lv_obj_t * ${boxExport.objectName} = NULL;`)
+    lines.push(`static bool ${boxExport.visibleName} = true;`)
+  })
+  iconButtonExports.forEach(iconButtonExport => {
+    lines.push(`static lv_obj_t * ${iconButtonExport.objectName} = NULL;`)
+    lines.push(`static bool ${iconButtonExport.enabledName} = ${iconButtonExport.initialEnabled ? 'true' : 'false'};`)
   })
   arcExports.forEach(arcExport => {
     lines.push(`static lv_obj_t * ${arcExport.objectName} = NULL;`)
@@ -2956,6 +4343,35 @@ const backgroundMode =
     lines.push(`static lv_obj_t * ${matrixExport.objectName} = NULL;`)
     lines.push(`static uint32_t ${matrixExport.selectedIndexName} = ${matrixExport.initialIndex};`)
     lines.push(`static const uint32_t ${matrixExport.buttonCountName} = ${matrixExport.buttonLabels.length};`)
+  })
+  tabViewExports.forEach(tabViewExport => {
+    lines.push(`static lv_obj_t * ${tabViewExport.objectName} = NULL;`)
+    lines.push(`static uint32_t ${tabViewExport.selectedIndexName} = ${tabViewExport.initialIndex};`)
+    lines.push(`static const uint32_t ${tabViewExport.tabCountName} = ${tabViewExport.tabCount};`)
+  })
+  tileViewExports.forEach(tileViewExport => {
+    lines.push(`static lv_obj_t * ${tileViewExport.objectName} = NULL;`)
+    lines.push(`static lv_obj_t * ${tileViewExport.tilesName}[${tileViewExport.columnCount}][${tileViewExport.rowCount}] = {{NULL, NULL}, {NULL, NULL}};`)
+    lines.push(`static uint32_t ${tileViewExport.selectedColumnName} = ${tileViewExport.initialColumn};`)
+    lines.push(`static uint32_t ${tileViewExport.selectedRowName} = ${tileViewExport.initialRow};`)
+    lines.push(`static const uint32_t ${tileViewExport.columnCountName} = ${tileViewExport.columnCount};`)
+    lines.push(`static const uint32_t ${tileViewExport.rowCountName} = ${tileViewExport.rowCount};`)
+  })
+  inputExports.forEach(inputExport => {
+    lines.push(`static lv_obj_t * ${inputExport.objectName} = NULL;`)
+    lines.push(`static bool ${inputExport.programmaticUpdateName} = false;`)
+  })
+  switchExports.forEach(switchExport => {
+    lines.push(`static lv_obj_t * ${switchExport.objectName} = NULL;`)
+    lines.push(`static bool ${switchExport.programmaticUpdateName} = false;`)
+  })
+  checkboxExports.forEach(checkboxExport => {
+    lines.push(`static lv_obj_t * ${checkboxExport.objectName} = NULL;`)
+    lines.push(`static bool ${checkboxExport.programmaticUpdateName} = false;`)
+  })
+  radioExports.forEach(radioExport => {
+    lines.push(`static lv_obj_t * ${radioExport.objectName} = NULL;`)
+    lines.push(`static bool ${radioExport.programmaticUpdateName} = false;`)
   })
   lines.push(`static lv_obj_t * fg_system_wifi_page = NULL;`)
   lines.push(`static lv_obj_t * fg_system_wifi_state_label = NULL;`)
@@ -3086,6 +4502,128 @@ const backgroundMode =
     lines.push(``)
   })
 
+  boxExports.forEach(boxExport => {
+    lines.push(`void ${boxExport.apiName}(bool visible)`)
+    lines.push(`{`)
+    lines.push(`    if (${boxExport.objectName} == NULL || ${boxExport.visibleName} == visible) return;`)
+    lines.push(`    if (visible) lv_obj_clear_flag(${boxExport.objectName}, LV_OBJ_FLAG_HIDDEN);`)
+    lines.push(`    else lv_obj_add_flag(${boxExport.objectName}, LV_OBJ_FLAG_HIDDEN);`)
+    lines.push(`    ${boxExport.visibleName} = visible;`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
+  imageExports.forEach(imageExport => {
+    lines.push(`void ${imageExport.apiName}(const void * src)`)
+    lines.push(`{`)
+    lines.push(`    if (${imageExport.objectName} == NULL || src == NULL || ${imageExport.sourceName} == src) return;`)
+    lines.push(`    lv_image_set_src(${imageExport.objectName}, src);`)
+    lines.push(`    ${imageExport.sourceName} = src;`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
+  iconButtonExports.forEach(iconButtonExport => {
+    lines.push(`static void ${iconButtonExport.eventCallbackName}(lv_event_t * event)`)
+    lines.push(`{`)
+    lines.push(`    LV_UNUSED(event);`)
+    lines.push(`    if (${iconButtonExport.objectName} == NULL || !${iconButtonExport.enabledName}) return;`)
+    lines.push(`    ${iconButtonExport.hookName}();`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${iconButtonExport.apiName}(bool enabled)`)
+    lines.push(`{`)
+    lines.push(`    if (${iconButtonExport.objectName} == NULL || ${iconButtonExport.enabledName} == enabled) return;`)
+    lines.push(`    ${iconButtonExport.enabledName} = enabled;`)
+    lines.push(`    if (enabled) lv_obj_clear_state(${iconButtonExport.objectName}, LV_STATE_DISABLED);`)
+    lines.push(`    else lv_obj_add_state(${iconButtonExport.objectName}, LV_STATE_DISABLED);`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
+  selectExports.forEach(selectExport => {
+    lines.push(`static void ${selectExport.eventCallbackName}(lv_event_t * event)`)
+    lines.push(`{`)
+    lines.push(`    lv_obj_t * select = lv_event_get_current_target(event);`)
+    lines.push(`    if (select != ${selectExport.objectName} || ${selectExport.programmaticUpdateName} || ${selectExport.optionCountName} == 0) return;`)
+    lines.push(`    uint32_t index = lv_dropdown_get_selected(select);`)
+    lines.push(`    if (index >= ${selectExport.optionCountName} || index == ${selectExport.selectedIndexName}) return;`)
+    lines.push(`    ${selectExport.selectedIndexName} = index;`)
+    lines.push(`    char selected_text[${selectExport.textBufferSize}];`)
+    lines.push(`    lv_dropdown_get_selected_str(select, selected_text, sizeof(selected_text));`)
+    lines.push(`    ${selectExport.hookName}(index, selected_text);`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${selectExport.apiName}(uint32_t index)`)
+    lines.push(`{`)
+    lines.push(`    if (${selectExport.objectName} == NULL || ${selectExport.optionCountName} == 0) return;`)
+    lines.push(`    if (index >= ${selectExport.optionCountName}) index = ${selectExport.optionCountName} - 1;`)
+    lines.push(`    if (lv_dropdown_get_selected(${selectExport.objectName}) == index) {`)
+    lines.push(`        ${selectExport.selectedIndexName} = index;`)
+    lines.push(`        return;`)
+    lines.push(`    }`)
+    lines.push(`    ${selectExport.programmaticUpdateName} = true;`)
+    lines.push(`    ${selectExport.selectedIndexName} = index;`)
+    lines.push(`    lv_dropdown_set_selected(${selectExport.objectName}, index);`)
+    lines.push(`    ${selectExport.programmaticUpdateName} = false;`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
+  if (numberInputExports.size > 0) {
+    lines.push(`static bool fg_number_input_parse_value(const char * text, int32_t * value)`)
+    lines.push(`{`)
+    lines.push(`    if (text == NULL || value == NULL) return false;`)
+    lines.push(`    char * end = NULL;`)
+    lines.push(`    long parsed = strtol(text, &end, 10);`)
+    lines.push(`    if (end == text) return false;`)
+    lines.push(`    while (*end == ' ' || *end == '\\t' || *end == '\\r' || *end == '\\n') end++;`)
+    lines.push(`    if (*end != '\\0' || parsed < INT32_MIN || parsed > INT32_MAX) return false;`)
+    lines.push(`    *value = (int32_t)parsed;`)
+    lines.push(`    return true;`)
+    lines.push(`}`)
+    lines.push(``)
+  }
+
+  numberInputExports.forEach(numberInputExport => {
+    lines.push(`static void ${numberInputExport.eventCallbackName}(lv_event_t * event)`)
+    lines.push(`{`)
+    lines.push(`    lv_obj_t * number_input = lv_event_get_current_target(event);`)
+    lines.push(`    if (number_input != ${numberInputExport.objectName} || ${numberInputExport.programmaticUpdateName}) return;`)
+    lines.push(`    int32_t value = 0;`)
+    lines.push(`    if (!fg_number_input_parse_value(lv_textarea_get_text(number_input), &value)) return;`)
+    lines.push(`    int32_t requested_value = value;`)
+    lines.push(`    if (value < ${numberInputExport.minimumName}) value = ${numberInputExport.minimumName};`)
+    lines.push(`    if (value > ${numberInputExport.maximumName}) value = ${numberInputExport.maximumName};`)
+    lines.push(`    if (requested_value != value) {`)
+    lines.push(`        char value_text[16];`)
+    lines.push(`        snprintf(value_text, sizeof(value_text), "%ld", (long)value);`)
+    lines.push(`        ${numberInputExport.programmaticUpdateName} = true;`)
+    lines.push(`        lv_textarea_set_text(number_input, value_text);`)
+    lines.push(`        ${numberInputExport.programmaticUpdateName} = false;`)
+    lines.push(`    }`)
+    lines.push(`    if (${numberInputExport.stateName} == value) return;`)
+    lines.push(`    ${numberInputExport.stateName} = value;`)
+    lines.push(`    ${numberInputExport.hookName}(value);`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${numberInputExport.apiName}(int32_t value)`)
+    lines.push(`{`)
+    lines.push(`    if (value < ${numberInputExport.minimumName}) value = ${numberInputExport.minimumName};`)
+    lines.push(`    if (value > ${numberInputExport.maximumName}) value = ${numberInputExport.maximumName};`)
+    lines.push(`    if (${numberInputExport.objectName} == NULL) return;`)
+    lines.push(`    int32_t current_value = 0;`)
+    lines.push(`    if (fg_number_input_parse_value(lv_textarea_get_text(${numberInputExport.objectName}), &current_value) && current_value == value) return;`)
+    lines.push(`    char value_text[16];`)
+    lines.push(`    snprintf(value_text, sizeof(value_text), "%ld", (long)value);`)
+    lines.push(`    ${numberInputExport.programmaticUpdateName} = true;`)
+    lines.push(`    ${numberInputExport.stateName} = value;`)
+    lines.push(`    lv_textarea_set_text(${numberInputExport.objectName}, value_text);`)
+    lines.push(`    ${numberInputExport.programmaticUpdateName} = false;`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
   barExports.forEach(barExport => {
     lines.push(`void ${barExport.apiName}(int32_t value)`)
     lines.push(`{`)
@@ -3099,6 +4637,18 @@ const backgroundMode =
     lines.push(``)
   })
 
+  progressExports.forEach(progressExport => {
+    lines.push(`void ${progressExport.apiName}(int32_t value)`)
+    lines.push(`{`)
+    lines.push(`    if (value < ${progressExport.minimumName}) value = ${progressExport.minimumName};`)
+    lines.push(`    if (value > ${progressExport.maximumName}) value = ${progressExport.maximumName};`)
+    lines.push(`    if (${progressExport.objectName} == NULL || ${progressExport.stateName} == value) return;`)
+    lines.push(`    lv_bar_set_value(${progressExport.objectName}, value, LV_ANIM_OFF);`)
+    lines.push(`    ${progressExport.stateName} = value;`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
   arcExports.forEach(arcExport => {
     lines.push(`void ${arcExport.apiName}(int32_t value)`)
     lines.push(`{`)
@@ -3108,6 +4658,79 @@ const backgroundMode =
     lines.push(`    lv_arc_set_value(${arcExport.objectName}, value);`)
     lines.push(`    ${arcExport.stateName} = value;`)
     lines.push(`    ${arcExport.hookName}(value);`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
+  inputExports.forEach(inputExport => {
+    lines.push(`static void ${inputExport.eventCallbackName}(lv_event_t * event)`)
+    lines.push(`{`)
+    lines.push(`    lv_obj_t * input = lv_event_get_current_target(event);`)
+    lines.push(`    if (input != ${inputExport.objectName} || ${inputExport.programmaticUpdateName}) return;`)
+    lines.push(`    ${inputExport.hookName}(lv_textarea_get_text(input));`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${inputExport.apiName}(const char * text)`)
+    lines.push(`{`)
+    lines.push(`    if (${inputExport.objectName} == NULL) return;`)
+    lines.push(`    if (text == NULL) text = "";`)
+    lines.push(`    if (strcmp(lv_textarea_get_text(${inputExport.objectName}), text) == 0) return;`)
+    lines.push(`    ${inputExport.programmaticUpdateName} = true;`)
+    lines.push(`    lv_textarea_set_text(${inputExport.objectName}, text);`)
+    lines.push(`    ${inputExport.programmaticUpdateName} = false;`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
+  ;[...switchExports.values(), ...checkboxExports.values()].forEach(checkedExport => {
+    const eventObjectName = checkedExport.objectName.endsWith('_switch')
+      ? 'switch_object'
+      : 'checkbox_object'
+    lines.push(`static void ${checkedExport.eventCallbackName}(lv_event_t * event)`)
+    lines.push(`{`)
+    lines.push(`    lv_obj_t * ${eventObjectName} = lv_event_get_current_target(event);`)
+    lines.push(`    if (${eventObjectName} != ${checkedExport.objectName} || ${checkedExport.programmaticUpdateName}) return;`)
+    lines.push(`    bool checked = lv_obj_has_state(${eventObjectName}, LV_STATE_CHECKED);`)
+    lines.push(`    ${checkedExport.hookName}(checked);`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${checkedExport.apiName}(bool checked)`)
+    lines.push(`{`)
+    lines.push(`    if (${checkedExport.objectName} == NULL) return;`)
+    lines.push(`    bool current_checked = lv_obj_has_state(${checkedExport.objectName}, LV_STATE_CHECKED);`)
+    lines.push(`    if (current_checked == checked) return;`)
+    lines.push(`    ${checkedExport.programmaticUpdateName} = true;`)
+    lines.push(`    if (checked) {`)
+    lines.push(`        lv_obj_add_state(${checkedExport.objectName}, LV_STATE_CHECKED);`)
+    lines.push(`    } else {`)
+    lines.push(`        lv_obj_remove_state(${checkedExport.objectName}, LV_STATE_CHECKED);`)
+    lines.push(`    }`)
+    lines.push(`    ${checkedExport.programmaticUpdateName} = false;`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
+  radioExports.forEach(radioExport => {
+    lines.push(`static void ${radioExport.eventCallbackName}(lv_event_t * event)`)
+    lines.push(`{`)
+    lines.push(`    lv_obj_t * radio_object = lv_event_get_current_target(event);`)
+    lines.push(`    if (radio_object != ${radioExport.objectName} || ${radioExport.programmaticUpdateName}) return;`)
+    lines.push(`    bool selected = lv_obj_has_state(radio_object, LV_STATE_CHECKED);`)
+    lines.push(`    ${radioExport.hookName}(selected);`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${radioExport.apiName}(bool selected)`)
+    lines.push(`{`)
+    lines.push(`    if (${radioExport.objectName} == NULL) return;`)
+    lines.push(`    bool current_selected = lv_obj_has_state(${radioExport.objectName}, LV_STATE_CHECKED);`)
+    lines.push(`    if (current_selected == selected) return;`)
+    lines.push(`    ${radioExport.programmaticUpdateName} = true;`)
+    lines.push(`    if (selected) {`)
+    lines.push(`        lv_obj_add_state(${radioExport.objectName}, LV_STATE_CHECKED);`)
+    lines.push(`    } else {`)
+    lines.push(`        lv_obj_remove_state(${radioExport.objectName}, LV_STATE_CHECKED);`)
+    lines.push(`    }`)
+    lines.push(`    ${radioExport.programmaticUpdateName} = false;`)
     lines.push(`}`)
     lines.push(``)
   })
@@ -3307,6 +4930,69 @@ const backgroundMode =
     lines.push(`void ${matrixExport.apiName}(uint32_t button_index)`)
     lines.push(`{`)
     lines.push(`    ${matrixExport.transitionName}(button_index, true);`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
+  tabViewExports.forEach(tabViewExport => {
+    lines.push(`static void ${tabViewExport.transitionName}(uint32_t tab_index, bool update_widget)`)
+    lines.push(`{`)
+    lines.push(`    if (${tabViewExport.objectName} == NULL || ${tabViewExport.tabCountName} == 0) return;`)
+    lines.push(`    if (tab_index >= ${tabViewExport.tabCountName}) tab_index = ${tabViewExport.tabCountName} - 1;`)
+    lines.push(`    if (tab_index == ${tabViewExport.selectedIndexName}) return;`)
+    lines.push(`    ${tabViewExport.selectedIndexName} = tab_index;`)
+    lines.push(`    if (update_widget) lv_tabview_set_active(${tabViewExport.objectName}, tab_index, LV_ANIM_OFF);`)
+    lines.push(`    ${tabViewExport.hookName}(tab_index);`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`static void ${tabViewExport.eventCallbackName}(lv_event_t * event)`)
+    lines.push(`{`)
+    lines.push(`    lv_obj_t * tabview = lv_event_get_current_target(event);`)
+    lines.push(`    if (tabview != ${tabViewExport.objectName}) return;`)
+    lines.push(`    ${tabViewExport.transitionName}(lv_tabview_get_tab_active(tabview), false);`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${tabViewExport.apiName}(uint32_t tab_index)`)
+    lines.push(`{`)
+    lines.push(`    ${tabViewExport.transitionName}(tab_index, true);`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
+  tileViewExports.forEach(tileViewExport => {
+    lines.push(`static void ${tileViewExport.transitionName}(uint32_t column, uint32_t row, bool update_widget)`)
+    lines.push(`{`)
+    lines.push(`    if (${tileViewExport.objectName} == NULL || ${tileViewExport.columnCountName} == 0 || ${tileViewExport.rowCountName} == 0) return;`)
+    lines.push(`    if (column >= ${tileViewExport.columnCountName}) column = ${tileViewExport.columnCountName} - 1;`)
+    lines.push(`    if (row >= ${tileViewExport.rowCountName}) row = ${tileViewExport.rowCountName} - 1;`)
+    lines.push(`    if (column == ${tileViewExport.selectedColumnName} && row == ${tileViewExport.selectedRowName}) return;`)
+    lines.push(`    lv_obj_t * tile = ${tileViewExport.tilesName}[column][row];`)
+    lines.push(`    if (tile == NULL) return;`)
+    lines.push(`    ${tileViewExport.selectedColumnName} = column;`)
+    lines.push(`    ${tileViewExport.selectedRowName} = row;`)
+    lines.push(`    if (update_widget) lv_tileview_set_tile(${tileViewExport.objectName}, tile, LV_ANIM_OFF);`)
+    lines.push(`    ${tileViewExport.hookName}(column, row);`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`static void ${tileViewExport.eventCallbackName}(lv_event_t * event)`)
+    lines.push(`{`)
+    lines.push(`    lv_obj_t * tileview = lv_event_get_current_target(event);`)
+    lines.push(`    if (tileview != ${tileViewExport.objectName}) return;`)
+    lines.push(`    lv_obj_t * active_tile = lv_tileview_get_tile_active(tileview);`)
+    lines.push(`    if (active_tile == NULL) return;`)
+    lines.push(`    for (uint32_t column = 0; column < ${tileViewExport.columnCountName}; ++column) {`)
+    lines.push(`        for (uint32_t row = 0; row < ${tileViewExport.rowCountName}; ++row) {`)
+    lines.push(`            if (${tileViewExport.tilesName}[column][row] == active_tile) {`)
+    lines.push(`                ${tileViewExport.transitionName}(column, row, false);`)
+    lines.push(`                return;`)
+    lines.push(`            }`)
+    lines.push(`        }`)
+    lines.push(`    }`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${tileViewExport.apiName}(uint32_t column, uint32_t row)`)
+    lines.push(`{`)
+    lines.push(`    ${tileViewExport.transitionName}(column, row, true);`)
     lines.push(`}`)
     lines.push(``)
   })
@@ -4201,28 +5887,44 @@ lines.push(`}`)
   lines.push(``)
   }
 
-  lines.push(`static void fg_clock_tick_cb(lv_timer_t *timer)`)
-  lines.push(`{`)
-  lines.push(`    LV_UNUSED(timer);`)
-  lines.push(``)
-  lines.push(`    static bool show_colon = true;`)
-  lines.push(``)
-  lines.push(`    char time_buf[16];`)
-  lines.push(`    fg_rtc_format_time(time_buf, sizeof(time_buf));`)
-  lines.push(``)
-  lines.push(`    if (!show_colon)`)
-  lines.push(`    {`)
-  lines.push(`        time_buf[2] = ' ';`)
-  lines.push(`    }`)
-  lines.push(``)
-  lines.push(`    show_colon = !show_colon;`)
-  lines.push(``)
-  lines.push(`    if (fg_clock_label)`)
-  lines.push(`    {`)
-  lines.push(`        lv_label_set_text(fg_clock_label, time_buf);`)
-  lines.push(`    }`)
-  lines.push(`}`)
-  lines.push(``)
+  clockExports.forEach(clockExport => {
+    const format = clockExport.hourFormat === '12'
+      ? clockExport.showSeconds
+        ? '%02d%c%02d%c%02d %s'
+        : '%02d%c%02d %s'
+      : clockExport.showSeconds
+        ? '%02d%c%02d%c%02d'
+        : '%02d%c%02d'
+    const argumentsList = clockExport.hourFormat === '12'
+      ? clockExport.showSeconds
+        ? 'display_hour, separator, minute, separator, second, period'
+        : 'display_hour, separator, minute, period'
+      : clockExport.showSeconds
+        ? 'hour, separator, minute, separator, second'
+        : 'hour, separator, minute'
+
+    lines.push(`static void ${clockExport.tickCallbackName}(lv_timer_t * timer)`)
+    lines.push(`{`)
+    lines.push(`    LV_UNUSED(timer);`)
+    lines.push(`    if (${clockExport.labelName} == NULL) return;`)
+    lines.push(``)
+    lines.push(`    int hour, minute, second;`)
+    lines.push(`    fg_rtc_get(NULL, NULL, NULL, &hour, &minute, &second);`)
+    lines.push(`    char separator = ${clockExport.blinkSeparator ? `${clockExport.separatorVisibleName} ? ':' : ' '` : `':'`};`)
+    if (clockExport.hourFormat === '12') {
+      lines.push(`    int display_hour = hour % 12;`)
+      lines.push(`    if (display_hour == 0) display_hour = 12;`)
+      lines.push(`    const char * period = hour < 12 ? "AM" : "PM";`)
+    }
+    lines.push(`    char time_buf[24];`)
+    lines.push(`    snprintf(time_buf, sizeof(time_buf), "${format}", ${argumentsList});`)
+    if (clockExport.blinkSeparator) {
+      lines.push(`    ${clockExport.separatorVisibleName} = !${clockExport.separatorVisibleName};`)
+    }
+    lines.push(`    lv_label_set_text(${clockExport.labelName}, time_buf);`)
+    lines.push(`}`)
+    lines.push(``)
+  })
 
   lines.push(`static const char * fg_wifi_signal_quality(int rssi)`)
   lines.push(`{`)
@@ -4389,6 +6091,12 @@ lines.push(`    fg_system_root = parent;`)
         threeWayInputExports,
         ledExports,
         barExports,
+        progressExports,
+        numberInputExports,
+        selectExports,
+        imageExports,
+        boxExports,
+        iconButtonExports,
         arcExports,
         chartExports,
         keyboardExports,
@@ -4396,6 +6104,13 @@ lines.push(`    fg_system_root = parent;`)
         rollerExports,
         messageBoxExports,
         buttonMatrixExports,
+        tabViewExports,
+        tileViewExports,
+        clockExports,
+        inputExports,
+        switchExports,
+        checkboxExports,
+        radioExports,
       )
   }
 
@@ -4590,17 +6305,23 @@ lines.push(`    lv_obj_set_style_border_color(wifi_status_panel, lv_color_hex(${
 lines.push(`    lv_obj_set_style_border_width(wifi_status_panel, 1, 0);`)
 lines.push(`    fg_system_wifi_state_label = lv_label_create(wifi_status_panel);`)
 lines.push(`    lv_label_set_text(fg_system_wifi_state_label, "Off");`)
-lines.push(`    lv_obj_set_pos(fg_system_wifi_state_label, 14, 10);`)
+lines.push(`    lv_obj_t * wifi_connection_caption = lv_label_create(wifi_status_panel);`)
+lines.push(`    lv_label_set_text(wifi_connection_caption, "CONNECTION STATUS");`)
+lines.push(`    lv_obj_set_pos(wifi_connection_caption, 14, 8);`)
+lines.push(`    lv_obj_set_style_text_color(wifi_connection_caption, lv_color_hex(${palette.text}), 0);`)
+lines.push(`    lv_obj_set_style_text_opa(wifi_connection_caption, LV_OPA_60, 0);`)
+lines.push(`    lv_obj_set_style_text_font(wifi_connection_caption, &lv_font_montserrat_12, 0);`)
+lines.push(`    lv_obj_set_pos(fg_system_wifi_state_label, 14, 26);`)
 lines.push(`    lv_obj_set_style_text_color(fg_system_wifi_state_label, lv_color_hex(${palette.accent}), 0);`)
 lines.push(`    lv_obj_set_style_text_font(fg_system_wifi_state_label, &lv_font_montserrat_28, 0);`)
 lines.push(`    lv_obj_t * wifi_ssid_caption = lv_label_create(wifi_status_panel);`)
 lines.push(`    lv_label_set_text(wifi_ssid_caption, "Current Network");`)
-lines.push(`    lv_obj_set_pos(wifi_ssid_caption, 14, 54);`)
+lines.push(`    lv_obj_set_pos(wifi_ssid_caption, 14, 68);`)
 lines.push(`    lv_obj_set_style_text_color(wifi_ssid_caption, lv_color_hex(${palette.text}), 0);`)
 lines.push(`    lv_obj_set_style_text_opa(wifi_ssid_caption, LV_OPA_60, 0);`)
 lines.push(`    lv_obj_set_style_text_font(wifi_ssid_caption, &lv_font_montserrat_12, 0);`)
 lines.push(`    fg_system_wifi_ssid_label = lv_label_create(wifi_status_panel);`)
-lines.push(`    lv_obj_set_pos(fg_system_wifi_ssid_label, 14, 74);`)
+lines.push(`    lv_obj_set_pos(fg_system_wifi_ssid_label, 14, 86);`)
 lines.push(`    lv_obj_set_width(fg_system_wifi_ssid_label, 190);`)
 lines.push(`    lv_label_set_long_mode(fg_system_wifi_ssid_label, LV_LABEL_LONG_DOT);`)
 lines.push(`    lv_obj_set_style_text_color(fg_system_wifi_ssid_label, lv_color_hex(${palette.text}), 0);`)
@@ -4608,56 +6329,56 @@ lines.push(`    lv_obj_set_style_text_opa(fg_system_wifi_ssid_label, LV_OPA_COVE
 lines.push(`    lv_obj_set_style_text_font(fg_system_wifi_ssid_label, &lv_font_montserrat_16, 0);`)
 lines.push(`    lv_obj_t * wifi_ip_caption = lv_label_create(wifi_status_panel);`)
 lines.push(`    lv_label_set_text(wifi_ip_caption, "IP Address");`)
-lines.push(`    lv_obj_set_pos(wifi_ip_caption, 220, 54);`)
+lines.push(`    lv_obj_set_pos(wifi_ip_caption, 220, 68);`)
 lines.push(`    lv_obj_set_style_text_color(wifi_ip_caption, lv_color_hex(${palette.text}), 0);`)
 lines.push(`    lv_obj_set_style_text_opa(wifi_ip_caption, LV_OPA_60, 0);`)
 lines.push(`    lv_obj_set_style_text_font(wifi_ip_caption, &lv_font_montserrat_12, 0);`)
 lines.push(`    fg_system_wifi_ip_label = lv_label_create(wifi_status_panel);`)
-lines.push(`    lv_obj_set_pos(fg_system_wifi_ip_label, 220, 74);`)
+lines.push(`    lv_obj_set_pos(fg_system_wifi_ip_label, 220, 86);`)
 lines.push(`    lv_obj_set_style_text_color(fg_system_wifi_ip_label, lv_color_hex(${palette.text}), 0);`)
 lines.push(`    lv_obj_set_style_text_opa(fg_system_wifi_ip_label, LV_OPA_COVER, 0);`)
 lines.push(`    lv_obj_set_style_text_font(fg_system_wifi_ip_label, &lv_font_montserrat_16, 0);`)
 lines.push(`    lv_obj_t * wifi_gateway_caption = lv_label_create(wifi_status_panel);`)
 lines.push(`    lv_label_set_text(wifi_gateway_caption, "Gateway");`)
-lines.push(`    lv_obj_set_pos(wifi_gateway_caption, 14, 116);`)
+lines.push(`    lv_obj_set_pos(wifi_gateway_caption, 14, 126);`)
 lines.push(`    lv_obj_set_style_text_color(wifi_gateway_caption, lv_color_hex(${palette.text}), 0);`)
 lines.push(`    lv_obj_set_style_text_opa(wifi_gateway_caption, LV_OPA_60, 0);`)
 lines.push(`    lv_obj_set_style_text_font(wifi_gateway_caption, &lv_font_montserrat_12, 0);`)
 lines.push(`    fg_system_wifi_gateway_label = lv_label_create(wifi_status_panel);`)
-lines.push(`    lv_obj_set_pos(fg_system_wifi_gateway_label, 14, 136);`)
+lines.push(`    lv_obj_set_pos(fg_system_wifi_gateway_label, 14, 144);`)
 lines.push(`    lv_obj_set_style_text_color(fg_system_wifi_gateway_label, lv_color_hex(${palette.text}), 0);`)
 lines.push(`    lv_obj_set_style_text_opa(fg_system_wifi_gateway_label, LV_OPA_COVER, 0);`)
 lines.push(`    lv_obj_set_style_text_font(fg_system_wifi_gateway_label, &lv_font_montserrat_16, 0);`)
 lines.push(`    lv_obj_t * wifi_signal_caption = lv_label_create(wifi_status_panel);`)
 lines.push(`    lv_label_set_text(wifi_signal_caption, "Signal");`)
-lines.push(`    lv_obj_set_pos(wifi_signal_caption, 220, 116);`)
+lines.push(`    lv_obj_set_pos(wifi_signal_caption, 220, 126);`)
 lines.push(`    lv_obj_set_style_text_color(wifi_signal_caption, lv_color_hex(${palette.text}), 0);`)
 lines.push(`    lv_obj_set_style_text_opa(wifi_signal_caption, LV_OPA_60, 0);`)
 lines.push(`    lv_obj_set_style_text_font(wifi_signal_caption, &lv_font_montserrat_12, 0);`)
 lines.push(`    fg_system_wifi_rssi_label = lv_label_create(wifi_status_panel);`)
-lines.push(`    lv_obj_set_pos(fg_system_wifi_rssi_label, 220, 136);`)
+lines.push(`    lv_obj_set_pos(fg_system_wifi_rssi_label, 220, 144);`)
 lines.push(`    lv_obj_set_style_text_color(fg_system_wifi_rssi_label, lv_color_hex(${palette.text}), 0);`)
 lines.push(`    lv_obj_set_style_text_opa(fg_system_wifi_rssi_label, LV_OPA_COVER, 0);`)
 lines.push(`    lv_obj_set_style_text_font(fg_system_wifi_rssi_label, &lv_font_montserrat_16, 0);`)
 lines.push(`    lv_obj_t * wifi_security_caption = lv_label_create(wifi_status_panel);`)
 lines.push(`    lv_label_set_text(wifi_security_caption, "Security");`)
-lines.push(`    lv_obj_set_pos(wifi_security_caption, 14, 178);`)
+lines.push(`    lv_obj_set_pos(wifi_security_caption, 14, 184);`)
 lines.push(`    lv_obj_set_style_text_color(wifi_security_caption, lv_color_hex(${palette.text}), 0);`)
 lines.push(`    lv_obj_set_style_text_opa(wifi_security_caption, LV_OPA_60, 0);`)
 lines.push(`    lv_obj_set_style_text_font(wifi_security_caption, &lv_font_montserrat_12, 0);`)
 lines.push(`    fg_system_wifi_security_label = lv_label_create(wifi_status_panel);`)
-lines.push(`    lv_obj_set_pos(fg_system_wifi_security_label, 14, 198);`)
+lines.push(`    lv_obj_set_pos(fg_system_wifi_security_label, 14, 202);`)
 lines.push(`    lv_obj_set_style_text_color(fg_system_wifi_security_label, lv_color_hex(${palette.text}), 0);`)
 lines.push(`    lv_obj_set_style_text_opa(fg_system_wifi_security_label, LV_OPA_COVER, 0);`)
 lines.push(`    lv_obj_set_style_text_font(fg_system_wifi_security_label, &lv_font_montserrat_16, 0);`)
 lines.push(`    lv_obj_t * wifi_status_caption = lv_label_create(wifi_status_panel);`)
 lines.push(`    lv_label_set_text(wifi_status_caption, "Status");`)
-lines.push(`    lv_obj_set_pos(wifi_status_caption, 220, 178);`)
+lines.push(`    lv_obj_set_pos(wifi_status_caption, 220, 184);`)
 lines.push(`    lv_obj_set_style_text_color(wifi_status_caption, lv_color_hex(${palette.text}), 0);`)
 lines.push(`    lv_obj_set_style_text_opa(wifi_status_caption, LV_OPA_60, 0);`)
 lines.push(`    lv_obj_set_style_text_font(wifi_status_caption, &lv_font_montserrat_12, 0);`)
 lines.push(`    fg_system_wifi_raw_label = lv_label_create(wifi_status_panel);`)
-lines.push(`    lv_obj_set_pos(fg_system_wifi_raw_label, 220, 198);`)
+lines.push(`    lv_obj_set_pos(fg_system_wifi_raw_label, 220, 202);`)
 lines.push(`    lv_obj_set_width(fg_system_wifi_raw_label, 190);`)
 lines.push(`    lv_label_set_long_mode(fg_system_wifi_raw_label, LV_LABEL_LONG_DOT);`)
 lines.push(`    lv_obj_set_style_text_color(fg_system_wifi_raw_label, lv_color_hex(${palette.text}), 0);`)
@@ -4681,14 +6402,15 @@ lines.push(`    lv_obj_set_style_radius(fg_system_wifi_details_card, 12, 0);`)
 lines.push(`    lv_obj_set_style_bg_color(fg_system_wifi_details_card, lv_color_hex(${palette.surface}), 0);`)
 lines.push(`    lv_obj_set_style_border_color(fg_system_wifi_details_card, lv_color_hex(${palette.border}), 0);`)
 lines.push(`    lv_obj_set_style_border_width(fg_system_wifi_details_card, 1, 0);`)
+lines.push(`    lv_obj_set_style_pad_all(fg_system_wifi_details_card, 0, 0);`)
 lines.push(`    lv_obj_t * wifi_details_title = lv_label_create(fg_system_wifi_details_card);`)
 lines.push(`    lv_label_set_text(wifi_details_title, "Connected Network");`)
-lines.push(`    lv_obj_set_pos(wifi_details_title, 14, 10);`)
+lines.push(`    lv_obj_set_pos(wifi_details_title, 16, 12);`)
 lines.push(`    lv_obj_set_style_text_color(wifi_details_title, lv_color_hex(${palette.text}), 0);`)
 lines.push(`    lv_obj_set_style_text_opa(wifi_details_title, LV_OPA_COVER, 0);`)
 lines.push(`    lv_obj_set_style_text_font(wifi_details_title, &lv_font_montserrat_16, 0);`)
 lines.push(`    fg_system_wifi_details_label = lv_label_create(fg_system_wifi_details_card);`)
-lines.push(`    lv_obj_set_pos(fg_system_wifi_details_label, 14, 44);`)
+lines.push(`    lv_obj_set_pos(fg_system_wifi_details_label, 16, 46);`)
 lines.push(`    lv_obj_set_style_text_color(fg_system_wifi_details_label, lv_color_hex(${palette.text}), 0);`)
 lines.push(`    lv_obj_set_style_text_opa(fg_system_wifi_details_label, LV_OPA_COVER, 0);`)
 lines.push(`    lv_obj_set_style_text_font(fg_system_wifi_details_label, &lv_font_montserrat_14, 0);`)
@@ -4697,16 +6419,22 @@ lines.push(`    fg_system_wifi_scan_label = lv_label_create(fg_system_wifi_page)
 lines.push(`    lv_label_set_text(fg_system_wifi_scan_label, "Available Networks");`)
 lines.push(`    lv_obj_set_pos(fg_system_wifi_scan_label, 500, 100);`)
 lines.push(`    lv_obj_set_style_text_font(fg_system_wifi_scan_label, &lv_font_montserrat_20, 0);`)
+lines.push(`    lv_obj_t * wifi_scan_hint = lv_label_create(fg_system_wifi_page);`)
+lines.push(`    lv_label_set_text(wifi_scan_hint, "Select a network to connect");`)
+lines.push(`    lv_obj_set_pos(wifi_scan_hint, 500, 124);`)
+lines.push(`    lv_obj_set_style_text_color(wifi_scan_hint, lv_color_hex(${palette.text}), 0);`)
+lines.push(`    lv_obj_set_style_text_opa(wifi_scan_hint, LV_OPA_60, 0);`)
+lines.push(`    lv_obj_set_style_text_font(wifi_scan_hint, &lv_font_montserrat_12, 0);`)
 lines.push(`    fg_system_wifi_network_container = lv_obj_create(fg_system_wifi_page);`)
-lines.push(`    lv_obj_set_pos(fg_system_wifi_network_container, 490, 136);`)
-lines.push(`    lv_obj_set_size(fg_system_wifi_network_container, 506, 416);`)
+lines.push(`    lv_obj_set_pos(fg_system_wifi_network_container, 490, 148);`)
+lines.push(`    lv_obj_set_size(fg_system_wifi_network_container, 506, 404);`)
 lines.push(`    lv_obj_set_style_radius(fg_system_wifi_network_container, 12, 0);`)
 lines.push(`    lv_obj_set_style_bg_color(fg_system_wifi_network_container, lv_color_hex(${palette.surface}), 0);`)
 lines.push(`    lv_obj_set_style_border_color(fg_system_wifi_network_container, lv_color_hex(${palette.border}), 0);`)
 lines.push(`    lv_obj_set_style_border_width(fg_system_wifi_network_container, 1, 0);`)
 lines.push(`    lv_obj_set_flex_flow(fg_system_wifi_network_container, LV_FLEX_FLOW_COLUMN);`)
-lines.push(`    lv_obj_set_style_pad_all(fg_system_wifi_network_container, 8, 0);`)
-lines.push(`    lv_obj_set_style_pad_gap(fg_system_wifi_network_container, 6, 0);`)
+lines.push(`    lv_obj_set_style_pad_all(fg_system_wifi_network_container, 10, 0);`)
+lines.push(`    lv_obj_set_style_pad_gap(fg_system_wifi_network_container, 8, 0);`)
 lines.push(`    fg_system_wifi_network_empty_label = lv_label_create(fg_system_wifi_network_container);`)
 lines.push(`    lv_label_set_text(fg_system_wifi_network_empty_label, "No Wi-Fi networks found");`)
 lines.push(`    lv_obj_add_flag(fg_system_wifi_network_empty_label, LV_OBJ_FLAG_FLOATING);`)
@@ -4716,7 +6444,9 @@ lines.push(`    lv_obj_set_style_text_align(fg_system_wifi_network_empty_label, 
 lines.push(`    lv_obj_center(fg_system_wifi_network_empty_label);`)
 lines.push(`    for (int i = 0; i < FG_WIFI_MAX_SCAN; ++i) {`)
 lines.push(`        fg_system_wifi_network_rows[i] = lv_button_create(fg_system_wifi_network_container);`)
-lines.push(`        lv_obj_set_size(fg_system_wifi_network_rows[i], LV_PCT(100), 48);`)
+lines.push(`        lv_obj_set_size(fg_system_wifi_network_rows[i], LV_PCT(100), 50);`)
+lines.push(`        lv_obj_set_style_radius(fg_system_wifi_network_rows[i], 9, 0);`)
+lines.push(`        lv_obj_set_style_pad_hor(fg_system_wifi_network_rows[i], 12, 0);`)
 lines.push(`        lv_obj_set_style_bg_color(fg_system_wifi_network_rows[i], lv_color_hex(${palette.surface2}), 0);`)
 lines.push(`        lv_obj_set_style_bg_opa(fg_system_wifi_network_rows[i], LV_OPA_COVER, 0);`)
 lines.push(`        lv_obj_set_style_border_color(fg_system_wifi_network_rows[i], lv_color_hex(${palette.border}), 0);`)
@@ -4744,8 +6474,8 @@ lines.push(`        lv_obj_set_style_text_color(fg_system_wifi_network_rows[i], 
 lines.push(`        lv_obj_set_style_opa(fg_system_wifi_network_rows[i], LV_OPA_40, LV_STATE_DISABLED);`)
 lines.push(`        lv_obj_add_event_cb(fg_system_wifi_network_rows[i], fg_system_wifi_network_cb, LV_EVENT_CLICKED, (void *)(intptr_t)i);`)
 lines.push(`        fg_system_wifi_network_labels[i] = lv_label_create(fg_system_wifi_network_rows[i]);`)
-lines.push(`        lv_obj_center(fg_system_wifi_network_labels[i]);`)
-lines.push(`        lv_obj_set_width(fg_system_wifi_network_labels[i], 450);`)
+lines.push(`        lv_obj_align(fg_system_wifi_network_labels[i], LV_ALIGN_LEFT_MID, 0, 0);`)
+lines.push(`        lv_obj_set_width(fg_system_wifi_network_labels[i], 458);`)
 lines.push(`        lv_label_set_long_mode(fg_system_wifi_network_labels[i], LV_LABEL_LONG_DOT);`)
 lines.push(`        lv_obj_add_flag(fg_system_wifi_network_rows[i], LV_OBJ_FLAG_HIDDEN);`)
 lines.push(`    }`)
@@ -4841,9 +6571,11 @@ lines.push(`    lv_obj_set_style_text_color(brightness_max, lv_color_hex(${palet
 lines.push(`    lv_obj_set_pos(brightness_max, 828, 390);`)
 lines.push(`    lv_obj_add_flag(fg_system_brightness_page, LV_OBJ_FLAG_HIDDEN);`)
 lines.push(``)
-lines.push(`    fg_clock_tick_cb(NULL);`)
-lines.push(`    lv_timer_create(fg_clock_tick_cb, 1000, NULL);`)
-lines.push(``)
+clockExports.forEach(clockExport => {
+  lines.push(`    ${clockExport.tickCallbackName}(NULL);`)
+  lines.push(`    ${clockExport.timerName} = lv_timer_create(${clockExport.tickCallbackName}, 1000, NULL);`)
+})
+if (clockExports.size > 0) lines.push(``)
 lines.push(`    fg_wifi_tick_cb(NULL);`)
 lines.push(`    lv_timer_create(fg_wifi_tick_cb, 1000, NULL);`)
 
@@ -4872,6 +6604,18 @@ lines.push(`}`)
         ledExport => `void ${ledExport.apiName}(bool on);`,
       )).concat(Array.from(barExports.values()).map(
         barExport => `void ${barExport.apiName}(int32_t value);`,
+      )).concat(Array.from(progressExports.values()).map(
+        progressExport => `void ${progressExport.apiName}(int32_t value);`,
+      )).concat(Array.from(numberInputExports.values()).map(
+        numberInputExport => `void ${numberInputExport.apiName}(int32_t value);`,
+      )).concat(Array.from(selectExports.values()).map(
+        selectExport => `void ${selectExport.apiName}(uint32_t index);`,
+      )).concat(Array.from(imageExports.values()).map(
+        imageExport => `void ${imageExport.apiName}(const void * src);`,
+      )).concat(Array.from(boxExports.values()).map(
+        boxExport => `void ${boxExport.apiName}(bool visible);`,
+      )).concat(Array.from(iconButtonExports.values()).map(
+        iconButtonExport => `void ${iconButtonExport.apiName}(bool enabled);`,
       )).concat(Array.from(arcExports.values()).map(
         arcExport => `void ${arcExport.apiName}(int32_t value);`,
       )).concat(Array.from(chartExports.values()).flatMap(
@@ -4898,6 +6642,24 @@ lines.push(`}`)
       )).concat(Array.from(buttonMatrixExports.values()).map(
         matrixExport =>
           `void ${matrixExport.apiName}(uint32_t button_index);`,
+      )).concat(Array.from(tabViewExports.values()).map(
+        tabViewExport =>
+          `void ${tabViewExport.apiName}(uint32_t tab_index);`,
+      )).concat(Array.from(tileViewExports.values()).map(
+        tileViewExport =>
+          `void ${tileViewExport.apiName}(uint32_t column, uint32_t row);`,
+      )).concat(Array.from(inputExports.values()).map(
+        inputExport =>
+          `void ${inputExport.apiName}(const char * text);`,
+      )).concat(Array.from(switchExports.values()).map(
+        switchExport =>
+          `void ${switchExport.apiName}(bool checked);`,
+      )).concat(Array.from(checkboxExports.values()).map(
+        checkboxExport =>
+          `void ${checkboxExport.apiName}(bool checked);`,
+      )).concat(Array.from(radioExports.values()).map(
+        radioExport =>
+          `void ${radioExport.apiName}(bool selected);`,
       )),
   }
 }

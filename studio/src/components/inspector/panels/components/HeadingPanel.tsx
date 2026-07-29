@@ -1,20 +1,38 @@
 import React, { memo } from 'react'
-import { Select } from '@chakra-ui/react'
+import { Input, Select } from '@chakra-ui/react'
 import { useForm } from '~hooks/useForm'
 import FormControl from '~components/inspector/controls/FormControl'
-import ChildrenControl from '~components/inspector/controls/ChildrenControl'
 import usePropsSelector from '~hooks/usePropsSelector'
 import SwitchControl from '~components/inspector/controls/SwitchControl'
+import { getForgeUIStandardHeadingText } from '~forgeui/ForgeUIStandardHeading'
 
 const HeadingPanel = () => {
   const { setValueFromEvent } = useForm()
 
+  const headingText = usePropsSelector('headingText')
+  const legacyChildren = usePropsSelector('children')
+  const legacyText = usePropsSelector('text')
+  const legacyValue = usePropsSelector('value')
   const size = usePropsSelector('size')
   const as = usePropsSelector('as')
 
   return (
     <>
-      <ChildrenControl />
+      <FormControl htmlFor="headingText" label="Heading Text">
+        <Input
+          id="headingText"
+          name="headingText"
+          size="sm"
+          type="text"
+          value={getForgeUIStandardHeadingText({
+            headingText,
+            children: legacyChildren,
+            text: legacyText,
+            value: legacyValue,
+          })}
+          onChange={setValueFromEvent}
+        />
+      </FormControl>
       <FormControl label="Size" htmlFor="size">
         <Select
           name="size"

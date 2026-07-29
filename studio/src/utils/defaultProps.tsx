@@ -85,11 +85,11 @@ type PropsWithForm<T> = T & ForgeUICanvasProps & { form?: T }
 type PreviewDefaultProps = {
   Badge?: PropsWithForm<BadgeProps>
   Box?: PropsWithForm<BoxProps>
-  Button?: PropsWithForm<ButtonProps>
+  Button?: PropsWithForm<ButtonProps> & { buttonText?: string }
   Icon?: PropsWithForm<IconProps> & { icon: keyof typeof iconsList }
   IconButton?: PropsWithForm<IconButtonProps>
   Image?: PropsWithForm<ImageProps>
-  Text?: PropsWithForm<TextProps>
+  Text?: PropsWithForm<TextProps> & { textValue?: string }
   Progress?: PropsWithForm<ProgressProps>
   AvatarBadge?: PropsWithForm<AvatarBadgeProps>
   AvatarGroup?: PropsWithForm<Omit<AvatarGroupProps, 'children'>>
@@ -102,8 +102,12 @@ type PreviewDefaultProps = {
   Code?: PropsWithForm<CodeProps>
   Textarea?: PropsWithForm<TextareaProps>
   CircularProgress?: PropsWithForm<CircularProgressProps>
-  Heading?: PropsWithForm<HeadingProps>
-  Clock?: PropsWithForm<TextProps>
+  Heading?: PropsWithForm<HeadingProps> & { headingText?: string }
+  Clock?: PropsWithForm<TextProps> & {
+    hourFormat?: '24' | '12'
+    showSeconds?: boolean
+    blinkSeparator?: boolean
+  }
   WiFi?: PropsWithForm<TextProps>
   Highlight?: PropsWithForm<HighlightProps>
   Tag?: PropsWithForm<TagProps>
@@ -198,7 +202,7 @@ export const DEFAULT_PROPS: PreviewDefaultProps = {
     children: 'Lorem Ipsum',
   },
   Button: {
-    children: 'Button text',
+    buttonText: 'Button text',
     variant: 'solid',
     size: 'md',
   },
@@ -240,10 +244,13 @@ export const DEFAULT_PROPS: PreviewDefaultProps = {
     },
   },
   Heading: {
-    children: 'Heading title',
+    headingText: 'Heading title',
   },
   Clock: {
      children: '12:34',
+     hourFormat: '24',
+     showSeconds: false,
+     blinkSeparator: true,
      positionMode: 'absolute',
      x: 40,
      y: 40,
@@ -286,6 +293,13 @@ WiFi: {
   },
   ListItem: { children: 'list' },
   Kbd: { children: 'shift' },
+  NumberInput: {
+    value: 50,
+    min: 0,
+    max: 100,
+    step: 1,
+    precision: 0,
+  },
   Progress: {
     value: 60,
     min: 0,
@@ -297,6 +311,8 @@ WiFi: {
     icon: 'ChevronDownIcon',
     variant: 'outline',
     size: 'md',
+    options: ['Option 1', 'Option 2', 'Option 3'],
+    selectedIndex: 0,
     // @ts-ignore
     form: {
       children: (
@@ -357,7 +373,7 @@ WiFi: {
   Tag: {
     children: 'Tag name',
   },
-  Text: { children: 'Text value' },
+  Text: { textValue: 'Text value' },
 }
 
 export const getPreviewDefaultProps = (type: ComponentType) =>

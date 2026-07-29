@@ -4,6 +4,7 @@ import FormControl from '~components/inspector/controls/FormControl'
 import { useForm } from '~hooks/useForm'
 import SizeControl, { Size } from '~components/inspector/controls/SizeControl'
 import usePropsSelector from '~hooks/usePropsSelector'
+import TextControl from '~components/inspector/controls/TextControl'
 
 const options = ['sm', 'md', 'lg'] as Size[]
 
@@ -16,6 +17,7 @@ const TextareaPanel = () => {
 
   return (
     <>
+      <TextControl label="Value" name="value" />
       <FormControl label="Placeholder">
         <Input
           size="sm"

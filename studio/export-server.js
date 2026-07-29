@@ -965,12 +965,17 @@ function normalizePublicApiDeclarations(declarations) {
         .map((declaration) => String(declaration || '').trim())
         .filter((declaration) =>
           (
-            /^void FG_Set_[A-Za-z0-9_]+\((?:bool (?:enabled|on)|int32_t value)\);$/.test(declaration) ||
+            /^void FG_Set_[A-Za-z0-9_]+\((?:bool (?:enabled|on|checked|visible)|int32_t value)\);$/.test(declaration) ||
+            /^void FG_Set_[A-Za-z0-9_]+_Text\(const char \* text\);$/.test(declaration) ||
             /^void FG_Add_[A-Za-z0-9_]+_Point\(int32_t value\);$/.test(declaration) ||
             /^void FG_Clear_[A-Za-z0-9_]+\(void\);$/.test(declaration) ||
             /^void FG_(?:Show|Hide|Close)_[A-Za-z0-9_]+\(void\);$/.test(declaration) ||
             /^void FG_Set_[A-Za-z0-9_]+_Date\(uint16_t year, uint8_t month, uint8_t day\);$/.test(declaration) ||
-            /^void FG_Set_[A-Za-z0-9_]+_Selected\(uint32_t (?:index|button_index)\);$/.test(declaration)
+            /^void FG_Set_[A-Za-z0-9_]+_Selected\(uint32_t (?:index|button_index|tab_index)\);$/.test(declaration) ||
+            /^void FG_Set_[A-Za-z0-9_]+_Selected\(uint32_t column, uint32_t row\);$/.test(declaration)
+            || /^void FG_Set_[A-Za-z0-9_]+_Selected\(bool selected\);$/.test(declaration)
+            || /^void FG_Set_[A-Za-z0-9_]+_Selected_Index\(uint32_t index\);$/.test(declaration)
+            || /^void FG_Set_[A-Za-z0-9_]+_Source\(const void \* src\);$/.test(declaration)
           )
         )
     )
@@ -1078,6 +1083,9 @@ ${declarations.join('\n')}
 
 function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
   const booleanChanged = new Set()
+  const checkedChanged = new Set()
+  const checkboxCheckedChanged = new Set()
+  const radioSelectedChanged = new Set()
   const integerChanged = new Set()
   const integerPointAdded = new Set()
   const cleared = new Set()
@@ -1086,6 +1094,10 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
   const closed = new Set()
   const dateChanged = new Set()
   const rollerChanged = new Set()
+  const tabViewChanged = new Set()
+  const tileViewChanged = new Set()
+  const selectChanged = new Set()
+  const textChanged = new Set()
   normalizePublicApiDeclarations(publicApiDeclarations)
     .forEach((declaration) => {
       const addMatch = declaration.match(
@@ -1129,6 +1141,60 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
         rollerChanged.add(`FG_On_${rollerMatch[1]}_Changed`)
         return
       }
+      const selectMatch = declaration.match(
+        /^void FG_Set_([A-Za-z0-9_]+)_Selected_Index\(uint32_t index\);$/
+      )
+      if (selectMatch) {
+        selectChanged.add(`FG_On_${selectMatch[1]}_Changed`)
+        return
+      }
+      const radioMatch = declaration.match(
+        /^void FG_Set_([A-Za-z0-9_]+)_Selected\(bool selected\);$/
+      )
+      if (radioMatch) {
+        radioSelectedChanged.add(`FG_On_${radioMatch[1]}_Changed`)
+        return
+      }
+      const tabViewMatch = declaration.match(
+        /^void FG_Set_([A-Za-z0-9_]+)_Selected\(uint32_t tab_index\);$/
+      )
+      if (tabViewMatch) {
+        tabViewChanged.add(`FG_On_${tabViewMatch[1]}_Changed`)
+        return
+      }
+      const tileViewMatch = declaration.match(
+        /^void FG_Set_([A-Za-z0-9_]+)_Selected\(uint32_t column, uint32_t row\);$/
+      )
+      if (tileViewMatch) {
+        tileViewChanged.add(`FG_On_${tileViewMatch[1]}_Changed`)
+        return
+      }
+      const textMatch = declaration.match(
+        /^void FG_Set_([A-Za-z0-9_]+)_Text\(const char \* text\);$/
+      )
+      if (textMatch) {
+        textChanged.add(`FG_On_${textMatch[1]}_Changed`)
+        return
+      }
+      const checkedMatch = declaration.match(
+        /^void FG_Set_([A-Za-z0-9_]+)_Checked\(bool checked\);$/
+      )
+      if (checkedMatch) {
+        const hook = `FG_On_${checkedMatch[1]}_Changed`
+        if (/(?:^|_)Checkbox(?:_|$)/.test(checkedMatch[1])) {
+          checkboxCheckedChanged.add(hook)
+        } else {
+          checkedChanged.add(hook)
+        }
+        return
+      }
+      const valueMatch = declaration.match(
+        /^void FG_Set_([A-Za-z0-9_]+)_Value\(int32_t value\);$/
+      )
+      if (valueMatch) {
+        integerChanged.add(`FG_On_${valueMatch[1]}_Changed`)
+        return
+      }
       const match = declaration.match(
         /^void FG_Set_([A-Za-z0-9_]+)\((bool|int32_t) /
       )
@@ -1165,8 +1231,20 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
         ? `void ${hook}(uint32_t index, const char * text);`
       : dateChanged.has(hook)
         ? `void ${hook}(uint16_t year, uint8_t month, uint8_t day);`
+      : tabViewChanged.has(hook)
+        ? `void ${hook}(uint32_t tab_index);`
+      : tileViewChanged.has(hook)
+        ? `void ${hook}(uint32_t column, uint32_t row);`
+      : selectChanged.has(hook)
+        ? `void ${hook}(uint32_t index, const char * text);`
+      : textChanged.has(hook)
+        ? `void ${hook}(const char * text);`
       : rollerChanged.has(hook)
         ? `void ${hook}(uint32_t index, const char * text);`
+      : checkedChanged.has(hook) || checkboxCheckedChanged.has(hook)
+        ? `void ${hook}(bool checked);`
+      : radioSelectedChanged.has(hook)
+        ? `void ${hook}(bool selected);`
       : hook.endsWith('_Toggled') || booleanChanged.has(hook)
       ? `void ${hook}(bool enabled);`
       : hook.endsWith('_Changed') ? `void ${hook}(fg_three_way_state_t state);` : `void ${hook}(void);`)
@@ -1214,6 +1292,34 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
         month,
         day);
 }`
+      : tabViewChanged.has(hook)
+        ? `void ${hook}(uint32_t tab_index)
+{
+    printf(
+        "[ForgeUI User Event] ${hook.replace(/^FG_On_|_Changed$/g, '').replace(/_/g, ' ')} changed: %lu\\n",
+        (unsigned long)tab_index);
+}`
+      : tileViewChanged.has(hook)
+        ? `void ${hook}(uint32_t column, uint32_t row)
+{
+    printf(
+        "[ForgeUI User Event] ${hook.replace(/^FG_On_|_Changed$/g, '').replace(/_/g, ' ')} changed: column %lu, row %lu\\n",
+        (unsigned long)column,
+        (unsigned long)row);
+}`
+      : selectChanged.has(hook)
+        ? `void ${hook}(uint32_t index, const char * text)
+{
+    printf("[ForgeUI User Event] ${hook.replace(/^FG_On_|_Changed$/g, '').replace(/_/g, ' ')} changed: %lu - %s\\n",
+           (unsigned long)index,
+           text ? text : "");
+}`
+      : textChanged.has(hook)
+        ? `void ${hook}(const char * text)
+{
+    printf("[ForgeUI User Event] ${hook.replace(/^FG_On_|_Changed$/g, '').replace(/_/g, ' ')} changed: %s\\n",
+           text ? text : "");
+}`
       : rollerChanged.has(hook)
         ? `void ${hook}(uint32_t index, const char * text)
 {
@@ -1227,6 +1333,24 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
 {
     printf("[ForgeUI User Event] ${hook.replace(/^FG_On_|_Changed$/g, '').replace(/_/g, ' ')} changed: %ld\\n",
            (long)value);
+}`
+      : checkboxCheckedChanged.has(hook)
+      ? `void ${hook}(bool checked)
+{
+    printf("[ForgeUI User Event] ${hook.replace(/^FG_On_|_Changed$/g, '').replace(/_/g, ' ')} changed: %s\\n",
+           checked ? "CHECKED" : "UNCHECKED");
+}`
+      : radioSelectedChanged.has(hook)
+      ? `void ${hook}(bool selected)
+{
+    printf("[ForgeUI User Event] ${hook.replace(/^FG_On_|_Changed$/g, '').replace(/_/g, ' ')} changed: %s\\n",
+           selected ? "SELECTED" : "UNSELECTED");
+}`
+      : checkedChanged.has(hook)
+      ? `void ${hook}(bool checked)
+{
+    printf("[ForgeUI User Event] ${hook.replace(/^FG_On_|_Changed$/g, '').replace(/_/g, ' ')} changed: %s\\n",
+           checked ? "ON" : "OFF");
 }`
       : hook.endsWith('_Toggled') || booleanChanged.has(hook)
       ? `void ${hook}(bool enabled)

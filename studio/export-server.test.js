@@ -88,6 +88,280 @@ describe('generated public UI API headers', () => {
     expect(files.source).toContain('(long)value')
   })
 
+  it('exports Progress setters without generating or disturbing user hooks', () => {
+    const declaration =
+      'void FG_Set_Download_Progress_Value(int32_t value);'
+    const header = generateStudioExportHeader([declaration])
+    const generated = generateUserEventFiles([], [declaration])
+    const preserved = preserveUserEventFiles(
+      '#include "95_UserEvents.h"\n\nvoid FG_On_Existing_Clicked(void)\n{\n    developer_action();\n}\n',
+      '#pragma once\nvoid FG_On_Existing_Clicked(void);\n',
+      generated,
+    )
+
+    expect(header).toContain('#include <stdint.h>')
+    expect(header).toContain(declaration)
+    expect(generated.hooks).toEqual([])
+    expect(generated.source).not.toContain('FG_On_Download_Progress')
+    expect(preserved.source).toContain('developer_action();')
+    expect(preserved.source).not.toContain('FG_On_Download_Progress')
+  })
+
+  it('generates and preserves NumberInput integer hooks', () => {
+    const declaration =
+      'void FG_Set_Target_Temperature_Number_Input_Value(int32_t value);'
+    const hook = 'FG_On_Target_Temperature_Number_Input_Changed'
+    const generated = generateUserEventFiles([hook], [declaration])
+
+    expect(generateStudioExportHeader([declaration]))
+      .toContain(declaration)
+    expect(generated.header).toContain(
+      `void ${hook}(int32_t value);`,
+    )
+    expect(generated.source).toContain(
+      'Target Temperature Number Input changed: %ld',
+    )
+
+    const preserved = preserveUserEventFiles(
+      `#include "95_UserEvents.h"\n\nvoid ${hook}(int32_t value)\n{\n    developer_setpoint_action(value);\n}\n`,
+      `#pragma once\n#include <stdint.h>\nvoid ${hook}(int32_t value);\n`,
+      generated,
+    )
+    expect(preserved.source).toContain(
+      'developer_setpoint_action(value);',
+    )
+    expect(preserved.source.match(new RegExp(`void ${hook}`, 'g')))
+      .toHaveLength(1)
+  })
+
+  it('generates and preserves Select index-and-text hooks', () => {
+    const declaration =
+      'void FG_Set_Mode_Select_Selected_Index(uint32_t index);'
+    const hook = 'FG_On_Mode_Select_Changed'
+    const generated = generateUserEventFiles([hook], [declaration])
+
+    expect(generateStudioExportHeader([declaration]))
+      .toContain(declaration)
+    expect(generated.header).toContain(
+      `void ${hook}(uint32_t index, const char * text);`,
+    )
+    expect(generated.source).toContain(
+      'Mode Select changed: %lu - %s',
+    )
+
+    const preserved = preserveUserEventFiles(
+      `#include "95_UserEvents.h"\n\nvoid ${hook}(uint32_t index, const char * text)\n{\n    developer_mode_action(index, text);\n}\n`,
+      `#pragma once\n#include <stdint.h>\nvoid ${hook}(uint32_t index, const char * text);\n`,
+      generated,
+    )
+    expect(preserved.source).toContain(
+      'developer_mode_action(index, text);',
+    )
+    expect(preserved.source.match(new RegExp(`void ${hook}`, 'g')))
+      .toHaveLength(1)
+  })
+
+  it('exports Image source setters without generating user hooks', () => {
+    const declaration =
+      'void FG_Set_Logo_Image_Source(const void * src);'
+    const header = generateStudioExportHeader([declaration])
+    const generated = generateUserEventFiles([], [declaration])
+
+    expect(header).toContain(declaration)
+    expect(generated.hooks).toEqual([])
+    expect(generated.header).not.toContain('FG_On_Logo_Image')
+    expect(generated.source).not.toContain('FG_On_Logo_Image')
+  })
+
+  it('exports Box visibility setters without generating user hooks', () => {
+    const declaration =
+      'void FG_Set_Status_Box_Visible(bool visible);'
+    const header = generateStudioExportHeader([declaration])
+    const generated = generateUserEventFiles([], [declaration])
+
+    expect(header).toContain(declaration)
+    expect(generated.hooks).toEqual([])
+    expect(generated.header).not.toContain('FG_On_Status_Box')
+    expect(generated.source).not.toContain('FG_On_Status_Box')
+  })
+
+  it('generates and preserves IconButton click hooks', () => {
+    const declaration =
+      'void FG_Set_Settings_Icon_Button_Enabled(bool enabled);'
+    const hook = 'FG_On_Settings_Icon_Button_Clicked'
+    const generated = generateUserEventFiles([hook], [declaration])
+
+    expect(generateStudioExportHeader([declaration]))
+      .toContain(declaration)
+    expect(generated.header).toContain(`void ${hook}(void);`)
+    expect(generated.source).toContain(`void ${hook}(void)`)
+
+    const preserved = preserveUserEventFiles(
+      `#include "95_UserEvents.h"\n\nvoid ${hook}(void)\n{\n    developer_settings_action();\n}\n`,
+      `#pragma once\nvoid ${hook}(void);\n`,
+      generated,
+    )
+    expect(preserved.source).toContain('developer_settings_action();')
+    expect(preserved.source.match(new RegExp(`void ${hook}`, 'g')))
+      .toHaveLength(1)
+  })
+
+  it('generates and preserves Input text hooks', () => {
+    const generated = generateUserEventFiles(
+      ['FG_On_Search_Input_Changed'],
+      ['void FG_Set_Search_Input_Text(const char * text);'],
+    )
+
+    expect(generateStudioExportHeader(
+      ['void FG_Set_Search_Input_Text(const char * text);'],
+    )).toContain(
+      'void FG_Set_Search_Input_Text(const char * text);',
+    )
+    expect(generated.header).toContain(
+      'void FG_On_Search_Input_Changed(const char * text);',
+    )
+    expect(generated.source).toContain(
+      'void FG_On_Search_Input_Changed(const char * text)',
+    )
+    expect(generated.source).toContain(
+      '[ForgeUI User Event] Search Input changed: %s',
+    )
+
+    const preserved = preserveUserEventFiles(
+      '#include "95_UserEvents.h"\n\nvoid FG_On_Search_Input_Changed(const char * text)\n{\n    developer_input_action(text);\n}\n',
+      '#pragma once\nvoid FG_On_Search_Input_Changed(const char * text);\n',
+      generated,
+    )
+    expect(preserved.source).toContain('developer_input_action(text);')
+    expect(preserved.source.match(/void FG_On_Search_Input_Changed/g))
+      .toHaveLength(1)
+  })
+
+  it('generates and preserves Textarea text hooks', () => {
+    const generated = generateUserEventFiles(
+      ['FG_On_Notes_Textarea_Changed'],
+      ['void FG_Set_Notes_Textarea_Text(const char * text);'],
+    )
+
+    expect(generateStudioExportHeader(
+      ['void FG_Set_Notes_Textarea_Text(const char * text);'],
+    )).toContain(
+      'void FG_Set_Notes_Textarea_Text(const char * text);',
+    )
+    expect(generated.header).toContain(
+      'void FG_On_Notes_Textarea_Changed(const char * text);',
+    )
+    expect(generated.source).toContain(
+      '[ForgeUI User Event] Notes Textarea changed: %s',
+    )
+
+    const preserved = preserveUserEventFiles(
+      '#include "95_UserEvents.h"\n\nvoid FG_On_Notes_Textarea_Changed(const char * text)\n{\n    developer_notes_action(text);\n}\n',
+      '#pragma once\nvoid FG_On_Notes_Textarea_Changed(const char * text);\n',
+      generated,
+    )
+    expect(preserved.source).toContain('developer_notes_action(text);')
+    expect(preserved.source.match(/void FG_On_Notes_Textarea_Changed/g))
+      .toHaveLength(1)
+  })
+
+  it('generates and preserves Standard Switch checked hooks', () => {
+    const generated = generateUserEventFiles(
+      ['FG_On_Enable_WiFi_Switch_Changed'],
+      ['void FG_Set_Enable_WiFi_Switch_Checked(bool checked);'],
+    )
+
+    expect(generateStudioExportHeader(
+      ['void FG_Set_Enable_WiFi_Switch_Checked(bool checked);'],
+    )).toContain(
+      'void FG_Set_Enable_WiFi_Switch_Checked(bool checked);',
+    )
+    expect(generated.header).toContain(
+      'void FG_On_Enable_WiFi_Switch_Changed(bool checked);',
+    )
+    expect(generated.source).toContain(
+      'void FG_On_Enable_WiFi_Switch_Changed(bool checked)',
+    )
+    expect(generated.source).toContain(
+      '[ForgeUI User Event] Enable WiFi Switch changed: %s',
+    )
+
+    const preserved = preserveUserEventFiles(
+      '#include "95_UserEvents.h"\n\nvoid FG_On_Enable_WiFi_Switch_Changed(bool checked)\n{\n    developer_switch_action(checked);\n}\n',
+      '#pragma once\n#include <stdbool.h>\nvoid FG_On_Enable_WiFi_Switch_Changed(bool checked);\n',
+      generated,
+    )
+    expect(preserved.source).toContain('developer_switch_action(checked);')
+    expect(preserved.source.match(
+      /void FG_On_Enable_WiFi_Switch_Changed/g,
+    )).toHaveLength(1)
+  })
+
+  it('generates and preserves Standard Checkbox checked hooks', () => {
+    const generated = generateUserEventFiles(
+      ['FG_On_Enable_Logging_Checkbox_Changed'],
+      ['void FG_Set_Enable_Logging_Checkbox_Checked(bool checked);'],
+    )
+
+    expect(generateStudioExportHeader(
+      ['void FG_Set_Enable_Logging_Checkbox_Checked(bool checked);'],
+    )).toContain(
+      'void FG_Set_Enable_Logging_Checkbox_Checked(bool checked);',
+    )
+    expect(generated.header).toContain(
+      'void FG_On_Enable_Logging_Checkbox_Changed(bool checked);',
+    )
+    expect(generated.source).toContain(
+      'void FG_On_Enable_Logging_Checkbox_Changed(bool checked)',
+    )
+    expect(generated.source).toContain(
+      'checked ? "CHECKED" : "UNCHECKED"',
+    )
+
+    const preserved = preserveUserEventFiles(
+      '#include "95_UserEvents.h"\n\nvoid FG_On_Enable_Logging_Checkbox_Changed(bool checked)\n{\n    developer_checkbox_action(checked);\n}\n',
+      '#pragma once\n#include <stdbool.h>\nvoid FG_On_Enable_Logging_Checkbox_Changed(bool checked);\n',
+      generated,
+    )
+    expect(preserved.source).toContain(
+      'developer_checkbox_action(checked);',
+    )
+    expect(preserved.source.match(
+      /void FG_On_Enable_Logging_Checkbox_Changed/g,
+    )).toHaveLength(1)
+  })
+
+  it('generates and preserves Standard Radio selected hooks', () => {
+    const generated = generateUserEventFiles(
+      ['FG_On_Automatic_Mode_Radio_Changed'],
+      ['void FG_Set_Automatic_Mode_Radio_Selected(bool selected);'],
+    )
+
+    expect(generateStudioExportHeader(
+      ['void FG_Set_Automatic_Mode_Radio_Selected(bool selected);'],
+    )).toContain(
+      'void FG_Set_Automatic_Mode_Radio_Selected(bool selected);',
+    )
+    expect(generated.header).toContain(
+      'void FG_On_Automatic_Mode_Radio_Changed(bool selected);',
+    )
+    expect(generated.source).toContain(
+      'selected ? "SELECTED" : "UNSELECTED"',
+    )
+
+    const preserved = preserveUserEventFiles(
+      '#include "95_UserEvents.h"\n\nvoid FG_On_Automatic_Mode_Radio_Changed(bool selected)\n{\n    developer_radio_action(selected);\n}\n',
+      '#pragma once\n#include <stdbool.h>\nvoid FG_On_Automatic_Mode_Radio_Changed(bool selected);\n',
+      generated,
+    )
+    expect(preserved.source).toContain(
+      'developer_radio_action(selected);',
+    )
+    expect(preserved.source.match(
+      /void FG_On_Automatic_Mode_Radio_Changed/g,
+    )).toHaveLength(1)
+  })
+
   it('generates Arc changed hooks with int32_t state', () => {
     const files = generateUserEventFiles(
       ['FG_On_Value_Arc_Changed'],
@@ -290,6 +564,66 @@ describe('generated public UI API headers', () => {
     expect(preserved.source.match(
       /void FG_On_Menu_Matrix_Button_Selected/g,
     )).toHaveLength(1)
+  })
+
+  it('generates and preserves TabView selection hooks', () => {
+    const generated = generateUserEventFiles(
+      ['FG_On_Main_Tabs_Changed'],
+      ['void FG_Set_Main_Tabs_Selected(uint32_t tab_index);'],
+    )
+    expect(generated.header).toContain(
+      'void FG_On_Main_Tabs_Changed(uint32_t tab_index);',
+    )
+    expect(generated.source).toContain(
+      'void FG_On_Main_Tabs_Changed(uint32_t tab_index)',
+    )
+
+    const preserved = preserveUserEventFiles(
+      generated.source.replace(
+        '(unsigned long)tab_index);',
+        '(unsigned long)tab_index);\n    developer_tab_action(tab_index);',
+      ),
+      generated.header,
+      generated,
+    )
+    expect(preserved.source).toContain('developer_tab_action(tab_index);')
+    expect(preserved.source.match(/void FG_On_Main_Tabs_Changed/g))
+      .toHaveLength(1)
+  })
+
+  it('generates and preserves collision-safe Tileview selection hooks', () => {
+    const generated = generateUserEventFiles(
+      ['FG_On_Tileview_Changed', 'FG_On_Tileview_2_Changed'],
+      [
+        'void FG_Set_Tileview_Selected(uint32_t column, uint32_t row);',
+        'void FG_Set_Tileview_2_Selected(uint32_t column, uint32_t row);',
+      ],
+    )
+    expect(generated.header).toContain(
+      'void FG_On_Tileview_Changed(uint32_t column, uint32_t row);',
+    )
+    expect(generated.header).toContain(
+      'void FG_On_Tileview_2_Changed(uint32_t column, uint32_t row);',
+    )
+    expect(generated.source).toContain(
+      '[ForgeUI User Event] Tileview changed: column %lu, row %lu',
+    )
+
+    const preserved = preserveUserEventFiles(
+      generated.source.replace(
+        '(unsigned long)row);',
+        '(unsigned long)row);\n    developer_tile_action(column, row);',
+      ),
+      generated.header,
+      generated,
+    )
+    expect(preserved.source).toContain(
+      'developer_tile_action(column, row);',
+    )
+    expect(preserved.source.match(/void FG_On_Tileview_Changed/g))
+      .toHaveLength(1)
+    expect(preserved.source.match(/void FG_On_Tileview_2_Changed/g))
+      .toHaveLength(1)
   })
 
   it('preserves developer hook bodies and appends a missing LED stub', () => {

@@ -14,6 +14,14 @@ import theme from '@chakra-ui/theme'
 import ComponentPreview from './ComponentPreview'
 import { storeConfig } from '~core/store'
 
+class ResizeObserverMock {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+window.ResizeObserver = ResizeObserverMock
+
 const DndProviderWithChildren = DndProvider as React.ComponentType<
   React.PropsWithChildren<React.ComponentProps<typeof DndProvider>>
 >
@@ -65,7 +73,9 @@ const componentsToTest = [
   'FormLabel',
   // 'Tab',
   'Input',
+  'NumberInput',
   'Radio',
+  'Slider',
   //'ListItem',
   //'ListIcon',
   // 'AlertIcon',
@@ -107,6 +117,48 @@ test.each(componentsToTest)('Component Preview for %s', componentName => {
   // @ts-ignore
   renderWithRedux(<ComponentPreview componentName="test" />, { store })
   // expect(spy).not.toHaveBeenCalled();
+})
+
+test('Canvas Slider stays selectable and leaves drag gestures to its wrapper', () => {
+  // @ts-ignore Rematch's inferred plugin type is wider than this test needs.
+  const store = init(storeConfig)
+  store.dispatch.components.addComponent({
+    parentName: 'root',
+    type: 'Slider',
+    rootParentType: 'Slider',
+    testId: 'slider',
+    props: {
+      positionMode: 'absolute',
+      x: 100,
+      y: 80,
+      w: 240,
+      h: 40,
+      value: 35,
+      min: 0,
+      max: 100,
+      step: 5,
+    },
+  })
+
+  // @ts-ignore Test helper preserves its historical loosely typed options shape.
+  renderWithRedux(<ComponentPreview componentName="slider" />, { store })
+
+  const preview = screen.getByTestId('standard-slider-canvas')
+  const control = screen.getByTestId('standard-slider-control')
+  const draggable = preview.closest('.react-draggable')
+  const moveSurface = preview.closest('[draggable="true"]')
+
+  expect(draggable).not.toBeNull()
+  expect(moveSurface).toHaveAttribute('draggable', 'true')
+  expect(control).toHaveClass('forgeui-canvas-control-interactive')
+  expect(fireEvent.dragStart(control)).toBe(false)
+  expect(fireEvent.dragStart(moveSurface as HTMLElement)).toBe(true)
+  fireEvent.click(preview)
+  // @ts-ignore Store state is wrapped by redux-undo in production and tests.
+  expect(store.getState().components.present.selectedId).toBe('slider')
+  // @ts-ignore Store state is wrapped by redux-undo in production and tests.
+  expect(store.getState().components.present.components.slider.props.value)
+    .toBe(35)
 })
 
 test('Three-Position Toggle uses the shared positioned, selectable preview container', () => {

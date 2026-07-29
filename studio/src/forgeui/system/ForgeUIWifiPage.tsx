@@ -68,26 +68,36 @@ const WifiPage = () => {
           Simulated Preview
         </Badge>
       </Box>
-      <Flex height="calc(100% - 82px)" px="28px" py="14px" gap="20px">
-        <VStack width="46%" align="stretch" spacing="10px">
+      <Flex height="calc(100% - 82px)" px="28px" py="14px" gap="22px">
+        <VStack width="440px" flexShrink={0} align="stretch" spacing="12px">
           <Box
             border={`1px solid ${palette.border}`}
             bg={palette.surface}
             borderRadius="12px"
             px="18px"
-            py="11px"
+            py="14px"
+            minHeight="248px"
           >
-            <Text fontSize="12px" opacity={0.7}>Connection</Text>
+            <Text
+              fontSize="11px"
+              fontWeight="semibold"
+              letterSpacing="0.12em"
+              opacity={0.65}
+            >
+              CONNECTION STATUS
+            </Text>
             <Text
               data-testid="wifi-state"
-              fontSize="26px"
+              fontSize="28px"
               fontWeight="bold"
               textTransform="capitalize"
               color={palette.accent}
+              lineHeight="1.2"
+              mt="2px"
             >
               {stateLabel}
             </Text>
-            <Grid templateColumns="125px 1fr" rowGap="3px" mt="8px" fontSize="13px">
+            <Grid templateColumns="125px 1fr" rowGap="6px" mt="12px" fontSize="14px">
               <Text opacity={0.65}>Current network</Text>
               <Text data-testid="wifi-ssid">{wifi.ssid || '—'}</Text>
               <Text opacity={0.65}>IP address</Text>
@@ -105,16 +115,17 @@ const WifiPage = () => {
             </Grid>
             {wifi.error && <Text mt="6px" color="red.300" data-testid="wifi-error">{wifi.error}</Text>}
           </Box>
-          <HStack>
+          <HStack spacing="8px">
             <Button
               flex="1"
+              minHeight="44px"
               onClick={system.scanPreviewWifi}
               disabled={wifi.scanInProgress}
               leftIcon={<FiWifi />}
             >
               {wifi.scanInProgress ? 'Scanning…' : 'Scan Networks'}
             </Button>
-            <Button aria-label="Refresh Wi-Fi status" leftIcon={<FiRefreshCw />}>
+            <Button minHeight="44px" aria-label="Refresh Wi-Fi status" leftIcon={<FiRefreshCw />}>
               Refresh
             </Button>
           </HStack>
@@ -123,19 +134,19 @@ const WifiPage = () => {
               border={`1px solid ${palette.border}`}
               bg={palette.surface}
               borderRadius="12px"
-              px="14px"
-              py="9px"
+              px="16px"
+              py="12px"
               data-testid="wifi-connected-details"
             >
-              <Text fontWeight="bold">Connected Network</Text>
-              <Grid templateColumns="110px 1fr" fontSize="12px" rowGap="2px" mt="4px">
+              <Text fontSize="16px" fontWeight="bold">Connected Network</Text>
+              <Grid templateColumns="100px 1fr" fontSize="12px" rowGap="4px" mt="7px">
                 <Text opacity={0.65}>Station MAC</Text><Text>{wifi.stationMac}</Text>
                 <Text opacity={0.65}>AP BSSID</Text><Text>{wifi.apBssid || '—'}</Text>
               </Grid>
-              <HStack mt="8px">
-                <Button size="sm" onClick={system.disconnectPreviewWifi}>Disconnect</Button>
-                <Button size="sm" onClick={system.requestForgetPreviewWifi}>Forget Network</Button>
-                <Button size="sm" onClick={system.reconnectPreviewWifi}>Reconnect</Button>
+              <HStack mt="10px" spacing="7px">
+                <Button flex="1" size="sm" onClick={system.disconnectPreviewWifi}>Disconnect</Button>
+                <Button flex="1" size="sm" onClick={system.requestForgetPreviewWifi}>Forget</Button>
+                <Button flex="1" size="sm" onClick={system.reconnectPreviewWifi}>Reconnect</Button>
               </HStack>
             </Box>
           ) : (
@@ -149,10 +160,13 @@ const WifiPage = () => {
           bg={palette.surface}
           borderRadius="12px"
           px="14px"
-          py="12px"
+          py="14px"
         >
-          <Text fontSize="20px" fontWeight="bold" mb="9px">Available Networks</Text>
-          <VStack align="stretch" spacing="6px" maxHeight="420px" overflowY="auto" data-testid="wifi-network-list">
+          <Text fontSize="20px" fontWeight="bold" lineHeight="1.2">Available Networks</Text>
+          <Text fontSize="11px" opacity={0.6} mt="2px" mb="11px">
+            Select a network to connect
+          </Text>
+          <VStack align="stretch" spacing="8px" maxHeight="404px" overflowY="auto" data-testid="wifi-network-list">
             {wifi.scanInProgress && <Text py="18px">Scanning for nearby networks…</Text>}
             {!wifi.scanInProgress && wifi.networks.map(network => {
               const selected = wifi.selectedSsid === network.ssid
@@ -162,13 +176,14 @@ const WifiPage = () => {
                   key={network.ssid}
                   onClick={() => system.selectPreviewWifi(network.ssid)}
                   justifyContent="space-between"
-                  minHeight="43px"
-                  px="10px"
-                  border="2px solid"
+                  minHeight="50px"
+                  px="12px"
+                  border="1px solid"
                   borderColor={selected ? palette.accent : palette.border}
                   bg={selected ? palette.accent : palette.surface2}
                   color={selected ? palette.bg : palette.text}
                   opacity={connecting ? 0.82 : 1}
+                  borderRadius="9px"
                   _hover={{
                     bg: selected ? palette.accent : palette.surface,
                     borderColor: palette.accent,
@@ -196,14 +211,14 @@ const WifiPage = () => {
                   data-connecting={connecting || undefined}
                   data-testid={`wifi-network-${network.ssid}`}
                 >
-                  <HStack minWidth={0}>
+                  <HStack minWidth={0} flex="1" overflow="hidden" spacing="8px">
                     <Box as={FiWifi} color={selected ? palette.bg : palette.accent} />
                     {network.security !== 'Open' && (
                       <Box as={FiLock} color={selected ? palette.bg : palette.border} />
                     )}
-                    <Text noOfLines={1}>{network.ssid}</Text>
+                    <Text noOfLines={1} fontWeight="semibold" textAlign="left">{network.ssid}</Text>
                   </HStack>
-                  <HStack>
+                  <HStack flexShrink={0} spacing="6px" ml="8px">
                     {network.connected && (
                       <Badge bg={palette.accent} color={palette.bg}>Connected</Badge>
                     )}

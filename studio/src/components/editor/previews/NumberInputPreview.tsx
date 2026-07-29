@@ -1,6 +1,5 @@
-import { forgeuiInputStyle } from '~forgeui/ForgeUIControlStyle'
-import React, { useState } from 'react'
-import * as Chakra from '@chakra-ui/react'
+import React from 'react'
+import StandardNumberInputPreview from '~forgeui/preview/StandardNumberInputPreview'
 
 interface IProps {
   component: IComponent
@@ -9,37 +8,17 @@ interface IProps {
 const NumberInputPreview = ({
   component,
 }: IProps) => {
-  const [value, setValue] = useState(50)
-
   return (
-    <Chakra.Box
-      width="100%"
-      height="100%"
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
-      padding="0"
-    >
-      <Chakra.NumberInput
-        width="100%"
-        value={value}
-        min={0}
-        max={100}
-        onChange={(_, nextValue) =>
-          setValue(nextValue || 0)
-        }
-        {...forgeuiInputStyle}
-      >
-        <Chakra.NumberInputField
-          {...forgeuiInputStyle}
-        />
-
-        <Chakra.NumberInputStepper>
-          <Chakra.NumberIncrementStepper />
-          <Chakra.NumberDecrementStepper />
-        </Chakra.NumberInputStepper>
-      </Chakra.NumberInput>
-    </Chakra.Box>
+    <StandardNumberInputPreview
+      mode="canvas"
+      value={component.props.value}
+      min={component.props.min}
+      max={component.props.max}
+      step={component.props.step}
+      precision={component.props.precision}
+      isDisabled={Boolean(component.props.isDisabled)}
+      isReadOnly={Boolean(component.props.isReadOnly)}
+    />
   )
 }
 

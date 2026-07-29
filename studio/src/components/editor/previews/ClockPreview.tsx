@@ -1,25 +1,31 @@
 import React from 'react'
 import * as Chakra from '@chakra-ui/react'
+import {
+  formatForgeUIStandardClockTime,
+  getForgeUIStandardClockPresentation,
+} from '~forgeui/ForgeUIStandardClock'
 
-const ClockPreview = () => {
-  const [time, setTime] = React.useState('')
+const ClockPreview = ({
+  component,
+  justifyContent = 'center',
+}: {
+  component: IComponent
+  justifyContent?: 'center' | 'flex-start'
+}) => {
+  const [now, setNow] = React.useState(() => new Date())
+  const [separatorVisible, setSeparatorVisible] = React.useState(true)
+  const presentation = getForgeUIStandardClockPresentation(component.props)
 
   React.useEffect(() => {
-    const updateTime = () => {
-      setTime(
-        new Date().toLocaleTimeString('en-NZ', {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false,
-        })
-      )
-    }
-
-    updateTime()
-    const timer = setInterval(updateTime, 1000)
+    const timer = setInterval(() => {
+      setNow(new Date())
+      if (presentation.blinkSeparator) {
+        setSeparatorVisible(visible => !visible)
+      }
+    }, 1000)
 
     return () => clearInterval(timer)
-  }, [])
+  }, [presentation.blinkSeparator])
 
   return (
     <Chakra.Text
@@ -27,13 +33,17 @@ const ClockPreview = () => {
       height="100%"
       display="flex"
       alignItems="center"
-      justifyContent="center"
-      color="#00d4ff"
-      fontSize="32px"
+      justifyContent={justifyContent}
+      color={component.props.color || '#00d4ff'}
+      fontSize={`${component.props.fontSize || 32}px`}
       fontWeight="bold"
       fontFamily="monospace"
     >
-      {time}
+      {formatForgeUIStandardClockTime(
+        now,
+        presentation,
+        separatorVisible,
+      )}
     </Chakra.Text>
   )
 }

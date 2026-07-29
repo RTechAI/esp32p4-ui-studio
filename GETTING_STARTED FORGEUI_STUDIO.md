@@ -15,6 +15,29 @@ For detailed architecture and generated API documentation, see:
 
 # Before You Begin
 
+# 🌐 Developer Portal
+
+The official **ForgeUI Developer Portal** is the recommended starting point for new users and developers:
+
+https://forgeui.co.nz/developers
+
+The Developer Portal contains:
+
+- Getting Started guides
+- Installation instructions
+- Supported boards
+- Documentation
+- Example projects
+- Export architecture
+- Developer workflows
+- Roadmap
+- Community resources
+- Contribution information
+
+The website is the primary source for current documentation, while this repository contains the detailed engineering references. Developers can continue using the Markdown architecture documents when they need deeper implementation details.
+
+---
+
 There are only a few applications you should install yourself before using ForgeUI Studio.
 
 ## Required Software
@@ -52,6 +75,35 @@ Download the **ESP-IDF v5.5.4 Offline Installer**:
 https://dl.espressif.com/dl/esp-idf/
 
 The offline installer is currently the recommended installation method.
+
+---
+
+# 🚀 Quick Start
+
+```text
+Windows Setup
+        │
+        ▼
+Run FIRST_TIME_FORGEUI_SETUP.bat
+        │
+        ▼
+Launch ForgeUI Studio
+        │
+        ▼
+Create UI
+        │
+        ▼
+Browser Preview
+        │
+        ▼
+Build & Flash
+        │
+        ▼
+Export Standalone ESP-IDF Project
+        │
+        ▼
+Continue Development
+```
 
 ---
 
@@ -276,15 +328,36 @@ The exported project is completely independent from ForgeUI Studio.
 Continue development using:
 
 - Visual Studio Code
-- ESP-IDF Extension
+- ESP-IDF and its Visual Studio Code extension
 - Git
 - Your own application code
+
+ForgeUI Studio is not required during normal firmware development after export. The standalone project can be built, version controlled and extended using the developer's preferred ESP-IDF workflow.
 
 ---
 
 # Generated Files
 
 ForgeUI separates generated code from developer code.
+
+```text
+Generated UI
+        │
+        ▼
+90_Studio_Export.*
+        │
+        ▼
+95_UserEvents.*
+        │
+        ▼
+Developer Application Code
+```
+
+`90_Studio_Export.*` contains generated UI and runtime code.
+
+`95_UserEvents.*` is the intended location for developer hardware control and application behaviour.
+
+Using the supported workflow, generated files can safely regenerate without overwriting developer application logic.
 
 ## Generated Files
 
@@ -395,6 +468,18 @@ ForgeUI Studio was created by **Scott Forster** from New Zealand.
 Its goal is simple:
 
 > **Build embedded interfaces visually. Export clean native firmware. Keep developers in complete control of the generated code.**
+
+ForgeUI now combines:
+
+- AI Studio
+- Interactive Asset Framework
+- Standard LVGL Component Runtime
+- Built-in System Runtime
+- Browser Preview
+- Native LVGL generation
+- Standalone ESP-IDF export
+
+Together these layers make ForgeUI a complete embedded application generation platform rather than only a visual editor. Generated firmware includes semantic runtime APIs for supported Standard LVGL widgets while maintaining a strict ownership boundary between generated UI code and developer application code.
 
 Every major feature is developed and validated on physical ESP32-P4 hardware before being considered complete.
 

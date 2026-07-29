@@ -55,6 +55,8 @@ import StatArrowPanel from './components/StatArrowPanel'
 import StatLabelPanel from './components/StatLabelPanel'
 import SkeletonPanel from './components/SkeletonPanel'
 import ForgeUILayoutPanel from '~forgeui/ForgeUILayoutPanel'
+import StandardTextPanel from './components/StandardTextPanel'
+import ClockPanel from './components/ClockPanel'
 
 const Panels: React.FC<{ component: IComponent; isRoot: boolean }> = ({
   component,
@@ -78,7 +80,7 @@ const Panels: React.FC<{ component: IComponent; isRoot: boolean }> = ({
       {type === 'Icon' && <IconPanel />}
       {type === 'IconButton' && <IconButtonPanel />}
       {type === 'Progress' && <ProgressPanel />}
-      {type === 'Text' && <ChildrenControl />}
+      {type === 'Text' && <StandardTextPanel />}
       {type === 'Link' && <LinkPanel />}
       {type === 'Avatar' && <AvatarPanel />}
       {type === 'AvatarGroup' && <AvatarGroupPanel />}
@@ -90,6 +92,7 @@ const Panels: React.FC<{ component: IComponent; isRoot: boolean }> = ({
       {type === 'Textarea' && <TextareaPanel />}
       {type === 'CircularProgress' && <CircularProgressPanel />}
       {type === 'Heading' && <HeadingPanel />}
+      {type === 'Clock' && <ClockPanel />}
       {type === 'Highlight' && <HighlightPanel />}
       {type === 'SimpleGrid' && <SimpleGridPanel />}
       {type === 'Switch' && <SwitchPanel />}

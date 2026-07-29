@@ -403,6 +403,27 @@ describe('built-in System LVGL export', () => {
     )
   })
 
+  it('exports the polished Wi-Fi information hierarchy and network list geometry', () => {
+    expect(generated.code).toContain(
+      'lv_label_set_text(wifi_connection_caption, "CONNECTION STATUS");',
+    )
+    expect(generated.code).toContain(
+      'lv_label_set_text(wifi_scan_hint, "Select a network to connect");',
+    )
+    expect(generated.code).toContain(
+      'lv_obj_set_size(fg_system_wifi_network_container, 506, 404);',
+    )
+    expect(generated.code).toContain(
+      'lv_obj_set_style_radius(fg_system_wifi_network_rows[i], 9, 0);',
+    )
+    expect(generated.code).toContain(
+      'lv_obj_align(fg_system_wifi_network_labels[i], LV_ALIGN_LEFT_MID, 0, 0);',
+    )
+    expect(generated.code).toContain(
+      'lv_label_set_long_mode(fg_system_wifi_network_labels[i], LV_LABEL_LONG_DOT);',
+    )
+  })
+
   it('opens a shared native keyboard only when the password field is focused', () => {
     expect(generated.code).toContain(
       'fg_system_wifi_keyboard = lv_keyboard_create(parent);',

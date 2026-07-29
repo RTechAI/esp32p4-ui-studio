@@ -22,6 +22,8 @@ import { InputRightElementPreview } from '~components/editor/previews/InputRight
 import { InputLeftElementPreview } from '~components/editor/previews/InputLeftElement'
 import AspectRatioPreview from '~components/editor/previews/AspectRatioBoxPreview'
 import ButtonPreview from '~components/editor/previews/ButtonPreview'
+import TextPreview from '~components/editor/previews/TextPreview'
+import HeadingPreview from '~components/editor/previews/HeadingPreview'
 import PreviewContainer from '~components/editor/PreviewContainer'
 import WithChildrenPreviewContainer from '~components/editor/WithChildrenPreviewContainer'
 import IconPreview from './previews/IconPreview'
@@ -43,6 +45,9 @@ import InteractiveStatusIndicatorCanvasPreview, {
 import InteractiveToggleSwitchCanvasPreview, {
   getInteractiveToggleCanvasAspectRatio,
 } from './previews/InteractiveToggleSwitchCanvasPreview'
+import StandardSwitchPreview from '~forgeui/preview/StandardSwitchPreview'
+import StandardCheckboxPreview from '~forgeui/preview/StandardCheckboxPreview'
+import StandardRadioPreview from '~forgeui/preview/StandardRadioPreview'
 import InteractiveThreePositionToggleCanvasPreview, {
   getInteractiveThreePositionCanvasAspectRatio,
 } from './previews/InteractiveThreePositionToggleCanvasPreview'
@@ -143,10 +148,17 @@ const ComponentPreview: React.FC<{
         alignItems="center"
         justifyContent="center"
       >
-        <Chakra.Radio
-          isChecked={component.props.isChecked}
+        <StandardRadioPreview
+          initialSelected={Boolean(component.props.isChecked)}
+          isDisabled={Boolean(component.props.isDisabled)}
           colorScheme={
             component.props.colorScheme || 'blue'
+          }
+          label={
+            component.props.children ||
+            component.props.text ||
+            component.props.label ||
+            'Radio'
           }
         />
       </Chakra.Box>
@@ -167,8 +179,9 @@ case 'Switch':
         alignItems="center"
         justifyContent="center"
       >
-        <Chakra.Switch
-          isChecked={component.props.isChecked}
+        <StandardSwitchPreview
+          initialChecked={Boolean(component.props.isChecked)}
+          isDisabled={Boolean(component.props.isDisabled)}
           colorScheme={
             component.props.colorScheme || 'blue'
           }
@@ -495,22 +508,7 @@ case 'Select':
       enableVisualHelper
       {...forwardedProps}
     >
-      <Chakra.Box
-        width="100%"
-        height="100%"
-        display="flex"
-        alignItems="center"
-        justifyContent="space-between"
-        px="10px"
-        border="1px solid #00d4ff"
-        borderRadius="8px"
-        bg="#1e2328"
-        color="white"
-        fontSize="14px"
-      >
-        <Chakra.Text>Option 1</Chakra.Text>
-        <Chakra.Text>▼</Chakra.Text>
-      </Chakra.Box>
+      <SelectPreview component={component} />
     </PreviewContainer>
   )
 
@@ -521,19 +519,7 @@ case 'Select':
       enableVisualHelper
       {...forwardedProps}
     >
-      <Chakra.Text
-        {...component.props}
-        width="100%"
-        height="100%"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-        color="white"
-        fontSize="32px"
-        fontWeight="bold"
-      >
-        {component.props.children || component.props.text || 'Heading'}
-      </Chakra.Text>
+      <HeadingPreview component={component} />
     </PreviewContainer>
   )
 
@@ -544,7 +530,7 @@ case 'Select':
       enableVisualHelper
       {...forwardedProps}
     >
-      <ClockPreview />
+      <ClockPreview component={component} />
     </PreviewContainer>
   )
 
@@ -597,7 +583,7 @@ case 'Select':
        {...forgeuiInputStyle}
        width="100%"
         height="100%"
-         placeholder="Input value"
+         placeholder={component.props.placeholder || 'Input value'}
 />
     </PreviewContainer>
   )
@@ -650,10 +636,17 @@ case 'Image':
         justifyContent="flex-start"
         px="8px"
       >
-        <Chakra.Checkbox
-          isChecked={component.props.isChecked}
+        <StandardCheckboxPreview
+          initialChecked={Boolean(component.props.isChecked)}
+          isDisabled={Boolean(component.props.isDisabled)}
           colorScheme={
             component.props.colorScheme || 'blue'
+          }
+          label={
+            component.props.children ||
+            component.props.text ||
+            component.props.label ||
+            'Checkbox'
           }
         />
       </Chakra.Box>
@@ -672,7 +665,7 @@ case 'Textarea':
         {...forgeuiInputStyle}
          width="100%"
           height="100%"
-            placeholder="Textarea value"
+            placeholder={component.props.placeholder || 'Textarea value'}
 />
     </PreviewContainer>
   )
@@ -684,17 +677,7 @@ case 'Textarea':
         enableVisualHelper
         {...forwardedProps}
     >
-      <Chakra.Text
-        {...component.props}
-        width="100%"
-        height="100%"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-        color="white"
-      >
-        {component.props.children || 'Text'}
-      </Chakra.Text>
+      <TextPreview component={component} />
     </PreviewContainer>
   )
 
