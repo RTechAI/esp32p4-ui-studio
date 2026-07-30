@@ -111,6 +111,40 @@ describe('Standard Box generated runtime API', () => {
     )
   })
 
+  it('exports smart-region semantic surface styling without exporting metadata', () => {
+    const { code } = generate(box('box', 'Main Region', {
+      layoutRegionKey: 'dashboard.main',
+      layoutSurfaceRole: 'surfaceSecondary',
+      layoutRadius: 10,
+      layoutBorderWidth: 1,
+      layoutOpacity: 0.92,
+    }))
+
+    expect(code).toContain(
+      'lv_obj_set_style_radius(fg_main_region, 10, 0);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_border_width(fg_main_region, 1, 0);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_bg_opa(fg_main_region, 235, 0);',
+    )
+    expect(code).not.toContain('layoutRegionKey')
+  })
+
+  it('keeps smart Region Boxes on the existing visibility-only runtime contract', () => {
+    const generated = generate(box('box', 'Main Region', {
+      layoutRegionKey: 'dashboard.main',
+      layoutSurfaceRole: 'surfaceSecondary',
+    }))
+
+    expect(generated.publicApiDeclarations).toEqual([
+      'void FG_Set_Main_Region_Visible(bool visible);',
+    ])
+    expect(generated.userEventHooks).toEqual([])
+    expect(generated.code).not.toContain('FG_On_Main_Region')
+  })
+
   it('does not export an API for the non-generated root Box', () => {
     const generated = generate(box('box'))
 

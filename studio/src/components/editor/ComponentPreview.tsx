@@ -599,7 +599,11 @@ case 'Select':
     </PreviewContainer>
   )
 
-  case 'Box':
+  case 'Box': {
+  const boxSurface =
+    component.props.layoutSurfaceRole === 'surfaceSecondary'
+      ? previewTheme.surfaceSecondary
+      : previewTheme.surface
   return (
     <PreviewContainer
       component={component}
@@ -607,18 +611,20 @@ case 'Select':
       {...forwardedProps}
     >
       <Chakra.Box
+        data-layout-region={component.props.layoutRegionKey}
         width="100%"
         height="100%"
         display="flex"
         alignItems="center"
         justifyContent="center"
-        border={`2px solid ${previewTheme.surfaceBorder}`}
-        borderRadius="12px"
-        bg={previewTheme.surface}
-        opacity={0.8}
+        border={`${Number(component.props.layoutBorderWidth ?? 2)}px solid ${previewTheme.surfaceBorder}`}
+        borderRadius={`${Number(component.props.layoutRadius ?? 12)}px`}
+        bg={boxSurface}
+        opacity={Number(component.props.layoutOpacity ?? 0.8)}
       />
     </PreviewContainer>
   )
+  }
   
 case 'Image':
   return (
@@ -701,8 +707,6 @@ case 'Textarea':
       />
     </PreviewContainer>
   )
-
-
 case 'Link':
   return (
     <PreviewContainer

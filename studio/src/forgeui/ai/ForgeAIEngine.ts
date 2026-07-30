@@ -19,6 +19,12 @@ import { ForgeAIThemeDocument } from './ForgeAIThemeDocument'
 import { parseForgeAIThemeResponse } from './ForgeAIThemeParser'
 
 import { requestForgeAILayout } from './ForgeAIClient'
+import { composeForgeAILayout } from './ForgeAILayoutEngine'
+import { composeForgeUIDashboardTemplate } from '~forgeui/layout/ForgeUILayoutDesigner'
+import {
+  flattenForgeAIRegionComposerDocument,
+  isForgeAIRegionComposerDocument,
+} from './ForgeAIRegionComposer'
 
 export type GenerateForgeAILayoutOptions =
   ForgeAIPromptContext & {
@@ -38,6 +44,8 @@ export const generateForgeAILayout = async ({
   currentLayout = [],
   currentTheme = null,
   relevantIcons = [],
+  componentCatalogue = [],
+  availableAssets = [],
 }: GenerateForgeAILayoutOptions): Promise<ForgeAILayoutDocument> => {
    const trimmedPrompt = prompt.trim()
 
@@ -76,6 +84,8 @@ export const generateForgeAILayout = async ({
     currentLayout,
     currentTheme,
     relevantIcons,
+    componentCatalogue,
+    availableAssets,
   })
 
   const userPrompt =
@@ -86,9 +96,30 @@ export const generateForgeAILayout = async ({
     systemPrompt,
   })
 
-  return parseForgeAIResponse(
-    JSON.stringify(response.document),
+  const responseDocument =
+    isForgeAIRegionComposerDocument(response.document)
+      ? flattenForgeAIRegionComposerDocument(response.document)
+      : response.document
+  const parsed = parseForgeAIResponse(
+    JSON.stringify(responseDocument),
     supportedComponents,
+    screenWidth,
+    screenHeight,
+    availableAssets,
+  )
+  if (/FORGEUI_LAYOUT_TEMPLATE:\s*dashboard/i.test(trimmedPrompt)) {
+    return {
+      ...parsed,
+      layout: composeForgeUIDashboardTemplate(
+        parsed.layout as any,
+      ),
+    }
+  }
+  return composeForgeAILayout(
+    parsed,
+    screenWidth,
+    screenHeight,
+    trimmedPrompt,
   )
 }
 

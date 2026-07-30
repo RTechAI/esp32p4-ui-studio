@@ -11,7 +11,7 @@
 
 ## Current Save Point
 
-**FORGEUI_STANDARD_LVGL_PARITY__INPUT_TEXTAREA_CHECKBOX_SWITCH_RADIO_PROGRESS_CIRCULAR_PROGRESS_NUMBER_INPUT_SELECT__SEMANTIC_THEME_AND_BORDER_PARITY__ESP32P4_PROVEN__2026-07-30**
+**FORGEUI_LAYOUT_DESIGNER__DASHBOARD_SMART_REGIONS_AUTO_ARRANGE_AI_FILL__CANVAS_AND_BROWSER_PREVIEW_MANUALLY_VERIFIED__READY_FOR_EXPORT_AND_HARDWARE_PROOF__2026-07-30**
 
 ## Current Proven Status..
 
@@ -106,6 +106,31 @@ The final whole-screen comparison on 2026-07-30 confirmed the active graphite/or
 Standard Input and Standard Textarea generate native `lv_textarea` objects. Touch focuses the field, but no Standard Canvas Keyboard is attached automatically. The built-in System Runtime keyboard remains separate and private to System dialogs. A shared application-keyboard service would be separate future work.
 
 The flashed ESP32-P4 remains the authoritative final visual reference.
+
+## Current Priorities
+
+1. Polish the Dashboard Layout Designer vertical slice.
+2. Confirm save/reload manually with assigned region components.
+3. Confirm generated LVGL project output.
+4. Run the full Studio production build.
+5. Fix the unrelated Circular Progress JSX test typing defect.
+6. Generate, build and flash the Dashboard layout to the ESP32-P4.
+7. Compare Canvas, Browser Preview and physical LVGL.
+8. Only after Dashboard is proven, extend the region engine to Settings, Login, Form and Machine Status.
+
+No additional structural template should be treated as complete until Dashboard passes the full export and hardware workflow.
+
+## Layout Designer Must-Not-Regress Rules
+
+- Do not return template-based Dashboard generation to AI-owned pixel coordinates.
+- Do not remove the authoritative AI component catalogue.
+- Do not weaken canonical type validation or asset-reference validation.
+- Do not introduce a parallel non-exportable layout document.
+- Do not manually patch generated `90_Studio_Export.*`.
+- Do not alter existing Standard Runtime APIs or `95_UserEvents` signatures for Layout Designer work.
+- Do not make region Boxes consume runtime semantics beyond the existing Box visibility contract.
+- Do not claim physical proof until Generate -> Build -> Flash -> visual review is completed.
+- Do not expand to many partially completed templates before Dashboard is complete.
 
 ## Standard LVGL Semantic Theme Milestone
 
@@ -1219,6 +1244,110 @@ LVGL image source changes
 Physical indicator state changes
 ```
 
+## ForgeUI Layout Designer
+
+### Product direction
+
+ForgeUI no longer relies on AI-generated absolute coordinates as the primary design mechanism for template-based dashboards. AI selects appropriate content and assigns semantic regions; the Layout Designer owns deterministic structure, geometry and validation.
+
+```text
+User / AI
+    |
+    v
+Select content and semantic region
+    |
+    v
+ForgeUI Layout Designer
+    |
+    +-- deterministic structural regions
+    +-- editable Boxes and Dividers
+    +-- region assignment
+    +-- Auto Arrange
+    +-- geometry validation
+    |
+    v
+Normal ForgeUI component model
+    |
+    +-- Canvas
+    +-- Browser Preview
+    +-- Save / Reload
+    +-- LVGL Export
+```
+
+The first complete vertical slice is the Dashboard template for the current `1024 × 600` landscape target. It creates ordinary root-level ForgeUI components and records optional layout metadata in their existing `props`. Projects without this metadata continue to load unchanged.
+
+The ownership distinction is deliberate: AI decides what the dashboard contains; ForgeUI owns the structural layout and geometry. The result remains composed of normal editable ForgeUI components. No image-only mockup or non-exportable parallel document was introduced.
+
+### Deterministic smart regions
+
+The Dashboard template creates five stable structural regions:
+
+- `dashboard.header`
+- `dashboard.status`
+- `dashboard.main`
+- `dashboard.controls`
+- `dashboard.footer`
+
+These regions are normal editable Box components, accompanied by one structural Divider and one editable Heading placeholder. All structural geometry is deterministic for the current `1024 × 600` landscape target. The Boxes use semantic theme roles.
+
+A Region Box stores `layoutRegionKey`; an assigned component stores the corresponding key as `layoutRegionId`. Each smart Box also carries its role, label, padding, horizontal gap, vertical gap, arrangement mode, column count, row count, minimum child dimensions, ordering, structural-lock setting, semantic surface role, semantic border role, radius, border width and opacity. Generated component IDs are not used as the semantic region contract.
+
+Regions remain manually movable and resizable on Canvas. The Inspector exposes smart-region controls when a region Box is selected and an Assigned Region selector for ordinary components. The structural lock is currently persisted as metadata; it does not yet prevent direct Canvas movement or resizing.
+
+Old projects without region metadata load normally, and the project remains compatible with the existing component model. Region relationships are currently flat metadata rather than true serialized parent-child hierarchy. Current assignment is through Inspector; drag-to-assign is not implemented.
+
+### Auto Arrange
+
+Auto Arrange is deterministic and changes only `x`, `y`, `w`, `h` and absolute positioning. Its current modes are Vertical Stack, Horizontal Row, Grid, KPI Cards, Button Stack, Form Rows, Even Distribution and Fit to Region. Region bounds, padding, horizontal and vertical gaps, column and row settings, preferred catalogue sizes, minimum touch sizes, full-width controls and square-control constraints guide placement.
+
+Auto Arrange preserves component props, runtime identity, callback ownership, region metadata, asset references, component type, runtime APIs and hooks. Stable region assignment is retained while components are moved or resized and Auto Arrange can be run again after a region is edited.
+
+The Layout Designer does not replace the normal ForgeUI component model, serialization, theme system, Browser Preview or LVGL exporter. It produces and arranges the same components those paths already consume.
+
+### AI Fill Dashboard
+
+AI Fill Dashboard uses the normal AI generation path with a Dashboard template marker and a region-composer contract:
+
+```json
+{
+  "template": "dashboard",
+  "title": "System Health",
+  "regions": {
+    "header": [],
+    "status": [],
+    "main": [],
+    "controls": [],
+    "footer": []
+  }
+}
+```
+
+The AI selects canonical ForgeUI component types, supplies content and supported props, and assigns each component to a semantic region. It does not provide final pixel geometry in Dashboard template mode. Studio validates canonical types, creates the structural template, inserts real components, resolves stable region references, Auto Arranges each region, validates geometry and inserts the editable result through the existing Canvas path.
+
+Legacy free-coordinate AI generation remains available for non-template requests. Dashboard AI Fill does not hard-code the selected application content, bypass the normal generation route or fabricate component identities.
+
+### Manual visual result
+
+The manually observed AI Fill Dashboard result contained a clear Header region, grouped Status panel, large central Chart region, vertically arranged control buttons and Footer status area. It produced a coherent one-screen `1024 × 600` composition, and Browser Preview successfully rendered the region-based result. This was a substantial improvement over unrestricted AI coordinate placement, but it is not claimed as final visual parity and does not prove any additional template.
+
+### Rendering, persistence and export
+
+Smart regions use semantic `surface`, `surfaceSecondary` and border roles through the existing theme resolver. Canvas and Browser Preview render the same saved component geometry and metadata. Existing arbitrary-props serialization preserves region settings and assignments across save/reload. Generated LVGL continues to receive ordinary ForgeUI components; focused exporter coverage confirms smart Box surface styling and export compatibility without introducing a separate runtime API or hook family.
+
+### Current proof boundary
+
+The Dashboard vertical slice has been manually verified in Canvas and Browser Preview, including deterministic region creation, editable Boxes, movement and resizing, stable assignment, Auto Arrange and the observed AI Fill Dashboard workflow. Automated coverage exercises the layout designer, region composer, reducer updates, panel workflow, Browser Preview and focused Box/LVGL export behavior.
+
+This save point does not claim:
+
+- a full Studio production build;
+- a live OpenAI network test beyond the manually observed AI Fill workflow;
+- an ESP-IDF firmware build;
+- a hardware flash or physical ESP32-P4 parity review;
+- completed Settings, Login, Form or other structural templates.
+
+Dashboard is the only completed structural template in this vertical slice. Drag-to-assign is not yet implemented, region relationships remain flat metadata rather than serialized hierarchy, and physical export proof remains the next promotion gate.
+
 ## Shared AI Generation Path
 
 All five Interactive Asset types use the same request, response, upload, registration and LVGL conversion pipeline:
@@ -1349,6 +1478,40 @@ Progress, Image and Box are setter-only outputs and add no hooks. Icon, Divider,
 ## Major Files
 
 Paths under `src/` are relative to `studio/`.
+
+### Layout Designer and AI Region Composer
+
+Layout structure, geometry and focused rendering coverage:
+
+- `src/forgeui/layout/ForgeUILayoutDesigner.ts`
+- `src/forgeui/layout/ForgeUILayoutDesigner.test.ts`
+- `src/forgeui/layout/ForgeUILayoutDesigner.preview.test.tsx`
+- `src/components/editor/ComponentPreview.tsx`
+- `src/forgeui/preview/forgePreviewRenderer.tsx`
+- `src/forgeui/ForgeUILvglExport.ts`
+- `src/forgeui/ForgeUILvglExport.box.test.ts`
+
+Inspector ownership and atomic component-model updates:
+
+- `src/components/inspector/LayoutRegionInspector.tsx`
+- `src/components/inspector/Inspector.tsx`
+- `src/core/models/components.ts`
+- `src/core/models/components.test.ts`
+
+Template-aware AI contract, validation, composition and UI:
+
+- `src/forgeui/ai/ForgeAIRegionComposer.ts`
+- `src/forgeui/ai/ForgeAIRegionComposer.test.ts`
+- `src/forgeui/ai/ForgeAIClient.ts`
+- `src/forgeui/ai/ForgeAIEngine.ts`
+- `src/forgeui/ai/ForgeAIPrompts.ts`
+- `src/forgeui/ai/ForgeAIPanel.tsx`
+- `src/forgeui/ai/ForgeAIPanel.stateSheet.test.tsx`
+- `src/pages/api/forgeui-ai-layout.ts`
+
+Architecture and manual-validation guide:
+
+- `docs/FORGEUI_LAYOUT_DESIGNER.md`
 
 ### Interactive framework
 
@@ -1783,6 +1946,15 @@ The keyboard runtime is reusable architecture for future Device settings, MQTT, 
 
 ## Verified Automated Status
 
+- Dashboard Layout Designer geometry and Auto Arrange pass 6 focused tests.
+- Browser Preview smart-region coverage passes 1 focused test.
+- AI region composition passes 2 focused tests.
+- Semantic Box LVGL export passes 9 focused tests.
+- The focused component-model Auto Arrange reducer passes 1 test.
+- The Layout Designer preview, Apply Dashboard and AI Fill workflow passes 1 focused panel/UI test.
+- The total focused Layout Designer result is 20 tests passed.
+- No TypeScript errors were found in the changed Layout Designer path. The unrelated pre-existing Circular Progress JSX test typing error remains.
+- A full Studio production build, firmware build and hardware flash were not run for the Layout Designer milestone.
 - Built-in System regressions cover launcher opening and closing, Display and Wi-Fi navigation, Back navigation, live brightness state, current-session retention, Wi-Fi scan and connection preview workflows, password and forget dialogs, connected details, disabled placeholder behavior and preservation of existing application interaction.
 - LVGL System exporter regressions cover the persistent application container, internal gear callback, System, Brightness and Wi-Fi containers, disabled cards, immediate visibility navigation, live `10–100` slider behavior, Waveshare BSP brightness integration and generated ownership of the Hosted-backed Wi-Fi Manager workflow.
 - Focused configured-helper, direct Creator, registry measurement, shared selection-border resize, visible-bounds, Canvas preview, Browser Preview, persistence and exporter regressions pass across the five Interactive Assets.
@@ -1816,6 +1988,20 @@ ForgeUI Standard LVGL components now share one semantic theme architecture. Futu
 - keep semantic status colours independent where appropriate.
 
 This architecture provides authoring, preview and generated-firmware parity without adding runtime device theme switching.
+
+### Layout Designer
+
+```text
+Layout Designer
+├── Dashboard Template
+├── Smart Region Boxes
+├── Stable Region Assignment
+├── Auto Arrange
+├── AI Region Composer
+└── Normal ForgeUI Export Path
+```
+
+The Layout Designer composes existing project components and introduces no new firmware runtime ownership. It is independent from the Interactive Asset runtime families, built-in System Runtime, Standard LVGL runtime APIs, Hosted Connectivity and Storage Runtime.
 
 ForgeUI now contains these reusable platform layers and services:
 
@@ -2018,6 +2204,13 @@ These remain future concepts only. Existing Radio and Checkbox runtimes are impl
 # Save Point History
 
 Save points are ordered newest to oldest. Detailed subsystem engineering is maintained in the Developer Code Maps.
+
+## FORGEUI_LAYOUT_DESIGNER__DASHBOARD_SMART_REGIONS_AUTO_ARRANGE_AI_FILL__CANVAS_AND_BROWSER_PREVIEW_MANUALLY_VERIFIED__READY_FOR_EXPORT_AND_HARDWARE_PROOF__2026-07-30
+
+- **What changed:** Completed the first Dashboard Layout Designer vertical slice with deterministic header, status, main, controls and footer smart regions; editable Box and Divider structure; manual region movement and resizing; stable component-to-region assignment; Inspector layout controls; deterministic Auto Arrange; AI Fill Dashboard through the normal AI path; Canvas and Browser Preview rendering; existing save/reload compatibility; and focused generated-LVGL exporter coverage.
+- **Why it changed:** Template-based dashboards needed human-readable structural intent and repeatable geometry rather than treating AI-generated absolute coordinates as the primary design mechanism. Users and AI now select supported content and semantic regions while ForgeUI owns structure, arrangement and validation.
+- **Final architecture:** The Dashboard template creates ordinary ForgeUI components with optional flat layout metadata. AI returns canonical component intent grouped into named regions without pixel geometry. The Layout Designer builds the deterministic `1024 × 600` structure, maintains stable region keys, applies Auto Arrange and returns normal components to Canvas, Browser Preview, persistence and LVGL export. Legacy free-coordinate generation remains available outside the template workflow.
+- **Proven result:** The complete Dashboard vertical slice and the observed AI Fill workflow were manually verified in Canvas and Browser Preview. Automated coverage includes smart-region generation and arrangement, region-composer parsing, atomic model updates, Layout Designer panel behavior, Browser Preview and focused Box/LVGL export styling. This save point does not claim a full Studio production build, an additional live OpenAI network test, an ESP-IDF firmware build, hardware flash, physical ESP32-P4 parity or completion of Settings, Login, Form or other templates.
 
 ## FORGEUI_STANDARD_LVGL_PARITY__INPUT_TEXTAREA_CHECKBOX_SWITCH_RADIO_PROGRESS_CIRCULAR_PROGRESS_NUMBER_INPUT_SELECT__SEMANTIC_THEME_AND_BORDER_PARITY__ESP32P4_PROVEN__2026-07-30
 

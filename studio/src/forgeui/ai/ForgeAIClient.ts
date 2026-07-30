@@ -6,7 +6,7 @@ export type ForgeAIRequest = {
 }
 
 export type ForgeAIResponse = {
-  document: ForgeAILayoutDocument
+  document: ForgeAILayoutDocument | Record<string, unknown>
 }
 
 const FORGE_AI_ENDPOINT = '/api/forgeui-ai-layout'
@@ -48,7 +48,12 @@ export const requestForgeAILayout = async ({
   if (
     !payload.document ||
     typeof payload.document !== 'object' ||
-    !Array.isArray(payload.document.layout)
+    !Array.isArray(payload.document.layout) &&
+    !(
+      payload.document.template === 'dashboard' &&
+      payload.document.regions &&
+      typeof payload.document.regions === 'object'
+    )
   ) {
     throw new Error('ForgeUI AI returned an invalid layout document')
   }

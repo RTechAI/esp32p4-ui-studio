@@ -1,3 +1,8 @@
+import {
+  getForgeAIComponentEntry,
+  resolveForgeAIComponentType,
+} from './ForgeAIComponentCatalogue'
+
 export type ForgeAILayoutItem = {
   type: string
   props: Record<string, unknown>
@@ -8,6 +13,12 @@ export type ForgeAILayoutDocument = {
   category: string
   description: string
   layout: ForgeAILayoutItem[]
+}
+
+export type ForgeAIParserAsset = {
+  id: string
+  kind: string
+  exportReady: boolean
 }
 
 const clampNumber = (
@@ -53,6 +64,7 @@ const validateLayoutItem = (
   supportedComponents: Set<string>,
   screenWidth: number,
   screenHeight: number,
+  availableAssets: ForgeAIParserAsset[],
 ): ForgeAILayoutItem => {
   if (!item || typeof item !== 'object' || Array.isArray(item)) {
     throw new Error(`layout[${index}] must be an object`)
@@ -64,7 +76,9 @@ const validateLayoutItem = (
     throw new Error(`layout[${index}].type must be a non-empty string`)
   }
 
-  if (!supportedComponents.has(candidate.type)) {
+  const resolvedType = resolveForgeAIComponentType(candidate.type)
+
+  if (!resolvedType || !supportedComponents.has(resolvedType)) {
     throw new Error(`Unsupported component: ${candidate.type}`)
   }
 
@@ -76,9 +90,65 @@ const validateLayoutItem = (
     throw new Error(`layout[${index}].props must be an object`)
   }
 
+  const catalogueEntry = getForgeAIComponentEntry(resolvedType)
   const normalizedProps: Record<string, unknown> = {
+    ...(catalogueEntry?.defaultProps ?? {}),
     ...(candidate.props as Record<string, unknown>),
     positionMode: 'absolute',
+  }
+
+  if (['NumberInput', 'Progress', 'CircularProgress', 'Slider', 'Bar', 'Arc'].includes(resolvedType)) {
+    const min = Number.isFinite(Number(normalizedProps.min))
+      ? Number(normalizedProps.min)
+      : 0
+    const maxCandidate = Number.isFinite(Number(normalizedProps.max))
+      ? Number(normalizedProps.max)
+      : 100
+    const max = Math.max(min, maxCandidate)
+    normalizedProps.min = min
+    normalizedProps.max = max
+    normalizedProps.value = clampNumber(normalizedProps.value, min, max, min)
+    if (resolvedType === 'NumberInput') {
+      normalizedProps.step = Math.max(1, Number(normalizedProps.step) || 1)
+    }
+  }
+
+  if (resolvedType === 'Select') {
+    const options = Array.isArray(normalizedProps.options)
+      ? normalizedProps.options.filter(option => typeof option === 'string')
+      : []
+    normalizedProps.options = options
+    normalizedProps.selectedIndex = Math.round(clampNumber(
+      normalizedProps.selectedIndex,
+      0,
+      Math.max(0, options.length - 1),
+      0,
+    ))
+  }
+
+  if (catalogueEntry && !['none', 'icon'].includes(catalogueEntry.assetRequirement)) {
+    const property = catalogueEntry.assetRequirement === 'uploaded-image'
+      ? 'uploadedAssetId'
+      : 'interactiveAssetId'
+    const expectedKinds: Record<string, string> = {
+      'uploaded-image': 'uploaded-image',
+      'interactive-button': 'button',
+      'interactive-light': 'light',
+      'interactive-status-indicator': 'statusIndicator',
+      'interactive-toggle': 'toggleSwitch',
+      'interactive-three-position-toggle': 'threePositionToggle',
+    }
+    const id = normalizedProps[property]
+    const asset = availableAssets.find(candidate =>
+      candidate.id === id &&
+      candidate.kind === expectedKinds[catalogueEntry.assetRequirement] &&
+      candidate.exportReady
+    )
+    if (!asset) {
+      throw new Error(
+        `${resolvedType} requires an exact export-ready ${catalogueEntry.assetRequirement} asset ID`,
+      )
+    }
   }
 
   const x = clampNumber(normalizedProps.x, 0, screenWidth, 0)
@@ -90,7 +160,7 @@ const validateLayoutItem = (
   const safeHeight = Math.max(24, Math.min(screenHeight - y, h))
 
   return {
-    type: candidate.type,
+    type: resolvedType,
     props: {
       ...normalizedProps,
       x,
@@ -106,6 +176,7 @@ export const parseForgeAIResponse = (
   supportedComponentNames: string[],
   screenWidth = 1024,
   screenHeight = 600,
+  availableAssets: ForgeAIParserAsset[] = [],
 ): ForgeAILayoutDocument => {
   const jsonText = extractJsonText(rawResponse)
 
@@ -130,7 +201,14 @@ export const parseForgeAIResponse = (
   const supportedComponents = new Set(supportedComponentNames)
 
   const layout = document.layout.map((item, index) =>
-    validateLayoutItem(item, index, supportedComponents, screenWidth, screenHeight)
+    validateLayoutItem(
+      item,
+      index,
+      supportedComponents,
+      screenWidth,
+      screenHeight,
+      availableAssets,
+    )
   )
 
   return {

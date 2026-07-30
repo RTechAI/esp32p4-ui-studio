@@ -66,6 +66,24 @@ const components = createModel({
         draftState.components[payload.id].props[payload.name] = payload.value
       })
     },
+    updateManyProps(
+      state: ComponentsState,
+      payload: Array<{
+        id: string
+        props: Record<string, unknown>
+      }>,
+    ) {
+      return produce(state, (draftState: ComponentsState) => {
+        payload.forEach(update => {
+          const component = draftState.components[update.id]
+          if (!component) return
+          component.props = {
+            ...component.props,
+            ...update.props,
+          }
+        })
+      })
+    },
     deleteProps(state: ComponentsState, payload: { id: string; name: string }) {
       return {
         ...state,

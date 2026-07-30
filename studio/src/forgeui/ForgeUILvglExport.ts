@@ -4052,11 +4052,29 @@ case 'Chart': {
           }
           lines.push(`lv_obj_set_pos(${boxObject}, ${x}, ${y});`)
           lines.push(`lv_obj_set_size(${boxObject}, ${w}, ${h});`)
-          lines.push(`lv_obj_set_style_radius(${boxObject}, 12, 0);`)
-          lines.push(`lv_obj_set_style_bg_color(${boxObject}, lv_color_hex(${palette.surface}), 0);`)
-          lines.push(`lv_obj_set_style_bg_opa(${boxObject}, LV_OPA_80, 0);`)
+          const regionSurface =
+            child.props.layoutSurfaceRole === 'surfaceSecondary'
+              ? palette.surfaceSecondary
+              : palette.surface
+          const regionRadius = Math.max(
+            0,
+            Number(child.props.layoutRadius ?? 12),
+          )
+          const regionBorderWidth = Math.max(
+            0,
+            Number(child.props.layoutBorderWidth ?? 2),
+          )
+          const regionOpacity = Math.max(
+            0,
+            Math.min(255, Math.round(
+              Number(child.props.layoutOpacity ?? 0.8) * 255,
+            )),
+          )
+          lines.push(`lv_obj_set_style_radius(${boxObject}, ${regionRadius}, 0);`)
+          lines.push(`lv_obj_set_style_bg_color(${boxObject}, lv_color_hex(${regionSurface}), 0);`)
+          lines.push(`lv_obj_set_style_bg_opa(${boxObject}, ${regionOpacity}, 0);`)
           lines.push(`lv_obj_set_style_border_color(${boxObject}, lv_color_hex(${palette.border}), 0);`)
-          lines.push(`lv_obj_set_style_border_width(${boxObject}, 2, 0);`)
+          lines.push(`lv_obj_set_style_border_width(${boxObject}, ${regionBorderWidth}, 0);`)
         }
         lines.push(``)
         break

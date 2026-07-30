@@ -35,7 +35,19 @@ import {
   VStack,
 } from '@chakra-ui/react'
 
-import { aiSupportedComponents } from '~componentsList'
+import {
+  forgeAIComponentCatalogue,
+  forgeAIVisibleComponents,
+} from './ForgeAIComponentCatalogue'
+import {
+  buildForgeAIPromptBuilderPrompt,
+  canSelectForgeAIPromptBuilderComponent,
+  forgeAIPromptBuilderGroups,
+  getForgeAIKitchenSinkSelection,
+} from './ForgeAIPromptBuilder'
+import {
+  forgeUIDashboardTemplate,
+} from '~forgeui/layout/ForgeUILayoutDesigner'
 import { createForgeAIContext } from './ForgeAIContext'
 import { generateForgeAILayout } from './ForgeAIEngine'
 import StateSheetOverlay, {
@@ -71,7 +83,13 @@ The left switch is OFF. The right switch is ON. The only difference is the switc
 
 Transparent background. No text. No shadows.`
 
-const SUPPORTED_AI_COMPONENTS = new Set(aiSupportedComponents)
+const SUPPORTED_AI_COMPONENTS = new Set(forgeAIVisibleComponents)
+const PROMPT_BUILDER_ENTRY_BY_TYPE = new Map(
+  forgeAIComponentCatalogue.map(entry => [entry.type, entry]),
+)
+const NORMAL_PROMPT_BUILDER_TYPES: ComponentType[] = [
+  'Heading', 'Text', 'Chart', 'Button', 'Box', 'Icon',
+]
 
 const AI_LAYOUTS = {
   wifiSetup: [
@@ -1139,26 +1157,17 @@ const [helperTheme, setHelperTheme] =
 const [helperPanelCount, setHelperPanelCount] =
   useState('Three')
 
-const [helperTrendChart, setHelperTrendChart] =
-  useState(true)
-
-const [helperAlerts, setHelperAlerts] =
-  useState(true)
-
-const [helperControls, setHelperControls] =
-  useState(true)
-
 const [helperTouchFriendly, setHelperTouchFriendly] =
   useState(true)
 
-const [helperWifi, setHelperWifi] =
-  useState(true)
-
-const [helperBattery, setHelperBattery] =
-  useState(true)
-
-const [helperClock, setHelperClock] =
-  useState(true)
+const [helperSelectedTypes, setHelperSelectedTypes] =
+  useState<ComponentType[]>(NORMAL_PROMPT_BUILDER_TYPES)
+const [isAllComponentsTest, setIsAllComponentsTest] =
+  useState(false)
+const [layoutDesignerTemplate, setLayoutDesignerTemplate] =
+  useState<'dashboard'>('dashboard')
+const promptBuilderAssets =
+  createForgeAIContext().availableAssets
 
 const [isGenerating, setIsGenerating] =
   useState(false)
@@ -1326,73 +1335,95 @@ const filteredHeroPrompts =
   }
 
 const buildLayoutPrompt = () => {
-  const requirements: string[] = [
-    `- Large heading: ${helperHeading}`,
-    `- ${helperPanelCount} production summary panels`,
-  ]
+  setIsAllComponentsTest(false)
+  setAiPrompt(buildForgeAIPromptBuilderPrompt({
+    dashboardType: helperDashboardType,
+    heading: helperHeading,
+    theme: helperTheme,
+    panelCount: helperPanelCount,
+    touchFriendly: helperTouchFriendly,
+    selectedTypes: helperSelectedTypes,
+    assets: promptBuilderAssets,
+  }))
+}
 
-  if (helperTrendChart) {
-    requirements.push('- One live trend chart')
-  }
+const toggleHelperComponent = (
+  type: ComponentType,
+  checked: boolean,
+) => {
+  setIsAllComponentsTest(false)
+  setHelperSelectedTypes(current => checked
+    ? Array.from(new Set([...current, type]))
+    : current.filter(candidate => candidate !== type)
+  )
+}
 
-  if (helperAlerts) {
-    requirements.push('- One alerts panel')
-  }
+const selectAllAvailableHelperComponents = () => {
+  setIsAllComponentsTest(false)
+  setHelperSelectedTypes(
+    getForgeAIKitchenSinkSelection(promptBuilderAssets).selectedTypes,
+  )
+}
 
-  if (helperControls) {
-    requirements.push('- One controls panel')
-  }
+const applyKitchenSinkPrompt = () => {
+  const selection = getForgeAIKitchenSinkSelection(promptBuilderAssets)
+  setHelperDashboardType('component coverage dashboard')
+  setHelperHeading('All Components Test')
+  setHelperTheme('Active ForgeUI semantic theme')
+  setHelperPanelCount('Categorized compact sections')
+  setHelperTouchFriendly(true)
+  setHelperSelectedTypes(selection.selectedTypes)
+  setIsAllComponentsTest(true)
+  setAiPrompt(buildForgeAIPromptBuilderPrompt({
+    dashboardType: 'component coverage dashboard',
+    heading: 'All Components Test',
+    theme: 'Active ForgeUI semantic theme',
+    panelCount: 'Categorized compact sections',
+    touchFriendly: true,
+    selectedTypes: selection.selectedTypes,
+    assets: promptBuilderAssets,
+    kitchenSink: true,
+  }))
+}
 
-  requirements.push(`- ${helperTheme}`)
+const leaveAllComponentsTest = () => {
+  if (!isAllComponentsTest) return
+  setIsAllComponentsTest(false)
+  setAiPrompt('')
+  setHelperSelectedTypes(NORMAL_PROMPT_BUILDER_TYPES)
+}
 
-  if (helperTouchFriendly) {
-    requirements.push('- Touch-friendly layout')
-  }
+const applyLayoutDesignerTemplate = () => {
+  leaveAllComponentsTest()
+  insertAiLayout(
+    forgeUIDashboardTemplate.layout,
+  )
+}
 
-  const icons: string[] = []
+const buildDashboardAIComposerPrompt = () => {
+  leaveAllComponentsTest()
+  setHelperSelectedTypes([
+    'Heading', 'Text', 'Led', 'Progress', 'CircularProgress',
+    'Chart', 'Button',
+  ])
+  setAiPrompt(`FORGEUI_LAYOUT_TEMPLATE: dashboard
 
-  if (helperWifi) {
-    icons.push('- WiFi')
-  }
+Create the content for one coherent 1024x600 dashboard.
+ForgeUI owns all structural region geometry.
 
-  if (helperBattery) {
-    icons.push('- Battery')
-  }
+Return only the real content components needed for:
+- one clear Heading
+- concise status Text
+- LED or status indication
+- Progress and CircularProgress where useful
+- one primary Chart
+- a small set of action Buttons
 
-  if (helperClock) {
-    icons.push('- Clock')
-  }
+Do not create Box, Divider or Line components.
+Do not include unrelated specialist controls.
+Do not attempt pixel-perfect placement; ForgeUI will assign and auto-arrange content in the dashboard header, status, main, controls and footer regions.
 
-  const iconSection =
-    icons.length > 0
-      ? `Top-right status area:
-
-Create ${icons.length} separate Icon components.
-
-Required icons:
-${icons.join('\n')}
-
-Rules:
-- Use the standard ForgeUI Icon component.
-- Use one iconName for each Icon.
-- Use the exact icon names supplied in RELEVANT VALID ICONS whenever available.
-- If only a semantic name is known (wifi, battery, clock), ForgeUI will resolve it automatically.
-- Do not use uploadedAssetId, src, assetName, lvgl or cFile.
-- Do not invent WiFiWidget, BatteryWidget or ClockWidget.
-- Do not group the icons.`
-      : ''
-
-  const prompt = `Create a modern ${helperDashboardType} for a 1024x600 ESP32-P4 display.
-
-Requirements:
-
-${requirements.join('\n')}
-
-${iconSection}
-
-Return valid ForgeUI JSON only.`
-
-  setAiPrompt(prompt)
+Return valid ForgeUI JSON only.`)
 }
 
 const buildAssetGenerationPrompt = () => {
@@ -3000,6 +3031,82 @@ toast({
               <SimpleGrid columns={{ base: 1, xl: 2 }} spacing={5}>
                 <VStack spacing={5} align="stretch">
                   <Box
+                    border="1px solid rgba(34,211,238,0.34)"
+                    bg="rgba(8,15,26,0.82)"
+                    borderRadius="xl"
+                    p={5}
+                  >
+                    <HStack justify="space-between" mb={1}>
+                      <Heading size="sm">Layout Designer</Heading>
+                      <Badge colorScheme="cyan">SMART REGIONS</Badge>
+                    </HStack>
+                    <Text color="gray.400" fontSize="sm" mb={4}>
+                      Apply deterministic editable structure, then assign and
+                      auto-arrange normal ForgeUI components.
+                    </Text>
+                    <Select
+                      size="sm"
+                      value={layoutDesignerTemplate}
+                      onChange={event =>
+                        setLayoutDesignerTemplate(
+                          event.target.value as 'dashboard',
+                        )
+                      }
+                      mb={4}
+                    >
+                      <option value="dashboard">Dashboard</option>
+                    </Select>
+                    <Box
+                      position="relative"
+                      width="100%"
+                      maxWidth="512px"
+                      height="168px"
+                      bg="#050914"
+                      border="1px solid rgba(148,163,184,0.28)"
+                      borderRadius="md"
+                      overflow="hidden"
+                      mb={4}
+                      data-testid="layout-designer-preview"
+                    >
+                      {forgeUIDashboardTemplate.layout
+                        .filter(item => item.type === 'Box')
+                        .map(item => (
+                          <Box
+                            key={String(item.props.layoutRegionKey)}
+                            position="absolute"
+                            left={`${Number(item.props.x) / 10.24}%`}
+                            top={`${Number(item.props.y) / 6}%`}
+                            width={`${Number(item.props.w) / 10.24}%`}
+                            height={`${Number(item.props.h) / 6}%`}
+                            border="1px solid rgba(34,211,238,0.58)"
+                            bg="rgba(15,118,110,0.16)"
+                            color="cyan.100"
+                            fontSize="9px"
+                            p={1}
+                          >
+                            {String(item.props.layoutRegionLabel)}
+                          </Box>
+                        ))}
+                    </Box>
+                    <SimpleGrid columns={2} spacing={3}>
+                      <Button
+                        size="sm"
+                        colorScheme="cyan"
+                        onClick={applyLayoutDesignerTemplate}
+                      >
+                        Apply Dashboard
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        colorScheme="purple"
+                        onClick={buildDashboardAIComposerPrompt}
+                      >
+                        AI Fill Dashboard
+                      </Button>
+                    </SimpleGrid>
+                  </Box>
+                  <Box
                     border="1px solid rgba(124, 58, 237, 0.4)"
                     bg="rgba(15, 23, 42, 0.72)"
                     borderRadius="xl"
@@ -3072,9 +3179,12 @@ toast({
         size="sm"
         value={helperDashboardType}
         onChange={(e) =>
-          setHelperDashboardType(
-            e.target.value,
-          )
+          {
+            leaveAllComponentsTest()
+            setHelperDashboardType(
+              e.target.value,
+            )
+          }
         }
       >
         <option value="industrial dashboard">
@@ -3112,125 +3222,126 @@ toast({
         size="sm"
         value={helperHeading}
         onChange={(e) =>
-          setHelperHeading(
-            e.target.value,
-          )
+          {
+            leaveAllComponentsTest()
+            setHelperHeading(
+              e.target.value,
+            )
+          }
         }
       />
     </Box>
   </SimpleGrid>
 
-  <Text
-    fontSize="xs"
-    color="gray.400"
-    mb={2}
-  >
-    Dashboard Sections
-  </Text>
-
-  <SimpleGrid
-    columns={2}
-    spacing={2}
-    mb={4}
-  >
-    <Checkbox
-      isChecked={helperTrendChart}
-      onChange={(e) =>
-        setHelperTrendChart(
-          e.target.checked,
-        )
-      }
-    >
-      Trend Chart
-    </Checkbox>
-
-    <Checkbox
-      isChecked={helperAlerts}
-      onChange={(e) =>
-        setHelperAlerts(
-          e.target.checked,
-        )
-      }
-    >
-      Alerts
-    </Checkbox>
-
-    <Checkbox
-      isChecked={helperControls}
-      onChange={(e) =>
-        setHelperControls(
-          e.target.checked,
-        )
-      }
-    >
-      Controls
-    </Checkbox>
-
-    <Checkbox
-      isChecked={helperTouchFriendly}
-      onChange={(e) =>
-        setHelperTouchFriendly(
-          e.target.checked,
-        )
-      }
-    >
-      Touch Friendly
-    </Checkbox>
-  </SimpleGrid>
-
-  <Text
-    fontSize="xs"
-    color="gray.400"
-    mb={2}
-  >
-    Status Icons
-  </Text>
-
-  <HStack
-    spacing={6}
-    mb={4}
-  >
-    <Checkbox
-      isChecked={helperWifi}
-      onChange={(e) =>
-        setHelperWifi(
-          e.target.checked,
-        )
-      }
-    >
-      WiFi
-    </Checkbox>
-
-    <Checkbox
-      isChecked={helperBattery}
-      onChange={(e) =>
-        setHelperBattery(
-          e.target.checked,
-        )
-      }
-    >
-      Battery
-    </Checkbox>
-
-    <Checkbox
-      isChecked={helperClock}
-      onChange={(e) =>
-        setHelperClock(
-          e.target.checked,
-        )
-      }
-    >
-      Clock
-    </Checkbox>
+  <HStack justify="space-between" mb={2}>
+    <Text fontSize="xs" color="gray.400">
+      Components ({helperSelectedTypes.length}/{forgeAIVisibleComponents.length})
+    </Text>
+    <HStack spacing={2}>
+      <Button
+        size="xs"
+        variant="ghost"
+        colorScheme="cyan"
+        onClick={selectAllAvailableHelperComponents}
+      >
+        Select Available
+      </Button>
+      <Button
+        size="xs"
+        variant="ghost"
+        onClick={() => {
+          setIsAllComponentsTest(false)
+          setHelperSelectedTypes([])
+        }}
+      >
+        Clear
+      </Button>
+    </HStack>
   </HStack>
 
-  <Button
-    width="100%"
-    colorScheme="cyan"
-    onClick={buildLayoutPrompt}
+  <VStack spacing={2} align="stretch" mb={4}>
+    {forgeAIPromptBuilderGroups.map((group, groupIndex) => (
+      <Box
+        as="details"
+        key={group.label}
+        open={groupIndex < 3 ? true : undefined}
+        border="1px solid rgba(148,163,184,0.18)"
+        borderRadius="md"
+        px={3}
+        py={2}
+      >
+        <Box
+          as="summary"
+          cursor="pointer"
+          fontSize="sm"
+          fontWeight="semibold"
+          color="gray.200"
+        >
+          {group.label}
+        </Box>
+        <SimpleGrid columns={2} spacing={2} mt={3}>
+          {group.types.map(type => {
+            const entry = PROMPT_BUILDER_ENTRY_BY_TYPE.get(type)
+            if (!entry) return null
+            const isAvailable =
+              canSelectForgeAIPromptBuilderComponent(entry, promptBuilderAssets)
+            return (
+              <Checkbox
+                key={type}
+                size="sm"
+                aria-label={type}
+                isChecked={helperSelectedTypes.includes(type)}
+                isDisabled={!isAvailable}
+                title={isAvailable
+                  ? entry.description
+                  : `${type} requires a matching export-ready project asset`}
+                onChange={(e) =>
+                  toggleHelperComponent(type, e.target.checked)
+                }
+              >
+                {type}
+              </Checkbox>
+            )
+          })}
+        </SimpleGrid>
+      </Box>
+    ))}
+  </VStack>
+
+  <Checkbox
+    mb={4}
+    isChecked={helperTouchFriendly}
+    onChange={(e) => {
+      leaveAllComponentsTest()
+      setHelperTouchFriendly(e.target.checked)
+    }}
   >
-    Build Prompt
-  </Button>
+    Touch Friendly
+  </Checkbox>
+
+  <SimpleGrid columns={2} spacing={3} alignItems="start">
+    <VStack spacing={1} align="stretch">
+      <Button
+        width="100%"
+        variant={isAllComponentsTest ? 'solid' : 'outline'}
+        colorScheme="purple"
+        onClick={applyKitchenSinkPrompt}
+        aria-pressed={isAllComponentsTest}
+      >
+        All Components Test
+      </Button>
+      <Text fontSize="xs" color="orange.200" lineHeight="short">
+        Validation only. Requests every AI-supported component on one 1024×600 screen. The result will be dense and is not intended to be a usable interface.
+      </Text>
+    </VStack>
+    <Button
+      width="100%"
+      colorScheme="cyan"
+      onClick={buildLayoutPrompt}
+    >
+      Build Prompt
+    </Button>
+  </SimpleGrid>
 </Box>
 
                     <Flex
@@ -3286,6 +3397,7 @@ toast({
                           colorScheme="cyan"
                           justifyContent="flex-start"
                           onClick={() => {
+                            leaveAllComponentsTest()
                             setJsonError('')
                             loadLayoutJson(template.document)
                           }}

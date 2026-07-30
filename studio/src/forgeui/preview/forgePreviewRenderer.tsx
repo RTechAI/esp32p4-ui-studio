@@ -221,25 +221,32 @@ case 'WiFi': {
     y === 0 &&
     w >= 1024 &&
     h >= 600
+  const regionSurface =
+    child.props.layoutSurfaceRole === 'surfaceSecondary'
+      ? theme.surfaceSecondary
+      : theme.surface
 
   output.push(
     <Box
       key={child.id}
       {...commonStyle}
-      borderRadius={
-        isFullScreenBackground ? '0' : '12px'
-      }
+      data-layout-region={child.props.layoutRegionKey}
       background={
         isFullScreenBackground
           ? 'transparent'
-          : palette.surface
+          : regionSurface
       }
       border={
         isFullScreenBackground
           ? 'none'
-          : `2px solid ${palette.border}`
+          : `${Number(child.props.layoutBorderWidth ?? 2)}px solid ${palette.border}`
       }
-      opacity={isFullScreenBackground ? 1 : 0.8}
+      opacity={isFullScreenBackground
+        ? 1
+        : Number(child.props.layoutOpacity ?? 0.8)}
+      borderRadius={isFullScreenBackground
+        ? '0'
+        : `${Number(child.props.layoutRadius ?? 12)}px`}
     />,
   )
   break

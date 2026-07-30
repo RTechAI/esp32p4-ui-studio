@@ -466,6 +466,26 @@ main/95_UserEvents.h      developer-owned standalone integration declarations
 
 Developer GPIO, peripheral I/O, hardware actions and permanent product behaviour belong in the standalone project’s developer-owned integration layer and supporting application modules. They should not be placed in replaceable generated UI files.
 
+After exporter changes, use the proven development workflow:
+
+```text
+Exporter change
+        ↓
+Restart or refresh Studio
+        ↓
+Regenerate
+        ↓
+Inspect generated 90_Studio_Export.c
+        ↓
+Build
+        ↓
+Flash
+        ↓
+Compare against Canvas
+```
+
+This prevents a stale running Studio bundle from producing old generated firmware after exporter source changes.
+
 ---
 
 ## Export validation and asset safety
@@ -499,7 +519,10 @@ ForgeUI validates exports before replacing generated firmware:
 
 ### AI-assisted workflows
 
-- layout generation and guided prompting
+- authoritative 42-component AI catalogue and guided Prompt Builder
+- Dashboard Layout Designer with deterministic smart regions and Auto Arrange
+- AI Fill for semantic content selection and region assignment, with Studio-owned geometry
+- compatible free-coordinate layout generation for ordinary non-template requests
 - hero and standalone artwork generation
 - interactive state-artwork generation
 - Toggle OFF/ON State Sheets
@@ -525,8 +548,13 @@ ForgeUI validates exports before replacing generated firmware:
 - generated input callbacks
 - generated output setters
 - retained semantic runtime APIs for supported standard LVGL widgets
+- Input and Textarea native text runtime with silent setters and genuine-edit hooks
+- Switch, Checkbox and Radio checked/selected runtimes
+- output-only Progress and Circular Progress runtimes
+- composed Number Input runtime with hardware steppers and serialized step
+- native Select runtime with semantic closed control and popup
 - selected semantic palette propagation into generated LVGL
-- physical validation of eleven Standard components
+- physical validation of twenty Standard components
 - complete generated Wi-Fi Manager and structured backend projection
 - generated connected details, selectable network rows, badges, password and forget dialogs
 - reusable native LVGL keyboard with generated attachment and callbacks
@@ -562,10 +590,12 @@ Detailed subsystem ownership and debugging information belongs in the code maps:
 
 Current architecture save point:
 
-`FORGEUI_STANDARD_LVGL_THEME_PARITY__ELEVEN_COMPONENTS__CANVAS_BROWSER_GENERATED_LVGL_ESP32P4_PROVEN__2026-07-29`
+`FORGEUI_LAYOUT_DESIGNER__DASHBOARD_SMART_REGIONS_AUTO_ARRANGE_AI_FILL__CANVAS_AND_BROWSER_PREVIEW_MANUALLY_VERIFIED__READY_FOR_EXPORT_AND_HARDWARE_PROOF__2026-07-30`
 
 Current proven milestones include:
 
+- first Dashboard Layout Designer vertical slice with deterministic smart regions, stable assignment, Auto Arrange, and AI Fill
+- manual Canvas and Browser Preview verification of the Dashboard region workflow; firmware and physical ESP32-P4 proof remain pending
 - visual Builder, Canvas, themes, and Browser Preview
 - semantic Standard theme engine
 - Canvas selected-theme parity
@@ -573,7 +603,11 @@ Current proven milestones include:
 - generated LVGL selected-theme parity
 - ESP32-P4 selected-theme parity after Generate, Build, and Flash
 - completed Chart Y-axis and X-axis labels
-- completed physical validation of eleven Standard components
+- completed physical validation of twenty Standard components
+- Input, Textarea, Checkbox, Switch, Radio, Progress, Circular Progress, Number Input and Select runtime parity
+- whole-screen semantic theme, border and geometry parity between Canvas and ESP32-P4
+- Number Input hardware steppers, Circular Progress output runtime and Select semantic popup
+- Switch amber checked-state repair and Checkbox/Radio fallback-label removal
 - AI layout, hero, artwork, and semantic icon workflows
 - local device-aware LVGL asset conversion
 - five implemented Interactive Asset types
@@ -585,7 +619,7 @@ Current proven milestones include:
 - Interactive Button, Toggle Switch, Three-Position Toggle Switch, Light, and Status Indicator runtime paths
 - generated `95_UserEvents` hook layer for Button, Toggle, and Three-Position inputs
 - shared Binary Output Runtime and generated `FG_Set_*` Light/Status APIs
-- Standard LVGL component architecture for the proven Led, Bar, Arc, Chart, Table, Keyboard, Calendar, Scale, Roller, MsgBox, and ButtonMatrix group, with semantic runtime APIs where applicable
+- Standard LVGL component architecture for the proven Led, Bar, Arc, Chart, Table, Keyboard, Calendar, Scale, Roller, MsgBox, ButtonMatrix, Input, Textarea, Checkbox, Switch, Radio, Progress, CircularProgress, NumberInput and Select group, with semantic runtime APIs where applicable
 - built-in System Launcher and Display / Brightness
 - physical display backlight control
 - reusable built-in System Runtime

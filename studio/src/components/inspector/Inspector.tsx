@@ -43,6 +43,7 @@ import InteractiveButtonCreatorHelper from './InteractiveButtonCreatorHelper'
 import InteractiveLightCreatorHelper from './InteractiveLightCreatorHelper'
 import InteractiveThreePositionToggleCreatorHelper from './InteractiveThreePositionToggleCreatorHelper'
 import InteractiveStatusIndicatorCreatorHelper from './InteractiveStatusIndicatorCreatorHelper'
+import LayoutRegionInspector from './LayoutRegionInspector'
 
 const CodeActionButton = memo(() => {
   const [isLoading, setIsLoading] = useState(false)
@@ -218,6 +219,7 @@ const Inspector = () => {
           component={component}
         />
       )}
+      <LayoutRegionInspector />
 
       <Box
          pb={1}

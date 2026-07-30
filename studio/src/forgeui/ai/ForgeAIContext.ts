@@ -1,6 +1,11 @@
-import { aiSupportedComponents } from '~componentsList'
 import { FORGEUI_ACTIVE_DEVICE } from '~forgeui/ForgeUIDeviceConfig'
 import { searchForgeUIIcons } from '~forgeui/icons/ForgeUIIconSearch'
+import { forgeUIGetUploadedAssets } from '~forgeui/ForgeUIUploadedAssetRegistry'
+import { getAllInteractiveAssets } from '~forgeui/interactive/ForgeUIInteractiveAssetRegistry'
+import {
+  forgeAIPromptCatalogue,
+  forgeAIVisibleComponents,
+} from './ForgeAIComponentCatalogue'
 
 export type ForgeAIRelevantIconGroup = {
   query: string
@@ -9,6 +14,13 @@ export type ForgeAIRelevantIconGroup = {
 
 export type ForgeAIProjectContext = {
   supportedComponents: string[]
+  componentCatalogue: typeof forgeAIPromptCatalogue
+  availableAssets: Array<{
+    id: string
+    name: string
+    kind: string
+    exportReady: boolean
+  }>
   screenWidth: number
   screenHeight: number
   currentLayout: unknown[]
@@ -71,7 +83,22 @@ export const createForgeAIContext = ({
 }: CreateForgeAIContextOptions = {}): ForgeAIProjectContext => {
   return {
     supportedComponents: [
-      ...aiSupportedComponents,
+      ...forgeAIVisibleComponents,
+    ],
+    componentCatalogue: forgeAIPromptCatalogue,
+    availableAssets: [
+      ...getAllInteractiveAssets().map(asset => ({
+        id: asset.id,
+        name: asset.name,
+        kind: asset.kind,
+        exportReady: true,
+      })),
+      ...forgeUIGetUploadedAssets().map(asset => ({
+        id: asset.id,
+        name: asset.name,
+        kind: 'uploaded-image',
+        exportReady: asset.exportStatus === 'lvgl_ready',
+      })),
     ],
     screenWidth:
       FORGEUI_ACTIVE_DEVICE.width,

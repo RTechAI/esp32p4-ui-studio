@@ -859,6 +859,46 @@ void FG_On_Data_Chart_Cleared(void);
 ---
 
 # ==============================================================================
+# FORGEUI LAYOUT DESIGNER — DASHBOARD
+# ==============================================================================
+
+## Status
+
+**🟡 CANVAS AND BROWSER PREVIEW MANUALLY VERIFIED — EXPORT AND HARDWARE PROOF PENDING**
+
+## ✔ Verified
+
+- Deterministic Header, Status, Main, Controls, and Footer smart regions
+- Editable semantic Box regions, one Divider, and one Heading placeholder
+- Manual region movement and resizing
+- Stable Inspector-based region assignment
+- Auto Arrange
+- AI Fill Dashboard through the normal AI generation path
+- Canvas rendering
+- Browser Preview rendering
+- Existing save/reload architecture
+- Focused generated LVGL exporter coverage
+- 20 focused Layout Designer tests
+
+## Not yet proven
+
+- Full Studio production build
+- Additional live OpenAI network testing beyond the manually observed AI Fill workflow
+- Generated LVGL project inspection
+- ESP-IDF firmware build
+- ESP32-P4 flash and physical parity
+- Settings, Login, Form, Machine Status, or other structural templates
+
+## Architecture
+
+AI Fill selects canonical supported content and assigns semantic regions.
+ForgeUI Layout Designer owns deterministic structure, Auto Arrange, and final
+geometry. The result remains normal editable ForgeUI components and follows the
+existing Canvas, save/reload, Browser Preview, and LVGL export pipeline.
+
+---
+
+# ==============================================================================
 # ⌨️ STANDARD KEYBOARD
 # ==============================================================================
 

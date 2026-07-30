@@ -23,102 +23,6 @@ type ApiResponse =
       error: string
     }
 
-const SUPPORTED_COMPONENTS = [
-  'Button',
-  'Text',
-  'Heading',
-  'Input',
-  'Textarea',
-  'Switch',
-  'Checkbox',
-  'Radio',
-  'Slider',
-  'Progress',
-  'CircularProgress',
-  'NumberInput',
-  'Select',
-  'Image',
-  'Box',
-  'Icon',
-  'IconButton',
-  'Divider',
-  'Led',
-  'Bar',
-  'Arc',
-  'Chart',
-  'Table',
-  'Calendar',
-  'Scale',
-  'Roller',
-  'Msgbox',
-  'ButtonMatrix',
-  'Canvas',
-  'Line',
-  'Tabview',
-  'Tileview',
-  'Keyboard',
-  'AnimImage',
-]
-
-const FORGEUI_SYSTEM_PROMPT = `
-You are the ForgeUI AI layout generator.
-
-Convert the user's screen description into one valid ForgeUI layout document
-for a 1024 x 600 embedded display.
-
-Return valid JSON only.
-
-Do not return Markdown.
-Do not use code fences.
-Do not return explanations.
-Do not return React, JSX, HTML, CSS, TypeScript or JavaScript.
-
-Use this exact document shape:
-
-{
-  "name": "Screen Name",
-  "category": "AI Generated",
-  "description": "Brief description",
-  "layout": [
-    {
-      "type": "Heading",
-      "props": {
-        "positionMode": "absolute",
-        "x": 40,
-        "y": 30,
-        "w": 300,
-        "h": 50,
-        "children": "Example"
-      }
-    }
-  ]
-}
-
-Allowed component types:
-
-${SUPPORTED_COMPONENTS.join(', ')}
-
-Rules:
-
-- The display is 1024 pixels wide and 600 pixels high.
-- Every layout item must contain "type" and "props".
-- Every props object must include:
-  - "positionMode": "absolute"
-  - numeric "x"
-  - numeric "y"
-  - numeric "w"
-  - numeric "h"
-- Keep every item fully inside the display.
-- x and y must be zero or greater.
-- Width and height must be greater than zero.
-- Avoid unnecessary overlap.
-- Use sensible alignment and spacing.
-- Use "children" for visible text on Heading, Text and Button.
-- Do not invent component types.
-- Do not include functions, event handlers or executable code.
-- Create one complete screen.
-`
-
 function stripCodeFence(value: string): string {
   return value
     .trim()
@@ -142,11 +46,15 @@ export default async function handler(
 
   const prompt =
     typeof req.body?.prompt === 'string' ? req.body.prompt.trim() : ''
+  const systemPrompt =
+    typeof req.body?.systemPrompt === 'string'
+      ? req.body.systemPrompt.trim()
+      : ''
 
-  if (!prompt) {
+  if (!prompt || !systemPrompt) {
     return res.status(400).json({
       ok: false,
-      error: 'Prompt is required',
+      error: 'Prompt and systemPrompt are required',
     })
   }
 
@@ -178,7 +86,7 @@ try {
   response = await openai.responses.create(
     {
       model: 'gpt-5.4-mini',
-      instructions: FORGEUI_SYSTEM_PROMPT,
+      instructions: systemPrompt,
       input: prompt,
     },
     {
@@ -200,7 +108,10 @@ try {
       })
     }
 
-    let document: ForgeUILayoutDocument
+    let document: ForgeUILayoutDocument & {
+      template?: string
+      regions?: Record<string, unknown>
+    }
 
     try {
       document = JSON.parse(outputText) as ForgeUILayoutDocument
@@ -216,7 +127,12 @@ try {
     if (
       !document ||
       typeof document !== 'object' ||
-      !Array.isArray(document.layout)
+      !Array.isArray(document.layout) &&
+      !(
+        document.template === 'dashboard' &&
+        document.regions &&
+        typeof document.regions === 'object'
+      )
     ) {
       return res.status(502).json({
         ok: false,

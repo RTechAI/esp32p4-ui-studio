@@ -82,6 +82,33 @@ describe('Components model', () => {
     })
   })
 
+  it('updates Auto Arrange geometry atomically without removing region metadata', () => {
+    const state: ComponentsState = {
+      ...STATE,
+      components: {
+        ...STATE.components,
+        'button-testid': {
+          ...STATE.components['button-testid'],
+          props: {
+            ...STATE.components['button-testid'].props,
+            layoutRegionId: 'dashboard.controls',
+          },
+        },
+      },
+    }
+    const nextState = components.reducers.updateManyProps(state, [{
+      id: 'button-testid',
+      props: { x: 800, y: 140, w: 160, h: 48 },
+    }])
+    expect(nextState.components['button-testid'].props).toMatchObject({
+      layoutRegionId: 'dashboard.controls',
+      x: 800,
+      y: 140,
+      w: 160,
+      h: 48,
+    })
+  })
+
   it('should add a new component', async () => {
     const state: ComponentsState = {
       components: INITIAL_COMPONENTS,

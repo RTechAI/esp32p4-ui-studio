@@ -224,12 +224,14 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
     jest.restoreAllMocks()
   })
 
-  const renderPanel = () =>
+  const renderPanel = (
+    insertAiLayout = jest.fn(),
+  ) =>
     render(
       <ChakraProvider>
         <ForgeAIPanel
           onClose={jest.fn()}
-          insertAiLayout={jest.fn()}
+          insertAiLayout={insertAiLayout}
         />
       </ChakraProvider>,
     )
@@ -253,6 +255,78 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
     })
     fireEvent.load(image)
   }
+
+  it('isolates All Components Test from normal quick templates', () => {
+    renderPanel()
+
+    expect(screen.getByText('Selection Controls')).toBeInTheDocument()
+    expect(screen.getByText('Interactive Assets')).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', {
+      name: 'NumberInput',
+    })).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', {
+      name: 'InteractiveButton',
+    })).toBeDisabled()
+
+    fireEvent.click(screen.getByRole('button', {
+      name: 'All Components Test',
+    }))
+
+    const prompt = screen.getByPlaceholderText(
+      /Create a modern industrial dashboard/,
+    ) as HTMLTextAreaElement
+    expect(prompt.value).toContain('component coverage test')
+    expect(prompt.value).toContain('- NumberInput:')
+    expect(prompt.value).toContain('- CircularProgress:')
+    expect(prompt.value).not.toContain('- InteractiveButton:')
+    expect(prompt.value).toContain('Never fabricate asset IDs')
+    expect(screen.getByText(
+      'Validation only. Requests every AI-supported component on one 1024×600 screen. The result will be dense and is not intended to be a usable interface.',
+    )).toBeInTheDocument()
+    expect(screen.getByRole('button', {
+      name: 'All Components Test',
+    })).toHaveAttribute('aria-pressed', 'true')
+
+    fireEvent.click(screen.getByRole('button', {
+      name: 'Dashboard',
+    }))
+    expect(screen.getByRole('button', {
+      name: 'All Components Test',
+    })).toHaveAttribute('aria-pressed', 'false')
+    expect(prompt.value).toBe('')
+  })
+
+  it('previews and applies the deterministic Dashboard Layout Designer template', () => {
+    const insertAiLayout = jest.fn()
+    renderPanel(insertAiLayout)
+
+    expect(screen.getByTestId('layout-designer-preview')).toHaveTextContent(
+      'HeaderStatusMainControlsFooter',
+    )
+    fireEvent.click(screen.getByRole('button', {
+      name: 'Apply Dashboard',
+    }))
+    expect(insertAiLayout).toHaveBeenCalledTimes(1)
+    const applied = insertAiLayout.mock.calls[0][0]
+    expect(applied.filter((item: any) => item.type === 'Box')).toHaveLength(5)
+    expect(applied.map((item: any) => item.props.layoutRegionKey))
+      .toEqual(expect.arrayContaining([
+        'dashboard.header',
+        'dashboard.status',
+        'dashboard.main',
+        'dashboard.controls',
+        'dashboard.footer',
+      ]))
+
+    fireEvent.click(screen.getByRole('button', {
+      name: 'AI Fill Dashboard',
+    }))
+    const prompt = screen.getByPlaceholderText(
+      /Create a modern industrial dashboard/,
+    ) as HTMLTextAreaElement
+    expect(prompt.value).toContain('FORGEUI_LAYOUT_TEMPLATE: dashboard')
+    expect(prompt.value).toContain('ForgeUI owns all structural region geometry')
+  })
 
   it('opens the Interactive tab and forwards a Toggle creator request', async () => {
     render(
