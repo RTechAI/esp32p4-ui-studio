@@ -91,22 +91,14 @@ C:\ForgeUI\Projects\esp32p4-ui-studio\.env
 Inside the file place:
 
 ```env
-OPENAI_API_KEY=sk-your-api-key-here
+OPENAI_API_KEY=YOUR_OPENAI_API_KEY_HERE
 ```
 
-Replace:
+Replace `YOUR_OPENAI_API_KEY_HERE` with the API key you copied from
+your OpenAI Platform account. Do not include the placeholder text in your
+`.env` file after adding your key.
 
-```text
-sk-your-api-key-here
-```
-
-with your own API key.
-
-Example:
-
-```env
-OPENAI_API_KEY=sk-proj-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-```
+Keep the environment variable name `OPENAI_API_KEY` unchanged.
 
 ---
 

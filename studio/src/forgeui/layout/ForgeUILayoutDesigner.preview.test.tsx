@@ -8,21 +8,26 @@ import {
   renderForgePreview,
 } from '~forgeui/preview/forgePreviewRenderer'
 import {
-  forgeUIDashboardTemplate,
+  ForgeUILayoutTemplate,
+  forgeUILayoutTemplates,
 } from './ForgeUILayoutDesigner'
 
-const BrowserDashboard = () => {
+const BrowserLayout = ({
+  definition,
+}: {
+  definition: ForgeUILayoutTemplate
+}) => {
   const components: IComponents = {
     root: {
       id: 'root',
       parent: 'root',
       type: 'Box',
       props: {},
-      children: forgeUIDashboardTemplate.layout
+      children: definition.layout
         .map((_, index) => `component-${index}`),
     },
   }
-  forgeUIDashboardTemplate.layout.forEach((item, index) => {
+  definition.layout.forEach((item, index) => {
     components[`component-${index}`] = {
       id: `component-${index}`,
       parent: 'root',
@@ -37,30 +42,30 @@ const BrowserDashboard = () => {
   })}</>
 }
 
-describe('Dashboard Layout Designer Browser Preview', () => {
-  it('renders every smart region as a normal themed Box', () => {
+describe('Layout Designer Browser Preview', () => {
+  it.each(forgeUILayoutTemplates)(
+    'renders every $name smart region as a normal themed Box',
+    definition => {
     const { container } = render(
       <ChakraProvider>
         <ForgeThemeProvider>
-          <BrowserDashboard />
+          <BrowserLayout definition={definition} />
         </ForgeThemeProvider>
       </ChakraProvider>,
     )
     const regions = container.querySelectorAll('[data-layout-region]')
-    expect(regions).toHaveLength(5)
+    const expected = definition.layout
+      .filter(item => item.type === 'Box')
+      .map(item => String(item.props.layoutRegionKey))
+    expect(regions).toHaveLength(expected.length)
     expect(Array.from(regions).map(region =>
       region.getAttribute('data-layout-region')
-    )).toEqual([
-      'dashboard.header',
-      'dashboard.status',
-      'dashboard.main',
-      'dashboard.controls',
-      'dashboard.footer',
-    ])
+    )).toEqual(expected)
     regions.forEach(region => {
       expect(region).toHaveStyle({
         position: 'absolute',
       })
     })
-  })
+    },
+  )
 })

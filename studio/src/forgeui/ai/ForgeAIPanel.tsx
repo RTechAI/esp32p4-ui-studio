@@ -46,7 +46,9 @@ import {
   getForgeAIKitchenSinkSelection,
 } from './ForgeAIPromptBuilder'
 import {
-  forgeUIDashboardTemplate,
+  ForgeUILayoutTemplateId,
+  forgeUILayoutTemplates,
+  getForgeUILayoutTemplate,
 } from '~forgeui/layout/ForgeUILayoutDesigner'
 import { createForgeAIContext } from './ForgeAIContext'
 import { generateForgeAILayout } from './ForgeAIEngine'
@@ -1165,7 +1167,9 @@ const [helperSelectedTypes, setHelperSelectedTypes] =
 const [isAllComponentsTest, setIsAllComponentsTest] =
   useState(false)
 const [layoutDesignerTemplate, setLayoutDesignerTemplate] =
-  useState<'dashboard'>('dashboard')
+  useState<ForgeUILayoutTemplateId>('dashboard')
+const selectedLayoutDefinition =
+  getForgeUILayoutTemplate(layoutDesignerTemplate)
 const promptBuilderAssets =
   createForgeAIContext().availableAssets
 
@@ -1396,32 +1400,36 @@ const leaveAllComponentsTest = () => {
 const applyLayoutDesignerTemplate = () => {
   leaveAllComponentsTest()
   insertAiLayout(
-    forgeUIDashboardTemplate.layout,
+    selectedLayoutDefinition.layout,
   )
 }
 
-const buildDashboardAIComposerPrompt = () => {
+const buildLayoutAIComposerPrompt = () => {
   leaveAllComponentsTest()
   setHelperSelectedTypes([
     'Heading', 'Text', 'Led', 'Progress', 'CircularProgress',
-    'Chart', 'Button',
+    'Chart', 'Button', 'Switch',
   ])
-  setAiPrompt(`FORGEUI_LAYOUT_TEMPLATE: dashboard
+  const regionNames = selectedLayoutDefinition.layout
+    .filter(item => item.type === 'Box')
+    .map(item => String(item.props.layoutRegionKey).slice(
+      selectedLayoutDefinition.id.length + 1,
+    ))
+  setAiPrompt(`FORGEUI_LAYOUT_TEMPLATE: ${selectedLayoutDefinition.id}
 
-Create the content for one coherent 1024x600 dashboard.
+Create the content for one coherent 1024x600 ${selectedLayoutDefinition.name} screen.
 ForgeUI owns all structural region geometry.
 
-Return only the real content components needed for:
-- one clear Heading
-- concise status Text
-- LED or status indication
-- Progress and CircularProgress where useful
-- one primary Chart
-- a small set of action Buttons
+Purpose: ${selectedLayoutDefinition.description}
+Designed for: ${selectedLayoutDefinition.useCases.join(', ')}.
+Content guidance: ${selectedLayoutDefinition.aiGuidance}
+
+Return content grouped only into these regions:
+${regionNames.map(name => `- ${name}`).join('\n')}
 
 Do not create Box, Divider or Line components.
 Do not include unrelated specialist controls.
-Do not attempt pixel-perfect placement; ForgeUI will assign and auto-arrange content in the dashboard header, status, main, controls and footer regions.
+Do not include x, y, w or h. ForgeUI will assign and auto-arrange content in the selected semantic regions.
 
 Return valid ForgeUI JSON only.`)
 }
@@ -3049,12 +3057,16 @@ toast({
                       value={layoutDesignerTemplate}
                       onChange={event =>
                         setLayoutDesignerTemplate(
-                          event.target.value as 'dashboard',
+                          event.target.value as ForgeUILayoutTemplateId,
                         )
                       }
                       mb={4}
                     >
-                      <option value="dashboard">Dashboard</option>
+                      {forgeUILayoutTemplates.map(definition => (
+                        <option key={definition.id} value={definition.id}>
+                          {definition.name}
+                        </option>
+                      ))}
                     </Select>
                     <Box
                       position="relative"
@@ -3068,16 +3080,16 @@ toast({
                       mb={4}
                       data-testid="layout-designer-preview"
                     >
-                      {forgeUIDashboardTemplate.layout
+                      {selectedLayoutDefinition.layout
                         .filter(item => item.type === 'Box')
                         .map(item => (
                           <Box
                             key={String(item.props.layoutRegionKey)}
                             position="absolute"
-                            left={`${Number(item.props.x) / 10.24}%`}
-                            top={`${Number(item.props.y) / 6}%`}
-                            width={`${Number(item.props.w) / 10.24}%`}
-                            height={`${Number(item.props.h) / 6}%`}
+                            left={`${Number(item.props.x) / selectedLayoutDefinition.width * 100}%`}
+                            top={`${Number(item.props.y) / selectedLayoutDefinition.height * 100}%`}
+                            width={`${Number(item.props.w) / selectedLayoutDefinition.width * 100}%`}
+                            height={`${Number(item.props.h) / selectedLayoutDefinition.height * 100}%`}
                             border="1px solid rgba(34,211,238,0.58)"
                             bg="rgba(15,118,110,0.16)"
                             color="cyan.100"
@@ -3094,15 +3106,15 @@ toast({
                         colorScheme="cyan"
                         onClick={applyLayoutDesignerTemplate}
                       >
-                        Apply Dashboard
+                        Apply {selectedLayoutDefinition.name}
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
                         colorScheme="purple"
-                        onClick={buildDashboardAIComposerPrompt}
+                        onClick={buildLayoutAIComposerPrompt}
                       >
-                        AI Fill Dashboard
+                        AI Fill {selectedLayoutDefinition.name}
                       </Button>
                     </SimpleGrid>
                   </Box>

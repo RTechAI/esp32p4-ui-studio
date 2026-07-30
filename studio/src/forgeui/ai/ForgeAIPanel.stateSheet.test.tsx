@@ -328,6 +328,37 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
     expect(prompt.value).toContain('ForgeUI owns all structural region geometry')
   })
 
+  it.each([
+    ['Industrial HMI', 'NavigationMachine StatusProcess AreaAlarm Panel'],
+    ['Control Panel', 'Left ControlsCentre GraphicRight Controls'],
+    ['Monitoring', 'Large Trend GraphMetrics StripAlarm List'],
+    ['SCADA Overview', 'Left NavigationMain MimicRight InformationBottom Events'],
+    ['Mobile / Portrait', 'Main CardSecondary CardControls'],
+  ])('previews, applies and prepares AI Fill for %s', (name, labels) => {
+    const insertAiLayout = jest.fn()
+    renderPanel(insertAiLayout)
+    fireEvent.change(screen.getByDisplayValue('Dashboard'), {
+      target: {
+        value: name.toLowerCase()
+          .replace(' / ', '-')
+          .replace(/ /g, '-'),
+      },
+    })
+    expect(screen.getByTestId('layout-designer-preview'))
+      .toHaveTextContent(labels)
+    fireEvent.click(screen.getByRole('button', {
+      name: `Apply ${name}`,
+    }))
+    expect(insertAiLayout).toHaveBeenCalledTimes(1)
+    fireEvent.click(screen.getByRole('button', {
+      name: `AI Fill ${name}`,
+    }))
+    const layoutPrompt = screen.getByPlaceholderText(
+      /Create a modern industrial dashboard/,
+    ) as HTMLTextAreaElement
+    expect(layoutPrompt.value).toContain('FORGEUI_LAYOUT_TEMPLATE:')
+  })
+
   it('opens the Interactive tab and forwards a Toggle creator request', async () => {
     render(
       <ChakraProvider>

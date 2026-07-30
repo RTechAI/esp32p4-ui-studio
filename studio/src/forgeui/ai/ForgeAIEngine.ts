@@ -20,7 +20,11 @@ import { parseForgeAIThemeResponse } from './ForgeAIThemeParser'
 
 import { requestForgeAILayout } from './ForgeAIClient'
 import { composeForgeAILayout } from './ForgeAILayoutEngine'
-import { composeForgeUIDashboardTemplate } from '~forgeui/layout/ForgeUILayoutDesigner'
+import {
+  composeForgeUILayoutTemplate,
+  ForgeUILayoutTemplateId,
+  getForgeUILayoutTemplate,
+} from '~forgeui/layout/ForgeUILayoutDesigner'
 import {
   flattenForgeAIRegionComposerDocument,
   isForgeAIRegionComposerDocument,
@@ -96,9 +100,25 @@ export const generateForgeAILayout = async ({
     systemPrompt,
   })
 
+  const templateMarker = trimmedPrompt.match(
+    /FORGEUI_LAYOUT_TEMPLATE:\s*([a-z0-9-]+)/i,
+  )
+  const requestedTemplateId = templateMarker?.[1].toLowerCase()
+  const candidateDefinition = requestedTemplateId
+    ? getForgeUILayoutTemplate(
+        requestedTemplateId as ForgeUILayoutTemplateId,
+      )
+    : null
+  const requestedDefinition =
+    candidateDefinition?.id === requestedTemplateId
+      ? candidateDefinition
+      : null
   const responseDocument =
     isForgeAIRegionComposerDocument(response.document)
-      ? flattenForgeAIRegionComposerDocument(response.document)
+      ? flattenForgeAIRegionComposerDocument({
+          ...response.document,
+          template: requestedDefinition?.id || response.document.template,
+        })
       : response.document
   const parsed = parseForgeAIResponse(
     JSON.stringify(responseDocument),
@@ -107,10 +127,14 @@ export const generateForgeAILayout = async ({
     screenHeight,
     availableAssets,
   )
-  if (/FORGEUI_LAYOUT_TEMPLATE:\s*dashboard/i.test(trimmedPrompt)) {
+  if (
+    requestedDefinition &&
+    requestedDefinition.id === requestedTemplateId
+  ) {
     return {
       ...parsed,
-      layout: composeForgeUIDashboardTemplate(
+      layout: composeForgeUILayoutTemplate(
+        requestedDefinition,
         parsed.layout as any,
       ),
     }

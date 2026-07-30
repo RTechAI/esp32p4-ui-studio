@@ -164,13 +164,13 @@ REQUIRED DOCUMENT FORMAT:
   ]
 }
 
-TEMPLATE-BASED DASHBOARD MODE:
-When the user prompt contains "FORGEUI_LAYOUT_TEMPLATE: dashboard", do not
+TEMPLATE-BASED LAYOUT MODE:
+When the user prompt contains "FORGEUI_LAYOUT_TEMPLATE: <template-id>", do not
 return pixel geometry. Return this contract instead:
 {
   "name": "Screen name",
   "description": "Brief description",
-  "template": "dashboard",
+  "template": "<template-id>",
   "title": "One screen title",
   "regions": {
     "header": [{ "type": "Text", "props": { "textValue": "Connected" } }],
@@ -180,9 +180,9 @@ return pixel geometry. Return this contract instead:
     "footer": []
   }
 }
-Use only header, status, main, controls and footer. Use canonical catalogue
-types. Do not include x, y, w or h. ForgeUI creates structural Boxes and
-deterministically arranges each region.
+Use only the semantic region names explicitly listed in the user request. Use
+canonical catalogue types. Do not include x, y, w or h. ForgeUI creates the
+selected layout's structural Boxes and deterministically arranges each region.
 
 CURRENT LAYOUT:
 ${JSON.stringify(currentLayout, null, 2)}

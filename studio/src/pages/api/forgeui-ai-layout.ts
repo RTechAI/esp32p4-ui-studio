@@ -129,7 +129,7 @@ try {
       typeof document !== 'object' ||
       !Array.isArray(document.layout) &&
       !(
-        document.template === 'dashboard' &&
+        typeof document.template === 'string' &&
         document.regions &&
         typeof document.regions === 'object'
       )

@@ -60,4 +60,31 @@ describe('ForgeAI Dashboard region composer contract', () => {
       },
     }).layout).toEqual([])
   })
+
+  it.each([
+    ['industrial-hmi', 'process-area'],
+    ['control-panel', 'centre-graphic'],
+    ['monitoring', 'trend-graph'],
+    ['scada-overview', 'main-mimic'],
+    ['mobile-portrait', 'main-card'],
+  ] as const)('supports the %s semantic region contract', (template, region) => {
+    const document = {
+      template,
+      title: 'System',
+      regions: {
+        [region]: [{ type: 'Chart' }],
+      },
+    }
+    expect(isForgeAIRegionComposerDocument(document)).toBe(true)
+    expect(
+      flattenForgeAIRegionComposerDocument(document).layout,
+    ).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: 'Chart',
+        props: expect.objectContaining({
+          layoutRegionId: `${template}.${region}`,
+        }),
+      }),
+    ]))
+  })
 })

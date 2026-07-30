@@ -16,6 +16,12 @@ export type ForgeUILayoutRegionRole =
   | 'card-grid'
   | 'toolbar'
   | 'settings-grid'
+  | 'process'
+  | 'alarms'
+  | 'metrics'
+  | 'events'
+  | 'information'
+  | 'graphic'
 
 export type ForgeUILayoutArrangement =
   | 'vertical'
@@ -32,10 +38,20 @@ export type ForgeUILayoutTemplateItem = {
   props: Record<string, unknown>
 }
 
+export type ForgeUILayoutTemplateId =
+  | 'dashboard'
+  | 'industrial-hmi'
+  | 'control-panel'
+  | 'monitoring'
+  | 'scada-overview'
+  | 'mobile-portrait'
+
 export type ForgeUILayoutTemplate = {
-  id: 'dashboard'
+  id: ForgeUILayoutTemplateId
   name: string
   description: string
+  useCases: string[]
+  aiGuidance: string
   width: number
   height: number
   layout: ForgeUILayoutTemplateItem[]
@@ -80,6 +96,8 @@ export const forgeUIDashboardTemplate: ForgeUILayoutTemplate = {
   id: 'dashboard',
   name: 'Dashboard',
   description: 'Header, status, main visualization, controls and footer regions.',
+  useCases: ['Operational dashboards', 'Status and control screens'],
+  aiGuidance: 'Use gauges, indicators, charts and action buttons.',
   width: 1024,
   height: 600,
   layout: [
@@ -110,9 +128,127 @@ export const forgeUIDashboardTemplate: ForgeUILayoutTemplate = {
   ],
 }
 
+const template = (
+  id: ForgeUILayoutTemplateId,
+  name: string,
+  description: string,
+  useCases: string[],
+  aiGuidance: string,
+  regions: ForgeUILayoutTemplateItem[],
+): ForgeUILayoutTemplate => ({
+  id,
+  name,
+  description,
+  useCases,
+  aiGuidance,
+  width: 1024,
+  height: 600,
+  layout: [
+    ...regions,
+    {
+      type: 'Heading',
+      props: {
+        positionMode: 'absolute',
+        x: 40, y: 32, w: 520, h: 48,
+        textValue: name,
+        children: name,
+        layoutRegionId: `${id}.header`,
+        layoutOrder: 0,
+      },
+    },
+  ],
+})
+
+export const forgeUIIndustrialHMITemplate = template(
+  'industrial-hmi',
+  'Industrial HMI',
+  'Navigation, machine state, process and alarm regions for automation.',
+  ['PLC', 'Factory', 'Pump stations', 'Packaging machines', 'Industrial automation'],
+  'Use machine controls, status LEDs, process values, alarms and an emergency stop.',
+  [
+    region('industrial-hmi.header', 'header', 'Header', 24, 24, 976, 64, 'horizontal', 'surface'),
+    region('industrial-hmi.navigation', 'navigation', 'Navigation', 24, 104, 160, 400, 'button-stack'),
+    region('industrial-hmi.machine-status', 'status', 'Machine Status', 200, 104, 216, 400, 'vertical'),
+    region('industrial-hmi.process-area', 'process', 'Process Area', 432, 104, 352, 400, 'fit-to-region', 'surface'),
+    region('industrial-hmi.alarm-panel', 'alarms', 'Alarm Panel', 800, 104, 200, 400, 'vertical'),
+    region('industrial-hmi.footer', 'footer', 'Footer', 24, 520, 976, 56, 'horizontal', 'surface'),
+  ],
+)
+
+export const forgeUIControlPanelTemplate = template(
+  'control-panel',
+  'Control Panel',
+  'Balanced controls around a central system graphic with bottom status.',
+  ['HVAC', 'Generator', 'Lighting', 'Power systems'],
+  'Use large controls, switches, set points, a central system graphic and status indicators.',
+  [
+    region('control-panel.header', 'header', 'Header', 24, 24, 976, 64, 'horizontal', 'surface'),
+    region('control-panel.left-controls', 'controls', 'Left Controls', 24, 104, 232, 400, 'button-stack'),
+    region('control-panel.centre-graphic', 'graphic', 'Centre Graphic', 272, 104, 480, 400, 'fit-to-region', 'surface'),
+    region('control-panel.right-controls', 'controls', 'Right Controls', 768, 104, 232, 400, 'button-stack'),
+    region('control-panel.bottom-status', 'status', 'Bottom Status', 24, 520, 976, 56, 'horizontal', 'surface'),
+  ],
+)
+
+export const forgeUIMonitoringTemplate = template(
+  'monitoring',
+  'Monitoring',
+  'Trend-led telemetry view with metrics and alarm history.',
+  ['Temperature', 'Pressure', 'Flow', 'Energy', 'Remote telemetry'],
+  'Use a large trend chart, compact statistics, telemetry values and a concise alarm list.',
+  [
+    region('monitoring.header', 'header', 'Header', 24, 24, 976, 64, 'horizontal', 'surface'),
+    region('monitoring.trend-graph', 'chart', 'Large Trend Graph', 24, 104, 704, 296, 'fit-to-region', 'surface'),
+    region('monitoring.metrics-strip', 'metrics', 'Metrics Strip', 24, 416, 704, 88, 'kpi-cards'),
+    region('monitoring.alarm-list', 'alarms', 'Alarm List', 744, 104, 256, 400, 'vertical'),
+    region('monitoring.footer', 'footer', 'Footer', 24, 520, 976, 56, 'horizontal', 'surface'),
+  ],
+)
+
+export const forgeUISCADAOverviewTemplate = template(
+  'scada-overview',
+  'SCADA Overview',
+  'Plant overview with navigation, mimic, information and event regions.',
+  ['Plant overview screens'],
+  'Use process graphics, navigation, live plant information, alarms and recent events.',
+  [
+    region('scada-overview.header', 'header', 'Header', 24, 24, 976, 64, 'horizontal', 'surface'),
+    region('scada-overview.left-navigation', 'navigation', 'Left Navigation', 24, 104, 176, 344, 'button-stack'),
+    region('scada-overview.main-mimic', 'process', 'Main Mimic', 216, 104, 536, 344, 'fit-to-region', 'surface'),
+    region('scada-overview.right-information', 'information', 'Right Information', 768, 104, 232, 344, 'vertical'),
+    region('scada-overview.bottom-events', 'events', 'Bottom Events', 24, 464, 976, 112, 'horizontal', 'surface'),
+  ],
+)
+
+export const forgeUIMobilePortraitTemplate = template(
+  'mobile-portrait',
+  'Mobile / Portrait',
+  'Touch-first stacked cards for compact and portrait-oriented devices.',
+  ['ESP32-S3', 'Portable devices', 'Portrait displays', 'Touch panels'],
+  'Use large touch controls, compact cards, concise values and minimal navigation.',
+  [
+    region('mobile-portrait.header', 'header', 'Header', 292, 24, 440, 64, 'horizontal', 'surface'),
+    region('mobile-portrait.main-card', 'main', 'Main Card', 292, 104, 440, 184, 'fit-to-region', 'surface'),
+    region('mobile-portrait.secondary-card', 'content', 'Secondary Card', 292, 304, 440, 104, 'grid'),
+    region('mobile-portrait.controls', 'controls', 'Controls', 292, 424, 440, 80, 'horizontal'),
+    region('mobile-portrait.footer', 'footer', 'Footer', 292, 520, 440, 56, 'horizontal', 'surface'),
+  ],
+)
+
 export const forgeUILayoutTemplates: ForgeUILayoutTemplate[] = [
   forgeUIDashboardTemplate,
+  forgeUIIndustrialHMITemplate,
+  forgeUIControlPanelTemplate,
+  forgeUIMonitoringTemplate,
+  forgeUISCADAOverviewTemplate,
+  forgeUIMobilePortraitTemplate,
 ]
+
+export const getForgeUILayoutTemplate = (
+  id: ForgeUILayoutTemplateId,
+): ForgeUILayoutTemplate =>
+  forgeUILayoutTemplates.find(candidate => candidate.id === id) ||
+  forgeUIDashboardTemplate
 
 export const getForgeUILayoutRegions = (
   components: IComponents,
@@ -236,36 +372,61 @@ export const autoArrangeForgeUILayoutByRegion = (
     return autoArrangeForgeUIRegion(regionComponent, assigned)
   })
 
-const dashboardRegionForType = (type: string): string => {
-  if (['Heading', 'Clock', 'WiFi'].includes(type)) return 'dashboard.header'
+const regionForType = (
+  definition: ForgeUILayoutTemplate,
+  type: string,
+): string => {
+  const regions = definition.layout.filter(item => item.type === 'Box')
+  const byRole = (...roles: ForgeUILayoutRegionRole[]) =>
+    regions.find(item => roles.includes(
+      item.props.layoutRegionRole as ForgeUILayoutRegionRole,
+    ))?.props.layoutRegionKey as string | undefined
+  const fallback = () =>
+    byRole(
+      'main', 'process', 'graphic', 'content', 'status', 'metrics',
+      'information', 'alarms', 'events', 'navigation', 'footer',
+    ) || String(regions[0]?.props.layoutRegionKey)
+  if (['Heading', 'Clock', 'WiFi'].includes(type)) {
+    return byRole('header') || `${definition.id}.header`
+  }
   if ([
     'Button', 'IconButton', 'Switch', 'Checkbox', 'Radio',
     'InteractiveButton', 'InteractiveToggleSwitch',
     'InteractiveThreePositionToggleSwitch',
-  ].includes(type)) return 'dashboard.controls'
+  ].includes(type)) return byRole('controls', 'navigation') || fallback()
+  if (['Chart'].includes(type)) {
+    return byRole('chart', 'main', 'process', 'graphic', 'content') || fallback()
+  }
   if ([
     'Text', 'Led', 'Progress', 'CircularProgress', 'Bar', 'Arc',
     'Scale', 'InteractiveLight', 'InteractiveStatusIndicator',
-  ].includes(type)) return 'dashboard.status'
-  return 'dashboard.main'
+  ].includes(type)) {
+    return byRole('status', 'metrics', 'information', 'main') || fallback()
+  }
+  return fallback()
 }
 
-export const composeForgeUIDashboardTemplate = (
+export const composeForgeUILayoutTemplate = (
+  definition: ForgeUILayoutTemplate,
   content: ForgeUILayoutTemplateItem[],
 ): ForgeUILayoutTemplateItem[] => {
-  const template = forgeUIDashboardTemplate.layout.map(item => ({
+  const composedTemplate = definition.layout.map(item => ({
     ...item,
     props: { ...item.props },
   }))
   const generatedHeading = content.find(item => item.type === 'Heading')
-  const templateHeading = template.find(item => item.type === 'Heading')
+  const templateHeading = composedTemplate.find(item => item.type === 'Heading')
   if (generatedHeading && templateHeading) {
+    const structuralHeadingProps = templateHeading.props
     templateHeading.props = {
       ...templateHeading.props,
       ...generatedHeading.props,
       positionMode: 'absolute',
-      x: 40, y: 32, w: 520, h: 48,
-      layoutRegionId: 'dashboard.header',
+      x: structuralHeadingProps.x,
+      y: structuralHeadingProps.y,
+      w: structuralHeadingProps.w,
+      h: structuralHeadingProps.h,
+      layoutRegionId: structuralHeadingProps.layoutRegionId,
       layoutOrder: 0,
     }
   }
@@ -279,11 +440,11 @@ export const composeForgeUIDashboardTemplate = (
         ...item.props,
         layoutRegionId:
           item.props.layoutRegionId ||
-          dashboardRegionForType(item.type),
+          regionForType(definition, item.type),
         layoutOrder: item.props.layoutOrder ?? index + 1,
       },
     }))
-  const combined = [...template, ...generatedContent]
+  const combined = [...composedTemplate, ...generatedContent]
   const components: IComponents = {
     root: {
       id: 'root',
@@ -314,3 +475,8 @@ export const composeForgeUIDashboardTemplate = (
     },
   }))
 }
+
+export const composeForgeUIDashboardTemplate = (
+  content: ForgeUILayoutTemplateItem[],
+): ForgeUILayoutTemplateItem[] =>
+  composeForgeUILayoutTemplate(forgeUIDashboardTemplate, content)

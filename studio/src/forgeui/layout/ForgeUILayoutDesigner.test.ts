@@ -2,6 +2,8 @@ import {
   autoArrangeForgeUIRegion,
   composeForgeUIDashboardTemplate,
   forgeUIDashboardTemplate,
+  forgeUILayoutTemplates,
+  composeForgeUILayoutTemplate,
 } from './ForgeUILayoutDesigner'
 
 const asComponent = (
@@ -61,6 +63,49 @@ describe('ForgeUI Dashboard Layout Designer', () => {
       })
     })
   })
+
+  it.each(forgeUILayoutTemplates)(
+    'defines non-overlapping labelled regions for $name',
+    definition => {
+      const regions = definition.layout.filter(item => item.type === 'Box')
+      expect(regions.length).toBeGreaterThanOrEqual(5)
+      regions.forEach((item, index) => {
+        expect(item.props.layoutRegionKey).toMatch(
+          new RegExp(`^${definition.id}\\.`),
+        )
+        expect(item.props.layoutRegionLabel).toEqual(expect.any(String))
+        expect(Number(item.props.x) + Number(item.props.w))
+          .toBeLessThanOrEqual(definition.width)
+        expect(Number(item.props.y) + Number(item.props.h))
+          .toBeLessThanOrEqual(definition.height)
+        regions.slice(index + 1).forEach(other => {
+          expect(overlaps(item.props, other.props)).toBe(false)
+        })
+      })
+    },
+  )
+
+  it.each(forgeUILayoutTemplates)(
+    'composes, assigns and persists $name through the shared engine',
+    definition => {
+      const layout = composeForgeUILayoutTemplate(definition, [
+        { type: 'Heading', props: { children: 'Plant A' } },
+        { type: 'Chart', props: { seriesCount: 2 } },
+        { type: 'Button', props: { children: 'Start' } },
+      ])
+      expect(layout.filter(item => item.type === 'Box')).toHaveLength(
+        definition.layout.filter(item => item.type === 'Box').length,
+      )
+      const restored = JSON.parse(JSON.stringify(layout))
+      restored.filter((item: any) =>
+        !['Box', 'Divider'].includes(item.type)
+      ).forEach((item: any) => {
+        expect(item.props.layoutRegionId).toMatch(
+          new RegExp(`^${definition.id}\\.`),
+        )
+      })
+    },
+  )
 
   it.each([
     ['vertical', 1],

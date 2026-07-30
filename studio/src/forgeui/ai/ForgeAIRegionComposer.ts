@@ -1,15 +1,15 @@
 import {
   resolveForgeAIComponentType,
 } from './ForgeAIComponentCatalogue'
-
-const DASHBOARD_REGIONS = new Set([
-  'header', 'status', 'main', 'controls', 'footer',
-])
+import {
+  ForgeUILayoutTemplateId,
+  getForgeUILayoutTemplate,
+} from '~forgeui/layout/ForgeUILayoutDesigner'
 
 export type ForgeAIRegionComposerDocument = {
   name?: string
   description?: string
-  template: 'dashboard'
+  template: ForgeUILayoutTemplateId
   title?: string
   regions: Record<string, Array<{
     type: string
@@ -25,7 +25,10 @@ export const isForgeAIRegionComposerDocument = (
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false
   const candidate = value as Record<string, unknown>
   return (
-    candidate.template === 'dashboard' &&
+    typeof candidate.template === 'string' &&
+    getForgeUILayoutTemplate(
+      candidate.template as ForgeUILayoutTemplateId,
+    ).id === candidate.template &&
     Boolean(candidate.regions) &&
     typeof candidate.regions === 'object' &&
     !Array.isArray(candidate.regions)
@@ -47,8 +50,15 @@ export const flattenForgeAIRegionComposerDocument = (
     type: string
     props: Record<string, unknown>
   }> = []
+  const definition = getForgeUILayoutTemplate(document.template)
+  const validRegionKeys = new Set(
+    definition.layout
+      .filter(item => item.type === 'Box')
+      .map(item => String(item.props.layoutRegionKey)),
+  )
   Object.entries(document.regions).forEach(([region, items]) => {
-    if (!DASHBOARD_REGIONS.has(region) || !Array.isArray(items)) return
+    const regionKey = `${definition.id}.${region}`
+    if (!validRegionKeys.has(regionKey) || !Array.isArray(items)) return
     items.forEach((item, index) => {
       const type = resolveForgeAIComponentType(item?.type || '')
       if (!type) {
@@ -59,7 +69,7 @@ export const flattenForgeAIRegionComposerDocument = (
         props: {
           ...(item.props || {}),
           positionMode: 'absolute',
-          layoutRegionId: `dashboard.${region}`,
+          layoutRegionId: regionKey,
           layoutOrder: item.order ?? index,
           layoutImportance: item.importance ?? 0,
         },
@@ -76,13 +86,13 @@ export const flattenForgeAIRegionComposerDocument = (
         children: document.title,
         textValue: document.title,
         positionMode: 'absolute',
-        layoutRegionId: 'dashboard.header',
+        layoutRegionId: `${definition.id}.header`,
         layoutOrder: 0,
       },
     })
   }
   return {
-    name: document.name || document.title || 'Dashboard',
+    name: document.name || document.title || definition.name,
     category: 'AI Generated',
     description: document.description || '',
     layout,
