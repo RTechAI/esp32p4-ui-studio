@@ -1,744 +1,194 @@
-# README
+# ForgeUI Studio
 
-# 🛠️ ForgeUI Studio
+**ForgeUI Studio is an open-source, AI-assisted visual HMI and embedded GUI designer for ESP32-P4.** It combines a drag-and-drop Canvas, reusable Interactive Assets, AI Layout tools, Browser Preview, native LVGL 9 generation, integrated ESP-IDF Build & Flash, and standalone ESP-IDF project export.
 
-**ForgeUI Studio is an open-source, AI-assisted visual HMI Studio for ESP32-P4.** It combines a drag-and-drop UI builder, reusable Interactive Assets, native LVGL v9 generation, local asset processing, integrated Build & Flash tools, and standalone ESP-IDF project export.
+ForgeUI exists to shorten the path from an interface idea to editable embedded firmware without putting a web runtime on the device. The Studio is a development tool; exported interfaces compile as native LVGL C inside ESP-IDF.
 
-ForgeUI supports generated interactive controls across the complete workflow: design-time configuration, Canvas editing, Browser Preview, native export, and runtime behavior on physical hardware. The Studio helps turn visual designs and natural-language ideas into editable interfaces while keeping the device output native to LVGL and ESP-IDF.
+> Design visually. Generate native LVGL. Own the firmware.
 
-> **Build it. Prove it. Flash it. Improve it. Repeat.**
+## What makes ForgeUI different
 
-If ForgeUI helps your embedded work, consider leaving the project a GitHub star.
+- **Native embedded output:** no browser, Electron, HTML, CSS, JavaScript or Node.js runtime is deployed to the microcontroller.
+- **Editable AI assistance:** AI-generated layouts and artwork enter the same normal component and asset workflows as manually created content.
+- **Application-friendly runtime:** supported controls expose generated setters and genuine-user hooks while permanent product logic stays developer-owned.
+- **Hardware-led validation:** features are distinguished between automated, preview, generated, build and physical ESP32-P4 proof.
+- **Standalone ownership:** exported ESP-IDF projects remain usable without ForgeUI Studio, OpenAI or a ForgeUI runtime.
 
----
+## Current capabilities
 
-## ⚡ What ForgeUI provides
+- Drag-and-drop, free-form Canvas placement and resizing
+- Registry-driven Widget Tray with search and accessible insertion
+- Component properties, semantic themes and uploaded artwork
+- Browser Preview
+- Layout Designer with Smart Regions and Auto Arrange
+- AI-assisted layout, theme and artwork workflows
+- Five reusable Interactive Asset types
+- Standard LVGL component runtime APIs and hooks
+- Native QR Code component and generated text setter
+- Built-in System Runtime with Display, Wi-Fi and Storage interfaces
+- Local conversion of artwork into LVGL-ready C assets
+- Client and server export validation
+- Integrated ESP-IDF Build & Flash
+- Standalone ESP-IDF project export
 
-- Drag-and-drop screen design with resize and property controls
-- AI-assisted layout and artwork generation
-- Reusable multi-state Interactive Assets
-- Standard LVGL Component Runtime APIs
-- Canvas and Browser Preview workflows
-- Reusable built-in System Runtime with a physically proven Wi-Fi Manager
-- Local conversion of images into LVGL-ready C assets
-- Native LVGL v9 UI and runtime generation
-- Generated input callbacks, output setters, and semantic runtime APIs for supported standard LVGL widgets
-- Integrated ESP-IDF Build & Flash workflow
-- Standalone ESP-IDF project export for normal application development
-
-### Native output without a browser runtime
-
-ForgeUI is a development tool. It does not deploy the Studio stack to the microcontroller:
-
-- no browser or Electron runtime on the device;
-- no HTML, CSS, JavaScript, or Node.js on the device;
-- generated interfaces compile as native LVGL C inside ESP-IDF.
-
----
-
-## 🤖 AI Design Studio
-
-ForgeUI AI Studio combines semantic AI content selection with ForgeUI-owned structural layout and geometry.
+## Typical workflow
 
 ```text
-Natural-language prompt
+Drag and Drop or AI Layout
         ↓
-Layout Designer
-        ↓
-Dashboard Template (or future template)
-        ↓
-AI Fill
-        ↓
-Editable ForgeUI Components
+Editable ForgeUI components
         ↓
 Canvas
         ↓
 Browser Preview
         ↓
-Native LVGL Export
+Generate native LVGL
         ↓
-ESP-IDF
+Build and Flash with ESP-IDF
         ↓
-ESP32-P4
+Develop the application or export a standalone project
 ```
 
-Layout Designer owns template structure and component geometry. AI Fill supplies semantic content, supported component selection and region assignment. Generated firmware receives ordinary ForgeUI components through the existing export path; it does not receive an AI document or Layout Designer runtime.
+AI features require configured OpenAI API access. Normal Studio editing, imported-asset processing, preview, LVGL generation, validation, build and export do not require OpenAI.
 
-Current AI-assisted workflows include guided semantic composition, AI Fill, hero backgrounds, standalone artwork, semantic icons and state artwork for Interactive Assets. AI-assisted output enters the same editable component and asset pipelines as manually created content.
+## Layout Designer
 
-OpenAI-assisted layout and image generation use configured OpenAI services. Studio editing, uploaded-image preprocessing, LVGL conversion, validation, export, ESP-IDF build and flashing run locally. Standalone exported ESP-IDF projects have no ForgeUI subscription, licensing, runtime phone-home, OpenAI, or ForgeUI Studio requirement.
+ForgeUI’s Layout Designer uses reusable definitions rather than separate hard-coded renderers. The implemented preset library contains:
 
----
+- Dashboard
+- Industrial HMI
+- Control Panel
+- Monitoring
+- SCADA Overview
+- Mobile / Portrait
 
-# 🧱 Layout Designer
+Each preset creates ordinary editable ForgeUI components with labelled Smart Region Boxes. Components can be assigned to semantic regions, Auto Arrange computes deterministic geometry, and template-aware AI Fill chooses appropriate content and regions while ForgeUI owns final placement.
 
-The first completed Layout Designer template is Dashboard. It creates five deterministic structural regions:
+Dashboard’s Header, Status, Main, Controls and Footer workflow has been manually verified on Canvas and Browser Preview. Layout Designer-specific physical ESP32-P4 proof is not claimed. All presets use the same normal component persistence, undo/redo, Canvas, Browser Preview and LVGL export paths.
 
-- Header
-- Status
-- Main
-- Controls
-- Footer
+See [ForgeUI Layout Designer](docs/FORGEUI_LAYOUT_DESIGNER.md) for the detailed authoring workflow.
 
-Each region is a real editable ForgeUI Box component rather than an image overlay or separate layout document. Regions can be selected, moved and resized. Normal components can be assigned through the Inspector, Auto Arrange organises assigned child controls, and AI Fill Dashboard populates the existing semantic regions with appropriate supported components and content.
+## Interactive Assets
 
-The resulting screen remains editable and follows the normal project save/reload, Canvas, Browser Preview and native LVGL export paths. Dashboard is the first completed template. Settings, Login, Forms and Machine Status are planned Layout Designer extensions and are not yet complete.
+Interactive Assets are reusable artwork-backed controls:
 
----
+- Interactive Button — Normal and Pressed input
+- Interactive Toggle Switch — OFF and ON input
+- Interactive Three-Position Toggle Switch — LEFT, CENTER and RIGHT input
+- Interactive Light — application-controlled OFF and ON output
+- Interactive Status Indicator — application-controlled OFF and ON output
 
-# 🧩 Interactive Asset Framework
+They share Creator workflows, AI state-artwork generation, registry persistence, Canvas assignment, visible-artwork fitting, Browser Preview, native LVGL export and generated developer integration.
 
-Interactive Assets are reusable controls that store the artwork for each of their visual states.
-
-### Interactive Input Runtime
-
-- **Interactive Button** — momentary Normal and Pressed states
-- **Interactive Toggle Switch** — persistent OFF and ON states
-
-### Three-Position Input Runtime
-
-- **Interactive Three-Position Toggle Switch** — persistent LEFT, CENTER, and RIGHT states
-
-### Binary Output Runtime
-
-- **Interactive Light** — application-controlled OFF and ON states
-- **Interactive Status Indicator** — application-controlled OFF and ON states
-
-All five share AI state-artwork generation, Interactive Asset registry and persistence, direct Creator workflows, Canvas assignment, configured Inspector workflows, Browser Preview, visible-artwork fitting, Canvas resizing, centred contain-fit rendering, native LVGL export, generated developer APIs, and physical ESP32-P4 validation within the recorded scope.
-
-Type-specific generated behavior remains explicit:
+At a high level:
 
 ```text
-Button         → FG_On_*_Clicked(void)
-Toggle         → FG_On_*_Toggled(bool enabled)
-Three-Position → FG_On_*_Changed(fg_three_way_state_t state)
-Light/Status   → FG_Set_*(bool enabled)
+User input → generated FG_On_* hook → developer application
+
+Developer application → generated FG_Set_* API → displayed output
 ```
 
-Runtime support is shared where appropriate, while each exported component instance retains independent artwork, state, and callback or setter connection.
+Exact names are generated from component names and are declared in the exported headers.
 
-## Direct Creator workflows
+## Standard LVGL runtime
 
-All five Interactive Asset Canvas components provide a direct path into their matching Creator:
+ForgeUI generates native LVGL objects and semantic runtime APIs for supported Standard components, including value displays, charts, text entry, selections, progress, images, container visibility and actions.
 
-1. right-click a supported component;
-2. choose **Open Creator**;
-3. edit or create the required state artwork;
-4. confirm through the normal save and assignment workflow.
+- Interactive semantic state uses silent setters plus genuine-user hooks.
+- Output-only state uses setters without hooks.
+- Presentation-only components remain API-free.
+- QR Code exposes a silent generated Text setter and no hook.
 
-Configured components reopen their exact linked Interactive Asset. Unconfigured components open a new unsaved draft, and Inspector onboarding points to the Creator when required artwork is missing. Opening a Creator does not automatically save or assign an asset.
+Generated implementation and public declarations live in `90_Studio_Export.c/.h`. Genuine-user hooks are declared through `95_UserEvents.h`; live Studio regeneration preservation-merges matching hook bodies in `95_UserEvents.c`.
 
-Direct Creator access supports all five types:
+Detailed signatures and ownership belong in [03 — Generated Export API Code Map](03_ForgeUI_Generated_Export_API_Code_Map.md), not this front page.
 
-- Button
-- Toggle Switch
-- Three-Position Toggle Switch
-- Light
-- Status Indicator
+## Hardware support and proof
 
----
+The proven target is:
 
-## 🎨 State Sheet asset generation
+- **Waveshare ESP32-P4-WiFi6-Touch-LCD-7B**
+- **1024 × 600**
+- **ESP-IDF 5.5.4**
+- **LVGL 9.2.2**
 
-State Sheets generate related visual states from one master image. This keeps the housing, scale, lighting, and perspective consistent so that only the intended state changes.
+Recorded physical proof includes the established Standard component groups, all five Interactive Asset runtime paths within their documented scopes, generated semantic theme parity, Display/Brightness, the generated Wi-Fi Manager, reusable System keyboard, Storage Browser, ESP-Hosted connectivity through the board’s ESP32-C6, SD storage and simultaneous Wi-Fi/SD operation.
 
-### Two-state State Sheet
+The repository does not currently advertise ESP32-S3 or additional board export support. Preview or automated validation is not treated as physical proof. For the authoritative feature-by-feature evidence level, see [04 — Feature Status](04_FEATURE_STATUS.md).
 
-```text
-Natural-language prompt
-        ↓
-Generate one OFF/ON State Sheet
-        ↓
-Adjust linked crop regions
-        ↓
-Create matching OFF and ON assets
-        ↓
-Save Interactive Asset
-        ↓
-Assign to Canvas
-        ↓
-Native LVGL export
-        ↓
-Physical ESP32-P4
-```
+## Built-in System Runtime
 
-The Toggle State Sheet Builder turns one OFF/ON master into two linked crops and then two independent OFF and ON assets. Button and Light Creators also support paired state generation.
-
-### Three-Position State Sheet
-
-```text
-Natural-language prompt
-        ↓
-Create Three-Position Toggle Set
-        ↓
-Generate one LEFT/CENTER/RIGHT State Sheet
-        ↓
-Adjust three linked crop regions
-        ↓
-Remap rows if required
-        ↓
-Confirm Crops
-        ↓
-Create three matching state assets
-        ↓
-Save and assign
-        ↓
-Native LVGL export
-        ↓
-Physical ESP32-P4
-```
-
-The Three-Position crop workspace provides:
-
-- separate LEFT, CENTER, and RIGHT crop boxes;
-- shared crop dimensions with independent positioning;
-- linked resizing with edge and corner handles;
-- row-to-state remapping;
-- identical output dimensions for all three states.
-
-All state images are processed and registered together. Partial asset registration is prevented, and the existing draft remains unchanged if conversion fails.
-
----
-
-## Interactive Status Indicator
-
-Status Indicator now has the complete direct Creator workflow, Inspector onboarding, and a responsive binary-output placeholder. New components drop at `120 × 72`, large enough to select and resize before artwork is assigned.
-
-Browser Preview and Canvas Preview use the same centered contain-fit renderer, preserving artwork aspect ratio rather than stretching it to the component bounds. Clicking the Canvas preview toggles a temporary local OFF/ON state for visual verification; it does not change the saved initial state, persistence, or generated firmware.
-
-The exported Status Indicator remains non-clickable. Application code changes its state through its generated `FG_Set_*` API.
-
----
-
-## Visual Designer and Preview
-
-The Canvas provides drag-and-drop placement, selection, resizing, properties, themes, uploaded artwork, and direct Interactive Asset editing. Browser Preview and Canvas aim to match generated LVGL behavior, while acknowledging that native LVGL widgets can require explicit exporter styling and geometry corrections. Browser Preview now mirrors the Wi-Fi Manager, password workflow and connected details through deterministic hardware-independent network simulation.
-
-The generated System Runtime owns one reusable native LVGL keyboard for password entry. It is created lazily on the LVGL top layer, attaches to the active password textarea, supports Show / Hide, Done and Cancel, and retains physically validated geometry and touch interaction on the 1024 × 600 ESP32-P4 display.
-
----
-
-## ⚙️ Built-in System Interface
-
-ForgeUI also generates a built-in System Interface as platform infrastructure alongside the user application:
+ForgeUI generates platform UI alongside the application:
 
 - System Launcher
 - Display / Brightness
 - Wi-Fi Manager
+- Storage Browser
+- reusable native LVGL keyboard for System text entry
 
-The application and System pages use persistent generated containers with internal navigation, so Interactive Assets remain alive while the System Interface is open. Display brightness changes live through `bsp_display_brightness_set()` and remains selected for the current device session.
+Generated pages own presentation and UI intent. The non-generated firmware backends remain authoritative for Wi-Fi transport, credentials, reconnect policy and filesystem operations.
 
-The Wi-Fi Manager is physically proven across Browser Preview, generated LVGL and the ESP32-P4. It provides Scan Networks, Refresh, a structured selectable network list, RSSI, security, Connected and Saved badges, an integrated password dialog and reusable native LVGL keyboard, Show / Hide password, Connect, Disconnect, Reconnect, Forget Network and connected details including gateway, station MAC and AP BSSID.
+## Standalone ESP-IDF export
 
-The generated page owns presentation, connected-detail projection and UI intent. The separate Hosted backend remains the source of physical Wi-Fi truth and continues to own scanning implementation, credentials, reconnect policy, DHCP, ESP-IDF and transport integration.
+A standalone export is a normal ESP-IDF project:
 
-The built-in System Interface is separate from reusable multi-page authoring for user projects, which remains future work.
+- open it directly in Visual Studio Code;
+- build, flash and debug it with the normal ESP-IDF workflow;
+- add application modules, drivers, GPIO, sensors and product logic;
+- call generated UI APIs from application code;
+- implement genuine-user reactions in the exported developer hook layer.
 
-## 📡 Hosted Wi-Fi and SD runtime
+The exported project is developer-owned. Studio does not manage it after export, and the device requires no separately installed ForgeUI runtime, ForgeUI Studio service, OpenAI connection, subscription or phone-home service. Permanent application code belongs in developer-owned modules and `95_UserEvents.*`, never as a manual source-of-truth patch in replaceable `90_Studio_Export.*`.
 
-The current Waveshare hardware uses two physically proven SDMMC paths:
+See [05 — Developer Hardware Integration](05_DEVELOPER_HARDWARE_INTEGRATION.md) for practical GPIO, sensor, task, queue, network and hardware examples.
 
-```text
-Hosted Wi-Fi
-→ ESP32-C6
-→ ESP-Hosted
-→ SDIO Slot 1
-→ GPIO14–19
-→ Reset GPIO54
+## Getting started
 
-SD Storage
-→ SDMMC Slot 0
-→ GPIO39–44
-```
+ForgeUI’s current bootstrap workflow targets Windows development.
 
-Physical validation on the Waveshare ESP32-P4-WiFi6-Touch-LCD-7B confirmed an active ESP-Hosted transport, ESP32-C6 identification, automatic Wi-Fi reconnect, DHCP address acquisition, successful SD mount and write/read testing, and simultaneous Wi-Fi and SD operation. The proven Hosted backend now drives the complete generated Wi-Fi Manager without changing this transport architecture.
+1. Install Git, Node.js 20, Python and ESP-IDF 5.5.x.
+2. Clone this repository.
+3. Run `FIRST_TIME_FORGEUI_SETUP.bat`.
+4. Start ForgeUI Studio using the provided launcher.
+5. Create a screen, open Browser Preview, then generate or build the firmware.
 
----
+For the complete setup sequence, use [Getting Started with ForgeUI Studio](GETTING_STARTED%20FORGEUI_STUDIO.md).
 
-# 🔌 Generated Runtime APIs
+The [ForgeUI Developer Portal](https://forgeui.co.nz/developers) is the public onboarding site. Repository documentation remains the detailed engineering reference.
 
-ForgeUI keeps UI generation separate from application behavior.
+## Documentation
 
-### Input callbacks
+| Document | Use it for |
+|---|---|
+| [01 — Spine](01_SPINE.md) | Product architecture, proven milestones and current direction |
+| [02 — Developer Code Map](02_DEVELOPER_CODE_MAP.md) | Studio ownership, implementation, extension and debugging |
+| [03 — Generated Export API Code Map](03_ForgeUI_Generated_Export_API_Code_Map.md) | Generated firmware APIs, hooks, files and export boundaries |
+| [04 — Feature Status](04_FEATURE_STATUS.md) | Current implementation and evidence status |
+| [05 — Developer Hardware Integration](05_DEVELOPER_HARDWARE_INTEGRATION.md) | Connecting ForgeUI to application code, drivers and hardware |
+| [06 — OpenAI API Setup](06_OpenAI%20API%20Setup%20Instructions.md) | Configuring optional OpenAI-assisted layouts and artwork |
+| [Layout Designer Guide](docs/FORGEUI_LAYOUT_DESIGNER.md) | Preset, Smart Region, Auto Arrange and AI Fill workflow |
+| [QR Code Guide](docs/FORGEUI_QR_CODE.md) | QR authoring, preview, export and validation |
 
-Generated input controls call developer-owned hooks:
-
-```c
-void FG_On_Start_Button_Clicked(void);
-void FG_On_Main_Power_Toggled(bool enabled);
-void FG_On_Mode_Changed(fg_three_way_state_t state);
-```
-
-The Three-Position callback receives a distinct LEFT, CENTER, or RIGHT enum state.
-
-### Output setters
-
-Application code controls generated output widgets through public setters:
-
-```c
-void FG_Set_Status_Light(bool enabled);
-void FG_Set_WiFi_Status(bool enabled);
-```
-
-For example:
-
-```c
-FG_Set_Status_Light(true);
-FG_Set_WiFi_Status(false);
-```
-
-The permanent integration rule is:
-
-> Input controls produce generated developer callbacks. Output controls expose generated public UI functions.
-
-`90_Studio_Export.c/.h` contain generated, replaceable UI and runtime code. Live Studio regeneration preserves matching developer-written hook bodies and adds missing declarations or stubs. After standalone export, `95_UserEvents.c/.h` become the developer-owned application integration layer. Developer GPIO, I/O, hardware actions and product behaviour belong in that standalone integration layer or other developer-owned application modules—not in generated `90_Studio_Export.c/.h`, and not necessarily directly in `main.c`.
-
-For the detailed ownership contract, see [03_ForgeUI_Generated_Export_API_Code_Map.md](03_ForgeUI_Generated_Export_API_Code_Map.md).
-
----
-
-## Standard LVGL Component Runtime
-
-ForgeUI generates retained native LVGL objects and runtime APIs when a Standard widget has meaningful state or actions. Interactive semantic runtime uses silent guarded setters plus genuine-user hooks. Output-only runtime uses retained state and setters without hooks. Presentation-only components remain API-free. Every supported path consumes the shared semantic theme pipeline and targets Canvas â†’ Browser Preview â†’ generated LVGL â†’ ESP32-P4 parity.
-
-This runtime is separate from both reusable Interactive Assets and the built-in System Runtime:
-
-```text
-Standard LVGL Component Runtime
-├── Led
-├── Bar
-├── Arc
-├── Chart
-├── Table
-├── Keyboard
-├── Calendar
-├── Scale
-├── Roller
-├── MsgBox
-├── ButtonMatrix
-├── Input
-├── Textarea
-├── Checkbox
-├── Switch
-├── Radio
-├── Progress
-├── CircularProgress
-├── NumberInput
-└── Select
-```
-
-The APIs reflect each widget rather than forcing every component into a generic value model. Examples include setting LED, Bar and Arc values, adding or clearing Chart points, showing or hiding the standard Canvas Keyboard, selecting Calendar dates, and selecting Roller or Button Matrix options.
-
-These Standard components are physically proven across Canvas, Browser Preview, generated LVGL and ESP32-P4: Led, Bar, Arc, Chart, Table, Keyboard, Calendar, Scale, Roller, MsgBox, ButtonMatrix, Input, Textarea, Checkbox, Switch, Radio, Progress, CircularProgress, NumberInput and Select.
-
-Chart retains native `lv_chart`, themed rendering, runtime streaming and clear behavior. Responsive gutters support Y-axis range labels and deterministic X-axis point-index labels without inventing categories, dates, or timestamps. Its Canvas, Browser Preview, generated LVGL, and ESP32-P4 output are physically aligned.
-
-Runtime APIs and hooks are generated consistently through both the integrated Build & Flash workflow and standalone ESP-IDF export. Presentation-only components remain API-free when they own no meaningful runtime state. Scale is a visual tick-and-label renderer, Line is decorative geometry, Icon is a Studio authoring convenience for the built-in icon picker, and Divider is visual separation only.
-
-Input and Textarea retain native `lv_textarea` objects with silent text setters and genuine-edit hooks. Touch focuses the field, but neither automatically opens or attaches the Standard Canvas Keyboard. The reusable System Runtime keyboard remains private to System dialogs. This separation is intentional.
-
-CircularProgress is an output-only native `lv_arc` with a silent value setter and no developer hook. It uses a themed 360-degree background, has no knob, cannot be dragged and is explicitly non-clickable.
-
-NumberInput uses one themed outer frame containing a numeric textarea plus native increment/decrement buttons. Hardware callbacks consume serialized step, clamp to minimum/maximum and preserve the existing changed hook; Canvas, Browser Preview and P4 share the same frame and divider structure.
-
-Select retains native `lv_dropdown` behavior while explicitly theming the closed border, arrow, popup and selected rows. Switch explicitly overrides LVGLâ€™s default blue checked state with the active amber accent. Checkbox and Radio no longer invent fallback wording; custom labels remain supported and Radio defaults to indicator-only.
-
-At export, Icon becomes a normal LVGL image backed by the existing generated image symbol. It has no runtime setter or developer hook. Applications that need runtime image swapping should use the Standard Image component and `FG_Set_<Image_Name>_Source(const void * src)`; ForgeUI intentionally does not duplicate that capability as an Icon API.
-
-Divider also has no runtime setter or developer hook. If a Divider must appear or disappear dynamically, place it inside the relevant parent Box and use `FG_Set_<Parent_Box_Name>_Visible(bool visible)` so visibility remains owned by the layout container.
-
----
-
-## Semantic Standard theme architecture
-
-ForgeUI’s proven Standard components share one selected-theme pipeline:
-
-```text
-Theme Manager
-        ↓
-Semantic Theme Resolver
-        ↓
-Canvas
-        ↓
-Browser Preview
-        ↓
-LVGL Export
-        ↓
-Generated Firmware
-        ↓
-ESP32-P4
-```
-
-Canvas follows the selected ForgeUI theme, Browser Preview consumes the same semantic palette, and generated LVGL exports equivalent semantic colours. Custom palettes follow the same path. Decorative colours are no longer hard-coded for the proven Standard components, while meaningful status colours such as Standard LED green may remain intentionally independent.
-
-The ESP32-P4 matches the selected theme after **Generate → Build → Flash**. Runtime hot theme switching is not currently implemented.
-
----
-
-## 🖼️ Native asset pipeline
-
-ForgeUI processes artwork locally for the active display or requested native asset dimensions.
-
-```text
-Prompt or imported image
-        ↓
-Device-aware preprocessing
-        ↓
-Uploaded Asset Library
-        ↓
-Local LVGL image conversion
-        ↓
-Canvas and Browser Preview
-        ↓
-Native firmware export
-```
-
-The pipeline supports hero backgrounds, standalone artwork, icons, and Interactive Asset state images. Preprocessing and LVGL conversion are local once an image is generated or uploaded. Generated C assets and their build registrations are included automatically in exported firmware; no image-conversion runtime is deployed to the ESP32-P4.
-
----
-
-## ✅ Physical hardware proof
-
-ForgeUI is developed and validated on the **Waveshare ESP32-P4-WiFi6-Touch-LCD-7B** at **1024×600**.
-
-Proven paths include:
-
-- Canvas → Browser Preview → LVGL export → ESP-IDF → physical ESP32-P4
-- Standard Led, Bar, Arc, Chart, Table, Keyboard, Calendar, Scale, Roller, MsgBox, and ButtonMatrix through Canvas → Browser Preview → generated LVGL → ESP32-P4
-- Standard Input, Textarea, Checkbox, Switch, Radio, Progress, Circular Progress, Number Input and Select through Canvas → Browser Preview → generated LVGL → ESP32-P4
-- whole-screen Canvas ↔ ESP32-P4 semantic theme, border and geometry parity for the 2026-07-30 Standard group
-- working Number Input hardware increment/decrement buttons with serialized step and clamping
-- Switch amber checked state with native LVGL blue overridden
-- output-only Circular Progress with no knob or dragging
-- output-only, non-draggable Progress
-- selected-theme parity for Graphite/orange, Cyber teal, Nordic light, and custom palette export
-- native Chart rendering with themed divisions, Y-axis labels, X-axis point indexes, and responsive gutters
-- AI-generated layouts and artwork through editable Canvas workflows
-- Interactive Button Normal/Pressed behavior and generated callback
-- Interactive Toggle Switch OFF/ON touch behavior
-- Interactive Three-Position LEFT/CENTER/RIGHT artwork, touch zones, and callback
-- Interactive Light and Status Indicator output-state export
-- generated public output setters
-- direct Creator workflow across all five Interactive Assets
-- shared Canvas resize and visible-artwork fitting
-- Canvas, Browser Preview, and generated LVGL contain-fit parity
-- built-in System Launcher and Display / Brightness page
-- physical backlight control through `bsp_display_brightness_set()`
-- complete Wi-Fi Manager with Scan, Refresh, structured network rows, network selection, RSSI and security
-- Connected and Saved badges
-- protected-network password dialog and reusable native LVGL keyboard
-- password entry, Show / Hide, Done and Cancel
-- Connect, Disconnect, Reconnect and Forget Network workflows
-- connected details including gateway, station MAC and AP BSSID
-- deterministic Browser Preview parity for the Wi-Fi workflow
-- Hosted Wi-Fi over SDIO Slot 1
-- SD Card storage over SDMMC Slot 0
-- simultaneous Wi-Fi and SD operation
-- reusable top-layer native LVGL keyboard alignment, four-row layout, special keys, touch interaction, and Studio parity
-- integrated Build & Flash
-- detached standalone ESP-IDF project build and flash
-
-Physical Three-Position testing confirmed that all three touch zones selected the matching state, the generated callback reported the correct readable value, initialization did not produce an unwanted notification, and repeated interaction remained stable.
-
-The current proven hardware and software baseline is:
-
-- Waveshare ESP32-P4-WiFi6-Touch-LCD-7B
-- ESP32-P4
-- ESP32-C6 Wi-Fi companion
-- ESP-IDF 5.5.4
-- LVGL 9.2.2
-- 1024 × 600 MIPI-DSI display
-- GT911 touch
-- 32 MB external PSRAM
-- ESP-Hosted 2.9.7
-- Wi-Fi Remote 1.3.0
-- Hosted SDIO Slot 1
-- SD storage on SDMMC Slot 0
-
----
-
-## 📦 Build, flash, and deployment
-
-ForgeUI supports two deployment models.
-
-### Integrated development
-
-The Studio exports the current Canvas and assets into its reference firmware workspace, then builds and flashes the connected ESP32-P4 through the configured ESP-IDF toolchain.
-
-### Standalone ESP-IDF export
-
-**Export Standalone Project** creates an independent ESP-IDF workspace under:
-
-```text
-C:\ForgeUI-Exports
-```
-
-The exported project can be opened directly in Visual Studio Code, built with the Espressif extension or standard ESP-IDF tools, flashed, version-controlled, and shared without ForgeUI Studio.
-
-Generated UI and runtime files remain replaceable. The standalone user-event files become the application integration layer for callbacks, while generated output APIs can be called from normal application code.
-
-The application boundary includes:
-
-```text
-main/90_Studio_Export.c   generated and replaceable UI/runtime implementation
-main/90_Studio_Export.h   generated and replaceable UI/runtime declarations
-main/95_UserEvents.c      developer-owned standalone application integration
-main/95_UserEvents.h      developer-owned standalone integration declarations
-```
-
-Developer GPIO, peripheral I/O, hardware actions and permanent product behaviour belong in the standalone project’s developer-owned integration layer and supporting application modules. They should not be placed in replaceable generated UI files.
-
-After exporter changes, use the proven development workflow:
-
-```text
-Exporter change
-        ↓
-Restart or refresh Studio
-        ↓
-Regenerate
-        ↓
-Inspect generated 90_Studio_Export.c
-        ↓
-Build
-        ↓
-Flash
-        ↓
-Compare against Canvas
-```
-
-This prevents a stale running Studio bundle from producing old generated firmware after exporter source changes.
-
----
-
-## Export validation and asset safety
-
-ForgeUI validates exports before replacing generated firmware:
-
-- client preflight checks Canvas components, Interactive Assets, required state artwork, and LVGL-ready assets;
-- independent server validation runs before filesystem mutation;
-- duplicate component IDs, public APIs, image symbols, and declarations are rejected;
-- generated source and required asset files are validated;
-- reference-aware deletion protects assets still used by the Canvas or other records;
-- a failed export preserves the previous generated firmware.
-
----
-
-## 🛠️ Feature matrix
-
-### Visual design
-
-- drag-and-drop Canvas
-- component resizing and property editing
-- broad LVGL widget catalog
-- Browser Preview
-- semantic Standard theme engine
-- shared Standard preview rendering
-- Canvas, Browser Preview, generated LVGL, and ESP32-P4 theme parity
-- deterministic Wi-Fi Manager, password-workflow, and connected-detail preview parity
-- Theme Manager
-- hero backgrounds and uploaded artwork
-- semantic icon browsing
-
-### Layout Designer
-
-- Dashboard template
-- Smart Regions
-- region assignment
-- Auto Arrange
-- AI Fill Dashboard
-
-### AI-assisted workflows
-
-- authoritative 42-component AI catalogue and guided Prompt Builder
-- Layout Designer-owned structure and geometry
-- AI Fill semantic component selection
-- semantic region assignment
-- editable normal-component output
-- hero and standalone artwork generation
-- interactive state-artwork generation
-- Toggle OFF/ON State Sheets
-- Three-Position LEFT/CENTER/RIGHT State Sheets
-- linked crop editing and state remapping
-
-### Interactive Assets
-
-- five Interactive Asset types across three runtime families
-- persistent reusable asset library
-- direct Creators for all five Canvas component types
-- Inspector onboarding for missing visuals
-- Toggle State Sheet Builder
-- Three-Position Toggle Set generation
-- linked crop workspace with atomic conversion and registration
-- independent exported runtime instances
-- runtime state preserved while the reusable built-in System Runtime is open
-
-### Native export
-
-- Layout Designer resolves into normal ForgeUI components before export
-- no additional Layout Designer runtime family is generated
-- no additional Layout Designer firmware API is generated
-- no additional Layout Designer User Event hook family is generated
-- LVGL v9 source generation
-- locally converted image assets
-- generated input callbacks
-- generated output setters
-- retained semantic runtime APIs for supported standard LVGL widgets
-- Input and Textarea native text runtime with silent setters and genuine-edit hooks
-- Switch, Checkbox and Radio checked/selected runtimes
-- output-only Progress and Circular Progress runtimes
-- composed Number Input runtime with hardware steppers and serialized step
-- native Select runtime with semantic closed control and popup
-- selected semantic palette propagation into generated LVGL
-- physical validation of twenty Standard components
-- complete generated Wi-Fi Manager and structured backend projection
-- generated connected details, selectable network rows, badges, password and forget dialogs
-- reusable native LVGL keyboard with generated attachment and callbacks
-- client preflight and independent server validation
-- reference-aware asset deletion
-- integrated Build & Flash
-- standalone ESP-IDF ownership boundary
-
----
-
-## 🗂️ Repository structure
+## Repository structure
 
 ```text
 esp32p4-ui-studio/
-├── studio/                       # React / Next.js visual and AI Studio
-├── firmware/ForgeUI-One/         # ESP-IDF reference and live firmware workspace
-├── tools/lvgl/LVGLImage.py       # Local LVGL image conversion tool
-├── docs/                         # Supporting and historical documentation
-├── 01_SPINE.md                   # Current architecture spine
-├── 02_DEVELOPER_CODE_MAP.md      # Studio subsystem map
-├── 03_ForgeUI_Generated_Export_API_Code_Map.md
-└── README.md
+├── studio/       ForgeUI Studio web application and export server
+├── firmware/     ESP-IDF reference firmware and generated live output
+├── docs/         Feature guides, images and archived historical documents
+├── tools/        Setup and startup tooling
+├── 01–06         Current architecture, status and integration documents
+└── README.md     Public project front page
 ```
 
-Detailed subsystem ownership and debugging information belongs in the code maps:
+## Contributing and evidence
 
-- [02_DEVELOPER_CODE_MAP.md](02_DEVELOPER_CODE_MAP.md)
-- [03_ForgeUI_Generated_Export_API_Code_Map.md](03_ForgeUI_Generated_Export_API_Code_Map.md)
+Contributions should preserve the existing ownership boundaries, extend authoritative registries and generators instead of duplicating them, and keep generated files replaceable. Claims should identify whether evidence is automated, manually previewed, generated, built, flashed or physically exercised.
 
----
+ForgeUI builds on open-source projects including [LVGL](https://lvgl.io/), [ESP-IDF](https://github.com/espressif/esp-idf), React, Next.js and Chakra UI. Review the repository and firmware license/attribution files before redistribution.
 
-## ✅ Project milestones
+## Project links
 
-Current architecture save point:
-
-`FORGEUI_LAYOUT_DESIGNER__DASHBOARD_SMART_REGIONS_AUTO_ARRANGE_AI_FILL__CANVAS_AND_BROWSER_PREVIEW_MANUALLY_VERIFIED__READY_FOR_EXPORT_AND_HARDWARE_PROOF__2026-07-30`
-
-Current proven milestones include:
-
-- first Dashboard Layout Designer vertical slice
-- deterministic smart regions and stable assignment
-- Auto Arrange
-- AI Fill Dashboard
-- manual Canvas verification
-- manual Browser Preview verification
-- generated LVGL inspection and ESP32-P4 proof remain pending for Layout Designer
-- visual Builder, Canvas, themes, and Browser Preview
-- semantic Standard theme engine
-- Canvas selected-theme parity
-- Browser Preview selected-theme parity
-- generated LVGL selected-theme parity
-- ESP32-P4 selected-theme parity after Generate, Build, and Flash
-- completed Chart Y-axis and X-axis labels
-- completed physical validation of twenty Standard components
-- Input, Textarea, Checkbox, Switch, Radio, Progress, Circular Progress, Number Input and Select runtime parity
-- whole-screen semantic theme, border and geometry parity between Canvas and ESP32-P4
-- Number Input hardware steppers, Circular Progress output runtime and Select semantic popup
-- Switch amber checked-state repair and Checkbox/Radio fallback-label removal
-- AI layout, hero, artwork, and semantic icon workflows
-- local device-aware LVGL asset conversion
-- five implemented Interactive Asset types
-- all-five direct Creator workflows
-- shared Canvas resizing and visible-artwork fitting across all five
-- Canvas, Browser Preview, and LVGL centred contain-fit parity
-- reusable Toggle and Three-Position State Sheet workflows
-- linked crop editing and atomic state-asset registration
-- Interactive Button, Toggle Switch, Three-Position Toggle Switch, Light, and Status Indicator runtime paths
-- generated `95_UserEvents` hook layer for Button, Toggle, and Three-Position inputs
-- shared Binary Output Runtime and generated `FG_Set_*` Light/Status APIs
-- Standard LVGL component architecture for the proven Led, Bar, Arc, Chart, Table, Keyboard, Calendar, Scale, Roller, MsgBox, ButtonMatrix, Input, Textarea, Checkbox, Switch, Radio, Progress, CircularProgress, NumberInput and Select group, with semantic runtime APIs where applicable
-- built-in System Launcher and Display / Brightness
-- physical display backlight control
-- reusable built-in System Runtime
-- complete built-in Wi-Fi Manager with structured network rows, password workflow, Connect, Disconnect, Reconnect and Forget Network
-- connected Wi-Fi details including RSSI, gateway, security, station MAC and AP BSSID
-- deterministic Browser Preview parity for the Wi-Fi Manager
-- Hosted Wi-Fi over SDIO Slot 1
-- SD Card operation over SDMMC Slot 0
-- simultaneous Hosted Wi-Fi and SD operation
-- Three-Position State Sheet generation and linked crops
-- reusable native LVGL keyboard, password attachment, top-layer ownership and physical interaction at 1024 × 600
-- client/server export validation before generated-file replacement
-- integrated ESP-IDF Build & Flash
-- independent standalone ESP-IDF export
-- physical ESP32-P4 validation of the current runtime paths
-
-ForgeUI remains under active development and is ready for continued UI polish, broader testing, and community contribution.
-
----
-
-## Future direction
-
-These are future concepts, not descriptions of implemented runtime support:
-
-- additional Layout Designer templates:
-  - Settings
-  - Login
-  - Forms
-  - Machine Status
-  - Sidebar
-  - Split View
-  - Card Grid
-- additional generated runtime families;
-- value controls, gauges, and numeric displays;
-- reusable user-project multi-screen authoring; the built-in System Interface already uses persistent generated pages;
-- additional built-in System pages including Bluetooth and Device settings;
-- MQTT, OTA and Ethernet platform integrations;
-- continued visual theme polish for generated System surfaces;
-- GPIO and peripheral binding;
-- broader board and display profiles;
-- plugin architecture.
-
-The planned Layout Designer templates are Studio authoring structures that must resolve into the existing component model. They are not new firmware runtime families.
-
----
-
-## Open-source credits
-
-ForgeUI Studio is open source to make native embedded HMI tooling more accessible to engineers, students, makers, and companies. The project aims to reduce repetitive interface work without hiding or replacing the generated LVGL and ESP-IDF application model.
-
-Contributions, testing, ideas, and feedback are welcome.
-
-ForgeUI builds on open-source projects including LVGL, ESP-IDF, React, Next.js, Chakra UI, and their dependencies. Their respective licenses and attribution requirements remain with those projects.
-
----
-
-## ForgeUI philosophy
-
-Build it.
-
-Prove it.
-
-Flash it.
-
-Improve it.
-
-Repeat.
-
----
-
-## About the Creator
-
-Hi, I'm **Scott Forster** from New Zealand, creator of **ForgeUI Studio**.
-
-ForgeUI began as a personal project with a simple goal: make embedded HMI development faster, more approachable, and more enjoyable. Major features are developed against physical hardware and treated as proven only after they have been exported, compiled, flashed, and exercised on an ESP32-P4.
-
-ForgeUI is developed with modern AI-assisted engineering practices. I define the product vision, architecture, hardware validation, and engineering direction, while tools including **ChatGPT** and **Codex** assist with implementation, testing, refactoring, documentation, and design reviews.
-
-**Scott Forster**  
-Creator & Lead Developer — ForgeUI Studio
-
-📧 **forgeui.esp32@gmail.com**
+- [GitHub repository](https://github.com/RTechAI/esp32p4-ui-studio)
+- [ForgeUI Developer Portal](https://forgeui.co.nz/developers)
+- Contact: `forgeui.esp32@gmail.com`

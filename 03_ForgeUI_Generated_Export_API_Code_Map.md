@@ -13,26 +13,21 @@
 
 ## Current proven save point
 
-**FORGEUI_LAYOUT_DESIGNER__DASHBOARD_SMART_REGIONS_AUTO_ARRANGE_AI_FILL__CANVAS_AND_BROWSER_PREVIEW_MANUALLY_VERIFIED__READY_FOR_EXPORT_AND_HARDWARE_PROOF__2026-07-30**
+**FORGEUI_WIDGET_REGISTRY__LAYOUT_TEMPLATE_LIBRARY__QRCODE_RUNTIME__READY_FOR_QR_HARDWARE_PROOF__2026-07-30**
 
 ### Existing physically proven generated runtime
 
 The earlier physical proof remains valid for Interactive Assets; System Runtime; Hosted Connectivity and Storage; the eleven-component Standard group; and the 2026-07-30 Standard input and selection group. Promoting the current documentation save point does not weaken or replace those recorded hardware results.
 
-### Current Layout Designer status
+### Current generated boundary status
 
-- Dashboard template application is manually verified.
-- Smart Region Boxes are editable.
-- Region movement and resizing are manually verified.
-- Region assignment and Auto Arrange are manually verified.
-- AI Fill Dashboard is manually verified.
-- Browser Preview rendering is manually verified.
-- Focused exporter coverage for semantic Region Boxes passes.
-- Full production build remains pending.
-- Current generated `90_Studio_Export.c` inspection remains pending.
-- ESP-IDF build remains pending.
-- ESP32-P4 flash and physical parity remain pending.
-- Dashboard is the only completed Layout Designer template.
+- Dashboard, Industrial HMI, Control Panel, Monitoring, SCADA Overview and Mobile / Portrait all resolve through the same normal-component export boundary.
+- Smart Region Boxes and AI-filled controls create no template-specific runtime, API, hook or transport field.
+- Focused Layout Designer, AI Region Composer and semantic Box exporter coverage passes.
+- Standard QR Code generation is implemented as a native LVGL 9.2.2 output component.
+- The live generated `90_Studio_Export.c/.h` contains the QR object, serialized initialization and `FG_Set_QR_Code_Text(const char * text)`.
+- QR contributes no `userEventHooks`, asset C source or `95_UserEvents` declaration.
+- QR-focused preview/export tests pass; ESP-IDF build, flash and physical scan proof for QR remain pending.
 
 ## Purpose and scope
 
@@ -82,13 +77,11 @@ Interactive Standard setters are guarded so application-to-UI updates cannot be 
 Layout Designer is a Studio authoring subsystem. Before export, it resolves into the existing ForgeUI component document.
 
 ```text
-Dashboard Template
-        ↓
-Smart Region Boxes
+Layout Designer / AI Fill
         ↓
 Normal ForgeUI components
         ↓
-Existing component serialization
+Final persisted x/y/w/h
         ↓
 generateForgeUILvglCode()
         ↓
@@ -97,9 +90,9 @@ Existing generated LVGL output
 
 Layout Designer does not create a second exporter, separate generated firmware document, new runtime family, new public API family, new `95_UserEvents` hooks or new export payload fields. It does not bypass `ForgeUIExportValidation`. Its output uses the existing Box, Divider, Heading, Text, Chart, Button and other Standard component branches.
 
-### Dashboard Template Generated Structure
+### Template Generated Structure
 
-The current template produces normal components representing `dashboard.header`, `dashboard.status`, `dashboard.main`, `dashboard.controls` and `dashboard.footer`. It creates five normal Box components, one Divider, one Heading placeholder and normal assigned components inserted by the user or AI Fill.
+The current library contains Dashboard, Industrial HMI, Control Panel, Monitoring, SCADA Overview and Mobile / Portrait. Each selected definition produces normal Box regions and ordinary placeholder/assigned components. Dashboard retains `dashboard.header`, `dashboard.status`, `dashboard.main`, `dashboard.controls` and `dashboard.footer`; other layouts use their own template-qualified semantic keys.
 
 Stable region keys and assignment metadata are Studio/project metadata. They generate no C structs, enums, public APIs, hooks, runtime callbacks or additional files. After layout composition, final persisted component `x/y/w/h` is the generated geometry source of truth.
 
@@ -218,6 +211,7 @@ Newly completed runtime components:
 - ✓ NumberInput
 - ✓ Select
 - ✓ Image
+- ✓ QRCode
 - ✓ Box
 - ✓ IconButton
 
@@ -276,6 +270,8 @@ Standard LVGL Component Runtime
 │   └── Calendar
 ├── Runtime image output
 │   └── Image
+├── Encoded output
+│   └── QRCode
 ├── Serialized presentation
 │   ├── Button
 │   ├── Text
@@ -365,6 +361,7 @@ Runtime hot theme switching on the ESP32-P4 was not added.
 | NumberInput | `FG_Set_<Name>_Value(int32_t value)` | `FG_On_<Name>_Changed(int32_t value)` |
 | Select | `FG_Set_<Name>_Selected_Index(uint32_t index)` | `FG_On_<Name>_Changed(uint32_t index, const char * text)` |
 | Image | `FG_Set_<Name>_Source(const void * src)` | None |
+| QRCode | `FG_Set_<Name>_Text(const char * text)` | None |
 | Box | `FG_Set_<Name>_Visible(bool visible)` | None |
 | IconButton | `FG_Set_<Name>_Enabled(bool enabled)` | `FG_On_<Name>_Clicked(void)` |
 | Canvas | None; serialized container/artwork presentation only | None |
@@ -385,7 +382,7 @@ In this table, CircularProgress is a retained output-only arc. NumberInput is th
 
 Interactive semantic state retains the native or composed LVGL object and runtime state, exposes a public control API, guards programmatic updates where LVGL may emit events, adapts genuine LVGL user events, and contributes generated hook metadata. Creation and setter calls are silent. Input, Textarea, Switch, Checkbox, Radio, NumberInput, Select and IconButton follow this boundary.
 
-Output semantic state retains its LVGL object and runtime state and exposes a setter without a developer hook. Progress, CircularProgress, Image and Box follow this boundary.
+Output semantic state retains its LVGL object and runtime state and exposes a setter without a developer hook. Progress, CircularProgress, Image, QRCode and Box follow this boundary.
 
 A Layout Designer Region Box remains a Standard Box. Its structural purpose adds no runtime semantics. When it qualifies as a retained non-root Box, its only public contract is `FG_Set_<Region_Box_Name>_Visible(bool visible)`. Region assignment, padding, gaps, arrangement mode, Auto Arrange, layout lock, region role and region key generate no APIs.
 
@@ -550,6 +547,18 @@ Select retains native `lv_dropdown`, selected index and serialized option count.
 ### Image generated boundary
 
 LVGL-ready Image instances retain native `lv_image` and current source pointer. The output-only API accepts raw `const void *`, safely ignores `NULL` and unchanged pointers, and generates no hook. Pending/unconverted assets keep their placeholder and safely no-op. No asset-ID, path or URL runtime lookup exists.
+
+### QR Code generated boundary
+
+`QRCode` retains a native LVGL 9.2.2 `lv_qrcode` object. Serialized generation calls `lv_qrcode_create`, `lv_qrcode_set_size`, `lv_qrcode_set_dark_color`, `lv_qrcode_set_light_color`, `lv_qrcode_set_quiet_zone` and `lv_qrcode_set_data`.
+
+The output-only API is:
+
+```c
+void FG_Set_<Name>_Text(const char * text);
+```
+
+The setter updates the retained object through `lv_qrcode_set_data()` and treats `NULL` as an empty string. QR Code produces no genuine-user transition, `userEventHooks` entry or `95_UserEvents` declaration/stub. Its modules are native LVGL output, not an uploaded image, so QR contributes no `assetSources` entry. `firmware/ForgeUI-One/sdkconfig.defaults` owns the required `CONFIG_LV_USE_QRCODE=y`.
 
 ### Box generated boundary
 
@@ -1131,6 +1140,7 @@ Runtime generation assumes that its candidate result will pass the dedicated cli
 - standard-component transition helpers
 - standard-component generated event callbacks
 - standard-component public APIs and hook metadata
+- native QR Code object construction, serialized colors/quiet zone/data and setter-only text updates
 - deterministic sanitized collision-safe standard-component names
 - TabView retained runtime generation
 - Tileview retained coordinates and visible four-child panel generation
@@ -1216,7 +1226,7 @@ These four properties are the complete current contract. Hook families share gen
 
 Layout Designer adds no `layoutRegions`, `layoutMetadata`, `template`, `autoArrange` or `aiDocument` field. Any layout metadata needed by Studio remains in project serialization and is resolved before generated firmware materialization.
 
-The complete Standard Runtime V1 reuses this contract. `userEventHooks` now carries hook metadata for Input, Textarea, Switch, Checkbox, Radio, NumberInput, Select and IconButton. `publicApiDeclarations` carries declarations for Input, Textarea, Switch, Checkbox, Radio, Progress, NumberInput, Select, Image, Box and IconButton. No transport field or generated-header system was added.
+The complete Standard Runtime reuses this contract. `userEventHooks` carries hook metadata for Input, Textarea, Switch, Checkbox, Radio, NumberInput, Select and IconButton. `publicApiDeclarations` carries declarations for Input, Textarea, Switch, Checkbox, Radio, Progress, CircularProgress, NumberInput, Select, Image, QRCode, Box, IconButton and the previously completed Standard runtime APIs. No transport field or generated-header system was added.
 
 Scaling helpers, retained objects/state, transition helpers and resolved numeric scales live inside generated `code`. Linked fitted C sources appear in `assetSources` when fitting has replaced the Interactive Asset's state references. Intrinsic dimensions, alpha metadata, union bounds and crop coordinates do not become export payload fields. Hook metadata remains in `userEventHooks`, and generated public declarations remain in `publicApiDeclarations`.
 
@@ -1821,7 +1831,7 @@ Interactive Status Indicator contributes its setter declaration through `publicA
 
 ### Layout Designer output in `90_Studio_Export.c`
 
-A Dashboard created by Layout Designer appears as ordinary generated LVGL objects: region `lv_obj` Boxes, Divider/Line presentation, Heading/Text labels, Charts, status indicators, Progress or Circular Progress, Buttons and other assigned controls.
+A screen created from any implemented Layout Designer definition appears as ordinary generated LVGL objects: region `lv_obj` Boxes, Divider/Line presentation, Heading/Text labels, Charts, status indicators, Progress or Circular Progress, Buttons and other assigned controls.
 
 `90_Studio_Export.c` contains no Layout Designer engine. It must not contain template selection, AI prompting, region-assignment logic, Auto Arrange calculations, Studio Inspector metadata or region drag/resize behavior. These are resolved before generation.
 
@@ -1880,6 +1890,7 @@ Owns generated implementation:
 - retained NumberInput textarea, value, range and step metadata
 - retained Select dropdown, selected index and option count
 - retained Image object and source pointer
+- retained native QR Code object, serialized data/colors/quiet zone and text setter
 - retained Box object and visibility
 - retained IconButton object and enabled state
 - generated Standard setters, LVGL event adapters and calls into genuine-user hooks
@@ -1915,6 +1926,7 @@ Owns generated public declarations:
 - `fg_studio_export_create(lv_obj_t *parent)`
 - generated Binary Output `FG_Set_*` APIs for Light and Status Indicator
 - generated Standard LVGL Component Runtime public APIs
+- generated QR Code `FG_Set_<Name>_Text(const char * text)` declarations
 - generated TabView and Tileview public setter declarations
 - required public includes and C/C++ linkage guards
 
@@ -2434,6 +2446,10 @@ The final whole-screen Canvas ↔ P4 comparison proved graphite/orange semantic 
 
 ### Current validation boundary
 
+- the current combined exporter, Layout Designer/AI composer and export-server selection passes 295/296 tests across 35/36 suites;
+- all 33 `ForgeUILvglExport` suites pass, including QR Code generation and the unchanged four-field result contract;
+- the one failing export-server preflight fixture is the already-recorded pair of missing default-theme C sources, not a QR, Layout Designer, API or hook failure;
+- live generated-file inspection confirms QR construction/data update in `90_Studio_Export.c`, its Text setter declaration in `90_Studio_Export.h`, no QR declaration in `95_UserEvents.*`, `CONFIG_LV_USE_QRCODE=y`, and CMake registration of `90_Studio_Export.c` plus `95_UserEvents.c`;
 - the eleven-component Standard theme/parity regression passes 158/158;
 - Graphite/orange, Cyber teal and Nordic light are verified;
 - custom palette export is verified;
@@ -2480,16 +2496,16 @@ This physical record includes the named eleven-component Standard group and the 
 
 | Problem | Start here | Then inspect |
 |---|---|---|
-| Dashboard looks correct in Canvas but generated Boxes are missing | `ForgeUILvglExport.ts` Box traversal | final project component list and Box parent/root classification |
-| Dashboard child is missing from generated output | component export traversal | project insertion result, component type and parent/child representation |
+| Layout looks correct in Canvas but generated Boxes are missing | `ForgeUILvglExport.ts` Box traversal | final project component list and Box parent/root classification |
+| Layout child is missing from generated output | component export traversal | project insertion result, component type and parent/child representation |
 | Region Box style differs from Browser Preview | Box branch in `ForgeUILvglExport.ts` | semantic surface/border roles, radius, opacity and preview palette |
 | Region Box receives an unexpected hook | Box export metadata | ensure Box remains setter-only visibility with no `userEventHooks` entry |
 | Layout Designer adds an unexpected header declaration | `publicApiDeclarations` | confirm only contained normal components contribute APIs |
 | Auto Arrange runs on the P4 or appears in generated C | incorrect architecture | Auto Arrange must finish before `generateForgeUILvglCode()` |
 | Generated firmware references `layoutRegionId` | incorrect exporter coupling | remove runtime interpretation of Studio-only region metadata |
 | AI response shape reaches export server | `Header.tsx` transport | AI must resolve into normal project components before export |
-| Dashboard geometry is wrong in generated C | final serialized component `x/y/w/h` | Layout Designer geometry and project insertion, not generated-file patching |
-| Generated Dashboard is manually fixed in `90_Studio_Export.c` | wrong ownership boundary | repair Layout Designer/project/exporter source and regenerate |
+| Layout geometry is wrong in generated C | final serialized component `x/y/w/h` | Layout Designer geometry and project insertion, not generated-file patching |
+| Generated layout is manually fixed in `90_Studio_Export.c` | wrong ownership boundary | repair Layout Designer/project/exporter source and regenerate |
 | Generated LVGL object is wrong | `ForgeUILvglExport.ts` component branch | resolved component props and Interactive Asset |
 | Button hook is absent from export result | `ForgeUILvglExport.ts` Button branch | `userEventHooks` set and hook naming |
 | Button hook name is wrong or duplicated | hook-name helpers in `ForgeUILvglExport.ts` | component name, asset label/name, uniqueness set |
@@ -2516,6 +2532,10 @@ This physical record includes the named eleven-component Standard group and the 
 | Checkbox label or checked state is wrong | Checkbox exporter branch | serialized label, native `lv_checkbox`, checked guard |
 | Radio is expected to be mutually exclusive | Radio exporter branch | independent retained `lv_checkbox` instances; no group registry exists |
 | Progress hook is incorrectly generated | Progress export metadata | setter-only `publicApiDeclarations`, absence from `userEventHooks` |
+| QR declaration is missing from `90_Studio_Export.h` | QR entry in `publicApiDeclarations` | Header payload and `normalizePublicApiDeclarations()` Text-signature acceptance |
+| QR renders incorrectly in generated C | `ForgeUILvglExport.ts` QR branch | serialized size/colors/quiet zone/data and native `lv_qrcode_set_*` calls |
+| QR setter exists but firmware QR support is absent | `firmware/ForgeUI-One/sdkconfig.defaults` | confirm `CONFIG_LV_USE_QRCODE=y` and rebuild |
+| QR unexpectedly creates a hook or asset source | QR output classification | it must contribute only generated code plus a public declaration |
 | NumberInput clamp or parser is wrong | NumberInput exporter branch | textarea text parsing, `int32_t` range/step and programmatic guard |
 | Select index or callback text is wrong | Select exporter branch | option count, clamp, `lv_dropdown_get_selected_str()` and callback buffer |
 | Image source setter safely no-ops | Image exporter branch | LVGL-ready resolution, `NULL`/unchanged pointer checks and pending placeholder |
@@ -2645,7 +2665,7 @@ Detailed Studio ownership remains in `02_DEVELOPER_CODE_MAP.md`.
 
 ### `studio/src/forgeui/ForgeUILvglExport.ts`
 
-Owns generated LVGL source, all five Interactive Asset branches, shared Button/Toggle/Three-Position/Binary Output runtimes, and the complete Standard LVGL Runtime generation. Standard ownership includes semantic theme propagation; Circular Progress retained runtime; Number Input container, textarea, stepper buttons and callbacks; Select closed/popup styling; Switch checked-state styling; Checkbox/Radio fallback-label normalization; native Chart plus responsive sibling axes; other retained objects/state; setters; LVGL event adapters; hook metadata; and collision-safe names. It also owns Button/Text/Heading serialized presentation, per-instance Clock formatting, the built-in System Runtime and all existing exporter metadata. It never writes files directly or owns Hosted transport, physical Wi-Fi truth or Storage filesystem operations.
+Owns generated LVGL source, all five Interactive Asset branches, shared Button/Toggle/Three-Position/Binary Output runtimes, and the complete Standard LVGL Runtime generation. Standard ownership includes semantic theme propagation; Circular Progress retained runtime; Number Input container, textarea, stepper buttons and callbacks; Select closed/popup styling; Switch checked-state styling; Checkbox/Radio fallback-label normalization; native Chart plus responsive sibling axes; native QR Code creation and setter-only data updates; other retained objects/state; setters; LVGL event adapters; hook metadata; and collision-safe names. It also owns Button/Text/Heading serialized presentation, per-instance Clock formatting, the built-in System Runtime and all existing exporter metadata. It never writes files directly or owns Hosted transport, physical Wi-Fi truth or Storage filesystem operations.
 
 ### Standard semantic theme source files
 
@@ -2686,7 +2706,7 @@ Owns generated UI plus Interactive Asset, Standard LVGL Component and System Run
 
 ### `90_Studio_Export.h`
 
-Owns `fg_studio_export_create(...)`, every Binary Output setter and every completed Standard Runtime public declaration, with required public types including `bool`, `int32_t`, `uint32_t`, `const char *` and `const void *`. It contains no API for Icon, Divider, Scale, Line, Clock, Button Text, Text or Heading. The Three-Position enum is owned by `95_UserEvents.h`. Never contains user implementations.
+Owns `fg_studio_export_create(...)`, every Binary Output setter and every completed Standard Runtime public declaration, including QR Code Text setters, with required public types including `bool`, `int32_t`, `uint32_t`, `const char *` and `const void *`. It contains no API for Icon, Divider, Scale, Line, Clock, Button Text, Text or Heading. The Three-Position enum is owned by `95_UserEvents.h`. Never contains user implementations.
 
 ### `95_UserEvents.c`
 
@@ -2822,8 +2842,8 @@ Preserve these rules:
 116. Restart or refresh the running Studio bundle after exporter changes and before regeneration.
 117. Layout Designer resolves into normal ForgeUI components before export.
 118. Layout Designer is not a generated firmware runtime family.
-119. Dashboard template mode creates no new public API family.
-120. Dashboard template mode creates no new User Event hook family.
+119. Layout template mode creates no new public API family.
+120. Layout template mode creates no new User Event hook family.
 121. Smart Region Boxes remain Standard Box components.
 122. Region structure does not change the existing Box visibility API contract.
 123. Auto Arrange runs before export and never at firmware runtime.
@@ -2837,10 +2857,17 @@ Preserve these rules:
 131. Layout Designer must not introduce another generated-header or hook architecture.
 132. Existing contained components retain their normal APIs and hooks.
 133. Final persisted `x/y/w/h` remains the generated geometry source of truth.
-134. Dashboard Region Box styling uses semantic theme roles.
+134. Layout Region Box styling uses semantic theme roles.
 135. Layout Designer hardware proof must not be claimed until Generate -> inspect C -> Build -> Flash -> physical comparison is complete.
+136. QRCode owns native encoded output and a Text setter only; it generates no hook or asset source.
+137. QR generated firmware requires `CONFIG_LV_USE_QRCODE=y`.
 
 ## Save Point History
+
+### FORGEUI_WIDGET_REGISTRY__LAYOUT_TEMPLATE_LIBRARY__QRCODE_RUNTIME__READY_FOR_QR_HARDWARE_PROOF__2026-07-30
+
+- **Generated architecture:** All six Layout Designer definitions resolve to ordinary components and the unchanged four-field exporter result. QR Code generates native LVGL QR construction plus a setter-only declaration/implementation in `90_Studio_Export.*`; it adds no hook, User Event stub, asset source or transport field.
+- **Validation:** Focused Layout Designer/AI composition and QR exporter tests pass. Live generated `90_Studio_Export.c/.h` inspection confirms `lv_qrcode_set_*` initialization and `FG_Set_QR_Code_Text`. QR ESP-IDF build, flash and physical scan proof remain pending.
 
 ### FORGEUI_LAYOUT_DESIGNER__DASHBOARD_SMART_REGIONS_AUTO_ARRANGE_AI_FILL__CANVAS_AND_BROWSER_PREVIEW_MANUALLY_VERIFIED__READY_FOR_EXPORT_AND_HARDWARE_PROOF__2026-07-30
 
@@ -2877,11 +2904,9 @@ Preserve these rules:
 
 ## Extension rule
 
-### Future Layout Designer templates
+### Layout Designer template extension
 
-Possible future Studio templates include Settings, Login, Form, Machine Status, Split View, Sidebar, Card Grid and Control Panel. Dashboard is the only completed template in the current save point.
-
-Future templates must resolve into the same normal component model before export. They must not create another exporter, generated runtime, transport field, template-specific generated header or template-specific User Event file.
+Dashboard, Industrial HMI, Control Panel, Monitoring, SCADA Overview and Mobile / Portrait are implemented. Any additional definition must still resolve into the same normal component model before export. It must not create another exporter, generated runtime, transport field, template-specific generated header or template-specific User Event file.
 
 ### Future System Runtime pages
 
@@ -2939,6 +2964,7 @@ Standard LVGL Component Runtime
   ├── Visibility / dialog services: Keyboard, Message Box, Box
   ├── Date selection: Calendar
   ├── Runtime image output: Image
+  ├── Encoded output: QRCode
   ├── Serialized presentation: Button, Text, Heading, Clock
   └── API-free presentation: Scale, Line, Icon, Divider
 
@@ -2967,7 +2993,7 @@ Serialized presentation   → no runtime API
 No semantic state         → intentionally API-free
 ```
 
-Genuine future concepts include Slider runtime API, Radio Group, dynamic Select options, Gauge, Meter, Seven Segment and Numeric Display. Implemented Radio, Checkbox, NumberInput, Select, Progress, CircularProgress and Image must not be described as future runtimes.
+Genuine future concepts include Slider runtime API, Radio Group, dynamic Select options, Gauge, Meter, Seven Segment and Numeric Display. Implemented Radio, Checkbox, NumberInput, Select, Progress, CircularProgress, Image and QRCode must not be described as future runtimes.
 
 Future controls must extend the existing exporter, export-result metadata, Header transport, export-server materialization, generated files, and ownership model. They must not introduce a parallel exporter, a second hook generator, a second generated-header system, or a separate firmware API layer.
 

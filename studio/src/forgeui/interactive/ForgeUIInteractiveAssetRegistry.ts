@@ -16,6 +16,14 @@ const assets = new Map<
   ForgeUIInteractiveAsset
 >()
 
+const notifyInteractiveAssetsUpdated = () => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(
+      'forgeui-interactive-assets-updated',
+    ))
+  }
+}
+
 export const registerInteractiveAsset = (
   asset: ForgeUIInteractiveAsset,
 ): ForgeUIInteractiveAsset => {
@@ -28,6 +36,7 @@ export const registerInteractiveAsset = (
   }
 
   assets.set(asset.id, asset)
+  notifyInteractiveAssetsUpdated()
 
   return asset
 }
@@ -114,6 +123,7 @@ export const updateInteractiveAsset = (
   validateInteractiveAsset(updated)
 
   assets.set(id, updated)
+  notifyInteractiveAssetsUpdated()
 
   return updated
 }
@@ -150,17 +160,22 @@ export const updateInteractiveAssetByKind = <
 
   validateInteractiveAsset(updated)
   assets.set(id, updated)
+  notifyInteractiveAssetsUpdated()
 
   return updated
 }
 
 export const removeInteractiveAsset = (
   id: string,
-): boolean =>
-  assets.delete(id)
+): boolean => {
+  const removed = assets.delete(id)
+  if (removed) notifyInteractiveAssetsUpdated()
+  return removed
+}
 
 export const clearInteractiveAssetRegistry = (): void => {
   assets.clear()
+  notifyInteractiveAssetsUpdated()
 }
 
 /* ============================================================
@@ -194,4 +209,5 @@ export const importInteractiveAssets = (
   imported.forEach(asset => {
     assets.set(asset.id, asset)
   })
+  notifyInteractiveAssetsUpdated()
 }

@@ -1,67 +1,8 @@
-export const forgeuiCoreWidgets: ComponentType[] = [
-  // LVGL First
-  'Led',
-  'Bar',
-  'Arc',
-  'Chart',
-  'Table',
-  'Keyboard',
-  'Calendar',
-  'Scale',
-  'Roller',
-  'Msgbox',
-  'ButtonMatrix',
-  'Canvas',
-  'Line',
-  'Tabview',
-  'Tileview',
+import {
+  forgeUIWidgetDefinitions,
+} from './widgets/ForgeUIWidgetRegistry'
 
-  // Parked
-  // 'ImageButton',
-  // 'AnimImage',
-  // 'Lottie',
-  // 'Spinner',
-
-  // Basic ForgeUI Controls
-  'Button',
-  'InteractiveButton',
-  'InteractiveLight',
-  'InteractiveStatusIndicator',
-  'InteractiveToggleSwitch',
-  'InteractiveThreePositionToggleSwitch',
-  'Text',
-  'Heading',
-  'Clock',
-  'WiFi',
-  'Input',
-  'Textarea',
-  'Switch',
-  'Checkbox',
-  'Radio',
-  'Slider',
-  'Progress',
-  'CircularProgress',
-  'NumberInput',
-  'Select',
-  'Image',
-  'Box',
-
-  // Common UI
-  'Icon',
-  'IconButton',
-  //'CloseButton',
-  //'Link',
-  //'Badge',
-  //'Tag',
-  'Divider',
-  //'Code',
-  //'Kbd',
-
-  // Layout
-  //'Flex',
-  //'Grid',
-  //'SimpleGrid',
-  //'Stack',
-  //'Container',
-  //'Center',
-]
+// Compatibility projection for existing AI and validation callers.
+// The WidgetDefinition registry is the authoritative source.
+export const forgeuiCoreWidgets: ComponentType[] =
+  forgeUIWidgetDefinitions.map(definition => definition.type)

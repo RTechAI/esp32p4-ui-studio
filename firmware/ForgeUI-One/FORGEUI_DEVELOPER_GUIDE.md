@@ -43,17 +43,13 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- `FG_On_Status_LED_Changed()`
-- `FG_On_Data_Chart_Point_Added()`
-- `FG_On_Data_Chart_Cleared()`
+- None
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| Status_LED_Changed | Click | `FG_On_Status_LED_Changed()` |
-| Data_Chart_Point_Added | Click | `FG_On_Data_Chart_Point_Added()` |
-| Data_Chart_Cleared | Click | `FG_On_Data_Chart_Cleared()` |
+| None | - | - |
 
 ---
 

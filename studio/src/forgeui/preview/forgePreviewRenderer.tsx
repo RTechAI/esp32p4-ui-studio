@@ -29,6 +29,7 @@ import StandardSelectPreview from './StandardSelectPreview'
 import StandardIconButtonPreview from './StandardIconButtonPreview'
 import StandardArcPreview from './StandardArcPreview'
 import StandardChartPreview from './StandardChartPreview'
+import StandardQRCodePreview from './StandardQRCodePreview'
 import StandardBarPreview from './StandardBarPreview'
 import StandardScalePreview from './StandardScalePreview'
 import StandardRollerPreview from './StandardRollerPreview'
@@ -742,6 +743,15 @@ case 'Line': {
   output.push(
     <Box key={child.id} {...commonStyle} overflow="hidden">
       <StandardLinePreview component={child} palette={palette} />
+    </Box>,
+  )
+  break
+}
+
+case 'QRCode': {
+  output.push(
+    <Box key={child.id} {...commonStyle}>
+      <StandardQRCodePreview component={child} palette={palette} />
     </Box>,
   )
   break

@@ -33,6 +33,7 @@ import SliderPreview from '~components/editor/previews/SliderPreview'
 import BarPreview from '~components/editor/previews/BarPreview'
 import ArcPreview from '~components/editor/previews/ArcPreview'
 import StandardChartPreview from '~forgeui/preview/StandardChartPreview'
+import StandardQRCodePreview from '~forgeui/preview/StandardQRCodePreview'
 import StandardScalePreview from '~forgeui/preview/StandardScalePreview'
 import StandardRollerPreview from '~forgeui/preview/StandardRollerPreview'
 import StandardMessageBoxPreview from '~forgeui/preview/StandardMessageBoxPreview'
@@ -830,6 +831,20 @@ case 'Calendar':
       {...forwardedProps}
     >
       <StandardScalePreview
+        component={component}
+        palette={previewPalette}
+      />
+    </PreviewContainer>
+  )
+
+  case 'QRCode':
+  return (
+    <PreviewContainer
+      component={component}
+      enableVisualHelper
+      {...forwardedProps}
+    >
+      <StandardQRCodePreview
         component={component}
         palette={previewPalette}
       />

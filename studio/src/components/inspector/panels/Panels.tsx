@@ -60,6 +60,7 @@ import ForgeUILayoutPanel from '~forgeui/ForgeUILayoutPanel'
 import StandardTextPanel from './components/StandardTextPanel'
 import ClockPanel from './components/ClockPanel'
 import LinePanel from './components/LinePanel'
+import QRCodePanel from './components/QRCodePanel'
 
 const Panels: React.FC<{ component: IComponent; isRoot: boolean }> = ({
   component,
@@ -99,6 +100,7 @@ const Panels: React.FC<{ component: IComponent; isRoot: boolean }> = ({
       {type === 'Heading' && <HeadingPanel />}
       {type === 'Clock' && <ClockPanel />}
       {type === 'Line' && <LinePanel />}
+      {type === 'QRCode' && <QRCodePanel />}
       {type === 'Highlight' && <HighlightPanel />}
       {type === 'SimpleGrid' && <SimpleGridPanel />}
       {type === 'Switch' && <SwitchPanel />}

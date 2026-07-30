@@ -3,6 +3,9 @@ import { useDrop, DropTargetMonitor } from 'react-dnd'
 import { rootComponents } from '~utils/editor'
 import useDispatch from './useDispatch'
 import builder from '~core/models/composer/builder'
+import {
+  getForgeUIWidgetDefinition,
+} from '~forgeui/widgets/ForgeUIWidgetRegistry'
 
 const clamp = (value: number, min: number, max: number) => {
   return Math.max(min, Math.min(value, max))
@@ -146,146 +149,13 @@ export const useDropComponent = (
         return
       }
 
-const isLed = item.type === 'Led'
-const isArc = item.type === 'Arc'
-const isLine = item.type === 'Line'
-const isText = item.type === 'Text'
-const isHeading = item.type === 'Heading'
-const isClock = item.type === 'Clock'
-const isWifi = item.type === 'WiFi'
-const isInput = item.type === 'Input'
-const isNumberInput = item.type === 'NumberInput'
-const isTextarea = item.type === 'Textarea'
-const isSwitch = item.type === 'Switch'
-const isCheckbox = item.type === 'Checkbox'
-const isRadio = item.type === 'Radio'
-const isSlider = item.type === 'Slider'
-const isProgress = item.type === 'Progress'
-const isCircularProgress =
-  item.type === 'CircularProgress'
-const isButton = item.type === 'Button'
-const isInteractiveButton =
-  item.type === 'InteractiveButton'
-const isInteractiveLight =
-  item.type === 'InteractiveLight'
-const isInteractiveStatusIndicator =
-  item.type === 'InteractiveStatusIndicator'
-const isInteractiveToggleSwitch = item.type === 'InteractiveToggleSwitch'
-const isInteractiveThreePositionToggleSwitch = item.type === 'InteractiveThreePositionToggleSwitch'
-const isSelect = item.type === 'Select'
-const isIcon = item.type === 'Icon'
-const isIconButton = item.type === 'IconButton'
-const isDivider = item.type === 'Divider'
-const isBox = item.type === 'Box'
-const isRoller = item.type === 'Roller'
-
-const defaultW = isLed
-  ? 32
-  : isArc || isLine
-    ? 120
-    : isCircularProgress
-      ? 96
-      : isHeading
-        ? 200
-        : isText
-          ? 80
-          : isClock
-            ? 90
-            : isWifi
-              ? 120
-              : isInput
-                ? 160
-                : isNumberInput
-                  ? 280
-                  : isTextarea
-                    ? 220
-                    : isButton
-                      ? 120
-                      : isInteractiveButton
-                        ? getInteractiveButtonDropSize().width
-                        : isInteractiveToggleSwitch
-                          ? 64
-                        : isInteractiveThreePositionToggleSwitch
-                          ? 96
-                        : isInteractiveStatusIndicator
-                          ? getInteractiveStatusIndicatorDropSize().width
-                        : isInteractiveLight
-                          ? getInteractiveLightDropSize().width
-                        : isSelect
-                          ? 180
-                          : isSwitch
-                            ? 48
-                            : isCheckbox
-                              ? 28
-                              : isRadio
-                                ? 28
-                                : isSlider
-                                  ? 180
-                                  : isProgress
-                                    ? 180
-                                    : isRoller
-                                      ? 120
-                                      : isIcon || isIconButton
-                                        ? 48
-                                        : isDivider
-                                          ? 180
-                                          : isBox
-                                            ? 180
-                                            : 240
-
-const defaultH = isLed
-  ? 32
-  : isArc || isLine
-    ? 120
-    : isCircularProgress
-      ? 92
-      : isHeading
-        ? 48
-        : isText
-          ? 24
-          : isClock
-            ? 32
-            : isWifi
-              ? 60
-              : isInput
-                ? 36
-                : isNumberInput
-                  ? 40
-                  : isTextarea
-                    ? 80
-                    : isButton
-                      ? 40
-                      : isInteractiveButton
-                        ? getInteractiveButtonDropSize().height
-                        : isInteractiveToggleSwitch
-                          ? 36
-                        : isInteractiveThreePositionToggleSwitch
-                          ? 36
-                        : isInteractiveStatusIndicator
-                          ? getInteractiveStatusIndicatorDropSize().height
-                        : isInteractiveLight
-                          ? getInteractiveLightDropSize().height
-                        : isSelect
-                          ? 36
-                          : isSwitch
-                            ? 28
-                            : isCheckbox
-                              ? 28
-                              : isRadio
-                                ? 28
-                                : isSlider
-                                  ? 36
-                                  : isProgress
-                                    ? 24
-                                    : isRoller
-                                      ? 72
-                                      : isIcon || isIconButton
-                                        ? 48
-                                        : isDivider
-                                          ? 2
-                                          : isBox
-                                            ? 100
-                                            : 120
+      const definition = getForgeUIWidgetDefinition(item.type)
+      const defaultW = Number(
+        item.defaultWidth ?? definition?.defaultWidth ?? 240,
+      )
+      const defaultH = Number(
+        item.defaultHeight ?? definition?.defaultHeight ?? 120,
+      )
 
       const { x, y } = getFreeformDropPosition({
         pointerX: clientOffset.x - viewportRect.left,
@@ -301,6 +171,11 @@ const defaultH = isLed
         type: item.type,
         rootParentType: item.rootParentType,
         props: {
+          ...(definition?.insertionFactory(x, y) || {
+            positionMode: 'absolute',
+            x, y, w: defaultW, h: defaultH,
+          }),
+          ...(item.insertionProps || {}),
           positionMode: 'absolute',
           x,
           y,

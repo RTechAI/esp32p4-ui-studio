@@ -13,33 +13,31 @@
 
 ## Current save point
 
-**FORGEUI_LAYOUT_DESIGNER__DASHBOARD_SMART_REGIONS_AUTO_ARRANGE_AI_FILL__CANVAS_AND_BROWSER_PREVIEW_MANUALLY_VERIFIED__READY_FOR_EXPORT_AND_HARDWARE_PROOF__2026-07-30**
+**FORGEUI_WIDGET_REGISTRY__LAYOUT_TEMPLATE_LIBRARY__QRCODE_RUNTIME__READY_FOR_QR_HARDWARE_PROOF__2026-07-30**
 
-- Dashboard Layout Designer is implemented.
-- Canvas application and manual editing are verified.
-- Region movement and resizing are verified.
-- Region assignment and Auto Arrange are verified.
-- AI Fill Dashboard is manually verified.
-- Browser Preview rendering is manually verified.
-- Focused automated tests are passing.
-- Full Studio production build remains pending.
-- Generated LVGL inspection remains pending.
-- ESP-IDF build and ESP32-P4 physical proof remain pending.
-- Dashboard is the only completed structural template.
+- The Layout Designer exposes Dashboard, Industrial HMI, Control Panel, Monitoring, SCADA Overview and Mobile / Portrait through one reusable template-definition architecture.
+- Apply Layout, smart regions, semantic assignment, Auto Arrange and template-aware AI Fill resolve into ordinary persisted ForgeUI components.
+- Dashboard retains its existing region structure and composition behavior inside the shared implementation.
+- The Widget Tray is driven by `ForgeUIWidgetRegistry.ts`; `ForgeUIWidgetSet.ts` is a compatibility projection rather than a second catalogue.
+- Standard QR Code authoring, Canvas/Browser SVG preview, LVGL export and setter-only generated runtime are implemented.
+- Focused Layout Designer, Widget Tray, hydration, registry, QR preview and exporter tests are passing at the recorded scope.
+- QR Code generated-C inspection, ESP-IDF build, flash and physical ESP32-P4 scan proof remain pending.
 
 ## Purpose
 
-This is the permanent ownership, integration, and debugging map for the ForgeUI Interactive Asset Framework, System Runtime, Hosted Connectivity Runtime, generated LVGL runtime and export boundary. It describes the current implementation rather than its development history.
+This is the permanent ownership, integration, extension and debugging map for ForgeUI Studio, its component and layout authoring layers, Interactive Asset Framework, Standard and System runtimes, hardware backends, generated LVGL runtime and export boundary. It describes the current implementation rather than its development history.
 
 Use this document to answer:
 
 - Where does the subsystem live?
+- Which registry or definition is authoritative?
 - Which file owns each responsibility?
 - Which behavior is shared and which behavior is type-specific?
 - What must not be duplicated?
 - Where should debugging begin?
 - How should another Interactive Asset type extend the framework?
 - How should another built-in System page extend the System Runtime?
+- How should another widget or Layout Designer template extend the existing registries?
 - Which generated responsibilities belong to LVGL runtime generation and which belong to export transport?
 
 ## Proven system status
@@ -230,25 +228,27 @@ The ownership split is:
 
 ```text
 AI Fill
-  → selects semantic content and region
+  → chooses semantic content and region
 
 Layout Designer
-  → owns template structure and child geometry
+  → owns deterministic structure and geometry
 
 Existing component model
-  → owns persisted editable components
+  → owns editable persisted components
 
 ForgeUILvglExport
-  → owns generated LVGL and runtime output
+  → owns generated LVGL
 ```
 
 ### Layout Designer ownership
 
-Layout Designer owns structural template creation, deterministic `1024 × 600` Dashboard geometry, smart-region metadata, stable semantic region keys, component-to-region assignment, child ordering, padding and gap configuration, arrangement modes, Auto Arrange geometry, template-aware AI composition, geometry validation before insertion and editable output through the normal Canvas component path.
+`ForgeUILayoutTemplate` is the current concrete definition type (the repository's implemented `LayoutDefinition` pattern). It owns `id`, `name`, `description`, `useCases`, `aiGuidance`, design `width` and `height`, and the normal-component `layout` array. `ForgeUILayoutTemplateId` is the closed union of the six implemented IDs. `forgeUILayoutTemplates` is the authoritative library and `getForgeUILayoutTemplate()` is its lookup boundary.
+
+Layout Designer owns structural template definitions, deterministic design-space geometry, smart-region metadata, stable semantic region keys, component-to-region assignment, child ordering, padding and gap configuration, arrangement modes, Auto Arrange geometry, template-aware AI composition, geometry validation before insertion and editable output through the normal Canvas component path. Shared composition and preview logic render the selected definition; there are not six independent renderers.
 
 Layout Designer does not own Standard widget rendering, Interactive Asset rendering, LVGL runtime state, public `FG_Set_*` APIs, `FG_On_*` hooks, `95_UserEvents`, hardware backends, generated firmware files, Wi-Fi, SD, GPIO, sensors or application logic.
 
-### Current Dashboard contract
+### Current template contracts
 
 ```text
 Dashboard
@@ -259,11 +259,22 @@ Dashboard
 └── dashboard.footer
 ```
 
-The template creates real normal ForgeUI components: five Box regions, one Divider and one Heading placeholder. Region Boxes remain selectable, movable and resizable. The structure is not an image overlay, the output remains editable and it follows the normal save/reload and export paths. Boxes remain Standard Box components; no layout-only firmware object family exists.
+The implemented template IDs are `dashboard`, `industrial-hmi`, `control-panel`, `monitoring`, `scada-overview` and `mobile-portrait`.
+
+| Template | Stable semantic region suffixes |
+|---|---|
+| Dashboard | `header`, `status`, `main`, `controls`, `footer` |
+| Industrial HMI | `header`, `navigation`, `machine-status`, `process-area`, `alarm-panel`, `footer` |
+| Control Panel | `header`, `left-controls`, `centre-graphic`, `right-controls`, `bottom-status` |
+| Monitoring | `header`, `trend-graph`, `metrics-strip`, `alarm-list`, `footer` |
+| SCADA Overview | `header`, `left-navigation`, `main-mimic`, `right-information`, `bottom-events` |
+| Mobile / Portrait | `header`, `main-card`, `secondary-card`, `controls`, `footer` |
+
+Every definition creates real normal ForgeUI components. Dashboard continues to create its existing five Box regions, Divider and Heading placeholder. Region Boxes remain selectable, movable and resizable. The vector preview is derived from the same selected definition and design geometry; it is not raster artwork. Applied output remains editable and follows the normal undo/redo, persistence, Canvas, Browser Preview and export paths. Boxes remain Standard Box components; no layout-only firmware object family exists.
 
 ### Region metadata map
 
-A Region Box stores `layoutRegionKey`. An assigned component stores `layoutRegionId`. Current stable keys are `dashboard.header`, `dashboard.status`, `dashboard.main`, `dashboard.controls` and `dashboard.footer`.
+A Region Box stores `layoutRegionKey`. An assigned component stores `layoutRegionId`. A complete key is the template ID plus one suffix from the table, for example `dashboard.main` or `scada-overview.main-mimic`. Never replace these with generated component IDs or derive firmware identifiers from them.
 
 Region metadata covers role, label, padding, horizontal gap, vertical gap, arrangement mode, columns, rows, minimum child width, minimum child height, ordering, structural lock, semantic surface role, semantic border role, radius, border width and opacity.
 
@@ -277,7 +288,7 @@ Auto Arrange owns only `x`, `y`, `w`, `h` and absolute placement. It preserves c
 
 ### AI Region Composer architecture
 
-Dashboard template mode uses this response contract:
+Template mode uses this response contract:
 
 ```json
 {
@@ -293,9 +304,9 @@ Dashboard template mode uses this response contract:
 }
 ```
 
-AI Fill supplies canonical component type, supported props, semantic region, content and order or importance hints where supported. It does not own final Dashboard pixel geometry.
+AI Fill supplies canonical component type, supported props, semantic region, content and order or importance hints where supported. The selected definition's `aiGuidance` and semantic region list guide the request. AI does not own final pixel geometry.
 
-ForgeUI validates canonical component types, creates the Dashboard template, flattens region content into normal components, assigns stable region metadata, Auto Arranges each region, validates the result and inserts it through the normal Canvas insertion path. Legacy free-coordinate AI layout generation remains for compatibility, but it is not the primary Dashboard template path.
+`ForgeAIRegionComposer.ts` validates the `template` through `getForgeUILayoutTemplate()`, validates canonical component types and region names, creates the selected definition, flattens region content into normal components, assigns stable region metadata, Auto Arranges each region, validates the result and inserts it through the normal Canvas insertion path. `FORGEUI_LAYOUT_TEMPLATE: <template-id>` is the prompt marker. Legacy free-coordinate AI layout generation remains for compatibility, but it is not the primary template path.
 
 ### Persistence and export path
 
@@ -317,7 +328,7 @@ ForgeUILvglExport
 Generated LVGL
 ```
 
-No second persistence or export format was added. Region metadata travels with normal component props and the existing component document remains authoritative. The LVGL exporter may consume semantic region styling, but generated firmware receives normal Boxes and controls rather than a separate Layout Designer runtime.
+No second persistence or export format was added. Apply and AI Fill dispatch normal component insertion/update actions, so the existing `redux-undo` component history supplies undo/redo and the persisted component document supplies project restart behavior. Region metadata travels with normal component props and the existing component document remains authoritative. Canvas and Browser Preview render those components through their existing paths. `ForgeUILvglExport.ts` consumes final persisted `x/y/w/h` plus normal semantic props; generated firmware receives normal Boxes and controls rather than a separate Layout Designer runtime.
 
 ## System Runtime
 
@@ -775,6 +786,12 @@ Serialized `Select` exports native `lv_dropdown`. Ownership covers the closed co
 
 Serialized `Image` is output-only. LVGL-ready instances retain native `lv_image` and the current raw source pointer. `FG_Set_<Name>_Source(const void * src)` safely ignores `NULL`, unavailable objects and unchanged sources and generates no hook. Pending assets keep their placeholder and the setter safely no-ops. No asset-ID, path lookup or runtime conversion layer was added.
 
+### QR Code
+
+Serialized `QRCode` is a Standard output component. Its persisted properties own encoded text/data, foreground/background semantic colors and quiet-zone presentation. `StandardQRCodePreview.tsx` uses the `qrcode` package to render real encoded SVG modules for both Canvas and Browser Preview; no raster preview or decorative fake pattern is authoritative.
+
+`ForgeUILvglExport.ts` emits the native LVGL 9.2.2 QR path (`lv_qrcode_create`, `lv_qrcode_set_size`, dark/light colors, quiet zone and `lv_qrcode_set_data`). The default collision-safe public API is `FG_Set_QR_Code_Text(const char * text)`. QR Code is setter-only output: it has no genuine-user hook and adds no `95_UserEvents` callback. `firmware/ForgeUI-One/sdkconfig.defaults` permanently owns `CONFIG_LV_USE_QRCODE=y`.
+
 ### Box
 
 Serialized `Box` remains a presentation/layout container with runtime visibility only. Non-root generated Boxes retain the native object and visibility and expose `FG_Set_<Name>_Visible(bool visible)`. Children stay attached to the retained Box. Root screen Boxes are excluded. The setter suppresses repeated state and no hook exists.
@@ -1042,11 +1059,37 @@ Do not flatten momentary, binary input, three-position input and binary output a
 
 Paths in this section are relative to `studio/` unless stated otherwise.
 
+### Widget Registry and Tray
+
+#### `src/forgeui/widgets/ForgeUIWidgetRegistry.ts`
+
+This is the authoritative Standard/Interactive widget catalogue. `ForgeUIWidgetDefinition` owns canonical `type`, display and search metadata, category, default dimensions and properties, `insertionFactory`, capability flags, optional documentation ID and availability status. `FORGEUI_WIDGET_CATEGORIES`, `forgeUIWidgetDefinitions`, `getForgeUIWidgetDefinition()` and `searchForgeUIWidgets()` are the public registry surface. Add a normal widget here instead of creating another tray list.
+
+#### `src/forgeui/ForgeUIWidgetSet.ts`
+
+Compatibility projection for consumers that still need the older widget-set shape. It must derive from the registry and must not become a second source of widget names, categories, defaults or insertion behavior.
+
+#### `src/components/sidebar/Sidebar.tsx`
+
+Owns the registry-driven tray presentation: category counts, search, Standard widget rows, the compact empty Dashboard category and persisted Interactive Asset rows. It dispatches the normal insertion action, so click and keyboard insertion participate in the same component history as drag/drop. Tray-local asset UI state is not a component serialization format.
+
+#### `src/components/sidebar/DragItem.tsx`
+
+Owns one accessible draggable/insertion row. Keep the insertion target and optional asset Edit action as separate interactive controls; do not nest buttons.
+
+#### `src/hooks/useDropComponent.ts`
+
+Owns drag/drop conversion into ordinary absolute-positioned components. Registry defaults and `insertionFactory` belong upstream in the registry; Canvas-relative drop coordinates and dispatch belong here.
+
+#### `src/forgeui/widgets/ForgeUIWidgetRegistry.test.ts`, `src/components/sidebar/Sidebar.test.tsx` and `Sidebar.hydration.test.tsx`
+
+Own catalogue coverage, search/category behavior, accessible insertion, undo/redo, asset action separation, narrow-tray overflow/ellipsis/sticky behavior and server/client hydration proof.
+
 ### Layout Designer
 
 #### `src/forgeui/layout/ForgeUILayoutDesigner.ts`
 
-Owns Dashboard template definition, deterministic template geometry, smart-region metadata, region lookup and assignment, Auto Arrange modes, geometry updates and Dashboard composition helpers.
+Owns the six `ForgeUILayoutTemplate` definitions, deterministic template geometry, smart-region metadata, template lookup, region lookup and assignment, shared Auto Arrange modes, geometry updates and composition helpers. Add another layout by adding one definition and extending `ForgeUILayoutTemplateId`, not by creating another renderer.
 
 #### `src/forgeui/layout/ForgeUILayoutDesigner.test.ts`
 
@@ -1074,7 +1117,7 @@ Owns focused reducer proof that Auto Arrange geometry updates preserve region me
 
 #### `src/forgeui/ai/ForgeAIRegionComposer.ts`
 
-Owns Dashboard region-document validation, canonical type validation, semantic-region resolution, flattening region documents into normal ForgeUI components and region-assignment metadata.
+Owns selected-template region-document validation, canonical type validation, semantic-region resolution, flattening region documents into normal ForgeUI components and region-assignment metadata.
 
 #### `src/forgeui/ai/ForgeAIRegionComposer.test.ts`
 
@@ -1082,11 +1125,11 @@ Owns focused canonical-contract and region-composition tests.
 
 #### `src/forgeui/ai/ForgeAIClient.ts`
 
-Accepts both legacy layout documents and Dashboard region documents.
+Accepts both legacy layout documents and template-aware region documents.
 
 #### `src/forgeui/ai/ForgeAIEngine.ts`
 
-Coordinates Dashboard template composition and the existing AI generation paths.
+Parses `FORGEUI_LAYOUT_TEMPLATE: <template-id>`, coordinates the selected template composition and retains the existing AI generation paths.
 
 #### `src/forgeui/ai/ForgeAIPrompts.ts`
 
@@ -1094,11 +1137,11 @@ Owns the template-aware AI response contract and one-screen semantic-region inst
 
 #### `src/forgeui/ai/ForgeAIPanel.tsx`
 
-Owns the Layout Designer template selector, structural preview, Apply Dashboard, AI Fill Dashboard and integration with Generated Result and Canvas insertion.
+Owns the Layout Designer selector, shared vector structural preview, Apply Layout, template-specific AI Fill request and integration with Generated Result and Canvas insertion.
 
 #### `src/pages/api/forgeui-ai-layout.ts`
 
-Accepts and returns validated legacy layout documents and Dashboard region documents.
+Accepts and returns validated legacy layout documents and template-aware region documents.
 
 #### `src/components/editor/ComponentPreview.tsx`
 
@@ -1112,9 +1155,27 @@ Owns Browser Preview rendering for semantic Region Boxes and assigned normal com
 
 Continues to own LVGL export. For Layout Designer work it consumes normal components and semantic Box props; it does not own template selection, region assignment or Auto Arrange.
 
-#### `docs/FORGEUI_LAYOUT_DESIGNER.md`
+#### `../docs/FORGEUI_LAYOUT_DESIGNER.md`
 
 Owns the detailed manual workflow and Layout Designer architecture reference.
+
+### Standard QR Code
+
+#### `src/forgeui/preview/StandardQRCodePreview.tsx`
+
+Owns shared Canvas/Browser QR encoding and SVG module rendering. It consumes persisted QR props and semantic fallback colors; it does not own native export.
+
+#### `src/components/inspector/panels/components/QRCodePanel.tsx`
+
+Owns QR-specific authoring controls. Changes remain normal component-property updates and therefore use ordinary component persistence and history.
+
+#### `src/forgeui/ForgeUILvglExport.ts`
+
+Owns native LVGL QR construction, retained data-update behavior, collision-safe `FG_Set_<Name>_Text` declaration/implementation and output-only classification.
+
+#### `src/forgeui/ForgeUILvglExport.qrcode.test.ts`, `src/forgeui/preview/StandardQRCodePreview.test.tsx` and `../docs/FORGEUI_QR_CODE.md`
+
+Own focused generated-runtime assertions, preview/persistence parity and the manual QR workflow/reference. The official implementation reference is the protected LVGL 9.2.2 source at `C:\ForgeUI\Projects\References\LVGL-9.2.2`.
 
 ### Hosted configuration and firmware backend
 
@@ -2418,11 +2479,18 @@ Do not create a second AI image pipeline for another Interactive Asset kind.
 The relevant integration points include:
 
 - `src/componentsList.ts`
+- `src/forgeui/widgets/ForgeUIWidgetRegistry.ts`
 - `src/forgeui/ForgeUIWidgetSet.ts`
+- `src/components/sidebar/Sidebar.tsx`
+- `src/components/sidebar/DragItem.tsx`
 - `src/utils/defaultProps.tsx`
 - `src/hooks/useDropComponent.ts`
 - `src/components/editor/ComponentPreview.tsx`
 - `src/forgeui/preview/forgePreviewRenderer.tsx`
+
+`ForgeUIWidgetRegistry.ts` is authoritative for tray-visible widget metadata, default dimensions/properties, insertion factories and capability classification. `ForgeUIWidgetSet.ts` is derived compatibility data. The Sidebar must not maintain a parallel Standard widget list.
+
+`PreviewContainer.tsx` owns free-form absolute Canvas movement and resize behavior. Final component `x/y/w/h` remains authoritative, boundary clamping must not introduce grid snapping, and persisted fractional geometry must not be rounded merely for display convenience. Layout Designer Auto Arrange is an explicit command over assigned children; it is not an always-on Canvas constraint.
 
 `ComponentPreview.tsx` dispatches Canvas rendering to the kind-specific preview component based on Canvas component type:
 
@@ -2881,19 +2949,23 @@ Do not maintain a parallel build list for Interactive Assets.
 
 ## Persistence and restart behavior
 
-Two coordinated stores participate:
+The persisted ownership map is:
 
-| Store | Owns |
+| Store / key | Owns |
 |---|---|
-| Interactive Asset persistence | all five model records, initial states and uploaded state-artwork IDs |
-| Uploaded Asset Registry persistence | image metadata, LVGL symbols, generated source paths, browser source restoration |
+| Redux persistence `forgeui_studio_v<version>` (`NEXT_PUBLIC_VERSION`, default `1`) | the undoable component document's `present` state, including normal component props, geometry and Layout Designer region metadata |
+| `forgeui_interactive_assets_v1` | all five Interactive Asset model records, initial states and uploaded state-artwork IDs |
+| `forgeui_uploaded_assets_v1` | image metadata, LVGL symbols, generated source paths and restorable browser sources; transient object URLs are not persistable |
+| `forgeui_ai_assets_v1` | AI Studio asset records owned by `ForgeAIPanel.tsx` |
+| `forgeui_widget_tray_collapsed_v1` | tray-only category collapse preferences; never component or project data |
 
 At Studio startup:
 
-1. Interactive Assets reload into the shared registry.
-2. Uploaded assets restore their persistent metadata.
-3. Canvas components retain `interactiveAssetId` in component props.
-4. Kind-aware previews resolve current asset and visual records.
+1. The normal component `present` state reloads through Redux persistence and remains wrapped by `redux-undo`.
+2. Interactive Assets reload into the shared registry.
+3. Uploaded assets restore their persistent metadata.
+4. Canvas components retain `interactiveAssetId` and Layout Designer metadata in ordinary component props.
+5. Kind-aware previews resolve current asset and visual records.
 
 Toggle restart state restores `initialState`, `offAssetId` and `onAssetId`. Three-Position restart state restores `initialState`, `leftAssetId`, `centerAssetId` and `rightAssetId`. Canvas components independently restore their `interactiveAssetId`, width and height references.
 
@@ -3059,6 +3131,10 @@ Physical Button, Toggle, Three-Position, Light, the scoped Status Indicator Bina
 
 ### Current validation
 
+- the focused current Layout Designer, AI Region Composer, Widget Registry, Widget Tray/hydration and QR preview/export selection passes 53/53 across 8 suites
+- all six template definitions and every semantic region contract are covered by the Layout Designer and AI Region Composer suites
+- the broader exporter selection recorded for the QR/runtime save point passes 236/236 across 33 suites
+- QR native generation, setter declaration/implementation and absence of User Event hooks are covered; physical QR scan proof remains pending
 - the eleven-component Standard theme/parity regression passes 158/158
 - Graphite/orange, Cyber teal and Nordic light are verified through the semantic theme pipeline
 - custom palette export is verified
@@ -3102,24 +3178,32 @@ Start at the ownership boundary matching the symptom.
 
 | Symptom | Begin with | Then inspect |
 |---|---|---|
-| Dashboard template preview is wrong | `ForgeUILayoutDesigner.ts` | Dashboard geometry constants and template-region definitions |
-| Apply Dashboard creates wrong positions | `ForgeUILayoutDesigner.ts` | Canvas insertion path and active device dimensions |
+| Layout template preview is wrong | `ForgeUILayoutDesigner.ts` | selected `ForgeUILayoutTemplate.layout`, definition dimensions and shared preview scaling |
+| Apply Layout creates wrong regions or positions | `ForgeUILayoutDesigner.ts` | selected definition lookup, shared composition and Canvas insertion |
 | Region Box cannot be selected or moved | `ComponentPreview.tsx` | `PreviewContainer.tsx`, Box props and structural metadata |
 | Region assignment is missing | `LayoutRegionInspector.tsx` | `layoutRegionKey`, `layoutRegionId`, available-region lookup |
 | Assigned component is not included in Auto Arrange | `ForgeUILayoutDesigner.ts` | stable-key matching and selected project component list |
 | Auto Arrange overlaps children | Auto Arrange mode in `ForgeUILayoutDesigner.ts` | region bounds, padding, gaps, minimum sizes and preferred dimensions |
 | Auto Arrange changes component behavior | atomic geometry update in `components.ts` | ensure only `x/y/w/h` changed and props/IDs remain intact |
 | Resizing a region does not reflow children | `LayoutRegionInspector.tsx` Auto Arrange action | selected-region metadata and assigned-component lookup |
-| AI Fill still emits final coordinates | `ForgeAIPrompts.ts` | `ForgeAIRegionComposer.ts`, Dashboard template-mode parsing |
+| AI Fill still emits final coordinates | `ForgeAIPrompts.ts` | `ForgeAIRegionComposer.ts`, selected template-mode parsing |
 | AI Fill sprays components outside regions | `ForgeAIRegionComposer.ts` | canonical region-key assignment and Auto Arrange invocation |
 | AI Fill uses unsupported component types | AI component catalogue and `ForgeAIRegionComposer.ts` | canonical type validation and alias resolution |
-| AI Fill Dashboard creates unrelated specialist controls | purpose-aware AI filtering | explicit Prompt Builder selections and region response |
+| AI Fill chooses controls inappropriate for the selected layout | definition `aiGuidance` and purpose-aware AI filtering | explicit Prompt Builder selections and semantic region response |
 | Browser Preview region styling differs from Canvas | `forgePreviewRenderer.tsx` | `ComponentPreview.tsx`, semantic Box props and theme palette |
 | LVGL region styling differs from Browser Preview | `ForgeUILvglExport.ts` Box branch | semantic surface/border role resolution |
 | Save/reload loses region assignment | project component serialization | additive component props and region-key stability |
 | Duplicate or copied components retain invalid region references | component copy/duplicate path | stable semantic keys and region-existence validation |
 | Structural lock does not block movement | current known limitation | lock metadata is stored but enforcement is not yet implemented |
 | AI Fill network request fails | `ForgeAIClient.ts` | `/api/forgeui-ai-layout`, region-document response validation |
+| Widget is missing, misnamed or in the wrong Tray category | `ForgeUIWidgetRegistry.ts` | definition status/category, registry search and `ForgeUIWidgetSet.ts` projection |
+| Tray insertion has wrong defaults or size | widget definition `insertionFactory` | `useDropComponent.ts`, click/keyboard insertion dispatch |
+| Tray has horizontal overflow or wrapped names | `components/sidebar/Sidebar.tsx` | `DragItem.tsx`, child `min-width: 0`, ellipsis and asset Edit reservation |
+| Tray differs after hydration | `Sidebar.hydration.test.tsx` | client-only persisted asset loading and stable initial registry render |
+| Free-form Canvas movement snaps or rounds | `PreviewContainer.tsx` | drag/resize geometry update and component reducer; Layout Auto Arrange must remain explicit |
+| QR preview is blank or not scannable | `StandardQRCodePreview.tsx` | persisted text/colors/quiet zone and `qrcode` encoding result |
+| Generated QR is missing or stale | `ForgeUILvglExport.ts` QR branch | `CONFIG_LV_USE_QRCODE`, generated `90_Studio_Export.*` declaration/implementation |
+| QR unexpectedly creates a developer hook | QR output classification in `ForgeUILvglExport.ts` | exporter result `userEventHooks`; QR must remain setter-only |
 | Unified New action or type switching is wrong | `ForgeUIInteractiveAssetPanel.tsx` | `InteractiveLightDesigner.tsx`, `InteractiveAssetAIGenerator.tsx` |
 | Editing opens the wrong kind | `ForgeUIInteractiveAssetPanel.tsx` | asset `kind`, Light `onActivate` path |
 | Canvas Open Creator is missing or opens the wrong designer | `PreviewContainer.tsx` | `ForgeUINavigation.ts`, component type guards, navigation target |
@@ -3420,7 +3504,7 @@ Start at the ownership boundary matching the symptom.
 - `src/components/editor/ComponentPreview.tsx`
 - `src/forgeui/preview/forgePreviewRenderer.tsx`
 - `src/forgeui/ForgeUILvglExport.ts`
-- `docs/FORGEUI_LAYOUT_DESIGNER.md`
+- `../docs/FORGEUI_LAYOUT_DESIGNER.md`
 
 ### System Runtime paths
 
@@ -3584,8 +3668,8 @@ Preserve these rules:
 117. Whenever exporter code changes, inspect regenerated `90_Studio_Export.c` before Build & Flash.
 118. Generated `90_Studio_Export.*` remains replaceable output and must not become the architectural source of a manual fix.
 119. Layout Designer remains a Studio authoring subsystem, not a firmware runtime family.
-120. Dashboard template geometry is owned by ForgeUI, not by AI-generated `x/y` coordinates.
-121. AI Fill selects semantic content and region; it does not own final Dashboard geometry.
+120. Selected-template geometry is owned by ForgeUI, not by AI-generated `x/y` coordinates.
+121. AI Fill chooses semantic content and region; it does not own final template geometry.
 122. Smart regions are normal editable Box components.
 123. Region metadata is additive to normal component props.
 124. The existing component document remains the persistence source of truth.
@@ -3598,15 +3682,25 @@ Preserve these rules:
 131. `ForgeUILvglExport.ts` remains the only LVGL exporter.
 132. Layout Designer work must not change Standard runtime API signatures.
 133. Layout Designer work must not change `95_UserEvents` signatures.
-134. Dashboard is the only completed structural template in this save point.
-135. Settings, Login, Form and Machine Status remain future template extensions.
+134. Dashboard, Industrial HMI, Control Panel, Monitoring, SCADA Overview and Mobile / Portrait are the implemented structural templates.
+135. New layouts extend `ForgeUILayoutTemplateId` and `forgeUILayoutTemplates`; they do not add template-specific renderers or exporters.
 136. Structural-lock enforcement is not yet complete.
 137. Drag-to-assign is not yet implemented.
 138. ESP32-P4 proof must not be claimed until Generate -> Build -> Flash -> physical review is completed.
+139. `ForgeUIWidgetRegistry.ts` is the authoritative widget catalogue; tray lists and compatibility projections must derive from it.
+140. Free-form Canvas movement remains unsnapped; Auto Arrange is an explicit Layout Designer operation.
+141. QR Code is an output-only Standard runtime component with a public text setter and no User Event hook.
+142. `CONFIG_LV_USE_QRCODE=y` is required by generated native QR output.
 
 ## Save Point History
 
 Save points are ordered newest to oldest.
+
+### FORGEUI_WIDGET_REGISTRY__LAYOUT_TEMPLATE_LIBRARY__QRCODE_RUNTIME__READY_FOR_QR_HARDWARE_PROOF__2026-07-30
+
+- **Architecture:** The Widget Tray derives from `ForgeUIWidgetRegistry.ts`; six layouts derive from `ForgeUILayoutTemplate` definitions and shared composition/preview logic; QR Code follows the existing Standard component preview, persistence and exporter boundaries.
+- **Developer significance:** Extend the registries and shared render/compose paths rather than adding sidebar lists, per-layout implementations or another exporter. QR remains setter-only and hook-free.
+- **Validation:** Focused registry, Widget Tray/hydration, Layout Designer/AI composer and QR preview/export tests pass at the recorded scope. QR generated-C inspection, firmware build/flash and physical scan proof remain pending.
 
 ### FORGEUI_LAYOUT_DESIGNER__DASHBOARD_SMART_REGIONS_AUTO_ARRANGE_AI_FILL__CANVAS_AND_BROWSER_PREVIEW_MANUALLY_VERIFIED__READY_FOR_EXPORT_AND_HARDWARE_PROOF__2026-07-30
 
@@ -3657,22 +3751,21 @@ Extend the framework by runtime family first, then by asset-specific model and a
 
 ### Layout Designer extension
 
-Current completed template:
+Current implemented template library:
 
 ```text
-Dashboard
-├── Header
-├── Status
-├── Main
-├── Controls
-└── Footer
+forgeUILayoutTemplates
+├── Dashboard
+├── Industrial HMI
+├── Control Panel
+├── Monitoring
+├── SCADA Overview
+└── Mobile / Portrait
 ```
 
-Future templates may reuse deterministic template geometry, smart-region metadata, stable region keys, Inspector assignment, Auto Arrange, AI Region Composer, normal component serialization and the existing Canvas, Browser Preview and export paths.
+Add another layout by extending `ForgeUILayoutTemplateId` and adding one complete `ForgeUILayoutTemplate` definition with metadata, design dimensions, semantic Region Boxes and any ordinary placeholder components. Reuse `getForgeUILayoutTemplate()`, `composeForgeUILayoutTemplate()`, region assignment, Auto Arrange, AI Region Composer, the shared vector preview, normal component serialization and the existing Canvas, Browser Preview and export paths.
 
-Planned candidates are Settings, Login, Form, Machine Status, Split View, Sidebar, Card Grid and Control Panel. They are not implemented by the current save point.
-
-Future templates must not introduce a separate component model, persistence format, preview renderer or exporter.
+Do not add a template-specific renderer, persistence format, AI parser, component model, exporter, generated runtime family, public header or User Event file. Dashboard-specific compatibility helpers may remain, but new template behavior belongs in the shared definition path.
 
 ### Standard LVGL Runtime extension
 

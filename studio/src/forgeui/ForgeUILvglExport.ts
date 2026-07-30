@@ -441,6 +441,35 @@ type ImageExport = {
   asset?: any
 }
 
+type QRCodeExport = { apiName: string; objectName: string }
+
+const createQRCodeExports = (
+  components: IComponents,
+  existingApiNames: Iterable<string>,
+): Map<string, QRCodeExport> => {
+  const result = new Map<string, QRCodeExport>()
+  const used = new Set(existingApiNames)
+  Object.values(components)
+    .filter(component => component.type === 'QRCode')
+    .sort((a, b) => a.id.localeCompare(b.id))
+    .forEach(component => {
+      const base = toCIdentifier(
+        component.componentName || component.props.name || 'QR_Code',
+        'QR_Code',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let name = base
+      let suffix = 2
+      while (used.has(`FG_Set_${name}_Text`)) name = `${base}_${suffix++}`
+      const apiName = `FG_Set_${name}_Text`
+      used.add(apiName)
+      result.set(component.id, {
+        apiName,
+        objectName: `fg_${name.toLowerCase()}_qrcode`,
+      })
+    })
+  return result
+}
+
 type BoxExport = {
   apiName: string
   objectName: string
@@ -2198,6 +2227,7 @@ const buildLvglBlock = (
   switchExports: Map<string, SwitchExport>,
   checkboxExports: Map<string, SwitchExport>,
   radioExports: Map<string, RadioExport>,
+  qrCodeExports: Map<string, QRCodeExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -3826,6 +3856,29 @@ case 'Table': {
   break
 }
 
+case 'QRCode': {
+  const qrExport = qrCodeExports.get(child.id)
+  const qrObject = qrExport?.objectName || varName
+  const qrSize = Math.max(1, Math.min(Number(w) || 180, Number(h) || 180))
+  const qrText = esc(String(child.props.qrText || 'https://forgeui.co.nz'))
+  const foreground = child.props.qrForeground
+    ? toLvHex(String(child.props.qrForeground))
+    : palette.accent
+  const background = child.props.qrBackground
+    ? toLvHex(String(child.props.qrBackground))
+    : palette.surface
+  lines.push(`${qrObject} = lv_qrcode_create(${parentVar});`)
+  lines.push(`lv_obj_t * ${varName} = ${qrObject};`)
+  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
+  lines.push(`lv_qrcode_set_size(${varName}, ${qrSize});`)
+  lines.push(`lv_qrcode_set_dark_color(${varName}, lv_color_hex(${foreground}));`)
+  lines.push(`lv_qrcode_set_light_color(${varName}, lv_color_hex(${background}));`)
+  lines.push(`lv_qrcode_set_quiet_zone(${varName}, ${child.props.qrQuietZone === false ? 'false' : 'true'});`)
+  lines.push(`lv_qrcode_set_data(${varName}, "${qrText}");`)
+  lines.push(``)
+  break
+}
+
 case 'Scale': {
   lines.push(`lv_obj_t * ${varName} = lv_scale_create(${parentVar});`)
   lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
@@ -4121,6 +4174,7 @@ case 'Chart': {
         switchExports,
         checkboxExports,
         radioExports,
+        qrCodeExports,
       )
     }
   })
@@ -4371,6 +4425,10 @@ export const generateForgeUILvglCode = (
       ...Array.from(tabViewExports.values()).map(value => value.apiName),
       ...Array.from(tileViewExports.values()).map(value => value.apiName),
     ],
+  )
+  const qrCodeExports = createQRCodeExports(
+    components,
+    Array.from(inputExports.values()).map(value => value.apiName),
   )
   const switchExports = createCheckedControlExports(
     components,
@@ -4915,6 +4973,9 @@ const backgroundMode =
     lines.push(`static lv_obj_t * ${inputExport.objectName} = NULL;`)
     lines.push(`static bool ${inputExport.programmaticUpdateName} = false;`)
   })
+  qrCodeExports.forEach(qrExport => {
+    lines.push(`static lv_obj_t * ${qrExport.objectName} = NULL;`)
+  })
   switchExports.forEach(switchExport => {
     lines.push(`static lv_obj_t * ${switchExport.objectName} = NULL;`)
     lines.push(`static bool ${switchExport.programmaticUpdateName} = false;`)
@@ -5282,6 +5343,15 @@ const backgroundMode =
     lines.push(`    ${inputExport.programmaticUpdateName} = true;`)
     lines.push(`    lv_textarea_set_text(${inputExport.objectName}, text);`)
     lines.push(`    ${inputExport.programmaticUpdateName} = false;`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
+  qrCodeExports.forEach(qrExport => {
+    lines.push(`void ${qrExport.apiName}(const char * text)`)
+    lines.push(`{`)
+    lines.push(`    if (${qrExport.objectName} == NULL) return;`)
+    lines.push(`    lv_qrcode_set_data(${qrExport.objectName}, text == NULL ? "" : text);`)
     lines.push(`}`)
     lines.push(``)
   })
@@ -6716,6 +6786,7 @@ lines.push(`    fg_system_root = parent;`)
         switchExports,
         checkboxExports,
         radioExports,
+        qrCodeExports,
       )
   }
 
@@ -7259,6 +7330,9 @@ lines.push(`}`)
       )).concat(Array.from(inputExports.values()).map(
         inputExport =>
           `void ${inputExport.apiName}(const char * text);`,
+      )).concat(Array.from(qrCodeExports.values()).map(
+        qrExport =>
+          `void ${qrExport.apiName}(const char * text);`,
       )).concat(Array.from(switchExports.values()).map(
         switchExport =>
           `void ${switchExport.apiName}(bool checked);`,

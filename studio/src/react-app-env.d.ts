@@ -81,6 +81,7 @@ type ComponentType =
   | 'Menu'
   | 'NumberInput'
   | 'Progress'
+  | 'QRCode'
   | 'Radio'
   | 'RadioGroup'
   | 'Slider'
@@ -148,5 +149,12 @@ interface ComponentItemProps {
   isMeta?: boolean
   soon?: boolean
   rootParentType?: ComponentType
+  defaultWidth?: number
+  defaultHeight?: number
+  insertionProps?: Record<string, unknown>
+  onInsert?: () => void
+  description?: string
+  preview?: React.ReactNode
+  onEdit?: () => void
   children?: React.ReactNode
 }

@@ -54,6 +54,7 @@ export const COMPONENTS: (ComponentType | MetaComponentType)[] = [
   'Calendar',
   'Canvas',
   'Chart',
+  'QRCode',
   'ImageButton',
   'Keyboard',
   'Line',

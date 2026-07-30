@@ -111,6 +111,12 @@ type PreviewDefaultProps = {
     blinkSeparator?: boolean
   }
   WiFi?: PropsWithForm<TextProps>
+  QRCode?: PropsWithForm<BoxProps> & {
+    qrText?: string
+    qrForeground?: string
+    qrBackground?: string
+    qrQuietZone?: boolean
+  }
   Highlight?: PropsWithForm<HighlightProps>
   Tag?: PropsWithForm<TagProps>
   SimpleGrid?: PropsWithForm<SimpleGridProps>
@@ -282,6 +288,17 @@ WiFi: {
   height: '100px',
   width: '100px',
   imageScale: 256,
+  },
+  QRCode: {
+    qrText: 'https://forgeui.co.nz',
+    qrForeground: '',
+    qrBackground: '',
+    qrQuietZone: true,
+    positionMode: 'absolute',
+    x: 40,
+    y: 40,
+    w: 180,
+    h: 180,
   },
   Line: {
     positionMode: 'absolute',

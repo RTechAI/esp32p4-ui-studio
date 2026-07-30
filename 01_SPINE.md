@@ -11,9 +11,15 @@
 
 ## Current Save Point
 
-**FORGEUI_LAYOUT_DESIGNER__DASHBOARD_SMART_REGIONS_AUTO_ARRANGE_AI_FILL__CANVAS_AND_BROWSER_PREVIEW_MANUALLY_VERIFIED__READY_FOR_EXPORT_AND_HARDWARE_PROOF__2026-07-30**
+**FORGEUI_WIDGET_REGISTRY__LAYOUT_TEMPLATE_LIBRARY__QRCODE_RUNTIME__READY_FOR_QR_HARDWARE_PROOF__2026-07-30**
+
+**READY FOR PHYSICAL QR VALIDATION**
 
 ## Current Proven Status..
+
+The 2026-07-30 Studio architecture milestone adds the Professional Layout Template Library, six reusable layouts, shared `LayoutDefinition` ownership, template-aware AI Fill, the authoritative Widget Registry, a completely registry-driven Widget Tray, widget and LVGL-term search, deterministic categories, uploaded and Interactive Asset integration, hydration-safe loading and the focused narrow-sidebar visual polish pass.
+
+QR Code is the first widget completed through the permanent Proven Widget Pipeline. Its registry, Tray discovery and insertion, Canvas, Inspector, shared Browser Preview, semantic theme behavior, project-model compatibility, undo/redo, native LVGL 9.2.2 export and `FG_Set_QR_Code_Text(const char * text)` runtime API are implemented and covered by focused automated tests. QR Code is output-only and intentionally generates no `95_UserEvents` callback. Physical ESP32-P4 QR build, flash and phone scan remain pending, so this save point is READY FOR PHYSICAL QR VALIDATION rather than hardware-proven.
 
 ForgeUI has a reusable Interactive Asset Framework with five fully implemented asset types organized into three generated runtime families:
 
@@ -109,18 +115,22 @@ The flashed ESP32-P4 remains the authoritative final visual reference.
 
 ## Current Priorities
 
-1. Polish the Dashboard Layout Designer vertical slice.
-2. Confirm save/reload manually with assigned region components.
-3. Confirm generated LVGL project output.
-4. Run the full Studio production build.
-5. Fix the unrelated Circular Progress JSX test typing defect.
-6. Generate, build and flash the Dashboard layout to the ESP32-P4.
-7. Compare Canvas, Browser Preview and physical LVGL.
-8. Only after Dashboard is proven, extend the region engine to Settings, Login, Form and Machine Status.
+1. Complete physical QR Code validation.
+2. Update all project documentation.
+3. Continue proving remaining LVGL widgets through the Proven Widget Pipeline.
+4. Build ForgeUI Dashboard widgets after LVGL coverage is complete.
 
-No additional structural template should be treated as complete until Dashboard passes the full export and hardware workflow.
+## Current Must-Not-Regress Rules
 
-## Layout Designer Must-Not-Regress Rules
+- Do not weaken the authoritative Widget Registry.
+- Do not return the Widget Tray to manually maintained Sidebar entries.
+- Preserve registry-driven click, drag and keyboard insertion.
+- Preserve deterministic, hydration-safe Widget Tray loading.
+- Preserve Widget Tray search, categories, interactive asset integration and narrow-sidebar polish.
+- Preserve the shared `LayoutDefinition` architecture.
+- Preserve all six layout templates: Dashboard, Industrial HMI, Control Panel, Monitoring, SCADA Overview and Mobile / Portrait.
+- Preserve template-aware AI Fill: AI owns content choice while `LayoutDefinition`, semantic regions and Auto Arrange own structure and geometry.
+- Preserve free-form decimal Canvas movement; do not introduce snapping as a side effect of layout or Widget Tray work.
 
 - Do not return template-based Dashboard generation to AI-owned pixel coordinates.
 - Do not remove the authoritative AI component catalogue.
@@ -130,7 +140,6 @@ No additional structural template should be treated as complete until Dashboard 
 - Do not alter existing Standard Runtime APIs or `95_UserEvents` signatures for Layout Designer work.
 - Do not make region Boxes consume runtime semantics beyond the existing Box visibility contract.
 - Do not claim physical proof until Generate -> Build -> Flash -> visual review is completed.
-- Do not expand to many partially completed templates before Dashboard is complete.
 
 ## Standard LVGL Semantic Theme Milestone
 
@@ -207,6 +216,7 @@ Completed runtime APIs:
 - ✓ Image
 - ✓ Box
 - ✓ IconButton
+- ✓ QR Code
 
 Inspected and intentionally API-free:
 
@@ -282,6 +292,7 @@ Interactive Asset hook ownership remains separate.
 | `Image` | `FG_Set_<Name>_Source(const void * src)` | None | Output-only raw LVGL source pointer |
 | `Box` | `FG_Set_<Name>_Visible(bool visible)` | None | Layout container with runtime visibility only; root Box excluded |
 | `IconButton` | `FG_Set_<Name>_Enabled(bool enabled)` | `FG_On_<Name>_Clicked(void)` | Interactive native button; serialized icon |
+| `QRCode` | `FG_Set_<Name>_Text(const char * text)` | None | Output-only native `lv_qrcode`; runtime payload regeneration, semantic colours and optional quiet zone |
 | `Scale` | None | None | Visual scale/tick renderer; owns no value |
 | `Line` | None | None | Static two-point visual line; owns no semantic runtime state |
 | `Icon` | None | None | Studio icon-picker convenience exported as a normal `lv_image`; serialized presentation only |
@@ -448,6 +459,31 @@ Arrow styling explicitly covers `LV_PART_INDICATOR`. Popup-list styling is appli
 ### Slider Canvas interaction
 
 Slider Canvas behavior was repaired without changing generated LVGL or claiming a completed runtime API. Track/thumb interaction changes temporary preview value, surrounding Canvas interaction can move the component, and project JSON is not mutated. Browser Preview remains interactive with temporary local state. A Slider setter and genuine-user hook remain a separate future runtime pass.
+
+### QR Code
+
+`QRCode` is a Standard Runtime Display widget registered through the authoritative Widget Registry. Its default geometry is `180 × 180` and its default payload is `https://forgeui.co.nz`. The Inspector exposes QR Text, Foreground Colour, Background Colour and Padding (Quiet Zone), together with the normal geometry controls.
+
+Canvas and Browser Preview share one deterministic vector module renderer. The preview contains no raster QR artwork, reflects the actual encoded text, remains sharp while resized and uses the selected semantic accent and surface unless explicit colours are saved.
+
+Generated firmware uses the native LVGL 9.2.2 QR implementation:
+
+```c
+lv_obj_t * qr = lv_qrcode_create(parent);
+lv_qrcode_set_size(qr, size);
+lv_qrcode_set_dark_color(qr, foreground);
+lv_qrcode_set_light_color(qr, background);
+lv_qrcode_set_quiet_zone(qr, true);
+lv_qrcode_set_data(qr, text);
+```
+
+Named instances generate:
+
+```c
+void FG_Set_QR_Code_Text(const char * text);
+```
+
+The setter regenerates the native QR data at runtime. QR Code intentionally generates no `95_UserEvents` callback because it is an output-only display and has no genuine user interaction. Registry insertion, normal project serialization, undo/redo, hydration-safe Tray loading, Canvas, Browser Preview, semantic theme resolution, native LVGL export and runtime API generation are covered by focused tests. Physical ESP32-P4 build, flash and successful phone scans of URL and Wi-Fi payloads remain pending; QR Code is not yet claimed as physically proven.
 
 ### Scale
 
@@ -1244,7 +1280,138 @@ LVGL image source changes
 Physical indicator state changes
 ```
 
-## ForgeUI Layout Designer
+## ForgeUI Widget Registry
+
+The Widget Registry is the authoritative source for every ForgeUI widget. Each `WidgetDefinition` owns:
+
+- serialized type
+- display name
+- category
+- description
+- search keywords
+- default dimensions
+- default properties
+- insertion factory
+- runtime capability
+- user-event capability
+- children capability
+- interactive capability
+- documentation ID
+- availability
+
+The Widget Tray is completely registry-driven. Future widgets are added by registering one new `WidgetDefinition` rather than modifying Sidebar implementations. Compatibility projections may expose registry data to existing consumers, but they do not become a second widget catalogue.
+
+## ForgeUI Widget Tray
+
+The Widget Tray renders these deterministic registry categories:
+
+- Basic
+- Input
+- Display
+- Navigation
+- Feedback
+- Dashboard
+- Assets
+
+Dashboard is intentionally retained with a zero count and compact empty state while dedicated ForgeUI Dashboard widgets await completion of LVGL widget coverage.
+
+The Tray supports plain-text search, registered keyword search and LVGL terminology search. It supports click insertion, drag insertion and keyboard insertion through the same registered insertion metadata and normal component action path. Uploaded and Interactive Assets participate in the same Tray surface while retaining their existing registries, editors and runtime ownership.
+
+The Tray heading and search remain sticky while categories scroll. Widget and asset rows use compact single-line names, accessible full-name titles, stable Edit alignment, visible keyboard focus, dark-theme scrollbars and narrow-sidebar-safe width constraints. Loading and ordering are deterministic and hydration-safe. The Tray does not duplicate widget definitions, insertion dimensions or capability knowledge.
+
+## Official LVGL Reference
+
+The permanent authoritative implementation reference for future LVGL widgets is:
+
+```text
+C:\ForgeUI\Projects\References\LVGL-9.2.2
+```
+
+Future widget work must inspect this exact version's headers, implementation, examples, configuration flags, dependencies, supported properties, runtime updates and limitations. APIs from newer LVGL versions must not be assumed.
+
+## Proven Widget Pipeline
+
+Every future Standard widget must follow this mandatory lifecycle:
+
+```text
+Official LVGL Reference
+        ↓
+Widget Registry
+        ↓
+Widget Tray
+        ↓
+Canvas
+        ↓
+Inspector
+        ↓
+Browser Preview
+        ↓
+LVGL Export
+        ↓
+Runtime API (when appropriate)
+        ↓
+95_UserEvents (interactive widgets only)
+        ↓
+ESP32-P4 Hardware
+        ↓
+Documentation
+        ↓
+PROVEN
+```
+
+Automated coverage or generated-code inspection does not substitute for build, flash and physical interaction or visual validation. Output-only widgets such as QR Code deliberately skip `95_UserEvents`; they still require physical hardware proof before promotion to PROVEN.
+
+## Layout Template Library
+
+ForgeUI now contains a reusable professional Layout Template Library:
+
+- Dashboard
+- Industrial HMI
+- Control Panel
+- Monitoring
+- SCADA Overview
+- Mobile / Portrait
+
+All six templates use the same rendering engine, semantic-region model, vector preview approach, scaling behavior, persistence path, undo/redo path, Browser Preview and normal LVGL export path. Dashboard remains the reference implementation; it is no longer the only structural template.
+
+### LayoutDefinition
+
+Every template is one registered `LayoutDefinition` containing:
+
+- identity
+- name
+- description
+- vector preview geometry
+- semantic regions
+- placement rules
+- arrangement rules
+- AI guidance
+
+The designer renders the selected definition rather than branching into six independent implementations. Future templates are added by registering another `LayoutDefinition`.
+
+### Template-aware AI Fill
+
+```text
+User Prompt
+    ↓
+AI chooses widgets
+    ↓
+LayoutDefinition
+    ↓
+Semantic Regions
+    ↓
+Auto Arrange
+    ↓
+Canvas
+    ↓
+Browser Preview
+    ↓
+LVGL Export
+```
+
+AI chooses suitable canonical widgets and content. `LayoutDefinition` owns structure, semantic regions own placement intent, and Auto Arrange owns deterministic geometry. Template guidance makes AI Fill aware of Dashboard, Industrial HMI, Control Panel, Monitoring, SCADA Overview and Mobile / Portrait content needs without returning ownership of pixel coordinates to AI.
+
+## ForgeUI Layout Designer Implementation
 
 ### Product direction
 
@@ -1274,7 +1441,7 @@ Normal ForgeUI component model
     +-- LVGL Export
 ```
 
-The first complete vertical slice is the Dashboard template for the current `1024 × 600` landscape target. It creates ordinary root-level ForgeUI components and records optional layout metadata in their existing `props`. Projects without this metadata continue to load unchanged.
+Dashboard established the reference vertical slice for the current `1024 × 600` landscape target. The same reusable architecture now serves the complete six-template library. Templates create ordinary root-level ForgeUI components and record optional layout metadata in their existing `props`. Projects without this metadata continue to load unchanged.
 
 The ownership distinction is deliberate: AI decides what the dashboard contains; ForgeUI owns the structural layout and geometry. The result remains composed of normal editable ForgeUI components. No image-only mockup or non-exportable parallel document was introduced.
 
@@ -1304,9 +1471,9 @@ Auto Arrange preserves component props, runtime identity, callback ownership, re
 
 The Layout Designer does not replace the normal ForgeUI component model, serialization, theme system, Browser Preview or LVGL exporter. It produces and arranges the same components those paths already consume.
 
-### AI Fill Dashboard
+### Template-aware AI Fill implementation
 
-AI Fill Dashboard uses the normal AI generation path with a Dashboard template marker and a region-composer contract:
+Template-aware AI Fill uses the normal AI generation path. Dashboard retains this representative region-composer contract:
 
 ```json
 {
@@ -1344,9 +1511,9 @@ This save point does not claim:
 - a live OpenAI network test beyond the manually observed AI Fill workflow;
 - an ESP-IDF firmware build;
 - a hardware flash or physical ESP32-P4 parity review;
-- completed Settings, Login, Form or other structural templates.
+- physical ESP32-P4 parity for every template.
 
-Dashboard is the only completed structural template in this vertical slice. Drag-to-assign is not yet implemented, region relationships remain flat metadata rather than serialized hierarchy, and physical export proof remains the next promotion gate.
+The six reusable definitions and their Studio workflows are complete. Drag-to-assign is not yet implemented, region relationships remain flat metadata rather than serialized hierarchy, and physical export proof remains a separate promotion gate.
 
 ## Shared AI Generation Path
 
@@ -1473,17 +1640,28 @@ void FG_On_Mode_Select_Changed(uint32_t index, const char * text);
 void FG_On_Settings_Icon_Button_Clicked(void);
 ```
 
-Progress, Image and Box are setter-only outputs and add no hooks. Icon, Divider, Scale, Line, Clock, Button Text, Text and Heading are presentation/API-free and also add no `95_UserEvents` declarations. Live `95_UserEvents.c` bodies remain preserved, missing stubs are appended, and existing hooks are not deleted merely because their component is absent from the current Canvas. Standalone copies become developer-owned.
+Progress, Image, Box and QR Code are setter-only outputs and add no hooks. Icon, Divider, Scale, Line, Clock, Button Text, Text and Heading are presentation/API-free and also add no `95_UserEvents` declarations. Live `95_UserEvents.c` bodies remain preserved, missing stubs are appended, and existing hooks are not deleted merely because their component is absent from the current Canvas. Standalone copies become developer-owned.
 
 ## Major Files
 
 Paths under `src/` are relative to `studio/`.
 
+### Widget Registry and Widget Tray
+
+- `src/forgeui/widgets/ForgeUIWidgetRegistry.ts` — authoritative widget definitions, metadata, categories and search
+- `src/forgeui/widgets/ForgeUIWidgetRegistry.test.ts` — catalogue completeness, metadata, search and QR defaults
+- `src/forgeui/ForgeUIWidgetSet.ts` — compatibility projection derived from the registry
+- `src/components/sidebar/Sidebar.tsx` — registry-driven categories, sticky search and asset integration
+- `src/components/sidebar/DragItem.tsx` — accessible compact insertion row
+- `src/components/sidebar/Sidebar.test.tsx` — click, drag, keyboard, undo/redo, search, overflow and empty-state coverage
+- `src/components/sidebar/Sidebar.hydration.test.tsx` — deterministic server/client hydration coverage
+- `src/hooks/useDropComponent.ts` — normal insertion action path; does not own a second widget catalogue
+
 ### Layout Designer and AI Region Composer
 
 Layout structure, geometry and focused rendering coverage:
 
-- `src/forgeui/layout/ForgeUILayoutDesigner.ts`
+- `src/forgeui/layout/ForgeUILayoutDesigner.ts` — shared `LayoutDefinition` template library, structural regions and arrangement
 - `src/forgeui/layout/ForgeUILayoutDesigner.test.ts`
 - `src/forgeui/layout/ForgeUILayoutDesigner.preview.test.tsx`
 - `src/components/editor/ComponentPreview.tsx`
@@ -1512,6 +1690,19 @@ Template-aware AI contract, validation, composition and UI:
 Architecture and manual-validation guide:
 
 - `docs/FORGEUI_LAYOUT_DESIGNER.md`
+
+### QR Code
+
+- `src/forgeui/preview/StandardQRCodePreview.tsx` — shared deterministic Canvas and Browser vector renderer
+- `src/forgeui/preview/StandardQRCodePreview.test.tsx`
+- `src/components/inspector/panels/components/QRCodePanel.tsx`
+- `src/components/editor/ComponentPreview.tsx`
+- `src/forgeui/preview/forgePreviewRenderer.tsx`
+- `src/forgeui/ForgeUILvglExport.ts` — native `lv_qrcode` creation and runtime setter
+- `src/forgeui/ForgeUILvglExport.qrcode.test.ts`
+- `src/utils/defaultProps.tsx`
+- `firmware/ForgeUI-One/sdkconfig.defaults` — `CONFIG_LV_USE_QRCODE=y`
+- `docs/FORGEUI_QR_CODE.md`
 
 ### Interactive framework
 
@@ -1946,6 +2137,13 @@ The keyboard runtime is reusable architecture for future Device settings, MQTT, 
 
 ## Verified Automated Status
 
+- Widget Registry, Tray insertion, search, keyboard access, undo/redo and hydration-focused suites pass 21/21.
+- QR Code registry, deterministic vector preview, native LVGL export and runtime API tests pass.
+- The complete current LVGL exporter regression passes 236/236 across 33 suites, including QR Code.
+- `git diff --check` passes for the QR and documentation work.
+- The broader ForgeUI run passed QR, layout, preview, theme and exporter suites before exceeding its command timeout; two pre-existing AI State Sheet tests also exceeded their individual timeouts. That interrupted run is not represented as a full pass.
+- Full TypeScript checking currently reports the pre-existing `ForgeUIStandardCircularProgress.test.tsx` JSX return-type diagnostic; no QR-specific TypeScript diagnostic is present.
+- QR hardware validation remains pending because no active ESP32-P4 serial port was detected and the local ESP-IDF Python environment did not initialize successfully.
 - Dashboard Layout Designer geometry and Auto Arrange pass 6 focused tests.
 - Browser Preview smart-region coverage passes 1 focused test.
 - AI region composition passes 2 focused tests.
@@ -1963,7 +2161,7 @@ The keyboard runtime is reusable architecture for future Device settings, MQTT, 
 - Toggle State Sheet and Three-Position State Sheet, linked-crop, row-remapping and atomic-registration regressions pass; the State Sheet suite may require its longer timeout.
 - Keyboard exporter lazy-creation, reusable-instance, textarea attachment, top-layer ownership, geometry, ordering, style and relative-width regressions pass.
 - Shared union geometry, intrinsic and alpha-bound metadata, linked crop, same-ID invalidation, duplicate-write suppression and idempotent fitting regressions pass.
-- TypeScript validation passes with `tsc --noEmit`.
+- Earlier TypeScript milestones passed with `tsc --noEmit`; the current checkout has the separately recorded Circular Progress test JSX diagnostic.
 - Focused `ForgeUILvglExport.{led,bar,arc,chart,keyboard,calendar,roller,msgbox,buttonmatrix,tabview,tileview}.test.ts` suites pass for retained runtime APIs, transition semantics, deterministic collision handling and hook preservation.
 - Focused Button Text, Text Value, Heading Text and Clock Presentation suites pass across serialization, previews and shared export generation.
 - TabView tests pass 5/5, Tileview tests pass 7/7, Heading tests pass 7/7, Clock tests pass 7/7, and the Button/Text/Heading/Clock presentation regression passes 29/29.
@@ -1993,11 +2191,17 @@ This architecture provides authoring, preview and generated-firmware parity with
 
 ```text
 Layout Designer
-├── Dashboard Template
+├── LayoutDefinition Registry
+│   ├── Dashboard
+│   ├── Industrial HMI
+│   ├── Control Panel
+│   ├── Monitoring
+│   ├── SCADA Overview
+│   └── Mobile / Portrait
 ├── Smart Region Boxes
 ├── Stable Region Assignment
 ├── Auto Arrange
-├── AI Region Composer
+├── Template-aware AI Fill
 └── Normal ForgeUI Export Path
 ```
 
@@ -2062,6 +2266,8 @@ Standard LVGL Component Runtime
 │   └── Calendar
 ├── Runtime image output
 │   └── Image
+├── Encoded display output
+│   └── QRCode
 ├── Serialized text/time presentation
 │   ├── Button
 │   ├── Text
@@ -2204,6 +2410,13 @@ These remain future concepts only. Existing Radio and Checkbox runtimes are impl
 # Save Point History
 
 Save points are ordered newest to oldest. Detailed subsystem engineering is maintained in the Developer Code Maps.
+
+## FORGEUI_WIDGET_REGISTRY__LAYOUT_TEMPLATE_LIBRARY__QRCODE_RUNTIME__READY_FOR_QR_HARDWARE_PROOF__2026-07-30
+
+- **What changed:** Completed the Professional Layout Template Library with Dashboard, Industrial HMI, Control Panel, Monitoring, SCADA Overview and Mobile / Portrait; consolidated the shared `LayoutDefinition` architecture and template-aware AI Fill; completed the authoritative Widget Registry and registry-driven Widget Tray with search, categories, uploaded and Interactive Asset integration, hydration-safe loading and narrow-sidebar polish; inspected the official LVGL 9.2.2 QR implementation; and implemented QR Code through Registry, Tray, Canvas, Inspector, Browser Preview, native LVGL export, semantic theme and runtime API generation.
+- **Why it changed:** Layouts and widgets needed scalable definition-driven extension points instead of Dashboard-only or Sidebar-owned implementations. Future Codex sessions also need one mandatory widget lifecycle grounded in the exact LVGL version used by ForgeUI.
+- **Final architecture:** `WidgetDefinition` is authoritative for widget identity, metadata, defaults, insertion and capabilities. The Widget Tray renders registry data and assets without a second catalogue. Six layouts share `LayoutDefinition`; AI selects content, semantic regions own placement intent and Auto Arrange owns geometry. Future widgets follow Official LVGL Reference → Widget Registry → Widget Tray → Canvas → Inspector → Browser Preview → LVGL Export → Runtime API when appropriate → `95_UserEvents` for genuine interaction only → ESP32-P4 → Documentation → PROVEN. QR Code uses native `lv_qrcode`, exposes `FG_Set_QR_Code_Text(const char * text)` and intentionally creates no user-event hook.
+- **Proven result:** Focused Widget Tray, search, insertion, undo/redo, hydration, QR preview, registry and runtime-export tests pass, and all current LVGL exporter suites pass. The existing Dashboard behavior remains the layout reference while all six definitions use the shared architecture. No physical QR proof is claimed: ESP32-P4 build, flash and successful phone scans remain required. Status is READY FOR PHYSICAL QR VALIDATION.
 
 ## FORGEUI_LAYOUT_DESIGNER__DASHBOARD_SMART_REGIONS_AUTO_ARRANGE_AI_FILL__CANVAS_AND_BROWSER_PREVIEW_MANUALLY_VERIFIED__READY_FOR_EXPORT_AND_HARDWARE_PROOF__2026-07-30
 
