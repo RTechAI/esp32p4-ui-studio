@@ -8,6 +8,48 @@ const clamp = (value: number, min: number, max: number) => {
   return Math.max(min, Math.min(value, max))
 }
 
+export const getFreeformMovedPosition = ({
+  x,
+  y,
+  deltaX,
+  deltaY,
+  width,
+  height,
+  viewportWidth,
+  viewportHeight,
+}: {
+  x: number
+  y: number
+  deltaX: number
+  deltaY: number
+  width: number
+  height: number
+  viewportWidth: number
+  viewportHeight: number
+}) => ({
+  x: clamp(x + deltaX, 0, viewportWidth - width),
+  y: clamp(y + deltaY, 0, viewportHeight - height),
+})
+
+export const getFreeformDropPosition = ({
+  pointerX,
+  pointerY,
+  width,
+  height,
+  viewportWidth,
+  viewportHeight,
+}: {
+  pointerX: number
+  pointerY: number
+  width: number
+  height: number
+  viewportWidth: number
+  viewportHeight: number
+}) => ({
+  x: clamp(pointerX - width / 2, 0, viewportWidth - width),
+  y: clamp(pointerY - height / 2, 0, viewportHeight - height),
+})
+
 export const INTERACTIVE_STATUS_INDICATOR_DROP_SIZE = {
   width: 120,
   height: 72,
@@ -64,26 +106,22 @@ export const useDropComponent = (
       if (item.isMoved) {
         const w = Number(item.w ?? 240)
         const h = Number(item.h ?? 120)
+        const delta = monitor.getDifferenceFromInitialOffset()
 
-        const x = clamp(
-          Math.round(
-            clientOffset.x -
-              viewportRect.left -
-              w / 2,
-          ),
-          0,
-          Math.round(viewportRect.width - w),
-        )
+        if (!delta) {
+          return
+        }
 
-        const y = clamp(
-          Math.round(
-            clientOffset.y -
-              viewportRect.top -
-              h / 2,
-          ),
-          0,
-          Math.round(viewportRect.height - h),
-        )
+        const { x, y } = getFreeformMovedPosition({
+          x: Number(item.x ?? 0),
+          y: Number(item.y ?? 0),
+          deltaX: delta.x,
+          deltaY: delta.y,
+          width: w,
+          height: h,
+          viewportWidth: viewportRect.width,
+          viewportHeight: viewportRect.height,
+        })
 
         dispatch.components.updateProps({
           id: item.id,
@@ -249,32 +287,14 @@ const defaultH = isLed
                                             ? 100
                                             : 120
 
-
-
-
-      const x = clamp(
-        Math.round(
-          clientOffset.x -
-            viewportRect.left -
-            defaultW / 2,
-        ),
-        0,
-        Math.round(
-          viewportRect.width - defaultW,
-        ),
-      )
-
-      const y = clamp(
-        Math.round(
-          clientOffset.y -
-            viewportRect.top -
-            defaultH / 2,
-        ),
-        0,
-        Math.round(
-          viewportRect.height - defaultH,
-        ),
-      )
+      const { x, y } = getFreeformDropPosition({
+        pointerX: clientOffset.x - viewportRect.left,
+        pointerY: clientOffset.y - viewportRect.top,
+        width: defaultW,
+        height: defaultH,
+        viewportWidth: viewportRect.width,
+        viewportHeight: viewportRect.height,
+      })
 
       dispatch.components.addComponent({
         parentName: componentId,

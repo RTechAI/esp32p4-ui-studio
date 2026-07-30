@@ -142,6 +142,8 @@ interface ComponentItemProps {
   isMoved?: boolean
   w?: string | number
   h?: string | number
+  x?: string | number
+  y?: string | number
   isChild?: boolean
   isMeta?: boolean
   soon?: boolean

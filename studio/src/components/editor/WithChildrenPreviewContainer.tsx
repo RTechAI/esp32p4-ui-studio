@@ -81,13 +81,13 @@ const WithChildrenPreviewContainer: React.FC<{
           dispatch.components.updateProps({
             id: component.id,
             name: 'w',
-            value: parseInt(element.style.width, 10),
+            value: parseFloat(element.style.width),
           })
 
           dispatch.components.updateProps({
             id: component.id,
             name: 'h',
-            value: parseInt(element.style.height, 10),
+            value: parseFloat(element.style.height),
           })
 
           dispatch.components.updateProps({

@@ -486,8 +486,8 @@ const creatorPlaceholderColor =
       position: { x: number; y: number },
       direction: CanvasResizeDirection,
     ) => {
-      const parsedWidth = parseInt(element.style.width, 10)
-      const parsedHeight = parseInt(element.style.height, 10)
+      const parsedWidth = parseFloat(element.style.width)
+      const parsedHeight = parseFloat(element.style.height)
       let geometry = {
         w: parsedWidth,
         h: parsedHeight,
