@@ -38,29 +38,51 @@ ForgeUI is a development tool. It does not deploy the Studio stack to the microc
 
 ## 🤖 AI Design Studio
 
-ForgeUI AI Studio turns natural-language ideas into validated, editable ForgeUI layouts.
+ForgeUI AI Studio combines semantic AI content selection with ForgeUI-owned structural layout and geometry.
 
 ```text
 Natural-language prompt
         ↓
-Layout Prompt Helper (optional)
+Layout Designer
         ↓
-AI layout generation
+Dashboard Template (or future template)
         ↓
-Editable ForgeUI Canvas
+AI Fill
+        ↓
+Editable ForgeUI Components
+        ↓
+Canvas
         ↓
 Browser Preview
         ↓
-Native LVGL export
+Native LVGL Export
         ↓
 ESP-IDF
         ↓
-Physical ESP32-P4
+ESP32-P4
 ```
 
-Current AI-assisted workflows include full layouts, guided prompting, hero backgrounds, standalone artwork, semantic icons, and state artwork for Interactive Assets. Generated content enters the same component and asset pipelines as manually created content and remains editable before export.
+Layout Designer owns template structure and component geometry. AI Fill supplies semantic content, supported component selection and region assignment. Generated firmware receives ordinary ForgeUI components through the existing export path; it does not receive an AI document or Layout Designer runtime.
+
+Current AI-assisted workflows include guided semantic composition, AI Fill, hero backgrounds, standalone artwork, semantic icons and state artwork for Interactive Assets. AI-assisted output enters the same editable component and asset pipelines as manually created content.
 
 OpenAI-assisted layout and image generation use configured OpenAI services. Studio editing, uploaded-image preprocessing, LVGL conversion, validation, export, ESP-IDF build and flashing run locally. Standalone exported ESP-IDF projects have no ForgeUI subscription, licensing, runtime phone-home, OpenAI, or ForgeUI Studio requirement.
+
+---
+
+# 🧱 Layout Designer
+
+The first completed Layout Designer template is Dashboard. It creates five deterministic structural regions:
+
+- Header
+- Status
+- Main
+- Controls
+- Footer
+
+Each region is a real editable ForgeUI Box component rather than an image overlay or separate layout document. Regions can be selected, moved and resized. Normal components can be assigned through the Inspector, Auto Arrange organises assigned child controls, and AI Fill Dashboard populates the existing semantic regions with appropriate supported components and content.
+
+The resulting screen remains editable and follows the normal project save/reload, Canvas, Browser Preview and native LVGL export paths. Dashboard is the first completed template. Settings, Login, Forms and Machine Status are planned Layout Designer extensions and are not yet complete.
 
 ---
 
@@ -517,12 +539,21 @@ ForgeUI validates exports before replacing generated firmware:
 - hero backgrounds and uploaded artwork
 - semantic icon browsing
 
+### Layout Designer
+
+- Dashboard template
+- Smart Regions
+- region assignment
+- Auto Arrange
+- AI Fill Dashboard
+
 ### AI-assisted workflows
 
 - authoritative 42-component AI catalogue and guided Prompt Builder
-- Dashboard Layout Designer with deterministic smart regions and Auto Arrange
-- AI Fill for semantic content selection and region assignment, with Studio-owned geometry
-- compatible free-coordinate layout generation for ordinary non-template requests
+- Layout Designer-owned structure and geometry
+- AI Fill semantic component selection
+- semantic region assignment
+- editable normal-component output
 - hero and standalone artwork generation
 - interactive state-artwork generation
 - Toggle OFF/ON State Sheets
@@ -543,6 +574,10 @@ ForgeUI validates exports before replacing generated firmware:
 
 ### Native export
 
+- Layout Designer resolves into normal ForgeUI components before export
+- no additional Layout Designer runtime family is generated
+- no additional Layout Designer firmware API is generated
+- no additional Layout Designer User Event hook family is generated
 - LVGL v9 source generation
 - locally converted image assets
 - generated input callbacks
@@ -594,8 +629,13 @@ Current architecture save point:
 
 Current proven milestones include:
 
-- first Dashboard Layout Designer vertical slice with deterministic smart regions, stable assignment, Auto Arrange, and AI Fill
-- manual Canvas and Browser Preview verification of the Dashboard region workflow; firmware and physical ESP32-P4 proof remain pending
+- first Dashboard Layout Designer vertical slice
+- deterministic smart regions and stable assignment
+- Auto Arrange
+- AI Fill Dashboard
+- manual Canvas verification
+- manual Browser Preview verification
+- generated LVGL inspection and ESP32-P4 proof remain pending for Layout Designer
 - visual Builder, Canvas, themes, and Browser Preview
 - semantic Standard theme engine
 - Canvas selected-theme parity
@@ -644,6 +684,14 @@ ForgeUI remains under active development and is ready for continued UI polish, b
 
 These are future concepts, not descriptions of implemented runtime support:
 
+- additional Layout Designer templates:
+  - Settings
+  - Login
+  - Forms
+  - Machine Status
+  - Sidebar
+  - Split View
+  - Card Grid
 - additional generated runtime families;
 - value controls, gauges, and numeric displays;
 - reusable user-project multi-screen authoring; the built-in System Interface already uses persistent generated pages;
@@ -652,8 +700,9 @@ These are future concepts, not descriptions of implemented runtime support:
 - continued visual theme polish for generated System surfaces;
 - GPIO and peripheral binding;
 - broader board and display profiles;
-- reusable project templates;
 - plugin architecture.
+
+The planned Layout Designer templates are Studio authoring structures that must resolve into the existing component model. They are not new firmware runtime families.
 
 ---
 

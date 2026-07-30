@@ -216,3 +216,8 @@ void FG_On_Select_2_Changed(uint32_t index, const char * text)
            (unsigned long)index,
            text ? text : "");
 }
+
+void FG_On_Icon_Button_Clicked(void)
+{
+    printf("[ForgeUI User Event] FG_On_Icon_Button_Clicked\n");
+}

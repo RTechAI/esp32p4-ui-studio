@@ -1,5 +1,14 @@
 # 04_FEATURE_STATUS.md
 
+This document records implementation and proof status only.
+
+- Use `01_SPINE.md` for architecture, milestones and product direction.
+- Use `02_DEVELOPER_CODE_MAP.md` for Studio ownership and debugging paths.
+- Use `03_ForgeUI_Generated_Export_API_Code_Map.md` for generated firmware APIs, hooks and export boundaries.
+- Use `04_FEATURE_STATUS.md` for concise feature-by-feature proof status.
+
+Detailed ownership maps are not duplicated here.
+
 # ==============================================================================
 # 💡 STANDARD LED
 # ==============================================================================
@@ -859,42 +868,136 @@ void FG_On_Data_Chart_Cleared(void);
 ---
 
 # ==============================================================================
-# FORGEUI LAYOUT DESIGNER — DASHBOARD
+# 🧱 FORGEUI LAYOUT DESIGNER
 # ==============================================================================
+
+## Current Template
+
+**Dashboard — Reference Implementation**
 
 ## Status
 
-**🟡 CANVAS AND BROWSER PREVIEW MANUALLY VERIFIED — EXPORT AND HARDWARE PROOF PENDING**
+**🟡 CANVAS AND BROWSER PREVIEW MANUALLY VERIFIED — GENERATED OUTPUT AND HARDWARE PROOF PENDING**
+
+---
 
 ## ✔ Verified
 
-- Deterministic Header, Status, Main, Controls, and Footer smart regions
-- Editable semantic Box regions, one Divider, and one Heading placeholder
-- Manual region movement and resizing
+- Deterministic Dashboard template
+- Header smart region
+- Status smart region
+- Main smart region
+- Controls smart region
+- Footer smart region
+- Real editable Box components
+- One Divider
+- One Heading placeholder
+- Manual region selection
+- Manual region movement
+- Manual region resizing
 - Stable Inspector-based region assignment
 - Auto Arrange
-- AI Fill Dashboard through the normal AI generation path
+- AI Fill Dashboard
+- Canonical component validation
 - Canvas rendering
 - Browser Preview rendering
+- Existing project component model
 - Existing save/reload architecture
-- Focused generated LVGL exporter coverage
+- Focused Box exporter coverage
 - 20 focused Layout Designer tests
 
-## Not yet proven
+---
+
+## 🧩 Architecture
+
+```text
+Natural-language prompt
+        ↓
+Layout Designer
+        ↓
+Dashboard Template
+        ↓
+AI Fill
+        ↓
+Normal ForgeUI Components
+        ↓
+Canvas
+        ↓
+Browser Preview
+        ↓
+LVGL Export
+```
+
+AI Fill selects canonical supported content and semantic regions. ForgeUI Layout Designer owns template structure and final geometry. Smart Regions are normal editable Box components. Auto Arrange computes final child `x/y/w/h`. The existing component document remains authoritative, and the existing LVGL exporter receives normal ForgeUI components.
+
+Layout Designer does not introduce a new runtime family, public API family, User Event hook family, generated firmware document or export payload field. It resolves into normal ForgeUI components before export.
+
+---
+
+## ⚙ Generated Runtime API
+
+**No Layout Designer-specific API generated**
+
+Region Boxes remain Standard Box components. Non-root Boxes may retain the existing visibility setter where applicable. Contained controls retain their normal component-specific APIs and hooks. Layout Designer itself generates no `FG_Set_*` or `FG_On_*` contract.
+
+```text
+Dashboard Controls region
+  ├── Start Button
+  ├── Pause Button
+  └── Reset Button
+
+Region Box
+  → normal generated LVGL object
+  → optional existing Box visibility API
+
+Contained controls
+  → retain their existing generated runtime contracts
+```
+
+---
+
+## 🗂 Current Template Status
+
+✅ Dashboard
+
+### Future Template Candidates
+
+- ⬜ Settings
+- ⬜ Login
+- ⬜ Form
+- ⬜ Machine Status
+- ⬜ Sidebar
+- ⬜ Split View
+- ⬜ Card Grid
+- ⬜ Control Panel
+
+These are planned template extensions. They are not implemented or proven in the current save point. Dashboard is the only completed structural template.
+
+---
+
+## Not Yet Proven
 
 - Full Studio production build
 - Additional live OpenAI network testing beyond the manually observed AI Fill workflow
+- Current generated `90_Studio_Export.c` inspection
 - Generated LVGL project inspection
-- ESP-IDF firmware build
-- ESP32-P4 flash and physical parity
-- Settings, Login, Form, Machine Status, or other structural templates
+- Dashboard → Generate → Build → Flash parity
+- ESP-IDF firmware build for the Layout Designer dashboard
+- ESP32-P4 flash
+- Physical Canvas ↔ Browser Preview ↔ generated LVGL ↔ ESP32-P4 parity
+- Settings, Login, Form, Machine Status or other structural templates
 
-## Architecture
+---
 
-AI Fill selects canonical supported content and assigns semantic regions.
-ForgeUI Layout Designer owns deterministic structure, Auto Arrange, and final
-geometry. The result remains normal editable ForgeUI components and follows the
-existing Canvas, save/reload, Browser Preview, and LVGL export pipeline.
+## 📝 Notes
+
+- Dashboard regions remain movable and resizable after application.
+- Region assignment currently occurs through Inspector.
+- Drag-to-assign is not implemented.
+- Structural-lock metadata exists but direct Canvas enforcement is not yet complete.
+- Legacy free-coordinate AI generation remains available for compatibility.
+- Dashboard template mode uses Studio-owned region geometry rather than AI-owned pixel coordinates.
+- Generated firmware cannot distinguish between manually placed and AI-filled components.
 
 ---
 

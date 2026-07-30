@@ -13,19 +13,26 @@
 
 ## Current proven save point
 
-**FORGEUI_STANDARD_LVGL_PARITY__INPUT_TEXTAREA_CHECKBOX_SWITCH_RADIO_PROGRESS_CIRCULAR_PROGRESS_NUMBER_INPUT_SELECT__SEMANTIC_THEME_AND_BORDER_PARITY__ESP32P4_PROVEN__2026-07-30**
+**FORGEUI_LAYOUT_DESIGNER__DASHBOARD_SMART_REGIONS_AUTO_ARRANGE_AI_FILL__CANVAS_AND_BROWSER_PREVIEW_MANUALLY_VERIFIED__READY_FOR_EXPORT_AND_HARDWARE_PROOF__2026-07-30**
 
-Current in-progress generated-output parity work outside the physically proven eleven-component group includes:
+### Existing physically proven generated runtime
 
-- Canvas
-- TabView
-- TileView
-- Line
-- Text
-- Heading
-- Standard Wi-Fi presentation
+The earlier physical proof remains valid for Interactive Assets; System Runtime; Hosted Connectivity and Storage; the eleven-component Standard group; and the 2026-07-30 Standard input and selection group. Promoting the current documentation save point does not weaken or replace those recorded hardware results.
 
-Source-level and automated generated-output work is complete in the recorded scope. Final current-project Generate -> Build -> Flash -> visual confirmation is still required. These components remain outside the physically proven eleven-component group.
+### Current Layout Designer status
+
+- Dashboard template application is manually verified.
+- Smart Region Boxes are editable.
+- Region movement and resizing are manually verified.
+- Region assignment and Auto Arrange are manually verified.
+- AI Fill Dashboard is manually verified.
+- Browser Preview rendering is manually verified.
+- Focused exporter coverage for semantic Region Boxes passes.
+- Full production build remains pending.
+- Current generated `90_Studio_Export.c` inspection remains pending.
+- ESP-IDF build remains pending.
+- ESP32-P4 flash and physical parity remain pending.
+- Dashboard is the only completed Layout Designer template.
 
 ## Purpose and scope
 
@@ -69,6 +76,38 @@ Generated UI → developer application
 ```
 
 Interactive Standard setters are guarded so application-to-UI updates cannot be misreported as genuine UI-to-application events.
+
+## Layout Designer Generated Export Boundary
+
+Layout Designer is a Studio authoring subsystem. Before export, it resolves into the existing ForgeUI component document.
+
+```text
+Dashboard Template
+        ↓
+Smart Region Boxes
+        ↓
+Normal ForgeUI components
+        ↓
+Existing component serialization
+        ↓
+generateForgeUILvglCode()
+        ↓
+Existing generated LVGL output
+```
+
+Layout Designer does not create a second exporter, separate generated firmware document, new runtime family, new public API family, new `95_UserEvents` hooks or new export payload fields. It does not bypass `ForgeUIExportValidation`. Its output uses the existing Box, Divider, Heading, Text, Chart, Button and other Standard component branches.
+
+### Dashboard Template Generated Structure
+
+The current template produces normal components representing `dashboard.header`, `dashboard.status`, `dashboard.main`, `dashboard.controls` and `dashboard.footer`. It creates five normal Box components, one Divider, one Heading placeholder and normal assigned components inserted by the user or AI Fill.
+
+Stable region keys and assignment metadata are Studio/project metadata. They generate no C structs, enums, public APIs, hooks, runtime callbacks or additional files. After layout composition, final persisted component `x/y/w/h` is the generated geometry source of truth.
+
+### AI Fill Generated Boundary
+
+AI Fill supplies design-time canonical ForgeUI types, supported serialized props, semantic region assignment, content and ordering. It does not directly generate firmware.
+
+The export boundary begins only after AI output is validated, converted to normal components, assigned to regions, Auto Arranged and inserted into the project document. The exporter therefore receives the same model whether components were manually dropped, created by a template, inserted by AI Fill or subsequently moved or resized. Generated firmware cannot know whether a component originated from AI.
 
 ## System overview
 
@@ -348,6 +387,8 @@ Interactive semantic state retains the native or composed LVGL object and runtim
 
 Output semantic state retains its LVGL object and runtime state and exposes a setter without a developer hook. Progress, CircularProgress, Image and Box follow this boundary.
 
+A Layout Designer Region Box remains a Standard Box. Its structural purpose adds no runtime semantics. When it qualifies as a retained non-root Box, its only public contract is `FG_Set_<Region_Box_Name>_Visible(bool visible)`. Region assignment, padding, gaps, arrangement mode, Auto Arrange, layout lock, region role and region key generate no APIs.
+
 Serialized presentation generates LVGL presentation only and no runtime API or hook. Components without semantic runtime state are intentionally API-free. Icon, Divider, Scale and Line are explicit API-free examples.
 
 ### Chart generated output
@@ -513,6 +554,12 @@ LVGL-ready Image instances retain native `lv_image` and current source pointer. 
 ### Box generated boundary
 
 Non-root Box instances retain `lv_obj_t *` and visibility only. The setter adds or clears `LV_OBJ_FLAG_HIDDEN`, suppresses repeated state and generates no hook. Children remain attached to the retained object. Root screen Boxes are excluded.
+
+A Layout Designer smart-region Box remains a Standard Box and preserves the existing `void FG_Set_<Name>_Visible(bool visible);` contract. It may carry additive Studio metadata such as `layoutRegionKey`, role, label, padding, gap, arrangement, semantic surface role, semantic border role, radius, border width and opacity.
+
+Arrangement metadata is consumed during authoring, and Auto Arrange resolves assigned child geometry before export. Generated LVGL receives final Box and child geometry; firmware does not perform Auto Arrange or search for `layoutRegionId`. Region metadata creates no additional API, root exclusion remains unchanged, and children continue through normal traversal. Semantic Region Box styling uses existing theme roles rather than hard-coded Dashboard colours.
+
+The structural role does not create APIs for region assignment, padding, gap, arrangement mode, Auto Arrange, layout lock, region role or region key.
 
 ### IconButton generated boundary
 
@@ -1134,7 +1181,7 @@ The same exporter owns the built-in System Runtime. It creates the Application, 
 
 ## Component export traversal
 
-The exporter walks the ForgeUI component tree and selects the correct component branch. Its traversal owns:
+Before export, Layout Designer has already resolved template structure and Auto Arrange geometry. The exporter walks the resulting ForgeUI component tree and selects the correct component branch. Its traversal owns:
 
 - child traversal
 - unique internal LVGL object names
@@ -1142,6 +1189,11 @@ The exporter walks the ForgeUI component tree and selects the correct component 
 - component-type dispatch
 - asset-source collection
 - recursive export of nested children
+- semantic style generation
+- object-name allocation
+- runtime API and hook collection
+
+It does not choose the Dashboard template, assign components to regions, compute Auto Arrange layouts, interpret AI region documents or modify region geometry at firmware runtime. Stable region keys are not developer-facing generated identifiers.
 
 After placement, component geometry is authoritative. All five Interactive Asset branches use traversed component `x/y/w/h`; reusable Interactive Asset dimensions do not replace persisted component geometry during generation. Linked fitted state assets resolve through the normal kind-specific asset lookup when their IDs are current. The same persisted geometry feeds Browser Preview, live firmware and standalone export.
 
@@ -1161,6 +1213,8 @@ For Keyboard, traversal geometry remains the source of truth. The branch emits m
 - `publicApiDeclarations` for Binary Output setters and standard-component public APIs.
 
 These four properties are the complete current contract. Hook families share generalized metadata rather than introducing per-widget transport fields. Binary Output and standard-component declarations use `publicApiDeclarations: string[]`.
+
+Layout Designer adds no `layoutRegions`, `layoutMetadata`, `template`, `autoArrange` or `aiDocument` field. Any layout metadata needed by Studio remains in project serialization and is resolved before generated firmware materialization.
 
 The complete Standard Runtime V1 reuses this contract. `userEventHooks` now carries hook metadata for Input, Textarea, Switch, Checkbox, Radio, NumberInput, Select and IconButton. `publicApiDeclarations` carries declarations for Input, Textarea, Switch, Checkbox, Radio, Progress, NumberInput, Select, Image, Box and IconButton. No transport field or generated-header system was added.
 
@@ -1765,6 +1819,35 @@ Interactive Status Indicator contributes its setter declaration through `publicA
 
 ## Generated UI files
 
+### Layout Designer output in `90_Studio_Export.c`
+
+A Dashboard created by Layout Designer appears as ordinary generated LVGL objects: region `lv_obj` Boxes, Divider/Line presentation, Heading/Text labels, Charts, status indicators, Progress or Circular Progress, Buttons and other assigned controls.
+
+`90_Studio_Export.c` contains no Layout Designer engine. It must not contain template selection, AI prompting, region-assignment logic, Auto Arrange calculations, Studio Inspector metadata or region drag/resize behavior. These are resolved before generation.
+
+`90_Studio_Export.h` receives no Layout Designer declarations beyond APIs already generated by the contained normal components. `95_UserEvents.*` receives no Layout Designer hook family; it receives only hooks generated by actual contained interactive controls.
+
+Example:
+
+```text
+Dashboard Controls region
+  ├── Start Button
+  ├── Stop Button
+  └── Reset Button
+
+Generated boundary:
+
+Region Box
+  → normal generated lv_obj
+  → optional existing FG_Set_<Region>_Visible()
+
+Buttons
+  → normal generated LVGL buttons
+  → existing behavior or hooks according to component type
+```
+
+The region creates no Start, Stop or Reset semantics. The contained controls own their existing runtime contracts.
+
 ### `90_Studio_Export.c`
 
 Owns generated implementation:
@@ -1960,6 +2043,8 @@ The exact exporter fields transported are `code`, `assetSources`, `userEventHook
 
 Header coordinates export and starts flashing only after export succeeds. It does not validate generated firmware files itself, invent hooks or setters, materialize files, or define runtime behavior.
 
+Header does not transport Layout Designer templates or AI region documents to the firmware export server. It transports only the unchanged exporter result.
+
 ## Export server
 
 ### Primary file
@@ -1999,6 +2084,8 @@ studio/export-server.js
 The server recognizes and materializes validated `const char *` text hooks, boolean checked/selected hooks, `int32_t` value hooks, `uint32_t` index-plus-text hooks and void click hooks. It normalizes Source, Visible, Enabled, Checked, Selected, Selected_Index, Text and Value setter declarations. It adds required includes and the Three-Position enum when needed.
 
 The exporter decides API and hook names and signatures. The server validates, normalizes, preservation-merges and writes that metadata. It never invents runtime or widget behavior.
+
+`export-server.js` does not interpret Dashboard templates, smart regions or Auto Arrange metadata. It validates and materializes already-generated LVGL through the unchanged four-field contract.
 
 ## Live firmware export
 
@@ -2393,6 +2480,16 @@ This physical record includes the named eleven-component Standard group and the 
 
 | Problem | Start here | Then inspect |
 |---|---|---|
+| Dashboard looks correct in Canvas but generated Boxes are missing | `ForgeUILvglExport.ts` Box traversal | final project component list and Box parent/root classification |
+| Dashboard child is missing from generated output | component export traversal | project insertion result, component type and parent/child representation |
+| Region Box style differs from Browser Preview | Box branch in `ForgeUILvglExport.ts` | semantic surface/border roles, radius, opacity and preview palette |
+| Region Box receives an unexpected hook | Box export metadata | ensure Box remains setter-only visibility with no `userEventHooks` entry |
+| Layout Designer adds an unexpected header declaration | `publicApiDeclarations` | confirm only contained normal components contribute APIs |
+| Auto Arrange runs on the P4 or appears in generated C | incorrect architecture | Auto Arrange must finish before `generateForgeUILvglCode()` |
+| Generated firmware references `layoutRegionId` | incorrect exporter coupling | remove runtime interpretation of Studio-only region metadata |
+| AI response shape reaches export server | `Header.tsx` transport | AI must resolve into normal project components before export |
+| Dashboard geometry is wrong in generated C | final serialized component `x/y/w/h` | Layout Designer geometry and project insertion, not generated-file patching |
+| Generated Dashboard is manually fixed in `90_Studio_Export.c` | wrong ownership boundary | repair Layout Designer/project/exporter source and regenerate |
 | Generated LVGL object is wrong | `ForgeUILvglExport.ts` component branch | resolved component props and Interactive Asset |
 | Button hook is absent from export result | `ForgeUILvglExport.ts` Button branch | `userEventHooks` set and hook naming |
 | Button hook name is wrong or duplicated | hook-name helpers in `ForgeUILvglExport.ts` | component name, asset label/name, uniqueness set |
@@ -2533,6 +2630,18 @@ This physical record includes the named eleven-component Standard group and the 
 | Browser Preview and physical Wi-Fi differ | deterministic preview state | `ForgeUIWifiPage.tsx` and generated snapshot projection |
 
 ## File responsibility summary
+
+### Layout Designer generated boundary
+
+- `studio/src/forgeui/layout/ForgeUILayoutDesigner.ts` resolves template and child geometry before export.
+- `studio/src/forgeui/ai/ForgeAIRegionComposer.ts` converts AI semantic regions into normal components before export.
+- `studio/src/forgeui/ForgeUILvglExport.ts` consumes the final normal component document.
+- `studio/src/components/Header.tsx` transports only the unchanged exporter result.
+- `studio/export-server.js` validates and materializes only the unchanged generated-output contract.
+- `90_Studio_Export.*` contains normal generated components and their existing APIs.
+- `95_UserEvents.*` contains hooks only for actual interactive components, never for Layout Designer itself.
+
+Detailed Studio ownership remains in `02_DEVELOPER_CODE_MAP.md`.
 
 ### `studio/src/forgeui/ForgeUILvglExport.ts`
 
@@ -2711,8 +2820,34 @@ Preserve these rules:
 114. Exporter changes are verified through Generate, inspection of regenerated `90_Studio_Export.c`, Build, Flash and physical comparison.
 115. The Standard Canvas Keyboard and private reusable System Runtime keyboard remain independent generated architectures.
 116. Restart or refresh the running Studio bundle after exporter changes and before regeneration.
+117. Layout Designer resolves into normal ForgeUI components before export.
+118. Layout Designer is not a generated firmware runtime family.
+119. Dashboard template mode creates no new public API family.
+120. Dashboard template mode creates no new User Event hook family.
+121. Smart Region Boxes remain Standard Box components.
+122. Region structure does not change the existing Box visibility API contract.
+123. Auto Arrange runs before export and never at firmware runtime.
+124. Generated firmware does not interpret `layoutRegionId`.
+125. Stable region keys are Studio/project metadata, not generated developer identifiers.
+126. AI Fill output is converted to the normal component document before export.
+127. Generated firmware cannot distinguish manual components from AI-filled components.
+128. The exporter result remains exactly `code`, `assetSources`, `userEventHooks` and `publicApiDeclarations`.
+129. Header and export server do not transport or interpret AI region documents.
+130. Layout Designer must not introduce a parallel exporter.
+131. Layout Designer must not introduce another generated-header or hook architecture.
+132. Existing contained components retain their normal APIs and hooks.
+133. Final persisted `x/y/w/h` remains the generated geometry source of truth.
+134. Dashboard Region Box styling uses semantic theme roles.
+135. Layout Designer hardware proof must not be claimed until Generate -> inspect C -> Build -> Flash -> physical comparison is complete.
 
 ## Save Point History
+
+### FORGEUI_LAYOUT_DESIGNER__DASHBOARD_SMART_REGIONS_AUTO_ARRANGE_AI_FILL__CANVAS_AND_BROWSER_PREVIEW_MANUALLY_VERIFIED__READY_FOR_EXPORT_AND_HARDWARE_PROOF__2026-07-30
+
+- **What changed:** Added the first Dashboard Layout Designer vertical slice using normal Box regions, region assignment, Auto Arrange and AI Fill. Layout Designer output remains ordinary ForgeUI components before entering the generated export pipeline.
+- **Why:** Direct AI-owned pixel coordinates produced crowded layouts. ForgeUI now resolves template geometry and component placement before export while preserving the generated firmware API boundary.
+- **Generated architecture:** `generateForgeUILvglCode()` still receives the normal component model and returns only `code`, `assetSources`, `userEventHooks` and `publicApiDeclarations`. Smart regions create no runtime family, public APIs, hooks or new transport fields. Region Boxes use the existing Box branch and semantic theme styling.
+- **Validation:** Canvas and Browser Preview were manually verified, including AI Fill Dashboard. Focused Layout Designer and Box exporter tests passed. Full generated-C inspection, production build, ESP-IDF build, flash and physical ESP32-P4 parity remain pending.
 
 ### FORGEUI_STANDARD_LVGL_PARITY__INPUT_TEXTAREA_CHECKBOX_SWITCH_RADIO_PROGRESS_CIRCULAR_PROGRESS_NUMBER_INPUT_SELECT__SEMANTIC_THEME_AND_BORDER_PARITY__ESP32P4_PROVEN__2026-07-30
 
@@ -2741,6 +2876,12 @@ Preserve these rules:
 - **Validation:** Focused runtime, presentation, preview, persistence and preservation tests, TypeScript validation, export-server syntax checks and diff checks passed. No new physical hardware proof is claimed for these additions.
 
 ## Extension rule
+
+### Future Layout Designer templates
+
+Possible future Studio templates include Settings, Login, Form, Machine Status, Split View, Sidebar, Card Grid and Control Panel. Dashboard is the only completed template in the current save point.
+
+Future templates must resolve into the same normal component model before export. They must not create another exporter, generated runtime, transport field, template-specific generated header or template-specific User Event file.
 
 ### Future System Runtime pages
 
