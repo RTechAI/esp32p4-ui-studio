@@ -47,10 +47,15 @@ describe('built-in System LVGL export', () => {
 
   it('creates a system-owned gear and internal navigation callbacks', () => {
     expect(generated.code).toContain(
-      'LV_SYMBOL_SETTINGS, 922, 18, 84, 84',
+      'fg_system_create_button(fg_application_page, "", 948, 18, 58, 58)',
     )
     expect(generated.code).toContain(
-      'lv_obj_set_style_text_font(system_gear_label, &lv_font_montserrat_48, 0);',
+      'lv_image_set_src(system_gear_icon, &fg_icon_settings_fi_48px);',
+    )
+    expect(generated.code).toContain('lv_image_set_scale(system_gear_icon, 149);')
+    expect(generated.code).not.toContain('LV_SYMBOL_SETTINGS')
+    expect(generated.assetSources).toContain(
+      'assets/icons/fg_icon_settings_fi_48px.c',
     )
     expect(generated.code).toContain(
       'fg_system_open_cb, LV_EVENT_CLICKED, NULL',
@@ -69,12 +74,15 @@ describe('built-in System LVGL export', () => {
       'Bluetooth',
       'Sound',
       'Device',
-      'Diagnostics',
     ].forEach(label => {
       expect(generated.code).toContain(
         `${label}\\nComing Later`,
       )
     })
+    expect(generated.code).toContain('LV_SYMBOL_WARNING "\\nDiagnostics"')
+    expect(generated.code).toContain(
+      'lv_obj_add_event_cb(diagnostics_card, fg_system_open_diagnostics_cb, LV_EVENT_CLICKED, NULL);',
+    )
     expect(
       generated.code.match(
         /fg_system_open_brightness_cb, LV_EVENT_CLICKED/g,
@@ -473,6 +481,19 @@ describe('built-in System LVGL export', () => {
     expect(generated.code).toContain(
       'if (!fg_wifi_scan_in_progress()) (void)fg_wifi_scan_start();',
     )
+  })
+
+  it('exports Diagnostics through one reusable one-second runtime snapshot', () => {
+    expect(generated.code).toContain('#include "50_DIAGNOSTICS.h"')
+    expect(generated.code).toContain('fg_diagnostics_get_snapshot(&model);')
+    expect(generated.code).toContain(
+      'lv_timer_create(fg_system_diagnostics_tick_cb, 1000, NULL)',
+    )
+    expect(generated.code).not.toContain('heap_caps_get_free_size')
+    expect(generated.code).toContain('fg_system_diagnostics_page_active')
+    expect(generated.code).toContain('SPIFFS Used  %s')
+    expect(generated.code).toContain('Current Screen  Diagnostics')
+    expect(generated.code).toContain('fg_diagnostics_record_ui_update_us')
   })
 
   it('uses one asynchronous hosted scan task and atomically replaces results', () => {

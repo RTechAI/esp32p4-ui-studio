@@ -44,6 +44,9 @@ export type ForgeSemanticPalette = {
   accentText: string
   disabledText: string
   selectedSurface: string
+  healthNormal: string
+  healthHigh: string
+  healthCritical: string
 }
 
 const parseHexColour = (value: string) => {
@@ -132,6 +135,9 @@ export const resolveForgeSemanticPalette = (
     0.45,
   ),
   selectedSurface: palette.accent,
+  healthNormal: '#22C55E',
+  healthHigh: palette.accent,
+  healthCritical: '#EF4444',
 })
 
 export const ACTIVE_BACKGROUND_FLAVOUR = 'graphite'

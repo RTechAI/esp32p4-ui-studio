@@ -5,6 +5,11 @@ import {
   ForgePreviewPalette,
   resolveForgeSemanticPalette,
 } from './forgeThemeMap'
+import {
+  FORGEUI_QR_ERROR_CORRECTION,
+  getForgeUIQRCodeGeometry,
+  resolveQRCodePayload,
+} from '../ForgeUIStandardQRCode'
 
 type Props = {
   component: IComponent
@@ -13,23 +18,33 @@ type Props = {
 
 const StandardQRCodePreview: React.FC<Props> = ({ component, palette }) => {
   const theme = resolveForgeSemanticPalette(palette)
-  const text = String(component.props.qrText || 'https://forgeui.co.nz')
+  const text = resolveQRCodePayload(component.props)
   const foreground = String(component.props.qrForeground || theme.accent)
   const background = String(component.props.qrBackground || palette.surface)
-  const quietZone = component.props.qrQuietZone !== false
 
   const matrix = useMemo(() => {
-    return createQRCode(text, { errorCorrectionLevel: 'M' }).modules
+    if (!text) return null
+    return createQRCode(text, {
+      errorCorrectionLevel: FORGEUI_QR_ERROR_CORRECTION,
+    }).modules
   }, [text])
 
-  const margin = quietZone ? 4 : 0
-  const size = matrix.size + margin * 2
+  const {
+    size,
+    moduleSize = 1,
+    moduleOffset = 0,
+  } = getForgeUIQRCodeGeometry(
+    component.props.w,
+    component.props.h,
+    matrix?.size,
+  )
+  const matrixSize = matrix?.size || 1
   let path = ''
-  matrix.data.forEach((dark, index) => {
+  matrix?.data.forEach((dark, index) => {
     if (!dark) return
-    const x = (index % matrix.size) + margin
-    const y = Math.floor(index / matrix.size) + margin
-    path += `M${x} ${y}h1v1h-1z`
+    const x = (index % matrixSize) * moduleSize + moduleOffset
+    const y = Math.floor(index / matrixSize) * moduleSize + moduleOffset
+    path += `M${x} ${y}h${moduleSize}v${moduleSize}h-${moduleSize}z`
   })
 
   return (

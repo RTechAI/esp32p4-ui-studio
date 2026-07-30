@@ -56,7 +56,6 @@ describe('ForgeUI Widget registry', () => {
       defaultHeight: 180,
       defaultProperties: {
         qrText: 'https://forgeui.co.nz',
-        qrQuietZone: true,
       },
     })
     expect(JSON.parse(JSON.stringify(qr?.defaultProperties))).toEqual(

@@ -32,6 +32,7 @@ import {
 } from './ForgeUISystemContext'
 import WifiPage from './ForgeUIWifiPage'
 import StoragePage from './ForgeUIStoragePage'
+import DiagnosticsPage from './ForgeUIDiagnosticsPage'
 
 type SystemCard = {
   page: ForgeUISystemPage
@@ -47,7 +48,7 @@ export const FORGEUI_SYSTEM_PAGES: readonly SystemCard[] = [
   { page: 'sound', label: 'Sound', icon: FiSpeaker, enabled: false },
   { page: 'storage', label: 'Storage', icon: FiHardDrive, enabled: true },
   { page: 'device', label: 'Device', icon: FiInfo, enabled: false },
-  { page: 'diagnostics', label: 'Diagnostics', icon: FiTool, enabled: false },
+  { page: 'diagnostics', label: 'Diagnostics', icon: FiTool, enabled: true },
 ]
 
 const Header: React.FC<{
@@ -379,6 +380,7 @@ const ForgeUISystemSurface: React.FC<{
     page,
     brightness,
     openSystemLauncher,
+    goBackInSystemInterface,
   } = useForgeUISystem()
   const { palette } = useForgeTheme()
 
@@ -451,6 +453,8 @@ const ForgeUISystemSurface: React.FC<{
             <WifiPage />
           ) : page === 'storage' ? (
             <StoragePage />
+          ) : page === 'diagnostics' ? (
+            <DiagnosticsPage onBack={goBackInSystemInterface} />
           ) : (
             <SystemLauncher />
           )}

@@ -99,8 +99,8 @@ describe('Standard IconButton generated runtime API', () => {
       ))
   })
 
-  it('preserves disabled initialization and existing icon rendering', () => {
-    const { code } = generate(iconButton('settings', 'Settings Icon Button', {
+  it('preserves disabled initialization and uses the canonical Settings asset', () => {
+    const { code, assetSources } = generate(iconButton('settings', 'Settings Icon Button', {
       isDisabled: true,
     }))
 
@@ -111,8 +111,11 @@ describe('Standard IconButton generated runtime API', () => {
       'lv_obj_add_state(fg_settings_icon_button, LV_STATE_DISABLED);',
     )
     expect(code).toContain(
-      'lv_label_set_text(obj1_label, LV_SYMBOL_OK);',
+      'lv_image_set_src(obj1_icon, &fg_icon_settings_fi_48px);',
     )
+    expect(code).toContain('lv_image_set_scale(obj1_icon, 85);')
+    expect(code).not.toContain('LV_SYMBOL_SETTINGS')
+    expect(assetSources).toContain('assets/icons/fg_icon_settings_fi_48px.c')
     expect(code).toContain('lv_obj_set_pos(fg_settings_icon_button, 20, 30);')
     expect(code).toContain('lv_obj_set_size(fg_settings_icon_button, 56, 56);')
   })
@@ -144,5 +147,17 @@ describe('Standard IconButton generated runtime API', () => {
     expect(generated.code).not.toContain(
       'FG_Set_Settings_Icon_Button_Source',
     )
+  })
+
+  it('keeps unrelated icons on their existing LVGL symbol path', () => {
+    const { code } = generate(iconButton(
+      'wifi',
+      'WiFi Icon Button',
+      { icon: 'FiWifi' },
+    ))
+
+    expect(code).toContain('lv_label_set_text(obj1_label, LV_SYMBOL_WIFI);')
+    expect(code).not.toContain('lv_image_set_src(obj1_icon, &fg_icon_settings_fi_48px);')
+    expect(code).not.toContain('LV_SYMBOL_SETTINGS')
   })
 })

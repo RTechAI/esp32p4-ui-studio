@@ -21,7 +21,6 @@ const components: IComponents = {
       qrText: 'https://forgeui.co.nz/device/42',
       qrForeground: '#102030',
       qrBackground: '#f0f1f2',
-      qrQuietZone: true,
     },
     children: [],
   },
@@ -40,6 +39,7 @@ describe('QRCode LVGL export', () => {
       'fg_qr_code_qrcode = lv_qrcode_create(fg_application_page);',
     )
     expect(generated.code).toContain('lv_qrcode_set_size(obj1, 180);')
+    expect(generated.code).toContain('lv_obj_set_pos(obj1, 20, 40);')
     expect(generated.code).toContain(
       'lv_qrcode_set_dark_color(obj1, lv_color_hex(0x102030));',
     )
@@ -47,16 +47,93 @@ describe('QRCode LVGL export', () => {
       'lv_qrcode_set_light_color(obj1, lv_color_hex(0xF0F1F2));',
     )
     expect(generated.code).toContain(
-      'lv_qrcode_set_data(obj1, "https://forgeui.co.nz/device/42");',
+      'lv_qrcode_update(obj1, "https://forgeui.co.nz/device/42", strlen("https://forgeui.co.nz/device/42"));',
     )
-    expect(generated.code).toContain(
-      'lv_qrcode_set_quiet_zone(obj1, true);',
-    )
+    expect(generated.code).not.toContain('lv_qrcode_set_data')
+    expect(generated.code).not.toContain('lv_qrcode_set_quiet_zone')
     expect(generated.code).toContain(
       'void FG_Set_QR_Code_Text(const char * text)',
+    )
+    expect(generated.code).toContain(
+      'lv_qrcode_update(fg_qr_code_qrcode, qr_text, strlen(qr_text));',
     )
     expect(generated.publicApiDeclarations).toContain(
       'void FG_Set_QR_Code_Text(const char * text);',
     )
+  })
+
+  it('coerces persisted string geometry before centering the native QR object', () => {
+    const persistedComponents: IComponents = {
+      ...components,
+      qr: {
+        ...components.qr,
+        props: {
+          ...components.qr.props,
+          x: '647',
+          y: '131',
+          w: '220',
+          h: '180',
+        },
+      },
+    }
+
+    const generated = generateForgeUILvglCode(
+      persistedComponents,
+      'graphite',
+      undefined,
+      { includeThemeTexture: false },
+    )
+
+    expect(generated.code).toContain(
+      'fg_qr_code_qrcode = lv_qrcode_create(fg_application_page);',
+    )
+    expect(generated.code).toContain('lv_obj_set_pos(obj1, 667, 131);')
+    expect(generated.code).toContain('lv_qrcode_set_size(obj1, 180);')
+    expect(generated.code).toContain(
+      'lv_qrcode_update(obj1, "https://forgeui.co.nz/device/42", strlen("https://forgeui.co.nz/device/42"));',
+    )
+    expect(generated.code).not.toContain('lv_obj_set_pos(obj1, 64720, 1310);')
+    expect(generated.code).not.toContain('quietZone')
+  })
+
+  it('uses the shared resolved Wi-Fi payload without changing QR geometry', () => {
+    const wifiComponents: IComponents = {
+      ...components,
+      qr: {
+        ...components.qr,
+        props: {
+          ...components.qr.props,
+          contentType: 'wifi',
+          qrWifiSSID: 'Office;Guest',
+          qrWifiPassword: 'pass:word',
+          qrWifiSecurity: 'WPA',
+          qrWifiHidden: true,
+          x: '647',
+          y: '131',
+          w: '180',
+          h: '220',
+        },
+      },
+    }
+
+    const generated = generateForgeUILvglCode(
+      wifiComponents,
+      'graphite',
+      undefined,
+      { includeThemeTexture: false },
+    )
+
+    expect(generated.code).toContain('lv_obj_set_pos(obj1, 647, 151);')
+    expect(generated.code).toContain('lv_qrcode_set_size(obj1, 180);')
+    expect(generated.code).toContain(
+      'lv_qrcode_update(obj1, "WIFI:T:WPA;S:Office\\\\;Guest;P:pass\\\\:word;H:true;;",',
+    )
+    expect(generated.code).toContain(
+      'void FG_Set_QR_Code_Text(const char * text)',
+    )
+    expect(generated.code).toContain(
+      'lv_qrcode_update(fg_qr_code_qrcode, qr_text, strlen(qr_text));',
+    )
+    expect(generated.code).not.toContain('quietZone')
   })
 })

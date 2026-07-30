@@ -10,6 +10,9 @@ const {
   generateStudioExportHeader,
   generateUserEventFiles,
   preserveUserEventFiles,
+  materializeCanonicalAssetSources,
+  copyAssetSourcesToProject,
+  appendAssetSourcesToCMake,
   validateExportPayload,
 } = require('./export-server')
 
@@ -669,6 +672,9 @@ describe('generated public UI API headers', () => {
 })
 
 describe('server export preflight', () => {
+  const settingsSource = 'assets/icons/fg_icon_settings_fi_48px.c'
+  const settingsSymbol = 'fg_icon_settings_fi_48px'
+
   it('rejects invalid assetSources before export writes', () => {
     expect(() => validateExportPayload({ code: 'valid', assetSources: ['../bad.c'] }))
       .toThrow('Export Validation Failed')
@@ -708,10 +714,76 @@ describe('server export preflight', () => {
     }
   })
 
+  it('materializes and validates the canonical Settings asset before export', () => {
+    const temporaryMain = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'forgeui-settings-live-'),
+    )
+
+    try {
+      expect(materializeCanonicalAssetSources(
+        [settingsSource],
+        { mainDir: temporaryMain },
+      )).toEqual([settingsSource])
+
+      const emitted = path.join(temporaryMain, settingsSource)
+      expect(fs.existsSync(emitted)).toBe(true)
+      expect(fs.readFileSync(emitted, 'utf8')).toContain(
+        `const lv_image_dsc_t ${settingsSymbol}`,
+      )
+
+      expect(validateExportPayload({
+        code: `LV_IMAGE_DECLARE(${settingsSymbol});`,
+        assetSources: [settingsSource],
+      }, { mainDir: temporaryMain })).toEqual({
+        code: `LV_IMAGE_DECLARE(${settingsSymbol});`,
+        assetSources: [settingsSource],
+      })
+    } finally {
+      fs.rmSync(temporaryMain, { recursive: true, force: true })
+    }
+  })
+
+  it('copies the canonical Settings dependency into standalone project paths', () => {
+    const sourceMain = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'forgeui-settings-source-'),
+    )
+    const targetMain = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'forgeui-settings-export-'),
+    )
+
+    try {
+      materializeCanonicalAssetSources(
+        [settingsSource],
+        { mainDir: sourceMain },
+      )
+      copyAssetSourcesToProject(
+        [settingsSource],
+        sourceMain,
+        targetMain,
+      )
+
+      const copied = path.join(targetMain, settingsSource)
+      expect(fs.existsSync(copied)).toBe(true)
+      expect(fs.readFileSync(copied, 'utf8')).toContain(settingsSymbol)
+    } finally {
+      fs.rmSync(sourceMain, { recursive: true, force: true })
+      fs.rmSync(targetMain, { recursive: true, force: true })
+    }
+  })
+
+  it('registers the exact canonical Settings filename in generated CMake', () => {
+    expect(appendAssetSourcesToCMake(
+      ['"90_Studio_Export.c"'],
+      [settingsSource],
+    )).toEqual([
+      '"90_Studio_Export.c"',
+      `"${settingsSource}"`,
+    ])
+  })
+
   it('accepts the built-in default-theme asset sources from firmware', () => {
     const assetSources = [
-      'assets/uploads/fg_upload_1024x600_neural_core_67dd4ba0.c',
-      'assets/uploads/fg_upload_carbon_fiber_be774fd2.c',
+      'assets/defaults/fg_upload_ai_hero_1784342478518_b95a7dc0.c',
     ]
     const code = assetSources
       .map(source => `LV_IMAGE_DECLARE(${path.basename(source, '.c')});`)

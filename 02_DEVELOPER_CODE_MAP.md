@@ -790,7 +790,7 @@ Serialized `Image` is output-only. LVGL-ready instances retain native `lv_image`
 
 Serialized `QRCode` is a Standard output component. Its persisted properties own encoded text/data, foreground/background semantic colors and quiet-zone presentation. `StandardQRCodePreview.tsx` uses the `qrcode` package to render real encoded SVG modules for both Canvas and Browser Preview; no raster preview or decorative fake pattern is authoritative.
 
-`ForgeUILvglExport.ts` emits the native LVGL 9.2.2 QR path (`lv_qrcode_create`, `lv_qrcode_set_size`, dark/light colors, quiet zone and `lv_qrcode_set_data`). The default collision-safe public API is `FG_Set_QR_Code_Text(const char * text)`. QR Code is setter-only output: it has no genuine-user hook and adds no `95_UserEvents` callback. `firmware/ForgeUI-One/sdkconfig.defaults` permanently owns `CONFIG_LV_USE_QRCODE=y`.
+`ForgeUILvglExport.ts` emits the installed LVGL 9.2.2 QR path (`lv_qrcode_create`, `lv_qrcode_set_size`, dark/light colors and `lv_qrcode_update` with an explicit byte length). The managed component does not publicly expose `lv_qrcode_set_data` or `lv_qrcode_set_quiet_zone`. The default collision-safe public API remains `FG_Set_QR_Code_Text(const char * text)`. QR Code is setter-only output: it has no genuine-user hook and adds no `95_UserEvents` callback. `firmware/ForgeUI-One/sdkconfig.defaults` permanently owns `CONFIG_LV_USE_QRCODE=y`.
 
 ### Box
 

@@ -122,6 +122,20 @@ describe('ForgeUI System interface', () => {
       .toBeInTheDocument()
   })
 
+  it('opens the live Diagnostics model without inventing unavailable hardware values', () => {
+    renderSurface()
+    fireEvent.click(screen.getByLabelText('Open System'))
+    expect(screen.getByTestId('system-card-diagnostics')).toBeEnabled()
+    fireEvent.click(screen.getByTestId('system-card-diagnostics'))
+    expect(screen.getByTestId('system-diagnostics-page')).toBeInTheDocument()
+    expect(screen.getByText('Internal RAM')).toBeInTheDocument()
+    expect(screen.getByText('PSRAM')).toBeInTheDocument()
+    expect(screen.getAllByText('Not Available').length).toBeGreaterThan(0)
+    expect(screen.getByText('ForgeUI-Lab')).toBeInTheDocument()
+    fireEvent.click(screen.getByLabelText('Back from Diagnostics'))
+    expect(screen.getByTestId('system-launcher')).toBeInTheDocument()
+  })
+
   it('enables Storage and navigates its deterministic file model', () => {
     renderSurface()
     fireEvent.click(screen.getByLabelText('Open System'))

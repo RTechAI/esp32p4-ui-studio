@@ -112,10 +112,21 @@ type PreviewDefaultProps = {
   }
   WiFi?: PropsWithForm<TextProps>
   QRCode?: PropsWithForm<BoxProps> & {
+    contentType?: 'text' | 'url' | 'wifi' | 'email' | 'phone' | 'sms' | 'custom'
     qrText?: string
+    qrUrl?: string
+    qrWifiSSID?: string
+    qrWifiPassword?: string
+    qrWifiSecurity?: 'WPA' | 'WEP' | 'None'
+    qrWifiHidden?: boolean
+    qrEmailAddress?: string
+    qrEmailSubject?: string
+    qrEmailMessage?: string
+    qrPhoneNumber?: string
+    qrSmsPhoneNumber?: string
+    qrSmsMessage?: string
     qrForeground?: string
     qrBackground?: string
-    qrQuietZone?: boolean
   }
   Highlight?: PropsWithForm<HighlightProps>
   Tag?: PropsWithForm<TagProps>
@@ -290,10 +301,21 @@ WiFi: {
   imageScale: 256,
   },
   QRCode: {
+    contentType: 'custom',
     qrText: 'https://forgeui.co.nz',
+    qrUrl: 'https://forgeui.co.nz',
+    qrWifiSSID: '',
+    qrWifiPassword: '',
+    qrWifiSecurity: 'WPA',
+    qrWifiHidden: false,
+    qrEmailAddress: '',
+    qrEmailSubject: '',
+    qrEmailMessage: '',
+    qrPhoneNumber: '',
+    qrSmsPhoneNumber: '',
+    qrSmsMessage: '',
     qrForeground: '',
     qrBackground: '',
-    qrQuietZone: true,
     positionMode: 'absolute',
     x: 40,
     y: 40,

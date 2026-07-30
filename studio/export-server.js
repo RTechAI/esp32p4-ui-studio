@@ -248,6 +248,7 @@ void fg_studio_export_create(lv_obj_t *parent)
         "30_Audio.c"
         "30_WIFI.c"
         "40_SD.c"
+        "50_DIAGNOSTICS.c"
         "90_Studio_Export.c"
 
     INCLUDE_DIRS
@@ -257,12 +258,14 @@ void fg_studio_export_create(lv_obj_t *parent)
         nvs_flash
         driver
         esp_event
+        esp_app_format
         esp_netif
         esp_wifi
         esp_wifi_remote
         esp_hosted
         fatfs
         sdmmc
+        spi_flash
         waveshare__esp32_p4_wifi6_touch_lcd_7b
 
     PRIV_REQUIRES
@@ -482,6 +485,7 @@ void fg_studio_export_create(lv_obj_t *parent)
         "30_Audio.c"
         "30_WIFI.c"
         "40_SD.c"
+        "50_DIAGNOSTICS.c"
         "90_Studio_Export.c"
 
     INCLUDE_DIRS
@@ -491,12 +495,14 @@ void fg_studio_export_create(lv_obj_t *parent)
         nvs_flash
         driver
         esp_event
+        esp_app_format
         esp_netif
         esp_wifi
         esp_wifi_remote
         esp_hosted
         fatfs
         sdmmc
+        spi_flash
         waveshare__esp32_p4_wifi6_touch_lcd_7b
 
     PRIV_REQUIRES
@@ -982,6 +988,72 @@ function normalizePublicApiDeclarations(declarations) {
   )
 }
 
+const CANONICAL_ASSET_MANIFEST = Object.freeze({
+  'assets/icons/fg_icon_settings_fi_48px.c': path.resolve(
+    __dirname,
+    './public/assets/icons/48x48 ForgeUI Reactor Set/fg_icon_settings_fi_48px.c',
+  ),
+})
+
+function materializeCanonicalAssetSources(assetSources, options = {}) {
+  const mainDir = path.resolve(
+    options.mainDir || path.resolve(__dirname, '../firmware/ForgeUI-One/main'),
+  )
+  const emitted = []
+
+  Array.from(new Set(assetSources || [])).forEach(rawSource => {
+    const normalized = String(rawSource).replace(/\\/g, '/')
+    const canonicalSource = CANONICAL_ASSET_MANIFEST[normalized]
+    if (!canonicalSource) return
+
+    if (!fs.existsSync(canonicalSource) || !fs.statSync(canonicalSource).isFile()) {
+      throw new Error(`Canonical asset source missing:\n${canonicalSource}`)
+    }
+
+    const target = path.resolve(mainDir, normalized)
+    if (!target.startsWith(`${mainDir}${path.sep}`)) {
+      throw new Error(`Canonical asset target escapes firmware main:\n${normalized}`)
+    }
+
+    fs.mkdirSync(path.dirname(target), { recursive: true })
+    fs.copyFileSync(canonicalSource, target)
+    emitted.push(normalized)
+  })
+
+  return emitted
+}
+
+function copyAssetSourcesToProject(assetSources, sourceMainDir, targetMainDir) {
+  const sourceRoot = path.resolve(sourceMainDir)
+  const targetRoot = path.resolve(targetMainDir)
+
+  ;(assetSources || []).forEach(rawSource => {
+    const normalized = String(rawSource).replace(/\\/g, '/')
+    const source = path.resolve(sourceRoot, normalized)
+    const target = path.resolve(targetRoot, normalized)
+
+    if (
+      !source.startsWith(`${sourceRoot}${path.sep}`) ||
+      !target.startsWith(`${targetRoot}${path.sep}`)
+    ) {
+      throw new Error(`Asset source escapes project main:\n${normalized}`)
+    }
+    if (!fs.existsSync(source) || !fs.statSync(source).isFile()) {
+      throw new Error(`Referenced asset missing:\n${source}`)
+    }
+
+    fs.mkdirSync(path.dirname(target), { recursive: true })
+    fs.copyFileSync(source, target)
+  })
+}
+
+function appendAssetSourcesToCMake(cmakeSources, assetSources) {
+  ;(assetSources || []).forEach(source => {
+    cmakeSources.push(`"${String(source).replace(/\\/g, '/')}"`)
+  })
+  return cmakeSources
+}
+
 function validateExportPayload(payload, options = {}) {
   const code = typeof payload.code === 'string' ? payload.code : ''
   const rawSources = Array.isArray(payload.assetSources)
@@ -994,6 +1066,8 @@ function validateExportPayload(payload, options = {}) {
     options.mainDir || path.resolve(__dirname, '../firmware/ForgeUI-One/main')
   )
   const assetSources = []
+
+  materializeCanonicalAssetSources(rawSources, { mainDir })
 
   if (!code.trim()) diagnostics.push('Generated C code is empty')
 
@@ -1506,39 +1580,6 @@ const userEvents =
   const developerGuide =
   generateDeveloperGuide(userEvents.hooks)
 
-    const iconSourceDir = path.resolve(
-  __dirname,
-  './public/assets/icons/48x48 ForgeUI Reactor Set'
-)
-
-const iconTargetDir = path.resolve(
-  __dirname,
-  '../firmware/ForgeUI-One/main/assets/icons'
-)
-
-fs.mkdirSync(iconTargetDir, { recursive: true })
-
-assetSources.forEach((src) => {
-  const fileName = path.basename(src)
-
-  const sourceFile = path.join(
-    iconSourceDir,
-    fileName
-  )
-
-  const targetFile = path.join(
-    iconTargetDir,
-    fileName
-  )
-
-  if (fs.existsSync(sourceFile)) {
-    fs.copyFileSync(sourceFile, targetFile)
-    console.log('Copied asset:', fileName)
-  } else {
-    console.log('Missing asset:', sourceFile)
-  }
-})
-
     const header = generateStudioExportHeader(
       publicApiDeclarations
     )
@@ -1571,14 +1612,13 @@ const userEventsHTarget =
   '"30_Audio.c"',
   '"30_WIFI.c"',
   '"40_SD.c"',
+  '"50_DIAGNOSTICS.c"',
   '"90_Studio_Export.c"',
   '"95_UserEvents.c"',
   `"${defaultHeroCSource}"`,
 ]
 
-assetSources.forEach((src) => {
-  cmakeSources.push(`"${src}"`)
-})
+appendAssetSourcesToCMake(cmakeSources, assetSources)
 
 const generatedCMake =
 `idf_component_register(
@@ -1592,12 +1632,14 @@ const generatedCMake =
         nvs_flash
         driver
         esp_event
+        esp_app_format
         esp_netif
         esp_wifi
         esp_wifi_remote
         esp_hosted
         fatfs
         sdmmc
+        spi_flash
         waveshare__esp32_p4_wifi6_touch_lcd_7b
 
     PRIV_REQUIRES
@@ -1780,45 +1822,11 @@ fs.mkdirSync(exportUploadsDir, {
   recursive: true,
 })
 
-assetSources.forEach((src) => {
-  const normalizedSrc = String(src)
-    .replace(/\\/g, '/')
-    .replace(/^main\//, '')
-    .replace(/^\/+/, '')
-
-  if (!normalizedSrc.startsWith('assets/uploads/')) {
-    return
-  }
-
-  const sourceAsset = path.resolve(
-    sourceDir,
-    'main',
-    normalizedSrc
-  )
-
-  const targetAsset = path.resolve(
-    exportDir,
-    'main',
-    normalizedSrc
-  )
-
-  if (!fs.existsSync(sourceAsset)) {
-    throw new Error(
-      `Referenced uploaded asset missing:\n${sourceAsset}`
-    )
-  }
-
-  fs.mkdirSync(path.dirname(targetAsset), {
-    recursive: true,
-  })
-
-  fs.copyFileSync(sourceAsset, targetAsset)
-
-  console.log(
-    'Copied uploaded asset:',
-    normalizedSrc
-  )
-})
+copyAssetSourcesToProject(
+  assetSources,
+  path.resolve(sourceDir, 'main'),
+  path.resolve(exportDir, 'main'),
+)
 
     const header = generateStudioExportHeader(
       publicApiDeclarations
@@ -1860,14 +1868,13 @@ const cmakeSources = [
   '"30_Audio.c"',
   '"30_WIFI.c"',
   '"40_SD.c"',
+  '"50_DIAGNOSTICS.c"',
   '"90_Studio_Export.c"',
   '"95_UserEvents.c"',
   `"${defaultHeroCSource}"`,
 ]
 
-assetSources.forEach((src) => {
-  cmakeSources.push(`"${src}"`)
-})
+appendAssetSourcesToCMake(cmakeSources, assetSources)
 
 const generatedCMake =
 `idf_component_register(
@@ -1881,12 +1888,14 @@ const generatedCMake =
         nvs_flash
         driver
         esp_event
+        esp_app_format
         esp_netif
         esp_wifi
         esp_wifi_remote
         esp_hosted
         fatfs
         sdmmc
+        spi_flash
         waveshare__esp32_p4_wifi6_touch_lcd_7b
 
     PRIV_REQUIRES
@@ -2092,5 +2101,8 @@ module.exports = {
   generateUserEventFiles,
   preserveUserEventFiles,
   normalizePublicApiDeclarations,
+  materializeCanonicalAssetSources,
+  copyAssetSourcesToProject,
+  appendAssetSourcesToCMake,
   validateExportPayload,
 }

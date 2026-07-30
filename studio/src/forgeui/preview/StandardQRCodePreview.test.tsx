@@ -13,7 +13,8 @@ const component: IComponent = {
   type: 'QRCode',
   props: {
     qrText: 'WIFI:T:WPA;S:ExampleNetwork;P:ExamplePassword;;',
-    qrQuietZone: true,
+    w: 180,
+    h: 200,
   },
   children: [],
 }
@@ -35,6 +36,33 @@ describe('StandardQRCodePreview', () => {
     expect(container.querySelector('svg')).toHaveAttribute(
       'shape-rendering',
       'crispEdges',
+    )
+    expect(container.querySelector('svg')).toHaveAttribute(
+      'viewBox',
+      '0 0 180 180',
+    )
+    expect(container.querySelector('svg path')?.getAttribute('d'))
+      .toMatch(/h[2-9]\d*v[2-9]\d*h-[2-9]\d*z|h[2-9]v[2-9]h-[2-9]z/)
+  })
+
+  it('uses the shared typed-payload resolver', () => {
+    render(
+      <StandardQRCodePreview
+        component={{
+          ...component,
+          props: {
+            ...component.props,
+            contentType: 'phone',
+            qrPhoneNumber: '+6421555010',
+          },
+        }}
+        palette={FG_PREVIEW_PALETTES.graphite}
+      />,
+    )
+
+    expect(screen.getByRole('img')).toHaveAttribute(
+      'aria-label',
+      'QR Code: tel:+6421555010',
     )
   })
 })

@@ -550,7 +550,7 @@ LVGL-ready Image instances retain native `lv_image` and current source pointer. 
 
 ### QR Code generated boundary
 
-`QRCode` retains a native LVGL 9.2.2 `lv_qrcode` object. Serialized generation calls `lv_qrcode_create`, `lv_qrcode_set_size`, `lv_qrcode_set_dark_color`, `lv_qrcode_set_light_color`, `lv_qrcode_set_quiet_zone` and `lv_qrcode_set_data`.
+`QRCode` retains a native LVGL 9.2.2 `lv_qrcode` object. Serialized generation calls the public API provided by the installed managed component: `lv_qrcode_create`, `lv_qrcode_set_size`, `lv_qrcode_set_dark_color`, `lv_qrcode_set_light_color` and `lv_qrcode_update` with an explicit byte length. That header does not expose `lv_qrcode_set_data` or `lv_qrcode_set_quiet_zone`.
 
 The output-only API is:
 
@@ -558,7 +558,7 @@ The output-only API is:
 void FG_Set_<Name>_Text(const char * text);
 ```
 
-The setter updates the retained object through `lv_qrcode_set_data()` and treats `NULL` as an empty string. QR Code produces no genuine-user transition, `userEventHooks` entry or `95_UserEvents` declaration/stub. Its modules are native LVGL output, not an uploaded image, so QR contributes no `assetSources` entry. `firmware/ForgeUI-One/sdkconfig.defaults` owns the required `CONFIG_LV_USE_QRCODE=y`.
+The setter normalizes `NULL` to an empty string and updates the retained object through `lv_qrcode_update(obj, data, strlen(data))`. QR Code produces no genuine-user transition, `userEventHooks` entry or `95_UserEvents` declaration/stub. Its modules are native LVGL output, not an uploaded image, so QR contributes no `assetSources` entry. `firmware/ForgeUI-One/sdkconfig.defaults` owns the required `CONFIG_LV_USE_QRCODE=y`.
 
 ### Box generated boundary
 

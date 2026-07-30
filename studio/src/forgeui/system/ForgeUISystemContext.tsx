@@ -123,7 +123,7 @@ export const ForgeUISystemProvider: React.FC<{ children: React.ReactNode }> = ({
     previewWifi,
     openSystemLauncher: () => { setPage('launcher'); setIsOpen(true) },
     openSystemPage: nextPage => {
-      if (nextPage !== 'brightness' && nextPage !== 'wifi' && nextPage !== 'storage') return
+      if (nextPage !== 'brightness' && nextPage !== 'wifi' && nextPage !== 'storage' && nextPage !== 'diagnostics') return
       setPage(nextPage)
       setIsOpen(true)
     },

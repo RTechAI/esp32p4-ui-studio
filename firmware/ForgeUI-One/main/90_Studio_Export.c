@@ -4,10 +4,12 @@
 #include "20_RTC.h"
 #include "30_WIFI.h"
 #include "40_SD.h"
+#include "50_DIAGNOSTICS.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
 #include "freertos/task.h"
+#include "esp_timer.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <limits.h>
@@ -47,6 +49,18 @@ static lv_obj_t * fg_system_wifi_password_error = NULL;
 static lv_obj_t * fg_system_wifi_keyboard = NULL;
 static lv_obj_t * fg_system_wifi_forget_dialog = NULL;
 static lv_obj_t * fg_system_storage_page = NULL;
+static lv_obj_t * fg_system_diagnostics_page = NULL;
+static lv_obj_t * fg_system_diagnostics_internal_bar = NULL;
+static lv_obj_t * fg_system_diagnostics_psram_bar = NULL;
+static lv_obj_t * fg_system_diagnostics_internal_label = NULL;
+static lv_obj_t * fg_system_diagnostics_psram_label = NULL;
+static lv_obj_t * fg_system_diagnostics_flash_label = NULL;
+static lv_obj_t * fg_system_diagnostics_performance_label = NULL;
+static lv_obj_t * fg_system_diagnostics_lvgl_label = NULL;
+static lv_obj_t * fg_system_diagnostics_wifi_label = NULL;
+static lv_obj_t * fg_system_diagnostics_sd_label = NULL;
+static lv_timer_t * fg_system_diagnostics_timer = NULL;
+static bool fg_system_diagnostics_page_active = false;
 static lv_obj_t * fg_system_storage_summary = NULL;
 static lv_obj_t * fg_system_storage_path = NULL;
 static lv_obj_t * fg_system_storage_list = NULL;
@@ -122,7 +136,8 @@ static void fg_system_storage_tick_cb(lv_timer_t * timer);
 void FG_Set_QR_Code_Text(const char * text)
 {
     if (fg_qr_code_qrcode == NULL) return;
-    lv_qrcode_set_data(fg_qr_code_qrcode, text == NULL ? "" : text);
+    const char * qr_text = text == NULL ? "" : text;
+    lv_qrcode_update(fg_qr_code_qrcode, qr_text, strlen(qr_text));
 }
 
 static void FG_Set_Display_Brightness(uint8_t percent)
@@ -141,6 +156,7 @@ static void fg_system_show_page(lv_obj_t * page)
     lv_obj_add_flag(fg_system_brightness_page, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(fg_system_wifi_page, LV_OBJ_FLAG_HIDDEN);
     if (fg_system_storage_page) lv_obj_add_flag(fg_system_storage_page, LV_OBJ_FLAG_HIDDEN);
+    if (fg_system_diagnostics_page) lv_obj_add_flag(fg_system_diagnostics_page, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(page, LV_OBJ_FLAG_HIDDEN);
     lv_obj_move_foreground(page);
 }
@@ -155,6 +171,7 @@ static void fg_system_close_cb(lv_event_t * event)
 {
     LV_UNUSED(event);
     fg_system_wifi_page_active = false;
+    fg_system_diagnostics_page_active = false;
     fg_system_show_page(fg_application_page);
 }
 
@@ -542,6 +559,48 @@ static void fg_system_brightness_changed_cb(lv_event_t * event)
     }
 }
 
+static const char * fg_diagnostics_bytes(uint64_t value, char * buffer, size_t length)
+{
+    static const char * units[] = {"B", "KB", "MB", "GB"};
+    double scaled = (double)value; unsigned unit = 0;
+    while (scaled >= 1024.0 && unit < 3) { scaled /= 1024.0; ++unit; }
+    snprintf(buffer, length, scaled >= 10.0 || unit == 0 ? "%.0f %s" : "%.1f %s", scaled, units[unit]);
+    return buffer;
+}
+
+static void fg_diagnostics_update_bar(lv_obj_t * bar, size_t free_bytes, size_t total_bytes)
+{
+    if (!bar) return;
+    int32_t used = total_bytes > 0 ? (int32_t)(100U - ((uint64_t)free_bytes * 100U / total_bytes)) : 0;
+    lv_bar_set_value(bar, used, LV_ANIM_OFF);
+    uint32_t colour = used >= 90 ? 0xEF4444 : (used >= 75 ? 0xF2A900 : 0x22C55E);
+    lv_obj_set_style_bg_color(bar, lv_color_hex(colour), LV_PART_INDICATOR);
+}
+
+static void fg_system_diagnostics_tick_cb(lv_timer_t * timer)
+{
+    LV_UNUSED(timer); if (!fg_system_diagnostics_page_active) return;
+    int64_t started = esp_timer_get_time(); fg_diagnostics_snapshot_t model; char a[24], b[24], c[24], d[24], e[24], f[24];
+    fg_diagnostics_get_snapshot(&model);
+    fg_diagnostics_update_bar(fg_system_diagnostics_internal_bar, model.internal_free, model.internal_total);
+    fg_diagnostics_update_bar(fg_system_diagnostics_psram_bar, model.psram_free, model.psram_total);
+    lv_label_set_text_fmt(fg_system_diagnostics_internal_label, "Free  %s\nTotal  %s\nMinimum Ever Free  %s", fg_diagnostics_bytes(model.internal_free, a, sizeof(a)), fg_diagnostics_bytes(model.internal_total, b, sizeof(b)), fg_diagnostics_bytes(model.internal_minimum_free, c, sizeof(c)));
+    lv_label_set_text_fmt(fg_system_diagnostics_psram_label, "Free  %s\nTotal  %s\nMinimum Ever Free  %s", fg_diagnostics_bytes(model.psram_free, a, sizeof(a)), fg_diagnostics_bytes(model.psram_total, b, sizeof(b)), fg_diagnostics_bytes(model.psram_minimum_free, c, sizeof(c)));
+    if (model.flash_available) lv_label_set_text_fmt(fg_system_diagnostics_flash_label, "Used  %s\nFree  %s\nTotal  %s\nApplication Size  %s\nSPIFFS Used  %s\nSPIFFS Free  %s", model.flash_usage_available ? fg_diagnostics_bytes(model.flash_used, a, sizeof(a)) : "Not Available", model.flash_usage_available ? fg_diagnostics_bytes(model.flash_free, b, sizeof(b)) : "Not Available", fg_diagnostics_bytes(model.flash_total, c, sizeof(c)), model.application_size_available ? fg_diagnostics_bytes(model.application_size, d, sizeof(d)) : "Not Available", model.spiffs_available ? fg_diagnostics_bytes(model.spiffs_used, e, sizeof(e)) : "Not Available", model.spiffs_available ? fg_diagnostics_bytes(model.spiffs_free, f, sizeof(f)) : "Not Available"); else lv_label_set_text(fg_system_diagnostics_flash_label, "Used  Not Available\nFree  Not Available\nTotal  Not Available\nApplication Size  Not Available\nSPIFFS Used  Not Available\nSPIFFS Free  Not Available");
+    if (model.fps_available) snprintf(a, sizeof(a), "%u", (unsigned)model.fps);
+    lv_label_set_text_fmt(fg_system_diagnostics_performance_label, "FPS  %s\nLVGL Tick Rate  %u Hz\nUI Update Time  %u us\nCPU Frequency  %u MHz\nSystem Uptime  %llu s\nBuild Version  %s", model.fps_available ? a : "Not Available", (unsigned)model.lvgl_tick_rate_hz, (unsigned)model.ui_update_time_us, (unsigned)model.cpu_frequency_mhz, (unsigned long long)model.uptime_seconds, model.build_version);
+    if (model.framebuffer_count_available) snprintf(a, sizeof(a), "%u", (unsigned)model.framebuffer_count);
+    if (model.lvgl_display_available) lv_label_set_text_fmt(fg_system_diagnostics_lvgl_label, "LVGL Version  %s\nFramebuffer Count  %s\nResolution  %u x %u\nTheme  graphite\nCurrent Screen  Diagnostics\nObject Count  %u", model.lvgl_version, model.framebuffer_count_available ? a : "Not Available", (unsigned)model.horizontal_resolution, (unsigned)model.vertical_resolution, (unsigned)model.object_count); else lv_label_set_text(fg_system_diagnostics_lvgl_label, "LVGL  Not Available");
+    lv_label_set_text_fmt(fg_system_diagnostics_wifi_label, "Connected  %s\nSSID  %s\nRSSI  %d dBm\nIP Address  %s", model.wifi_connected ? "Yes" : "No", model.wifi_ssid[0] ? model.wifi_ssid : "Not Available", model.wifi_rssi, model.wifi_ip[0] ? model.wifi_ip : "Not Available");
+    if (model.sd_available) { if (model.sd_files_available) snprintf(c, sizeof(c), "%u", (unsigned)model.sd_files); lv_label_set_text_fmt(fg_system_diagnostics_sd_label, "Mounted  %s\nCapacity  %s\nFree Space  %s\nFiles  %s", model.sd_mounted ? "Yes" : "No", fg_diagnostics_bytes(model.sd_capacity, a, sizeof(a)), fg_diagnostics_bytes(model.sd_free, b, sizeof(b)), model.sd_files_available ? c : "Not Available"); } else lv_label_set_text(fg_system_diagnostics_sd_label, "Mounted  Not Available\nCapacity  Not Available\nFree Space  Not Available\nFiles  Not Available");
+    fg_diagnostics_record_ui_update_us((uint32_t)(esp_timer_get_time() - started));
+}
+
+static void fg_system_open_diagnostics_cb(lv_event_t * event)
+{ LV_UNUSED(event); fg_system_diagnostics_page_active = true; fg_system_diagnostics_tick_cb(NULL); fg_system_show_page(fg_system_diagnostics_page); }
+static void fg_system_diagnostics_back_cb(lv_event_t * event)
+{ LV_UNUSED(event); fg_system_diagnostics_page_active = false; fg_system_show_page(fg_system_launcher_page); }
+
 static lv_obj_t * fg_system_create_button(lv_obj_t * parent, const char * text, int32_t x, int32_t y, int32_t width, int32_t height)
 {
     lv_obj_t * button = lv_button_create(parent);
@@ -830,17 +889,24 @@ void fg_studio_export_create(lv_obj_t *parent)
 
     fg_qr_code_qrcode = lv_qrcode_create(fg_application_page);
     lv_obj_t * obj1 = fg_qr_code_qrcode;
-    lv_obj_set_pos(obj1, 621, 127);
-    lv_qrcode_set_size(obj1, 180);
+    lv_obj_set_pos(obj1, 66.99998474121094, 455);
+    lv_qrcode_set_size(obj1, 84);
     lv_qrcode_set_dark_color(obj1, lv_color_hex(0xF2A900));
     lv_qrcode_set_light_color(obj1, lv_color_hex(0x1E2328));
-    lv_qrcode_set_quiet_zone(obj1, true);
-    lv_qrcode_set_data(obj1, "https://forgeui.co.nz");
+    lv_qrcode_update(obj1, "https://forgeui.co.nz", strlen("https://forgeui.co.nz"));
 
 
-    lv_obj_t * system_gear = fg_system_create_button(fg_application_page, LV_SYMBOL_SETTINGS, 922, 18, 84, 84);
+    LV_IMAGE_DECLARE(fg_icon_settings_fi_48px);
+    lv_obj_t * system_gear = fg_system_create_button(fg_application_page, "", 948, 18, 58, 58);
+    lv_obj_set_style_radius(system_gear, LV_RADIUS_CIRCLE, 0);
     lv_obj_t * system_gear_label = lv_obj_get_child(system_gear, 0);
-    lv_obj_set_style_text_font(system_gear_label, &lv_font_montserrat_48, 0);
+    lv_obj_add_flag(system_gear_label, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_t * system_gear_icon = lv_image_create(system_gear);
+    lv_image_set_src(system_gear_icon, &fg_icon_settings_fi_48px);
+    lv_image_set_scale(system_gear_icon, 149);
+    lv_obj_set_style_image_recolor(system_gear_icon, lv_color_hex(0xF2A900), 0);
+    lv_obj_set_style_image_recolor_opa(system_gear_icon, LV_OPA_COVER, 0);
+    lv_obj_center(system_gear_icon);
     lv_obj_add_event_cb(system_gear, fg_system_open_cb, LV_EVENT_CLICKED, NULL);
     lv_obj_move_foreground(system_gear);
 
@@ -871,8 +937,36 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_t * storage_card = fg_system_create_button(fg_system_launcher_page, LV_SYMBOL_SD_CARD "\nStorage", 42, 302, 220, 180);
     lv_obj_add_event_cb(storage_card, fg_system_open_storage_cb, LV_EVENT_CLICKED, NULL);
     fg_system_create_disabled_card(fg_system_launcher_page, LV_SYMBOL_HOME "\nDevice\nComing Later", 282, 302);
-    fg_system_create_disabled_card(fg_system_launcher_page, LV_SYMBOL_WARNING "\nDiagnostics\nComing Later", 522, 302);
+    lv_obj_t * diagnostics_card = fg_system_create_button(fg_system_launcher_page, LV_SYMBOL_WARNING "\nDiagnostics", 522, 302, 220, 180);
+    lv_obj_add_event_cb(diagnostics_card, fg_system_open_diagnostics_cb, LV_EVENT_CLICKED, NULL);
     lv_obj_add_flag(fg_system_launcher_page, LV_OBJ_FLAG_HIDDEN);
+
+    fg_system_diagnostics_page = lv_obj_create(parent);
+    lv_obj_set_size(fg_system_diagnostics_page, 1024, 600); lv_obj_clear_flag(fg_system_diagnostics_page, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_pad_all(fg_system_diagnostics_page, 0, 0); lv_obj_set_style_border_width(fg_system_diagnostics_page, 0, 0);
+    lv_obj_set_style_bg_color(fg_system_diagnostics_page, lv_color_hex(0x121417), 0);
+    lv_obj_t * diagnostics_back = fg_system_create_button(fg_system_diagnostics_page, LV_SYMBOL_LEFT " Back", 20, 14, 132, 54);
+    lv_obj_add_event_cb(diagnostics_back, fg_system_diagnostics_back_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_t * diagnostics_title = lv_label_create(fg_system_diagnostics_page); lv_label_set_text(diagnostics_title, "System Diagnostics");
+    lv_obj_set_style_text_color(diagnostics_title, lv_color_hex(0xF5F5F5), 0); lv_obj_set_style_text_font(diagnostics_title, &lv_font_montserrat_32, 0); lv_obj_align(diagnostics_title, LV_ALIGN_TOP_MID, 0, 24);
+    lv_obj_t * diagnostics_live = lv_label_create(fg_system_diagnostics_page); lv_label_set_text(diagnostics_live, "LIVE - 1 s"); lv_obj_set_pos(diagnostics_live, 910, 34); lv_obj_set_style_text_color(diagnostics_live, lv_color_hex(0xF2A900), 0);
+    lv_obj_t * diagnostics_content = lv_obj_create(fg_system_diagnostics_page); lv_obj_set_pos(diagnostics_content, 20, 82); lv_obj_set_size(diagnostics_content, 984, 500);
+    lv_obj_set_style_bg_opa(diagnostics_content, LV_OPA_TRANSP, 0); lv_obj_set_style_border_width(diagnostics_content, 0, 0); lv_obj_set_style_pad_all(diagnostics_content, 0, 0);
+    lv_obj_set_scroll_dir(diagnostics_content, LV_DIR_VER);
+    const char * diagnostics_headings[7] = {"Internal RAM", "PSRAM", "Flash Storage", "Performance", "LVGL Information", "Wi-Fi Status", "SD Card"};
+    const int32_t diagnostics_x[7] = {0, 492, 0, 492, 0, 492, 0}; const int32_t diagnostics_y[7] = {0, 0, 160, 160, 430, 430, 700}; const int32_t diagnostics_h[7] = {145, 145, 255, 255, 255, 255, 190};
+    lv_obj_t * diagnostics_values[7] = {0};
+    for (int index = 0; index < 7; ++index) {
+        lv_obj_t * card = lv_obj_create(diagnostics_content); lv_obj_set_pos(card, diagnostics_x[index], diagnostics_y[index]); lv_obj_set_size(card, 472, diagnostics_h[index]); lv_obj_clear_flag(card, LV_OBJ_FLAG_SCROLLABLE);
+        lv_obj_set_style_radius(card, 14, 0); lv_obj_set_style_bg_color(card, lv_color_hex(0x1E2328), 0); lv_obj_set_style_border_color(card, lv_color_hex(0xF2A900), 0);
+        lv_obj_t * heading = lv_label_create(card); lv_label_set_text(heading, diagnostics_headings[index]); lv_obj_set_pos(heading, 12, 8); lv_obj_set_style_text_font(heading, &lv_font_montserrat_20, 0); lv_obj_set_style_text_color(heading, lv_color_hex(0xF5F5F5), 0);
+        diagnostics_values[index] = lv_label_create(card); lv_label_set_text(diagnostics_values[index], "Not Available"); lv_obj_set_pos(diagnostics_values[index], 12, index < 2 ? 68 : 42); lv_obj_set_width(diagnostics_values[index], 438); lv_obj_set_style_text_color(diagnostics_values[index], lv_color_hex(0xB5B6B8), 0);
+        if (index < 2) { lv_obj_t * bar = lv_bar_create(card); lv_obj_set_pos(bar, 12, 40); lv_obj_set_size(bar, 438, 18); lv_bar_set_range(bar, 0, 100); lv_obj_set_style_bg_color(bar, lv_color_hex(0x2A3138), LV_PART_MAIN); if (index == 0) fg_system_diagnostics_internal_bar = bar; else fg_system_diagnostics_psram_bar = bar; }
+    }
+    fg_system_diagnostics_internal_label = diagnostics_values[0]; fg_system_diagnostics_psram_label = diagnostics_values[1]; fg_system_diagnostics_flash_label = diagnostics_values[2]; fg_system_diagnostics_performance_label = diagnostics_values[3];
+    fg_system_diagnostics_lvgl_label = diagnostics_values[4]; fg_system_diagnostics_wifi_label = diagnostics_values[5]; fg_system_diagnostics_sd_label = diagnostics_values[6];
+    fg_diagnostics_init(); fg_system_diagnostics_timer = lv_timer_create(fg_system_diagnostics_tick_cb, 1000, NULL);
+    lv_obj_add_flag(fg_system_diagnostics_page, LV_OBJ_FLAG_HIDDEN);
 
 #if 0 /* Legacy eager Storage construction retained only as migration reference. */
     fg_system_storage_page = lv_obj_create(parent);

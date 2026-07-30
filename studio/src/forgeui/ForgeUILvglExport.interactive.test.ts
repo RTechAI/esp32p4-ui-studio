@@ -1043,7 +1043,11 @@ describe('Interactive Button LVGL export compatibility', () => {
     expect(result.code).toContain(
       'lv_obj_add_event_cb(obj1, fg_interactive_button_event_cb, LV_EVENT_CLICKED, &obj1_data);',
     )
-    expect(result.assetSources).toEqual([shared.cFile])
+    expect(result.assetSources).toEqual(expect.arrayContaining([
+      shared.cFile,
+      'assets/icons/fg_icon_settings_fi_48px.c',
+    ]))
+    expect(result.assetSources.filter(source => source === shared.cFile)).toHaveLength(1)
   })
 
   it('exports only runtime Toggle images and ignores its retained state sheet', () => {

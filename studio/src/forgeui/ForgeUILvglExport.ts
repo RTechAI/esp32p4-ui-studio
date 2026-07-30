@@ -24,6 +24,10 @@ import {
   getForgeUIStandardClockPresentation,
   type ForgeUIClockHourFormat,
 } from './ForgeUIStandardClock'
+import {
+  getForgeUIQRCodeGeometry,
+  resolveQRCodePayload,
+} from './ForgeUIStandardQRCode'
 
 import {
   getInteractiveButtonAsset,
@@ -144,7 +148,6 @@ const FG_TEXTURE_ASSETS: Record<
 
 const FG_ICON_LVGL_SYMBOLS: Record<string, string> = {
   FiWifi: 'LV_SYMBOL_WIFI',
-  FiSettings: 'LV_SYMBOL_SETTINGS',
   FiPower: 'LV_SYMBOL_POWER',
   FiHome: 'LV_SYMBOL_HOME',
   FiMenu: 'LV_SYMBOL_LIST',
@@ -2745,9 +2748,24 @@ case 'InteractiveThreePositionToggleSwitch': {
   lines.push(`lv_obj_set_style_text_color(${buttonObject}, lv_color_hex(${palette.accentText}), LV_PART_MAIN | LV_STATE_PRESSED);`)
   lines.push(`lv_obj_set_style_text_color(${buttonObject}, lv_color_hex(${palette.disabledText}), LV_PART_MAIN | LV_STATE_DISABLED);`)
 
-  lines.push(`lv_obj_t * ${varName}_label = lv_label_create(${buttonObject});`)
-  lines.push(`lv_label_set_text(${varName}_label, LV_SYMBOL_OK);`)
-  lines.push(`lv_obj_center(${varName}_label);`)
+  const iconName = child.props.icon || 'FiSettings'
+  if (iconName === 'FiSettings') {
+    usedAssetSources.add('assets/icons/fg_icon_settings_fi_48px.c')
+    lines.push(`LV_IMAGE_DECLARE(fg_icon_settings_fi_48px);`)
+    lines.push(`lv_obj_t * ${varName}_icon = lv_image_create(${buttonObject});`)
+    lines.push(`lv_image_set_src(${varName}_icon, &fg_icon_settings_fi_48px);`)
+    lines.push(`lv_image_set_scale(${varName}_icon, 85);`)
+    lines.push(`lv_obj_set_style_image_recolor(${varName}_icon, lv_color_hex(${palette.textPrimary}), 0);`)
+    lines.push(`lv_obj_set_style_image_recolor_opa(${varName}_icon, LV_OPA_COVER, 0);`)
+    lines.push(`lv_obj_set_style_image_recolor(${varName}_icon, lv_color_hex(${palette.accentText}), LV_STATE_PRESSED);`)
+    lines.push(`lv_obj_set_style_image_recolor(${varName}_icon, lv_color_hex(${palette.disabledText}), LV_STATE_DISABLED);`)
+    lines.push(`lv_obj_center(${varName}_icon);`)
+  } else {
+    const iconSymbol = FG_ICON_LVGL_SYMBOLS[iconName] || 'LV_SYMBOL_OK'
+    lines.push(`lv_obj_t * ${varName}_label = lv_label_create(${buttonObject});`)
+    lines.push(`lv_label_set_text(${varName}_label, ${iconSymbol});`)
+    lines.push(`lv_obj_center(${varName}_label);`)
+  }
   if (iconButtonExport) {
     lines.push(`${iconButtonExport.enabledName} = ${iconButtonExport.initialEnabled ? 'true' : 'false'};`)
     if (!iconButtonExport.initialEnabled) {
@@ -2811,10 +2829,6 @@ case 'Icon': {
       child.props.icon ||
       'FiSettings'
 
-    const symbol =
-      FG_ICON_LVGL_SYMBOLS[icon] ||
-      'LV_SYMBOL_SETTINGS'
-
     const color = child.props.color
       ? `0x${String(child.props.color).replace('#', '')}`
       : palette.textPrimary
@@ -2824,21 +2838,25 @@ case 'Icon': {
       48,
     )
 
-    lines.push(
-      `lv_obj_t * ${varName} = lv_label_create(${parentVar});`,
-    )
-    lines.push(
-      `lv_label_set_text(${varName}, ${symbol});`,
-    )
-    lines.push(
-      `lv_obj_set_pos(${varName}, ${x}, ${y});`,
-    )
-    lines.push(
-      `lv_obj_set_style_text_color(${varName}, lv_color_hex(${color}), 0);`,
-    )
-    lines.push(
-      `lv_obj_set_style_text_font(${varName}, &lv_font_montserrat_${iconSize}, 0);`,
-    )
+    if (icon === 'FiSettings') {
+      usedAssetSources.add('assets/icons/fg_icon_settings_fi_48px.c')
+      const numericIconSize = Number(iconSize)
+      const imageScale = Math.round(numericIconSize * 256 / 48)
+      lines.push(`LV_IMAGE_DECLARE(fg_icon_settings_fi_48px);`)
+      lines.push(`lv_obj_t * ${varName} = lv_image_create(${parentVar});`)
+      lines.push(`lv_image_set_src(${varName}, &fg_icon_settings_fi_48px);`)
+      lines.push(`lv_image_set_scale(${varName}, ${imageScale});`)
+      lines.push(`lv_obj_set_pos(${varName}, ${x + Math.round((w - numericIconSize) / 2)}, ${y + Math.round((h - numericIconSize) / 2)});`)
+      lines.push(`lv_obj_set_style_image_recolor(${varName}, lv_color_hex(${color}), 0);`)
+      lines.push(`lv_obj_set_style_image_recolor_opa(${varName}, LV_OPA_COVER, 0);`)
+    } else {
+      const symbol = FG_ICON_LVGL_SYMBOLS[icon] || 'LV_SYMBOL_OK'
+      lines.push(`lv_obj_t * ${varName} = lv_label_create(${parentVar});`)
+      lines.push(`lv_label_set_text(${varName}, ${symbol});`)
+      lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
+      lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${color}), 0);`)
+      lines.push(`lv_obj_set_style_text_font(${varName}, &lv_font_montserrat_${iconSize}, 0);`)
+    }
   }
 
   lines.push(``)
@@ -3859,8 +3877,13 @@ case 'Table': {
 case 'QRCode': {
   const qrExport = qrCodeExports.get(child.id)
   const qrObject = qrExport?.objectName || varName
-  const qrSize = Math.max(1, Math.min(Number(w) || 180, Number(h) || 180))
-  const qrText = esc(String(child.props.qrText || 'https://forgeui.co.nz'))
+  const qrGeometry = getForgeUIQRCodeGeometry(w, h)
+  const qrSize = qrGeometry.size
+  const parsedQrX = Number(x)
+  const parsedQrY = Number(y)
+  const qrX = Number.isFinite(parsedQrX) ? parsedQrX : 0
+  const qrY = Number.isFinite(parsedQrY) ? parsedQrY : 0
+  const qrText = esc(resolveQRCodePayload(child.props))
   const foreground = child.props.qrForeground
     ? toLvHex(String(child.props.qrForeground))
     : palette.accent
@@ -3869,12 +3892,11 @@ case 'QRCode': {
     : palette.surface
   lines.push(`${qrObject} = lv_qrcode_create(${parentVar});`)
   lines.push(`lv_obj_t * ${varName} = ${qrObject};`)
-  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_pos(${varName}, ${qrX + qrGeometry.xOffset}, ${qrY + qrGeometry.yOffset});`)
   lines.push(`lv_qrcode_set_size(${varName}, ${qrSize});`)
   lines.push(`lv_qrcode_set_dark_color(${varName}, lv_color_hex(${foreground}));`)
   lines.push(`lv_qrcode_set_light_color(${varName}, lv_color_hex(${background}));`)
-  lines.push(`lv_qrcode_set_quiet_zone(${varName}, ${child.props.qrQuietZone === false ? 'false' : 'true'});`)
-  lines.push(`lv_qrcode_set_data(${varName}, "${qrText}");`)
+  lines.push(`lv_qrcode_update(${varName}, "${qrText}", strlen("${qrText}"));`)
   lines.push(``)
   break
 }
@@ -4804,6 +4826,9 @@ const palette = {
   accentText: toLvHex(semanticPalette.accentText),
   disabledText: toLvHex(semanticPalette.disabledText),
   selectedSurface: toLvHex(semanticPalette.selectedSurface),
+  healthNormal: toLvHex(semanticPalette.healthNormal),
+  healthHigh: toLvHex(semanticPalette.healthHigh),
+  healthCritical: toLvHex(semanticPalette.healthCritical),
 
   textureAsset:
     textureId !== 'none'
@@ -4844,10 +4869,12 @@ const backgroundMode =
   lines.push(`#include "20_RTC.h"`)
   lines.push(`#include "30_WIFI.h"`)
   lines.push(`#include "40_SD.h"`)
+  lines.push(`#include "50_DIAGNOSTICS.h"`)
   lines.push(`#include "freertos/FreeRTOS.h"`)
   lines.push(`#include "freertos/queue.h"`)
   lines.push(`#include "freertos/semphr.h"`)
   lines.push(`#include "freertos/task.h"`)
+  lines.push(`#include "esp_timer.h"`)
   if (hasInteractiveButtons || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0) {
     lines.push(`#include "95_UserEvents.h"`)
   }
@@ -5014,6 +5041,18 @@ const backgroundMode =
   lines.push(`static lv_obj_t * fg_system_wifi_keyboard = NULL;`)
   lines.push(`static lv_obj_t * fg_system_wifi_forget_dialog = NULL;`)
   lines.push(`static lv_obj_t * fg_system_storage_page = NULL;`)
+  lines.push(`static lv_obj_t * fg_system_diagnostics_page = NULL;`)
+  lines.push(`static lv_obj_t * fg_system_diagnostics_internal_bar = NULL;`)
+  lines.push(`static lv_obj_t * fg_system_diagnostics_psram_bar = NULL;`)
+  lines.push(`static lv_obj_t * fg_system_diagnostics_internal_label = NULL;`)
+  lines.push(`static lv_obj_t * fg_system_diagnostics_psram_label = NULL;`)
+  lines.push(`static lv_obj_t * fg_system_diagnostics_flash_label = NULL;`)
+  lines.push(`static lv_obj_t * fg_system_diagnostics_performance_label = NULL;`)
+  lines.push(`static lv_obj_t * fg_system_diagnostics_lvgl_label = NULL;`)
+  lines.push(`static lv_obj_t * fg_system_diagnostics_wifi_label = NULL;`)
+  lines.push(`static lv_obj_t * fg_system_diagnostics_sd_label = NULL;`)
+  lines.push(`static lv_timer_t * fg_system_diagnostics_timer = NULL;`)
+  lines.push(`static bool fg_system_diagnostics_page_active = false;`)
   lines.push(`static lv_obj_t * fg_system_storage_summary = NULL;`)
   lines.push(`static lv_obj_t * fg_system_storage_path = NULL;`)
   lines.push(`static lv_obj_t * fg_system_storage_list = NULL;`)
@@ -5351,7 +5390,8 @@ const backgroundMode =
     lines.push(`void ${qrExport.apiName}(const char * text)`)
     lines.push(`{`)
     lines.push(`    if (${qrExport.objectName} == NULL) return;`)
-    lines.push(`    lv_qrcode_set_data(${qrExport.objectName}, text == NULL ? "" : text);`)
+    lines.push(`    const char * qr_text = text == NULL ? "" : text;`)
+    lines.push(`    lv_qrcode_update(${qrExport.objectName}, qr_text, strlen(qr_text));`)
     lines.push(`}`)
     lines.push(``)
   })
@@ -5687,6 +5727,7 @@ const backgroundMode =
   lines.push(`    lv_obj_add_flag(fg_system_brightness_page, LV_OBJ_FLAG_HIDDEN);`)
   lines.push(`    lv_obj_add_flag(fg_system_wifi_page, LV_OBJ_FLAG_HIDDEN);`)
   lines.push(`    if (fg_system_storage_page) lv_obj_add_flag(fg_system_storage_page, LV_OBJ_FLAG_HIDDEN);`)
+  lines.push(`    if (fg_system_diagnostics_page) lv_obj_add_flag(fg_system_diagnostics_page, LV_OBJ_FLAG_HIDDEN);`)
   lines.push(`    lv_obj_clear_flag(page, LV_OBJ_FLAG_HIDDEN);`)
   lines.push(`    lv_obj_move_foreground(page);`)
   lines.push(`}`)
@@ -5701,6 +5742,7 @@ const backgroundMode =
   lines.push(`{`)
   lines.push(`    LV_UNUSED(event);`)
   lines.push(`    fg_system_wifi_page_active = false;`)
+  lines.push(`    fg_system_diagnostics_page_active = false;`)
   lines.push(`    fg_system_show_page(fg_application_page);`)
   lines.push(`}`)
   lines.push(``)
@@ -6087,6 +6129,48 @@ const backgroundMode =
   lines.push(`        lv_label_set_text_fmt(fg_system_brightness_label, "%u%%", (unsigned)fg_system_brightness_percent);`)
   lines.push(`    }`)
   lines.push(`}`)
+  lines.push(``)
+  lines.push(`static const char * fg_diagnostics_bytes(uint64_t value, char * buffer, size_t length)`)
+  lines.push(`{`)
+  lines.push(`    static const char * units[] = {"B", "KB", "MB", "GB"};`)
+  lines.push(`    double scaled = (double)value; unsigned unit = 0;`)
+  lines.push(`    while (scaled >= 1024.0 && unit < 3) { scaled /= 1024.0; ++unit; }`)
+  lines.push(`    snprintf(buffer, length, scaled >= 10.0 || unit == 0 ? "%.0f %s" : "%.1f %s", scaled, units[unit]);`)
+  lines.push(`    return buffer;`)
+  lines.push(`}`)
+  lines.push(``)
+  lines.push(`static void fg_diagnostics_update_bar(lv_obj_t * bar, size_t free_bytes, size_t total_bytes)`)
+  lines.push(`{`)
+  lines.push(`    if (!bar) return;`)
+  lines.push(`    int32_t used = total_bytes > 0 ? (int32_t)(100U - ((uint64_t)free_bytes * 100U / total_bytes)) : 0;`)
+  lines.push(`    lv_bar_set_value(bar, used, LV_ANIM_OFF);`)
+  lines.push(`    uint32_t colour = used >= 90 ? ${palette.healthCritical} : (used >= 75 ? ${palette.healthHigh} : ${palette.healthNormal});`)
+  lines.push(`    lv_obj_set_style_bg_color(bar, lv_color_hex(colour), LV_PART_INDICATOR);`)
+  lines.push(`}`)
+  lines.push(``)
+  lines.push(`static void fg_system_diagnostics_tick_cb(lv_timer_t * timer)`)
+  lines.push(`{`)
+  lines.push(`    LV_UNUSED(timer); if (!fg_system_diagnostics_page_active) return;`)
+  lines.push(`    int64_t started = esp_timer_get_time(); fg_diagnostics_snapshot_t model; char a[24], b[24], c[24], d[24], e[24], f[24];`)
+  lines.push(`    fg_diagnostics_get_snapshot(&model);`)
+  lines.push(`    fg_diagnostics_update_bar(fg_system_diagnostics_internal_bar, model.internal_free, model.internal_total);`)
+  lines.push(`    fg_diagnostics_update_bar(fg_system_diagnostics_psram_bar, model.psram_free, model.psram_total);`)
+  lines.push(`    lv_label_set_text_fmt(fg_system_diagnostics_internal_label, "Free  %s\\nTotal  %s\\nMinimum Ever Free  %s", fg_diagnostics_bytes(model.internal_free, a, sizeof(a)), fg_diagnostics_bytes(model.internal_total, b, sizeof(b)), fg_diagnostics_bytes(model.internal_minimum_free, c, sizeof(c)));`)
+  lines.push(`    lv_label_set_text_fmt(fg_system_diagnostics_psram_label, "Free  %s\\nTotal  %s\\nMinimum Ever Free  %s", fg_diagnostics_bytes(model.psram_free, a, sizeof(a)), fg_diagnostics_bytes(model.psram_total, b, sizeof(b)), fg_diagnostics_bytes(model.psram_minimum_free, c, sizeof(c)));`)
+  lines.push(`    if (model.flash_available) lv_label_set_text_fmt(fg_system_diagnostics_flash_label, "Used  %s\\nFree  %s\\nTotal  %s\\nApplication Size  %s\\nSPIFFS Used  %s\\nSPIFFS Free  %s", model.flash_usage_available ? fg_diagnostics_bytes(model.flash_used, a, sizeof(a)) : "Not Available", model.flash_usage_available ? fg_diagnostics_bytes(model.flash_free, b, sizeof(b)) : "Not Available", fg_diagnostics_bytes(model.flash_total, c, sizeof(c)), model.application_size_available ? fg_diagnostics_bytes(model.application_size, d, sizeof(d)) : "Not Available", model.spiffs_available ? fg_diagnostics_bytes(model.spiffs_used, e, sizeof(e)) : "Not Available", model.spiffs_available ? fg_diagnostics_bytes(model.spiffs_free, f, sizeof(f)) : "Not Available"); else lv_label_set_text(fg_system_diagnostics_flash_label, "Used  Not Available\\nFree  Not Available\\nTotal  Not Available\\nApplication Size  Not Available\\nSPIFFS Used  Not Available\\nSPIFFS Free  Not Available");`)
+  lines.push(`    if (model.fps_available) snprintf(a, sizeof(a), "%u", (unsigned)model.fps);`)
+  lines.push(`    lv_label_set_text_fmt(fg_system_diagnostics_performance_label, "FPS  %s\\nLVGL Tick Rate  %u Hz\\nUI Update Time  %u us\\nCPU Frequency  %u MHz\\nSystem Uptime  %llu s\\nBuild Version  %s", model.fps_available ? a : "Not Available", (unsigned)model.lvgl_tick_rate_hz, (unsigned)model.ui_update_time_us, (unsigned)model.cpu_frequency_mhz, (unsigned long long)model.uptime_seconds, model.build_version);`)
+  lines.push(`    if (model.framebuffer_count_available) snprintf(a, sizeof(a), "%u", (unsigned)model.framebuffer_count);`)
+  lines.push(`    if (model.lvgl_display_available) lv_label_set_text_fmt(fg_system_diagnostics_lvgl_label, "LVGL Version  %s\\nFramebuffer Count  %s\\nResolution  %u x %u\\nTheme  ${esc(themeId)}\\nCurrent Screen  Diagnostics\\nObject Count  %u", model.lvgl_version, model.framebuffer_count_available ? a : "Not Available", (unsigned)model.horizontal_resolution, (unsigned)model.vertical_resolution, (unsigned)model.object_count); else lv_label_set_text(fg_system_diagnostics_lvgl_label, "LVGL  Not Available");`)
+  lines.push(`    lv_label_set_text_fmt(fg_system_diagnostics_wifi_label, "Connected  %s\\nSSID  %s\\nRSSI  %d dBm\\nIP Address  %s", model.wifi_connected ? "Yes" : "No", model.wifi_ssid[0] ? model.wifi_ssid : "Not Available", model.wifi_rssi, model.wifi_ip[0] ? model.wifi_ip : "Not Available");`)
+  lines.push(`    if (model.sd_available) { if (model.sd_files_available) snprintf(c, sizeof(c), "%u", (unsigned)model.sd_files); lv_label_set_text_fmt(fg_system_diagnostics_sd_label, "Mounted  %s\\nCapacity  %s\\nFree Space  %s\\nFiles  %s", model.sd_mounted ? "Yes" : "No", fg_diagnostics_bytes(model.sd_capacity, a, sizeof(a)), fg_diagnostics_bytes(model.sd_free, b, sizeof(b)), model.sd_files_available ? c : "Not Available"); } else lv_label_set_text(fg_system_diagnostics_sd_label, "Mounted  Not Available\\nCapacity  Not Available\\nFree Space  Not Available\\nFiles  Not Available");`)
+  lines.push(`    fg_diagnostics_record_ui_update_us((uint32_t)(esp_timer_get_time() - started));`)
+  lines.push(`}`)
+  lines.push(``)
+  lines.push(`static void fg_system_open_diagnostics_cb(lv_event_t * event)`)
+  lines.push(`{ LV_UNUSED(event); fg_system_diagnostics_page_active = true; fg_system_diagnostics_tick_cb(NULL); fg_system_show_page(fg_system_diagnostics_page); }`)
+  lines.push(`static void fg_system_diagnostics_back_cb(lv_event_t * event)`)
+  lines.push(`{ LV_UNUSED(event); fg_system_diagnostics_page_active = false; fg_system_show_page(fg_system_launcher_page); }`)
   lines.push(``)
   lines.push(`static lv_obj_t * fg_system_create_button(lv_obj_t * parent, const char * text, int32_t x, int32_t y, int32_t width, int32_t height)`)
   lines.push(`{`)
@@ -6795,9 +6879,18 @@ body.forEach(line => {
 })
 
 lines.push(``)
-lines.push(`    lv_obj_t * system_gear = fg_system_create_button(fg_application_page, LV_SYMBOL_SETTINGS, 922, 18, 84, 84);`)
+usedAssetSources.add('assets/icons/fg_icon_settings_fi_48px.c')
+lines.push(`    LV_IMAGE_DECLARE(fg_icon_settings_fi_48px);`)
+lines.push(`    lv_obj_t * system_gear = fg_system_create_button(fg_application_page, "", 948, 18, 58, 58);`)
+lines.push(`    lv_obj_set_style_radius(system_gear, LV_RADIUS_CIRCLE, 0);`)
 lines.push(`    lv_obj_t * system_gear_label = lv_obj_get_child(system_gear, 0);`)
-lines.push(`    lv_obj_set_style_text_font(system_gear_label, &lv_font_montserrat_48, 0);`)
+lines.push(`    lv_obj_add_flag(system_gear_label, LV_OBJ_FLAG_HIDDEN);`)
+lines.push(`    lv_obj_t * system_gear_icon = lv_image_create(system_gear);`)
+lines.push(`    lv_image_set_src(system_gear_icon, &fg_icon_settings_fi_48px);`)
+lines.push(`    lv_image_set_scale(system_gear_icon, 149);`)
+lines.push(`    lv_obj_set_style_image_recolor(system_gear_icon, lv_color_hex(${palette.accent}), 0);`)
+lines.push(`    lv_obj_set_style_image_recolor_opa(system_gear_icon, LV_OPA_COVER, 0);`)
+lines.push(`    lv_obj_center(system_gear_icon);`)
 lines.push(`    lv_obj_add_event_cb(system_gear, fg_system_open_cb, LV_EVENT_CLICKED, NULL);`)
 lines.push(`    lv_obj_move_foreground(system_gear);`)
 lines.push(``)
@@ -6828,8 +6921,36 @@ lines.push(`    fg_system_create_disabled_card(fg_system_launcher_page, LV_SYMBO
 lines.push(`    lv_obj_t * storage_card = fg_system_create_button(fg_system_launcher_page, LV_SYMBOL_SD_CARD "\\nStorage", 42, 302, 220, 180);`)
 lines.push(`    lv_obj_add_event_cb(storage_card, fg_system_open_storage_cb, LV_EVENT_CLICKED, NULL);`)
 lines.push(`    fg_system_create_disabled_card(fg_system_launcher_page, LV_SYMBOL_HOME "\\nDevice\\nComing Later", 282, 302);`)
-lines.push(`    fg_system_create_disabled_card(fg_system_launcher_page, LV_SYMBOL_WARNING "\\nDiagnostics\\nComing Later", 522, 302);`)
+lines.push(`    lv_obj_t * diagnostics_card = fg_system_create_button(fg_system_launcher_page, LV_SYMBOL_WARNING "\\nDiagnostics", 522, 302, 220, 180);`)
+lines.push(`    lv_obj_add_event_cb(diagnostics_card, fg_system_open_diagnostics_cb, LV_EVENT_CLICKED, NULL);`)
 lines.push(`    lv_obj_add_flag(fg_system_launcher_page, LV_OBJ_FLAG_HIDDEN);`)
+lines.push(``)
+lines.push(`    fg_system_diagnostics_page = lv_obj_create(parent);`)
+lines.push(`    lv_obj_set_size(fg_system_diagnostics_page, 1024, 600); lv_obj_clear_flag(fg_system_diagnostics_page, LV_OBJ_FLAG_SCROLLABLE);`)
+lines.push(`    lv_obj_set_style_pad_all(fg_system_diagnostics_page, 0, 0); lv_obj_set_style_border_width(fg_system_diagnostics_page, 0, 0);`)
+lines.push(`    lv_obj_set_style_bg_color(fg_system_diagnostics_page, lv_color_hex(${palette.bg}), 0);`)
+lines.push(`    lv_obj_t * diagnostics_back = fg_system_create_button(fg_system_diagnostics_page, LV_SYMBOL_LEFT " Back", 20, 14, 132, 54);`)
+lines.push(`    lv_obj_add_event_cb(diagnostics_back, fg_system_diagnostics_back_cb, LV_EVENT_CLICKED, NULL);`)
+lines.push(`    lv_obj_t * diagnostics_title = lv_label_create(fg_system_diagnostics_page); lv_label_set_text(diagnostics_title, "System Diagnostics");`)
+lines.push(`    lv_obj_set_style_text_color(diagnostics_title, lv_color_hex(${palette.text}), 0); lv_obj_set_style_text_font(diagnostics_title, &lv_font_montserrat_32, 0); lv_obj_align(diagnostics_title, LV_ALIGN_TOP_MID, 0, 24);`)
+lines.push(`    lv_obj_t * diagnostics_live = lv_label_create(fg_system_diagnostics_page); lv_label_set_text(diagnostics_live, "LIVE - 1 s"); lv_obj_set_pos(diagnostics_live, 910, 34); lv_obj_set_style_text_color(diagnostics_live, lv_color_hex(${palette.accent}), 0);`)
+lines.push(`    lv_obj_t * diagnostics_content = lv_obj_create(fg_system_diagnostics_page); lv_obj_set_pos(diagnostics_content, 20, 82); lv_obj_set_size(diagnostics_content, 984, 500);`)
+lines.push(`    lv_obj_set_style_bg_opa(diagnostics_content, LV_OPA_TRANSP, 0); lv_obj_set_style_border_width(diagnostics_content, 0, 0); lv_obj_set_style_pad_all(diagnostics_content, 0, 0);`)
+lines.push(`    lv_obj_set_scroll_dir(diagnostics_content, LV_DIR_VER);`)
+lines.push(`    const char * diagnostics_headings[7] = {"Internal RAM", "PSRAM", "Flash Storage", "Performance", "LVGL Information", "Wi-Fi Status", "SD Card"};`)
+lines.push(`    const int32_t diagnostics_x[7] = {0, 492, 0, 492, 0, 492, 0}; const int32_t diagnostics_y[7] = {0, 0, 160, 160, 430, 430, 700}; const int32_t diagnostics_h[7] = {145, 145, 255, 255, 255, 255, 190};`)
+lines.push(`    lv_obj_t * diagnostics_values[7] = {0};`)
+lines.push(`    for (int index = 0; index < 7; ++index) {`)
+lines.push(`        lv_obj_t * card = lv_obj_create(diagnostics_content); lv_obj_set_pos(card, diagnostics_x[index], diagnostics_y[index]); lv_obj_set_size(card, 472, diagnostics_h[index]); lv_obj_clear_flag(card, LV_OBJ_FLAG_SCROLLABLE);`)
+lines.push(`        lv_obj_set_style_radius(card, 14, 0); lv_obj_set_style_bg_color(card, lv_color_hex(${palette.surface}), 0); lv_obj_set_style_border_color(card, lv_color_hex(${palette.surfaceBorder}), 0);`)
+lines.push(`        lv_obj_t * heading = lv_label_create(card); lv_label_set_text(heading, diagnostics_headings[index]); lv_obj_set_pos(heading, 12, 8); lv_obj_set_style_text_font(heading, &lv_font_montserrat_20, 0); lv_obj_set_style_text_color(heading, lv_color_hex(${palette.text}), 0);`)
+lines.push(`        diagnostics_values[index] = lv_label_create(card); lv_label_set_text(diagnostics_values[index], "Not Available"); lv_obj_set_pos(diagnostics_values[index], 12, index < 2 ? 68 : 42); lv_obj_set_width(diagnostics_values[index], 438); lv_obj_set_style_text_color(diagnostics_values[index], lv_color_hex(${palette.textSecondary}), 0);`)
+lines.push(`        if (index < 2) { lv_obj_t * bar = lv_bar_create(card); lv_obj_set_pos(bar, 12, 40); lv_obj_set_size(bar, 438, 18); lv_bar_set_range(bar, 0, 100); lv_obj_set_style_bg_color(bar, lv_color_hex(${palette.surface2}), LV_PART_MAIN); if (index == 0) fg_system_diagnostics_internal_bar = bar; else fg_system_diagnostics_psram_bar = bar; }`)
+lines.push(`    }`)
+lines.push(`    fg_system_diagnostics_internal_label = diagnostics_values[0]; fg_system_diagnostics_psram_label = diagnostics_values[1]; fg_system_diagnostics_flash_label = diagnostics_values[2]; fg_system_diagnostics_performance_label = diagnostics_values[3];`)
+lines.push(`    fg_system_diagnostics_lvgl_label = diagnostics_values[4]; fg_system_diagnostics_wifi_label = diagnostics_values[5]; fg_system_diagnostics_sd_label = diagnostics_values[6];`)
+lines.push(`    fg_diagnostics_init(); fg_system_diagnostics_timer = lv_timer_create(fg_system_diagnostics_tick_cb, 1000, NULL);`)
+lines.push(`    lv_obj_add_flag(fg_system_diagnostics_page, LV_OBJ_FLAG_HIDDEN);`)
 lines.push(``)
 lines.push(`#if 0 /* Legacy eager Storage construction retained only as migration reference. */`)
 lines.push(`    fg_system_storage_page = lv_obj_create(parent);`)
