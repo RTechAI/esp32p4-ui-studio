@@ -9,7 +9,8 @@ idf_component_register(
         "90_Studio_Export.c"
         "95_UserEvents.c"
         "assets/defaults/fg_upload_ai_hero_1784342478518_b95a7dc0.c"
-        "assets/uploads/fg_upload_ai_hero_1785318875235_cecf4ae7.c"
+        "assets/defaults/fg_upload_ai_hero_1784342478518_b95a7dc0.c"
+        "assets/uploads/fg_upload_fiactivity_25d314e8.c"
 
     INCLUDE_DIRS
         "."

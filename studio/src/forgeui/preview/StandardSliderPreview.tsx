@@ -6,6 +6,8 @@ import {
   SliderThumb,
   SliderTrack,
 } from '@chakra-ui/react'
+import { useForgePreviewPalette } from '../theme/ForgeThemeContext'
+import { resolveForgeSemanticPalette } from './forgeThemeMap'
 
 export type StandardSliderInteractionMode = 'canvas' | 'browser'
 
@@ -39,6 +41,10 @@ const StandardSliderPreview = ({
   fillColor,
   thumbColor,
 }: Props) => {
+  const theme = resolveForgeSemanticPalette(useForgePreviewPalette())
+  const resolvedTrackColor = trackColor || theme.surfaceSecondary
+  const resolvedFillColor = fillColor || theme.accent
+  const resolvedThumbColor = thumbColor || theme.accentText
   const minimum = finiteNumber(min, 0)
   const maximum = Math.max(minimum, finiteNumber(max, 100))
   const increment = Math.max(0.000001, finiteNumber(step, 1))
@@ -88,10 +94,10 @@ const StandardSliderPreview = ({
           : undefined}
         data-testid="standard-slider-control"
       >
-        <SliderTrack bg={trackColor}>
-          <SliderFilledTrack bg={fillColor} />
+        <SliderTrack bg={resolvedTrackColor}>
+          <SliderFilledTrack bg={resolvedFillColor} />
         </SliderTrack>
-        <SliderThumb bg={thumbColor} />
+        <SliderThumb bg={resolvedThumbColor} />
       </Slider>
     </Box>
   )

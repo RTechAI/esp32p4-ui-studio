@@ -1,6 +1,8 @@
 import React from 'react'
 import { IconButton } from '@chakra-ui/react'
 import icons from '~iconsList'
+import { useForgePreviewPalette } from '../theme/ForgeThemeContext'
+import { resolveForgeSemanticPalette } from './forgeThemeMap'
 
 type Props = {
   component: IComponent
@@ -17,6 +19,10 @@ const StandardIconButtonPreview = ({
   border,
   text,
 }: Props) => {
+  const theme = resolveForgeSemanticPalette(useForgePreviewPalette())
+  const resolvedSurface = surface || theme.surface
+  const resolvedBorder = border || theme.surfaceBorder
+  const resolvedText = text || theme.textPrimary
   const [pressed, setPressed] = React.useState(false)
   const {
     icon: iconName,
@@ -42,9 +48,9 @@ const StandardIconButtonPreview = ({
       height="100%"
       pointerEvents={interactive ? 'auto' : 'none'}
       tabIndex={interactive ? 0 : -1}
-      bg={pressed ? border : surface}
-      borderColor={border}
-      color={text}
+      bg={pressed ? theme.selectedSurface : resolvedSurface}
+      borderColor={resolvedBorder}
+      color={pressed ? theme.accentText : resolvedText}
       data-testid={`standard-icon-button-${mode}`}
       data-pressed={pressed ? 'true' : 'false'}
       onPointerDown={event => {

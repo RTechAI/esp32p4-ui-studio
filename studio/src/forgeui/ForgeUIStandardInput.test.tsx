@@ -4,12 +4,16 @@ import { render, screen } from '@testing-library/react'
 import { renderForgePreview } from './preview/forgePreviewRenderer'
 
 jest.mock('~forgeui/theme/ForgeThemeContext', () => ({
-  useForgeTheme: () => ({
-    palette: {
-      text: '#ffffff',
-      border: '#334155',
-      surface: '#111827',
-    },
+  useForgePreviewPalette: () => ({
+    name: 'Test',
+    bg: '#020617',
+    text: '#ffffff',
+    border: '#334155',
+    surface: '#111827',
+    surface2: '#1f2937',
+    accent: '#38bdf8',
+    texture: 'none',
+    borderStyle: 'flat',
   }),
 }))
 

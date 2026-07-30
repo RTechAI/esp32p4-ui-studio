@@ -1,15 +1,15 @@
 import React from 'react'
 import * as Chakra from '@chakra-ui/react'
+import { useForgePreviewPalette } from '~forgeui/theme/ForgeThemeContext'
+import { resolveForgeSemanticPalette } from '~forgeui/preview/forgeThemeMap'
 
 interface IProps {
   component: IComponent
 }
 
-const FALLBACK_IMAGE =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='180'%3E%3Crect width='100%25' height='100%25' fill='%230ea5e9'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-size='24'%3EForgeUI Image%3C/text%3E%3C/svg%3E"
-
 const ImagePreview = ({ component }: IProps) => {
-  const src = component.props.src || FALLBACK_IMAGE
+  const theme = resolveForgeSemanticPalette(useForgePreviewPalette())
+  const src = component.props.src || ''
 
   return (
     <Chakra.Box
@@ -19,7 +19,8 @@ const ImagePreview = ({ component }: IProps) => {
       display="flex"
       alignItems="center"
       justifyContent="center"
-      bg="#0b1220"
+      bg={theme.surface}
+      border={`1px solid ${theme.surfaceBorder}`}
     >
       <Chakra.Image
         src={src}

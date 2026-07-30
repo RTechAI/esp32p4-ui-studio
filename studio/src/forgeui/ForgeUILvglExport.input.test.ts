@@ -64,6 +64,30 @@ describe('Input generated developer API', () => {
     )
   })
 
+  it('fully specifies the native field frame without inherited theme chrome', () => {
+    const { code } = generate(input())
+    const object = 'fg_search_input_input'
+
+    expect(code).toContain(
+      `lv_obj_set_style_border_width(${object}, 1, LV_PART_MAIN);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_radius(${object}, 6, LV_PART_MAIN);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_outline_width(${object}, 0, LV_PART_MAIN);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_shadow_width(${object}, 0, LV_PART_MAIN);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_bg_opa(${object}, LV_OPA_TRANSP, LV_PART_SCROLLBAR);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_pad_left(${object}, 16, LV_PART_MAIN);`,
+    )
+  })
+
   it('updates programmatically without firing the user hook', () => {
     const { code } = generate(input())
     const setter = code.slice(

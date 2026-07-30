@@ -277,7 +277,7 @@ For the detailed ownership contract, see [03_ForgeUI_Generated_Export_API_Code_M
 
 ## Standard LVGL Component Runtime
 
-ForgeUI now generates retained runtime APIs for supported standard LVGL widgets when the widget has meaningful state or actions to expose. Generated code retains the required LVGL objects and state, applies safe transition rules, and connects semantic developer hooks where appropriate.
+ForgeUI generates retained native LVGL objects and runtime APIs when a Standard widget has meaningful state or actions. Interactive semantic runtime uses silent guarded setters plus genuine-user hooks. Output-only runtime uses retained state and setters without hooks. Presentation-only components remain API-free. Every supported path consumes the shared semantic theme pipeline and targets Canvas â†’ Browser Preview â†’ generated LVGL â†’ ESP32-P4 parity.
 
 This runtime is separate from both reusable Interactive Assets and the built-in System Runtime:
 
@@ -293,16 +293,33 @@ Standard LVGL Component Runtime
 ├── Scale
 ├── Roller
 ├── MsgBox
-└── ButtonMatrix
+├── ButtonMatrix
+├── Input
+├── Textarea
+├── Checkbox
+├── Switch
+├── Radio
+├── Progress
+├── CircularProgress
+├── NumberInput
+└── Select
 ```
 
 The APIs reflect each widget rather than forcing every component into a generic value model. Examples include setting LED, Bar and Arc values, adding or clearing Chart points, showing or hiding the standard Canvas Keyboard, selecting Calendar dates, and selecting Roller or Button Matrix options.
 
-These eleven Standard components are physically proven across Canvas, Browser Preview, generated LVGL, and ESP32-P4: Led, Bar, Arc, Chart, Table, Keyboard, Calendar, Scale, Roller, MsgBox, and ButtonMatrix. Later runtime-complete Standard controls remain outside this physical validation milestone.
+These Standard components are physically proven across Canvas, Browser Preview, generated LVGL and ESP32-P4: Led, Bar, Arc, Chart, Table, Keyboard, Calendar, Scale, Roller, MsgBox, ButtonMatrix, Input, Textarea, Checkbox, Switch, Radio, Progress, CircularProgress, NumberInput and Select.
 
 Chart retains native `lv_chart`, themed rendering, runtime streaming and clear behavior. Responsive gutters support Y-axis range labels and deterministic X-axis point-index labels without inventing categories, dates, or timestamps. Its Canvas, Browser Preview, generated LVGL, and ESP32-P4 output are physically aligned.
 
 Runtime APIs and hooks are generated consistently through both the integrated Build & Flash workflow and standalone ESP-IDF export. Presentation-only components remain API-free when they own no meaningful runtime state. Scale is a visual tick-and-label renderer, Line is decorative geometry, Icon is a Studio authoring convenience for the built-in icon picker, and Divider is visual separation only.
+
+Input and Textarea retain native `lv_textarea` objects with silent text setters and genuine-edit hooks. Touch focuses the field, but neither automatically opens or attaches the Standard Canvas Keyboard. The reusable System Runtime keyboard remains private to System dialogs. This separation is intentional.
+
+CircularProgress is an output-only native `lv_arc` with a silent value setter and no developer hook. It uses a themed 360-degree background, has no knob, cannot be dragged and is explicitly non-clickable.
+
+NumberInput uses one themed outer frame containing a numeric textarea plus native increment/decrement buttons. Hardware callbacks consume serialized step, clamp to minimum/maximum and preserve the existing changed hook; Canvas, Browser Preview and P4 share the same frame and divider structure.
+
+Select retains native `lv_dropdown` behavior while explicitly theming the closed border, arrow, popup and selected rows. Switch explicitly overrides LVGLâ€™s default blue checked state with the active amber accent. Checkbox and Radio no longer invent fallback wording; custom labels remain supported and Radio defaults to indicator-only.
 
 At export, Icon becomes a normal LVGL image backed by the existing generated image symbol. It has no runtime setter or developer hook. Applications that need runtime image swapping should use the Standard Image component and `FG_Set_<Image_Name>_Source(const void * src)`; ForgeUI intentionally does not duplicate that capability as an Icon API.
 
@@ -330,7 +347,7 @@ Generated Firmware
 ESP32-P4
 ```
 
-Canvas follows the selected ForgeUI theme, Browser Preview consumes the same semantic palette, and generated LVGL exports equivalent semantic colours. Custom palettes follow the same path. Decorative colours are no longer hard-coded for the eleven proven Standard components, while meaningful status colours such as Standard LED green may remain intentionally independent.
+Canvas follows the selected ForgeUI theme, Browser Preview consumes the same semantic palette, and generated LVGL exports equivalent semantic colours. Custom palettes follow the same path. Decorative colours are no longer hard-coded for the proven Standard components, while meaningful status colours such as Standard LED green may remain intentionally independent.
 
 The ESP32-P4 matches the selected theme after **Generate → Build → Flash**. Runtime hot theme switching is not currently implemented.
 
@@ -366,6 +383,12 @@ Proven paths include:
 
 - Canvas → Browser Preview → LVGL export → ESP-IDF → physical ESP32-P4
 - Standard Led, Bar, Arc, Chart, Table, Keyboard, Calendar, Scale, Roller, MsgBox, and ButtonMatrix through Canvas → Browser Preview → generated LVGL → ESP32-P4
+- Standard Input, Textarea, Checkbox, Switch, Radio, Progress, Circular Progress, Number Input and Select through Canvas → Browser Preview → generated LVGL → ESP32-P4
+- whole-screen Canvas ↔ ESP32-P4 semantic theme, border and geometry parity for the 2026-07-30 Standard group
+- working Number Input hardware increment/decrement buttons with serialized step and clamping
+- Switch amber checked state with native LVGL blue overridden
+- output-only Circular Progress with no knob or dragging
+- output-only, non-draggable Progress
 - selected-theme parity for Graphite/orange, Cyber teal, Nordic light, and custom palette export
 - native Chart rendering with themed divisions, Y-axis labels, X-axis point indexes, and responsive gutters
 - AI-generated layouts and artwork through editable Canvas workflows

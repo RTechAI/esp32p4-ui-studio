@@ -1,4 +1,3 @@
-import { forgeuiInputStyle } from '~forgeui/ForgeUIControlStyle'
 import React, {
   memo,
   useEffect,
@@ -31,7 +30,6 @@ import BreadcrumbPreview from './previews/BreadcrumbPreview'
 import BreadcrumbItemPreview from './previews/BreadcrumbItemPreview'
 import HighlightPreview from './previews/HighlightPreview'
 import SliderPreview from '~components/editor/previews/SliderPreview'
-import ProgressPreview from '~components/editor/previews/ProgressPreview'
 import BarPreview from '~components/editor/previews/BarPreview'
 import ArcPreview from '~components/editor/previews/ArcPreview'
 import StandardChartPreview from '~forgeui/preview/StandardChartPreview'
@@ -62,7 +60,9 @@ import InteractiveToggleSwitchCanvasPreview, {
 } from './previews/InteractiveToggleSwitchCanvasPreview'
 import StandardSwitchPreview from '~forgeui/preview/StandardSwitchPreview'
 import StandardCheckboxPreview from '~forgeui/preview/StandardCheckboxPreview'
+import { getForgeUIStandardCheckboxText } from '~forgeui/ForgeUIStandardCheckbox'
 import StandardRadioPreview from '~forgeui/preview/StandardRadioPreview'
+import { getForgeUIStandardRadioText } from '~forgeui/ForgeUIStandardRadio'
 import InteractiveThreePositionToggleCanvasPreview, {
   getInteractiveThreePositionCanvasAspectRatio,
 } from './previews/InteractiveThreePositionToggleCanvasPreview'
@@ -171,12 +171,7 @@ const ComponentPreview: React.FC<{
           colorScheme={
             component.props.colorScheme || 'blue'
           }
-          label={
-            component.props.children ||
-            component.props.text ||
-            component.props.label ||
-            'Radio'
-          }
+          label={getForgeUIStandardRadioText(component.props)}
         />
       </Chakra.Box>
     </PreviewContainer>
@@ -243,7 +238,6 @@ case 'Switch':
     case 'AccordionIcon':
     case 'Code':
     case 'ListIcon':
-    case 'Divider':
     case 'AlertDescription':
     case 'AlertTitle':
     case 'InputRightAddon':
@@ -517,7 +511,15 @@ case 'Progress':
       enableVisualHelper
       {...forwardedProps}
     >
-      <ProgressPreview component={component} />
+      <Chakra.Progress
+        {...component.props}
+        value={component.props.value ?? 60}
+        width="100%"
+        height="100%"
+        borderRadius="md"
+        bg={previewTheme.surfaceSecondary}
+        sx={{ '& > div': { background: previewTheme.accent } }}
+      />
     </PreviewContainer>
   )
 
@@ -577,9 +579,21 @@ case 'Select':
     >
       <Chakra.Input
       {...component.props}
-       {...forgeuiInputStyle}
        width="100%"
         height="100%"
+        bg={previewTheme.surface}
+        color={previewTheme.textPrimary}
+        borderColor={previewTheme.surfaceBorder}
+        borderWidth="1px"
+        borderRadius="6px"
+        px="16px"
+        py="0"
+        _placeholder={{ color: previewTheme.textSecondary, opacity: 1 }}
+        _focus={{
+          borderColor: previewTheme.accent,
+          boxShadow: 'none',
+        }}
+        _disabled={{ color: previewTheme.disabledText, opacity: 1 }}
          placeholder={component.props.placeholder || 'Input value'}
 />
     </PreviewContainer>
@@ -598,12 +612,11 @@ case 'Select':
         display="flex"
         alignItems="center"
         justifyContent="center"
-        border="1px dashed #666"
-        color="gray.400"
-        fontSize="sm"
-      >
-        Box
-      </Chakra.Box>
+        border={`2px solid ${previewTheme.surfaceBorder}`}
+        borderRadius="12px"
+        bg={previewTheme.surface}
+        opacity={0.8}
+      />
     </PreviewContainer>
   )
   
@@ -634,17 +647,13 @@ case 'Image':
         px="8px"
       >
         <StandardCheckboxPreview
+          mode="canvas"
           initialChecked={Boolean(component.props.isChecked)}
           isDisabled={Boolean(component.props.isDisabled)}
           colorScheme={
             component.props.colorScheme || 'blue'
           }
-          label={
-            component.props.children ||
-            component.props.text ||
-            component.props.label ||
-            'Checkbox'
-          }
+          label={getForgeUIStandardCheckboxText(component.props)}
         />
       </Chakra.Box>
     </PreviewContainer>
@@ -659,9 +668,21 @@ case 'Textarea':
     >
       <Chakra.Textarea
        {...component.props}
-        {...forgeuiInputStyle}
          width="100%"
           height="100%"
+          bg={previewTheme.surface}
+          color={previewTheme.textPrimary}
+          borderColor={previewTheme.surfaceBorder}
+          borderWidth="1px"
+          borderRadius="6px"
+          px="16px"
+          py="8px"
+          _placeholder={{ color: previewTheme.textSecondary, opacity: 1 }}
+          _focus={{
+            borderColor: previewTheme.accent,
+            boxShadow: 'none',
+          }}
+          _disabled={{ color: previewTheme.disabledText, opacity: 1 }}
             placeholder={component.props.placeholder || 'Textarea value'}
 />
     </PreviewContainer>
@@ -934,6 +955,20 @@ case 'Line':
         component={component}
         palette={previewPalette}
       />
+    </PreviewContainer>
+  )
+
+case 'Divider':
+  return (
+    <PreviewContainer component={component} enableVisualHelper {...forwardedProps}>
+      <Chakra.Box
+        width="100%"
+        height="100%"
+        display="flex"
+        alignItems="center"
+      >
+        <Chakra.Divider borderColor={previewTheme.surfaceBorder} opacity={1} />
+      </Chakra.Box>
     </PreviewContainer>
   )
 

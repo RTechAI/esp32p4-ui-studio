@@ -43,29 +43,37 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- `FG_On_Data_Chart_Point_Added()`
-- `FG_On_Data_Chart_Cleared()`
-- `FG_On_Data_Chart_2_Point_Added()`
-- `FG_On_Data_Chart_2_Cleared()`
-- `FG_On_Calendar_Date_Changed()`
-- `FG_On_Tab_View_Changed()`
-- `FG_On_Tab_View_2_Changed()`
-- `FG_On_Tileview_Changed()`
-- `FG_On_Tileview_2_Changed()`
+- `FG_On_Status_LED_Changed()`
+- `FG_On_Progress_Bar_Changed()`
+- `FG_On_Option_Roller_Changed()`
+- `FG_On_Message_Shown()`
+- `FG_On_Message_Closed()`
+- `FG_On_Message_Button_Pressed()`
+- `FG_On_Textarea_Changed()`
+- `FG_On_Input_Changed()`
+- `FG_On_Switch_Changed()`
+- `FG_On_Checkbox_Changed()`
+- `FG_On_Radio_Changed()`
+- `FG_On_Number_Input_Changed()`
+- `FG_On_Select_Changed()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| Data_Chart_Point_Added | Click | `FG_On_Data_Chart_Point_Added()` |
-| Data_Chart_Cleared | Click | `FG_On_Data_Chart_Cleared()` |
-| Data_Chart_2_Point_Added | Click | `FG_On_Data_Chart_2_Point_Added()` |
-| Data_Chart_2_Cleared | Click | `FG_On_Data_Chart_2_Cleared()` |
-| Calendar_Date_Changed | Click | `FG_On_Calendar_Date_Changed()` |
-| Tab_View_Changed | Click | `FG_On_Tab_View_Changed()` |
-| Tab_View_2_Changed | Click | `FG_On_Tab_View_2_Changed()` |
-| Tileview_Changed | Click | `FG_On_Tileview_Changed()` |
-| Tileview_2_Changed | Click | `FG_On_Tileview_2_Changed()` |
+| Status_LED_Changed | Click | `FG_On_Status_LED_Changed()` |
+| Progress_Bar_Changed | Click | `FG_On_Progress_Bar_Changed()` |
+| Option_Roller_Changed | Click | `FG_On_Option_Roller_Changed()` |
+| Message_Shown | Click | `FG_On_Message_Shown()` |
+| Message_Closed | Click | `FG_On_Message_Closed()` |
+| Message_Button_Pressed | Click | `FG_On_Message_Button_Pressed()` |
+| Textarea_Changed | Click | `FG_On_Textarea_Changed()` |
+| Input_Changed | Click | `FG_On_Input_Changed()` |
+| Switch_Changed | Click | `FG_On_Switch_Changed()` |
+| Checkbox_Changed | Click | `FG_On_Checkbox_Changed()` |
+| Radio_Changed | Click | `FG_On_Radio_Changed()` |
+| Number_Input_Changed | Click | `FG_On_Number_Input_Changed()` |
+| Select_Changed | Click | `FG_On_Select_Changed()` |
 
 ---
 

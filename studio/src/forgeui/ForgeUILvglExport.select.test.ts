@@ -78,6 +78,45 @@ describe('Standard Select generated runtime API', () => {
       .not.toContain('FG_On_Mode_Select_Changed')
   })
 
+  it('explicitly themes the closed field, arrow, interaction states, and popup list', () => {
+    const { code } = generate(select('select'))
+
+    expect(code).toContain(
+      'lv_obj_set_style_border_width(fg_mode_select, 1, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_radius(fg_mode_select, 8, LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_outline_width(fg_mode_select, 0, LV_PART_MAIN | LV_STATE_FOCUS_KEY);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_text_color(fg_mode_select, lv_color_hex(0xF5F5F5), LV_PART_INDICATOR);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_bg_color(fg_mode_select, lv_color_hex(0xF2A900), LV_PART_MAIN | LV_STATE_CHECKED);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_bg_color(fg_mode_select, lv_color_hex(0x2A3138), LV_PART_MAIN | LV_STATE_DISABLED);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_opa(fg_mode_select, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DISABLED);',
+    )
+    expect(code).toContain(
+      'lv_obj_t * fg_mode_select_list = lv_dropdown_get_list(fg_mode_select);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_border_color(fg_mode_select_list, lv_color_hex(0xF2A900), LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_bg_color(fg_mode_select_list, lv_color_hex(0xF2A900), LV_PART_SELECTED | LV_STATE_CHECKED);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_text_color(fg_mode_select_list, lv_color_hex(0x121417), LV_PART_SELECTED | LV_STATE_CHECKED);',
+    )
+    expect(code).not.toMatch(/lv_color_hex\(0x(?:2196F3|1976D2|0000FF)\)/)
+  })
+
   it('clamps, compares native state, and guards programmatic updates', () => {
     const { code } = generate(select('select'))
     const start = code.indexOf(

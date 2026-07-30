@@ -23,6 +23,9 @@ const StandardChartPreview: React.FC<StandardChartPreviewProps> = ({
   const chart = getForgeUIStandardChartModel(component.props)
   const layout = getForgeUIStandardChartLayout(component.props)
   const theme = resolveForgeSemanticPalette(palette)
+  const seriesColor = component.props.seriesColor
+    ? chart.seriesColor
+    : theme.accent
   const segments: string[] = []
   let currentSegment: string[] = []
 
@@ -131,7 +134,7 @@ const StandardChartPreview: React.FC<StandardChartPreviewProps> = ({
             <polyline
               key={index}
               fill="none"
-              stroke={chart.seriesColor}
+              stroke={seriesColor}
               strokeWidth="2"
               strokeLinejoin="round"
               points={points}

@@ -59,6 +59,550 @@ void FG_On_Status_LED_Changed(bool enabled);
 ---
 
 # ==============================================================================
+# ⌨️ STANDARD INPUT
+# ==============================================================================
+
+## Status
+
+**✅ PROVEN**
+
+---
+
+## ✔ Verified
+
+- Canvas
+- Browser Preview
+- Project Persistence
+- Generated LVGL
+- Runtime API
+- 95_UserEvents
+- ESP32-P4 Hardware
+- Silent Startup
+
+---
+
+## ⚙ Runtime API (90_Studio_Export)
+
+```c
+void FG_Set_<Name>_Text(const char * text);
+```
+
+### Behaviour
+
+- Setter updates text silently.
+- Duplicate effective values are ignored.
+- Startup does not invoke the runtime API.
+
+---
+
+## 🧩 Developer Hook (95_UserEvents)
+
+```c
+void FG_On_<Name>_Changed(const char * text);
+```
+
+### Behaviour
+
+- Fired for genuine user edits only.
+- Never fired by the setter or during startup.
+
+---
+
+## 📝 Notes
+
+- Native single-line `lv_textarea`.
+- Semantic theme and border parity.
+- Canvas ↔ Browser Preview ↔ Generated LVGL ↔ ESP32-P4 parity.
+- Touch focuses the field only; no keyboard is attached automatically.
+- Hardware proven.
+
+---
+
+# ==============================================================================
+# 📝 STANDARD TEXTAREA
+# ==============================================================================
+
+## Status
+
+**✅ PROVEN**
+
+---
+
+## ✔ Verified
+
+- Canvas
+- Browser Preview
+- Project Persistence
+- Generated LVGL
+- Runtime API
+- 95_UserEvents
+- ESP32-P4 Hardware
+- Silent Startup
+
+---
+
+## ⚙ Runtime API (90_Studio_Export)
+
+```c
+void FG_Set_<Name>_Text(const char * text);
+```
+
+### Behaviour
+
+- Setter updates multiline text silently.
+- Duplicate effective values are ignored.
+- Startup does not invoke the runtime API.
+
+---
+
+## 🧩 Developer Hook (95_UserEvents)
+
+```c
+void FG_On_<Name>_Changed(const char * text);
+```
+
+### Behaviour
+
+- Fired for genuine user edits only.
+- Never fired by the setter or during startup.
+
+---
+
+## 📝 Notes
+
+- Native multiline `lv_textarea`.
+- Semantic theme and border parity.
+- Canvas ↔ Browser Preview ↔ Generated LVGL ↔ ESP32-P4 parity.
+- Touch focuses the field only; no keyboard is attached automatically.
+- Hardware proven.
+
+---
+
+# ==============================================================================
+# ☑️ STANDARD CHECKBOX
+# ==============================================================================
+
+## Status
+
+**✅ PROVEN**
+
+---
+
+## ✔ Verified
+
+- Canvas
+- Browser Preview
+- Project Persistence
+- Generated LVGL
+- Runtime API
+- 95_UserEvents
+- ESP32-P4 Hardware
+- Silent Startup
+
+---
+
+## ⚙ Runtime API (90_Studio_Export)
+
+```c
+void FG_Set_<Name>_Checked(bool checked);
+```
+
+### Behaviour
+
+- Setter changes checked state silently.
+- Duplicate states are ignored.
+- Startup does not invoke the runtime API.
+
+---
+
+## 🧩 Developer Hook (95_UserEvents)
+
+```c
+void FG_On_<Name>_Changed(bool checked);
+```
+
+### Behaviour
+
+- Fired after a genuine checked-state change.
+- Never fired by the setter or during startup.
+
+---
+
+## 📝 Notes
+
+- Default fallback wording removed.
+- Legacy fallback wording normalizes to empty.
+- Explicit custom labels remain supported.
+- Semantic theme and checked-state parity.
+- Canvas ↔ Browser Preview ↔ Generated LVGL ↔ ESP32-P4 parity.
+- Hardware proven.
+
+---
+
+# ==============================================================================
+# 🔀 STANDARD SWITCH
+# ==============================================================================
+
+## Status
+
+**✅ PROVEN**
+
+---
+
+## ✔ Verified
+
+- Canvas
+- Browser Preview
+- Project Persistence
+- Generated LVGL
+- Runtime API
+- 95_UserEvents
+- ESP32-P4 Hardware
+- Silent Startup
+
+---
+
+## ⚙ Runtime API (90_Studio_Export)
+
+```c
+void FG_Set_<Name>_Checked(bool checked);
+```
+
+### Behaviour
+
+- Setter changes checked state silently.
+- Duplicate states are ignored.
+- Startup does not invoke the runtime API.
+
+---
+
+## 🧩 Developer Hook (95_UserEvents)
+
+```c
+void FG_On_<Name>_Changed(bool checked);
+```
+
+### Behaviour
+
+- Fired after a genuine checked-state change.
+- Never fired by the setter or during startup.
+
+---
+
+## 📝 Notes
+
+- Checked state uses the active amber semantic accent.
+- Explicit generated styling overrides native LVGL blue.
+- Semantic theme parity.
+- Canvas ↔ Browser Preview ↔ Generated LVGL ↔ ESP32-P4 parity.
+- Hardware proven.
+
+---
+
+# ==============================================================================
+# 🔘 STANDARD RADIO
+# ==============================================================================
+
+## Status
+
+**✅ PROVEN**
+
+---
+
+## ✔ Verified
+
+- Canvas
+- Browser Preview
+- Project Persistence
+- Generated LVGL
+- Runtime API
+- 95_UserEvents
+- ESP32-P4 Hardware
+- Silent Startup
+
+---
+
+## ⚙ Runtime API (90_Studio_Export)
+
+```c
+void FG_Set_<Name>_Selected(bool selected);
+```
+
+### Behaviour
+
+- Setter changes independent selected state silently.
+- Duplicate states are ignored.
+- Startup does not invoke the runtime API.
+
+---
+
+## 🧩 Developer Hook (95_UserEvents)
+
+```c
+void FG_On_<Name>_Changed(bool selected);
+```
+
+### Behaviour
+
+- Fired after a genuine selected-state change.
+- Never fired by the setter or during startup.
+
+---
+
+## 📝 Notes
+
+- Default `"Radio"` text removed.
+- Default rendering is indicator-only.
+- Explicit custom labels remain supported.
+- Semantic theme parity.
+- Canvas ↔ Browser Preview ↔ Generated LVGL ↔ ESP32-P4 parity.
+- Hardware proven.
+
+---
+
+# ==============================================================================
+# 📶 STANDARD PROGRESS
+# ==============================================================================
+
+## Status
+
+**✅ PROVEN**
+
+---
+
+## ✔ Verified
+
+- Canvas
+- Browser Preview
+- Project Persistence
+- Generated LVGL
+- Runtime API
+- ESP32-P4 Hardware
+- Silent Startup
+
+---
+
+## ⚙ Runtime API (90_Studio_Export)
+
+```c
+void FG_Set_<Name>_Value(int32_t value);
+```
+
+### Behaviour
+
+- Output-only setter clamps to the configured range.
+- Duplicate effective values are ignored.
+- Native `lv_bar` is non-draggable.
+- Startup does not invoke the runtime API.
+
+---
+
+## 🧩 Developer Hook (95_UserEvents)
+
+**None generated**
+
+### Behaviour
+
+- Progress has no genuine user transition.
+- No changed hook is generated.
+
+---
+
+## 📝 Notes
+
+- Output-only native `lv_bar`.
+- Setter-only runtime.
+- Semantic theme parity.
+- Canvas ↔ Browser Preview ↔ Generated LVGL ↔ ESP32-P4 parity.
+- Hardware proven.
+
+---
+
+# ==============================================================================
+# ⭕ STANDARD CIRCULAR PROGRESS
+# ==============================================================================
+
+## Status
+
+**✅ PROVEN**
+
+---
+
+## ✔ Verified
+
+- Canvas
+- Browser Preview
+- Project Persistence
+- Generated LVGL
+- Runtime API
+- ESP32-P4 Hardware
+- Silent Startup
+
+---
+
+## ⚙ Runtime API (90_Studio_Export)
+
+```c
+void FG_Set_<Name>_Value(int32_t value);
+```
+
+### Behaviour
+
+- Output-only setter clamps to the configured range.
+- Duplicate effective values are ignored.
+- No touch dragging or interaction.
+- Startup does not invoke the runtime API.
+
+---
+
+## 🧩 Developer Hook (95_UserEvents)
+
+**None generated**
+
+### Behaviour
+
+- Circular Progress has no genuine user transition.
+- No changed hook is generated.
+
+---
+
+## 📝 Notes
+
+- Native `lv_arc`.
+- Full 360° background arc with 270° rotation.
+- `surfaceSecondary` remaining track and `accent` indicator.
+- Knob removed and clickability disabled.
+- Semantic theme parity.
+- Canvas ↔ Browser Preview ↔ Generated LVGL ↔ ESP32-P4 parity.
+- Hardware proven.
+
+---
+
+# ==============================================================================
+# 🔢 STANDARD NUMBER INPUT
+# ==============================================================================
+
+## Status
+
+**✅ PROVEN**
+
+---
+
+## ✔ Verified
+
+- Canvas
+- Browser Preview
+- Project Persistence
+- Generated LVGL
+- Runtime API
+- 95_UserEvents
+- ESP32-P4 Hardware
+- Silent Startup
+
+---
+
+## ⚙ Runtime API (90_Studio_Export)
+
+```c
+void FG_Set_<Name>_Value(int32_t value);
+```
+
+### Behaviour
+
+- Setter clamps to minimum and maximum silently.
+- Hardware increment/decrement buttons consume serialized step.
+- Button changes invoke the developer hook.
+- Startup does not invoke the runtime API.
+
+---
+
+## 🧩 Developer Hook (95_UserEvents)
+
+```c
+void FG_On_<Name>_Changed(int32_t value);
+```
+
+### Behaviour
+
+- Fired after genuine text edits or hardware stepper changes.
+- Never fired by the setter or during startup.
+
+---
+
+## 📝 Notes
+
+- Outer container owns the complete semantic border.
+- Numeric textarea plus hardware increment and decrement buttons.
+- Vertical field/stepper divider and horizontal button divider.
+- Step support and minimum/maximum clamping.
+- Canvas ↔ Browser Preview ↔ Generated LVGL ↔ ESP32-P4 parity.
+- Hardware proven.
+
+---
+
+# ==============================================================================
+# 🔽 STANDARD SELECT
+# ==============================================================================
+
+## Status
+
+**✅ PROVEN**
+
+---
+
+## ✔ Verified
+
+- Canvas
+- Browser Preview
+- Project Persistence
+- Generated LVGL
+- Runtime API
+- 95_UserEvents
+- ESP32-P4 Hardware
+- Silent Startup
+
+---
+
+## ⚙ Runtime API (90_Studio_Export)
+
+```c
+void FG_Set_<Name>_Selected_Index(uint32_t index);
+```
+
+### Behaviour
+
+- Setter clamps to the available options silently.
+- Duplicate effective selections are ignored.
+- Startup does not invoke the runtime API.
+
+---
+
+## 🧩 Developer Hook (95_UserEvents)
+
+```c
+void FG_On_<Name>_Changed(uint32_t index, const char * text);
+```
+
+### Behaviour
+
+- Fired after a genuine selection change.
+- Supplies selected index and text.
+- Never fired by the setter or during startup.
+
+---
+
+## 📝 Notes
+
+- Native `lv_dropdown`.
+- Closed control and popup list are semantically themed.
+- Semantic outer border and dropdown arrow.
+- Native blue selected-row styling is overridden.
+- Canvas ↔ Browser Preview ↔ Generated LVGL ↔ ESP32-P4 parity.
+- Hardware proven.
+
+---
+
+# ==============================================================================
 # 📊 STANDARD BAR
 # ==============================================================================
 

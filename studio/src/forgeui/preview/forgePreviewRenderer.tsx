@@ -5,7 +5,6 @@ import {
   Box,
   Text,
   Progress,
-  CircularProgress,
   Input,
   Textarea,
   Select,
@@ -18,9 +17,12 @@ import InteractiveStatusIndicatorCanvasPreview from '~components/editor/previews
 import InteractiveToggleSwitchCanvasPreview from '~components/editor/previews/InteractiveToggleSwitchCanvasPreview'
 import InteractiveThreePositionToggleCanvasPreview from '~components/editor/previews/InteractiveThreePositionToggleCanvasPreview'
 import ClockPreview from '~components/editor/previews/ClockPreview'
+import CircularProgressPreview from '~components/editor/previews/CircularProgressPreview'
 import StandardSwitchPreview from './StandardSwitchPreview'
 import StandardCheckboxPreview from './StandardCheckboxPreview'
+import { getForgeUIStandardCheckboxText } from '../ForgeUIStandardCheckbox'
 import StandardRadioPreview from './StandardRadioPreview'
+import { getForgeUIStandardRadioText } from '../ForgeUIStandardRadio'
 import StandardSliderPreview from './StandardSliderPreview'
 import StandardNumberInputPreview from './StandardNumberInputPreview'
 import StandardSelectPreview from './StandardSelectPreview'
@@ -237,6 +239,7 @@ case 'WiFi': {
           ? 'none'
           : `2px solid ${palette.border}`
       }
+      opacity={isFullScreenBackground ? 1 : 0.8}
     />,
   )
   break
@@ -280,6 +283,13 @@ case 'WiFi': {
             color={palette.text}
             borderColor={palette.border}
             background={palette.surface}
+            borderWidth="1px"
+            borderRadius="6px"
+            px="16px"
+            py="0"
+            _placeholder={{ color: theme.textSecondary, opacity: 1 }}
+            _focus={{ borderColor: theme.accent, boxShadow: 'none' }}
+            _disabled={{ color: theme.disabledText, opacity: 1 }}
           />,
         )
         break
@@ -296,6 +306,13 @@ case 'WiFi': {
             color={palette.text}
             borderColor={palette.border}
             background={palette.surface}
+            borderWidth="1px"
+            borderRadius="6px"
+            px="16px"
+            py="8px"
+            _placeholder={{ color: theme.textSecondary, opacity: 1 }}
+            _focus={{ borderColor: theme.accent, boxShadow: 'none' }}
+            _disabled={{ color: theme.disabledText, opacity: 1 }}
           />,
         )
         break
@@ -316,9 +333,6 @@ case 'WiFi': {
               precision={child.props.precision}
               isDisabled={Boolean(child.props.isDisabled)}
               isReadOnly={Boolean(child.props.isReadOnly)}
-              textColor={palette.text}
-              borderColor={palette.border}
-              backgroundColor={palette.surface}
             />
           </Box>,
         )
@@ -338,9 +352,6 @@ case 'WiFi': {
               legacyValue={child.props.value}
               isDisabled={Boolean(child.props.isDisabled)}
               icon={SelectIcon ? <SelectIcon path="" /> : undefined}
-              textColor={palette.text}
-              backgroundColor={palette.surface}
-              borderColor={palette.border}
             />
           </Box>,
         )
@@ -359,8 +370,8 @@ case 'WiFi': {
         initialChecked={Boolean(child.props.isChecked)}
         isDisabled={Boolean(child.props.isDisabled)}
         accent={palette.accent}
-        surface={palette.surface2}
-        thumb={palette.text}
+        surface={theme.surfaceSecondary}
+        thumb={theme.accentText}
       />
     </Box>,
   )
@@ -376,9 +387,10 @@ case 'WiFi': {
       alignItems="center"
     >
       <StandardCheckboxPreview
+        mode="browser"
         initialChecked={Boolean(child.props.isChecked)}
         isDisabled={Boolean(child.props.isDisabled)}
-        label={label || 'Checkbox'}
+        label={getForgeUIStandardCheckboxText(child.props)}
         textColor={palette.text}
         accent={palette.accent}
         surface={palette.surface}
@@ -403,7 +415,7 @@ case 'WiFi': {
       <StandardRadioPreview
         initialSelected={Boolean(child.props.isChecked)}
         isDisabled={Boolean(child.props.isDisabled)}
-        label={label || 'Radio'}
+        label={getForgeUIStandardRadioText(child.props)}
         textColor={palette.text}
         accent={palette.accent}
         border={palette.border}
@@ -424,9 +436,9 @@ case 'WiFi': {
         step={child.props.step}
         orientation={child.props.orientation}
         isDisabled={Boolean(child.props.isDisabled)}
-        trackColor={palette.surface2}
-        fillColor={palette.accent}
-        thumbColor={palette.text}
+        trackColor={theme.surfaceSecondary}
+        fillColor={theme.accent}
+        thumbColor={theme.accentText}
       />
     </Box>,
   )
@@ -462,11 +474,7 @@ case 'WiFi': {
       alignItems="center"
       justifyContent="center"
     >
-      <CircularProgress
-        value={lv(child.props.value, 65)}
-        color={palette.accent}
-        trackColor={palette.surface2}
-      />
+      <CircularProgressPreview component={child} />
     </Box>,
   )
   break
@@ -727,6 +735,20 @@ case 'Line': {
   output.push(
     <Box key={child.id} {...commonStyle} overflow="hidden">
       <StandardLinePreview component={child} palette={palette} />
+    </Box>,
+  )
+  break
+}
+
+case 'Divider': {
+  output.push(
+    <Box
+      key={child.id}
+      {...commonStyle}
+      display="flex"
+      alignItems="center"
+    >
+      <Box width="100%" height="1px" bg={theme.surfaceBorder} />
     </Box>,
   )
   break

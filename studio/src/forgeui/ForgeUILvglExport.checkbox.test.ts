@@ -70,6 +70,25 @@ describe('Standard Checkbox generated developer API', () => {
     )
   })
 
+  it('does not invent text for empty or legacy-placeholder labels', () => {
+    const empty = generate(checkbox('empty', 'Renamed Component', {
+      children: '',
+    })).code
+    const legacy = generate(checkbox('legacy', 'Renamed Component', {
+      children: 'Label checkbox',
+    })).code
+
+    expect(empty).toContain(
+      'lv_checkbox_set_text(fg_renamed_component_checkbox, "");',
+    )
+    expect(legacy).toContain(
+      'lv_checkbox_set_text(fg_renamed_component_checkbox, "");',
+    )
+    expect(empty).not.toContain(
+      'lv_checkbox_set_text(fg_renamed_component_checkbox, "Checkbox");',
+    )
+  })
+
   it('silently compares, checks, and unchecks programmatic state', () => {
     const { code } = generate(checkbox())
     const start = code.indexOf(

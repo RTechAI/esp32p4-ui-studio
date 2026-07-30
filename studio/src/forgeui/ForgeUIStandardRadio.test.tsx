@@ -4,6 +4,17 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import StandardRadioPreview from './preview/StandardRadioPreview'
 
 describe('Standard Radio preview behavior', () => {
+  it('renders no default or legacy Radio label', () => {
+    render(
+      <ChakraProvider>
+        <StandardRadioPreview initialSelected={false} label="Radio" />
+      </ChakraProvider>,
+    )
+
+    expect(screen.queryByText('Radio')).not.toBeInTheDocument()
+    expect(screen.getByRole('radio')).toBeInTheDocument()
+  })
+
   it('preserves serialized label and initial selection', () => {
     render(
       <ChakraProvider>

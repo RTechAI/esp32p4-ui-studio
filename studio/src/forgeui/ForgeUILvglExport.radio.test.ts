@@ -70,6 +70,19 @@ describe('Standard Radio generated developer API', () => {
     )
   })
 
+  it('emits no default or legacy Radio label', () => {
+    const { code } = generate(radio('unlabelled', 'Radio', {
+      children: 'Radio',
+    }))
+
+    expect(code).toContain(
+      'lv_checkbox_set_text(fg_radio_radio, "");',
+    )
+    expect(code).not.toContain(
+      'lv_checkbox_set_text(fg_radio_radio, "Radio");',
+    )
+  })
+
   it('silently compares, selects, and unselects programmatic state', () => {
     const { code } = generate(radio())
     const start = code.indexOf(

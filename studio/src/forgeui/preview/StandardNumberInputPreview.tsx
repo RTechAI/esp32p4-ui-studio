@@ -7,7 +7,8 @@ import {
   NumberInputField,
   NumberInputStepper,
 } from '@chakra-ui/react'
-import { forgeuiInputStyle } from '~forgeui/ForgeUIControlStyle'
+import { useForgePreviewPalette } from '../theme/ForgeThemeContext'
+import { resolveForgeSemanticPalette } from './forgeThemeMap'
 
 export type StandardNumberInputInteractionMode = 'canvas' | 'browser'
 
@@ -43,6 +44,12 @@ const StandardNumberInputPreview = ({
   backgroundColor,
   borderColor,
 }: Props) => {
+  const theme = resolveForgeSemanticPalette(useForgePreviewPalette())
+  const resolvedText = isDisabled
+    ? theme.disabledText
+    : textColor || theme.textPrimary
+  const resolvedBackground = backgroundColor || theme.surface
+  const resolvedBorder = borderColor || theme.surfaceBorder
   const firstRangeValue = finiteNumber(min, 0)
   const secondRangeValue = finiteNumber(max, 100)
   const minimum = Math.min(firstRangeValue, secondRangeValue)
@@ -76,11 +83,24 @@ const StandardNumberInputPreview = ({
       alignItems="center"
       justifyContent="center"
       padding="0"
+      boxSizing="border-box"
+      background={theme.surface}
+      border="1px solid"
+      borderColor={theme.surfaceBorder}
+      borderRadius="6px"
+      overflow="hidden"
+      style={{
+        background: theme.surface,
+        border: `1px solid ${theme.surfaceBorder}`,
+        borderRadius: '6px',
+        overflow: 'hidden',
+      }}
       data-testid={`standard-number-input-${mode}`}
       data-number-input-value={previewValue}
     >
       <NumberInput
         width="100%"
+        height="100%"
         value={previewValue}
         min={minimum}
         max={maximum}
@@ -113,17 +133,90 @@ const StandardNumberInputPreview = ({
           }
           : undefined}
         data-testid="standard-number-input-control"
-        {...forgeuiInputStyle}
       >
         <NumberInputField
-          {...forgeuiInputStyle}
-          color={textColor}
-          background={backgroundColor}
-          borderColor={borderColor}
+          color={resolvedText}
+          background={resolvedBackground}
+          borderColor={resolvedBorder}
+          borderWidth="0"
+          borderRadius="0"
+          height="100%"
+          opacity={1}
+          _placeholder={{ color: theme.textSecondary, opacity: 1 }}
+          _disabled={{ color: theme.disabledText, opacity: 1 }}
+          _focus={{
+            borderColor: theme.accent,
+            borderWidth: 0,
+            boxShadow: 'none',
+          }}
+          _focusVisible={{
+            borderWidth: 0,
+            boxShadow: 'none',
+          }}
         />
-        <NumberInputStepper>
-          <NumberIncrementStepper aria-label="Increment value" />
-          <NumberDecrementStepper aria-label="Decrement value" />
+        <NumberInputStepper
+          borderWidth="0"
+          color={isDisabled ? theme.disabledText : theme.textPrimary}
+          data-testid="standard-number-input-stepper"
+        >
+          <NumberIncrementStepper
+            aria-label="Increment value"
+            background={theme.surfaceSecondary}
+            borderWidth="0"
+            borderRadius="0"
+            style={{ borderWidth: 0 }}
+            color={isDisabled ? theme.disabledText : theme.textPrimary}
+            _hover={{ background: theme.selectedSurface }}
+            _active={{
+              background: theme.accent,
+              color: theme.accentText,
+            }}
+            _disabled={{
+              background: theme.surfaceSecondary,
+              color: theme.disabledText,
+              opacity: 1,
+            }}
+          />
+          <NumberDecrementStepper
+            aria-label="Decrement value"
+            background={theme.surfaceSecondary}
+            borderWidth="0"
+            borderRadius="0"
+            style={{ borderWidth: 0 }}
+            color={isDisabled ? theme.disabledText : theme.textPrimary}
+            _hover={{ background: theme.selectedSurface }}
+            _active={{
+              background: theme.accent,
+              color: theme.accentText,
+            }}
+            _disabled={{
+              background: theme.surfaceSecondary,
+              color: theme.disabledText,
+              opacity: 1,
+            }}
+          />
+          <Box
+            position="absolute"
+            left="0"
+            top="0"
+            bottom="0"
+            width="1px"
+            background={theme.surfaceBorder}
+            pointerEvents="none"
+            zIndex={1}
+            data-testid="standard-number-input-vertical-divider"
+          />
+          <Box
+            position="absolute"
+            left="0"
+            right="0"
+            top="50%"
+            height="1px"
+            background={theme.surfaceBorder}
+            pointerEvents="none"
+            zIndex={1}
+            data-testid="standard-number-input-horizontal-divider"
+          />
         </NumberInputStepper>
       </NumberInput>
     </Box>

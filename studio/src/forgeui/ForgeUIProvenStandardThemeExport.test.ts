@@ -90,7 +90,7 @@ describe('previously proven Standard LVGL theme export', () => {
         `lv_obj_set_style_line_color(fg_data_chart_chart, lv_color_hex(${lvHex(theme.textSecondary)}), LV_PART_MAIN);`,
       )
       expect(code).toContain(
-        'lv_chart_add_series(fg_data_chart_chart, lv_palette_main(LV_PALETTE_BLUE), LV_CHART_AXIS_PRIMARY_Y);',
+        `lv_chart_add_series(fg_data_chart_chart, lv_color_hex(${lvHex(theme.accent)}), LV_CHART_AXIS_PRIMARY_Y);`,
       )
 
       expect(code).toContain(

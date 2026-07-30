@@ -1,5 +1,7 @@
 import React from 'react'
-import { Select } from '@chakra-ui/react'
+import { Box, Select } from '@chakra-ui/react'
+import { useForgePreviewPalette } from '../theme/ForgeThemeContext'
+import { resolveForgeSemanticPalette } from './forgeThemeMap'
 
 export type StandardSelectInteractionMode = 'canvas' | 'browser'
 
@@ -10,9 +12,6 @@ type Props = {
   legacyValue?: unknown
   isDisabled?: boolean
   icon?: React.ReactElement
-  textColor?: string
-  backgroundColor?: string
-  borderColor?: string
   borderRadius?: string | number
 }
 
@@ -48,11 +47,9 @@ const StandardSelectPreview = ({
   legacyValue,
   isDisabled,
   icon,
-  textColor,
-  backgroundColor,
-  borderColor,
   borderRadius = '8px',
 }: Props) => {
+  const theme = resolveForgeSemanticPalette(useForgePreviewPalette())
   const options = React.useMemo(
     () => getStandardSelectOptions(configuredOptions),
     [configuredOptions],
@@ -64,49 +61,109 @@ const StandardSelectPreview = ({
     legacyValue,
   )
   const [previewIndex, setPreviewIndex] = React.useState(serializedIndex)
+  const selectedOptionStyle = {
+    background: theme.selectedSurface,
+    color: theme.accentText,
+  }
 
   React.useEffect(() => {
     setPreviewIndex(serializedIndex)
   }, [serializedIndex, optionSignature])
 
   return (
-    <Select
+    <Box
       width="100%"
       height="100%"
-      value={options.length > 0 ? String(previewIndex) : ''}
-      isDisabled={isDisabled}
-      icon={icon}
-      color={textColor}
-      background={backgroundColor}
-      borderColor={borderColor}
+      overflow="hidden"
       borderRadius={borderRadius}
-      onChange={event => {
-        const nextIndex = integer(event.target.value, 0)
-        setPreviewIndex(Math.max(
-          0,
-          Math.min(options.length - 1, nextIndex),
-        ))
+      _focusWithin={{ borderColor: theme.accent }}
+      style={{
+        background: isDisabled ? theme.surfaceSecondary : theme.surface,
+        border: `1px solid ${theme.surfaceBorder}`,
+        borderRadius,
+        boxShadow: 'none',
+        outline: 'none',
       }}
-      className={
-        mode === 'canvas'
-          ? 'forgeui-canvas-control-interactive'
-          : undefined
-      }
-      onDragStart={mode === 'canvas'
-        ? event => {
-          event.preventDefault()
-          event.stopPropagation()
-        }
-        : undefined}
-      data-testid="standard-select-control"
-      data-select-index={previewIndex}
+      data-testid="standard-select-frame"
+      data-border-role="surfaceBorder"
+      data-focus-border-role="accent"
     >
-      {options.map((option, index) => (
-        <option key={index} value={index}>
-          {option}
-        </option>
-      ))}
-    </Select>
+      <Select
+        width="100%"
+        height="100%"
+        value={options.length > 0 ? String(previewIndex) : ''}
+        isDisabled={isDisabled}
+        icon={icon}
+        border="0"
+        borderRadius="0"
+        boxShadow="none"
+        iconColor={isDisabled ? theme.disabledText : theme.textPrimary}
+        _focus={{ border: '0', boxShadow: 'none', outline: 'none' }}
+        _focusVisible={{ border: '0', boxShadow: 'none', outline: 'none' }}
+        _active={{
+          background: theme.selectedSurface,
+          color: theme.accentText,
+        }}
+        sx={{
+          background: `${
+            isDisabled ? theme.surfaceSecondary : theme.surface
+          } !important`,
+          color: `${
+            isDisabled ? theme.disabledText : theme.textPrimary
+          } !important`,
+          WebkitTextFillColor: `${
+            isDisabled ? theme.disabledText : theme.textPrimary
+          } !important`,
+          border: '0 !important',
+          outline: 'none !important',
+          boxShadow: 'none !important',
+          opacity: '1 !important',
+          '& option': {
+            background: theme.surface,
+            color: theme.textPrimary,
+          },
+          '& option:checked': selectedOptionStyle,
+        }}
+        onChange={event => {
+          const nextIndex = integer(event.target.value, 0)
+          setPreviewIndex(Math.max(
+            0,
+            Math.min(options.length - 1, nextIndex),
+          ))
+        }}
+        className={
+          mode === 'canvas'
+            ? 'forgeui-canvas-control-interactive'
+            : undefined
+        }
+        onDragStart={mode === 'canvas'
+          ? event => {
+            event.preventDefault()
+            event.stopPropagation()
+          }
+          : undefined}
+        data-testid="standard-select-control"
+        data-select-index={previewIndex}
+        data-shared-select-renderer="true"
+        data-field-background-role={isDisabled
+          ? 'surfaceSecondary'
+          : 'surface'}
+        data-text-role={isDisabled ? 'disabledText' : 'textPrimary'}
+        data-arrow-role={isDisabled ? 'disabledText' : 'textPrimary'}
+        data-pressed-background-role="selectedSurface"
+        data-pressed-text-role="accentText"
+        data-option-background-role="surface"
+        data-option-text-role="textPrimary"
+        data-selected-option-background-role="selectedSurface"
+        data-selected-option-text-role="accentText"
+      >
+        {options.map((option, index) => (
+          <option key={index} value={index}>
+            {option}
+          </option>
+        ))}
+      </Select>
+    </Box>
   )
 }
 

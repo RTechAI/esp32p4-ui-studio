@@ -119,6 +119,74 @@ test.each(componentsToTest)('Component Preview for %s', componentName => {
   // expect(spy).not.toHaveBeenCalled();
 })
 
+test('Canvas Checkbox toggles preview state without mutating serialized state or starting drag', () => {
+  // @ts-ignore Rematch's inferred plugin type is wider than this test needs.
+  const store = init(storeConfig)
+  store.dispatch.components.addComponent({
+    parentName: 'root',
+    type: 'Checkbox',
+    rootParentType: 'Checkbox',
+    testId: 'checkbox',
+    props: {
+      positionMode: 'absolute',
+      x: 40,
+      y: 50,
+      w: 180,
+      h: 40,
+      children: '',
+      isChecked: false,
+    },
+  })
+
+  // @ts-ignore Test helper preserves its historical loosely typed options shape.
+  renderWithRedux(<ComponentPreview componentName="checkbox" />, { store })
+
+  const control = screen.getByRole('checkbox')
+  const preview = screen.getByTestId('standard-checkbox-preview')
+  const interaction = screen.getByTestId(
+    'standard-checkbox-canvas-interaction',
+  )
+  const moveSurface = preview.closest('[draggable="true"]')
+
+  expect(control).not.toBeChecked()
+  expect(screen.queryByText('Label checkbox')).not.toBeInTheDocument()
+  expect(screen.queryByText('Checkbox')).not.toBeInTheDocument()
+  expect(fireEvent.pointerDown(interaction)).toBe(true)
+  fireEvent.click(interaction)
+  expect(control).toBeChecked()
+  expect(fireEvent.dragStart(interaction)).toBe(false)
+  fireEvent.click(interaction)
+  expect(control).not.toBeChecked()
+  expect(moveSurface).toHaveAttribute('draggable', 'true')
+  // @ts-ignore Store state is wrapped by redux-undo in production and tests.
+  expect(store.getState().components.present.components.checkbox.props.isChecked)
+    .toBe(false)
+})
+
+test('Canvas Checkbox renders only its configured custom label', () => {
+  // @ts-ignore Rematch's inferred plugin type is wider than this test needs.
+  const store = init(storeConfig)
+  store.dispatch.components.addComponent({
+    parentName: 'root',
+    type: 'Checkbox',
+    rootParentType: 'Checkbox',
+    testId: 'custom-checkbox',
+    props: {
+      children: 'Enable logging',
+      isChecked: false,
+    },
+  })
+
+  // @ts-ignore Test helper preserves its historical loosely typed options shape.
+  renderWithRedux(
+    <ComponentPreview componentName="custom-checkbox" />,
+    { initialState: undefined, store },
+  )
+
+  expect(screen.getByText('Enable logging')).toBeInTheDocument()
+  expect(screen.queryByText('Label checkbox')).not.toBeInTheDocument()
+})
+
 test('Canvas Slider stays selectable and leaves drag gestures to its wrapper', () => {
   // @ts-ignore Rematch's inferred plugin type is wider than this test needs.
   const store = init(storeConfig)

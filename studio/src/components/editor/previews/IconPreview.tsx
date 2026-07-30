@@ -2,12 +2,15 @@ import React from 'react'
 import { useDropComponent } from '~hooks/useDropComponent'
 import icons from '~iconsList'
 import { Box } from '@chakra-ui/react'
+import { useForgePreviewPalette } from '~forgeui/theme/ForgeThemeContext'
+import { resolveForgeSemanticPalette } from '~forgeui/preview/forgeThemeMap'
 
 interface Props {
   component: IComponent
 }
 
 const IconPreview = ({ component }: Props) => {
+  const theme = resolveForgeSemanticPalette(useForgePreviewPalette())
   const { isOver } = useDropComponent(component.id)
 
   const { color, boxSize, icon, ...props } = component.props || {}
@@ -34,7 +37,7 @@ const IconPreview = ({ component }: Props) => {
       bg={isOver ? 'teal.50' : props.bg}
     >
       <Icon
-        color={color || '#ffffff'}
+        color={color || theme.textPrimary}
         size={iconSize}
       />
     </Box>

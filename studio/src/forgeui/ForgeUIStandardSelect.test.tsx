@@ -4,6 +4,44 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import StandardSelectPreview from './preview/StandardSelectPreview'
 
 describe('Standard Select preview interaction modes', () => {
+  it.each(['canvas', 'browser'] as const)(
+    '%s uses one bordered semantic renderer without a duplicate focus ring',
+    mode => {
+      render(
+        <ChakraProvider>
+          <StandardSelectPreview
+            mode={mode}
+            options={['Automatic', 'Manual']}
+          />
+        </ChakraProvider>,
+      )
+
+      const select = screen.getByRole('combobox')
+      const frame = screen.getByTestId('standard-select-frame')
+      expect(select).toHaveAttribute('data-field-background-role', 'surface')
+      expect(select).toHaveAttribute('data-shared-select-renderer', 'true')
+      expect(frame).toHaveAttribute('data-border-role', 'surfaceBorder')
+      expect(frame).toHaveAttribute('data-focus-border-role', 'accent')
+      expect(frame).toHaveStyle({
+        border: '1px solid #F2A900',
+        borderRadius: '8px',
+        boxShadow: 'none',
+        outline: 'none',
+      })
+      expect(select).toHaveAttribute('data-text-role', 'textPrimary')
+      expect(select).toHaveAttribute('data-arrow-role', 'textPrimary')
+      expect(select).toHaveAttribute(
+        'data-pressed-background-role',
+        'selectedSurface',
+      )
+      expect(select).toHaveAttribute('data-option-background-role', 'surface')
+      expect(select).toHaveAttribute(
+        'data-selected-option-background-role',
+        'selectedSurface',
+      )
+    },
+  )
+
   it('Canvas displays serialized options and initial selection', () => {
     render(
       <ChakraProvider>
@@ -124,6 +162,14 @@ describe('Standard Select preview interaction modes', () => {
     )
 
     expect(screen.getByRole('combobox')).toBeDisabled()
+    expect(screen.getByRole('combobox')).toHaveAttribute(
+      'data-field-background-role',
+      'surfaceSecondary',
+    )
+    expect(screen.getByRole('combobox')).toHaveAttribute(
+      'data-text-role',
+      'disabledText',
+    )
     expect(screen.getByRole('option', { name: longOption }))
       .toBeInTheDocument()
   })

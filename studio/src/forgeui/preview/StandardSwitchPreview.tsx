@@ -1,5 +1,7 @@
 import React from 'react'
 import { Switch } from '@chakra-ui/react'
+import { useForgePreviewPalette } from '../theme/ForgeThemeContext'
+import { resolveForgeSemanticPalette } from './forgeThemeMap'
 
 type Props = {
   initialChecked: boolean
@@ -18,6 +20,10 @@ const StandardSwitchPreview = ({
   surface,
   thumb,
 }: Props) => {
+  const theme = resolveForgeSemanticPalette(useForgePreviewPalette())
+  const resolvedAccent = accent || theme.accent
+  const resolvedSurface = surface || theme.surfaceSecondary
+  const resolvedThumb = thumb || theme.accentText
   const [checked, setChecked] = React.useState(initialChecked)
 
   React.useEffect(() => {
@@ -33,14 +39,14 @@ const StandardSwitchPreview = ({
         if (!isDisabled) setChecked(event.target.checked)
       }}
       data-testid="standard-switch-preview"
-      sx={accent || surface || thumb ? {
+      sx={{
         '.chakra-switch__track': {
-          bg: checked ? accent : surface,
+          bg: checked ? resolvedAccent : resolvedSurface,
         },
         '.chakra-switch__thumb': {
-          bg: thumb,
+          bg: resolvedThumb,
         },
-      } : undefined}
+      }}
     />
   )
 }

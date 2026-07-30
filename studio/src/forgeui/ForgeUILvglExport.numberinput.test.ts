@@ -53,12 +53,12 @@ describe('Standard NumberInput generated runtime API', () => {
       'static bool fg_target_temperature_number_input_programmatic_update = false;',
     )
     expect(generated.code).toContain(
-      'fg_target_temperature_number_input = lv_textarea_create(fg_application_page);',
+      'fg_target_temperature_number_input = lv_textarea_create(fg_target_temperature_number_input_container);',
     )
     expect(generated.code).not.toContain('lv_spinbox_create')
   })
 
-  it('retains serialized range and step while preserving decimal startup text', () => {
+  it('retains serialized range, step, and decimal startup text', () => {
     const { code } = generate(numberInput('signed', 'Signed Number Input', {
       value: '-12.50',
       min: -50,
@@ -136,6 +136,42 @@ describe('Standard NumberInput generated runtime API', () => {
     )
   })
 
+  it('generates themed increment and decrement controls that consume serialized step', () => {
+    const { code } = generate(numberInput('number'))
+    const object = 'fg_target_temperature_number_input'
+
+    expect(code).toContain(
+      `lv_obj_t * ${object}_increment_button = lv_button_create(${object}_container);`,
+    )
+    expect(code).toContain(
+      `lv_obj_t * ${object}_decrement_button = lv_button_create(${object}_container);`,
+    )
+    expect(code).toContain(
+      `lv_label_set_text(${object}_increment_button_icon, LV_SYMBOL_UP);`,
+    )
+    expect(code).toContain(
+      `lv_label_set_text(${object}_decrement_button_icon, LV_SYMBOL_DOWN);`,
+    )
+    expect(code).toContain(
+      'int64_t next = (int64_t)value + (int64_t)fg_target_temperature_number_input_step;',
+    )
+    expect(code).toContain(
+      'int64_t next = (int64_t)value - (int64_t)fg_target_temperature_number_input_step;',
+    )
+    expect(code).toContain(
+      'lv_obj_add_event_cb(fg_target_temperature_number_input_increment_button, fg_target_temperature_number_input_increment_cb, LV_EVENT_CLICKED, NULL);',
+    )
+    expect(code).toContain(
+      'lv_obj_add_event_cb(fg_target_temperature_number_input_decrement_button, fg_target_temperature_number_input_decrement_cb, LV_EVENT_CLICKED, NULL);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_bg_color(fg_target_temperature_number_input_increment_button, lv_color_hex(0x2A3138), LV_PART_MAIN);',
+    )
+    expect(code).toContain(
+      'lv_obj_set_style_text_color(fg_target_temperature_number_input_decrement_button, lv_color_hex(0x121417), LV_PART_MAIN | LV_STATE_PRESSED);',
+    )
+  })
+
   it('initializes silently before registering the native event', () => {
     const { code } = generate(numberInput('number'))
     const creation = code.slice(code.indexOf('void fg_studio_export_create'))
@@ -174,10 +210,143 @@ describe('Standard NumberInput generated runtime API', () => {
     }))
 
     expect(code).toContain(
-      'fg_disabled_number = lv_textarea_create(fg_application_page);',
+      'fg_disabled_number = lv_textarea_create(fg_disabled_number_container);',
     )
     expect(code).toContain(
       'lv_obj_add_state(fg_disabled_number, LV_STATE_DISABLED);',
+    )
+    expect(code).toContain(
+      'lv_obj_add_state(fg_disabled_number_increment_button, LV_STATE_DISABLED);',
+    )
+    expect(code).toContain(
+      'lv_obj_add_state(fg_disabled_number_decrement_button, LV_STATE_DISABLED);',
+    )
+  })
+
+  it('explicitly owns semantic colours and native textarea parts and states', () => {
+    const { code } = generate(numberInput('number'))
+    const object = 'fg_target_temperature_number_input'
+
+    expect(code).toContain(
+      `lv_obj_set_style_bg_color(${object}, lv_color_hex(0x1E2328), LV_PART_MAIN);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_border_color(${object}, lv_color_hex(0xF2A900), LV_PART_MAIN);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_text_color(${object}, lv_color_hex(0xF5F5F5), LV_PART_MAIN);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_bg_color(${object}, lv_color_hex(0xF2A900), LV_PART_CURSOR);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_bg_color(${object}, lv_color_hex(0xF2A900), LV_PART_SELECTED);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_text_color(${object}, lv_color_hex(0x121417), LV_PART_SELECTED);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_border_color(${object}, lv_color_hex(0xF2A900), LV_PART_MAIN | LV_STATE_FOCUSED);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_bg_color(${object}, lv_color_hex(0x1E2328), LV_PART_MAIN | LV_STATE_PRESSED);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_border_color(${object}, lv_color_hex(0xF2A900), LV_PART_MAIN | LV_STATE_PRESSED);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_bg_color(${object}, lv_color_hex(0x2A3138), LV_PART_MAIN | LV_STATE_DISABLED);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_text_color(${object}, lv_color_hex(0x7F8284), LV_PART_MAIN | LV_STATE_DISABLED);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_bg_opa(${object}, LV_OPA_COVER, LV_PART_MAIN);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_bg_opa(${object}, LV_OPA_COVER, LV_PART_CURSOR);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_bg_opa(${object}, LV_OPA_COVER, LV_PART_SELECTED);`,
+    )
+  })
+
+  it('owns one outer frame while preserving only internal stepper dividers', () => {
+    const { code } = generate(numberInput('number'))
+    const object = 'fg_target_temperature_number_input'
+    const increment = `${object}_increment_button`
+    const decrement = `${object}_decrement_button`
+    const container = `${object}_container`
+
+    expect(code).toContain(
+      `lv_obj_t * ${container} = lv_obj_create(fg_application_page);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_pos(${container}, 20, 30);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_size(${container}, 280, 40);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_border_color(${container}, lv_color_hex(0xF2A900), LV_PART_MAIN);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_border_width(${container}, 1, LV_PART_MAIN);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_radius(${container}, 6, LV_PART_MAIN);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_outline_width(${container}, 0, LV_PART_MAIN);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_shadow_width(${container}, 0, LV_PART_MAIN);`,
+    )
+    expect(code).toContain(
+      `lv_obj_clear_flag(${container}, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_pos(${object}, 1, 1);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_size(${object}, (280) - 2, (40) - 2);`,
+    )
+
+    expect(code).toContain(
+      `lv_obj_set_style_border_width(${object}, 0, LV_PART_MAIN);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_border_width(${object}, 0, LV_PART_MAIN | LV_STATE_FOCUSED);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_border_width(${object}, 0, LV_PART_MAIN | LV_STATE_FOCUS_KEY);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_border_width(${object}, 0, LV_PART_MAIN | LV_STATE_PRESSED);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_border_width(${object}, 0, LV_PART_MAIN | LV_STATE_DISABLED);`,
+    )
+    expect(code).not.toMatch(
+      new RegExp(`lv_obj_set_style_border_width\\(${object}, [1-9]`),
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_border_side(${increment}, LV_BORDER_SIDE_LEFT | LV_BORDER_SIDE_BOTTOM, LV_PART_MAIN);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_border_side(${decrement}, LV_BORDER_SIDE_LEFT, LV_PART_MAIN);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_outline_width(${increment}, 0, LV_PART_MAIN);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_shadow_width(${decrement}, 0, LV_PART_MAIN | LV_STATE_FOCUS_KEY);`,
+    )
+    expect(code).toContain(
+      `lv_obj_add_event_cb(${increment}, fg_target_temperature_number_input_increment_cb, LV_EVENT_CLICKED, NULL);`,
+    )
+    expect(code).toContain(
+      `lv_obj_add_event_cb(${decrement}, fg_target_temperature_number_input_decrement_cb, LV_EVENT_CLICKED, NULL);`,
     )
   })
 

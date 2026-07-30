@@ -148,3 +148,71 @@ void FG_On_Data_Chart_2_Cleared(void)
 {
     printf("[ForgeUI User Event] Data Chart 2 cleared\n");
 }
+
+void FG_On_Input_Changed(const char * text)
+{
+    printf("[ForgeUI User Event] Input changed: %s\n",
+           text ? text : "");
+}
+
+void FG_On_Textarea_Changed(const char * text)
+{
+    printf("[ForgeUI User Event] Textarea changed: %s\n",
+           text ? text : "");
+}
+
+void FG_On_Checkbox_Changed(bool checked)
+{
+    printf("[ForgeUI User Event] Checkbox changed: %s\n",
+           checked ? "CHECKED" : "UNCHECKED");
+}
+
+void FG_On_Switch_Changed(bool checked)
+{
+    printf("[ForgeUI User Event] Switch changed: %s\n",
+           checked ? "ON" : "OFF");
+}
+
+void FG_On_Switch_2_Changed(bool checked)
+{
+    printf("[ForgeUI User Event] Switch 2 changed: %s\n",
+           checked ? "ON" : "OFF");
+}
+
+void FG_On_Switch_3_Changed(bool checked)
+{
+    printf("[ForgeUI User Event] Switch 3 changed: %s\n",
+           checked ? "ON" : "OFF");
+}
+
+void FG_On_Radio_Changed(bool selected)
+{
+    printf("[ForgeUI User Event] Radio changed: %s\n",
+           selected ? "SELECTED" : "UNSELECTED");
+}
+
+void FG_On_Number_Input_Changed(int32_t value)
+{
+    printf("[ForgeUI User Event] Number Input changed: %ld\n",
+           (long)value);
+}
+
+void FG_On_Number_Input_2_Changed(int32_t value)
+{
+    printf("[ForgeUI User Event] Number Input 2 changed: %ld\n",
+           (long)value);
+}
+
+void FG_On_Select_Changed(uint32_t index, const char * text)
+{
+    printf("[ForgeUI User Event] Select changed: %lu - %s\n",
+           (unsigned long)index,
+           text ? text : "");
+}
+
+void FG_On_Select_2_Changed(uint32_t index, const char * text)
+{
+    printf("[ForgeUI User Event] Select 2 changed: %lu - %s\n",
+           (unsigned long)index,
+           text ? text : "");
+}

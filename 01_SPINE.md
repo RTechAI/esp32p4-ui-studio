@@ -11,7 +11,7 @@
 
 ## Current Save Point
 
-**FORGEUI_STANDARD_LVGL_CANVAS_TABVIEW_TILEVIEW_LINE_TEXT_HEADING_WIFI_PARITY__SHARED_PREVIEWS__SEMANTIC_THEME__LINE_ENDPOINTS__READY_FOR_P4_PROOF__2026-07-29**
+**FORGEUI_STANDARD_LVGL_PARITY__INPUT_TEXTAREA_CHECKBOX_SWITCH_RADIO_PROGRESS_CIRCULAR_PROGRESS_NUMBER_INPUT_SELECT__SEMANTIC_THEME_AND_BORDER_PARITY__ESP32P4_PROVEN__2026-07-30**
 
 ## Current Proven Status..
 
@@ -89,25 +89,23 @@ The current Standard LVGL physical validation group is fully reviewed and signed
 - MsgBox
 - ButtonMatrix
 
-The next Standard parity group has completed source-level and automated repair:
+The Standard input and selection parity group is now physically proven across Canvas, Browser Preview, generated LVGL and ESP32-P4:
 
-- Canvas
-- TabView
-- TileView
-- Line
-- Text
-- Heading
-- Wi-Fi status presentation
+- Input
+- Textarea
+- Checkbox
+- Switch
+- Radio
+- Progress
+- CircularProgress
+- NumberInput
+- Select
 
-Current status:
+The final whole-screen comparison on 2026-07-30 confirmed the active graphite/orange semantic theme and component structure across Studio and hardware. Borders, surfaces, accent states and geometry were visually aligned within the recorded scope.
 
-- Canvas and Browser Preview shared rendering: complete
-- semantic theme integration: complete at source level
-- generated LVGL exporter support: complete
-- focused automated validation: complete
-- physical ESP32-P4 sign-off: pending final Generate -> Build -> Flash confirmation
+Standard Input and Standard Textarea generate native `lv_textarea` objects. Touch focuses the field, but no Standard Canvas Keyboard is attached automatically. The built-in System Runtime keyboard remains separate and private to System dialogs. A shared application-keyboard service would be separate future work.
 
-The flashed ESP32-P4 remains the authoritative final reference. This group remains outside the eleven-component physical validation milestone until that final confirmation is complete.
+The flashed ESP32-P4 remains the authoritative final visual reference.
 
 ## Standard LVGL Semantic Theme Milestone
 
@@ -178,6 +176,7 @@ Completed runtime APIs:
 - ✓ Checkbox
 - ✓ Radio
 - ✓ Progress
+- ✓ CircularProgress
 - ✓ NumberInput
 - ✓ Select
 - ✓ Image
@@ -246,13 +245,14 @@ Interactive Asset hook ownership remains separate.
 | `ButtonMatrix` | `FG_Set_<Name>_Selected(uint32_t button_index)` | `FG_On_<Name>_Button_Selected(uint32_t index, const char * text)` | Button selection |
 | `Tabview` | `FG_Set_<Name>_Selected(uint32_t tab_index)` | `FG_On_<Name>_Changed(uint32_t tab_index)` | Retained active-tab selection |
 | `Tileview` | `FG_Set_<Name>_Selected(uint32_t column, uint32_t row)` | `FG_On_<Name>_Changed(uint32_t column, uint32_t row)` | Retained active-tile coordinate |
-| `Input` | `FG_Set_<Name>_Text(const char * text)` | `FG_On_<Name>_Changed(const char * text)` | Interactive current single-line text; setter is silent |
-| `Textarea` | `FG_Set_<Name>_Text(const char * text)` | `FG_On_<Name>_Changed(const char * text)` | Interactive current multiline text; setter is silent |
-| `Switch` | `FG_Set_<Name>_Checked(bool checked)` | `FG_On_<Name>_Changed(bool checked)` | Native LVGL checked state |
-| `Checkbox` | `FG_Set_<Name>_Checked(bool checked)` | `FG_On_<Name>_Changed(bool checked)` | Native LVGL checked state; label remains serialized |
-| `Radio` | `FG_Set_<Name>_Selected(bool selected)` | `FG_On_<Name>_Changed(bool selected)` | Independent circular `lv_checkbox`; no grouping model |
-| `Progress` | `FG_Set_<Name>_Value(int32_t value)` | None | Output-only clamped progress value |
-| `NumberInput` | `FG_Set_<Name>_Value(int32_t value)` | `FG_On_<Name>_Changed(int32_t value)` | Guarded `int32_t` boundary over current textarea-based LVGL |
+| `Input` | `FG_Set_<Name>_Text(const char * text)` | `FG_On_<Name>_Changed(const char * text)` | Native single-line `lv_textarea`; silent setter and genuine-edit hook; no automatic keyboard |
+| `Textarea` | `FG_Set_<Name>_Text(const char * text)` | `FG_On_<Name>_Changed(const char * text)` | Native multiline `lv_textarea`; silent setter and genuine-edit hook; no automatic keyboard |
+| `Switch` | `FG_Set_<Name>_Checked(bool checked)` | `FG_On_<Name>_Changed(bool checked)` | Native LVGL checked state with explicit semantic track and knob states |
+| `Checkbox` | `FG_Set_<Name>_Checked(bool checked)` | `FG_On_<Name>_Changed(bool checked)` | Native LVGL checked state; fallback text is empty and explicit custom labels remain serialized |
+| `Radio` | `FG_Set_<Name>_Selected(bool selected)` | `FG_On_<Name>_Changed(bool selected)` | Independent circular `lv_checkbox`; empty fallback label and no grouping model |
+| `Progress` | `FG_Set_<Name>_Value(int32_t value)` | None | Output-only retained native `lv_bar`; intentionally non-draggable |
+| `CircularProgress` | `FG_Set_<Name>_Value(int32_t value)` | None | Output-only retained full-circle arc |
+| `NumberInput` | `FG_Set_<Name>_Value(int32_t value)` | `FG_On_<Name>_Changed(int32_t value)` | Guarded numeric textarea plus native increment/decrement buttons using serialized step |
 | `Select` | `FG_Set_<Name>_Selected_Index(uint32_t index)` | `FG_On_<Name>_Changed(uint32_t index, const char * text)` | Guarded native `lv_dropdown`; serialized option list |
 | `Image` | `FG_Set_<Name>_Source(const void * src)` | None | Output-only raw LVGL source pointer |
 | `Box` | `FG_Set_<Name>_Visible(bool visible)` | None | Layout container with runtime visibility only; root Box excluded |
@@ -360,35 +360,53 @@ Arbitrary layouts, sparse coordinates, custom directions, custom labels and Insp
 
 ### Input
 
-`Input` exports a native LVGL textarea configured for the existing single-line input behavior. Runtime owns only current text. `FG_Set_<Name>_Text(const char * text)` updates it programmatically without invoking `FG_On_<Name>_Changed(const char * text)`; the hook represents genuine user edits only. Creation is silent, and a per-instance programmatic-update guard suppresses setter-generated events. Placeholder, password mode, accepted characters, maximum length and presentation remain serialized. Canvas and Browser Preview preserve their established interaction ownership, and generated names are deterministic and collision-safe.
+`Input` exports a native single-line `lv_textarea`. It uses semantic `surface`, `surfaceBorder`, `textPrimary`, `accent` and `disabledText`, with Canvas, Browser Preview and ESP32-P4 border/theme parity physically proven. `FG_Set_<Name>_Text(const char * text)` is silent; `FG_On_<Name>_Changed(const char * text)` represents genuine user edits. Creation is silent, and a per-instance guard suppresses setter-generated events. Placeholder, password mode, accepted characters, maximum length and presentation remain serialized.
+
+Touch focuses the native field. No Standard Canvas Keyboard is attached automatically. The built-in System Runtime keyboard remains separate and private to System dialogs.
 
 ### Textarea
 
-`Textarea` exports the existing native multiline LVGL textarea. Runtime owns current multiline text only; placeholder remains independent serialized presentation. Its text setter is guarded and silent, while genuine `LV_EVENT_VALUE_CHANGED` edits invoke the changed hook. Creation does not notify. Canvas, Browser Preview and generated LVGL preserve the current multiline behavior and collision-safe instance naming.
+`Textarea` exports a native multiline `lv_textarea` through the same semantic border/theme pipeline as Input. Canvas, Browser Preview and ESP32-P4 parity are physically proven. Runtime owns current multiline text only; placeholder remains independent serialized presentation. Its setter is guarded and silent, while genuine `LV_EVENT_VALUE_CHANGED` edits invoke the changed hook. Creation does not notify.
+
+Touch focuses the native field. No Standard Canvas Keyboard is attached automatically; application-wide keyboard attachment remains separate future work.
 
 ### Switch
 
-`Switch` exports native `lv_switch`, retains the object and checked state, and generates `FG_Set_<Name>_Checked(bool checked)` plus `FG_On_<Name>_Changed(bool checked)`. Creation and programmatic updates are silent. The per-instance guard prevents LVGL events raised by the setter from reaching the genuine-user hook. Canvas and Browser Preview use temporary local state without mutating project JSON.
+`Switch` exports native `lv_switch`, retains the object and checked state, and preserves `FG_Set_<Name>_Checked(bool checked)` plus `FG_On_<Name>_Changed(bool checked)`. The LVGL default blue leakage came from the native checked-state rule. Generated styling now explicitly defines an opaque `surfaceSecondary` main track, a transparent default indicator, an opaque `accent` indicator for `LV_PART_INDICATOR | LV_STATE_CHECKED`, and an opaque `accentText` knob. The P4 checked state follows the active theme rather than native LVGL blue. Creation and programmatic updates remain silent.
+
+Exporter source changes require refreshing or restarting the running Studio bundle before regeneration. When exporter code changes, `90_Studio_Export.c` must be inspected after regeneration and before build/flash.
 
 ### Checkbox
 
-`Checkbox` exports native `lv_checkbox`, retains checked state, and uses the same guarded checked-state architecture as Switch. The serialized label remains Studio-owned. `FG_Set_<Name>_Checked()` is silent; genuine user changes invoke the hook. Creation is silent, Preview behavior remains local, and duplicate names are collision-safe.
+`Checkbox` exports native `lv_checkbox`, retains checked state, and uses the same guarded checked-state architecture as Switch. Unwanted fallback/default label text and legacy fallback wording no longer appear; explicit custom labels remain supported and serialized. Circular/square indicator styling follows the semantic theme, and checked-state theme parity is physically proven on P4. `FG_Set_<Name>_Checked()` remains silent, genuine user changes invoke the existing hook, and creation is silent.
 
 ### Radio
 
-`Radio` currently exports a retained `lv_checkbox` styled with a circular indicator. `FG_Set_<Name>_Selected(bool selected)` and the selected-state hook use guarded per-instance state. Radios are independently selectable: no Radio Group or mutual-exclusion architecture exists, so multiple Radios may remain selected. Creation and setters are silent; genuine user changes notify. Canvas and Browser Preview use temporary local selection.
+`Radio` exports a retained `lv_checkbox` styled with a circular indicator. Default and legacy `"Radio"` text are removed: new Radio components serialize no fallback label, existing legacy `"Radio"` values normalize to empty, generated LVGL emits an empty checkbox label when no custom label is present, and explicit custom labels remain supported. Canvas, Browser Preview and P4 indicator-only parity are physically proven. `FG_Set_<Name>_Selected(bool selected)` and the existing hook use guarded per-instance state. Radios remain independently selectable; no Radio Group or mutual-exclusion architecture exists.
 
 ### Progress
 
-`Progress` is output-only. It retains the native bar object, current value and serialized range and exposes `FG_Set_<Name>_Value(int32_t value)`. The setter clamps to the configured range and suppresses repeated effective values. It generates no developer hook because Progress has no genuine user transition. Canvas, Browser Preview and LVGL appearance remain unchanged.
+`Progress` is an output-only native `lv_bar`. It is intentionally non-draggable, retains its object, current value and serialized range, and exposes `FG_Set_<Name>_Value(int32_t value)`. The setter clamps to the configured range and suppresses repeated effective values. It generates no developer changed hook. Canvas, Browser Preview and P4 parity are physically proven. Slider remains the interactive touch-value control; Bar and Progress retain distinct runtime contracts.
+
+### CircularProgress
+
+`CircularProgress` is an output-only native `lv_arc`. It retains its object and value and exposes silent `FG_Set_<Name>_Value(int32_t value)` with range clamping and repeated-value suppression. It generates no developer changed hook.
+
+The generated control uses a full 360-degree background arc with rotation 270 degrees, `surfaceSecondary` for the remaining track, `accent` for the completed track, explicit arc opacity and width, no visible knob style, and no `LV_OBJ_FLAG_CLICKABLE`. It cannot be touch-dragged. Canvas, Browser Preview and P4 parity are physically proven.
+
+The first generated hardware file remained stale because the running Next.js bundle predated the exporter repair. Restarting Studio and regenerating corrected the live C output.
 
 ### NumberInput
 
-`NumberInput` keeps the existing textarea-based generated LVGL implementation while presenting an `int32_t` runtime boundary. It retains the object, current integer value, range and step. `FG_Set_<Name>_Value(int32_t value)` clamps and is guarded; genuine user edits invoke the integer changed hook. Creation and setter calls are silent. Canvas and Browser Preview use temporary local interaction state. No native device-side increment/decrement buttons or Spinbox architecture were invented.
+`NumberInput` is a composed generated LVGL control. One outer container owns the complete bounds and uses `surface`, a 1 px `surfaceBorder`, 6 px radius, and no outline or shadow. A retained one-line `lv_textarea` is inset inside it. Native increment and decrement `lv_button` controls occupy the rightmost 32 px and use `LV_SYMBOL_UP` and `LV_SYMBOL_DOWN`. One vertical divider separates the field and stepper area; one horizontal divider separates increment and decrement. Canvas and Browser Preview share that outer frame and divider structure.
+
+Serialized `step` is consumed by the hardware increment/decrement callbacks. `int64_t` intermediate arithmetic protects addition and subtraction, values clamp to serialized minimum and maximum, and button-originated changes invoke the existing changed hook. `FG_Set_<Name>_Value()` remains silent. Explicit semantic styling covers field, buttons, icons, pressed, focused and disabled states. Full Canvas, Browser Preview and P4 border/theme/interaction parity, including working hardware arrows, is physically proven.
 
 ### Select
 
-`Select` exports native `lv_dropdown`, retains selected index and serialized option count, and exposes `FG_Set_<Name>_Selected_Index(uint32_t index)`. The guarded setter clamps safely and remains silent; genuine selection invokes `FG_On_<Name>_Changed(uint32_t index, const char * text)`. Options remain serialized Studio configuration. No runtime add, remove or replace option-list API exists. Preview interaction is temporary and naming is collision-safe.
+`Select` exports native `lv_dropdown`; P4 was the visual reference for the final closed-control structure. Canvas and Browser Preview now show the same visible 1 px outer border. The closed background uses `surface`, border uses `surfaceBorder`, text and arrow use `textPrimary`, focus uses `accent`, pressed/open and selected options use `selectedSurface`, pressed/selected text uses `accentText`, and disabled background/text/arrow use `surfaceSecondary` and `disabledText`.
+
+Arrow styling explicitly covers `LV_PART_INDICATOR`. Popup-list styling is applied through `lv_dropdown_get_list()`, and selected rows explicitly cover `LV_PART_SELECTED` plus checked/pressed combinations so native LVGL blue/default styling cannot leak through. The existing selected-index setter remains guarded and silent; genuine selection invokes the existing changed hook. Canvas, Browser Preview, generated LVGL and ESP32-P4 parity are physically proven.
 
 ### Image
 
@@ -525,7 +543,25 @@ No timezone feature, RTC setter, `FG_Set_Clock_Time` API or `FG_On_Clock_Changed
 - Earlier Standard Runtime milestones also validated live `/export`, standalone `/export-idf-project` and ESP-IDF 5.5.4 builds. Generated firmware was not manually patched.
 - Existing developer-written hook bodies remain preserved while only missing declarations and stubs are appended.
 - The full export-server suite can still report one unrelated fixture failure when `fg_upload_1024x600_neural_core_67dd4ba0.c` and `fg_upload_carbon_fiber_be774fd2.c` are already absent. The full suite is not claimed as passing in that state, and the export safety boundary remains intact.
-- Physical proof is limited to the explicitly named eleven-component group; no physical claim is made here for later Standard controls.
+- Switch focused exporter suite: 7 tests passed.
+- Radio focused suites: 13 tests passed.
+- Progress focused suites: 9 tests passed.
+- Circular Progress focused suites: 5 tests passed.
+- Number Input focused suites reached 19 tests during stepper implementation.
+- Number Input exporter outer-container suite: 12 tests passed.
+- Number Input shared preview suite: 8 tests passed.
+- Select focused suites: 19 tests passed.
+- ESP-IDF initially failed because an unused generated NumberInput step constant was emitted before hardware stepper controls existed. The first narrow repair removed it. After native steppers were implemented, the constant became a real hardware runtime dependency and final generated C built with it actively consumed.
+- Stale Next.js browser bundles produced old exporter output more than once. The proven exporter workflow is:
+
+  1. update exporter
+  2. restart or refresh Studio
+  3. regenerate
+  4. inspect `90_Studio_Export.c`
+  5. build
+  6. flash
+  7. physically compare
+- Physical proof now includes the named eleven-component group and the 2026-07-30 Standard input and selection parity group. No proof beyond those explicitly recorded observations is inferred.
 
 ## Built-in System Interface
 
@@ -1500,6 +1536,24 @@ The exporter owns shared generated runtime implementations, retained per-instanc
 
 ## Physical ESP32-P4 Proof
 
+### Standard LVGL Input and Selection Parity — 2026-07-30
+
+Physical Canvas → Browser Preview → generated LVGL → ESP32-P4 proof is recorded for:
+
+- Input
+- Textarea
+- Checkbox
+- Switch
+- Radio
+- Progress
+- Circular Progress
+- Number Input
+- Select
+
+The final whole-screen evidence showed Canvas and P4 using the same active graphite/orange semantic theme. Borders, surfaces, accent states and component geometry were visually aligned. Number Input arrows operated on hardware, and its outer frame and internal dividers matched the shared preview. The Select outer border matched Canvas and Browser Preview. The Switch checked state used the amber accent rather than native blue. Circular Progress had no knob and could not be dragged; Progress remained intentionally noninteractive. Radio showed no fallback label. Input and Textarea remained focusable native fields with no automatic Standard keyboard attachment.
+
+Generated user hooks for Input, Textarea, Checkbox, Switch, Radio, NumberInput and Select were present and preservation-merged. Output-only Progress and CircularProgress generated no changed hook. No physical claim beyond these observed results is made.
+
 ### Standard LVGL eleven-component theme parity
 
 The following Standard components are physically proven across Canvas, Browser Preview, generated LVGL and ESP32-P4.
@@ -1789,13 +1843,19 @@ Standard LVGL Component Runtime
 │   ├── Led
 │   ├── Bar
 │   ├── Arc
-│   └── Progress
+│   ├── Progress
+│   └── CircularProgress
 ├── Streaming output
 │   └── Chart
 ├── Text entry
 │   ├── Input
 │   ├── Textarea
 │   └── NumberInput
+│       ├── outer container
+│       ├── numeric textarea
+│       ├── increment button
+│       ├── decrement button
+│       └── serialized step
 ├── Boolean / selectable input
 │   ├── Switch
 │   ├── Checkbox
@@ -1952,13 +2012,19 @@ Potential future Standard Runtime concepts include:
 - Numeric Display
 - Radio Group and mutual-exclusion ownership
 - dynamic Select option model
-- native Spinbox/stepper runtime
 
-These remain future concepts only. Existing Radio and Checkbox runtimes are implemented independently, NumberInput remains textarea-based, and Select options remain serialized.
+These remain future concepts only. Existing Radio and Checkbox runtimes are implemented independently, NumberInput is the implemented composed textarea-and-stepper control, and Select options remain serialized.
 
 # Save Point History
 
 Save points are ordered newest to oldest. Detailed subsystem engineering is maintained in the Developer Code Maps.
+
+## FORGEUI_STANDARD_LVGL_PARITY__INPUT_TEXTAREA_CHECKBOX_SWITCH_RADIO_PROGRESS_CIRCULAR_PROGRESS_NUMBER_INPUT_SELECT__SEMANTIC_THEME_AND_BORDER_PARITY__ESP32P4_PROVEN__2026-07-30
+
+- **What changed:** Completed theme, border, state and geometry parity for Input, Textarea, Checkbox, Switch, Radio, Progress, CircularProgress, NumberInput and Select; removed fallback Checkbox/Radio wording; repaired Switch checked-state theme leakage; completed the output-only Circular Progress runtime; completed Number Input hardware steppers and shared frame structure; completed Select closed and popup semantic styling; refreshed stale Studio exporter bundles and regenerated the final live C.
+- **Why it changed:** Canvas, Browser Preview and P4 had diverged; several controls still inherited Chakra or LVGL defaults; Circular Progress and Number Input were incomplete on hardware; and stale Studio bundles produced old generated firmware despite exporter source repairs.
+- **Final architecture:** Shared semantic previews are used where practical, generated LVGL explicitly owns hardware states, and the flashed P4 is authoritative final visual proof. Generated output is inspected before build. `90_Studio_Export.*` remains generated, `95_UserEvents.*` remains preservation-merged, and Standard Canvas Keyboard ownership remains separate from the private System Runtime keyboard.
+- **Proven result:** The final Canvas and P4 whole-screen comparison completed with the active graphite/orange semantic theme aligned. Runtime APIs and hooks were preserved, output-only controls remained hook-free, and hardware interaction was proven for Number Input, Select, Switch, Checkbox and Radio within the observed scope. No crash occurred after interaction.
 
 ## FORGEUI_STANDARD_LVGL_CANVAS_TABVIEW_TILEVIEW_LINE_TEXT_HEADING_WIFI_PARITY__SHARED_PREVIEWS__SEMANTIC_THEME__LINE_ENDPOINTS__READY_FOR_P4_PROOF__2026-07-29
 

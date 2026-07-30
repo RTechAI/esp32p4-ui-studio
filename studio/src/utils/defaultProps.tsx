@@ -209,7 +209,7 @@ export const DEFAULT_PROPS: PreviewDefaultProps = {
     size: 'md',
   },
   Checkbox: {
-    children: 'Label checkbox',
+    children: '',
     isReadOnly: true,
     isChecked: false,
   },
@@ -329,7 +329,7 @@ WiFi: {
     max: 100,
     value: 65,
   },
-  Radio: { children: 'Radio' },
+  Radio: { children: '' },
   Select: {
     // @ts-ignore
     icon: 'ChevronDownIcon',

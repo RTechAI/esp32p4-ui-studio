@@ -5,6 +5,8 @@ import {
 import { FORGEUI_IMAGE_ASSETS } from './ForgeUIAssetRegistry'
 import { allocateUniqueOutputApiName } from './ForgeUIGeneratedApiNames'
 import { getForgeUIStandardButtonText } from './ForgeUIStandardButton'
+import { getForgeUIStandardCheckboxText } from './ForgeUIStandardCheckbox'
+import { getForgeUIStandardRadioText } from './ForgeUIStandardRadio'
 import { getForgeUIStandardTextValue } from './ForgeUIStandardText'
 import { getForgeUIStandardHeadingText } from './ForgeUIStandardHeading'
 import { getForgeUIStandardLineGeometry } from './ForgeUIStandardLine'
@@ -398,6 +400,7 @@ type BarExport = BarRuntimeExport & {
 }
 
 type ProgressExport = BarRuntimeExport
+type CircularProgressExport = BarRuntimeExport
 
 type NumberInputExport = {
   apiName: string
@@ -409,6 +412,8 @@ type NumberInputExport = {
   maximumName: string
   stepName: string
   eventCallbackName: string
+  incrementCallbackName: string
+  decrementCallbackName: string
   minimum: number
   maximum: number
   step: number
@@ -1447,7 +1452,7 @@ const createChartExports = (
           : typeof rawSeriesColor === 'number' &&
             Number.isFinite(rawSeriesColor)
             ? `lv_color_hex(0x${Math.max(0, Math.min(0xFFFFFF, Math.trunc(rawSeriesColor))).toString(16).toUpperCase().padStart(6, '0')})`
-            : 'lv_palette_main(LV_PALETTE_BLUE)'
+            : ''
 
       exportsByComponent.set(component.id, {
         addApiName,
@@ -1668,6 +1673,55 @@ const createProgressExports = (
   return exportsByComponent
 }
 
+const createCircularProgressExports = (
+  components: IComponents,
+  existingApiNames: Iterable<string>,
+): Map<string, CircularProgressExport> => {
+  const exportsByComponent = new Map<string, CircularProgressExport>()
+  const usedApiNames = new Set(existingApiNames)
+
+  Object.values(components)
+    .filter(component => component.type === 'CircularProgress')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const baseName = toCIdentifier(
+        component.componentName ||
+        component.props.name ||
+        component.props.label ||
+        'Circular Progress',
+        'Circular Progress',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let allocatedBase = baseName
+      let suffix = 2
+      while (usedApiNames.has(`FG_Set_${allocatedBase}_Value`)) {
+        allocatedBase = `${baseName}_${suffix++}`
+      }
+      const apiName = `FG_Set_${allocatedBase}_Value`
+      usedApiNames.add(apiName)
+
+      const firstRangeValue = integerProp(component.props.min, 0)
+      const secondRangeValue = integerProp(component.props.max, 100)
+      const minimum = Math.min(firstRangeValue, secondRangeValue)
+      const maximum = Math.max(firstRangeValue, secondRangeValue)
+      const configuredValue = integerProp(component.props.value, 60)
+      const initialValue = Math.max(minimum, Math.min(maximum, configuredValue))
+      const runtimeStem = allocatedBase.toLowerCase()
+
+      exportsByComponent.set(component.id, {
+        apiName,
+        objectName: `fg_${runtimeStem}_circular_progress`,
+        stateName: `fg_${runtimeStem}_circular_progress_value`,
+        minimumName: `fg_${runtimeStem}_circular_progress_minimum`,
+        maximumName: `fg_${runtimeStem}_circular_progress_maximum`,
+        minimum,
+        maximum,
+        initialValue,
+      })
+    })
+
+  return exportsByComponent
+}
+
 const createNumberInputExports = (
   components: IComponents,
   usedHookNames: Set<string>,
@@ -1732,6 +1786,8 @@ const createNumberInputExports = (
         maximumName: `fg_${runtimeStem}_maximum`,
         stepName: `fg_${runtimeStem}_step`,
         eventCallbackName: `fg_${runtimeStem}_value_changed_cb`,
+        incrementCallbackName: `fg_${runtimeStem}_increment_cb`,
+        decrementCallbackName: `fg_${runtimeStem}_decrement_cb`,
         minimum,
         maximum,
         step,
@@ -2122,6 +2178,7 @@ const buildLvglBlock = (
   ledExports: Map<string, LedExport>,
   barExports: Map<string, BarExport>,
   progressExports: Map<string, ProgressExport>,
+  circularProgressExports: Map<string, CircularProgressExport>,
   numberInputExports: Map<string, NumberInputExport>,
   selectExports: Map<string, SelectExport>,
   imageExports: Map<string, ImageExport>,
@@ -2233,10 +2290,15 @@ case 'WiFi': {
         lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_COVER, 0);`)
         lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.surfaceBorder}), 0);`)
         lines.push(`lv_obj_set_style_border_width(${varName}, 2, 0);`)
+        lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.selectedSurface}), LV_PART_MAIN | LV_STATE_PRESSED);`)
+        lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.accent}), LV_PART_MAIN | LV_STATE_FOCUSED);`)
+        lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN | LV_STATE_DISABLED);`)
+        lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.accentText}), LV_PART_MAIN | LV_STATE_PRESSED);`)
+        lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${palette.disabledText}), LV_PART_MAIN | LV_STATE_DISABLED);`)
 
         lines.push(`lv_obj_t * ${varName}_label = lv_label_create(${varName});`)
         lines.push(`lv_label_set_text(${varName}_label, "${text}");`)
-        lines.push(`lv_obj_set_style_text_color(${varName}_label, lv_color_hex(${palette.textPrimary}), 0);`)
         lines.push(`lv_obj_set_style_text_font(${varName}_label, &lv_font_montserrat_14, 0);`)
         lines.push(`lv_obj_set_style_text_align(${varName}_label, LV_TEXT_ALIGN_CENTER, 0);`)
         lines.push(`lv_obj_center(${varName}_label);`)
@@ -2644,8 +2706,14 @@ case 'InteractiveThreePositionToggleSwitch': {
 
   lines.push(`lv_obj_set_style_radius(${buttonObject}, 12, 0);`)
   lines.push(`lv_obj_set_style_bg_color(${buttonObject}, lv_color_hex(${palette.surface}), 0);`)
-  lines.push(`lv_obj_set_style_border_color(${buttonObject}, lv_color_hex(${palette.border}), 0);`)
+  lines.push(`lv_obj_set_style_border_color(${buttonObject}, lv_color_hex(${palette.surfaceBorder}), 0);`)
   lines.push(`lv_obj_set_style_border_width(${buttonObject}, 2, 0);`)
+  lines.push(`lv_obj_set_style_bg_color(${buttonObject}, lv_color_hex(${palette.selectedSurface}), LV_PART_MAIN | LV_STATE_PRESSED);`)
+  lines.push(`lv_obj_set_style_border_color(${buttonObject}, lv_color_hex(${palette.accent}), LV_PART_MAIN | LV_STATE_FOCUSED);`)
+  lines.push(`lv_obj_set_style_bg_color(${buttonObject}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN | LV_STATE_DISABLED);`)
+  lines.push(`lv_obj_set_style_text_color(${buttonObject}, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_color(${buttonObject}, lv_color_hex(${palette.accentText}), LV_PART_MAIN | LV_STATE_PRESSED);`)
+  lines.push(`lv_obj_set_style_text_color(${buttonObject}, lv_color_hex(${palette.disabledText}), LV_PART_MAIN | LV_STATE_DISABLED);`)
 
   lines.push(`lv_obj_t * ${varName}_label = lv_label_create(${buttonObject});`)
   lines.push(`lv_label_set_text(${varName}_label, LV_SYMBOL_OK);`)
@@ -2719,7 +2787,7 @@ case 'Icon': {
 
     const color = child.props.color
       ? `0x${String(child.props.color).replace('#', '')}`
-      : palette.text
+      : palette.textPrimary
 
     const iconSize = lv(
       child.props.boxSize,
@@ -2762,8 +2830,28 @@ case 'Icon': {
         lines.push(`lv_obj_set_pos(${inputExport.objectName}, ${x}, ${y});`)
         lines.push(`lv_obj_set_size(${inputExport.objectName}, ${w}, ${h});`)
         lines.push(`lv_obj_set_style_bg_color(${inputExport.objectName}, lv_color_hex(${palette.surface}), 0);`)
-        lines.push(`lv_obj_set_style_text_color(${inputExport.objectName}, lv_color_hex(${palette.text}), 0);`)
-        lines.push(`lv_obj_set_style_border_color(${inputExport.objectName}, lv_color_hex(${palette.border}), 0);`)
+        lines.push(`lv_obj_set_style_bg_opa(${inputExport.objectName}, LV_OPA_COVER, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_text_color(${inputExport.objectName}, lv_color_hex(${palette.textPrimary}), 0);`)
+        lines.push(`lv_obj_set_style_border_color(${inputExport.objectName}, lv_color_hex(${palette.surfaceBorder}), 0);`)
+        lines.push(`lv_obj_set_style_border_opa(${inputExport.objectName}, LV_OPA_COVER, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_border_width(${inputExport.objectName}, 1, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_radius(${inputExport.objectName}, 6, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_outline_width(${inputExport.objectName}, 0, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_shadow_width(${inputExport.objectName}, 0, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_pad_left(${inputExport.objectName}, 16, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_pad_right(${inputExport.objectName}, 16, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_pad_top(${inputExport.objectName}, 0, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_pad_bottom(${inputExport.objectName}, 0, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_bg_opa(${inputExport.objectName}, LV_OPA_TRANSP, LV_PART_SCROLLBAR);`)
+        lines.push(`lv_obj_set_style_border_width(${inputExport.objectName}, 0, LV_PART_SCROLLBAR);`)
+        lines.push(`lv_obj_set_style_outline_width(${inputExport.objectName}, 0, LV_PART_SCROLLBAR);`)
+        lines.push(`lv_obj_set_style_shadow_width(${inputExport.objectName}, 0, LV_PART_SCROLLBAR);`)
+        lines.push(`lv_obj_set_style_text_color(${inputExport.objectName}, lv_color_hex(${palette.textSecondary}), LV_PART_TEXTAREA_PLACEHOLDER);`)
+        lines.push(`lv_obj_set_style_border_color(${inputExport.objectName}, lv_color_hex(${palette.accent}), LV_PART_MAIN | LV_STATE_FOCUSED);`)
+        lines.push(`lv_obj_set_style_border_width(${inputExport.objectName}, 1, LV_PART_MAIN | LV_STATE_FOCUSED);`)
+        lines.push(`lv_obj_set_style_outline_width(${inputExport.objectName}, 0, LV_PART_MAIN | LV_STATE_FOCUSED);`)
+        lines.push(`lv_obj_set_style_shadow_width(${inputExport.objectName}, 0, LV_PART_MAIN | LV_STATE_FOCUSED);`)
+        lines.push(`lv_obj_set_style_text_color(${inputExport.objectName}, lv_color_hex(${palette.disabledText}), LV_PART_MAIN | LV_STATE_DISABLED);`)
         lines.push(`lv_obj_add_event_cb(${inputExport.objectName}, ${inputExport.eventCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
         lines.push(``)
         break
@@ -2783,8 +2871,28 @@ case 'Icon': {
         lines.push(`lv_obj_set_pos(${textareaExport.objectName}, ${x}, ${y});`)
         lines.push(`lv_obj_set_size(${textareaExport.objectName}, ${w}, ${h});`)
         lines.push(`lv_obj_set_style_bg_color(${textareaExport.objectName}, lv_color_hex(${palette.surface}), 0);`)
-        lines.push(`lv_obj_set_style_text_color(${textareaExport.objectName}, lv_color_hex(${palette.text}), 0);`)
-        lines.push(`lv_obj_set_style_border_color(${textareaExport.objectName}, lv_color_hex(${palette.border}), 0);`)
+        lines.push(`lv_obj_set_style_bg_opa(${textareaExport.objectName}, LV_OPA_COVER, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_text_color(${textareaExport.objectName}, lv_color_hex(${palette.textPrimary}), 0);`)
+        lines.push(`lv_obj_set_style_border_color(${textareaExport.objectName}, lv_color_hex(${palette.surfaceBorder}), 0);`)
+        lines.push(`lv_obj_set_style_border_opa(${textareaExport.objectName}, LV_OPA_COVER, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_border_width(${textareaExport.objectName}, 1, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_radius(${textareaExport.objectName}, 6, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_outline_width(${textareaExport.objectName}, 0, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_shadow_width(${textareaExport.objectName}, 0, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_pad_left(${textareaExport.objectName}, 16, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_pad_right(${textareaExport.objectName}, 16, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_pad_top(${textareaExport.objectName}, 8, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_pad_bottom(${textareaExport.objectName}, 8, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_bg_opa(${textareaExport.objectName}, LV_OPA_TRANSP, LV_PART_SCROLLBAR);`)
+        lines.push(`lv_obj_set_style_border_width(${textareaExport.objectName}, 0, LV_PART_SCROLLBAR);`)
+        lines.push(`lv_obj_set_style_outline_width(${textareaExport.objectName}, 0, LV_PART_SCROLLBAR);`)
+        lines.push(`lv_obj_set_style_shadow_width(${textareaExport.objectName}, 0, LV_PART_SCROLLBAR);`)
+        lines.push(`lv_obj_set_style_text_color(${textareaExport.objectName}, lv_color_hex(${palette.textSecondary}), LV_PART_TEXTAREA_PLACEHOLDER);`)
+        lines.push(`lv_obj_set_style_border_color(${textareaExport.objectName}, lv_color_hex(${palette.accent}), LV_PART_MAIN | LV_STATE_FOCUSED);`)
+        lines.push(`lv_obj_set_style_border_width(${textareaExport.objectName}, 1, LV_PART_MAIN | LV_STATE_FOCUSED);`)
+        lines.push(`lv_obj_set_style_outline_width(${textareaExport.objectName}, 0, LV_PART_MAIN | LV_STATE_FOCUSED);`)
+        lines.push(`lv_obj_set_style_shadow_width(${textareaExport.objectName}, 0, LV_PART_MAIN | LV_STATE_FOCUSED);`)
+        lines.push(`lv_obj_set_style_text_color(${textareaExport.objectName}, lv_color_hex(${palette.disabledText}), LV_PART_MAIN | LV_STATE_DISABLED);`)
         lines.push(`lv_obj_add_event_cb(${textareaExport.objectName}, ${textareaExport.eventCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
         lines.push(``)
         break
@@ -2802,9 +2910,14 @@ case 'Icon': {
     lines.push(`lv_obj_add_state(${switchExport.objectName}, LV_STATE_CHECKED);`)
   }
 
-  lines.push(`lv_obj_set_style_bg_color(${switchExport.objectName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_bg_color(${switchExport.objectName}, lv_color_hex(${palette.border}), LV_PART_INDICATOR);`)
-  lines.push(`lv_obj_set_style_bg_color(${switchExport.objectName}, lv_color_hex(${palette.text}), LV_PART_KNOB);`)
+  lines.push(`lv_obj_set_style_bg_color(${switchExport.objectName}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_opa(${switchExport.objectName}, LV_OPA_COVER, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_color(${switchExport.objectName}, lv_color_hex(${palette.accent}), LV_PART_INDICATOR);`)
+  lines.push(`lv_obj_set_style_bg_opa(${switchExport.objectName}, LV_OPA_TRANSP, LV_PART_INDICATOR);`)
+  lines.push(`lv_obj_set_style_bg_color(${switchExport.objectName}, lv_color_hex(${palette.accent}), LV_PART_INDICATOR | LV_STATE_CHECKED);`)
+  lines.push(`lv_obj_set_style_bg_opa(${switchExport.objectName}, LV_OPA_COVER, LV_PART_INDICATOR | LV_STATE_CHECKED);`)
+  lines.push(`lv_obj_set_style_bg_color(${switchExport.objectName}, lv_color_hex(${palette.accentText}), LV_PART_KNOB);`)
+  lines.push(`lv_obj_set_style_bg_opa(${switchExport.objectName}, LV_OPA_COVER, LV_PART_KNOB);`)
   lines.push(`lv_obj_add_event_cb(${switchExport.objectName}, ${switchExport.eventCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
   lines.push(``)
   break
@@ -2813,12 +2926,7 @@ case 'Icon': {
       case 'Checkbox': {
   const checkboxExport = checkboxExports.get(child.id)
   if (!checkboxExport) break
-  const text = esc(
-    child.props.children ||
-      child.props.text ||
-      child.props.label ||
-      'Checkbox'
-  )
+  const text = esc(getForgeUIStandardCheckboxText(child.props))
 
   lines.push(`${checkboxExport.objectName} = lv_checkbox_create(${parentVar});`)
   lines.push(`lv_checkbox_set_text(${checkboxExport.objectName}, "${text}");`)
@@ -2828,11 +2936,19 @@ case 'Icon': {
     lines.push(`lv_obj_add_state(${checkboxExport.objectName}, LV_STATE_CHECKED);`)
   }
 
-  lines.push(`lv_obj_set_style_text_color(${checkboxExport.objectName}, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_border_color(${checkboxExport.objectName}, lv_color_hex(${palette.border}), LV_PART_INDICATOR);`)
+  lines.push(`lv_obj_set_style_text_color(${checkboxExport.objectName}, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_color(${checkboxExport.objectName}, lv_color_hex(${palette.disabledText}), LV_PART_MAIN | LV_STATE_DISABLED);`)
+  lines.push(`lv_obj_set_style_pad_column(${checkboxExport.objectName}, 8, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${checkboxExport.objectName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_INDICATOR);`)
+  lines.push(`lv_obj_set_style_border_width(${checkboxExport.objectName}, 2, LV_PART_INDICATOR);`)
+  lines.push(`lv_obj_set_style_radius(${checkboxExport.objectName}, 4, LV_PART_INDICATOR);`)
   lines.push(`lv_obj_set_style_bg_color(${checkboxExport.objectName}, lv_color_hex(${palette.surface}), LV_PART_INDICATOR);`)
+  lines.push(`lv_obj_set_style_bg_opa(${checkboxExport.objectName}, LV_OPA_COVER, LV_PART_INDICATOR);`)
   lines.push(`lv_obj_set_style_bg_color(${checkboxExport.objectName}, lv_color_hex(${palette.accent}), LV_PART_INDICATOR | LV_STATE_CHECKED);`)
-  lines.push(`lv_obj_set_style_text_color(${checkboxExport.objectName}, lv_color_hex(${palette.text}), LV_PART_INDICATOR | LV_STATE_CHECKED);`)
+  lines.push(`lv_obj_set_style_border_color(${checkboxExport.objectName}, lv_color_hex(${palette.accent}), LV_PART_INDICATOR | LV_STATE_CHECKED);`)
+  lines.push(`lv_obj_set_style_text_color(${checkboxExport.objectName}, lv_color_hex(${palette.accentText}), LV_PART_INDICATOR | LV_STATE_CHECKED);`)
+  lines.push(`lv_obj_set_style_bg_color(${checkboxExport.objectName}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_INDICATOR | LV_STATE_DISABLED);`)
+  lines.push(`lv_obj_set_style_border_color(${checkboxExport.objectName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_INDICATOR | LV_STATE_DISABLED);`)
   lines.push(`lv_obj_add_event_cb(${checkboxExport.objectName}, ${checkboxExport.eventCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
   lines.push(``)
   break
@@ -2841,12 +2957,7 @@ case 'Icon': {
       case 'Radio': {
   const radioExport = radioExports.get(child.id)
   if (!radioExport) break
-  const text = esc(
-    child.props.children ||
-      child.props.text ||
-      child.props.label ||
-      'Radio'
-  )
+  const text = esc(getForgeUIStandardRadioText(child.props))
 
   lines.push(`${radioExport.objectName} = lv_checkbox_create(${parentVar});`)
   lines.push(`lv_checkbox_set_text(${radioExport.objectName}, "${text}");`)
@@ -2856,12 +2967,13 @@ case 'Icon': {
     lines.push(`lv_obj_add_state(${radioExport.objectName}, LV_STATE_CHECKED);`)
   }
 
-  lines.push(`lv_obj_set_style_text_color(${radioExport.objectName}, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_color(${radioExport.objectName}, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_color(${radioExport.objectName}, lv_color_hex(${palette.disabledText}), LV_PART_MAIN | LV_STATE_DISABLED);`)
   lines.push(`lv_obj_set_style_radius(${radioExport.objectName}, LV_RADIUS_CIRCLE, LV_PART_INDICATOR);`)
-  lines.push(`lv_obj_set_style_border_color(${radioExport.objectName}, lv_color_hex(${palette.border}), LV_PART_INDICATOR);`)
+  lines.push(`lv_obj_set_style_border_color(${radioExport.objectName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_INDICATOR);`)
   lines.push(`lv_obj_set_style_bg_color(${radioExport.objectName}, lv_color_hex(${palette.surface}), LV_PART_INDICATOR);`)
   lines.push(`lv_obj_set_style_bg_color(${radioExport.objectName}, lv_color_hex(${palette.accent}), LV_PART_INDICATOR | LV_STATE_CHECKED);`)
-  lines.push(`lv_obj_set_style_text_color(${radioExport.objectName}, lv_color_hex(${palette.text}), LV_PART_INDICATOR | LV_STATE_CHECKED);`)
+  lines.push(`lv_obj_set_style_text_color(${radioExport.objectName}, lv_color_hex(${palette.accentText}), LV_PART_INDICATOR | LV_STATE_CHECKED);`)
   lines.push(`lv_obj_add_event_cb(${radioExport.objectName}, ${radioExport.eventCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
   lines.push(``)
   break
@@ -2876,21 +2988,128 @@ case 'Icon': {
           numberInputExport?.initialText ??
           String(child.props.value ?? 50),
         )
+        const numberInputContainer = `${numberInputObject}_container`
 
-        lines.push(`${numberInputObject} = lv_textarea_create(${parentVar});`)
+        lines.push(`lv_obj_t * ${numberInputContainer} = lv_obj_create(${parentVar});`)
+        lines.push(`lv_obj_set_pos(${numberInputContainer}, ${x}, ${y});`)
+        lines.push(`lv_obj_set_size(${numberInputContainer}, ${w}, ${h});`)
+        lines.push(`lv_obj_clear_flag(${numberInputContainer}, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);`)
+        lines.push(`lv_obj_set_style_pad_all(${numberInputContainer}, 0, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_bg_color(${numberInputContainer}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_bg_opa(${numberInputContainer}, LV_OPA_COVER, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_border_color(${numberInputContainer}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_border_opa(${numberInputContainer}, LV_OPA_COVER, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_border_width(${numberInputContainer}, 1, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_radius(${numberInputContainer}, 6, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_outline_width(${numberInputContainer}, 0, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_shadow_width(${numberInputContainer}, 0, LV_PART_MAIN);`)
+        lines.push(`${numberInputObject} = lv_textarea_create(${numberInputContainer});`)
         lines.push(`lv_textarea_set_one_line(${numberInputObject}, true);`)
         lines.push(`lv_textarea_set_text(${numberInputObject}, "${initialText}");`)
-        lines.push(`lv_obj_set_pos(${numberInputObject}, ${x}, ${y});`)
-        lines.push(`lv_obj_set_size(${numberInputObject}, ${w}, ${h});`)
-        lines.push(`lv_obj_set_style_bg_color(${numberInputObject}, lv_color_hex(${palette.surface}), 0);`)
-        lines.push(`lv_obj_set_style_text_color(${numberInputObject}, lv_color_hex(${palette.text}), 0);`)
-        lines.push(`lv_obj_set_style_border_color(${numberInputObject}, lv_color_hex(${palette.border}), 0);`)
+        lines.push(`lv_obj_set_pos(${numberInputObject}, 1, 1);`)
+        lines.push(`lv_obj_set_size(${numberInputObject}, (${w}) - 2, (${h}) - 2);`)
+        lines.push(`lv_obj_set_style_bg_color(${numberInputObject}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_bg_opa(${numberInputObject}, LV_OPA_COVER, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_text_color(${numberInputObject}, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_border_color(${numberInputObject}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_border_opa(${numberInputObject}, LV_OPA_COVER, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_border_width(${numberInputObject}, 0, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_radius(${numberInputObject}, 6, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_outline_width(${numberInputObject}, 0, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_shadow_width(${numberInputObject}, 0, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_pad_right(${numberInputObject}, 38, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_bg_color(${numberInputObject}, lv_color_hex(${palette.accent}), LV_PART_CURSOR);`)
+        lines.push(`lv_obj_set_style_bg_opa(${numberInputObject}, LV_OPA_COVER, LV_PART_CURSOR);`)
+        lines.push(`lv_obj_set_style_bg_color(${numberInputObject}, lv_color_hex(${palette.selectedSurface}), LV_PART_SELECTED);`)
+        lines.push(`lv_obj_set_style_bg_opa(${numberInputObject}, LV_OPA_COVER, LV_PART_SELECTED);`)
+        lines.push(`lv_obj_set_style_text_color(${numberInputObject}, lv_color_hex(${palette.accentText}), LV_PART_SELECTED);`)
+        lines.push(`lv_obj_set_style_bg_color(${numberInputObject}, lv_color_hex(${palette.surface}), LV_PART_MAIN | LV_STATE_PRESSED);`)
+        lines.push(`lv_obj_set_style_bg_opa(${numberInputObject}, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_PRESSED);`)
+        lines.push(`lv_obj_set_style_border_color(${numberInputObject}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN | LV_STATE_PRESSED);`)
+        lines.push(`lv_obj_set_style_border_width(${numberInputObject}, 0, LV_PART_MAIN | LV_STATE_PRESSED);`)
+        lines.push(`lv_obj_set_style_text_color(${numberInputObject}, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN | LV_STATE_PRESSED);`)
+        lines.push(`lv_obj_set_style_border_color(${numberInputObject}, lv_color_hex(${palette.accent}), LV_PART_MAIN | LV_STATE_FOCUSED);`)
+        lines.push(`lv_obj_set_style_border_width(${numberInputObject}, 0, LV_PART_MAIN | LV_STATE_FOCUSED);`)
+        lines.push(`lv_obj_set_style_outline_width(${numberInputObject}, 0, LV_PART_MAIN | LV_STATE_FOCUSED);`)
+        lines.push(`lv_obj_set_style_shadow_width(${numberInputObject}, 0, LV_PART_MAIN | LV_STATE_FOCUSED);`)
+        lines.push(`lv_obj_set_style_border_width(${numberInputObject}, 0, LV_PART_MAIN | LV_STATE_FOCUS_KEY);`)
+        lines.push(`lv_obj_set_style_outline_width(${numberInputObject}, 0, LV_PART_MAIN | LV_STATE_FOCUS_KEY);`)
+        lines.push(`lv_obj_set_style_shadow_width(${numberInputObject}, 0, LV_PART_MAIN | LV_STATE_FOCUS_KEY);`)
+        lines.push(`lv_obj_set_style_bg_color(${numberInputObject}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN | LV_STATE_DISABLED);`)
+        lines.push(`lv_obj_set_style_bg_opa(${numberInputObject}, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DISABLED);`)
+        lines.push(`lv_obj_set_style_text_color(${numberInputObject}, lv_color_hex(${palette.disabledText}), LV_PART_MAIN | LV_STATE_DISABLED);`)
+        lines.push(`lv_obj_set_style_border_color(${numberInputObject}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN | LV_STATE_DISABLED);`)
+        lines.push(`lv_obj_set_style_border_width(${numberInputObject}, 0, LV_PART_MAIN | LV_STATE_DISABLED);`)
         if (child.props.isDisabled) {
           lines.push(`lv_obj_add_state(${numberInputObject}, LV_STATE_DISABLED);`)
         }
         if (numberInputExport) {
           lines.push(`${numberInputExport.stateName} = ${numberInputExport.initialValue};`)
           lines.push(`lv_obj_add_event_cb(${numberInputObject}, ${numberInputExport.eventCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
+          const incrementButton = `${numberInputObject}_increment_button`
+          const decrementButton = `${numberInputObject}_decrement_button`
+          const incrementIcon = `${incrementButton}_icon`
+          const decrementIcon = `${decrementButton}_icon`
+          lines.push(`lv_obj_t * ${incrementButton} = lv_button_create(${numberInputContainer});`)
+          lines.push(`lv_obj_set_pos(${incrementButton}, (${w}) - 33, 1);`)
+          lines.push(`lv_obj_set_size(${incrementButton}, 32, ((${h}) - 2) / 2);`)
+          lines.push(`lv_obj_set_style_bg_color(${incrementButton}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
+          lines.push(`lv_obj_set_style_bg_opa(${incrementButton}, LV_OPA_COVER, LV_PART_MAIN);`)
+          lines.push(`lv_obj_set_style_border_color(${incrementButton}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+          lines.push(`lv_obj_set_style_border_width(${incrementButton}, 1, LV_PART_MAIN);`)
+          lines.push(`lv_obj_set_style_border_side(${incrementButton}, LV_BORDER_SIDE_LEFT | LV_BORDER_SIDE_BOTTOM, LV_PART_MAIN);`)
+          lines.push(`lv_obj_set_style_radius(${incrementButton}, 4, LV_PART_MAIN);`)
+          lines.push(`lv_obj_set_style_pad_all(${incrementButton}, 0, LV_PART_MAIN);`)
+          lines.push(`lv_obj_set_style_outline_width(${incrementButton}, 0, LV_PART_MAIN);`)
+          lines.push(`lv_obj_set_style_shadow_width(${incrementButton}, 0, LV_PART_MAIN);`)
+          lines.push(`lv_obj_set_style_text_color(${incrementButton}, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+          lines.push(`lv_obj_set_style_bg_color(${incrementButton}, lv_color_hex(${palette.accent}), LV_PART_MAIN | LV_STATE_PRESSED);`)
+          lines.push(`lv_obj_set_style_border_color(${incrementButton}, lv_color_hex(${palette.accent}), LV_PART_MAIN | LV_STATE_PRESSED);`)
+          lines.push(`lv_obj_set_style_text_color(${incrementButton}, lv_color_hex(${palette.accentText}), LV_PART_MAIN | LV_STATE_PRESSED);`)
+          lines.push(`lv_obj_set_style_border_color(${incrementButton}, lv_color_hex(${palette.accent}), LV_PART_MAIN | LV_STATE_FOCUSED);`)
+          lines.push(`lv_obj_set_style_outline_width(${incrementButton}, 0, LV_PART_MAIN | LV_STATE_FOCUSED);`)
+          lines.push(`lv_obj_set_style_shadow_width(${incrementButton}, 0, LV_PART_MAIN | LV_STATE_FOCUSED);`)
+          lines.push(`lv_obj_set_style_outline_width(${incrementButton}, 0, LV_PART_MAIN | LV_STATE_FOCUS_KEY);`)
+          lines.push(`lv_obj_set_style_shadow_width(${incrementButton}, 0, LV_PART_MAIN | LV_STATE_FOCUS_KEY);`)
+          lines.push(`lv_obj_set_style_bg_color(${incrementButton}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN | LV_STATE_DISABLED);`)
+          lines.push(`lv_obj_set_style_bg_opa(${incrementButton}, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DISABLED);`)
+          lines.push(`lv_obj_set_style_text_color(${incrementButton}, lv_color_hex(${palette.disabledText}), LV_PART_MAIN | LV_STATE_DISABLED);`)
+          lines.push(`lv_obj_t * ${incrementIcon} = lv_label_create(${incrementButton});`)
+          lines.push(`lv_label_set_text(${incrementIcon}, LV_SYMBOL_UP);`)
+          lines.push(`lv_obj_center(${incrementIcon});`)
+          lines.push(`lv_obj_add_event_cb(${incrementButton}, ${numberInputExport.incrementCallbackName}, LV_EVENT_CLICKED, NULL);`)
+          lines.push(`lv_obj_t * ${decrementButton} = lv_button_create(${numberInputContainer});`)
+          lines.push(`lv_obj_set_pos(${decrementButton}, (${w}) - 33, 1 + (((${h}) - 2) / 2));`)
+          lines.push(`lv_obj_set_size(${decrementButton}, 32, ((${h}) - 2) - (((${h}) - 2) / 2));`)
+          lines.push(`lv_obj_set_style_bg_color(${decrementButton}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
+          lines.push(`lv_obj_set_style_bg_opa(${decrementButton}, LV_OPA_COVER, LV_PART_MAIN);`)
+          lines.push(`lv_obj_set_style_border_color(${decrementButton}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+          lines.push(`lv_obj_set_style_border_width(${decrementButton}, 1, LV_PART_MAIN);`)
+          lines.push(`lv_obj_set_style_border_side(${decrementButton}, LV_BORDER_SIDE_LEFT, LV_PART_MAIN);`)
+          lines.push(`lv_obj_set_style_radius(${decrementButton}, 4, LV_PART_MAIN);`)
+          lines.push(`lv_obj_set_style_pad_all(${decrementButton}, 0, LV_PART_MAIN);`)
+          lines.push(`lv_obj_set_style_outline_width(${decrementButton}, 0, LV_PART_MAIN);`)
+          lines.push(`lv_obj_set_style_shadow_width(${decrementButton}, 0, LV_PART_MAIN);`)
+          lines.push(`lv_obj_set_style_text_color(${decrementButton}, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+          lines.push(`lv_obj_set_style_bg_color(${decrementButton}, lv_color_hex(${palette.accent}), LV_PART_MAIN | LV_STATE_PRESSED);`)
+          lines.push(`lv_obj_set_style_border_color(${decrementButton}, lv_color_hex(${palette.accent}), LV_PART_MAIN | LV_STATE_PRESSED);`)
+          lines.push(`lv_obj_set_style_text_color(${decrementButton}, lv_color_hex(${palette.accentText}), LV_PART_MAIN | LV_STATE_PRESSED);`)
+          lines.push(`lv_obj_set_style_border_color(${decrementButton}, lv_color_hex(${palette.accent}), LV_PART_MAIN | LV_STATE_FOCUSED);`)
+          lines.push(`lv_obj_set_style_outline_width(${decrementButton}, 0, LV_PART_MAIN | LV_STATE_FOCUSED);`)
+          lines.push(`lv_obj_set_style_shadow_width(${decrementButton}, 0, LV_PART_MAIN | LV_STATE_FOCUSED);`)
+          lines.push(`lv_obj_set_style_outline_width(${decrementButton}, 0, LV_PART_MAIN | LV_STATE_FOCUS_KEY);`)
+          lines.push(`lv_obj_set_style_shadow_width(${decrementButton}, 0, LV_PART_MAIN | LV_STATE_FOCUS_KEY);`)
+          lines.push(`lv_obj_set_style_bg_color(${decrementButton}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN | LV_STATE_DISABLED);`)
+          lines.push(`lv_obj_set_style_bg_opa(${decrementButton}, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DISABLED);`)
+          lines.push(`lv_obj_set_style_text_color(${decrementButton}, lv_color_hex(${palette.disabledText}), LV_PART_MAIN | LV_STATE_DISABLED);`)
+          lines.push(`lv_obj_t * ${decrementIcon} = lv_label_create(${decrementButton});`)
+          lines.push(`lv_label_set_text(${decrementIcon}, LV_SYMBOL_DOWN);`)
+          lines.push(`lv_obj_center(${decrementIcon});`)
+          lines.push(`lv_obj_add_event_cb(${decrementButton}, ${numberInputExport.decrementCallbackName}, LV_EVENT_CLICKED, NULL);`)
+          if (child.props.isDisabled) {
+            lines.push(`lv_obj_add_state(${incrementButton}, LV_STATE_DISABLED);`)
+            lines.push(`lv_obj_add_state(${decrementButton}, LV_STATE_DISABLED);`)
+          }
         }
         lines.push(``)
         break
@@ -2911,10 +3130,49 @@ case 'Icon': {
         lines.push(`lv_obj_set_pos(${selectObject}, ${x}, ${y});`)
         lines.push(`lv_obj_set_size(${selectObject}, ${w}, ${h});`)
 
-        lines.push(`lv_obj_set_style_bg_color(${selectObject}, lv_color_hex(${palette.surface}), 0);`)
-        lines.push(`lv_obj_set_style_text_color(${selectObject}, lv_color_hex(${palette.text}), 0);`)
-        lines.push(`lv_obj_set_style_border_color(${selectObject}, lv_color_hex(${palette.border}), 0);`)
-        lines.push(`lv_obj_set_style_border_width(${selectObject}, 2, 0);`)
+        lines.push(`lv_obj_set_style_bg_color(${selectObject}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_bg_opa(${selectObject}, LV_OPA_COVER, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_text_color(${selectObject}, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_text_color(${selectObject}, lv_color_hex(${palette.textPrimary}), LV_PART_INDICATOR);`)
+        lines.push(`lv_obj_set_style_border_color(${selectObject}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_border_width(${selectObject}, 1, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_radius(${selectObject}, 8, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_outline_width(${selectObject}, 0, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_shadow_width(${selectObject}, 0, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_border_color(${selectObject}, lv_color_hex(${palette.accent}), LV_PART_MAIN | LV_STATE_FOCUSED);`)
+        lines.push(`lv_obj_set_style_border_color(${selectObject}, lv_color_hex(${palette.accent}), LV_PART_MAIN | LV_STATE_FOCUS_KEY);`)
+        lines.push(`lv_obj_set_style_outline_width(${selectObject}, 0, LV_PART_MAIN | LV_STATE_FOCUSED);`)
+        lines.push(`lv_obj_set_style_outline_width(${selectObject}, 0, LV_PART_MAIN | LV_STATE_FOCUS_KEY);`)
+        lines.push(`lv_obj_set_style_bg_color(${selectObject}, lv_color_hex(${palette.selectedSurface}), LV_PART_MAIN | LV_STATE_PRESSED);`)
+        lines.push(`lv_obj_set_style_bg_opa(${selectObject}, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_PRESSED);`)
+        lines.push(`lv_obj_set_style_text_color(${selectObject}, lv_color_hex(${palette.accentText}), LV_PART_MAIN | LV_STATE_PRESSED);`)
+        lines.push(`lv_obj_set_style_text_color(${selectObject}, lv_color_hex(${palette.accentText}), LV_PART_INDICATOR | LV_STATE_PRESSED);`)
+        lines.push(`lv_obj_set_style_bg_color(${selectObject}, lv_color_hex(${palette.selectedSurface}), LV_PART_MAIN | LV_STATE_CHECKED);`)
+        lines.push(`lv_obj_set_style_bg_opa(${selectObject}, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_CHECKED);`)
+        lines.push(`lv_obj_set_style_text_color(${selectObject}, lv_color_hex(${palette.accentText}), LV_PART_MAIN | LV_STATE_CHECKED);`)
+        lines.push(`lv_obj_set_style_text_color(${selectObject}, lv_color_hex(${palette.accentText}), LV_PART_INDICATOR | LV_STATE_CHECKED);`)
+        lines.push(`lv_obj_set_style_bg_color(${selectObject}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN | LV_STATE_DISABLED);`)
+        lines.push(`lv_obj_set_style_bg_opa(${selectObject}, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DISABLED);`)
+        lines.push(`lv_obj_set_style_opa(${selectObject}, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DISABLED);`)
+        lines.push(`lv_obj_set_style_text_color(${selectObject}, lv_color_hex(${palette.disabledText}), LV_PART_MAIN | LV_STATE_DISABLED);`)
+        lines.push(`lv_obj_set_style_text_color(${selectObject}, lv_color_hex(${palette.disabledText}), LV_PART_INDICATOR | LV_STATE_DISABLED);`)
+        lines.push(`lv_obj_t * ${selectObject}_list = lv_dropdown_get_list(${selectObject});`)
+        lines.push(`lv_obj_set_style_bg_color(${selectObject}_list, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_bg_opa(${selectObject}_list, LV_OPA_COVER, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_border_color(${selectObject}_list, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_border_width(${selectObject}_list, 1, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_radius(${selectObject}_list, 8, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_text_color(${selectObject}_list, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_outline_width(${selectObject}_list, 0, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_shadow_width(${selectObject}_list, 0, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_bg_color(${selectObject}_list, lv_color_hex(${palette.selectedSurface}), LV_PART_SELECTED);`)
+        lines.push(`lv_obj_set_style_text_color(${selectObject}_list, lv_color_hex(${palette.accentText}), LV_PART_SELECTED);`)
+        lines.push(`lv_obj_set_style_bg_color(${selectObject}_list, lv_color_hex(${palette.selectedSurface}), LV_PART_SELECTED | LV_STATE_CHECKED);`)
+        lines.push(`lv_obj_set_style_text_color(${selectObject}_list, lv_color_hex(${palette.accentText}), LV_PART_SELECTED | LV_STATE_CHECKED);`)
+        lines.push(`lv_obj_set_style_bg_color(${selectObject}_list, lv_color_hex(${palette.selectedSurface}), LV_PART_SELECTED | LV_STATE_PRESSED);`)
+        lines.push(`lv_obj_set_style_text_color(${selectObject}_list, lv_color_hex(${palette.accentText}), LV_PART_SELECTED | LV_STATE_PRESSED);`)
+        lines.push(`lv_obj_set_style_bg_color(${selectObject}_list, lv_color_hex(${palette.selectedSurface}), LV_PART_SELECTED | LV_STATE_CHECKED | LV_STATE_PRESSED);`)
+        lines.push(`lv_obj_set_style_text_color(${selectObject}_list, lv_color_hex(${palette.accentText}), LV_PART_SELECTED | LV_STATE_CHECKED | LV_STATE_PRESSED);`)
         if (child.props.isDisabled) {
           lines.push(`lv_obj_add_state(${selectObject}, LV_STATE_DISABLED);`)
         }
@@ -2991,9 +3249,9 @@ case 'Slider': {
   lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
   lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
   lines.push(`lv_slider_set_value(${varName}, ${lv(child.props.value, 50)}, LV_ANIM_OFF);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.border}), LV_PART_INDICATOR);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.text}), LV_PART_KNOB);`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.accent}), LV_PART_INDICATOR);`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.accentText}), LV_PART_KNOB);`)
   lines.push(``)
   break
 }
@@ -3012,21 +3270,32 @@ case 'Progress': {
   if (progressExport) {
     lines.push(`${progressExport.stateName} = ${initialValue};`)
   }
-  lines.push(`lv_obj_set_style_bg_color(${progressObject}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_bg_color(${progressObject}, lv_color_hex(${palette.border}), LV_PART_INDICATOR);`)
+  lines.push(`lv_obj_set_style_bg_color(${progressObject}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_color(${progressObject}, lv_color_hex(${palette.accent}), LV_PART_INDICATOR);`)
   lines.push(``)
   break
 }
 
 case 'CircularProgress': {
-  lines.push(`lv_obj_t * ${varName} = lv_arc_create(${parentVar});`)
-  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
-  lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
-  lines.push(`lv_arc_set_range(${varName}, 0, 100);`)
-  lines.push(`lv_arc_set_value(${varName}, ${lv(child.props.value, 65)});`)
-  lines.push(`lv_obj_set_style_arc_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_arc_color(${varName}, lv_color_hex(${palette.border}), LV_PART_INDICATOR);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.bg}), LV_PART_KNOB);`)
+  const circularProgressExport = circularProgressExports.get(child.id)
+  if (!circularProgressExport) break
+  const circularProgressObject = circularProgressExport.objectName
+  lines.push(`${circularProgressObject} = lv_arc_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${circularProgressObject}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${circularProgressObject}, ${w}, ${h});`)
+  lines.push(`lv_arc_set_range(${circularProgressObject}, ${circularProgressExport.minimum}, ${circularProgressExport.maximum});`)
+  lines.push(`lv_arc_set_bg_angles(${circularProgressObject}, 0, 360);`)
+  lines.push(`lv_arc_set_rotation(${circularProgressObject}, 270);`)
+  lines.push(`lv_arc_set_value(${circularProgressObject}, ${circularProgressExport.initialValue});`)
+  lines.push(`${circularProgressExport.stateName} = ${circularProgressExport.initialValue};`)
+  lines.push(`lv_obj_remove_style(${circularProgressObject}, NULL, LV_PART_KNOB);`)
+  lines.push(`lv_obj_clear_flag(${circularProgressObject}, LV_OBJ_FLAG_CLICKABLE);`)
+  lines.push(`lv_obj_set_style_arc_color(${circularProgressObject}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_arc_opa(${circularProgressObject}, LV_OPA_COVER, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_arc_width(${circularProgressObject}, 10, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_arc_color(${circularProgressObject}, lv_color_hex(${palette.accent}), LV_PART_INDICATOR);`)
+  lines.push(`lv_obj_set_style_arc_opa(${circularProgressObject}, LV_OPA_COVER, LV_PART_INDICATOR);`)
+  lines.push(`lv_obj_set_style_arc_width(${circularProgressObject}, 10, LV_PART_INDICATOR);`)
   lines.push(``)
   break
 }
@@ -3648,6 +3917,19 @@ case 'Keyboard': {
   break
 }
 
+case 'Divider': {
+  lines.push(`lv_obj_t * ${varName} = lv_obj_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${Number(y) + Math.floor((Number(h) || 1) / 2)});`)
+  lines.push(`lv_obj_set_size(${varName}, ${w}, 1);`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_COVER, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${varName}, 0, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${varName}, 0, LV_PART_MAIN);`)
+  lines.push(`lv_obj_clear_flag(${varName}, LV_OBJ_FLAG_CLICKABLE);`)
+  lines.push(``)
+  break
+}
+
 case 'Calendar': {
   const calendarExport = calendarExports.get(child.id)
   const calendarObject = calendarExport?.objectName || varName
@@ -3718,7 +4000,7 @@ case 'Chart': {
     }
   }
   lines.push(
-    `${chartSeries} = lv_chart_add_series(${chartObject}, ${chartExport?.seriesColor || 'lv_palette_main(LV_PALETTE_BLUE)'}, LV_CHART_AXIS_PRIMARY_Y);`
+    `${chartSeries} = lv_chart_add_series(${chartObject}, ${chartExport?.seriesColor || `lv_color_hex(${palette.accent})`}, LV_CHART_AXIS_PRIMARY_Y);`
   )
   initialData.forEach(value => {
     lines.push(`lv_chart_set_next_value(${chartObject}, ${chartSeries}, ${value});`)
@@ -3801,6 +4083,7 @@ case 'Chart': {
         ledExports,
         barExports,
         progressExports,
+        circularProgressExports,
         numberInputExports,
         selectExports,
         imageExports,
@@ -4197,6 +4480,37 @@ export const generateForgeUILvglCode = (
       ...Array.from(radioExports.values()).map(value => value.apiName),
     ],
   )
+  const circularProgressExports = createCircularProgressExports(
+    components,
+    [
+      ...Array.from(binaryOutputExports.values()).map(value => value.apiName),
+      ...Array.from(ledExports.values()).map(value => value.apiName),
+      ...Array.from(barExports.values()).map(value => value.apiName),
+      ...Array.from(arcExports.values()).map(value => value.apiName),
+      ...Array.from(chartExports.values()).flatMap(value => [
+        value.addApiName,
+        value.clearApiName,
+      ]),
+      ...Array.from(keyboardExports.values()).flatMap(value => [
+        value.showApiName,
+        value.hideApiName,
+      ]),
+      ...Array.from(calendarExports.values()).map(value => value.apiName),
+      ...Array.from(rollerExports.values()).map(value => value.apiName),
+      ...Array.from(messageBoxExports.values()).flatMap(value => [
+        value.showApiName,
+        value.closeApiName,
+      ]),
+      ...Array.from(buttonMatrixExports.values()).map(value => value.apiName),
+      ...Array.from(tabViewExports.values()).map(value => value.apiName),
+      ...Array.from(tileViewExports.values()).map(value => value.apiName),
+      ...Array.from(inputExports.values()).map(value => value.apiName),
+      ...Array.from(switchExports.values()).map(value => value.apiName),
+      ...Array.from(checkboxExports.values()).map(value => value.apiName),
+      ...Array.from(radioExports.values()).map(value => value.apiName),
+      ...Array.from(progressExports.values()).map(value => value.apiName),
+    ],
+  )
   const numberInputExports = createNumberInputExports(
     components,
     usedHookNames,
@@ -4228,6 +4542,7 @@ export const generateForgeUILvglCode = (
       ...Array.from(checkboxExports.values()).map(value => value.apiName),
       ...Array.from(radioExports.values()).map(value => value.apiName),
       ...Array.from(progressExports.values()).map(value => value.apiName),
+      ...Array.from(circularProgressExports.values()).map(value => value.apiName),
     ],
   )
   const selectExports = createSelectExports(
@@ -4262,6 +4577,7 @@ export const generateForgeUILvglCode = (
       ...Array.from(radioExports.values()).map(value => value.apiName),
       ...Array.from(progressExports.values()).map(value => value.apiName),
       ...Array.from(numberInputExports.values()).map(value => value.apiName),
+      ...Array.from(circularProgressExports.values()).map(value => value.apiName),
     ],
   )
   const imageExports = createImageExports(
@@ -4295,6 +4611,7 @@ export const generateForgeUILvglCode = (
       ...Array.from(progressExports.values()).map(value => value.apiName),
       ...Array.from(numberInputExports.values()).map(value => value.apiName),
       ...Array.from(selectExports.values()).map(value => value.apiName),
+      ...Array.from(circularProgressExports.values()).map(value => value.apiName),
     ],
   )
   const boxExports = createBoxExports(
@@ -4329,6 +4646,7 @@ export const generateForgeUILvglCode = (
       ...Array.from(numberInputExports.values()).map(value => value.apiName),
       ...Array.from(selectExports.values()).map(value => value.apiName),
       ...Array.from(imageExports.values()).map(value => value.apiName),
+      ...Array.from(circularProgressExports.values()).map(value => value.apiName),
     ],
   )
   const iconButtonExports = createIconButtonExports(
@@ -4366,6 +4684,7 @@ export const generateForgeUILvglCode = (
       ...Array.from(selectExports.values()).map(value => value.apiName),
       ...Array.from(imageExports.values()).map(value => value.apiName),
       ...Array.from(boxExports.values()).map(value => value.apiName),
+      ...Array.from(circularProgressExports.values()).map(value => value.apiName),
     ],
   )
   const clockExports = createClockExports(components)
@@ -4488,6 +4807,12 @@ const backgroundMode =
     lines.push(`static int32_t ${progressExport.stateName} = ${progressExport.initialValue};`)
     lines.push(`static const int32_t ${progressExport.minimumName} = ${progressExport.minimum};`)
     lines.push(`static const int32_t ${progressExport.maximumName} = ${progressExport.maximum};`)
+  })
+  circularProgressExports.forEach(circularProgressExport => {
+    lines.push(`static lv_obj_t * ${circularProgressExport.objectName} = NULL;`)
+    lines.push(`static int32_t ${circularProgressExport.stateName} = ${circularProgressExport.initialValue};`)
+    lines.push(`static const int32_t ${circularProgressExport.minimumName} = ${circularProgressExport.minimum};`)
+    lines.push(`static const int32_t ${circularProgressExport.maximumName} = ${circularProgressExport.maximum};`)
   })
   numberInputExports.forEach(numberInputExport => {
     lines.push(`static lv_obj_t * ${numberInputExport.objectName} = NULL;`)
@@ -4818,6 +5143,44 @@ const backgroundMode =
     lines.push(`    ${numberInputExport.hookName}(value);`)
     lines.push(`}`)
     lines.push(``)
+    lines.push(`static void ${numberInputExport.incrementCallbackName}(lv_event_t * event)`)
+    lines.push(`{`)
+    lines.push(`    LV_UNUSED(event);`)
+    lines.push(`    if (${numberInputExport.objectName} == NULL) return;`)
+    lines.push(`    int32_t value = ${numberInputExport.stateName};`)
+    lines.push(`    (void)fg_number_input_parse_value(lv_textarea_get_text(${numberInputExport.objectName}), &value);`)
+    lines.push(`    int64_t next = (int64_t)value + (int64_t)${numberInputExport.stepName};`)
+    lines.push(`    if (next > ${numberInputExport.maximumName}) next = ${numberInputExport.maximumName};`)
+    lines.push(`    if (next < ${numberInputExport.minimumName}) next = ${numberInputExport.minimumName};`)
+    lines.push(`    if (value == (int32_t)next) return;`)
+    lines.push(`    char value_text[16];`)
+    lines.push(`    snprintf(value_text, sizeof(value_text), "%ld", (long)next);`)
+    lines.push(`    ${numberInputExport.programmaticUpdateName} = true;`)
+    lines.push(`    ${numberInputExport.stateName} = (int32_t)next;`)
+    lines.push(`    lv_textarea_set_text(${numberInputExport.objectName}, value_text);`)
+    lines.push(`    ${numberInputExport.programmaticUpdateName} = false;`)
+    lines.push(`    ${numberInputExport.hookName}((int32_t)next);`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`static void ${numberInputExport.decrementCallbackName}(lv_event_t * event)`)
+    lines.push(`{`)
+    lines.push(`    LV_UNUSED(event);`)
+    lines.push(`    if (${numberInputExport.objectName} == NULL) return;`)
+    lines.push(`    int32_t value = ${numberInputExport.stateName};`)
+    lines.push(`    (void)fg_number_input_parse_value(lv_textarea_get_text(${numberInputExport.objectName}), &value);`)
+    lines.push(`    int64_t next = (int64_t)value - (int64_t)${numberInputExport.stepName};`)
+    lines.push(`    if (next > ${numberInputExport.maximumName}) next = ${numberInputExport.maximumName};`)
+    lines.push(`    if (next < ${numberInputExport.minimumName}) next = ${numberInputExport.minimumName};`)
+    lines.push(`    if (value == (int32_t)next) return;`)
+    lines.push(`    char value_text[16];`)
+    lines.push(`    snprintf(value_text, sizeof(value_text), "%ld", (long)next);`)
+    lines.push(`    ${numberInputExport.programmaticUpdateName} = true;`)
+    lines.push(`    ${numberInputExport.stateName} = (int32_t)next;`)
+    lines.push(`    lv_textarea_set_text(${numberInputExport.objectName}, value_text);`)
+    lines.push(`    ${numberInputExport.programmaticUpdateName} = false;`)
+    lines.push(`    ${numberInputExport.hookName}((int32_t)next);`)
+    lines.push(`}`)
+    lines.push(``)
     lines.push(`void ${numberInputExport.apiName}(int32_t value)`)
     lines.push(`{`)
     lines.push(`    if (value < ${numberInputExport.minimumName}) value = ${numberInputExport.minimumName};`)
@@ -4856,6 +5219,18 @@ const backgroundMode =
     lines.push(`    if (${progressExport.objectName} == NULL || ${progressExport.stateName} == value) return;`)
     lines.push(`    lv_bar_set_value(${progressExport.objectName}, value, LV_ANIM_OFF);`)
     lines.push(`    ${progressExport.stateName} = value;`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
+  circularProgressExports.forEach(circularProgressExport => {
+    lines.push(`void ${circularProgressExport.apiName}(int32_t value)`)
+    lines.push(`{`)
+    lines.push(`    if (value < ${circularProgressExport.minimumName}) value = ${circularProgressExport.minimumName};`)
+    lines.push(`    if (value > ${circularProgressExport.maximumName}) value = ${circularProgressExport.maximumName};`)
+    lines.push(`    if (${circularProgressExport.objectName} == NULL || ${circularProgressExport.stateName} == value) return;`)
+    lines.push(`    lv_arc_set_value(${circularProgressExport.objectName}, value);`)
+    lines.push(`    ${circularProgressExport.stateName} = value;`)
     lines.push(`}`)
     lines.push(``)
   })
@@ -6303,6 +6678,7 @@ lines.push(`    fg_system_root = parent;`)
         ledExports,
         barExports,
         progressExports,
+        circularProgressExports,
         numberInputExports,
         selectExports,
         imageExports,
@@ -6817,6 +7193,9 @@ lines.push(`}`)
         barExport => `void ${barExport.apiName}(int32_t value);`,
       )).concat(Array.from(progressExports.values()).map(
         progressExport => `void ${progressExport.apiName}(int32_t value);`,
+      )).concat(Array.from(circularProgressExports.values()).map(
+        circularProgressExport =>
+          `void ${circularProgressExport.apiName}(int32_t value);`,
       )).concat(Array.from(numberInputExports.values()).map(
         numberInputExport => `void ${numberInputExport.apiName}(int32_t value);`,
       )).concat(Array.from(selectExports.values()).map(

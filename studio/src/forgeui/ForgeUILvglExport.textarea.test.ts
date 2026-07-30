@@ -67,6 +67,30 @@ describe('Textarea generated developer API', () => {
     )
   })
 
+  it('fully specifies the native multiline field frame and padding', () => {
+    const { code } = generate(textarea())
+    const object = 'fg_notes_textarea_textarea'
+
+    expect(code).toContain(
+      `lv_obj_set_style_border_width(${object}, 1, LV_PART_MAIN);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_radius(${object}, 6, LV_PART_MAIN);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_outline_width(${object}, 0, LV_PART_MAIN);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_shadow_width(${object}, 0, LV_PART_MAIN);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_bg_opa(${object}, LV_OPA_TRANSP, LV_PART_SCROLLBAR);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_pad_top(${object}, 8, LV_PART_MAIN);`,
+    )
+  })
+
   it('silently handles null, unchanged, and programmatic values', () => {
     const { code } = generate(textarea())
     const setterStart = code.indexOf(

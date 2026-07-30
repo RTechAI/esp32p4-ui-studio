@@ -46,6 +46,33 @@ describe('Standard Switch generated developer API', () => {
     )
   })
 
+  it('explicitly applies semantic theme colours to the OFF track, checked track, and knob', () => {
+    const { code } = generate(standardSwitch())
+    const object = 'fg_enable_wi_fi_switch_switch'
+
+    expect(code).toContain(
+      `lv_obj_set_style_bg_color(${object}, lv_color_hex(0x2A3138), LV_PART_MAIN);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_bg_opa(${object}, LV_OPA_COVER, LV_PART_MAIN);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_bg_opa(${object}, LV_OPA_TRANSP, LV_PART_INDICATOR);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_bg_color(${object}, lv_color_hex(0xF2A900), LV_PART_INDICATOR | LV_STATE_CHECKED);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_bg_opa(${object}, LV_OPA_COVER, LV_PART_INDICATOR | LV_STATE_CHECKED);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_bg_color(${object}, lv_color_hex(0x121417), LV_PART_KNOB);`,
+    )
+    expect(code).toContain(
+      `lv_obj_set_style_bg_opa(${object}, LV_OPA_COVER, LV_PART_KNOB);`,
+    )
+  })
+
   it('silently compares, checks, and unchecks programmatic state', () => {
     const { code } = generate(standardSwitch())
     const start = code.indexOf(

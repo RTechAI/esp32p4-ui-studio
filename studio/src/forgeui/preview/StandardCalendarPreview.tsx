@@ -77,7 +77,7 @@ const StandardCalendarPreview: React.FC<
               date.highlighted
                 ? `${theme.selectedSurface}66`
                 : date.currentMonth
-                  ? 'rgba(255,255,255,0.08)'
+                  ? theme.surfaceSecondary
                   : 'transparent'
             }
             color={
@@ -89,7 +89,7 @@ const StandardCalendarPreview: React.FC<
               date.today
                 ? `2px solid ${theme.accent}`
                 : date.currentMonth
-                  ? '1px solid rgba(255,255,255,0.28)'
+                  ? `1px solid ${theme.surfaceBorder}`
                   : '1px solid transparent'
             }
             opacity={date.currentMonth ? 1 : 0.4}

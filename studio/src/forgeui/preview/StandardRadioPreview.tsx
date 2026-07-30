@@ -1,5 +1,8 @@
 import React from 'react'
 import { Box } from '@chakra-ui/react'
+import { useForgePreviewPalette } from '../theme/ForgeThemeContext'
+import { resolveForgeSemanticPalette } from './forgeThemeMap'
+import { normalizeForgeUIStandardRadioLabel } from '../ForgeUIStandardRadio'
 
 type Props = {
   initialSelected: boolean
@@ -20,6 +23,12 @@ const StandardRadioPreview = ({
   accent,
   border,
 }: Props) => {
+  const theme = resolveForgeSemanticPalette(useForgePreviewPalette())
+  const resolvedText = isDisabled
+    ? theme.disabledText
+    : textColor || theme.textPrimary
+  const resolvedAccent = accent || theme.accent
+  const resolvedBorder = border || theme.surfaceBorder
   const [selected, setSelected] = React.useState(initialSelected)
 
   React.useEffect(() => {
@@ -32,7 +41,7 @@ const StandardRadioPreview = ({
       display="inline-flex"
       alignItems="center"
       gap="8px"
-      color={textColor}
+      color={resolvedText}
       opacity={isDisabled ? 0.4 : 1}
       cursor={isDisabled ? 'not-allowed' : 'pointer'}
       data-testid="standard-radio-preview"
@@ -56,12 +65,14 @@ const StandardRadioPreview = ({
         height="18px"
         borderRadius="999px"
         border="2px solid"
-        borderColor={selected ? accent : border}
-        bg={selected ? accent : 'transparent'}
+        borderColor={selected ? resolvedAccent : resolvedBorder}
+        bg={selected ? resolvedAccent : 'transparent'}
         boxShadow={selected ? `inset 0 0 0 4px transparent` : undefined}
         data-color-scheme={colorScheme}
       />
-      <Box as="span">{label}</Box>
+      {normalizeForgeUIStandardRadioLabel(label) && (
+        <Box as="span">{normalizeForgeUIStandardRadioLabel(label)}</Box>
+      )}
     </Box>
   )
 }
