@@ -22,7 +22,7 @@ export const forgeAIPromptBuilderGroups: ForgeAIPromptBuilderGroup[] = [
     label: 'Selection Controls',
     types: [
       'Button', 'IconButton', 'Switch', 'Checkbox', 'Radio', 'Select',
-      'Slider', 'Roller', 'ButtonMatrix',
+      'Slider', 'Spinbox', 'Roller', 'ButtonMatrix',
     ],
   },
   {

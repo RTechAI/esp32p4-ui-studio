@@ -40,6 +40,10 @@
 - Slider and Spinner are physically **PROVEN** through live and standalone
   ESP32-P4 firmware. List rendering is physically verified in both paths; its
   collision-safe item callback is **READY FOR PROOF**.
+- Native Spinbox is software-complete through the Registry, previews, native
+  export, silent setter and genuine-user hook. The shared Canvas accept-list
+  omission is repaired, but real Studio drag/drop verification is required
+  before **READY FOR PROOF**.
 - Dashboard is the only implemented Layout Designer template. The dedicated
   Dashboard Widget family remains roadmap work and must not begin until the
   Standard Widget library is complete and physically proven.

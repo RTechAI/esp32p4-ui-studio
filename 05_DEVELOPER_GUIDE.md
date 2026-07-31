@@ -379,3 +379,18 @@ evidence document. Historical documents belong under `docs/history`.
 Finish and physically prove the Standard Widget library first. Do not begin the
 dedicated Dashboard Widget family early. The Runtime SDK documentation should
 grow from proven generated contracts rather than speculative APIs.
+
+### Native Spinbox example
+
+Spinbox is a reference interactive numeric slice:
+
+- one normalization model feeds Canvas, Browser Preview and export;
+- the Registry owns discovery, defaults and Runtime/UserEvent capabilities;
+- Canvas is non-interactive to preserve editor movement;
+- Browser Preview simulates native integer-backed digit formatting;
+- export uses `lv_spinbox_create` plus native touch helper buttons;
+- `FG_Set_<Name>_Value(int32_t)` is silent;
+- `FG_On_<Name>_Changed(int32_t)` is genuine-user-only;
+- decimals are display formatting over the integer backing value.
+
+See [FORGEUI_SPINBOX_WIDGET.md](docs/FORGEUI_SPINBOX_WIDGET.md).

@@ -395,6 +395,7 @@ Runtime hot theme switching on the ESP32-P4 was not added.
 | Icon | None; Studio icon-picker convenience exported as `lv_image` | None |
 | Divider | None; presentation-only visual separator | None |
 | Slider | `FG_Set_<Name>_Value(int32_t value)` | `FG_On_<Name>_Changed(int32_t value)` |
+| Spinbox | `FG_Set_<Name>_Value(int32_t value)` | `FG_On_<Name>_Changed(int32_t value)` |
 | Spinner | None; presentation-only native animation | None |
 | List | None | `FG_On_<Name>_Item_Clicked(uint32_t index, const char * text)` |
 
@@ -603,6 +604,17 @@ Canvas track/thumb interaction changes temporary preview value, surrounding comp
 ### Spinner generated boundary
 
 Spinner exports native `lv_spinner_create(parent)` plus `lv_spinner_set_anim_params(widget, duration_ms, arc_length_degrees)`. Geometry, main/indicator arc widths, semantic or explicit colours and opacity are applied directly to the native object. It creates no public declaration, hook, runtime helper source or CMake entry. The branch is naturally export-time gated because it is emitted only while traversing a serialized Spinner.
+
+### Spinbox generated boundary
+
+Spinbox exports native `lv_spinbox_create` with normalized range, integer
+backing value, power-of-ten step, digit/decimal format, rollover, cursor and
+semantic styling. Native helper buttons call `lv_spinbox_increment` and
+`lv_spinbox_decrement` for touch operation. Its collision-safe
+`FG_Set_<Name>_Value(int32_t)` setter clamps and remains silent.
+`FG_On_<Name>_Changed(int32_t)` receives the integer backing value only after a
+genuine effective native key or helper-button change. It generates no getter,
+increment/decrement command, widget-specific source or CMake entry.
 
 ### List generated boundary
 

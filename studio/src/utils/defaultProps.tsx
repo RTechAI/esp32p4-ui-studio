@@ -379,7 +379,6 @@ WiFi: {
     digitCount: 5,
     decimalPlaces: 0,
     rollover: false,
-    cursorPosition: 0,
     textAlign: 'right',
     padding: 8,
     opacity: 100,

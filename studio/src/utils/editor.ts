@@ -1,3 +1,5 @@
+import { forgeUIWidgetDefinitions } from '~forgeui/widgets/ForgeUIWidgetRegistry'
+
 const ALERT_COMPONENTS: (ComponentType | MetaComponentType)[] = [
   'Alert',
   'AlertDescription',
@@ -71,6 +73,7 @@ export const COMPONENTS: (ComponentType | MetaComponentType)[] = [
   'SimpleGrid',
   'Spinner',
   'Slider',
+  'Spinbox',
   'Select',
   'Skeleton',
   'SkeletonCircle',
@@ -123,7 +126,10 @@ export const AccordionWhitelist: (
   | MetaComponentType
 )[] = COMPONENTS.filter(name => !ALERT_COMPONENTS.includes(name))
 
-export const rootComponents = COMPONENTS
+export const rootComponents = Array.from(new Set([
+  ...COMPONENTS,
+  ...forgeUIWidgetDefinitions.map(definition => definition.type),
+]))
   // Remove specific components
   .filter(
     name =>

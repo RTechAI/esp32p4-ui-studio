@@ -54,6 +54,7 @@ Runtime APIs project application state into the generated interface:
 
 ```c
 void FG_Set_Level_Slider_Value(int32_t value);
+void FG_Set_Decimal_Spinbox_Value(int32_t backing_value);
 void FG_Set_Status_LED(bool on);
 void FG_Add_Temperature_Chart_Point(int32_t value);
 void FG_Clear_Temperature_Chart(void);
@@ -77,6 +78,7 @@ UserEvents carry genuine interaction into developer code:
 
 ```c
 void FG_On_Level_Slider_Changed(int32_t value);
+void FG_On_Decimal_Spinbox_Changed(int32_t backing_value);
 
 void FG_On_System_Menu_Item_Clicked(
     uint32_t index,

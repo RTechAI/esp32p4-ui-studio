@@ -7,8 +7,15 @@ import {
 } from './useDropComponent'
 import { menuItems } from '~componentsList'
 import { forgeuiCoreWidgets } from '~forgeui/ForgeUIWidgetSet'
+import { rootComponents } from '~utils/editor'
 
 describe('component drop defaults', () => {
+  it('accepts every authoritative Registry widget at the root Canvas', () => {
+    expect(rootComponents).toEqual(
+      expect.arrayContaining(forgeuiCoreWidgets),
+    )
+  })
+
   it('preserves the exact drag delta without centering or rounding', () => {
     expect(getFreeformMovedPosition({
       x: 101.25,

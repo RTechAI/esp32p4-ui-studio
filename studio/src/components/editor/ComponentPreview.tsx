@@ -36,6 +36,7 @@ import StandardChartPreview from '~forgeui/preview/StandardChartPreview'
 import StandardQRCodePreview from '~forgeui/preview/StandardQRCodePreview'
 import StandardScalePreview from '~forgeui/preview/StandardScalePreview'
 import StandardSpinnerPreview from '~forgeui/preview/StandardSpinnerPreview'
+import SpinboxPreview from '~components/editor/previews/SpinboxPreview'
 import StandardListPreview from '~forgeui/preview/StandardListPreview'
 import StandardRollerPreview from '~forgeui/preview/StandardRollerPreview'
 import StandardMessageBoxPreview from '~forgeui/preview/StandardMessageBoxPreview'
@@ -534,6 +535,17 @@ case 'Select':
       <SelectPreview component={component} />
     </PreviewContainer>
   )
+
+  case 'Spinbox':
+    return (
+      <PreviewContainer
+        component={component}
+        enableVisualHelper
+        {...forwardedProps}
+      >
+        <SpinboxPreview component={component} />
+      </PreviewContainer>
+    )
 
   case 'Spinner':
   return (

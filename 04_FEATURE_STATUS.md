@@ -14,6 +14,13 @@ Current platform save point:
 - Slider is physically proven through Studio, standalone ESP-IDF export, ESP32-P4 touch interaction, collision-safe runtime APIs and multiple instances. Status: **PROVEN**.
 - Native Spinner is physically proven through Studio and standalone ESP-IDF export on ESP32-P4, including stable animation at approximately 60 FPS. Status: **PROVEN**.
 - Native List is Registry/Tray/Inspector/Canvas/Browser/export complete and physically renders correctly in live and standalone ESP32-P4 firmware. Every native row now emits a collision-safe `FG_On_<Name>_Item_Clicked(uint32_t index, const char * text)` hook only for genuine `LV_EVENT_CLICKED` interaction. Focused live/standalone generation tests pass; final physical callback observation remains pending. Status: **LIST INTERACTION READY FOR ESP32-P4 PROOF**.
+- Native Spinbox is Registry/Tray/Inspector/Canvas/Browser/native-export and
+  Runtime SDK complete. It uses `lv_spinbox_create`, integer-backed decimal
+  formatting, touch increment/decrement, a silent collision-safe value setter
+  and genuine-user changed hook. The missing shared Canvas drop acceptance was
+  repaired and covered through the real drop callback/reducer path; manual
+  Studio drag/drop verification is still pending. Status: **SOFTWARE COMPLETE
+  — STUDIO DROP VERIFICATION PENDING**.
 - The built firmware contains the compact FPS/RAM overlay, but current managed LVGL source does not reproduce it. Status: implemented in the flashed artifact, durability repair required.
 
 This document records implementation and proof status only.
@@ -39,13 +46,14 @@ Status language:
 | Slider | **PROVEN** | Live and Standalone ESP32-P4, touch, setter/hook and multiple instances |
 | Spinner | **PROVEN** | Live and Standalone ESP32-P4 native animation at approximately 60 FPS |
 | List | **READY FOR PROOF** | Rendering proven live/Standalone; item callback awaits physical serial observation |
+| Spinbox | **PARTIAL** | Software slice and drop regression complete; real Studio drag/drop must be manually verified before READY FOR PROOF |
 | QR Code | **READY FOR PROOF** | Registry/export/setter implemented; recorded successful physical scan remains open |
 | Text, Heading, Button, Icon Button, Icon, Box, Line, Divider, Canvas, Image | **PARTIAL** | Implemented pipeline coverage exists; this sprint does not upgrade physical evidence |
 | Wi-Fi Status, Clock | **PARTIAL** | Implemented presentation exists; widget-specific proof record is incomplete |
 | TabView, TileView | **PARTIAL** | Implemented native navigation exists; widget-specific proof record is incomplete |
 
-The Registry currently contains no Dashboard widgets. Window, Menu, Spinbox and
-the dedicated Dashboard Widget family remain **PLANNED** and must not be
+The Registry currently contains no Dashboard widgets. Window, Menu and the
+dedicated Dashboard Widget family remain **PLANNED** and must not be
 described as Standard-library completions.
 
 - Use `01_SPINE.md` for architecture, milestones and product direction.

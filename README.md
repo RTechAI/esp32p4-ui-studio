@@ -120,6 +120,9 @@ Current Standard-widget milestone evidence:
 - Spinner: **PROVEN** through live and Standalone ESP32-P4 native animation.
 - List: native rendering proven in both paths; generated item callback
   **READY FOR PROOF**.
+- Spinbox: native LVGL vertical slice complete; Canvas/Browser interaction
+  repaired in software, with manual Studio interaction verification still
+  pending. Status remains **NOT READY FOR ESP32-P4 PROOF**.
 
 The Standard library is still being completed and physically proven. Dedicated
 Dashboard widgets have not started.
@@ -197,6 +200,7 @@ The [ForgeUI Developer Portal](https://forgeui.co.nz/developers) is the public o
 | [07 — Runtime SDK Direction](07_FORGEUI_RUNTIME_SDK.md) | Long-term generated SDK concept and evolution rules |
 | [Layout Designer Guide](docs/FORGEUI_LAYOUT_DESIGNER.md) | Preset, Smart Region, Auto Arrange and AI Fill workflow |
 | [QR Code Guide](docs/FORGEUI_QR_CODE.md) | QR authoring, preview, export and validation |
+| [Spinbox Guide](docs/FORGEUI_SPINBOX_WIDGET.md) | Native digit editor, integer-backed decimals, APIs and proof plan |
 
 ## Repository structure
 

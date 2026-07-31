@@ -164,6 +164,28 @@ describe('generated public UI API headers', () => {
       .toHaveLength(1)
   })
 
+  it('generates and preserves Spinbox integer hooks for standalone export', () => {
+    const generated = generateUserEventFiles(
+      ['FG_On_System_Setpoint_Changed'],
+      ['void FG_Set_System_Setpoint_Value(int32_t value);'],
+    )
+    expect(generated.header).toContain(
+      'void FG_On_System_Setpoint_Changed(int32_t value);',
+    )
+    expect(generated.source).toContain(
+      'System Setpoint changed: %ld',
+    )
+    const preserved = preserveUserEventFiles(
+      '#include "95_UserEvents.h"\n\nvoid FG_On_System_Setpoint_Changed(int32_t value)\n{\n    developer_spinbox_action(value);\n}\n',
+      '#pragma once\n#include <stdint.h>\nvoid FG_On_System_Setpoint_Changed(int32_t value);\n',
+      generated,
+    )
+    expect(preserved.source).toContain('developer_spinbox_action(value);')
+    expect(preserved.source.match(
+      /void FG_On_System_Setpoint_Changed/g,
+    )).toHaveLength(1)
+  })
+
   it('generates and preserves Select index-and-text hooks', () => {
     const declaration =
       'void FG_Set_Mode_Select_Selected_Index(uint32_t index);'

@@ -29,6 +29,10 @@ import {
   resolveQRCodePayload,
 } from './ForgeUIStandardQRCode'
 import { getForgeUIStandardListModel } from './ForgeUIStandardList'
+import {
+  getForgeUIStandardSpinboxModel,
+  type ForgeUIStandardSpinboxModel,
+} from './ForgeUIStandardSpinbox'
 import type { ForgeUIFirmwareFeatures } from './boards/ForgeUIBoardProfile'
 
 import {
@@ -411,6 +415,12 @@ type SliderExport = BarRuntimeExport & {
   hookName: string
   programmaticUpdateName: string
   eventCallbackName: string
+}
+
+type SpinboxExport = SliderExport & {
+  model: ForgeUIStandardSpinboxModel
+  incrementCallbackName: string
+  decrementCallbackName: string
 }
 
 type NumberInputExport = {
@@ -1776,6 +1786,65 @@ const createSliderExports = (
   return exportsByComponent
 }
 
+const createSpinboxExports = (
+  components: IComponents,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+  existingApiNames: Iterable<string>,
+): Map<string, SpinboxExport> => {
+  const exportsByComponent = new Map<string, SpinboxExport>()
+  const usedApiNames = new Set(existingApiNames)
+
+  Object.values(components)
+    .filter(component => component.type === 'Spinbox')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const baseName = toCIdentifier(
+        component.componentName ||
+        component.props.name ||
+        component.props.label ||
+        'Spinbox',
+        'Spinbox',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let allocatedBase = baseName
+      let suffix = 2
+      while (usedApiNames.has(`FG_Set_${allocatedBase}_Value`)) {
+        allocatedBase = `${baseName}_${suffix++}`
+      }
+      const apiName = `FG_Set_${allocatedBase}_Value`
+      usedApiNames.add(apiName)
+
+      let hookName = `FG_On_${allocatedBase}_Changed`
+      suffix = 2
+      while (usedHookNames.has(hookName)) {
+        hookName = `FG_On_${allocatedBase}_${suffix++}_Changed`
+      }
+      usedHookNames.add(hookName)
+      userEventHooks.add(hookName)
+
+      const model = getForgeUIStandardSpinboxModel(component.props)
+      const stem = allocatedBase.toLowerCase()
+      exportsByComponent.set(component.id, {
+        apiName,
+        hookName,
+        objectName: `fg_${stem}_spinbox`,
+        stateName: `fg_${stem}_spinbox_value`,
+        programmaticUpdateName: `fg_${stem}_spinbox_programmatic_update`,
+        minimumName: `fg_${stem}_spinbox_minimum`,
+        maximumName: `fg_${stem}_spinbox_maximum`,
+        eventCallbackName: `fg_${stem}_spinbox_changed_cb`,
+        incrementCallbackName: `fg_${stem}_spinbox_increment_cb`,
+        decrementCallbackName: `fg_${stem}_spinbox_decrement_cb`,
+        minimum: model.minimum,
+        maximum: model.maximum,
+        initialValue: model.value,
+        model,
+      })
+    })
+
+  return exportsByComponent
+}
+
 const createProgressExports = (
   components: IComponents,
   existingApiNames: Iterable<string>,
@@ -2330,6 +2399,7 @@ const buildLvglBlock = (
   ledExports: Map<string, LedExport>,
   barExports: Map<string, BarExport>,
   sliderExports: Map<string, SliderExport>,
+  spinboxExports: Map<string, SpinboxExport>,
   progressExports: Map<string, ProgressExport>,
   circularProgressExports: Map<string, CircularProgressExport>,
   numberInputExports: Map<string, NumberInputExport>,
@@ -3440,6 +3510,89 @@ case 'Slider': {
   break
 }
 
+case 'Spinbox': {
+  const spinboxExport = spinboxExports.get(child.id)
+  if (!spinboxExport) break
+  const model = spinboxExport.model
+  const spinbox = spinboxExport.objectName
+  const buttonWidth = Math.max(28, Math.min(48, Math.floor(w / 4)))
+  const fieldWidth = Math.max(1, w - buttonWidth)
+  const background = model.backgroundColor
+    ? toLvHex(model.backgroundColor)
+    : palette.surface
+  const border = model.borderColor
+    ? toLvHex(model.borderColor)
+    : palette.surfaceBorder
+  const text = model.textColor
+    ? toLvHex(model.textColor)
+    : palette.textPrimary
+  const selected = model.selectedColor
+    ? toLvHex(model.selectedColor)
+    : palette.selectedSurface
+  const align = model.textAlign === 'left'
+    ? 'LV_TEXT_ALIGN_LEFT'
+    : model.textAlign === 'center'
+      ? 'LV_TEXT_ALIGN_CENTER'
+      : 'LV_TEXT_ALIGN_RIGHT'
+  const opacity = Math.round(model.opacity * 2.55)
+  const incrementButton = `${spinbox}_increment_button`
+  const decrementButton = `${spinbox}_decrement_button`
+
+  lines.push(`${spinbox} = lv_spinbox_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${spinbox}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${spinbox}, ${fieldWidth}, ${h});`)
+  lines.push(`lv_obj_add_flag(${spinbox}, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE);`)
+  lines.push(`lv_spinbox_set_digit_format(${spinbox}, ${model.digitCount}, ${model.separatorPosition});`)
+  lines.push(`lv_spinbox_set_range(${spinbox}, ${model.minimum}, ${model.maximum});`)
+  lines.push(`lv_spinbox_set_value(${spinbox}, ${model.value});`)
+  lines.push(`lv_spinbox_set_rollover(${spinbox}, ${model.rollover ? 'true' : 'false'});`)
+  lines.push(`lv_spinbox_set_cursor_pos(${spinbox}, ${model.cursorPosition});`)
+  lines.push(`lv_spinbox_set_step(${spinbox}, ${model.step});`)
+  lines.push(`lv_obj_set_style_bg_color(${spinbox}, lv_color_hex(${background}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_opa(${spinbox}, ${opacity}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${spinbox}, lv_color_hex(${border}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${spinbox}, 1, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_color(${spinbox}, lv_color_hex(${text}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_align(${spinbox}, ${align}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_pad_all(${spinbox}, ${model.padding}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_color(${spinbox}, lv_color_hex(${selected}), LV_PART_CURSOR);`)
+  lines.push(`lv_obj_set_style_bg_opa(${spinbox}, LV_OPA_COVER, LV_PART_CURSOR);`)
+  lines.push(`lv_obj_set_style_text_color(${spinbox}, lv_color_hex(${palette.accentText}), LV_PART_CURSOR);`)
+  lines.push(`lv_obj_add_event_cb(${spinbox}, ${spinboxExport.eventCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
+
+  lines.push(`lv_obj_t * ${incrementButton} = lv_button_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${incrementButton}, ${x + fieldWidth}, ${y});`)
+  lines.push(`lv_obj_set_size(${incrementButton}, ${buttonWidth}, ${Math.floor(h / 2)});`)
+  lines.push(`lv_obj_add_flag(${incrementButton}, LV_OBJ_FLAG_CLICKABLE);`)
+  lines.push(`lv_obj_set_style_bg_color(${incrementButton}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_color(${incrementButton}, lv_color_hex(${palette.accent}), LV_PART_MAIN | LV_STATE_PRESSED);`)
+  lines.push(`lv_obj_t * ${incrementButton}_label = lv_label_create(${incrementButton});`)
+  lines.push(`lv_label_set_text(${incrementButton}_label, LV_SYMBOL_UP);`)
+  lines.push(`lv_obj_center(${incrementButton}_label);`)
+  lines.push(`lv_obj_add_event_cb(${incrementButton}, ${spinboxExport.incrementCallbackName}, LV_EVENT_CLICKED, NULL);`)
+
+  lines.push(`lv_obj_t * ${decrementButton} = lv_button_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${decrementButton}, ${x + fieldWidth}, ${y + Math.floor(h / 2)});`)
+  lines.push(`lv_obj_set_size(${decrementButton}, ${buttonWidth}, ${h - Math.floor(h / 2)});`)
+  lines.push(`lv_obj_add_flag(${decrementButton}, LV_OBJ_FLAG_CLICKABLE);`)
+  lines.push(`lv_obj_set_style_bg_color(${decrementButton}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_color(${decrementButton}, lv_color_hex(${palette.accent}), LV_PART_MAIN | LV_STATE_PRESSED);`)
+  lines.push(`lv_obj_t * ${decrementButton}_label = lv_label_create(${decrementButton});`)
+  lines.push(`lv_label_set_text(${decrementButton}_label, LV_SYMBOL_DOWN);`)
+  lines.push(`lv_obj_center(${decrementButton}_label);`)
+  lines.push(`lv_obj_add_event_cb(${decrementButton}, ${spinboxExport.decrementCallbackName}, LV_EVENT_CLICKED, NULL);`)
+  lines.push(`lv_obj_move_foreground(${incrementButton});`)
+  lines.push(`lv_obj_move_foreground(${decrementButton});`)
+  if (!model.visible) {
+    lines.push(`lv_obj_add_flag(${spinbox}, LV_OBJ_FLAG_HIDDEN);`)
+    lines.push(`lv_obj_add_flag(${incrementButton}, LV_OBJ_FLAG_HIDDEN);`)
+    lines.push(`lv_obj_add_flag(${decrementButton}, LV_OBJ_FLAG_HIDDEN);`)
+  }
+  lines.push(`${spinboxExport.stateName} = ${model.value};`)
+  lines.push(``)
+  break
+}
+
 case 'Spinner': {
   const duration = Math.max(1, integerProp(child.props.duration, 1000))
   const arcLength = Math.max(
@@ -4383,6 +4536,7 @@ case 'Chart': {
         ledExports,
         barExports,
         sliderExports,
+        spinboxExports,
         progressExports,
         circularProgressExports,
         numberInputExports,
@@ -4683,6 +4837,7 @@ export const generateForgeUILvglCode = (
       ...Array.from(binaryOutputExports.values()).map(value => value.apiName),
       ...Array.from(ledExports.values()).map(value => value.apiName),
       ...Array.from(barExports.values()).map(value => value.apiName),
+      ...Array.from(arcExports.values()).map(value => value.apiName),
       ...Array.from(arcExports.values()).map(value => value.apiName),
       ...Array.from(chartExports.values()).flatMap(value => [
         value.addApiName,
@@ -5218,6 +5373,22 @@ export const generateForgeUILvglCode = (
       ...Array.from(qrCodeExports.values()).map(value => value.apiName),
     ],
   )
+  const spinboxExports = createSpinboxExports(
+    components,
+    usedHookNames,
+    userEventHooks,
+    [
+      ...Array.from(binaryOutputExports.values()).map(value => value.apiName),
+      ...Array.from(ledExports.values()).map(value => value.apiName),
+      ...Array.from(barExports.values()).map(value => value.apiName),
+      ...Array.from(arcExports.values()).map(value => value.apiName),
+      ...Array.from(progressExports.values()).map(value => value.apiName),
+      ...Array.from(circularProgressExports.values()).map(value => value.apiName),
+      ...Array.from(numberInputExports.values()).map(value => value.apiName),
+      ...Array.from(selectExports.values()).map(value => value.apiName),
+      ...Array.from(sliderExports.values()).map(value => value.apiName),
+    ],
+  )
   const clockExports = createClockExports(components)
 
   const previewPalette =
@@ -5310,7 +5481,7 @@ const backgroundMode =
   lines.push(`#include "freertos/semphr.h"`)
   lines.push(`#include "freertos/task.h"`)
   lines.push(`#include "esp_timer.h"`)
-  if (hasInteractiveButtons || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0) {
+  if (hasInteractiveButtons || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0) {
     lines.push(`#include "95_UserEvents.h"`)
   }
   lines.push(`#include <stdbool.h>`)
@@ -5346,6 +5517,13 @@ const backgroundMode =
     lines.push(`static bool ${sliderExport.programmaticUpdateName} = false;`)
     lines.push(`static const int32_t ${sliderExport.minimumName} = ${sliderExport.minimum};`)
     lines.push(`static const int32_t ${sliderExport.maximumName} = ${sliderExport.maximum};`)
+  })
+  spinboxExports.forEach(spinboxExport => {
+    lines.push(`static lv_obj_t * ${spinboxExport.objectName} = NULL;`)
+    lines.push(`static int32_t ${spinboxExport.stateName} = ${spinboxExport.initialValue};`)
+    lines.push(`static bool ${spinboxExport.programmaticUpdateName} = false;`)
+    lines.push(`static const int32_t ${spinboxExport.minimumName} = ${spinboxExport.minimum};`)
+    lines.push(`static const int32_t ${spinboxExport.maximumName} = ${spinboxExport.maximum};`)
   })
   progressExports.forEach(progressExport => {
     lines.push(`static lv_obj_t * ${progressExport.objectName} = NULL;`)
@@ -5810,6 +5988,52 @@ const backgroundMode =
     lines.push(`    lv_slider_set_value(${sliderExport.objectName}, value, LV_ANIM_OFF);`)
     lines.push(`    ${sliderExport.stateName} = value;`)
     lines.push(`    ${sliderExport.programmaticUpdateName} = false;`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
+  spinboxExports.forEach(spinboxExport => {
+    const syncName = `${spinboxExport.objectName}_sync_user_value`
+    lines.push(`static void ${syncName}(void)`)
+    lines.push(`{`)
+    lines.push(`    if (${spinboxExport.objectName} == NULL || ${spinboxExport.programmaticUpdateName}) return;`)
+    lines.push(`    int32_t value = lv_spinbox_get_value(${spinboxExport.objectName});`)
+    lines.push(`    if (${spinboxExport.stateName} == value) return;`)
+    lines.push(`    ${spinboxExport.stateName} = value;`)
+    lines.push(`    ${spinboxExport.hookName}(value);`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`static void ${spinboxExport.eventCallbackName}(lv_event_t * event)`)
+    lines.push(`{`)
+    lines.push(`    LV_UNUSED(event);`)
+    lines.push(`    ${syncName}();`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`static void ${spinboxExport.incrementCallbackName}(lv_event_t * event)`)
+    lines.push(`{`)
+    lines.push(`    LV_UNUSED(event);`)
+    lines.push(`    if (${spinboxExport.objectName} == NULL) return;`)
+    lines.push(`    lv_spinbox_increment(${spinboxExport.objectName});`)
+    lines.push(`    ${syncName}();`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`static void ${spinboxExport.decrementCallbackName}(lv_event_t * event)`)
+    lines.push(`{`)
+    lines.push(`    LV_UNUSED(event);`)
+    lines.push(`    if (${spinboxExport.objectName} == NULL) return;`)
+    lines.push(`    lv_spinbox_decrement(${spinboxExport.objectName});`)
+    lines.push(`    ${syncName}();`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${spinboxExport.apiName}(int32_t value)`)
+    lines.push(`{`)
+    lines.push(`    if (value < ${spinboxExport.minimumName}) value = ${spinboxExport.minimumName};`)
+    lines.push(`    if (value > ${spinboxExport.maximumName}) value = ${spinboxExport.maximumName};`)
+    lines.push(`    if (${spinboxExport.objectName} == NULL || ${spinboxExport.stateName} == value) return;`)
+    lines.push(`    ${spinboxExport.programmaticUpdateName} = true;`)
+    lines.push(`    lv_spinbox_set_value(${spinboxExport.objectName}, value);`)
+    lines.push(`    ${spinboxExport.stateName} = value;`)
+    lines.push(`    ${spinboxExport.programmaticUpdateName} = false;`)
     lines.push(`}`)
     lines.push(``)
   })
@@ -7399,6 +7623,7 @@ lines.push(`    fg_system_root = parent;`)
         ledExports,
         barExports,
         sliderExports,
+        spinboxExports,
         progressExports,
         circularProgressExports,
         numberInputExports,
@@ -8109,6 +8334,8 @@ lines.push(`}`)
         arcExport => `void ${arcExport.apiName}(int32_t value);`,
       )).concat(Array.from(sliderExports.values()).map(
         sliderExport => `void ${sliderExport.apiName}(int32_t value);`,
+      )).concat(Array.from(spinboxExports.values()).map(
+        spinboxExport => `void ${spinboxExport.apiName}(int32_t value);`,
       )).concat(Array.from(chartExports.values()).flatMap(
         chartExport => [
           `void ${chartExport.addApiName}(int32_t value);`,

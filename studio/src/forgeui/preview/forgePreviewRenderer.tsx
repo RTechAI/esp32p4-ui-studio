@@ -25,6 +25,7 @@ import StandardRadioPreview from './StandardRadioPreview'
 import { getForgeUIStandardRadioText } from '../ForgeUIStandardRadio'
 import StandardSliderPreview from './StandardSliderPreview'
 import StandardSpinnerPreview from './StandardSpinnerPreview'
+import StandardSpinboxPreview from './StandardSpinboxPreview'
 import StandardListPreview from './StandardListPreview'
 import StandardNumberInputPreview from './StandardNumberInputPreview'
 import StandardSelectPreview from './StandardSelectPreview'
@@ -842,6 +843,15 @@ case 'Spinner': {
         backgroundColor={child.props.backgroundColor}
         opacity={child.props.opacity}
       />
+    </Box>,
+  )
+  break
+}
+
+case 'Spinbox': {
+  output.push(
+    <Box key={child.id} {...commonStyle}>
+      <StandardSpinboxPreview mode="browser" props={child.props} />
     </Box>,
   )
   break

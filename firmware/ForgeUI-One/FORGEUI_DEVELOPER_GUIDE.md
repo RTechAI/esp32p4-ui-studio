@@ -43,13 +43,13 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- `FG_On_List_Item_Clicked()`
+- `FG_On_Spinbox_Changed()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| List | List item click | `FG_On_List_Item_Clicked(uint32_t index, const char * text)` |
+| Spinbox_Changed | Click | `FG_On_Spinbox_Changed()` |
 
 ---
 

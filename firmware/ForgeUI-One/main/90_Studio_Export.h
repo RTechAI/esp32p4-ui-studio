@@ -9,7 +9,7 @@ extern "C" {
 #endif
 
 void fg_studio_export_create(lv_obj_t *parent);
-
+void FG_Set_Spinbox_Value(int32_t value);
 
 #ifdef __cplusplus
 }

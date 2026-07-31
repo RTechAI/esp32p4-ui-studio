@@ -253,3 +253,9 @@ void FG_On_List_Item_Clicked(uint32_t index, const char * text)
         (unsigned long)index,
         text ? text : "");
 }
+
+void FG_On_Spinbox_Changed(int32_t value)
+{
+    printf("[ForgeUI User Event] Spinbox changed: %ld\n",
+           (long)value);
+}

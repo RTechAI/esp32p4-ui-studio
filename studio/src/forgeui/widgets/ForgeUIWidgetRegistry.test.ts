@@ -40,6 +40,7 @@ describe('ForgeUI Widget registry', () => {
     ['qrcode', 'QRCode'],
     ['loading', 'Spinner'],
     ['lv_spinner', 'Spinner'],
+    ['lv_spinbox', 'Spinbox'],
     ['lv_list', 'List'],
   ])('finds %s using registered terminology', (query, type) => {
     expect(searchForgeUIWidgets(query).map(item => item.type))
@@ -103,6 +104,27 @@ describe('ForgeUI Widget registry', () => {
           title: 'Menu',
           items: 'Overview\nSettings\nDiagnostics',
           itemHeight: 44,
+        },
+      })
+  })
+
+  it('registers Spinbox as native interactive numeric input', () => {
+    expect(forgeUIWidgetDefinitions.find(item => item.type === 'Spinbox'))
+      .toMatchObject({
+        category: 'Input',
+        defaultWidth: 220,
+        defaultHeight: 48,
+        capabilities: {
+          supportsRuntimeApi: true,
+          supportsUserEvents: true,
+          supportsChildren: false,
+        },
+        defaultProperties: {
+          min: 0,
+          max: 99999,
+          value: 0,
+          digitCount: 5,
+          decimalPlaces: 0,
         },
       })
   })

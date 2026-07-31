@@ -76,6 +76,7 @@ const componentsToTest = [
   'NumberInput',
   'Radio',
   'Slider',
+  'Spinbox',
   //'ListItem',
   //'ListIcon',
   // 'AlertIcon',
@@ -424,6 +425,112 @@ test('Canvas Arc keeps angle interaction separate from wrapper movement', () => 
   expect(fireEvent.dragStart(control)).toBe(true)
   expect(fireEvent.dragStart(moveSurface as HTMLElement)).toBe(true)
 })
+
+test('Canvas Spinbox real pointer clicks persist and rerender authoritative value', () => {
+  // @ts-ignore Rematch's inferred plugin type is wider than this test needs.
+  const store = init(storeConfig)
+  store.dispatch.components.addComponent({
+    parentName: 'root',
+    type: 'Spinbox',
+    rootParentType: 'Spinbox',
+    testId: 'spinbox-control',
+    props: {
+      positionMode: 'absolute',
+      x: 100,
+      y: 80,
+      w: 220,
+      h: 48,
+      min: 0,
+      max: 100,
+      value: 0,
+      step: 1,
+    },
+  })
+  const updateProps = jest.spyOn(store.dispatch.components, 'updateProps')
+
+  // @ts-ignore Test helper preserves its historical loosely typed options shape.
+  renderWithRedux(<ComponentPreview componentName="spinbox-control" />, { store })
+
+  const increment = screen.getByTestId('standard-spinbox-increment')
+  expect(increment).toHaveClass('forgeui-canvas-control-interactive')
+  expect(fireEvent.dragStart(increment)).toBe(false)
+  fireEvent.pointerDown(increment)
+  fireEvent.pointerUp(increment)
+  fireEvent.click(increment)
+  expect(updateProps).toHaveBeenLastCalledWith({
+    id: 'spinbox-control',
+    name: 'value',
+    value: 1,
+  })
+  // @ts-ignore Store state is wrapped by redux-undo in production and tests.
+  expect(store.getState().components.present.components['spinbox-control'].props.value)
+    .toBe(1)
+  expect(screen.getByTestId('standard-spinbox-canvas'))
+    .toHaveAttribute('data-spinbox-value', '1')
+  expect(screen.getByTestId('standard-spinbox-value')).toHaveTextContent('00001')
+
+  const decrement = screen.getByTestId('standard-spinbox-decrement')
+  fireEvent.pointerDown(decrement)
+  fireEvent.pointerUp(decrement)
+  fireEvent.click(decrement)
+  // @ts-ignore Store state is wrapped by redux-undo in production and tests.
+  expect(store.getState().components.present.components['spinbox-control'].props.value)
+    .toBe(0)
+  expect(screen.getByTestId('standard-spinbox-canvas'))
+    .toHaveAttribute('data-spinbox-value', '0')
+})
+
+test.each([
+  ['decimal backing value', {
+    min: 0, max: 99999, value: 125, step: 1, decimalPlaces: 2,
+  }, 'increment', 126],
+  ['signed decrement', {
+    min: -9, max: 9, value: 0, step: 1,
+  }, 'decrement', -1],
+  ['rollover', {
+    min: 0, max: 9, value: 9, step: 1, rollover: true,
+  }, 'increment', 0],
+  ['non-rollover clamp', {
+    min: 0, max: 9, value: 9, step: 1, rollover: false,
+  }, 'increment', 9],
+] as const)(
+  'Canvas Spinbox handles %s through the real component store',
+  (_, spinboxProps, direction, expected) => {
+    // @ts-ignore Rematch's inferred plugin type is wider than this test needs.
+    const store = init(storeConfig)
+    store.dispatch.components.addComponent({
+      parentName: 'root',
+      type: 'Spinbox',
+      rootParentType: 'Spinbox',
+      testId: 'spinbox-boundary',
+      props: {
+        positionMode: 'absolute',
+        x: 100,
+        y: 80,
+        w: 220,
+        h: 48,
+        ...spinboxProps,
+      },
+    })
+
+    // @ts-ignore Test helper preserves its historical loosely typed options shape.
+    renderWithRedux(<ComponentPreview componentName="spinbox-boundary" />, { store })
+    const control = screen.getByTestId(
+      direction === 'increment'
+        ? 'standard-spinbox-increment'
+        : 'standard-spinbox-decrement',
+    )
+    fireEvent.pointerDown(control)
+    fireEvent.pointerUp(control)
+    fireEvent.click(control)
+
+    // @ts-ignore Store state is wrapped by redux-undo in production and tests.
+    expect(store.getState().components.present.components['spinbox-boundary'].props.value)
+      .toBe(expected)
+    expect(screen.getByTestId('standard-spinbox-canvas'))
+      .toHaveAttribute('data-spinbox-value', String(expected))
+  },
+)
 
 test('Three-Position Toggle uses the shared positioned, selectable preview container', () => {
   // @ts-ignore Rematch's inferred plugin type is wider than this test needs.

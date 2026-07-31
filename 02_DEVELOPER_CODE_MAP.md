@@ -29,6 +29,9 @@
 | Developer UserEvents | `firmware/ForgeUI-One/main/95_UserEvents.c/.h` |
 | Feature evidence | `04_FEATURE_STATUS.md` |
 | Runtime SDK direction | `07_FORGEUI_RUNTIME_SDK.md` |
+| Native Spinbox model | `studio/src/forgeui/ForgeUIStandardSpinbox.ts` |
+| Native Spinbox preview | `studio/src/forgeui/preview/StandardSpinboxPreview.tsx` |
+| Native Spinbox Inspector | `studio/src/components/inspector/panels/components/SpinboxPanel.tsx` |
 
 The Registry supplies Tray discovery and insertion metadata. Widget-specific
 models, Inspectors and shared preview renderers normalize authoring data; the
@@ -40,6 +43,12 @@ Runtime API means a generated application-to-UI function declared in
 `90_Studio_Export.h`. UserEvent means a generated UI-to-application callback
 declared in `95_UserEvents.h`. Setters must not echo into UserEvents. Hooks must
 not fire during construction, hydration or programmatic updates.
+
+Native Spinbox reuses this generated numeric contract but remains distinct from
+NumberInput. Spinbox is an LVGL integer-backed digit editor with decimal
+placement, cursor/step selection and rollover. NumberInput remains the composed
+textarea/stepper numeric entry. Both generate silent value setters and
+genuine-user integer changed hooks; neither is an alias for the other.
 
 - The Layout Designer currently exposes Dashboard through the reusable
   template-definition architecture. Other professional layout names remain

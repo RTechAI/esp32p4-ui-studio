@@ -29,7 +29,7 @@ const SUPPORTED_TYPES = [
   'Text', 'Heading', 'Clock', 'WiFi', 'Button', 'InteractiveButton',
   'InteractiveLight', 'InteractiveStatusIndicator', 'InteractiveToggleSwitch',
   'InteractiveThreePositionToggleSwitch', 'IconButton', 'Icon', 'Input',
-  'Textarea', 'Switch', 'Checkbox', 'Radio', 'NumberInput', 'Select', 'Image',
+  'Textarea', 'Switch', 'Checkbox', 'Radio', 'NumberInput', 'Spinbox', 'Select', 'Image',
   'Slider', 'Progress', 'CircularProgress', 'Led', 'Bar', 'Arc', 'Roller',
   'Canvas', 'Line', 'Tabview', 'Tileview', 'AnimImage', 'ButtonMatrix',
   'Msgbox', 'Table', 'Scale', 'Keyboard', 'Divider', 'Calendar', 'Chart', 'Box',
@@ -40,7 +40,7 @@ type SupportedType = typeof SUPPORTED_TYPES[number]
 const CONTROL_TYPES = new Set<SupportedType>([
   'Button', 'InteractiveButton', 'InteractiveToggleSwitch',
   'InteractiveThreePositionToggleSwitch', 'IconButton', 'Input', 'Textarea',
-  'Switch', 'Checkbox', 'Radio', 'NumberInput', 'Select', 'Slider', 'Roller',
+  'Switch', 'Checkbox', 'Radio', 'NumberInput', 'Spinbox', 'Select', 'Slider', 'Roller',
   'ButtonMatrix', 'Keyboard',
 ])
 
@@ -94,6 +94,7 @@ const sizes: Partial<Record<SupportedType, { w: number; h: number }>> = {
   Checkbox: { w: 32, h: 32 },
   Radio: { w: 32, h: 32 },
   Slider: { w: 240, h: 32 },
+  Spinbox: { w: 220, h: 48 },
   Progress: { w: 240, h: 24 },
   CircularProgress: { w: 120, h: 120 },
   Divider: { w: 240, h: 2 },

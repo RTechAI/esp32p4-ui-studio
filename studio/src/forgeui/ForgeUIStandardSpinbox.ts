@@ -52,12 +52,11 @@ export const getForgeUIStandardSpinboxModel = (
   const value = Math.max(minimum, Math.min(maximum, integer(props.value, 0)))
   const largestMagnitude = Math.max(1, Math.abs(minimum), Math.abs(maximum))
   const step = Math.min(largestMagnitude, powerOfTen(props.step))
+  // LVGL couples the selected digit to the power-of-ten step. Keeping a
+  // second independent cursor property would create preview/export drift.
   const cursorPosition = Math.max(
     0,
-    Math.min(
-      digitCount - 1,
-      integer(props.cursorPosition, Math.round(Math.log10(step))),
-    ),
+    Math.min(digitCount - 1, Math.round(Math.log10(step))),
   )
   const alignment = String(props.textAlign || 'right')
   const textAlign: ForgeUISpinboxAlignment =
@@ -105,7 +104,22 @@ export const stepForgeUIStandardSpinboxValue = (
   value: number,
   direction: 1 | -1,
 ) => {
-  const next = value + direction * model.step
+  let next = value + direction * model.step
+  // Match LVGL's symmetric zero-crossing rule: -3 + 10 becomes 3 and
+  // 3 - 10 becomes -3 rather than jumping to 7/-7.
+  if (
+    direction === 1 &&
+    value < 0 &&
+    value + model.step > 0
+  ) {
+    next = -value
+  } else if (
+    direction === -1 &&
+    value > 0 &&
+    value - model.step < 0
+  ) {
+    next = -value
+  }
   if (next > model.maximum) {
     return model.rollover && value === model.maximum
       ? model.minimum

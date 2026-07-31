@@ -24,7 +24,7 @@ const LARGE_TYPES = new Set([
 const INTERACTIVE_TYPES = new Set([
   'Button', 'InteractiveButton', 'InteractiveToggleSwitch',
   'InteractiveThreePositionToggleSwitch', 'IconButton', 'Input', 'Textarea',
-  'Switch', 'Checkbox', 'Radio', 'NumberInput', 'Select', 'Slider', 'Roller',
+  'Switch', 'Checkbox', 'Radio', 'NumberInput', 'Spinbox', 'Select', 'Slider', 'Roller',
   'ButtonMatrix', 'Keyboard',
 ])
 
