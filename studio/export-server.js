@@ -873,7 +873,8 @@ function generateDeveloperGuide(userEventHooks) {
         hooks.length
             ? hooks.map(h => {
                 const toggled = h.endsWith('_Toggled')
-                return `| ${h.replace(/^FG_On_|_(Clicked|Toggled)$/g, '')} | ${toggled ? 'Toggle' : 'Click'} | \`${h}(${toggled ? 'bool enabled' : ''})\` |`
+                const listItem = h.endsWith('_Item_Clicked')
+                return `| ${h.replace(/^FG_On_|_(Clicked|Toggled|Item_Clicked)$/g, '')} | ${toggled ? 'Toggle' : listItem ? 'List item click' : 'Click'} | \`${h}(${toggled ? 'bool enabled' : listItem ? 'uint32_t index, const char * text' : ''})\` |`
               }).join('\n')
             : '| None | - | - |'
 
@@ -1395,7 +1396,7 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
       )
         .map((hook) => String(hook || '').trim())
         .filter((hook) =>
-          /^FG_On_[A-Za-z0-9_]+_(Clicked|Toggled|Changed|Point_Added|Cleared|Shown|Hidden|Closed|Button_Pressed|Button_Selected)$/.test(hook)
+          /^FG_On_[A-Za-z0-9_]+_(Clicked|Toggled|Changed|Point_Added|Cleared|Shown|Hidden|Closed|Button_Pressed|Button_Selected|Item_Clicked)$/.test(hook)
         )
     )
   )
@@ -1412,6 +1413,8 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
       : hook.endsWith('_Button_Pressed')
         ? `void ${hook}(uint32_t index, const char * text);`
       : hook.endsWith('_Button_Selected')
+        ? `void ${hook}(uint32_t index, const char * text);`
+      : hook.endsWith('_Item_Clicked')
         ? `void ${hook}(uint32_t index, const char * text);`
       : dateChanged.has(hook)
         ? `void ${hook}(uint16_t year, uint8_t month, uint8_t day);`
@@ -1464,6 +1467,14 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
 {
     printf(
         "[ForgeUI User Event] ${hook.replace(/^FG_On_|_Button_Selected$/g, '').replace(/_/g, ' ')} button: %lu - %s\\n",
+        (unsigned long)index,
+        text ? text : "");
+}`
+      : hook.endsWith('_Item_Clicked')
+        ? `void ${hook}(uint32_t index, const char * text)
+{
+    printf(
+        "[ForgeUI User Event]\\n${hook.replace(/^FG_On_|_Item_Clicked$/g, '').replace(/_/g, ' ')}\\nItem %lu\\n%s\\n",
         (unsigned long)index,
         text ? text : "");
 }`

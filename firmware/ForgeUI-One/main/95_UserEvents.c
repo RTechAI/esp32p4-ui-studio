@@ -245,3 +245,11 @@ void FG_On_Slider_4_Changed(int32_t value)
     printf("[ForgeUI User Event] Slider 4 changed: %ld\n",
            (long)value);
 }
+
+void FG_On_List_Item_Clicked(uint32_t index, const char * text)
+{
+    printf(
+        "[ForgeUI User Event]\nList\nItem %lu\n%s\n",
+        (unsigned long)index,
+        text ? text : "");
+}

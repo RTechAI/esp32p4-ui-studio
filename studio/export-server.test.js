@@ -596,6 +596,31 @@ describe('generated public UI API headers', () => {
     )).toHaveLength(1)
   })
 
+  it('generates and preserves List item click hooks', () => {
+    const generated = generateUserEventFiles(
+      ['FG_On_System_Menu_Item_Clicked'],
+      [],
+    )
+    expect(generated.header).toContain(
+      'void FG_On_System_Menu_Item_Clicked(uint32_t index, const char * text);',
+    )
+    expect(generated.source).toContain(
+      '[ForgeUI User Event]\\nSystem Menu\\nItem %lu\\n%s\\n',
+    )
+
+    const preserved = preserveUserEventFiles(
+      '#include "95_UserEvents.h"\n\nvoid FG_On_System_Menu_Item_Clicked(uint32_t index, const char * text)\n{\n    developer_list_action(index, text);\n}\n',
+      '#pragma once\n#include <stdint.h>\nvoid FG_On_System_Menu_Item_Clicked(uint32_t index, const char * text);\n',
+      generated,
+    )
+    expect(preserved.source).toContain(
+      'developer_list_action(index, text);',
+    )
+    expect(preserved.source.match(
+      /void FG_On_System_Menu_Item_Clicked/g,
+    )).toHaveLength(1)
+  })
+
   it('generates and preserves TabView selection hooks', () => {
     const generated = generateUserEventFiles(
       ['FG_On_Main_Tabs_Changed'],

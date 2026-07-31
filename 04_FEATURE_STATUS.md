@@ -2,7 +2,8 @@
 
 ## 2026-07-31 platform alignment
 
-Current platform save point: `FORGEUI_BOARD_PROFILES__EXPORT_TIME_FEATURE_GATING__LAZY_SYSTEM_TOOLS__CONNECTED_WIFI_45KB_FREE__RAM_OVERLAY__READY_FOR_FINAL_OPERATOR_VALIDATION__2026-07-31`.
+Current platform save point:
+`FORGEUI_STANDARD_LIST__ITEM_CLICK_HOOKS__READY_FOR_ESP32P4_PROOF__2026-07-31`.
 
 - Board/profile ownership is registry-driven; the supported production profile is Waveshare ESP32-P4 WiFi6 Touch LCD 7B.
 - Persisted project features hydrate after mount and generate `00_ForgeUI_Features.h`.
@@ -10,11 +11,42 @@ Current platform save point: `FORGEUI_BOARD_PROFILES__EXPORT_TIME_FEATURE_GATING
 - Diagnostics is implemented. Wi-Fi Manager and Storage UI/worker resources are created lazily and destroyed safely while their backends remain separately alive.
 - Connected Application-page evidence records 45,795 bytes current internal free heap, a 27,648-byte largest block and 62 LVGL objects. Ten-cycle operator validation remains pending.
 - QR Code Studio/export/runtime generation is complete; a recorded successful physical phone scan remains pending.
-- Slider now has its collision-safe, clamped and silent generated value setter plus genuine-user change hook. Focused preview/export tests pass; physical Slider proof remains pending. Status: **READY FOR ESP32-P4 PROOF**.
-- Native Spinner is Registry/Tray/Inspector/Canvas/Browser/export complete. It uses `lv_spinner`, semantic theme fallbacks and export-time usage gating, with no runtime API or UserEvent. Focused tests pass; physical animation/RAM/FPS proof remains pending. Status: **SPINNER READY FOR ESP32-P4 PROOF**.
+- Slider is physically proven through Studio, standalone ESP-IDF export, ESP32-P4 touch interaction, collision-safe runtime APIs and multiple instances. Status: **PROVEN**.
+- Native Spinner is physically proven through Studio and standalone ESP-IDF export on ESP32-P4, including stable animation at approximately 60 FPS. Status: **PROVEN**.
+- Native List is Registry/Tray/Inspector/Canvas/Browser/export complete and physically renders correctly in live and standalone ESP32-P4 firmware. Every native row now emits a collision-safe `FG_On_<Name>_Item_Clicked(uint32_t index, const char * text)` hook only for genuine `LV_EVENT_CLICKED` interaction. Focused live/standalone generation tests pass; final physical callback observation remains pending. Status: **LIST INTERACTION READY FOR ESP32-P4 PROOF**.
 - The built firmware contains the compact FPS/RAM overlay, but current managed LVGL source does not reproduce it. Status: implemented in the flashed artifact, durability repair required.
 
 This document records implementation and proof status only.
+
+## Authoritative Standard Widget status matrix
+
+Status language:
+
+- **PROVEN**: physically exercised on the target hardware through the claimed
+  live and/or Standalone path.
+- **READY FOR PROOF**: Registry-to-export software slice and focused tests are
+  complete, but the remaining physical behaviour has not been recorded.
+- **PARTIAL**: some pipeline stages exist, but the full authoritative slice or
+  its evidence has not been re-established.
+- **PLANNED**: roadmap only; not an implemented Standard widget.
+
+| Standard widgets | Status | Evidence boundary |
+|---|---|---|
+| LED, Input, Textarea, Checkbox, Switch, Radio | **PROVEN** | Detailed physical/runtime records below |
+| Progress, Circular Progress, Number Input, Select | **PROVEN** | Detailed physical/runtime records below |
+| Bar, Arc, Chart, Table | **PROVEN** | Detailed physical/runtime records below |
+| Keyboard, Calendar, Scale, Roller, Message Box, Button Matrix | **PROVEN** | Detailed physical/runtime records below |
+| Slider | **PROVEN** | Live and Standalone ESP32-P4, touch, setter/hook and multiple instances |
+| Spinner | **PROVEN** | Live and Standalone ESP32-P4 native animation at approximately 60 FPS |
+| List | **READY FOR PROOF** | Rendering proven live/Standalone; item callback awaits physical serial observation |
+| QR Code | **READY FOR PROOF** | Registry/export/setter implemented; recorded successful physical scan remains open |
+| Text, Heading, Button, Icon Button, Icon, Box, Line, Divider, Canvas, Image | **PARTIAL** | Implemented pipeline coverage exists; this sprint does not upgrade physical evidence |
+| Wi-Fi Status, Clock | **PARTIAL** | Implemented presentation exists; widget-specific proof record is incomplete |
+| TabView, TileView | **PARTIAL** | Implemented native navigation exists; widget-specific proof record is incomplete |
+
+The Registry currently contains no Dashboard widgets. Window, Menu, Spinbox and
+the dedicated Dashboard Widget family remain **PLANNED** and must not be
+described as Standard-library completions.
 
 - Use `01_SPINE.md` for architecture, milestones and product direction.
 - Use `02_DEVELOPER_CODE_MAP.md` for Studio ownership and debugging paths.

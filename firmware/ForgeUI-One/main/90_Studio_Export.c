@@ -12,7 +12,6 @@
 #include "freertos/semphr.h"
 #include "freertos/task.h"
 #include "esp_timer.h"
-#include "95_UserEvents.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <limits.h>
@@ -25,26 +24,11 @@ static lv_obj_t * fg_application_page = NULL;
 static lv_obj_t * fg_system_launcher_page = NULL;
 static lv_obj_t * fg_system_brightness_page = NULL;
 static lv_obj_t * fg_system_brightness_label = NULL;
-static lv_obj_t * fg_slider_slider = NULL;
-static int32_t fg_slider_slider_value = 50;
-static bool fg_slider_slider_programmatic_update = false;
-static const int32_t fg_slider_slider_minimum = 0;
-static const int32_t fg_slider_slider_maximum = 100;
-static lv_obj_t * fg_slider_2_slider = NULL;
-static int32_t fg_slider_2_slider_value = 50;
-static bool fg_slider_2_slider_programmatic_update = false;
-static const int32_t fg_slider_2_slider_minimum = 0;
-static const int32_t fg_slider_2_slider_maximum = 100;
-static lv_obj_t * fg_slider_3_slider = NULL;
-static int32_t fg_slider_3_slider_value = 50;
-static bool fg_slider_3_slider_programmatic_update = false;
-static const int32_t fg_slider_3_slider_minimum = 0;
-static const int32_t fg_slider_3_slider_maximum = 100;
-static lv_obj_t * fg_slider_4_slider = NULL;
-static int32_t fg_slider_4_slider_value = 50;
-static bool fg_slider_4_slider_programmatic_update = false;
-static const int32_t fg_slider_4_slider_minimum = 0;
-static const int32_t fg_slider_4_slider_maximum = 100;
+typedef void (*fg_list_item_hook_t)(uint32_t index, const char * text);
+typedef struct { uint32_t index; const char * text; fg_list_item_hook_t hook; } fg_list_item_event_data_t;
+static const fg_list_item_event_data_t fg_list_list_item_0_data = { 0, "Overview", FG_On_List_Item_Clicked };
+static const fg_list_item_event_data_t fg_list_list_item_1_data = { 1, "Settings", FG_On_List_Item_Clicked };
+static const fg_list_item_event_data_t fg_list_list_item_2_data = { 2, "Diagnostics", FG_On_List_Item_Clicked };
 static lv_obj_t * fg_system_wifi_page = NULL;
 static lv_obj_t * fg_system_wifi_state_label = NULL;
 static lv_obj_t * fg_system_wifi_ssid_label = NULL;
@@ -165,88 +149,11 @@ static void fg_system_storage_finish_teardown(void);
 static void fg_system_storage_worker(void * arg);
 static void fg_system_storage_tick_cb(lv_timer_t * timer);
 
-static void fg_slider_slider_value_changed_cb(lv_event_t * event)
+static void fg_list_item_clicked_cb(lv_event_t * event)
 {
-    lv_obj_t * slider = lv_event_get_current_target(event);
-    if (slider != fg_slider_slider || fg_slider_slider_programmatic_update) return;
-    int32_t value = lv_slider_get_value(slider);
-    if (fg_slider_slider_value == value) return;
-    fg_slider_slider_value = value;
-    FG_On_Slider_Changed(value);
-}
-
-void FG_Set_Slider_Value(int32_t value)
-{
-    if (value < fg_slider_slider_minimum) value = fg_slider_slider_minimum;
-    if (value > fg_slider_slider_maximum) value = fg_slider_slider_maximum;
-    if (fg_slider_slider == NULL || fg_slider_slider_value == value) return;
-    fg_slider_slider_programmatic_update = true;
-    lv_slider_set_value(fg_slider_slider, value, LV_ANIM_OFF);
-    fg_slider_slider_value = value;
-    fg_slider_slider_programmatic_update = false;
-}
-
-static void fg_slider_2_slider_value_changed_cb(lv_event_t * event)
-{
-    lv_obj_t * slider = lv_event_get_current_target(event);
-    if (slider != fg_slider_2_slider || fg_slider_2_slider_programmatic_update) return;
-    int32_t value = lv_slider_get_value(slider);
-    if (fg_slider_2_slider_value == value) return;
-    fg_slider_2_slider_value = value;
-    FG_On_Slider_2_Changed(value);
-}
-
-void FG_Set_Slider_2_Value(int32_t value)
-{
-    if (value < fg_slider_2_slider_minimum) value = fg_slider_2_slider_minimum;
-    if (value > fg_slider_2_slider_maximum) value = fg_slider_2_slider_maximum;
-    if (fg_slider_2_slider == NULL || fg_slider_2_slider_value == value) return;
-    fg_slider_2_slider_programmatic_update = true;
-    lv_slider_set_value(fg_slider_2_slider, value, LV_ANIM_OFF);
-    fg_slider_2_slider_value = value;
-    fg_slider_2_slider_programmatic_update = false;
-}
-
-static void fg_slider_3_slider_value_changed_cb(lv_event_t * event)
-{
-    lv_obj_t * slider = lv_event_get_current_target(event);
-    if (slider != fg_slider_3_slider || fg_slider_3_slider_programmatic_update) return;
-    int32_t value = lv_slider_get_value(slider);
-    if (fg_slider_3_slider_value == value) return;
-    fg_slider_3_slider_value = value;
-    FG_On_Slider_3_Changed(value);
-}
-
-void FG_Set_Slider_3_Value(int32_t value)
-{
-    if (value < fg_slider_3_slider_minimum) value = fg_slider_3_slider_minimum;
-    if (value > fg_slider_3_slider_maximum) value = fg_slider_3_slider_maximum;
-    if (fg_slider_3_slider == NULL || fg_slider_3_slider_value == value) return;
-    fg_slider_3_slider_programmatic_update = true;
-    lv_slider_set_value(fg_slider_3_slider, value, LV_ANIM_OFF);
-    fg_slider_3_slider_value = value;
-    fg_slider_3_slider_programmatic_update = false;
-}
-
-static void fg_slider_4_slider_value_changed_cb(lv_event_t * event)
-{
-    lv_obj_t * slider = lv_event_get_current_target(event);
-    if (slider != fg_slider_4_slider || fg_slider_4_slider_programmatic_update) return;
-    int32_t value = lv_slider_get_value(slider);
-    if (fg_slider_4_slider_value == value) return;
-    fg_slider_4_slider_value = value;
-    FG_On_Slider_4_Changed(value);
-}
-
-void FG_Set_Slider_4_Value(int32_t value)
-{
-    if (value < fg_slider_4_slider_minimum) value = fg_slider_4_slider_minimum;
-    if (value > fg_slider_4_slider_maximum) value = fg_slider_4_slider_maximum;
-    if (fg_slider_4_slider == NULL || fg_slider_4_slider_value == value) return;
-    fg_slider_4_slider_programmatic_update = true;
-    lv_slider_set_value(fg_slider_4_slider, value, LV_ANIM_OFF);
-    fg_slider_4_slider_value = value;
-    fg_slider_4_slider_programmatic_update = false;
+    const fg_list_item_event_data_t * data = lv_event_get_user_data(event);
+    if (data == NULL || data->hook == NULL) return;
+    data->hook(data->index, data->text);
 }
 
 static void FG_Set_Display_Brightness(uint8_t percent)
@@ -1360,75 +1267,48 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_size(bg_texture_0, 1024, 600);
     lv_obj_move_background(bg_texture_0);
 
-    fg_slider_slider = lv_slider_create(fg_application_page);
-    lv_obj_t * obj1 = fg_slider_slider;
-    lv_obj_set_pos(fg_slider_slider, 392, 121);
-    lv_obj_set_size(fg_slider_slider, 180, 36);
-    lv_slider_set_range(fg_slider_slider, 0, 100);
-    lv_slider_set_value(fg_slider_slider, 50, LV_ANIM_OFF);
-    lv_obj_set_style_bg_color(fg_slider_slider, lv_color_hex(0x2A3138), LV_PART_MAIN);
-    lv_obj_set_style_bg_color(fg_slider_slider, lv_color_hex(0xF2A900), LV_PART_INDICATOR);
-    lv_obj_set_style_bg_color(fg_slider_slider, lv_color_hex(0x121417), LV_PART_KNOB);
-    fg_slider_slider_value = 50;
-    lv_obj_add_event_cb(fg_slider_slider, fg_slider_slider_value_changed_cb, LV_EVENT_VALUE_CHANGED, NULL);
-
-    fg_slider_2_slider = lv_slider_create(fg_application_page);
-    lv_obj_t * obj2 = fg_slider_2_slider;
-    lv_obj_set_pos(fg_slider_2_slider, 422, 282);
-    lv_obj_set_size(fg_slider_2_slider, 180, 36);
-    lv_slider_set_range(fg_slider_2_slider, 0, 100);
-    lv_slider_set_value(fg_slider_2_slider, 50, LV_ANIM_OFF);
-    lv_obj_set_style_bg_color(fg_slider_2_slider, lv_color_hex(0x2A3138), LV_PART_MAIN);
-    lv_obj_set_style_bg_color(fg_slider_2_slider, lv_color_hex(0xF2A900), LV_PART_INDICATOR);
-    lv_obj_set_style_bg_color(fg_slider_2_slider, lv_color_hex(0x121417), LV_PART_KNOB);
-    fg_slider_2_slider_value = 50;
-    lv_obj_add_event_cb(fg_slider_2_slider, fg_slider_2_slider_value_changed_cb, LV_EVENT_VALUE_CHANGED, NULL);
-
-    lv_obj_t * obj3 = lv_spinner_create(fg_application_page);
-    lv_obj_set_pos(obj3, 734, 135);
-    lv_obj_set_size(obj3, 96, 96);
-    lv_spinner_set_anim_params(obj3, 1000, 60);
-    lv_obj_set_style_arc_width(obj3, 8, LV_PART_MAIN);
-    lv_obj_set_style_arc_width(obj3, 8, LV_PART_INDICATOR);
-    lv_obj_set_style_arc_color(obj3, lv_color_hex(0x2A3138), LV_PART_MAIN);
-    lv_obj_set_style_arc_color(obj3, lv_color_hex(0xF2A900), LV_PART_INDICATOR);
-    lv_obj_set_style_opa(obj3, 255, LV_PART_MAIN);
-    lv_obj_set_style_opa(obj3, 255, LV_PART_INDICATOR);
-
-    lv_obj_t * obj4 = lv_spinner_create(fg_application_page);
-    lv_obj_set_pos(obj4, 742, 238);
-    lv_obj_set_size(obj4, 96, 96);
-    lv_spinner_set_anim_params(obj4, 1000, 60);
-    lv_obj_set_style_arc_width(obj4, 8, LV_PART_MAIN);
-    lv_obj_set_style_arc_width(obj4, 8, LV_PART_INDICATOR);
-    lv_obj_set_style_arc_color(obj4, lv_color_hex(0x2A3138), LV_PART_MAIN);
-    lv_obj_set_style_arc_color(obj4, lv_color_hex(0xF2A900), LV_PART_INDICATOR);
-    lv_obj_set_style_opa(obj4, 255, LV_PART_MAIN);
-    lv_obj_set_style_opa(obj4, 255, LV_PART_INDICATOR);
-
-    fg_slider_3_slider = lv_slider_create(fg_application_page);
-    lv_obj_t * obj5 = fg_slider_3_slider;
-    lv_obj_set_pos(fg_slider_3_slider, 708, 351);
-    lv_obj_set_size(fg_slider_3_slider, 180, 36);
-    lv_slider_set_range(fg_slider_3_slider, 0, 100);
-    lv_slider_set_value(fg_slider_3_slider, 50, LV_ANIM_OFF);
-    lv_obj_set_style_bg_color(fg_slider_3_slider, lv_color_hex(0x2A3138), LV_PART_MAIN);
-    lv_obj_set_style_bg_color(fg_slider_3_slider, lv_color_hex(0xF2A900), LV_PART_INDICATOR);
-    lv_obj_set_style_bg_color(fg_slider_3_slider, lv_color_hex(0x121417), LV_PART_KNOB);
-    fg_slider_3_slider_value = 50;
-    lv_obj_add_event_cb(fg_slider_3_slider, fg_slider_3_slider_value_changed_cb, LV_EVENT_VALUE_CHANGED, NULL);
-
-    fg_slider_4_slider = lv_slider_create(fg_application_page);
-    lv_obj_t * obj6 = fg_slider_4_slider;
-    lv_obj_set_pos(fg_slider_4_slider, 655, 41);
-    lv_obj_set_size(fg_slider_4_slider, 180, 36);
-    lv_slider_set_range(fg_slider_4_slider, 0, 100);
-    lv_slider_set_value(fg_slider_4_slider, 50, LV_ANIM_OFF);
-    lv_obj_set_style_bg_color(fg_slider_4_slider, lv_color_hex(0x2A3138), LV_PART_MAIN);
-    lv_obj_set_style_bg_color(fg_slider_4_slider, lv_color_hex(0xF2A900), LV_PART_INDICATOR);
-    lv_obj_set_style_bg_color(fg_slider_4_slider, lv_color_hex(0x121417), LV_PART_KNOB);
-    fg_slider_4_slider_value = 50;
-    lv_obj_add_event_cb(fg_slider_4_slider, fg_slider_4_slider_value_changed_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_t * obj1 = lv_list_create(fg_application_page);
+    lv_obj_set_pos(obj1, 142, 89);
+    lv_obj_set_size(obj1, 260, 220);
+    lv_obj_set_style_bg_color(obj1, lv_color_hex(0x1E2328), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(obj1, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_border_color(obj1, lv_color_hex(0xF2A900), LV_PART_MAIN);
+    lv_obj_set_style_border_width(obj1, 1, LV_PART_MAIN);
+    lv_obj_set_style_radius(obj1, 8, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(obj1, 0, LV_PART_MAIN);
+    lv_obj_t * obj1_title = lv_list_add_text(obj1, "Menu");
+    lv_obj_set_style_text_color(obj1_title, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(obj1_title, lv_color_hex(0x1E2328), LV_PART_MAIN);
+    lv_obj_t * obj1_item_0 = lv_list_add_button(obj1, NULL, "Overview");
+    lv_obj_set_height(obj1_item_0, 44);
+    lv_obj_set_style_bg_color(obj1_item_0, lv_color_hex(0x2A3138), LV_PART_MAIN);
+    lv_obj_set_style_text_color(obj1_item_0, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
+    lv_obj_set_style_border_color(obj1_item_0, lv_color_hex(0xF2A900), LV_PART_MAIN);
+    lv_obj_set_style_border_width(obj1_item_0, 1, LV_PART_MAIN);
+    lv_obj_set_style_radius(obj1_item_0, 0, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(obj1_item_0, lv_color_hex(0xF2A900), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_set_style_text_color(obj1_item_0, lv_color_hex(0x121417), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_add_event_cb(obj1_item_0, fg_list_item_clicked_cb, LV_EVENT_CLICKED, (void *)&fg_list_list_item_0_data);
+    lv_obj_t * obj1_item_1 = lv_list_add_button(obj1, NULL, "Settings");
+    lv_obj_set_height(obj1_item_1, 44);
+    lv_obj_set_style_bg_color(obj1_item_1, lv_color_hex(0x2A3138), LV_PART_MAIN);
+    lv_obj_set_style_text_color(obj1_item_1, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
+    lv_obj_set_style_border_color(obj1_item_1, lv_color_hex(0xF2A900), LV_PART_MAIN);
+    lv_obj_set_style_border_width(obj1_item_1, 1, LV_PART_MAIN);
+    lv_obj_set_style_radius(obj1_item_1, 0, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(obj1_item_1, lv_color_hex(0xF2A900), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_set_style_text_color(obj1_item_1, lv_color_hex(0x121417), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_add_event_cb(obj1_item_1, fg_list_item_clicked_cb, LV_EVENT_CLICKED, (void *)&fg_list_list_item_1_data);
+    lv_obj_t * obj1_item_2 = lv_list_add_button(obj1, NULL, "Diagnostics");
+    lv_obj_set_height(obj1_item_2, 44);
+    lv_obj_set_style_bg_color(obj1_item_2, lv_color_hex(0x2A3138), LV_PART_MAIN);
+    lv_obj_set_style_text_color(obj1_item_2, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
+    lv_obj_set_style_border_color(obj1_item_2, lv_color_hex(0xF2A900), LV_PART_MAIN);
+    lv_obj_set_style_border_width(obj1_item_2, 1, LV_PART_MAIN);
+    lv_obj_set_style_radius(obj1_item_2, 0, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(obj1_item_2, lv_color_hex(0xF2A900), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_set_style_text_color(obj1_item_2, lv_color_hex(0x121417), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_add_event_cb(obj1_item_2, fg_list_item_clicked_cb, LV_EVENT_CLICKED, (void *)&fg_list_list_item_2_data);
 
 
     fg_ram_probe_log("02 after application page creation");

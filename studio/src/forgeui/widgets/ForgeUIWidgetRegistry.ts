@@ -70,7 +70,7 @@ const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
     'Led', 'Bar', 'Arc', 'Scale', 'Chart', 'Table', 'Clock',
     'WiFi', 'QRCode', 'Progress', 'CircularProgress',
   ],
-  Navigation: ['Tabview', 'Tileview', 'ButtonMatrix'],
+  Navigation: ['List', 'Tabview', 'Tileview', 'ButtonMatrix'],
   Feedback: ['Msgbox', 'Keyboard', 'Calendar', 'Spinner'],
   Dashboard: [],
   Assets: [
@@ -129,6 +129,7 @@ const sizes: Partial<Record<ComponentType, [number, number]>> = {
   Scale: [240, 100],
   Bar: [220, 32],
   ButtonMatrix: [300, 180],
+  List: [260, 220],
   Image: [240, 160],
   QRCode: [180, 180],
   Spinner: [96, 96],
@@ -142,6 +143,7 @@ const keywords: Partial<Record<ComponentType, string[]>> = {
   Tabview: ['tabs', 'tab view', 'lv_tabview'],
   Tileview: ['tiles', 'pages', 'swipe', 'lv_tileview'],
   ButtonMatrix: ['button grid', 'keypad', 'lv_buttonmatrix'],
+  List: ['menu', 'items', 'navigation', 'lv_list'],
   Led: ['indicator', 'status light', 'lamp', 'lv_led'],
   Bar: ['progress', 'meter', 'lv_bar'],
   Chart: ['graph', 'trend', 'plot', 'telemetry', 'lv_chart'],
@@ -157,7 +159,7 @@ const keywords: Partial<Record<ComponentType, string[]>> = {
 const eventTypes = new Set<ComponentType>([
   'Button', 'IconButton', 'Input', 'Textarea', 'NumberInput',
   'Checkbox', 'Switch', 'Slider', 'Roller', 'Radio', 'Select',
-  'ButtonMatrix', 'Keyboard', 'Calendar', 'Tabview', 'Tileview',
+  'List', 'ButtonMatrix', 'Keyboard', 'Calendar', 'Tabview', 'Tileview',
   'InteractiveButton', 'InteractiveLight',
   'InteractiveStatusIndicator', 'InteractiveToggleSwitch',
   'InteractiveThreePositionToggleSwitch',
@@ -225,7 +227,7 @@ export const forgeUIWidgetDefinitions: ForgeUIWidgetDefinition[] =
         h: defaultHeight,
       }),
       capabilities: {
-        supportsRuntimeApi: type !== 'Spinner',
+        supportsRuntimeApi: type !== 'Spinner' && type !== 'List',
         supportsUserEvents: eventTypes.has(type),
         supportsChildren: childTypes.has(type),
         interactive: interactiveTypes.has(type),

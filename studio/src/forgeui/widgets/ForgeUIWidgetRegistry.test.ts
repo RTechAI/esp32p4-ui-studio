@@ -40,6 +40,7 @@ describe('ForgeUI Widget registry', () => {
     ['qrcode', 'QRCode'],
     ['loading', 'Spinner'],
     ['lv_spinner', 'Spinner'],
+    ['lv_list', 'List'],
   ])('finds %s using registered terminology', (query, type) => {
     expect(searchForgeUIWidgets(query).map(item => item.type))
       .toContain(type)
@@ -85,5 +86,24 @@ describe('ForgeUI Widget registry', () => {
         opacity: 100,
       },
     })
+  })
+
+  it('registers List as a native, serialized navigation widget', () => {
+    expect(forgeUIWidgetDefinitions.find(item => item.type === 'List'))
+      .toMatchObject({
+        category: 'Navigation',
+        defaultWidth: 260,
+        defaultHeight: 220,
+        capabilities: {
+          supportsRuntimeApi: false,
+          supportsUserEvents: true,
+          supportsChildren: false,
+        },
+        defaultProperties: {
+          title: 'Menu',
+          items: 'Overview\nSettings\nDiagnostics',
+          itemHeight: 44,
+        },
+      })
   })
 })

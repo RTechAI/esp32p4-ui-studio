@@ -1,6 +1,7 @@
 # ForgeUI Studio
 
-Current architecture save point: `FORGEUI_BOARD_PROFILES__EXPORT_TIME_FEATURE_GATING__LAZY_SYSTEM_TOOLS__CONNECTED_WIFI_45KB_FREE__RAM_OVERLAY__READY_FOR_FINAL_OPERATOR_VALIDATION__2026-07-31`.
+Current architecture save point:
+`FORGEUI_STANDARD_LIST__ITEM_CLICK_HOOKS__READY_FOR_ESP32P4_PROOF__2026-07-31`.
 
 **ForgeUI Studio is an open-source, AI-assisted visual HMI and embedded GUI designer for ESP32-P4.** It combines a drag-and-drop Canvas, reusable Interactive Assets, AI Layout tools, Browser Preview, native LVGL 9 generation, integrated ESP-IDF Build & Flash, and standalone ESP-IDF project export.
 
@@ -20,12 +21,15 @@ ForgeUI exists to shorten the path from an interface idea to editable embedded f
 
 - Drag-and-drop, free-form Canvas placement and resizing
 - Registry-driven Widget Tray with search and accessible insertion
+- Data-driven Board Profiles shared by live and Standalone Export
+- Export-Time Feature Gating across generated C, CMake and dependencies
 - Component properties, semantic themes and uploaded artwork
 - Browser Preview
 - Layout Designer with Smart Regions and Auto Arrange
 - AI-assisted layout, theme and artwork workflows
 - Five reusable Interactive Asset types
 - Standard LVGL component runtime APIs and hooks
+- Collision-safe Runtime APIs and `95_UserEvents`
 - Native QR Code component and generated text setter
 - Built-in System Runtime with Display, Wi-Fi and Storage interfaces
 - Local conversion of artwork into LVGL-ready C assets
@@ -55,18 +59,19 @@ AI features require configured OpenAI API access. Normal Studio editing, importe
 
 ## Layout Designer
 
-ForgeUI’s Layout Designer uses reusable definitions rather than separate hard-coded renderers. The implemented preset library contains:
+ForgeUI’s Layout Designer uses reusable definitions rather than separate
+hard-coded renderers. The currently implemented template is:
 
 - Dashboard
-- Industrial HMI
-- Control Panel
-- Monitoring
-- SCADA Overview
-- Mobile / Portrait
 
-Each preset creates ordinary editable ForgeUI components with labelled Smart Region Boxes. Components can be assigned to semantic regions, Auto Arrange computes deterministic geometry, and template-aware AI Fill chooses appropriate content and regions while ForgeUI owns final placement.
+Industrial HMI, Control Panel, Monitoring, SCADA Overview and Mobile / Portrait
+are roadmap candidates, not implemented templates.
 
-Dashboard’s Header, Status, Main, Controls and Footer workflow has been manually verified on Canvas and Browser Preview. Layout Designer-specific physical ESP32-P4 proof is not claimed. All presets use the same normal component persistence, undo/redo, Canvas, Browser Preview and LVGL export paths.
+Dashboard creates ordinary editable ForgeUI components with labelled Smart
+Region Boxes. Its Header, Status, Main, Controls and Footer workflow has been
+manually verified on Canvas and Browser Preview. Layout Designer-specific
+physical ESP32-P4 proof is not claimed. Dashboard uses the normal component
+persistence, undo/redo, Canvas, Browser Preview and LVGL export paths.
 
 See [ForgeUI Layout Designer](docs/FORGEUI_LAYOUT_DESIGNER.md) for the detailed authoring workflow.
 
@@ -104,6 +109,20 @@ ForgeUI generates native LVGL objects and semantic runtime APIs for supported St
 Generated implementation and public declarations live in `90_Studio_Export.c/.h`. Genuine-user hooks are declared through `95_UserEvents.h`; live Studio regeneration preservation-merges matching hook bodies in `95_UserEvents.c`.
 
 Detailed signatures and ownership belong in [03 — Generated Export API Code Map](03_ForgeUI_Generated_Export_API_Code_Map.md), not this front page.
+
+This generated developer surface is the beginning of the ForgeUI Runtime SDK
+direction. It is not yet a separately packaged SDK product. See
+[07 — Runtime SDK Direction](07_FORGEUI_RUNTIME_SDK.md).
+
+Current Standard-widget milestone evidence:
+
+- Slider: **PROVEN** through live and Standalone ESP32-P4 touch/runtime paths.
+- Spinner: **PROVEN** through live and Standalone ESP32-P4 native animation.
+- List: native rendering proven in both paths; generated item callback
+  **READY FOR PROOF**.
+
+The Standard library is still being completed and physically proven. Dedicated
+Dashboard widgets have not started.
 
 ## Hardware support and proof
 
@@ -172,8 +191,10 @@ The [ForgeUI Developer Portal](https://forgeui.co.nz/developers) is the public o
 | [02 — Developer Code Map](02_DEVELOPER_CODE_MAP.md) | Studio ownership, implementation, extension and debugging |
 | [03 — Generated Export API Code Map](03_ForgeUI_Generated_Export_API_Code_Map.md) | Generated firmware APIs, hooks, files and export boundaries |
 | [04 — Feature Status](04_FEATURE_STATUS.md) | Current implementation and evidence status |
+| [05 — Internal Developer Guide](05_DEVELOPER_GUIDE.md) | Architecture, widget pipeline, parity, testing and proof workflow |
 | [05 — Developer Hardware Integration](05_DEVELOPER_HARDWARE_INTEGRATION.md) | Connecting ForgeUI to application code, drivers and hardware |
 | [06 — OpenAI API Setup](06_OpenAI%20API%20Setup%20Instructions.md) | Configuring optional OpenAI-assisted layouts and artwork |
+| [07 — Runtime SDK Direction](07_FORGEUI_RUNTIME_SDK.md) | Long-term generated SDK concept and evolution rules |
 | [Layout Designer Guide](docs/FORGEUI_LAYOUT_DESIGNER.md) | Preset, Smart Region, Auto Arrange and AI Fill workflow |
 | [QR Code Guide](docs/FORGEUI_QR_CODE.md) | QR authoring, preview, export and validation |
 
@@ -185,7 +206,7 @@ esp32p4-ui-studio/
 ├── firmware/     ESP-IDF reference firmware and generated live output
 ├── docs/         Feature guides, images and archived historical documents
 ├── tools/        Setup and startup tooling
-├── 01–06         Current architecture, status and integration documents
+├── 01–07         Current architecture, status, developer and SDK documents
 └── README.md     Public project front page
 ```
 

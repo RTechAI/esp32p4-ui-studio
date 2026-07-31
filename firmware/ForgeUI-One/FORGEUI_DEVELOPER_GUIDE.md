@@ -43,19 +43,13 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- `FG_On_Slider_Changed()`
-- `FG_On_Slider_2_Changed()`
-- `FG_On_Slider_3_Changed()`
-- `FG_On_Slider_4_Changed()`
+- `FG_On_List_Item_Clicked()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| Slider_Changed | Click | `FG_On_Slider_Changed()` |
-| Slider_2_Changed | Click | `FG_On_Slider_2_Changed()` |
-| Slider_3_Changed | Click | `FG_On_Slider_3_Changed()` |
-| Slider_4_Changed | Click | `FG_On_Slider_4_Changed()` |
+| List | List item click | `FG_On_List_Item_Clicked(uint32_t index, const char * text)` |
 
 ---
 

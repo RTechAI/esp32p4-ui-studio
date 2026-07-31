@@ -175,7 +175,11 @@ type PreviewDefaultProps = {
   NumberInput?: PropsWithForm<NumberInputProps>
   Radio?: PropsWithForm<RadioProps>
   RadioGroup?: PropsWithForm<RadioGroupProps>
-  List?: PropsWithForm<ListProps>
+  List?: PropsWithForm<ListProps> & {
+    title?: string
+    items?: string
+    itemHeight?: number
+  }
   ListIcon?: PropsWithForm<IconProps>
   ListItem?: PropsWithForm<any>
   Center?: PropsWithForm<CenterProps>
@@ -340,9 +344,9 @@ WiFi: {
   },
   Link: { children: 'Link text' },
   List: {
-    form: {
-      styleType: 'none',
-    },
+    title: 'Menu',
+    items: 'Overview\nSettings\nDiagnostics',
+    itemHeight: 44,
   },
   ListItem: { children: 'list' },
   Kbd: { children: 'shift' },

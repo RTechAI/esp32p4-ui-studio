@@ -13,9 +13,37 @@
 
 ## Current save point
 
-**FORGEUI_BOARD_PROFILES__EXPORT_TIME_FEATURE_GATING__LAZY_SYSTEM_TOOLS__CONNECTED_WIFI_45KB_FREE__RAM_OVERLAY__READY_FOR_FINAL_OPERATOR_VALIDATION__2026-07-31**
+**FORGEUI_STANDARD_LIST__ITEM_CLICK_HOOKS__READY_FOR_ESP32P4_PROOF__2026-07-31**
 
-- The Layout Designer exposes Dashboard, Industrial HMI, Control Panel, Monitoring, SCADA Overview and Mobile / Portrait through one reusable template-definition architecture.
+## Current authoritative ownership summary
+
+| Concern | Authoritative owner |
+|---|---|
+| Standard Widget catalogue | `studio/src/forgeui/widgets/ForgeUIWidgetRegistry.ts` |
+| Legacy catalogue compatibility | `studio/src/forgeui/ForgeUIWidgetSet.ts` projection |
+| Board identity and capabilities | `studio/src/forgeui/boards/ForgeUIBoardRegistry.ts` and profile modules |
+| Project hardware selection | `studio/src/forgeui/boards/ForgeUIProjectHardware.ts` |
+| Shared native generator | `studio/src/forgeui/ForgeUILvglExport.ts` |
+| Export materialization and gating | `studio/export-server.js` |
+| Generated replaceable UI | `firmware/ForgeUI-One/main/90_Studio_Export.c/.h` |
+| Developer UserEvents | `firmware/ForgeUI-One/main/95_UserEvents.c/.h` |
+| Feature evidence | `04_FEATURE_STATUS.md` |
+| Runtime SDK direction | `07_FORGEUI_RUNTIME_SDK.md` |
+
+The Registry supplies Tray discovery and insertion metadata. Widget-specific
+models, Inspectors and shared preview renderers normalize authoring data; the
+single LVGL generator consumes the same serialized component graph for live and
+Standalone Export. Do not create a parallel widget catalogue, preview-only
+implementation or standalone-only generator.
+
+Runtime API means a generated application-to-UI function declared in
+`90_Studio_Export.h`. UserEvent means a generated UI-to-application callback
+declared in `95_UserEvents.h`. Setters must not echo into UserEvents. Hooks must
+not fire during construction, hydration or programmatic updates.
+
+- The Layout Designer currently exposes Dashboard through the reusable
+  template-definition architecture. Other professional layout names remain
+  roadmap candidates.
 - Apply Layout, smart regions, semantic assignment, Auto Arrange and template-aware AI Fill resolve into ordinary persisted ForgeUI components.
 - Dashboard retains its existing region structure and composition behavior inside the shared implementation.
 - The Widget Tray is driven by `ForgeUIWidgetRegistry.ts`; `ForgeUIWidgetSet.ts` is a compatibility projection rather than a second catalogue.
@@ -263,16 +291,11 @@ Dashboard
 └── dashboard.footer
 ```
 
-The implemented template IDs are `dashboard`, `industrial-hmi`, `control-panel`, `monitoring`, `scada-overview` and `mobile-portrait`.
+The implemented template ID is `dashboard`.
 
 | Template | Stable semantic region suffixes |
 |---|---|
 | Dashboard | `header`, `status`, `main`, `controls`, `footer` |
-| Industrial HMI | `header`, `navigation`, `machine-status`, `process-area`, `alarm-panel`, `footer` |
-| Control Panel | `header`, `left-controls`, `centre-graphic`, `right-controls`, `bottom-status` |
-| Monitoring | `header`, `trend-graph`, `metrics-strip`, `alarm-list`, `footer` |
-| SCADA Overview | `header`, `left-navigation`, `main-mimic`, `right-information`, `bottom-events` |
-| Mobile / Portrait | `header`, `main-card`, `secondary-card`, `controls`, `footer` |
 
 Every definition creates real normal ForgeUI components. Dashboard continues to create its existing five Box regions, Divider and Heading placeholder. Region Boxes remain selectable, movable and resizable. The vector preview is derived from the same selected definition and design geometry; it is not raster artwork. Applied output remains editable and follows the normal undo/redo, persistence, Canvas, Browser Preview and export paths. Boxes remain Standard Box components; no layout-only firmware object family exists.
 
@@ -3655,7 +3678,8 @@ Preserve these rules:
 103. Output Standard semantic state uses a retained object/state and setter only when no genuine user transition exists.
 104. Serialized presentation generates no runtime API.
 105. Components with no semantic runtime state, including Icon and Divider, remain intentionally API-free.
-106. Slider Canvas interaction repair does not imply a completed Slider runtime setter or hook.
+106. Slider Canvas interaction, its silent clamped runtime setter and its
+genuine-user change hook are complete and physically proven.
 107. Proven Standard components consume semantic theme roles rather than hard-coded decorative colours.
 108. Canvas, Browser Preview and LVGL export resolve equivalent Standard semantic roles.
 109. Missing semantic theme values use the deterministic graphite fallback.
@@ -3683,7 +3707,8 @@ Preserve these rules:
 131. `ForgeUILvglExport.ts` remains the only LVGL exporter.
 132. Layout Designer work must not change Standard runtime API signatures.
 133. Layout Designer work must not change `95_UserEvents` signatures.
-134. Dashboard, Industrial HMI, Control Panel, Monitoring, SCADA Overview and Mobile / Portrait are the implemented structural templates.
+134. Dashboard is the implemented structural template. Industrial HMI, Control
+Panel, Monitoring, SCADA Overview and Mobile / Portrait are roadmap candidates.
 135. New layouts extend `ForgeUILayoutTemplateId` and `forgeUILayoutTemplates`; they do not add template-specific renderers or exporters.
 136. Structural-lock enforcement is not yet complete.
 137. Drag-to-assign is not yet implemented.
@@ -3734,7 +3759,11 @@ Save points are ordered newest to oldest.
 
 ### FORGEUI_STANDARD_LVGL_RUNTIME_V1__DEVELOPER_API_SURFACE__INTERACTIVE_OUTPUT_PRESENTATION_CLASSIFICATION__ARCHITECTURE_COMPLETE__2026-07-29
 
-- **What changed:** Added Standard Runtime ownership, APIs, hook metadata and Preview parity for Input, Textarea, Switch, Checkbox, Radio, Progress, NumberInput, Select, Image, Box and IconButton; repaired Slider Canvas interaction without adding its runtime API; and classified Icon and Divider as presentation/API-free.
+- **What changed:** Added Standard Runtime ownership, APIs, hook metadata and
+  Preview parity for Input, Textarea, Switch, Checkbox, Radio, Progress,
+  NumberInput, Select, Image, Box, IconButton, Slider and List; and classified
+  Icon, Divider and Spinner according to their intentional presentation-only
+  contracts.
 - **Why:** Exported applications needed a consistent application-to-UI API and genuine UI-to-application event boundary without inventing runtime surfaces for presentation-only components.
 - **Final architecture:** Interactive semantic state uses retained state, guarded silent setters and genuine-user hooks; output semantic state uses retained state and setter-only APIs; serialized presentation and components without semantic state expose no runtime API. Live and standalone exports share `ForgeUILvglExport.ts`, while live `95_UserEvents.*` remains preservation-merged and standalone copies become developer-owned.
 - **Validation:** Exporter regression reached 212/212, Canvas regression reached 51/51, generated API/preservation coverage reached 33/33, focused component suites and TypeScript/syntax/diff checks passed. The unrelated missing-theme-source fixture remains recorded, and no blanket physical hardware proof is claimed.
@@ -3762,12 +3791,7 @@ Current implemented template library:
 
 ```text
 forgeUILayoutTemplates
-├── Dashboard
-├── Industrial HMI
-├── Control Panel
-├── Monitoring
-├── SCADA Overview
-└── Mobile / Portrait
+└── Dashboard
 ```
 
 Add another layout by extending `ForgeUILayoutTemplateId` and adding one complete `ForgeUILayoutTemplate` definition with metadata, design dimensions, semantic Region Boxes and any ordinary placeholder components. Reuse `getForgeUILayoutTemplate()`, `composeForgeUILayoutTemplate()`, region assignment, Auto Arrange, AI Region Composer, the shared vector preview, normal component serialization and the existing Canvas, Browser Preview and export paths.
@@ -3937,6 +3961,9 @@ strongly typed runtime state
 
 This is extension guidance, not a claim that additional N-state controls are implemented.
 
-Potential future Standard Runtime concepts include Slider runtime control, Gauge, Meter, Seven Segment Display, Numeric Display, Radio Group ownership and dynamic Select options. These are future only. Existing Progress, CircularProgress, Checkbox, Radio, NumberInput and Select support must not be described as unimplemented.
+Potential future Standard Runtime concepts include Gauge, Meter, Seven Segment
+Display, Numeric Display, Radio Group ownership and dynamic Select options.
+These are future only. Slider, Progress, CircularProgress, Checkbox, Radio,
+NumberInput and Select support must not be described as unimplemented.
 
 Do not create a new registry, persistence system, AI pipeline, uploaded-asset store, exporter, or duplicate runtime generator for a future type. Reuse an existing runtime family whenever its state and API contract match. Create a new runtime family only when the existing momentary input, persistent binary input, persistent three-position input and binary output contracts cannot represent the control.

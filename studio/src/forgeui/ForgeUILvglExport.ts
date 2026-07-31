@@ -28,6 +28,7 @@ import {
   getForgeUIQRCodeGeometry,
   resolveQRCodePayload,
 } from './ForgeUIStandardQRCode'
+import { getForgeUIStandardListModel } from './ForgeUIStandardList'
 import type { ForgeUIFirmwareFeatures } from './boards/ForgeUIBoardProfile'
 
 import {
@@ -604,6 +605,54 @@ type ButtonMatrixExport = {
   initialIndex: number
   oneCheck: boolean
   disabledButtons: number[]
+}
+
+type ListExport = {
+  hookName: string
+  itemDataNames: string[]
+  items: string[]
+}
+
+const createListExports = (
+  components: IComponents,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+): Map<string, ListExport> => {
+  const exportsByComponent = new Map<string, ListExport>()
+
+  Object.values(components)
+    .filter(component => component.type === 'List')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const baseName = toCIdentifier(
+        component.componentName ||
+        component.props.name ||
+        component.props.label ||
+        'List',
+        'List',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let allocatedBase = baseName
+      let hookName = `FG_On_${allocatedBase}_Item_Clicked`
+      let suffix = 2
+      while (usedHookNames.has(hookName)) {
+        allocatedBase = `${baseName}_${suffix++}`
+        hookName = `FG_On_${allocatedBase}_Item_Clicked`
+      }
+      usedHookNames.add(hookName)
+      userEventHooks.add(hookName)
+
+      const items = getForgeUIStandardListModel(component.props).items
+      const runtimeStem = allocatedBase.toLowerCase()
+      exportsByComponent.set(component.id, {
+        hookName,
+        items,
+        itemDataNames: items.map(
+          (_, index) => `fg_${runtimeStem}_list_item_${index}_data`,
+        ),
+      })
+    })
+
+  return exportsByComponent
 }
 
 type TabViewExport = {
@@ -2295,6 +2344,7 @@ const buildLvglBlock = (
   rollerExports: Map<string, RollerExport>,
   messageBoxExports: Map<string, MessageBoxExport>,
   buttonMatrixExports: Map<string, ButtonMatrixExport>,
+  listExports: Map<string, ListExport>,
   tabViewExports: Map<string, TabViewExport>,
   tileViewExports: Map<string, TileViewExport>,
   clockExports: Map<string, ClockExport>,
@@ -3425,6 +3475,42 @@ case 'Spinner': {
   break
 }
 
+case 'List': {
+  const model = getForgeUIStandardListModel(child.props)
+  const listExport = listExports.get(child.id)
+  lines.push(`lv_obj_t * ${varName} = lv_list_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_COVER, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${varName}, 1, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${varName}, 8, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_pad_all(${varName}, 0, LV_PART_MAIN);`)
+  if (model.title) {
+    lines.push(`lv_obj_t * ${varName}_title = lv_list_add_text(${varName}, "${esc(model.title)}");`)
+    lines.push(`lv_obj_set_style_text_color(${varName}_title, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_bg_color(${varName}_title, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
+  }
+  model.items.forEach((item, itemIndex) => {
+    const buttonName = `${varName}_item_${itemIndex}`
+    lines.push(`lv_obj_t * ${buttonName} = lv_list_add_button(${varName}, NULL, "${esc(item)}");`)
+    lines.push(`lv_obj_set_height(${buttonName}, ${model.itemHeight});`)
+    lines.push(`lv_obj_set_style_bg_color(${buttonName}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_color(${buttonName}, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_border_color(${buttonName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_border_width(${buttonName}, 1, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_radius(${buttonName}, 0, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_bg_color(${buttonName}, lv_color_hex(${palette.selectedSurface}), LV_PART_MAIN | LV_STATE_PRESSED);`)
+    lines.push(`lv_obj_set_style_text_color(${buttonName}, lv_color_hex(${palette.accentText}), LV_PART_MAIN | LV_STATE_PRESSED);`)
+    if (listExport) {
+      lines.push(`lv_obj_add_event_cb(${buttonName}, fg_list_item_clicked_cb, LV_EVENT_CLICKED, (void *)&${listExport.itemDataNames[itemIndex]});`)
+    }
+  })
+  lines.push(``)
+  break
+}
+
 case 'Progress': {
   const progressExport = progressExports.get(child.id)
   const progressObject = progressExport?.objectName || varName
@@ -4311,6 +4397,7 @@ case 'Chart': {
         rollerExports,
         messageBoxExports,
         buttonMatrixExports,
+        listExports,
         tabViewExports,
         tileViewExports,
         clockExports,
@@ -4516,6 +4603,11 @@ export const generateForgeUILvglCode = (
   const usedAssetSources = new Set<string>()
   const usedHookNames = new Set<string>()
   const userEventHooks = new Set<string>()
+  const listExports = createListExports(
+    components,
+    usedHookNames,
+    userEventHooks,
+  )
   const hasInteractiveButtons = Object.values(components).some(
     component => component.type === 'InteractiveButton',
   )
@@ -5333,6 +5425,15 @@ const backgroundMode =
     lines.push(`static uint32_t ${matrixExport.selectedIndexName} = ${matrixExport.initialIndex};`)
     lines.push(`static const uint32_t ${matrixExport.buttonCountName} = ${matrixExport.buttonLabels.length};`)
   })
+  if (listExports.size > 0) {
+    lines.push(`typedef void (*fg_list_item_hook_t)(uint32_t index, const char * text);`)
+    lines.push(`typedef struct { uint32_t index; const char * text; fg_list_item_hook_t hook; } fg_list_item_event_data_t;`)
+  }
+  listExports.forEach(listExport => {
+    listExport.items.forEach((itemText, itemIndex) => {
+      lines.push(`static const fg_list_item_event_data_t ${listExport.itemDataNames[itemIndex]} = { ${itemIndex}, "${esc(itemText)}", ${listExport.hookName} };`)
+    })
+  })
   tabViewExports.forEach(tabViewExport => {
     lines.push(`static lv_obj_t * ${tabViewExport.objectName} = NULL;`)
     lines.push(`static uint32_t ${tabViewExport.selectedIndexName} = ${tabViewExport.initialIndex};`)
@@ -5997,6 +6098,16 @@ const backgroundMode =
     lines.push(`}`)
     lines.push(``)
   })
+
+  if (listExports.size > 0) {
+    lines.push(`static void fg_list_item_clicked_cb(lv_event_t * event)`)
+    lines.push(`{`)
+    lines.push(`    const fg_list_item_event_data_t * data = lv_event_get_user_data(event);`)
+    lines.push(`    if (data == NULL || data->hook == NULL) return;`)
+    lines.push(`    data->hook(data->index, data->text);`)
+    lines.push(`}`)
+    lines.push(``)
+  }
 
   buttonMatrixExports.forEach(matrixExport => {
     lines.push(`static void ${matrixExport.transitionName}(uint32_t button_index, bool update_widget)`)
@@ -7302,6 +7413,7 @@ lines.push(`    fg_system_root = parent;`)
         rollerExports,
         messageBoxExports,
         buttonMatrixExports,
+        listExports,
         tabViewExports,
         tileViewExports,
         clockExports,

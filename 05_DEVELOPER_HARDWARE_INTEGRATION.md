@@ -2,6 +2,27 @@
 
 # ForgeUI Developer Hardware Integration Guide
 
+This is the application/hardware companion to
+`05_DEVELOPER_GUIDE.md`. The Internal Developer Guide owns Studio architecture
+and widget-pipeline guidance; this document owns post-export application,
+driver, task and hardware integration examples.
+
+Current generated List interaction:
+
+```c
+void FG_On_System_Menu_Item_Clicked(
+    uint32_t index,
+    const char * text)
+{
+    app_navigation_select(index, text);
+}
+```
+
+The index is zero-based. The hook is emitted only for a genuine native List
+button click; construction and programmatic UI work remain silent. Keep the
+hook short and copy `text` before returning if application code needs to retain
+it.
+
 > **Purpose**
 >
 > This guide explains how to connect a ForgeUI-generated interface to real application code and physical hardware.

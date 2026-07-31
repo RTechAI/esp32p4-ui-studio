@@ -11,9 +11,41 @@
 
 ## Current Save Point
 
-**FORGEUI_BOARD_PROFILES__EXPORT_TIME_FEATURE_GATING__LAZY_SYSTEM_TOOLS__CONNECTED_WIFI_45KB_FREE__RAM_OVERLAY__READY_FOR_FINAL_OPERATOR_VALIDATION__2026-07-31**
+**FORGEUI_STANDARD_LIST__ITEM_CLICK_HOOKS__READY_FOR_ESP32P4_PROOF__2026-07-31**
 
-**READY FOR FINAL OPERATOR TOUCHSCREEN VALIDATION**
+**CURRENT PRIORITY: COMPLETE THE STANDARD WIDGET LIBRARY AND PHYSICALLY PROVE EACH SLICE**
+
+## 2026-07-31 authoritative architecture alignment
+
+- `ForgeUIWidgetRegistry.ts` is the single source of truth for Standard Widget
+  Tray membership, categories, insertion geometry, defaults, capability
+  metadata, documentation IDs and availability. `ForgeUIWidgetSet.ts` is a
+  compatibility projection, never a second registry.
+- Board Profiles own supported target identity, dimensions, capabilities and
+  default feature selection. Hydrated project hardware selection drives both
+  live Build & Flash and Standalone Export.
+- Export-Time Feature Gating prunes generated C, CMake sources, managed
+  components and `idf_component.yml` together. A disabled feature must not
+  survive through a different export layer.
+- System Wi-Fi and Storage interfaces use Lazy Runtime ownership: UI objects
+  and UI-local workers are demand-created and safely destroyed while their
+  separately owned backends may remain alive.
+- `90_Studio_Export.c/.h` owns replaceable generated LVGL and Runtime APIs.
+  `95_UserEvents.c/.h` is the developer integration layer; live regeneration
+  preservation-merges matching bodies and Standalone Export transfers
+  ownership to the exported project.
+- Runtime setters are silent programmatic projections. UserEvents represent
+  genuine user transitions only. Names derive from component names and are
+  collision-safe.
+- Slider and Spinner are physically **PROVEN** through live and standalone
+  ESP32-P4 firmware. List rendering is physically verified in both paths; its
+  collision-safe item callback is **READY FOR PROOF**.
+- Dashboard is the only implemented Layout Designer template. The dedicated
+  Dashboard Widget family remains roadmap work and must not begin until the
+  Standard Widget library is complete and physically proven.
+- The ForgeUI Runtime SDK is an architectural direction, not a separately
+  shipped runtime product. It is the documented surface formed by generated
+  Runtime APIs, UserEvents, types and ownership rules.
 
 ## Current Proven Status..
 
@@ -190,7 +222,9 @@ The flashed ESP32-P4 remains the authoritative final visual reference.
 - Preserve deterministic, hydration-safe Widget Tray loading.
 - Preserve Widget Tray search, categories, interactive asset integration and narrow-sidebar polish.
 - Preserve the shared `LayoutDefinition` architecture.
-- Preserve all six layout templates: Dashboard, Industrial HMI, Control Panel, Monitoring, SCADA Overview and Mobile / Portrait.
+- Preserve the implemented Dashboard template. Treat Industrial HMI, Control
+  Panel, Monitoring, SCADA Overview and Mobile / Portrait as roadmap candidates
+  until registered in code.
 - Preserve template-aware AI Fill: AI owns content choice while `LayoutDefinition`, semantic regions and Auto Arrange own structure and geometry.
 - Preserve free-form decimal Canvas movement; do not introduce snapping as a side effect of layout or Widget Tray work.
 
@@ -294,7 +328,9 @@ Completed serialized presentation properties:
 - ✓ Heading Text
 - ✓ Clock Presentation
 
-Slider Canvas interaction is repaired and complete, but no Slider runtime setter or developer hook is claimed by this save point.
+Slider Canvas interaction and native runtime are complete. The generated
+collision-safe setter clamps values and remains silent; the changed hook is
+reserved for genuine user interaction.
 
 Ownership and generation rules:
 
@@ -363,7 +399,7 @@ Interactive Asset hook ownership remains separate.
 | `Button` | None added by Button Text | None added by Button Text | Static standard LVGL button with serialized visible label text |
 | `Text` | None | None | Static LVGL label with serialized text content |
 | `Heading` | None | None | Static LVGL heading label with serialized heading content |
-| `Slider` | Not yet completed | Not yet completed | Canvas/Browser interaction repaired; runtime API remains future work |
+| `Slider` | `FG_Set_<Name>_Value(int32_t)` | `FG_On_<Name>_Changed(int32_t)` | Physically proven in live and standalone ESP32-P4 firmware |
 
 ### LED
 
@@ -1384,8 +1420,9 @@ The authoritative registry contains 41 entries. Every entry is available in the 
 | NumberInput | implemented / implemented | value setter + change hook | physically proven |
 | Checkbox | implemented / implemented | checked setter + change hook | physically proven |
 | Switch | implemented / implemented | checked setter + change hook | physically proven |
-| Slider | implemented / implemented | value setter + genuine-user change hook | ready for ESP32-P4 proof |
-| Spinner | implemented / implemented | presentation-only; no setter or hook | ready for ESP32-P4 proof |
+| Slider | implemented / implemented | value setter + genuine-user change hook | **PROVEN** |
+| Spinner | implemented / implemented | presentation-only; no setter or hook | **PROVEN** |
+| List | implemented / implemented | genuine-user item click hook; no setter | callback **READY FOR PROOF** |
 | Roller | implemented / implemented | selected setter + change hook | physically proven |
 | Radio | implemented / implemented | selected setter + change hook; no group model | physically proven |
 | Select | implemented / implemented | index setter + change hook | physically proven |
@@ -1476,16 +1513,14 @@ Automated coverage or generated-code inspection does not substitute for build, f
 
 ## Layout Template Library
 
-ForgeUI now contains a reusable professional Layout Template Library:
+ForgeUI contains one implemented reusable professional Layout Template:
 
 - Dashboard
-- Industrial HMI
-- Control Panel
-- Monitoring
-- SCADA Overview
-- Mobile / Portrait
 
-All six templates use the same rendering engine, semantic-region model, vector preview approach, scaling behavior, persistence path, undo/redo path, Browser Preview and normal LVGL export path. Dashboard remains the reference implementation; it is no longer the only structural template.
+It uses the shared rendering engine, semantic-region model, vector preview,
+scaling, persistence, undo/redo, Browser Preview and normal LVGL export paths.
+Industrial HMI, Control Panel, Monitoring, SCADA Overview and Mobile / Portrait
+remain roadmap candidates.
 
 ### LayoutDefinition
 
@@ -1522,7 +1557,10 @@ Browser Preview
 LVGL Export
 ```
 
-AI chooses suitable canonical widgets and content. `LayoutDefinition` owns structure, semantic regions own placement intent, and Auto Arrange owns deterministic geometry. Template guidance makes AI Fill aware of Dashboard, Industrial HMI, Control Panel, Monitoring, SCADA Overview and Mobile / Portrait content needs without returning ownership of pixel coordinates to AI.
+AI chooses suitable canonical widgets and content. `LayoutDefinition` owns
+structure, semantic regions own placement intent, and Auto Arrange owns
+deterministic geometry. Current template guidance covers Dashboard without
+returning ownership of pixel coordinates to AI.
 
 ## ForgeUI Layout Designer Implementation
 
@@ -2305,12 +2343,7 @@ This architecture provides authoring, preview and generated-firmware parity with
 ```text
 Layout Designer
 ├── LayoutDefinition Registry
-│   ├── Dashboard
-│   ├── Industrial HMI
-│   ├── Control Panel
-│   ├── Monitoring
-│   ├── SCADA Overview
-│   └── Mobile / Portrait
+│   └── Dashboard
 ├── Smart Region Boxes
 ├── Stable Region Assignment
 ├── Auto Arrange
@@ -2534,11 +2567,20 @@ Save points are ordered newest to oldest. Detailed subsystem engineering is main
 - **Slider:** The existing shared Canvas/Browser preview and native `lv_slider` export now have a retained generated runtime. `FG_Set_<Name>_Value(int32_t)` clamps signed and reversed serialized ranges, ignores repeats and updates silently. `FG_On_<Name>_Changed(int32_t)` is emitted through `95_UserEvents` only after a genuine LVGL value change; initialization occurs before callback registration.
 - **Spinner:** `Spinner` is a Registry-owned Standard Feedback widget with Registry defaults, Tray insertion, shared Canvas/Browser rendering, Inspector controls and native LVGL 9 `lv_spinner_create()` export. Supported properties are width, height, duration, arc length, foreground/background arc widths, semantic or explicit foreground/background colours, and opacity. It has no runtime setter and no UserEvent hook.
 - **Theme and gating:** Empty colour overrides resolve to the active semantic accent and secondary-surface roles in preview and export. Spinner code is generated only for serialized Spinner instances and adds no widget-specific runtime source, public declaration, hook or CMake entry.
-- **Validation:** Focused Registry, Tray, hydration, shared preview and LVGL exporter tests pass. Physical build, flash, animation/RAM/FPS observation and leak/touch checks remain operator work. Slider status is **READY FOR ESP32-P4 PROOF**. Spinner status is **SPINNER READY FOR ESP32-P4 PROOF**.
+- **Validation:** Focused Registry, Tray, hydration, shared preview and LVGL
+  exporter tests pass. Slider and Spinner are physically **PROVEN** through
+  live and standalone ESP32-P4 output. List rendering is physically verified;
+  its generated item callback remains **READY FOR PROOF**.
 
 ## FORGEUI_WIDGET_REGISTRY__LAYOUT_TEMPLATE_LIBRARY__QRCODE_RUNTIME__READY_FOR_QR_HARDWARE_PROOF__2026-07-30
 
-- **What changed:** Completed the Professional Layout Template Library with Dashboard, Industrial HMI, Control Panel, Monitoring, SCADA Overview and Mobile / Portrait; consolidated the shared `LayoutDefinition` architecture and template-aware AI Fill; completed the authoritative Widget Registry and registry-driven Widget Tray with search, categories, uploaded and Interactive Asset integration, hydration-safe loading and narrow-sidebar polish; inspected the official LVGL 9.2.2 QR implementation; and implemented QR Code through Registry, Tray, Canvas, Inspector, Browser Preview, native LVGL export, semantic theme and runtime API generation.
+- **What changed:** Established Dashboard as the implemented reference
+  `LayoutDefinition` and retained other professional layout concepts as
+  roadmap candidates; completed the authoritative Widget Registry and
+  registry-driven Widget Tray with search, categories, uploaded and Interactive
+  Asset integration, hydration-safe loading and narrow-sidebar polish; and
+  implemented QR Code through Registry, Tray, Canvas, Inspector, Browser
+  Preview, native LVGL export, semantic theme and runtime API generation.
 - **Why it changed:** Layouts and widgets needed scalable definition-driven extension points instead of Dashboard-only or Sidebar-owned implementations. Future Codex sessions also need one mandatory widget lifecycle grounded in the exact LVGL version used by ForgeUI.
 - **Final architecture:** `WidgetDefinition` is authoritative for widget identity, metadata, defaults, insertion and capabilities. The Widget Tray renders registry data and assets without a second catalogue. Six layouts share `LayoutDefinition`; AI selects content, semantic regions own placement intent and Auto Arrange owns geometry. Future widgets follow Official LVGL Reference → Widget Registry → Widget Tray → Canvas → Inspector → Browser Preview → LVGL Export → Runtime API when appropriate → `95_UserEvents` for genuine interaction only → ESP32-P4 → Documentation → PROVEN. QR Code uses native `lv_qrcode`, exposes `FG_Set_QR_Code_Text(const char * text)` and intentionally creates no user-event hook.
 - **Proven result:** Focused Widget Tray, search, insertion, undo/redo, hydration, QR preview, registry and runtime-export tests pass, and all current LVGL exporter suites pass. The existing Dashboard behavior remains the layout reference while all six definitions use the shared architecture. No physical QR proof is claimed: ESP32-P4 build, flash and successful phone scans remain required. Status is READY FOR PHYSICAL QR VALIDATION.
@@ -2573,7 +2615,12 @@ Save points are ordered newest to oldest. Detailed subsystem engineering is main
 
 ## FORGEUI_STANDARD_LVGL_RUNTIME_V1__DEVELOPER_API_SURFACE__INTERACTIVE_OUTPUT_PRESENTATION_CLASSIFICATION__ARCHITECTURE_COMPLETE__2026-07-29
 
-- **What changed:** Added Standard Runtime APIs and Preview parity for Input, Textarea, Switch, Checkbox, Radio, Progress, NumberInput, Select, Image, Box and IconButton; repaired the Slider Canvas movement/value-interaction conflict without adding Slider runtime APIs; classified Icon and Divider as intentionally API-free presentation; preserved Button, Text, Heading and Clock as serialized presentation; and expanded deterministic collision handling, live/standalone generation and user-hook preservation coverage.
+- **What changed:** Added Standard Runtime APIs and Preview parity for Input,
+  Textarea, Switch, Checkbox, Radio, Progress, NumberInput, Select, Image, Box,
+  IconButton and Slider; classified Icon and Divider as intentionally API-free
+  presentation; preserved Button, Text, Heading and Clock as serialized
+  presentation; and expanded deterministic collision handling,
+  live/standalone generation and user-hook preservation coverage.
 - **Why it changed:** Exported projects needed a consistent developer-facing SDK for application-to-UI control and genuine UI-to-application events. Components needed runtime APIs only where meaningful state exists, presentation conveniences required explicit API-free decisions, and Canvas interactive controls required preview interaction without breaking movement or mutating project JSON.
 - **Final architecture:** Interactive controls use retained objects/state, guarded silent setters and genuine-user hooks. Output controls expose setters only. Presentation-only components expose no runtime API. `90_Studio_Export.*` remains generated; live `95_UserEvents.*` remains preservation-merged and standalone copies become developer-owned. Canvas and Browser Preview share component previews where required, while generated LVGL retains component-specific native semantics.
 - **Proven result:** The complete exporter regression reached 212/212, Canvas regression reached 51/51, generated API/preservation tests reached 33/33, focused component suites passed, and TypeScript, syntax and diff checks passed. One unrelated full export-server fixture failure remains possible when the two recorded default-theme C assets are missing. No blanket physical ESP32-P4 proof is claimed for the newly completed Standard Runtime set.

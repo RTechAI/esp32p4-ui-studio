@@ -36,6 +36,7 @@ import StandardChartPreview from '~forgeui/preview/StandardChartPreview'
 import StandardQRCodePreview from '~forgeui/preview/StandardQRCodePreview'
 import StandardScalePreview from '~forgeui/preview/StandardScalePreview'
 import StandardSpinnerPreview from '~forgeui/preview/StandardSpinnerPreview'
+import StandardListPreview from '~forgeui/preview/StandardListPreview'
 import StandardRollerPreview from '~forgeui/preview/StandardRollerPreview'
 import StandardMessageBoxPreview from '~forgeui/preview/StandardMessageBoxPreview'
 import StandardButtonMatrixPreview from '~forgeui/preview/StandardButtonMatrixPreview'
@@ -258,7 +259,6 @@ case 'Switch':
     case 'Flex':
     case 'FormControl':
     case 'Tabs':
-    case 'List':
     case 'TabList':
     case 'TabPanels':
     case 'Grid':
@@ -553,6 +553,17 @@ case 'Select':
       />
     </PreviewContainer>
   )
+
+  case 'List':
+    return (
+      <PreviewContainer
+        component={component}
+        enableVisualHelper
+        {...forwardedProps}
+      >
+        <StandardListPreview props={component.props} />
+      </PreviewContainer>
+    )
 
   case 'Heading':
   return (

@@ -13,7 +13,17 @@
 
 ## Current proven save point
 
-**FORGEUI_BOARD_PROFILES__EXPORT_TIME_FEATURE_GATING__LAZY_SYSTEM_TOOLS__CONNECTED_WIFI_45KB_FREE__RAM_OVERLAY__READY_FOR_FINAL_OPERATOR_VALIDATION__2026-07-31**
+**FORGEUI_STANDARD_LIST__ITEM_CLICK_HOOKS__READY_FOR_ESP32P4_PROOF__2026-07-31**
+
+This document describes the generated SDK surface currently emitted by the
+shared live/Standalone generator. `90_Studio_Export.h` contains callable
+Runtime APIs. `95_UserEvents.h` contains genuine-user callback declarations.
+Internal `fg_*` helpers are implementation details and are not public SDK
+functions. All per-component public symbols derive from the component name and
+use deterministic collision suffixes.
+
+Previous platform milestone:
+`FORGEUI_BOARD_PROFILES__EXPORT_TIME_FEATURE_GATING__LAZY_SYSTEM_TOOLS__CONNECTED_WIFI_45KB_FREE__RAM_OVERLAY__READY_FOR_FINAL_OPERATOR_VALIDATION__2026-07-31`.
 
 ### Existing physically proven generated runtime
 
@@ -21,7 +31,9 @@ The earlier physical proof remains valid for Interactive Assets; System Runtime;
 
 ### Current generated boundary status
 
-- Dashboard, Industrial HMI, Control Panel, Monitoring, SCADA Overview and Mobile / Portrait all resolve through the same normal-component export boundary.
+- Dashboard resolves through the normal-component export boundary. Industrial
+  HMI, Control Panel, Monitoring, SCADA Overview and Mobile / Portrait are
+  roadmap candidates only.
 - Smart Region Boxes and AI-filled controls create no template-specific runtime, API, hook or transport field.
 - Focused Layout Designer, AI Region Composer and semantic Box exporter coverage passes.
 - Standard QR Code generation is implemented as a native LVGL 9.2.2 output component.
@@ -92,7 +104,11 @@ Layout Designer does not create a second exporter, separate generated firmware d
 
 ### Template Generated Structure
 
-The current library contains Dashboard, Industrial HMI, Control Panel, Monitoring, SCADA Overview and Mobile / Portrait. Each selected definition produces normal Box regions and ordinary placeholder/assigned components. Dashboard retains `dashboard.header`, `dashboard.status`, `dashboard.main`, `dashboard.controls` and `dashboard.footer`; other layouts use their own template-qualified semantic keys.
+The current library contains Dashboard. Its definition produces normal Box
+regions and ordinary placeholder/assigned components and retains
+`dashboard.header`, `dashboard.status`, `dashboard.main`,
+`dashboard.controls` and `dashboard.footer`. Other named layout concepts are
+roadmap candidates and must not be treated as registered definitions.
 
 Stable region keys and assignment metadata are Studio/project metadata. They generate no C structs, enums, public APIs, hooks, runtime callbacks or additional files. After layout composition, final persisted component `x/y/w/h` is the generated geometry source of truth.
 
@@ -229,7 +245,11 @@ Completed serialized presentation properties:
 - ✓ Heading Text
 - ✓ Clock Presentation
 
-Slider Canvas movement and temporary preview-value interaction remain isolated from project JSON. Its native LVGL export now retains the Slider and generates a collision-safe value setter and genuine-user change hook. Spinner is presentation-only and generates neither.
+Slider Canvas movement and temporary preview-value interaction remain isolated
+from project JSON. Its native LVGL export retains the Slider and generates a
+collision-safe value setter and genuine-user change hook. Spinner is
+presentation-only and generates neither. List has no setter but generates one
+collision-safe item-click hook carrying the zero-based row index and text.
 
 ```text
 Standard LVGL Component Runtime
@@ -376,6 +396,7 @@ Runtime hot theme switching on the ESP32-P4 was not added.
 | Divider | None; presentation-only visual separator | None |
 | Slider | `FG_Set_<Name>_Value(int32_t value)` | `FG_On_<Name>_Changed(int32_t value)` |
 | Spinner | None; presentation-only native animation | None |
+| List | None | `FG_On_<Name>_Item_Clicked(uint32_t index, const char * text)` |
 
 In this table, CircularProgress is a retained output-only arc. NumberInput is the composed generated numeric textarea plus hardware increment/decrement buttons using serialized step; its existing API and hook names are unchanged.
 
@@ -582,6 +603,16 @@ Canvas track/thumb interaction changes temporary preview value, surrounding comp
 ### Spinner generated boundary
 
 Spinner exports native `lv_spinner_create(parent)` plus `lv_spinner_set_anim_params(widget, duration_ms, arc_length_degrees)`. Geometry, main/indicator arc widths, semantic or explicit colours and opacity are applied directly to the native object. It creates no public declaration, hook, runtime helper source or CMake entry. The branch is naturally export-time gated because it is emitted only while traversing a serialized Spinner.
+
+### List generated boundary
+
+List exports native `lv_list_create`, optional `lv_list_add_text` and one
+`lv_list_add_button` per normalized item. It has no public setter. Each button
+registers one shared `LV_EVENT_CLICKED` callback with immutable per-row
+`{index, text, hook}` data. The callback invokes
+`FG_On_<Name>_Item_Clicked(uint32_t index, const char * text)` only after a
+genuine click. Construction is silent. Duplicate component names receive
+`_2`, `_3` and later suffixes before `_Item_Clicked`.
 
 ### Scale
 
@@ -2877,7 +2908,11 @@ Preserve these rules:
 
 ### FORGEUI_WIDGET_REGISTRY__LAYOUT_TEMPLATE_LIBRARY__QRCODE_RUNTIME__READY_FOR_QR_HARDWARE_PROOF__2026-07-30
 
-- **Generated architecture:** All six Layout Designer definitions resolve to ordinary components and the unchanged four-field exporter result. QR Code generates native LVGL QR construction plus a setter-only declaration/implementation in `90_Studio_Export.*`; it adds no hook, User Event stub, asset source or transport field.
+- **Generated architecture:** The implemented Dashboard definition resolves to
+  ordinary components and the unchanged four-field exporter result. QR Code
+  generates native LVGL QR construction plus a setter-only
+  declaration/implementation in `90_Studio_Export.*`; it adds no hook,
+  UserEvent stub, asset source or transport field.
 - **Validation:** Focused Layout Designer/AI composition and QR exporter tests pass. Live generated `90_Studio_Export.c/.h` inspection confirms `lv_qrcode_set_*` initialization and `FG_Set_QR_Code_Text`. QR ESP-IDF build, flash and physical scan proof remain pending.
 
 ### FORGEUI_LAYOUT_DESIGNER__DASHBOARD_SMART_REGIONS_AUTO_ARRANGE_AI_FILL__CANVAS_AND_BROWSER_PREVIEW_MANUALLY_VERIFIED__READY_FOR_EXPORT_AND_HARDWARE_PROOF__2026-07-30
@@ -2903,7 +2938,12 @@ Preserve these rules:
 
 ### FORGEUI_STANDARD_LVGL_RUNTIME_V1__DEVELOPER_API_SURFACE__INTERACTIVE_OUTPUT_PRESENTATION_CLASSIFICATION__ARCHITECTURE_COMPLETE__2026-07-29
 
-- **What changed:** Added generated APIs and hooks for Input, Textarea, Switch, Checkbox, Radio, NumberInput, Select and IconButton; setter-only APIs for Progress, Image and Box; repaired Slider Canvas interaction without adding its runtime API; classified Icon and Divider as API-free; preserved Button/Text/Heading/Clock presentation ownership; and extended collision-safe naming and hook preservation.
+- **What changed:** Added generated APIs and hooks for Input, Textarea, Switch,
+  Checkbox, Radio, NumberInput, Select, IconButton, Slider and List;
+  setter-only APIs for Progress, Image and Box; classified Icon, Divider and
+  Spinner according to their API-free contracts; preserved
+  Button/Text/Heading/Clock presentation ownership; and extended
+  collision-safe naming and hook preservation.
 - **Final architecture:** Interactive state uses a guarded setter plus genuine-user hook; output state uses a setter only; serialized presentation has no runtime API; and components with no semantic state remain API-free. `90_Studio_Export.*` remains generated, while live `95_UserEvents.*` remains preservation-merged and standalone copies become developer-owned.
 - **Validation:** Exporter reached 212/212, Canvas reached 51/51, generated API/preservation reached 33/33, focused component suites and TypeScript/syntax/diff checks passed. One unrelated full export-server fixture failure may remain due to the two missing default-theme assets. No blanket physical hardware proof is claimed.
 
@@ -2917,7 +2957,11 @@ Preserve these rules:
 
 ### Layout Designer template extension
 
-Dashboard, Industrial HMI, Control Panel, Monitoring, SCADA Overview and Mobile / Portrait are implemented. Any additional definition must still resolve into the same normal component model before export. It must not create another exporter, generated runtime, transport field, template-specific generated header or template-specific User Event file.
+Dashboard is implemented. Industrial HMI, Control Panel, Monitoring, SCADA
+Overview and Mobile / Portrait are roadmap candidates. Any additional
+definition must resolve into the same normal component model before export. It
+must not create another exporter, generated runtime, transport field,
+template-specific generated header or template-specific UserEvent file.
 
 ### Future System Runtime pages
 
@@ -3031,3 +3075,32 @@ The built-in System Runtime is part of the interface ForgeUI generates. It exten
 Programmatic UI updates and genuine user interaction remain separate API directions.
 
 Maintain this document only when the generated API or ownership boundary changes.
+
+## Standard List interaction contract
+
+Standard List owns no setter and no retained selection runtime API. Each
+exported List contributes one collision-safe semantic hook to
+`userEventHooks`:
+
+```c
+void FG_On_<List_Name>_Item_Clicked(
+    uint32_t index,
+    const char * text);
+```
+
+`ForgeUILvglExport.ts` creates immutable per-row event data containing the
+zero-based index, generated label text and that List's hook. Each native
+`lv_list_add_button` registers the shared `fg_list_item_clicked_cb` exactly
+once for `LV_EVENT_CLICKED`. The shared callback forwards the event data to the
+developer hook. Construction, hydration and startup do not call it.
+
+Duplicate component names use the standard collision suffix before
+`_Item_Clicked`, for example
+`FG_On_System_Menu_Item_Clicked` and
+`FG_On_System_Menu_2_Item_Clicked`.
+
+Both live generation and standalone export carry the hook through the existing
+`userEventHooks` payload. `generateUserEventFiles()` emits and
+preservation-merges the matching declaration and implementation in
+`95_UserEvents.h/.c`; no new payload field or public declaration in
+`90_Studio_Export.h` is introduced.
