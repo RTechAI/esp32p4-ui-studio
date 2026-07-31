@@ -85,6 +85,7 @@ type ComponentType =
   | 'Radio'
   | 'RadioGroup'
   | 'Slider'
+  | 'Spinbox'
   | 'Select'
   | 'SimpleGrid'
   | 'Spinner'

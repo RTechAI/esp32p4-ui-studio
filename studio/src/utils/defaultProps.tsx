@@ -173,6 +173,7 @@ type PreviewDefaultProps = {
   Editable?: PropsWithForm<EditableProps>
   Menu?: PropsWithForm<MenuProps>
   NumberInput?: PropsWithForm<NumberInputProps>
+  Spinbox?: PropsWithForm<any>
   Radio?: PropsWithForm<RadioProps>
   RadioGroup?: PropsWithForm<RadioGroupProps>
   List?: PropsWithForm<ListProps> & {
@@ -369,6 +370,20 @@ WiFi: {
     step: 1,
     orientation: 'horizontal',
     isDisabled: false,
+  },
+  Spinbox: {
+    value: 0,
+    min: 0,
+    max: 99999,
+    step: 1,
+    digitCount: 5,
+    decimalPlaces: 0,
+    rollover: false,
+    cursorPosition: 0,
+    textAlign: 'right',
+    padding: 8,
+    opacity: 100,
+    visible: true,
   },
   Spinner: {
     duration: 1000,

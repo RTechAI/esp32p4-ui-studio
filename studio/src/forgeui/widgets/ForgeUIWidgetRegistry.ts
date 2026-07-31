@@ -64,7 +64,7 @@ const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
   ],
   Input: [
     'Input', 'Textarea', 'NumberInput', 'Checkbox', 'Switch',
-    'Slider', 'Roller', 'Radio', 'Select',
+    'Slider', 'Spinbox', 'Roller', 'Radio', 'Select',
   ],
   Display: [
     'Led', 'Bar', 'Arc', 'Scale', 'Chart', 'Table', 'Clock',
@@ -112,6 +112,7 @@ const sizes: Partial<Record<ComponentType, [number, number]>> = {
   Checkbox: [28, 28],
   Radio: [28, 28],
   Slider: [180, 36],
+  Spinbox: [220, 48],
   Progress: [180, 24],
   Roller: [120, 72],
   Icon: [48, 48],
@@ -149,7 +150,8 @@ const keywords: Partial<Record<ComponentType, string[]>> = {
   Chart: ['graph', 'trend', 'plot', 'telemetry', 'lv_chart'],
   Msgbox: ['dialog', 'alert', 'message box', 'lv_msgbox'],
   Roller: ['wheel', 'picker', 'lv_roller'],
-  NumberInput: ['numeric', 'spinbox', 'number field', 'lv_spinbox'],
+  NumberInput: ['numeric', 'number field', 'composed number input'],
+  Spinbox: ['numeric', 'digit editor', 'native spin box', 'lv_spinbox'],
   CircularProgress: ['gauge', 'progress ring', 'meter'],
   WiFi: ['network', 'wireless', 'connection'],
   QRCode: ['qr', 'qrcode', 'scan', 'barcode', 'url', 'wifi', 'pairing', 'device'],
@@ -158,7 +160,7 @@ const keywords: Partial<Record<ComponentType, string[]>> = {
 
 const eventTypes = new Set<ComponentType>([
   'Button', 'IconButton', 'Input', 'Textarea', 'NumberInput',
-  'Checkbox', 'Switch', 'Slider', 'Roller', 'Radio', 'Select',
+  'Checkbox', 'Switch', 'Slider', 'Spinbox', 'Roller', 'Radio', 'Select',
   'List', 'ButtonMatrix', 'Keyboard', 'Calendar', 'Tabview', 'Tileview',
   'InteractiveButton', 'InteractiveLight',
   'InteractiveStatusIndicator', 'InteractiveToggleSwitch',
