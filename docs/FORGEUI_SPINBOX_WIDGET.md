@@ -1,10 +1,13 @@
 # ForgeUI Standard Spinbox
 
-Status: **SOFTWARE INCOMPLETE — CANVAS BUTTONS RECEIVE CLICKS BUT DO NOT CHANGE VALUE**
+Status: **PROVEN — ESP32-P4 PHYSICALLY VALIDATED**
 
-The Canvas pointer-release/state repair is implemented and covered by the real
-`ComponentPreview` store path, but this status remains in force until the
-updated Studio build is manually verified.
+Proven pipeline:
+
+```text
+Registry → Tray → Canvas → Inspector → Browser Preview → LVGL Export
+→ Runtime SDK → UserEvents → ESP32-P4 → Standalone Export
+```
 
 ForgeUI Spinbox is the native LVGL 9 `lv_spinbox` digit editor. It is distinct
 from ForgeUI NumberInput:
@@ -132,7 +135,7 @@ FG_On_Decimal_Spinbox_Changed(...)
 FG_On_Rollover_Spinbox_Changed(...)
 ```
 
-Expected serial pattern:
+Observed serial pattern:
 
 ```text
 [ForgeUI User Event] Basic Spinbox changed: 51
@@ -141,23 +144,49 @@ Expected serial pattern:
 [ForgeUI User Event] Rollover Spinbox changed: 0
 ```
 
-Proof procedure:
+## Final physical validation record
 
-1. Confirm no Spinbox hook appears during startup.
-2. Touch each up/down button and verify formatting, selected digit and exactly
-   one hook per effective change.
-3. Verify signed zero crossing and both range boundaries.
-4. Verify Decimal displays the integer backing value with two decimal places.
-5. Verify Rollover moves 9→0 and 0→9.
-6. Call each setter in-range, repeated, below-range and above-range. Confirm
-   clamping and no UserEvent.
-7. Exercise all four independently for at least five minutes while observing
-   FPS, current/minimum heap and flicker.
-8. Repeat from a clean Standalone Export and compare behaviour and generated
-   APIs/hooks.
+Hardware and toolchain:
 
-First manually verify that Canvas and Browser Preview arrow controls visibly
-step values without moving the component, then repeat the generated touch path
-on ESP32-P4. Do not promote to **SPINBOX READY FOR ESP32-P4 PROOF** until the
-arrows visibly work in the actual Studio target. Do not upgrade to PROVEN until
-the hardware record is complete.
+- ESP32-P4;
+- LVGL 9.2.2;
+- ESP-IDF 5.5.4.
+
+The completed proof verified:
+
+- drag/drop from the registry-driven Widget Tray;
+- Canvas rendering and increment/decrement controls;
+- Inspector synchronization;
+- Browser Preview parity;
+- native LVGL export and Standalone Export parity;
+- ESP32-P4 touch increment and decrement;
+- signed values and decimal formatting;
+- rollover and clamp behavior;
+- exactly one `FG_On_<Name>_Changed()` callback per effective user action;
+- silent programmatic setters and silent startup;
+- multiple independent instances;
+- export-time feature gating;
+- collision-safe generated callbacks;
+- Runtime API generation.
+
+The proof resolved the complete issue chain:
+
+- the Tray-to-Canvas acceptance list omitted Spinbox;
+- the Canvas drag wrapper consumed helper-button clicks;
+- Canvas preview state could retain a stale value instead of following the
+  serialized component store;
+- a stale generated firmware artifact obscured current generator behavior;
+- malformed helper-button coordinates placed arrows off-screen;
+- live/Standalone parity checks did not expose artifact drift early enough;
+- export preflight validation was added to reject invalid generated output.
+
+The final generated public contract is:
+
+```c
+void FG_Set_<Name>_Value(int32_t value);
+void FG_On_<Name>_Changed(int32_t value);
+```
+
+The Widget Registry contains 39 Standard widgets. Spinbox raises the physically
+proven total to 23/39 (59%), leaving 16. List interaction is the recommended
+next physical proof target after the final registry audit.

@@ -13,7 +13,7 @@
 
 ## Current save point
 
-**FORGEUI_STANDARD_LIST__ITEM_CLICK_HOOKS__READY_FOR_ESP32P4_PROOF__2026-07-31**
+**FORGEUI_STANDARD_SPINBOX__VERTICAL_SLICE__ESP32P4_PROVEN__2026-07-31**
 
 ## Current authoritative ownership summary
 
@@ -47,8 +47,16 @@ not fire during construction, hydration or programmatic updates.
 Native Spinbox reuses this generated numeric contract but remains distinct from
 NumberInput. Spinbox is an LVGL integer-backed digit editor with decimal
 placement, cursor/step selection and rollover. NumberInput remains the composed
-textarea/stepper numeric entry. Both generate silent value setters and
-genuine-user integer changed hooks; neither is an alias for the other.
+textarea/stepper numeric entry and is the correct control for free-form numeric
+text entry. Both generate silent value setters and genuine-user integer changed
+hooks; neither is an alias for the other.
+
+The Spinbox vertical slice is physically proven on ESP32-P4 with ESP-IDF 5.5.4
+and LVGL 9.2.2. Ownership spans the Registry and Tray, shared Canvas/Browser
+preview, Inspector, `ForgeUILvglExport.ts`, generated `90_Studio_Export.*`,
+preservation-merged `95_UserEvents.*`, live firmware and Standalone Export.
+Export preflight validates the generated artifact before build/export, and
+usage plus project feature selection gate the emitted code and dependencies.
 
 - The Layout Designer currently exposes Dashboard through the reusable
   template-definition architecture. Other professional layout names remain
@@ -502,8 +510,9 @@ The 2026-07-30 Standard input and selection group is also physically proven acro
 - CircularProgress
 - NumberInput
 - Select
+- Spinbox
 
-TabView, TileView, Image, Box and IconButton remain runtime-complete but outside these physical validation milestones. Their existing automated and architectural status is unchanged.
+TabView, TileView, Image, Box and IconButton remain runtime-complete but outside these physical validation milestones. Their existing automated and architectural status is unchanged. The registry audit records 44 total entries, comprising 39 Standard widgets and five Interactive Assets; 23/39 Standard widgets are physically proven (59%) and 16 remain.
 
 ### Current next-group parity architecture
 
@@ -836,6 +845,34 @@ The shared Slider Preview distinguishes Canvas editing from Browser interaction:
 ### Native Spinner
 
 Spinner is owned by the Widget Registry and appears in the Feedback Tray family. `StandardSpinnerPreview.tsx` is shared by Canvas and Browser Preview. `SpinnerPanel.tsx` edits duration, arc length, foreground/background arc widths, opacity and optional colour overrides while normal component geometry owns width and height. Export uses the installed LVGL 9 `lv_spinner_create()` and `lv_spinner_set_anim_params()` APIs with semantic theme fallbacks. Spinner is presentation-only: no retained public runtime object, setter, hook, `95_UserEvents` entry, helper C source or CMake entry is generated.
+
+### Native Spinbox
+
+`ForgeUIWidgetRegistry.ts` owns Spinbox Tray membership and capability metadata.
+The Canvas acceptance path admits the registered type; the editor drag wrapper
+isolates the field and helper buttons so clicks reach the preview without
+starting a component move. `ForgeUIStandardSpinbox.ts` owns normalization and
+`StandardSpinboxPreview.tsx` owns the shared Canvas/Browser representation.
+Canvas changes are written through the component store so the preview and
+Inspector remain synchronized instead of retaining stale local values.
+`SpinboxPanel.tsx` owns signed range, value, power-of-ten step, digits, decimals,
+rollover, alignment and styling controls.
+
+`ForgeUILvglExport.ts` emits the native `lv_spinbox`, correctly positioned
+increment/decrement helpers, retained per-instance state, collision-safe setter
+and event adapter. `export-server.js` uses the same generator for live and
+Standalone outputs, preservation-merges `95_UserEvents`, applies feature
+gating, and runs export preflight validation. The proven public boundary is:
+
+```c
+void FG_Set_<Name>_Value(int32_t value);
+void FG_On_<Name>_Changed(int32_t value);
+```
+
+The ESP32-P4 proof confirmed signed values, decimal display, rollover, clamp,
+touch increment/decrement, multiple instances, silent programmatic setters and
+exactly one changed hook per effective user action in live and Standalone
+firmware.
 
 ### Scale inspection
 

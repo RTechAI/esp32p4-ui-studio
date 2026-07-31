@@ -13,7 +13,7 @@
 
 ## Current proven save point
 
-**FORGEUI_STANDARD_LIST__ITEM_CLICK_HOOKS__READY_FOR_ESP32P4_PROOF__2026-07-31**
+**FORGEUI_STANDARD_SPINBOX__VERTICAL_SLICE__ESP32P4_PROVEN__2026-07-31**
 
 This document describes the generated SDK surface currently emitted by the
 shared live/Standalone generator. `90_Studio_Export.h` contains callable
@@ -27,7 +27,10 @@ Previous platform milestone:
 
 ### Existing physically proven generated runtime
 
-The earlier physical proof remains valid for Interactive Assets; System Runtime; Hosted Connectivity and Storage; the eleven-component Standard group; and the 2026-07-30 Standard input and selection group. Promoting the current documentation save point does not weaken or replace those recorded hardware results.
+The earlier physical proof remains valid for Interactive Assets; System Runtime;
+Hosted Connectivity and Storage; the eleven-component Standard group; and the
+2026-07-30 Standard input and selection group. Spinbox now joins the physically
+proven Standard set through live and Standalone ESP32-P4 output.
 
 ### Current generated boundary status
 
@@ -198,6 +201,7 @@ The 2026-07-30 generated-runtime group is also physically proven:
 - CircularProgress
 - NumberInput
 - Select
+- Spinbox
 
 TabView, TileView, Image, Box and IconButton remain runtime-complete but outside these physical validation milestones.
 
@@ -610,11 +614,34 @@ Spinner exports native `lv_spinner_create(parent)` plus `lv_spinner_set_anim_par
 Spinbox exports native `lv_spinbox_create` with normalized range, integer
 backing value, power-of-ten step, digit/decimal format, rollover, cursor and
 semantic styling. Native helper buttons call `lv_spinbox_increment` and
-`lv_spinbox_decrement` for touch operation. Its collision-safe
+`lv_spinbox_decrement` for touch operation and use validated coordinates that
+keep both arrows on-screen. Its collision-safe
 `FG_Set_<Name>_Value(int32_t)` setter clamps and remains silent.
 `FG_On_<Name>_Changed(int32_t)` receives the integer backing value only after a
 genuine effective native key or helper-button change. It generates no getter,
 increment/decrement command, widget-specific source or CMake entry.
+
+The branch is usage-gated by serialized Spinbox presence and participates in
+project export-time feature gating. Live Studio firmware and
+`/export-idf-project` consume the same generator; export preflight rejects stale
+or malformed output before it can be treated as the build artifact.
+`90_Studio_Export.c/.h` owns replaceable construction, state, setter and event
+adapter code. `95_UserEvents.c/.h` owns the preservation-merged developer hook.
+Duplicate component names receive deterministic suffixes before both APIs are
+emitted.
+
+Physical validation on ESP32-P4 with ESP-IDF 5.5.4 and LVGL 9.2.2 confirms
+increment, decrement, signed backing values, decimal formatting, rollover,
+clamp, multiple instances and live/Standalone parity. Exactly one
+`FG_On_<Name>_Changed()` is emitted per effective user action; initial creation,
+repeated/no-op transitions and programmatic setters remain silent.
+
+Native LVGL Spinbox is a selected-digit editor. It is not a free-form numeric
+text-entry control; use NumberInput for that interaction model.
+
+The final registry audit records 44 entries: 39 Standard widgets and five
+Interactive Assets. Spinbox raises Standard physical proof to 23/39 (59%),
+leaving 16 widgets for individual promotion.
 
 ### List generated boundary
 

@@ -1165,6 +1165,74 @@ function resolveFirmwareBuild(project) {
   return { ...normalized, sources, components }
 }
 
+function validateSpinboxHelperGeometry(code, diagnostics) {
+  const spinboxPattern =
+    /([A-Za-z_][A-Za-z0-9_]*)\s*=\s*lv_spinbox_create\(([A-Za-z_][A-Za-z0-9_]*)\);/g
+  const geometry = object => {
+    const escaped = object.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const match = code.match(new RegExp(
+      `lv_obj_set_pos\\(${escaped},\\s*(-?\\d+),\\s*(-?\\d+)\\);\\s*`
+      + `lv_obj_set_size\\(${escaped},\\s*(\\d+),\\s*(\\d+)\\);`
+    ))
+    return match ? match.slice(1).map(Number) : null
+  }
+
+  for (const match of code.matchAll(spinboxPattern)) {
+    const object = match[1]
+    const parent = match[2]
+    const field = geometry(object)
+    const increment = `${object}_increment_button`
+    const decrement = `${object}_decrement_button`
+    const upper = geometry(increment)
+    const lower = geometry(decrement)
+
+    for (const [direction, button, buttonGeometry] of [
+      ['increment', increment, upper],
+      ['decrement', decrement, lower],
+    ]) {
+      if (!code.includes(`lv_obj_t * ${button} = lv_button_create(${parent});`)) {
+        diagnostics.push(`${object} ${direction} helper is missing or has the wrong parent`)
+      }
+      if (!buttonGeometry || buttonGeometry[2] <= 0 || buttonGeometry[3] <= 0) {
+        diagnostics.push(`${object} ${direction} helper has missing or zero geometry`)
+      }
+      if (!code.includes(`lv_obj_add_flag(${button}, LV_OBJ_FLAG_CLICKABLE);`)) {
+        diagnostics.push(`${object} ${direction} helper is not explicitly clickable`)
+      }
+      if (!code.includes(`lv_obj_move_foreground(${button});`)) {
+        diagnostics.push(`${object} ${direction} helper is not moved to foreground`)
+      }
+      const callback = code.match(new RegExp(
+        `lv_obj_add_event_cb\\(${button},\\s*([A-Za-z_][A-Za-z0-9_]*),\\s*LV_EVENT_CLICKED,\\s*NULL\\);`
+      ))
+      const callbackBody = callback && code.match(new RegExp(
+        `static void\\s+${callback[1]}\\s*\\([^)]*\\)\\s*\\{([\\s\\S]*?)\\n\\}`
+      ))
+      if (
+        !callbackBody ||
+        !callbackBody[1].includes(`lv_spinbox_${direction}(${object});`)
+      ) {
+        diagnostics.push(`${object} ${direction} helper callback targets the wrong Spinbox`)
+      }
+    }
+
+    if (!field || !upper || !lower) continue
+    const [fieldX, fieldY, fieldWidth, fieldHeight] = field
+    const [upperX, upperY, buttonWidth, upperHeight] = upper
+    const [lowerX, lowerY, lowerWidth, lowerHeight] = lower
+    if (
+      upperX !== fieldX + fieldWidth ||
+      lowerX !== upperX ||
+      upperY !== fieldY ||
+      lowerY !== upperY + upperHeight ||
+      lowerWidth !== buttonWidth ||
+      upperHeight + lowerHeight !== fieldHeight
+    ) {
+      diagnostics.push(`${object} helper geometry lies outside its component bounds`)
+    }
+  }
+}
+
 function validateExportPayload(payload, options = {}) {
   const code = typeof payload.code === 'string' ? payload.code : ''
   const rawSources = Array.isArray(payload.assetSources)
@@ -1181,6 +1249,7 @@ function validateExportPayload(payload, options = {}) {
   materializeCanonicalAssetSources(rawSources, { mainDir })
 
   if (!code.trim()) diagnostics.push('Generated C code is empty')
+  validateSpinboxHelperGeometry(code, diagnostics)
 
   rawSources.forEach(rawSource => {
     const source = String(rawSource)

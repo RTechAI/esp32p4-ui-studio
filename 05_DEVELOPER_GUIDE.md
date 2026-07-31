@@ -382,15 +382,35 @@ grow from proven generated contracts rather than speculative APIs.
 
 ### Native Spinbox example
 
-Spinbox is a reference interactive numeric slice:
+Spinbox is a completed, physically proven interactive numeric slice:
 
 - one normalization model feeds Canvas, Browser Preview and export;
 - the Registry owns discovery, defaults and Runtime/UserEvent capabilities;
-- Canvas is non-interactive to preserve editor movement;
+- Canvas helper controls update the component store while the drag wrapper
+  preserves editor movement outside interactive hit targets;
 - Browser Preview simulates native integer-backed digit formatting;
 - export uses `lv_spinbox_create` plus native touch helper buttons;
 - `FG_Set_<Name>_Value(int32_t)` is silent;
 - `FG_On_<Name>_Changed(int32_t)` is genuine-user-only;
 - decimals are display formatting over the integer backing value.
+
+The final ESP32-P4 / ESP-IDF 5.5.4 / LVGL 9.2.2 proof covered Registry, Tray
+drag/drop, Canvas controls, Inspector synchronization, Browser Preview, native
+live export, Runtime SDK, `95_UserEvents`, feature gating and Standalone Export.
+It confirmed increment/decrement, signed values, decimal formatting, rollover,
+clamp, multiple instances, collision-safe names and exactly one hook per
+effective user action. Programmatic setters remained silent.
+
+Proof resolved the Tray-to-Canvas accept-list omission, click-consuming Canvas
+drag wrapper, stale preview synchronization, stale generated firmware artifact,
+off-screen helper arrows caused by malformed coordinates, live/Standalone
+parity verification gaps and missing export preflight validation.
+
+Native LVGL Spinbox is a digit-selection editor, not a free-form numeric text
+field. Use NumberInput when arbitrary numeric text entry is required.
+
+The authoritative registry contains 39 Standard widgets. Spinbox promotion
+raises physical completion to 23/39 (59%), with 16 remaining. List interaction
+is the recommended next proof target after the final registry audit.
 
 See [FORGEUI_SPINBOX_WIDGET.md](docs/FORGEUI_SPINBOX_WIDGET.md).

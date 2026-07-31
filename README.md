@@ -1,7 +1,7 @@
 # ForgeUI Studio
 
 Current architecture save point:
-`FORGEUI_STANDARD_LIST__ITEM_CLICK_HOOKS__READY_FOR_ESP32P4_PROOF__2026-07-31`.
+`FORGEUI_STANDARD_SPINBOX__VERTICAL_SLICE__ESP32P4_PROVEN__2026-07-31`.
 
 **ForgeUI Studio is an open-source, AI-assisted visual HMI and embedded GUI designer for ESP32-P4.** It combines a drag-and-drop Canvas, reusable Interactive Assets, AI Layout tools, Browser Preview, native LVGL 9 generation, integrated ESP-IDF Build & Flash, and standalone ESP-IDF project export.
 
@@ -120,11 +120,12 @@ Current Standard-widget milestone evidence:
 - Spinner: **PROVEN** through live and Standalone ESP32-P4 native animation.
 - List: native rendering proven in both paths; generated item callback
   **READY FOR PROOF**.
-- Spinbox: native LVGL vertical slice complete; Canvas/Browser interaction
-  repaired in software, with manual Studio interaction verification still
-  pending. Status remains **NOT READY FOR ESP32-P4 PROOF**.
+- Spinbox: **PROVEN** through Registry, Tray, Canvas, Inspector, Browser
+  Preview, native LVGL export, Runtime SDK, `95_UserEvents`, export-time
+  gating, live ESP32-P4 firmware and Standalone Export.
 
-The Standard library is still being completed and physically proven. Dedicated
+The registry contains 39 Standard widgets; 23 are physically proven (59%) and
+16 remain. List interaction is the recommended next proof target. Dedicated
 Dashboard widgets have not started.
 
 ## Hardware support and proof
@@ -139,6 +140,13 @@ The proven target is:
 - **LVGL 9.2.2**
 
 Recorded physical proof includes the established Standard component groups, all five Interactive Asset runtime paths within their documented scopes, generated semantic theme parity, Display/Brightness, the generated Wi-Fi Manager, reusable System keyboard, Storage Browser, ESP-Hosted connectivity through the board’s ESP32-C6, SD storage and simultaneous Wi-Fi/SD operation.
+
+Spinbox proof on ESP-IDF 5.5.4 and LVGL 9.2.2 includes drag/drop, Canvas
+controls, Inspector synchronization, Browser parity, signed and decimal values,
+rollover, clamp, native touch increment/decrement, multiple instances,
+collision-safe generated APIs/hooks, silent setters, exactly one hook per
+effective user action, feature gating and live/Standalone parity. Spinbox is a
+native selected-digit editor; use NumberInput for free-form numeric text entry.
 
 The repository does not currently advertise ESP32-S3 or additional board export support. Preview or automated validation is not treated as physical proof. For the authoritative feature-by-feature evidence level, see [04 — Feature Status](04_FEATURE_STATUS.md).
 
@@ -200,7 +208,7 @@ The [ForgeUI Developer Portal](https://forgeui.co.nz/developers) is the public o
 | [07 — Runtime SDK Direction](07_FORGEUI_RUNTIME_SDK.md) | Long-term generated SDK concept and evolution rules |
 | [Layout Designer Guide](docs/FORGEUI_LAYOUT_DESIGNER.md) | Preset, Smart Region, Auto Arrange and AI Fill workflow |
 | [QR Code Guide](docs/FORGEUI_QR_CODE.md) | QR authoring, preview, export and validation |
-| [Spinbox Guide](docs/FORGEUI_SPINBOX_WIDGET.md) | Native digit editor, integer-backed decimals, APIs and proof plan |
+| [Spinbox Guide](docs/FORGEUI_SPINBOX_WIDGET.md) | Proven native digit editor, integer-backed decimals, APIs and physical evidence |
 
 ## Repository structure
 

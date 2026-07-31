@@ -761,6 +761,26 @@ describe('server export preflight', () => {
     })).toThrow('Generated C file missing')
   })
 
+  it('accepts the actual live Spinbox helper geometry', () => {
+    const code = fs.readFileSync(path.resolve(
+      __dirname,
+      '../firmware/ForgeUI-One/main/90_Studio_Export.c',
+    ), 'utf8')
+    expect(validateExportPayload({ code, assetSources: [] }).code).toBe(code)
+  })
+
+  it('rejects malformed live Spinbox helper geometry before either export', () => {
+    const code = fs.readFileSync(path.resolve(
+      __dirname,
+      '../firmware/ForgeUI-One/main/90_Studio_Export.c',
+    ), 'utf8').replace(
+      'lv_obj_set_pos(fg_spinbox_spinbox_increment_button, 282, 163);',
+      'lv_obj_set_pos(fg_spinbox_spinbox_increment_button, 110172, 163);',
+    )
+    expect(() => validateExportPayload({ code, assetSources: [] }))
+      .toThrow('helper geometry lies outside its component bounds')
+  })
+
   it('accepts an existing generated C source in a temporary main directory', () => {
     const temporaryMain = fs.mkdtempSync(
       path.join(os.tmpdir(), 'forgeui-export-validation-'),

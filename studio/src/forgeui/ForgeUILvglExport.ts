@@ -3515,8 +3515,21 @@ case 'Spinbox': {
   if (!spinboxExport) break
   const model = spinboxExport.model
   const spinbox = spinboxExport.objectName
-  const buttonWidth = Math.max(28, Math.min(48, Math.floor(w / 4)))
-  const fieldWidth = Math.max(1, w - buttonWidth)
+  // Component geometry is commonly serialized as strings. Normalize before
+  // doing helper-button arithmetic so `110 + 172` cannot become `110172`.
+  const spinboxX = integerProp(x, 0)
+  const spinboxY = integerProp(y, 0)
+  const spinboxWidth = Math.max(2, integerProp(w, 220))
+  const spinboxHeight = Math.max(2, integerProp(h, 48))
+  const buttonWidth = Math.max(
+    1,
+    Math.min(spinboxWidth - 1, Math.max(28, Math.min(48, Math.floor(spinboxWidth / 4)))),
+  )
+  const fieldWidth = Math.max(1, spinboxWidth - buttonWidth)
+  const incrementHeight = Math.max(1, Math.floor(spinboxHeight / 2))
+  const decrementHeight = Math.max(1, spinboxHeight - incrementHeight)
+  const buttonX = spinboxX + fieldWidth
+  const decrementY = spinboxY + incrementHeight
   const background = model.backgroundColor
     ? toLvHex(model.backgroundColor)
     : palette.surface
@@ -3539,8 +3552,8 @@ case 'Spinbox': {
   const decrementButton = `${spinbox}_decrement_button`
 
   lines.push(`${spinbox} = lv_spinbox_create(${parentVar});`)
-  lines.push(`lv_obj_set_pos(${spinbox}, ${x}, ${y});`)
-  lines.push(`lv_obj_set_size(${spinbox}, ${fieldWidth}, ${h});`)
+  lines.push(`lv_obj_set_pos(${spinbox}, ${spinboxX}, ${spinboxY});`)
+  lines.push(`lv_obj_set_size(${spinbox}, ${fieldWidth}, ${spinboxHeight});`)
   lines.push(`lv_obj_add_flag(${spinbox}, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE);`)
   lines.push(`lv_spinbox_set_digit_format(${spinbox}, ${model.digitCount}, ${model.separatorPosition});`)
   lines.push(`lv_spinbox_set_range(${spinbox}, ${model.minimum}, ${model.maximum});`)
@@ -3561,22 +3574,36 @@ case 'Spinbox': {
   lines.push(`lv_obj_add_event_cb(${spinbox}, ${spinboxExport.eventCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
 
   lines.push(`lv_obj_t * ${incrementButton} = lv_button_create(${parentVar});`)
-  lines.push(`lv_obj_set_pos(${incrementButton}, ${x + fieldWidth}, ${y});`)
-  lines.push(`lv_obj_set_size(${incrementButton}, ${buttonWidth}, ${Math.floor(h / 2)});`)
+  lines.push(`lv_obj_set_pos(${incrementButton}, ${buttonX}, ${spinboxY});`)
+  lines.push(`lv_obj_set_size(${incrementButton}, ${buttonWidth}, ${incrementHeight});`)
   lines.push(`lv_obj_add_flag(${incrementButton}, LV_OBJ_FLAG_CLICKABLE);`)
   lines.push(`lv_obj_set_style_bg_color(${incrementButton}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_opa(${incrementButton}, LV_OPA_COVER, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${incrementButton}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${incrementButton}, 1, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_opa(${incrementButton}, LV_OPA_COVER, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_color(${incrementButton}, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_bg_color(${incrementButton}, lv_color_hex(${palette.accent}), LV_PART_MAIN | LV_STATE_PRESSED);`)
+  lines.push(`lv_obj_set_style_bg_opa(${incrementButton}, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_PRESSED);`)
+  lines.push(`lv_obj_set_style_text_color(${incrementButton}, lv_color_hex(${palette.accentText}), LV_PART_MAIN | LV_STATE_PRESSED);`)
   lines.push(`lv_obj_t * ${incrementButton}_label = lv_label_create(${incrementButton});`)
   lines.push(`lv_label_set_text(${incrementButton}_label, LV_SYMBOL_UP);`)
   lines.push(`lv_obj_center(${incrementButton}_label);`)
   lines.push(`lv_obj_add_event_cb(${incrementButton}, ${spinboxExport.incrementCallbackName}, LV_EVENT_CLICKED, NULL);`)
 
   lines.push(`lv_obj_t * ${decrementButton} = lv_button_create(${parentVar});`)
-  lines.push(`lv_obj_set_pos(${decrementButton}, ${x + fieldWidth}, ${y + Math.floor(h / 2)});`)
-  lines.push(`lv_obj_set_size(${decrementButton}, ${buttonWidth}, ${h - Math.floor(h / 2)});`)
+  lines.push(`lv_obj_set_pos(${decrementButton}, ${buttonX}, ${decrementY});`)
+  lines.push(`lv_obj_set_size(${decrementButton}, ${buttonWidth}, ${decrementHeight});`)
   lines.push(`lv_obj_add_flag(${decrementButton}, LV_OBJ_FLAG_CLICKABLE);`)
   lines.push(`lv_obj_set_style_bg_color(${decrementButton}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_opa(${decrementButton}, LV_OPA_COVER, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${decrementButton}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${decrementButton}, 1, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_opa(${decrementButton}, LV_OPA_COVER, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_color(${decrementButton}, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_bg_color(${decrementButton}, lv_color_hex(${palette.accent}), LV_PART_MAIN | LV_STATE_PRESSED);`)
+  lines.push(`lv_obj_set_style_bg_opa(${decrementButton}, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_PRESSED);`)
+  lines.push(`lv_obj_set_style_text_color(${decrementButton}, lv_color_hex(${palette.accentText}), LV_PART_MAIN | LV_STATE_PRESSED);`)
   lines.push(`lv_obj_t * ${decrementButton}_label = lv_label_create(${decrementButton});`)
   lines.push(`lv_label_set_text(${decrementButton}_label, LV_SYMBOL_DOWN);`)
   lines.push(`lv_obj_center(${decrementButton}_label);`)

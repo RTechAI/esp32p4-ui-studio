@@ -11,7 +11,7 @@
 
 ## Current Save Point
 
-**FORGEUI_STANDARD_LIST__ITEM_CLICK_HOOKS__READY_FOR_ESP32P4_PROOF__2026-07-31**
+**FORGEUI_STANDARD_SPINBOX__VERTICAL_SLICE__ESP32P4_PROVEN__2026-07-31**
 
 **CURRENT PRIORITY: COMPLETE THE STANDARD WIDGET LIBRARY AND PHYSICALLY PROVE EACH SLICE**
 
@@ -37,13 +37,13 @@
 - Runtime setters are silent programmatic projections. UserEvents represent
   genuine user transitions only. Names derive from component names and are
   collision-safe.
-- Slider and Spinner are physically **PROVEN** through live and standalone
-  ESP32-P4 firmware. List rendering is physically verified in both paths; its
-  collision-safe item callback is **READY FOR PROOF**.
-- Native Spinbox is software-complete through the Registry, previews, native
-  export, silent setter and genuine-user hook. The shared Canvas accept-list
-  omission is repaired, but real Studio drag/drop verification is required
-  before **READY FOR PROOF**.
+- Slider, Spinner and Spinbox are physically **PROVEN** through live and
+  standalone ESP32-P4 firmware. List rendering is physically verified in both
+  paths; its collision-safe item callback is **READY FOR PROOF**.
+- Native Spinbox is proven through Registry → Tray → Canvas → Inspector →
+  Browser Preview → LVGL Export → Runtime SDK → UserEvents → ESP32-P4 →
+  Standalone Export. Its setter is silent, its changed hook fires exactly once
+  per effective user action, and generated names are collision-safe.
 - Dashboard is the only implemented Layout Designer template. The dedicated
   Dashboard Widget family remains roadmap work and must not begin until the
   Standard Widget library is complete and physically proven.
@@ -191,6 +191,23 @@ The Standard input and selection parity group is now physically proven across Ca
 - CircularProgress
 - NumberInput
 - Select
+- Spinbox
+
+Spinbox proof used ESP32-P4, ESP-IDF 5.5.4 and LVGL 9.2.2. It covered Tray
+drag/drop, Canvas rendering and step controls, Inspector synchronization,
+Browser parity, native live and Standalone generation, signed and decimal
+values, rollover and clamping, touch increment/decrement, multiple instances,
+feature gating, collision-safe generated callbacks and Runtime API generation.
+Each effective user action produced exactly one
+`FG_On_<Name>_Changed(int32_t value)` call; construction and
+`FG_Set_<Name>_Value(int32_t value)` remained silent.
+
+The proof closed the Tray-to-Canvas accept-list omission, Canvas drag-wrapper
+click interception, stale preview-value synchronization, stale generated
+firmware artifact, malformed off-screen helper-button coordinates,
+live/Standalone parity verification gaps and missing export preflight
+validation. Native Spinbox remains a selected-digit editor; NumberInput is the
+appropriate Standard widget for free-form numeric text entry.
 
 The final whole-screen comparison on 2026-07-30 confirmed the active graphite/orange semantic theme and component structure across Studio and hardware. Borders, surfaces, accent states and geometry were visually aligned within the recorded scope.
 
@@ -203,7 +220,8 @@ The flashed ESP32-P4 remains the authoritative final visual reference.
 1. Complete operator touchscreen validation of repeated lazy Wi-Fi and Storage open/close cycles and confirm current free heap, largest block and object count recover without a leak.
 2. Replace the overwritten managed-component sysmon edit with a reproducible ForgeUI-owned patch/override and regression check.
 3. Complete and record physical QR phone-scan validation.
-4. Continue the Proven Widget Pipeline for remaining registry widgets.
+4. Physically prove List interaction next, then continue the Proven Widget
+   Pipeline for the remaining registry widgets.
 5. Begin dedicated Dashboard widgets only after remaining LVGL coverage and proof.
 
 ## Current Must-Not-Regress Rules
@@ -404,6 +422,7 @@ Interactive Asset hook ownership remains separate.
 | `Text` | None | None | Static LVGL label with serialized text content |
 | `Heading` | None | None | Static LVGL heading label with serialized heading content |
 | `Slider` | `FG_Set_<Name>_Value(int32_t)` | `FG_On_<Name>_Changed(int32_t)` | Physically proven in live and standalone ESP32-P4 firmware |
+| `Spinbox` | `FG_Set_<Name>_Value(int32_t value)` | `FG_On_<Name>_Changed(int32_t value)` | Physically proven native selected-digit editor in live and Standalone ESP32-P4 firmware |
 
 ### LED
 
@@ -1405,7 +1424,22 @@ The Widget Tray is completely registry-driven. Future widgets are added by regis
 
 ### Registry-wide implementation and proof audit — 2026-07-31
 
-The authoritative registry contains 41 entries. Every entry is available in the registry-driven Tray, has persisted defaults/insertion, a Canvas dispatch, Inspector dispatch, Browser Preview dispatch and an LVGL export path. Focused registry/Tray tests and component/exporter regressions provide automated evidence; no conclusive permanent implementation was found outside the registry, so no registry definition was added. The Dashboard category remains intentionally empty.
+The authoritative registry contains 44 entries: 39 Standard widgets and five
+Interactive Assets. Every entry is available in the registry-driven Tray, has
+persisted defaults/insertion, a Canvas dispatch, Inspector dispatch, Browser
+Preview dispatch and an LVGL export path. Focused registry/Tray tests and
+component/exporter regressions provide automated evidence; no conclusive
+permanent implementation was found outside the registry, so no registry
+definition was added. The Dashboard category remains intentionally empty.
+Twenty-three of 39 Standard widgets are now physically proven (59%); 16 remain
+to be individually promoted.
+
+```text
+SPINBOX
+STATUS: PROVEN
+Registry → Tray → Canvas → Inspector → Browser Preview → LVGL Export
+→ Runtime SDK → UserEvents → ESP32-P4 → Standalone Export
+```
 
 | Registry widget | Studio / exporter | Runtime API and hook classification | Hardware proof |
 | --- | --- | --- | --- |
@@ -1426,6 +1460,7 @@ The authoritative registry contains 41 entries. Every entry is available in the 
 | Switch | implemented / implemented | checked setter + change hook | physically proven |
 | Slider | implemented / implemented | value setter + genuine-user change hook | **PROVEN** |
 | Spinner | implemented / implemented | presentation-only; no setter or hook | **PROVEN** |
+| Spinbox | implemented / implemented | silent value setter + genuine-user change hook | **PROVEN** |
 | List | implemented / implemented | genuine-user item click hook; no setter | callback **READY FOR PROOF** |
 | Roller | implemented / implemented | selected setter + change hook | physically proven |
 | Radio | implemented / implemented | selected setter + change hook; no group model | physically proven |

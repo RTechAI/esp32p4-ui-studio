@@ -54,7 +54,7 @@ Runtime APIs project application state into the generated interface:
 
 ```c
 void FG_Set_Level_Slider_Value(int32_t value);
-void FG_Set_Decimal_Spinbox_Value(int32_t backing_value);
+void FG_Set_Decimal_Spinbox_Value(int32_t value);
 void FG_Set_Status_LED(bool on);
 void FG_Add_Temperature_Chart_Point(int32_t value);
 void FG_Clear_Temperature_Chart(void);
@@ -78,7 +78,7 @@ UserEvents carry genuine interaction into developer code:
 
 ```c
 void FG_On_Level_Slider_Changed(int32_t value);
-void FG_On_Decimal_Spinbox_Changed(int32_t backing_value);
+void FG_On_Decimal_Spinbox_Changed(int32_t value);
 
 void FG_On_System_Menu_Item_Clicked(
     uint32_t index,
@@ -88,6 +88,28 @@ void FG_On_System_Menu_Item_Clicked(
 They must not fire because the UI was constructed, hydrated or updated through
 a setter. The developer implements application policy; generated code owns
 event detection and normalized arguments.
+
+## Proven Spinbox contract
+
+Spinbox is physically validated through the complete generated SDK boundary on
+ESP32-P4 with ESP-IDF 5.5.4 and LVGL 9.2.2:
+
+```c
+void FG_Set_<Name>_Value(int32_t value);
+void FG_On_<Name>_Changed(int32_t value);
+```
+
+Values are native integer backing values; decimal places affect display only.
+The setter clamps and suppresses repeats without invoking UserEvents. Native
+touch increment/decrement and selected-digit edits invoke exactly one callback
+per effective change. Multiple instances and duplicate component names retain
+independent state and collision-safe generated symbols.
+
+The contract is emitted only when required by the serialized interface and
+selected export features. Live Studio firmware and Standalone Export use the
+same generator and export preflight checks. Native LVGL Spinbox is a
+digit-selection editor; NumberInput remains the SDK control for free-form
+numeric text entry.
 
 ## Naming conventions
 
@@ -209,3 +231,6 @@ When a Widget Registry capability changes:
 
 The Runtime SDK should grow from physically credible widget contracts. It must
 not become a speculative list of APIs disconnected from native LVGL behaviour.
+
+Current registry evidence is 23 of 39 Standard widgets physically proven (59%),
+with 16 remaining. List interaction is the recommended next proof target.
