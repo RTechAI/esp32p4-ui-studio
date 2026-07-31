@@ -406,6 +406,12 @@ type BarExport = BarRuntimeExport & {
 type ProgressExport = BarRuntimeExport
 type CircularProgressExport = BarRuntimeExport
 
+type SliderExport = BarRuntimeExport & {
+  hookName: string
+  programmaticUpdateName: string
+  eventCallbackName: string
+}
+
 type NumberInputExport = {
   apiName: string
   hookName: string
@@ -1657,6 +1663,70 @@ const createBarExports = (
   return exportsByComponent
 }
 
+const createSliderExports = (
+  components: IComponents,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+  existingApiNames: Iterable<string>,
+): Map<string, SliderExport> => {
+  const exportsByComponent = new Map<string, SliderExport>()
+  const usedApiNames = new Set(existingApiNames)
+
+  Object.values(components)
+    .filter(component => component.type === 'Slider')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const baseName = toCIdentifier(
+        component.componentName ||
+        component.props.name ||
+        component.props.label ||
+        'Slider',
+        'Slider',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let allocatedBase = baseName
+      let suffix = 2
+      while (usedApiNames.has(`FG_Set_${allocatedBase}_Value`)) {
+        allocatedBase = `${baseName}_${suffix++}`
+      }
+      const apiName = `FG_Set_${allocatedBase}_Value`
+      usedApiNames.add(apiName)
+
+      let hookName = `FG_On_${allocatedBase}_Changed`
+      suffix = 2
+      while (usedHookNames.has(hookName)) {
+        hookName = `FG_On_${allocatedBase}_${suffix++}_Changed`
+      }
+      usedHookNames.add(hookName)
+      userEventHooks.add(hookName)
+
+      const firstRangeValue = integerProp(component.props.min, 0)
+      const secondRangeValue = integerProp(component.props.max, 100)
+      const minimum = Math.min(firstRangeValue, secondRangeValue)
+      const maximum = Math.max(firstRangeValue, secondRangeValue)
+      const configuredValue = integerProp(component.props.value, 50)
+      const initialValue = Math.max(minimum, Math.min(maximum, configuredValue))
+      const runtimeStem = allocatedBase.toLowerCase()
+
+      exportsByComponent.set(component.id, {
+        apiName,
+        hookName,
+        objectName: `fg_${runtimeStem}_slider`,
+        stateName: `fg_${runtimeStem}_slider_value`,
+        programmaticUpdateName:
+          `fg_${runtimeStem}_slider_programmatic_update`,
+        minimumName: `fg_${runtimeStem}_slider_minimum`,
+        maximumName: `fg_${runtimeStem}_slider_maximum`,
+        eventCallbackName:
+          `fg_${runtimeStem}_slider_value_changed_cb`,
+        minimum,
+        maximum,
+        initialValue,
+      })
+    })
+
+  return exportsByComponent
+}
+
 const createProgressExports = (
   components: IComponents,
   existingApiNames: Iterable<string>,
@@ -2210,6 +2280,7 @@ const buildLvglBlock = (
   threeWayInputExports: Map<string, ThreeWayInputExport>,
   ledExports: Map<string, LedExport>,
   barExports: Map<string, BarExport>,
+  sliderExports: Map<string, SliderExport>,
   progressExports: Map<string, ProgressExport>,
   circularProgressExports: Map<string, CircularProgressExport>,
   numberInputExports: Map<string, NumberInputExport>,
@@ -3294,13 +3365,62 @@ case 'Image': {
 }
     
 case 'Slider': {
-  lines.push(`lv_obj_t * ${varName} = lv_slider_create(${parentVar});`)
+  const sliderExport = sliderExports.get(child.id)
+  const sliderObject = sliderExport?.objectName || varName
+  const minimum = sliderExport?.minimum ??
+    Math.min(integerProp(child.props.min, 0), integerProp(child.props.max, 100))
+  const maximum = sliderExport?.maximum ??
+    Math.max(integerProp(child.props.min, 0), integerProp(child.props.max, 100))
+  const initialValue = sliderExport?.initialValue ??
+    Math.max(minimum, Math.min(maximum, integerProp(child.props.value, 50)))
+  lines.push(`${sliderObject} = lv_slider_create(${parentVar});`)
+  lines.push(`lv_obj_t * ${varName} = ${sliderObject};`)
+  lines.push(`lv_obj_set_pos(${sliderObject}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${sliderObject}, ${w}, ${h});`)
+  lines.push(`lv_slider_set_range(${sliderObject}, ${minimum}, ${maximum});`)
+  lines.push(`lv_slider_set_value(${sliderObject}, ${initialValue}, LV_ANIM_OFF);`)
+  lines.push(`lv_obj_set_style_bg_color(${sliderObject}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_color(${sliderObject}, lv_color_hex(${palette.accent}), LV_PART_INDICATOR);`)
+  lines.push(`lv_obj_set_style_bg_color(${sliderObject}, lv_color_hex(${palette.accentText}), LV_PART_KNOB);`)
+  if (sliderExport) {
+    lines.push(`${sliderExport.stateName} = ${initialValue};`)
+    lines.push(`lv_obj_add_event_cb(${sliderObject}, ${sliderExport.eventCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
+  }
+  lines.push(``)
+  break
+}
+
+case 'Spinner': {
+  const duration = Math.max(1, integerProp(child.props.duration, 1000))
+  const arcLength = Math.max(
+    1,
+    Math.min(359, integerProp(child.props.arcLength, 60)),
+  )
+  const arcWidth = Math.max(1, integerProp(child.props.arcWidth, 8))
+  const backgroundWidth = Math.max(
+    0,
+    integerProp(child.props.backgroundWidth, 8),
+  )
+  const opacity = Math.max(
+    0,
+    Math.min(255, Math.round(integerProp(child.props.opacity, 100) * 2.55)),
+  )
+  const accentColor = child.props.accentColor
+    ? toLvHex(String(child.props.accentColor))
+    : palette.accent
+  const backgroundColor = child.props.backgroundColor
+    ? toLvHex(String(child.props.backgroundColor))
+    : palette.surfaceSecondary
+  lines.push(`lv_obj_t * ${varName} = lv_spinner_create(${parentVar});`)
   lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
   lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
-  lines.push(`lv_slider_set_value(${varName}, ${lv(child.props.value, 50)}, LV_ANIM_OFF);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.accent}), LV_PART_INDICATOR);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.accentText}), LV_PART_KNOB);`)
+  lines.push(`lv_spinner_set_anim_params(${varName}, ${duration}, ${arcLength});`)
+  lines.push(`lv_obj_set_style_arc_width(${varName}, ${backgroundWidth}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_arc_width(${varName}, ${arcWidth}, LV_PART_INDICATOR);`)
+  lines.push(`lv_obj_set_style_arc_color(${varName}, lv_color_hex(${backgroundColor}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_arc_color(${varName}, lv_color_hex(${accentColor}), LV_PART_INDICATOR);`)
+  lines.push(`lv_obj_set_style_opa(${varName}, ${opacity}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_opa(${varName}, ${opacity}, LV_PART_INDICATOR);`)
   lines.push(``)
   break
 }
@@ -4176,6 +4296,7 @@ case 'Chart': {
         threeWayInputExports,
         ledExports,
         barExports,
+        sliderExports,
         progressExports,
         circularProgressExports,
         numberInputExports,
@@ -4965,6 +5086,46 @@ export const generateForgeUILvglCode = (
       ...Array.from(circularProgressExports.values()).map(value => value.apiName),
     ],
   )
+  const sliderExports = createSliderExports(
+    components,
+    usedHookNames,
+    userEventHooks,
+    [
+      ...Array.from(binaryOutputExports.values()).map(value => value.apiName),
+      ...Array.from(ledExports.values()).map(value => value.apiName),
+      ...Array.from(barExports.values()).map(value => value.apiName),
+      ...Array.from(arcExports.values()).map(value => value.apiName),
+      ...Array.from(progressExports.values()).map(value => value.apiName),
+      ...Array.from(circularProgressExports.values()).map(value => value.apiName),
+      ...Array.from(numberInputExports.values()).map(value => value.apiName),
+      ...Array.from(selectExports.values()).map(value => value.apiName),
+      ...Array.from(imageExports.values()).map(value => value.apiName),
+      ...Array.from(boxExports.values()).map(value => value.apiName),
+      ...Array.from(iconButtonExports.values()).map(value => value.apiName),
+      ...Array.from(inputExports.values()).map(value => value.apiName),
+      ...Array.from(switchExports.values()).map(value => value.apiName),
+      ...Array.from(checkboxExports.values()).map(value => value.apiName),
+      ...Array.from(radioExports.values()).map(value => value.apiName),
+      ...Array.from(chartExports.values()).flatMap(value => [
+        value.addApiName,
+        value.clearApiName,
+      ]),
+      ...Array.from(keyboardExports.values()).flatMap(value => [
+        value.showApiName,
+        value.hideApiName,
+      ]),
+      ...Array.from(calendarExports.values()).map(value => value.apiName),
+      ...Array.from(rollerExports.values()).map(value => value.apiName),
+      ...Array.from(messageBoxExports.values()).flatMap(value => [
+        value.showApiName,
+        value.closeApiName,
+      ]),
+      ...Array.from(buttonMatrixExports.values()).map(value => value.apiName),
+      ...Array.from(tabViewExports.values()).map(value => value.apiName),
+      ...Array.from(tileViewExports.values()).map(value => value.apiName),
+      ...Array.from(qrCodeExports.values()).map(value => value.apiName),
+    ],
+  )
   const clockExports = createClockExports(components)
 
   const previewPalette =
@@ -5057,7 +5218,7 @@ const backgroundMode =
   lines.push(`#include "freertos/semphr.h"`)
   lines.push(`#include "freertos/task.h"`)
   lines.push(`#include "esp_timer.h"`)
-  if (hasInteractiveButtons || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0) {
+  if (hasInteractiveButtons || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0) {
     lines.push(`#include "95_UserEvents.h"`)
   }
   lines.push(`#include <stdbool.h>`)
@@ -5086,6 +5247,13 @@ const backgroundMode =
     lines.push(`static int32_t ${barExport.stateName} = ${barExport.initialValue};`)
     lines.push(`static const int32_t ${barExport.minimumName} = ${barExport.minimum};`)
     lines.push(`static const int32_t ${barExport.maximumName} = ${barExport.maximum};`)
+  })
+  sliderExports.forEach(sliderExport => {
+    lines.push(`static lv_obj_t * ${sliderExport.objectName} = NULL;`)
+    lines.push(`static int32_t ${sliderExport.stateName} = ${sliderExport.initialValue};`)
+    lines.push(`static bool ${sliderExport.programmaticUpdateName} = false;`)
+    lines.push(`static const int32_t ${sliderExport.minimumName} = ${sliderExport.minimum};`)
+    lines.push(`static const int32_t ${sliderExport.maximumName} = ${sliderExport.maximum};`)
   })
   progressExports.forEach(progressExport => {
     lines.push(`static lv_obj_t * ${progressExport.objectName} = NULL;`)
@@ -5517,6 +5685,30 @@ const backgroundMode =
     lines.push(`    lv_bar_set_value(${barExport.objectName}, value, LV_ANIM_OFF);`)
     lines.push(`    ${barExport.stateName} = value;`)
     lines.push(`    ${barExport.hookName}(value);`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
+  sliderExports.forEach(sliderExport => {
+    lines.push(`static void ${sliderExport.eventCallbackName}(lv_event_t * event)`)
+    lines.push(`{`)
+    lines.push(`    lv_obj_t * slider = lv_event_get_current_target(event);`)
+    lines.push(`    if (slider != ${sliderExport.objectName} || ${sliderExport.programmaticUpdateName}) return;`)
+    lines.push(`    int32_t value = lv_slider_get_value(slider);`)
+    lines.push(`    if (${sliderExport.stateName} == value) return;`)
+    lines.push(`    ${sliderExport.stateName} = value;`)
+    lines.push(`    ${sliderExport.hookName}(value);`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${sliderExport.apiName}(int32_t value)`)
+    lines.push(`{`)
+    lines.push(`    if (value < ${sliderExport.minimumName}) value = ${sliderExport.minimumName};`)
+    lines.push(`    if (value > ${sliderExport.maximumName}) value = ${sliderExport.maximumName};`)
+    lines.push(`    if (${sliderExport.objectName} == NULL || ${sliderExport.stateName} == value) return;`)
+    lines.push(`    ${sliderExport.programmaticUpdateName} = true;`)
+    lines.push(`    lv_slider_set_value(${sliderExport.objectName}, value, LV_ANIM_OFF);`)
+    lines.push(`    ${sliderExport.stateName} = value;`)
+    lines.push(`    ${sliderExport.programmaticUpdateName} = false;`)
     lines.push(`}`)
     lines.push(``)
   })
@@ -7095,6 +7287,7 @@ lines.push(`    fg_system_root = parent;`)
         threeWayInputExports,
         ledExports,
         barExports,
+        sliderExports,
         progressExports,
         circularProgressExports,
         numberInputExports,
@@ -7802,6 +7995,8 @@ lines.push(`}`)
         iconButtonExport => `void ${iconButtonExport.apiName}(bool enabled);`,
       )).concat(Array.from(arcExports.values()).map(
         arcExport => `void ${arcExport.apiName}(int32_t value);`,
+      )).concat(Array.from(sliderExports.values()).map(
+        sliderExport => `void ${sliderExport.apiName}(int32_t value);`,
       )).concat(Array.from(chartExports.values()).flatMap(
         chartExport => [
           `void ${chartExport.addApiName}(int32_t value);`,

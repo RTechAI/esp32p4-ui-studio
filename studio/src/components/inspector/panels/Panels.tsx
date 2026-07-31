@@ -16,6 +16,7 @@ import BarPanel from '~components/inspector/panels/components/BarPanel'
 import ArcPanel from '~components/inspector/panels/components/ArcPanel'
 import LinkPanel from '~components/inspector/panels/components/LinkPanel'
 import SpinnerPanel from '~components/inspector/panels/components/SpinnerPanel'
+import SliderPanel from '~components/inspector/panels/components/SliderPanel'
 import CloseButtonPanel from '~components/inspector/panels/components/CloseButtonPanel'
 import DividerPanel from '~components/inspector/panels/components/DividerPanel'
 import CodePanel from '~components/inspector/panels/components/CodePanel'
@@ -92,6 +93,7 @@ const Panels: React.FC<{ component: IComponent; isRoot: boolean }> = ({
       {type === 'AvatarGroup' && <AvatarGroupPanel />}
       {type === 'AvatarBadge' && <AvatarBadgePanel />}
       {type === 'Spinner' && <SpinnerPanel />}
+      {type === 'Slider' && <SliderPanel />}
       {type === 'Code' && <CodePanel />}
       {type === 'CloseButton' && <CloseButtonPanel />}
       {type === 'Divider' && <DividerPanel />}

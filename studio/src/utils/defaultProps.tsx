@@ -358,6 +358,23 @@ WiFi: {
     min: 0,
     max: 100,
   },
+  Slider: {
+    value: 50,
+    min: 0,
+    max: 100,
+    step: 1,
+    orientation: 'horizontal',
+    isDisabled: false,
+  },
+  Spinner: {
+    duration: 1000,
+    arcLength: 60,
+    arcWidth: 8,
+    backgroundWidth: 8,
+    accentColor: '',
+    backgroundColor: '',
+    opacity: 100,
+  } as any,
   Bar: {
     min: 0,
     max: 100,

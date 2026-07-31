@@ -10,6 +10,8 @@ Current platform save point: `FORGEUI_BOARD_PROFILES__EXPORT_TIME_FEATURE_GATING
 - Diagnostics is implemented. Wi-Fi Manager and Storage UI/worker resources are created lazily and destroyed safely while their backends remain separately alive.
 - Connected Application-page evidence records 45,795 bytes current internal free heap, a 27,648-byte largest block and 62 LVGL objects. Ten-cycle operator validation remains pending.
 - QR Code Studio/export/runtime generation is complete; a recorded successful physical phone scan remains pending.
+- Slider now has its collision-safe, clamped and silent generated value setter plus genuine-user change hook. Focused preview/export tests pass; physical Slider proof remains pending. Status: **READY FOR ESP32-P4 PROOF**.
+- Native Spinner is Registry/Tray/Inspector/Canvas/Browser/export complete. It uses `lv_spinner`, semantic theme fallbacks and export-time usage gating, with no runtime API or UserEvent. Focused tests pass; physical animation/RAM/FPS proof remains pending. Status: **SPINNER READY FOR ESP32-P4 PROOF**.
 - The built firmware contains the compact FPS/RAM overlay, but current managed LVGL source does not reproduce it. Status: implemented in the flashed artifact, durability repair required.
 
 This document records implementation and proof status only.
@@ -20,6 +22,19 @@ This document records implementation and proof status only.
 - Use `04_FEATURE_STATUS.md` for concise feature-by-feature proof status.
 
 Detailed ownership maps are not duplicated here.
+
+## Slider and Spinner ESP32-P4 proof procedure
+
+Use a `1024 × 600` project with FPS and RAM overlays enabled. Place four `96 × 96` Spinners on the Application page:
+
+| Label | Position | Spinner properties |
+| --- | --- | --- |
+| Default | `x=100, y=180` | defaults |
+| Slow | `x=300, y=180` | duration `2400 ms`, arc length `120°` |
+| Fast | `x=500, y=180` | duration `300 ms`, arc length `45°` |
+| Themed | `x=700, y=180` | duration `1000 ms`, arc length `90°`, arc width `12`, background width `4`, accent `#22D3EE`, background `#112233`, opacity `75%` |
+
+Add one Slider with range `-100..100`, initial value `0`, and a unique component name. Generate the live firmware, inspect `90_Studio_Export.c/.h` and `95_UserEvents.c/.h`, then build and flash the Waveshare ESP32-P4 profile. Confirm clean startup with no Slider hook and no Spinner callback; drag the Slider through both signs and confirm one hook per effective user value; call its setter with in-range, repeated, below-minimum and above-maximum values and confirm clamping without hooks. Observe all four native Spinner animations for at least ten minutes, navigate away and back ten times, and confirm geometry, colours, stable FPS/RAM recovery, no monotonic heap loss, no touch interception and no callbacks. Repeat a standalone export and compare its generated application/widget/API/hook sections with the live export.
 
 # ==============================================================================
 # 💡 STANDARD LED

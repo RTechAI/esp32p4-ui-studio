@@ -531,7 +531,7 @@ Presentation/API-free:
 - ✓ Icon
 - ✓ Divider
 
-Slider has repaired Canvas interaction and Browser Preview parity, but no completed runtime API is claimed by this save point.
+Slider has shared Canvas/Browser Preview interaction, native LVGL export, and a completed collision-safe generated runtime API. Spinner is a Registry-driven presentation widget with shared preview rendering and native LVGL export; it intentionally generates no runtime API or UserEvent.
 
 ```text
 Standard LVGL Component Runtime
@@ -797,9 +797,13 @@ Serialized `Box` remains a presentation/layout container with runtime visibility
 
 Serialized `IconButton` is an interactive native button. Runtime owns enabled state only and generates `FG_Set_<Name>_Enabled(bool enabled)` plus `FG_On_<Name>_Clicked(void)`. Creation and setter calls are silent, and disabled buttons do not notify. Canvas remains selectable, draggable and resizable; Browser Preview uses temporary pressed state. Icon selection remains serialized and Image exclusively owns runtime source replacement.
 
-### Slider Canvas interaction
+### Slider Canvas interaction and runtime
 
-Slider received an interaction repair only. Its shared Preview distinguishes Canvas editing from Browser interaction: track/thumb interaction uses temporary preview state, surrounding Canvas gestures can move the component, and project JSON is not mutated. Generated LVGL was unchanged. No Slider runtime setter or hook is documented as complete.
+The shared Slider Preview distinguishes Canvas editing from Browser interaction: track/thumb interaction uses temporary preview state, surrounding Canvas gestures can move the component, and project JSON is not mutated. Native export retains the `lv_slider` and emits `FG_Set_<Name>_Value(int32_t)` plus `FG_On_<Name>_Changed(int32_t)`. Signed ranges are normalized and clamped, initialization and programmatic updates are silent, repeated values are ignored, and the hook is reserved for genuine LVGL value changes.
+
+### Native Spinner
+
+Spinner is owned by the Widget Registry and appears in the Feedback Tray family. `StandardSpinnerPreview.tsx` is shared by Canvas and Browser Preview. `SpinnerPanel.tsx` edits duration, arc length, foreground/background arc widths, opacity and optional colour overrides while normal component geometry owns width and height. Export uses the installed LVGL 9 `lv_spinner_create()` and `lv_spinner_set_anim_params()` APIs with semantic theme fallbacks. Spinner is presentation-only: no retained public runtime object, setter, hook, `95_UserEvents` entry, helper C source or CMake entry is generated.
 
 ### Scale inspection
 

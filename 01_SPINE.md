@@ -520,7 +520,7 @@ Arrow styling explicitly covers `LV_PART_INDICATOR`. Popup-list styling is appli
 
 ### Slider Canvas interaction
 
-Slider Canvas behavior was repaired without changing generated LVGL or claiming a completed runtime API. Track/thumb interaction changes temporary preview value, surrounding Canvas interaction can move the component, and project JSON is not mutated. Browser Preview remains interactive with temporary local state. A Slider setter and genuine-user hook remain a separate future runtime pass.
+Slider track/thumb interaction changes temporary preview value, surrounding Canvas interaction can move the component, and project JSON is not mutated. Browser Preview remains interactive with temporary local state. Native LVGL export retains the Slider and provides the completed silent setter and genuine-user change hook described in the Widget Registry and generated API sections.
 
 ### QR Code
 
@@ -1384,7 +1384,8 @@ The authoritative registry contains 41 entries. Every entry is available in the 
 | NumberInput | implemented / implemented | value setter + change hook | physically proven |
 | Checkbox | implemented / implemented | checked setter + change hook | physically proven |
 | Switch | implemented / implemented | checked setter + change hook | physically proven |
-| Slider | implemented / implemented | public runtime API not yet completed | pending |
+| Slider | implemented / implemented | value setter + genuine-user change hook | ready for ESP32-P4 proof |
+| Spinner | implemented / implemented | presentation-only; no setter or hook | ready for ESP32-P4 proof |
 | Roller | implemented / implemented | selected setter + change hook | physically proven |
 | Radio | implemented / implemented | selected setter + change hook; no group model | physically proven |
 | Select | implemented / implemented | index setter + change hook | physically proven |
@@ -1411,7 +1412,7 @@ The authoritative registry contains 41 entries. Every entry is available in the 
 | InteractiveToggleSwitch | implemented / implemented | setter + input hook | physically proven |
 | InteractiveThreePositionToggleSwitch | implemented / implemented | three-state input hook | physically proven |
 
-Each row has automated registry/Tray coverage plus focused preview/export or interactive regression evidence at the current repository scope. No registry widget is missing from the Tray, Inspector, Canvas, Browser Preview or exporter dispatch. The registry's current `supportsRuntimeApi` field is broad capability metadata, not the semantic API classification above; it must not be read as proof that Slider or API-free presentation widgets expose a generated API.
+Each row has automated registry/Tray coverage plus focused preview/export or interactive regression evidence at the current repository scope. No registry widget is missing from the Tray, Inspector, Canvas, Browser Preview or exporter dispatch. The registry's `supportsRuntimeApi` field is capability metadata: Slider exposes its generated numeric runtime, while presentation-only Spinner intentionally does not.
 
 ## ForgeUI Widget Tray
 
@@ -2393,7 +2394,7 @@ Standard LVGL Component Runtime
 
 Interactive state receives a guarded setter plus a genuine-user hook. Output state receives a setter only. Serialized presentation receives no runtime API, and components with no semantic state remain intentionally API-free. TabView owns an active index and Tileview owns active coordinates. Clock presents RTC-owned state. Button, Text and Heading own serialized content. Scale, Line, Icon and Divider remain API-free.
 
-Slider Canvas interaction is complete, but Slider runtime API is not part of this completed contract. Its setter/hook remains a future pass unless implemented separately.
+Slider Canvas interaction and generated runtime are complete. It exposes a clamped, collision-safe `FG_Set_<Name>_Value(int32_t)` setter and a genuine-user-only `FG_On_<Name>_Changed(int32_t)` hook. Initialization and programmatic updates are silent and repeated values are suppressed.
 
 Hosted Connectivity Runtime
 ├── ESP-Hosted
@@ -2509,7 +2510,6 @@ Binary Output Runtime
 
 Potential future Standard Runtime concepts include:
 
-- Slider runtime setter and genuine-user hook
 - Gauge
 - Meter
 - Seven Segment Display
@@ -2528,6 +2528,13 @@ Save points are ordered newest to oldest. Detailed subsystem engineering is main
 - **What changed:** Added the Board Selector and board/profile registry, hydration-safe persisted project hardware state, generated `00_ForgeUI_Features.h`, C/CMake/component-manifest pruning, canonical asset deduplication, lazy Wi-Fi Manager/dialog lifecycle, acknowledged Storage-worker teardown, Diagnostics, RAM probes and the compact sysmon overlay.
 - **Evidence:** Board, hydration, System exporter/lifecycle and export-server tests cover the permanent generation paths. The current generated firmware and clean ESP-IDF build contain the selected production profile. A connected Application-page serial probe recorded 45,795 bytes current internal free heap, 43,871 bytes minimum-ever, a 27,648-byte largest block and 62 LVGL objects.
 - **Remaining boundary:** Operator-driven ten-cycle Wi-Fi/Storage touchscreen validation and QR phone scanning remain open. The sysmon RAM overlay is present in the built ELF but absent from the current managed-component source, so a reproducible ForgeUI-owned patch/override is still required.
+
+## FORGEUI_SLIDER_RUNTIME__NATIVE_SPINNER__READY_FOR_ESP32P4_PROOF__2026-07-31
+
+- **Slider:** The existing shared Canvas/Browser preview and native `lv_slider` export now have a retained generated runtime. `FG_Set_<Name>_Value(int32_t)` clamps signed and reversed serialized ranges, ignores repeats and updates silently. `FG_On_<Name>_Changed(int32_t)` is emitted through `95_UserEvents` only after a genuine LVGL value change; initialization occurs before callback registration.
+- **Spinner:** `Spinner` is a Registry-owned Standard Feedback widget with Registry defaults, Tray insertion, shared Canvas/Browser rendering, Inspector controls and native LVGL 9 `lv_spinner_create()` export. Supported properties are width, height, duration, arc length, foreground/background arc widths, semantic or explicit foreground/background colours, and opacity. It has no runtime setter and no UserEvent hook.
+- **Theme and gating:** Empty colour overrides resolve to the active semantic accent and secondary-surface roles in preview and export. Spinner code is generated only for serialized Spinner instances and adds no widget-specific runtime source, public declaration, hook or CMake entry.
+- **Validation:** Focused Registry, Tray, hydration, shared preview and LVGL exporter tests pass. Physical build, flash, animation/RAM/FPS observation and leak/touch checks remain operator work. Slider status is **READY FOR ESP32-P4 PROOF**. Spinner status is **SPINNER READY FOR ESP32-P4 PROOF**.
 
 ## FORGEUI_WIDGET_REGISTRY__LAYOUT_TEMPLATE_LIBRARY__QRCODE_RUNTIME__READY_FOR_QR_HARDWARE_PROOF__2026-07-30
 

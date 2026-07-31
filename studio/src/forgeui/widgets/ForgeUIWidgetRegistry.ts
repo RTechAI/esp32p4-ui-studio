@@ -71,7 +71,7 @@ const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
     'WiFi', 'QRCode', 'Progress', 'CircularProgress',
   ],
   Navigation: ['Tabview', 'Tileview', 'ButtonMatrix'],
-  Feedback: ['Msgbox', 'Keyboard', 'Calendar'],
+  Feedback: ['Msgbox', 'Keyboard', 'Calendar', 'Spinner'],
   Dashboard: [],
   Assets: [
     'InteractiveButton',
@@ -131,6 +131,7 @@ const sizes: Partial<Record<ComponentType, [number, number]>> = {
   ButtonMatrix: [300, 180],
   Image: [240, 160],
   QRCode: [180, 180],
+  Spinner: [96, 96],
 }
 
 const keywords: Partial<Record<ComponentType, string[]>> = {
@@ -150,6 +151,7 @@ const keywords: Partial<Record<ComponentType, string[]>> = {
   CircularProgress: ['gauge', 'progress ring', 'meter'],
   WiFi: ['network', 'wireless', 'connection'],
   QRCode: ['qr', 'qrcode', 'scan', 'barcode', 'url', 'wifi', 'pairing', 'device'],
+  Spinner: ['loading', 'activity', 'busy', 'lv_spinner'],
 }
 
 const eventTypes = new Set<ComponentType>([
@@ -223,7 +225,7 @@ export const forgeUIWidgetDefinitions: ForgeUIWidgetDefinition[] =
         h: defaultHeight,
       }),
       capabilities: {
-        supportsRuntimeApi: true,
+        supportsRuntimeApi: type !== 'Spinner',
         supportsUserEvents: eventTypes.has(type),
         supportsChildren: childTypes.has(type),
         interactive: interactiveTypes.has(type),

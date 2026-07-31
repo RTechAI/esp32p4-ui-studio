@@ -24,6 +24,7 @@ import { getForgeUIStandardCheckboxText } from '../ForgeUIStandardCheckbox'
 import StandardRadioPreview from './StandardRadioPreview'
 import { getForgeUIStandardRadioText } from '../ForgeUIStandardRadio'
 import StandardSliderPreview from './StandardSliderPreview'
+import StandardSpinnerPreview from './StandardSpinnerPreview'
 import StandardNumberInputPreview from './StandardNumberInputPreview'
 import StandardSelectPreview from './StandardSelectPreview'
 import StandardIconButtonPreview from './StandardIconButtonPreview'
@@ -808,8 +809,7 @@ case 'AnimImage': {
   break
 }
 
-case 'Lottie':
-case 'Spinner': {
+case 'Lottie': {
 
   output.push(
     <Box
@@ -824,6 +824,23 @@ case 'Spinner': {
       bg="rgba(0,212,255,0.08)"
     >
       {child.type}
+    </Box>,
+  )
+  break
+}
+
+case 'Spinner': {
+  output.push(
+    <Box key={child.id} {...commonStyle}>
+      <StandardSpinnerPreview
+        duration={child.props.duration}
+        arcLength={child.props.arcLength}
+        arcWidth={child.props.arcWidth}
+        backgroundWidth={child.props.backgroundWidth}
+        accentColor={child.props.accentColor}
+        backgroundColor={child.props.backgroundColor}
+        opacity={child.props.opacity}
+      />
     </Box>,
   )
   break

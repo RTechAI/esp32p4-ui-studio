@@ -229,7 +229,7 @@ Completed serialized presentation properties:
 - ✓ Heading Text
 - ✓ Clock Presentation
 
-Slider Canvas movement and temporary preview-value interaction are repaired, Browser Preview remains interactive, and preview interaction does not mutate project JSON. Generated LVGL was unchanged during that work. No Slider runtime setter or hook is part of this completed API map.
+Slider Canvas movement and temporary preview-value interaction remain isolated from project JSON. Its native LVGL export now retains the Slider and generates a collision-safe value setter and genuine-user change hook. Spinner is presentation-only and generates neither.
 
 ```text
 Standard LVGL Component Runtime
@@ -374,7 +374,8 @@ Runtime hot theme switching on the ESP32-P4 was not added.
 | Line | None | None |
 | Icon | None; Studio icon-picker convenience exported as `lv_image` | None |
 | Divider | None; presentation-only visual separator | None |
-| Slider | None in this save point | None in this save point |
+| Slider | `FG_Set_<Name>_Value(int32_t value)` | `FG_On_<Name>_Changed(int32_t value)` |
+| Spinner | None; presentation-only native animation | None |
 
 In this table, CircularProgress is a retained output-only arc. NumberInput is the composed generated numeric textarea plus hardware increment/decrement buttons using serialized step; its existing API and hook names are unchanged.
 
@@ -574,9 +575,13 @@ The structural role does not create APIs for region assignment, padding, gap, ar
 
 IconButton retains native button and enabled state. The setter applies `LV_STATE_DISABLED` silently. `LV_EVENT_CLICKED` invokes the void hook only while enabled. Icon selection remains serialized; no runtime icon-source setter exists.
 
-### Slider Canvas interaction
+### Slider generated boundary
 
-This work added no generated API. Canvas track/thumb interaction changes temporary preview value, surrounding component interaction supports movement, Browser Preview remains interactive, and project JSON remains unchanged. Generated LVGL was unchanged and no Slider setter or hook is claimed.
+Canvas track/thumb interaction changes temporary preview value, surrounding component interaction supports movement, Browser Preview remains interactive, and project JSON remains unchanged. Native export retains the Slider. `FG_Set_<Name>_Value(int32_t value)` normalizes the serialized range, clamps signed inputs, ignores repeats and guards the LVGL update so it cannot notify application code. The LVGL callback updates retained state and invokes `FG_On_<Name>_Changed(int32_t value)` only for a changed user value. Initial value assignment precedes callback registration, so startup is silent.
+
+### Spinner generated boundary
+
+Spinner exports native `lv_spinner_create(parent)` plus `lv_spinner_set_anim_params(widget, duration_ms, arc_length_degrees)`. Geometry, main/indicator arc widths, semantic or explicit colours and opacity are applied directly to the native object. It creates no public declaration, hook, runtime helper source or CMake entry. The branch is naturally export-time gated because it is emitted only while traversing a serialized Spinner.
 
 ### Scale
 
@@ -2825,7 +2830,7 @@ Preserve these rules:
 99. Image accepts LVGL source pointers, not asset IDs, paths or URLs.
 100. Box owns runtime visibility only.
 101. IconButton icon selection remains serialized.
-102. Slider runtime is not complete in this save point.
+102. Slider runtime is complete and uses the standard silent-setter/genuine-user-hook contract.
 103. Deterministic collision suffixes cover new APIs, hooks, retained objects and guards.
 104. The exporter result remains exactly `code`, `assetSources`, `userEventHooks` and `publicApiDeclarations`.
 105. No second generated-header or hook-generator architecture exists.
@@ -2998,7 +3003,7 @@ Serialized presentation   → no runtime API
 No semantic state         → intentionally API-free
 ```
 
-Genuine future concepts include Slider runtime API, Radio Group, dynamic Select options, Gauge, Meter, Seven Segment and Numeric Display. Implemented Radio, Checkbox, NumberInput, Select, Progress, CircularProgress, Image and QRCode must not be described as future runtimes.
+Genuine future concepts include Radio Group, dynamic Select options, Gauge, Meter, Seven Segment and Numeric Display. Implemented Slider, Radio, Checkbox, NumberInput, Select, Progress, CircularProgress, Image and QRCode must not be described as future runtimes.
 
 Future controls must extend the existing exporter, export-result metadata, Header transport, export-server materialization, generated files, and ownership model. They must not introduce a parallel exporter, a second hook generator, a second generated-header system, or a separate firmware API layer.
 

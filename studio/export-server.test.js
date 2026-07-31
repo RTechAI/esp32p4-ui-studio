@@ -95,6 +95,29 @@ describe('generated public UI API headers', () => {
     expect(files.source).toContain('(long)value')
   })
 
+  it('materializes and preserves Slider changed hooks for live and standalone exports', () => {
+    const generated = generateUserEventFiles(
+      ['FG_On_Level_Slider_Changed'],
+      ['void FG_Set_Level_Slider_Value(int32_t value);'],
+    )
+    expect(generated.header).toContain(
+      'void FG_On_Level_Slider_Changed(int32_t value);',
+    )
+    expect(generated.source).toContain(
+      'void FG_On_Level_Slider_Changed(int32_t value)',
+    )
+
+    const preserved = preserveUserEventFiles(
+      '#include "95_UserEvents.h"\n\nvoid FG_On_Level_Slider_Changed(int32_t value)\n{\n    developer_slider_action(value);\n}\n',
+      '#pragma once\nvoid FG_On_Level_Slider_Changed(int32_t value);\n',
+      generated,
+    )
+    expect(preserved.header).toContain('#include <stdint.h>')
+    expect(preserved.source).toContain('developer_slider_action(value);')
+    expect(preserved.source.match(/void FG_On_Level_Slider_Changed/g))
+      .toHaveLength(1)
+  })
+
   it('exports Progress setters without generating or disturbing user hooks', () => {
     const declaration =
       'void FG_Set_Download_Progress_Value(int32_t value);'

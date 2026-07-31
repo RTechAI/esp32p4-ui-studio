@@ -38,6 +38,8 @@ describe('ForgeUI Widget registry', () => {
     ['lv_chart', 'Chart'],
     ['pairing', 'QRCode'],
     ['qrcode', 'QRCode'],
+    ['loading', 'Spinner'],
+    ['lv_spinner', 'Spinner'],
   ])('finds %s using registered terminology', (query, type) => {
     expect(searchForgeUIWidgets(query).map(item => item.type))
       .toContain(type)
@@ -61,5 +63,27 @@ describe('ForgeUI Widget registry', () => {
     expect(JSON.parse(JSON.stringify(qr?.defaultProperties))).toEqual(
       qr?.defaultProperties,
     )
+  })
+
+  it('registers Spinner as presentation-only native feedback', () => {
+    const spinner = forgeUIWidgetDefinitions.find(
+      item => item.type === 'Spinner',
+    )
+    expect(spinner).toMatchObject({
+      category: 'Feedback',
+      defaultWidth: 96,
+      defaultHeight: 96,
+      capabilities: {
+        supportsRuntimeApi: false,
+        supportsUserEvents: false,
+      },
+      defaultProperties: {
+        duration: 1000,
+        arcLength: 60,
+        arcWidth: 8,
+        backgroundWidth: 8,
+        opacity: 100,
+      },
+    })
   })
 })

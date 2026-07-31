@@ -35,6 +35,7 @@ import ArcPreview from '~components/editor/previews/ArcPreview'
 import StandardChartPreview from '~forgeui/preview/StandardChartPreview'
 import StandardQRCodePreview from '~forgeui/preview/StandardQRCodePreview'
 import StandardScalePreview from '~forgeui/preview/StandardScalePreview'
+import StandardSpinnerPreview from '~forgeui/preview/StandardSpinnerPreview'
 import StandardRollerPreview from '~forgeui/preview/StandardRollerPreview'
 import StandardMessageBoxPreview from '~forgeui/preview/StandardMessageBoxPreview'
 import StandardButtonMatrixPreview from '~forgeui/preview/StandardButtonMatrixPreview'
@@ -207,7 +208,6 @@ case 'Switch':
     // case 'Image':
     // case 'Text':
     // case 'Link':
-    case 'Spinner':
     //case 'Checkbox':
     // case 'Textarea':
     //case 'CircularProgress':
@@ -532,6 +532,25 @@ case 'Select':
       {...forwardedProps}
     >
       <SelectPreview component={component} />
+    </PreviewContainer>
+  )
+
+  case 'Spinner':
+  return (
+    <PreviewContainer
+      component={component}
+      enableVisualHelper
+      {...forwardedProps}
+    >
+      <StandardSpinnerPreview
+        duration={component.props.duration}
+        arcLength={component.props.arcLength}
+        arcWidth={component.props.arcWidth}
+        backgroundWidth={component.props.backgroundWidth}
+        accentColor={component.props.accentColor}
+        backgroundColor={component.props.backgroundColor}
+        opacity={component.props.opacity}
+      />
     </PreviewContainer>
   )
 
