@@ -748,6 +748,31 @@ describe('generated public UI API headers', () => {
 describe('server export preflight', () => {
   const settingsSource = 'assets/icons/fg_icon_settings_fi_48px.c'
   const settingsSymbol = 'fg_icon_settings_fi_48px'
+  const validSpinboxGeometry = `
+static void fg_increment(lv_event_t * event)
+{
+    lv_spinbox_increment(fg_spinbox);
+}
+static void fg_decrement(lv_event_t * event)
+{
+    lv_spinbox_decrement(fg_spinbox);
+}
+lv_obj_t * fg_spinbox = lv_spinbox_create(fg_parent);
+lv_obj_set_pos(fg_spinbox, 10, 20);
+lv_obj_set_size(fg_spinbox, 200, 80);
+lv_obj_t * fg_spinbox_increment_button = lv_button_create(fg_parent);
+lv_obj_set_pos(fg_spinbox_increment_button, 210, 20);
+lv_obj_set_size(fg_spinbox_increment_button, 40, 40);
+lv_obj_add_flag(fg_spinbox_increment_button, LV_OBJ_FLAG_CLICKABLE);
+lv_obj_move_foreground(fg_spinbox_increment_button);
+lv_obj_add_event_cb(fg_spinbox_increment_button, fg_increment, LV_EVENT_CLICKED, NULL);
+lv_obj_t * fg_spinbox_decrement_button = lv_button_create(fg_parent);
+lv_obj_set_pos(fg_spinbox_decrement_button, 210, 60);
+lv_obj_set_size(fg_spinbox_decrement_button, 40, 40);
+lv_obj_add_flag(fg_spinbox_decrement_button, LV_OBJ_FLAG_CLICKABLE);
+lv_obj_move_foreground(fg_spinbox_decrement_button);
+lv_obj_add_event_cb(fg_spinbox_decrement_button, fg_decrement, LV_EVENT_CLICKED, NULL);
+`
 
   it('rejects invalid assetSources before export writes', () => {
     expect(() => validateExportPayload({ code: 'valid', assetSources: ['../bad.c'] }))
@@ -761,21 +786,17 @@ describe('server export preflight', () => {
     })).toThrow('Generated C file missing')
   })
 
-  it('accepts the actual live Spinbox helper geometry', () => {
-    const code = fs.readFileSync(path.resolve(
-      __dirname,
-      '../firmware/ForgeUI-One/main/90_Studio_Export.c',
-    ), 'utf8')
-    expect(validateExportPayload({ code, assetSources: [] }).code).toBe(code)
+  it('accepts valid Spinbox helper geometry independently of the live artifact', () => {
+    expect(validateExportPayload({
+      code: validSpinboxGeometry,
+      assetSources: [],
+    }).code).toBe(validSpinboxGeometry)
   })
 
   it('rejects malformed live Spinbox helper geometry before either export', () => {
-    const code = fs.readFileSync(path.resolve(
-      __dirname,
-      '../firmware/ForgeUI-One/main/90_Studio_Export.c',
-    ), 'utf8').replace(
-      'lv_obj_set_pos(fg_spinbox_spinbox_increment_button, 282, 163);',
-      'lv_obj_set_pos(fg_spinbox_spinbox_increment_button, 110172, 163);',
+    const code = validSpinboxGeometry.replace(
+      'lv_obj_set_pos(fg_spinbox_increment_button, 210, 20);',
+      'lv_obj_set_pos(fg_spinbox_increment_button, 110172, 20);',
     )
     expect(() => validateExportPayload({ code, assetSources: [] }))
       .toThrow('helper geometry lies outside its component bounds')

@@ -10,6 +10,7 @@ extern "C" {
 
 void fg_studio_export_create(lv_obj_t *parent);
 void FG_Set_Spinbox_Value(int32_t value);
+void FG_Set_Tab_View_Selected(uint32_t tab_index);
 
 #ifdef __cplusplus
 }

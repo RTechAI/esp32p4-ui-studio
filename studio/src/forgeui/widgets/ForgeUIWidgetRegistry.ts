@@ -250,7 +250,17 @@ const capabilitiesByType: Partial<
   Progress: capability(true, false, false),
   CircularProgress: capability(true, false, false),
 
-  List: capability(false, true, true),
+  List: capability(
+    false,
+    true,
+    true,
+    'none',
+    false,
+    {
+      mode: 'serialized-widget',
+      lvglConfigDependencies: ['CONFIG_LV_USE_LIST'],
+    },
+  ),
   Tabview: capability(true, true, true, 'structured'),
   Tileview: capability(true, true, true, 'structured'),
   ButtonMatrix: capability(true, true, true),

@@ -232,5 +232,7 @@ When a Widget Registry capability changes:
 The Runtime SDK should grow from physically credible widget contracts. It must
 not become a speculative list of APIs disconnected from native LVGL behaviour.
 
-Current registry evidence is 23 of 39 Standard widgets physically proven (59%),
-with 16 remaining. List interaction is the recommended next proof target.
+Current registry evidence is 24 of 39 Standard widgets physically proven (62%),
+with 15 remaining. List is proven with no setter and one collision-safe
+`FG_On_<Name>_Item_Clicked(uint32_t index, const char * text)` callback per
+physical row action. TabView is the recommended next proof target.

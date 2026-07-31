@@ -573,7 +573,7 @@ case 'Select':
         enableVisualHelper
         {...forwardedProps}
       >
-        <StandardListPreview props={component.props} />
+        <StandardListPreview mode="canvas" props={component.props} />
       </PreviewContainer>
     )
 

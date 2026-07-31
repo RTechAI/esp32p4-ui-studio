@@ -43,12 +43,14 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
+- `FG_On_Tab_View_Changed()`
 - `FG_On_Spinbox_Changed()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
+| Tab_View_Changed | Click | `FG_On_Tab_View_Changed()` |
 | Spinbox_Changed | Click | `FG_On_Spinbox_Changed()` |
 
 ---

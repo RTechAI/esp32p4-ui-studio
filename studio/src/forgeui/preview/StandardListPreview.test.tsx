@@ -18,5 +18,22 @@ describe('Standard List preview', () => {
     expect(screen.getByTestId('standard-list-title')).toHaveTextContent('System')
     expect(screen.getAllByTestId('standard-list-item')).toHaveLength(3)
     expect(screen.getByText('Display')).toBeInTheDocument()
+    expect(screen.getAllByRole('button')).toHaveLength(3)
+  })
+
+  it('keeps Canvas rows non-interactive for editor movement', () => {
+    render(
+      <ChakraProvider>
+        <StandardListPreview
+          mode="canvas"
+          props={{ items: 'One\nTwo' }}
+        />
+      </ChakraProvider>,
+    )
+
+    expect(screen.queryAllByRole('button')).toHaveLength(0)
+    screen.getAllByTestId('standard-list-item').forEach(item => {
+      expect(item).toHaveStyle({ pointerEvents: 'none' })
+    })
   })
 })

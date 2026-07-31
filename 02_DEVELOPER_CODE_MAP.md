@@ -13,7 +13,7 @@
 
 ## Current save point
 
-**FORGEUI_STANDARD_SPINBOX__VERTICAL_SLICE__ESP32P4_PROVEN__2026-07-31**
+**FORGEUI_STANDARD_LIST__VERTICAL_SLICE__ESP32P4_PROVEN__2026-07-31**
 
 ## Current authoritative ownership summary
 
@@ -529,7 +529,7 @@ The 2026-07-30 Standard input and selection group is also physically proven acro
 - Select
 - Spinbox
 
-TabView, TileView, Image, Box and IconButton remain runtime-complete but outside these physical validation milestones. Their existing automated and architectural status is unchanged. The registry audit records 44 total entries, comprising 39 Standard widgets and five Interactive Assets; 23/39 Standard widgets are physically proven (59%) and 16 remain.
+TabView, TileView, Image, Box and IconButton remain runtime-complete but outside these physical validation milestones. Their existing automated and architectural status is unchanged. The registry audit records 44 total entries, comprising 39 Standard widgets and five Interactive Assets; List raises physical proof to 24/39 Standard widgets (62%) and 15 remain.
 
 ### Current next-group parity architecture
 

@@ -197,5 +197,14 @@ describe('ForgeUI Widget registry', () => {
           },
         },
       })
+    expect(forgeUIWidgetDefinitions.find(item => item.type === 'List'))
+      .toMatchObject({
+        capabilities: {
+          featureGate: {
+            mode: 'serialized-widget',
+            lvglConfigDependencies: ['CONFIG_LV_USE_LIST'],
+          },
+        },
+      })
   })
 })

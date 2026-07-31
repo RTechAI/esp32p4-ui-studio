@@ -3,7 +3,7 @@
 ## 2026-07-31 platform alignment
 
 Current platform save point:
-`FORGEUI_STANDARD_SPINBOX__VERTICAL_SLICE__ESP32P4_PROVEN__2026-07-31`.
+`FORGEUI_STANDARD_LIST__VERTICAL_SLICE__ESP32P4_PROVEN__2026-07-31`.
 
 Widget Registry architecture cleanup is complete at the metadata boundary:
 
@@ -28,7 +28,11 @@ Widget Registry architecture cleanup is complete at the metadata boundary:
 - QR Code Studio/export/runtime generation is complete; a recorded successful physical phone scan remains pending.
 - Slider is physically proven through Studio, standalone ESP-IDF export, ESP32-P4 touch interaction, collision-safe runtime APIs and multiple instances. Status: **PROVEN**.
 - Native Spinner is physically proven through Studio and standalone ESP-IDF export on ESP32-P4, including stable animation at approximately 60 FPS. Status: **PROVEN**.
-- Native List is Registry/Tray/Inspector/Canvas/Browser/export complete and physically renders correctly in live and standalone ESP32-P4 firmware. Every native row now emits a collision-safe `FG_On_<Name>_Item_Clicked(uint32_t index, const char * text)` hook only for genuine `LV_EVENT_CLICKED` interaction. Focused live/standalone generation tests pass; final physical callback observation remains pending. Status: **LIST INTERACTION READY FOR ESP32-P4 PROOF**.
+- Native List is physically proven through Registry, Tray, Inspector, Canvas,
+  Browser Preview, native LVGL export, `95_UserEvents`, feature gating, live
+  ESP32-P4 firmware and Standalone Export. Four controlled single taps emitted
+  exactly one callback each with indices 0â€“3 and matching row text. Status:
+  **PROVEN**.
 - Native Spinbox is physically proven through Registry, Tray, Canvas,
   Inspector, Browser Preview, native LVGL export, Runtime SDK, `95_UserEvents`,
   export-time feature gating, live Studio firmware, ESP32-P4 touch and
@@ -57,7 +61,7 @@ Status language:
 | Keyboard, Calendar, Scale, Roller, Message Box, Button Matrix | **PROVEN** | Detailed physical/runtime records below |
 | Slider | **PROVEN** | Live and Standalone ESP32-P4, touch, setter/hook and multiple instances |
 | Spinner | **PROVEN** | Live and Standalone ESP32-P4 native animation at approximately 60 FPS |
-| List | **READY FOR PROOF** | Rendering proven live/Standalone; item callback awaits physical serial observation |
+| List | **PROVEN** | Live/Standalone builds and ESP32-P4 touch; one indexed/text callback per controlled row tap |
 | Spinbox | **PROVEN** | Live and Standalone ESP32-P4; drag/drop, previews, touch, setter/hook, multiple instances and gating |
 | QR Code | **READY FOR PROOF** | Registry/export/setter implemented; recorded successful physical scan remains open |
 | Text, Heading, Button, Icon Button, Icon, Box, Line, Divider, Canvas, Image | **PARTIAL** | Implemented pipeline coverage exists; this sprint does not upgrade physical evidence |
@@ -69,8 +73,8 @@ dedicated Dashboard Widget family remain **PLANNED** and must not be
 described as Standard-library completions.
 
 Registry audit total: 44 entries, comprising 39 Standard widgets and five
-Interactive Assets. Twenty-three Standard widgets are physically proven:
-**23/39 (59%)**, leaving **16** for individual proof promotion.
+Interactive Assets. Twenty-four Standard widgets are physically proven:
+**24/39 (62%)**, leaving **15** for individual proof promotion.
 
 ## Spinbox final physical proof
 

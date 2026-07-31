@@ -860,7 +860,7 @@ case 'Spinbox': {
 case 'List': {
   output.push(
     <Box key={child.id} {...commonStyle}>
-      <StandardListPreview props={child.props} />
+      <StandardListPreview mode="browser" props={child.props} />
     </Box>,
   )
   break

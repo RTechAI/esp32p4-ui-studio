@@ -1,7 +1,7 @@
 # ForgeUI Studio
 
 Current architecture save point:
-`FORGEUI_STANDARD_SPINBOX__VERTICAL_SLICE__ESP32P4_PROVEN__2026-07-31`.
+`FORGEUI_STANDARD_LIST__VERTICAL_SLICE__ESP32P4_PROVEN__2026-07-31`.
 
 **ForgeUI Studio is an open-source, AI-assisted visual HMI and embedded GUI designer for ESP32-P4.** It combines a drag-and-drop Canvas, reusable Interactive Assets, AI Layout tools, Browser Preview, native LVGL 9 generation, integrated ESP-IDF Build & Flash, and standalone ESP-IDF project export.
 
@@ -125,14 +125,15 @@ Current Standard-widget milestone evidence:
 
 - Slider: **PROVEN** through live and Standalone ESP32-P4 touch/runtime paths.
 - Spinner: **PROVEN** through live and Standalone ESP32-P4 native animation.
-- List: native rendering proven in both paths; generated item callback
-  **READY FOR PROOF**.
+- List: **PROVEN** through Registry, Tray, Canvas, Inspector, Browser Preview,
+  native LVGL export, collision-safe `95_UserEvents`, feature gating, live
+  ESP32-P4 firmware and Standalone Export. List intentionally has no setter.
 - Spinbox: **PROVEN** through Registry, Tray, Canvas, Inspector, Browser
   Preview, native LVGL export, Runtime SDK, `95_UserEvents`, export-time
   gating, live ESP32-P4 firmware and Standalone Export.
 
-The registry contains 39 Standard widgets; 23 are physically proven (59%) and
-16 remain. List interaction is the recommended next proof target. Dedicated
+The registry contains 39 Standard widgets; 24 are physically proven (62%) and
+15 remain. TabView is the recommended next proof target. Dedicated
 Dashboard widgets have not started.
 
 ## Hardware support and proof

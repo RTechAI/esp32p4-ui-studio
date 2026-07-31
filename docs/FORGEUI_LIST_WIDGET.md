@@ -48,7 +48,18 @@ ForgeUI's normal `_2`, `_3` collision-safe suffixes.
 
 ## Proof status
 
-Registry, Tray, Inspector, Canvas, Browser Preview, serialization defaults,
-native LVGL export, theme integration, standalone export and focused automated
-tests are implemented. Physical rendering is verified. One final ESP32-P4
-proof of the generated item callback is required before marking List PROVEN.
+**PROVEN.** Registry, Tray, Inspector, Canvas, Browser Preview, serialization
+defaults, native LVGL export, theme integration, `95_UserEvents`, authoritative
+`CONFIG_LV_USE_LIST` gating, live Studio firmware, standalone export and
+focused automated tests are complete.
+
+Physical validation used the Waveshare ESP32-P4-WIFI6-Touch-LCD-7B with
+ESP-IDF 5.5.4 and LVGL 9.2.2. The generated List rendered its title and four
+native rows. Controlled single touches on Network, Display, Diagnostics and
+About produced exactly one callback each, with zero-based indices 0â€“3 and the
+matching generated text. Live and standalone projects both built successfully
+from equivalent generated C/H output.
+
+Proof also exposed and resolved two parity/architecture gaps: Browser Preview
+rows now behave as buttons while Canvas rows remain editor-safe, and List
+exports now include `95_UserEvents.h` before initializing callback metadata.

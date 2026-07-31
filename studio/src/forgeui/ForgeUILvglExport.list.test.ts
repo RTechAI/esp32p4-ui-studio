@@ -35,6 +35,7 @@ describe('Native LVGL List export', () => {
     expect(generated.code).toContain(
       'lv_obj_t * obj1 = lv_list_create(fg_application_page);',
     )
+    expect(generated.code).toContain('#include "95_UserEvents.h"')
     expect(generated.code).toContain(
       'lv_list_add_text(obj1, "System");',
     )

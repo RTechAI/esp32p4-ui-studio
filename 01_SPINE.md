@@ -11,9 +11,21 @@
 
 ## Current Save Point
 
-**FORGEUI_STANDARD_SPINBOX__VERTICAL_SLICE__ESP32P4_PROVEN__2026-07-31**
+**FORGEUI_STANDARD_LIST__VERTICAL_SLICE__ESP32P4_PROVEN__2026-07-31**
 
 **CURRENT PRIORITY: COMPLETE THE STANDARD WIDGET LIBRARY AND PHYSICALLY PROVE EACH SLICE**
+
+### Technical-manager continuity note
+
+The active GPT acts as ForgeUI technical manager and must keep each widget loop
+complete. Implement and validate one Standard widget, then explicitly tell the
+operator **Export to IDF**. The operator exports from Studio, opens the
+standalone project in VS Code, flashes the ESP32-P4, performs the requested
+physical actions and returns terminal evidence. The GPT verifies that evidence,
+updates every authoritative status/count document, marks the widget PROVEN only
+when justified, recommends the next widget and stops. Do not begin the next
+widget while physical evidence or documentation from the current slice remains
+open. Direct COM-port flashing by GPT is not the default workflow.
 
 ## 2026-07-31 authoritative architecture alignment
 
@@ -42,9 +54,9 @@
 - Runtime setters are silent programmatic projections. UserEvents represent
   genuine user transitions only. Names derive from component names and are
   collision-safe.
-- Slider, Spinner and Spinbox are physically **PROVEN** through live and
-  standalone ESP32-P4 firmware. List rendering is physically verified in both
-  paths; its collision-safe item callback is **READY FOR PROOF**.
+- Slider, Spinner, Spinbox and List are physically **PROVEN** through live and
+  standalone ESP32-P4 firmware. List emits exactly one collision-safe item
+  callback for each observed physical row tap and intentionally has no setter.
 - Native Spinbox is proven through Registry → Tray → Canvas → Inspector →
   Browser Preview → LVGL Export → Runtime SDK → UserEvents → ESP32-P4 →
   Standalone Export. Its setter is silent, its changed hook fires exactly once
@@ -235,7 +247,7 @@ The flashed ESP32-P4 remains the authoritative final visual reference.
 1. Complete operator touchscreen validation of repeated lazy Wi-Fi and Storage open/close cycles and confirm current free heap, largest block and object count recover without a leak.
 2. Replace the overwritten managed-component sysmon edit with a reproducible ForgeUI-owned patch/override and regression check.
 3. Complete and record physical QR phone-scan validation.
-4. Physically prove List interaction next, then continue the Proven Widget
+4. Physically prove TabView next, then continue the Proven Widget
    Pipeline for the remaining registry widgets.
 5. Begin dedicated Dashboard widgets only after remaining LVGL coverage and proof.
 
@@ -1446,7 +1458,7 @@ Preview dispatch and an LVGL export path. Focused registry/Tray tests and
 component/exporter regressions provide automated evidence; no conclusive
 permanent implementation was found outside the registry, so no registry
 definition was added. The Dashboard category remains intentionally empty.
-Twenty-three of 39 Standard widgets are now physically proven (59%); 16 remain
+Twenty-four of 39 Standard widgets are now physically proven (62%); 15 remain
 to be individually promoted.
 
 ```text
@@ -1476,7 +1488,7 @@ Registry → Tray → Canvas → Inspector → Browser Preview → LVGL Export
 | Slider | implemented / implemented | value setter + genuine-user change hook | **PROVEN** |
 | Spinner | implemented / implemented | presentation-only; no setter or hook | **PROVEN** |
 | Spinbox | implemented / implemented | silent value setter + genuine-user change hook | **PROVEN** |
-| List | implemented / implemented | genuine-user item click hook; no setter | callback **READY FOR PROOF** |
+| List | implemented / implemented | genuine-user item click hook; no setter | **PROVEN** |
 | Roller | implemented / implemented | selected setter + change hook | physically proven |
 | Radio | implemented / implemented | selected setter + change hook; no group model | physically proven |
 | Select | implemented / implemented | index setter + change hook | physically proven |

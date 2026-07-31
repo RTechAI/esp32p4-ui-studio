@@ -5,7 +5,7 @@ how authoring metadata becomes native LVGL firmware and how to preserve parity
 across the complete pipeline.
 
 Current save point:
-`FORGEUI_STANDARD_LIST__ITEM_CLICK_HOOKS__READY_FOR_ESP32P4_PROOF__2026-07-31`.
+`FORGEUI_STANDARD_LIST__VERTICAL_SLICE__ESP32P4_PROVEN__2026-07-31`.
 
 For application-to-hardware examples after export, use
 [05_DEVELOPER_HARDWARE_INTEGRATION.md](05_DEVELOPER_HARDWARE_INTEGRATION.md).
@@ -357,6 +357,17 @@ evidence document. Historical documents belong under `docs/history`.
 
 ## 19. Widget completion checklist
 
+### GPT/operator proof handoff
+
+Treat the active GPT as the technical manager for the complete proof loop. Once
+the software slice, focused tests and both export paths are ready, the required
+handoff phrase is **Export to IDF**. The operator performs the normal Studio
+standalone export, opens it in VS Code, flashes the ESP32-P4, exercises the
+specified interactions and pastes the terminal output back. The GPT audits the
+returned evidence, completes documentation and totals, marks PROVEN only after
+the evidence supports it, and stops before starting another widget. Do not
+substitute repeated direct COM-port troubleshooting unless the operator asks.
+
 - [ ] Official LVGL 9 reference inspected
 - [ ] Registry is authoritative
 - [ ] No earlier partial Standard widget skipped
@@ -409,8 +420,19 @@ parity verification gaps and missing export preflight validation.
 Native LVGL Spinbox is a digit-selection editor, not a free-form numeric text
 field. Use NumberInput when arbitrary numeric text entry is required.
 
-The authoritative registry contains 39 Standard widgets. Spinbox promotion
-raises physical completion to 23/39 (59%), with 16 remaining. List interaction
-is the recommended next proof target after the final registry audit.
+The authoritative registry contains 39 Standard widgets. List promotion raises
+physical completion to 24/39 (62%), with 15 remaining. TabView is the
+recommended next proof target.
+
+### Native List proof
+
+List uses native `lv_list_create`, optional `lv_list_add_text`, and one
+`lv_list_add_button` per normalized item. It has no retained selection state
+and therefore no Runtime setter. Interactive rows generate the collision-safe
+`FG_On_<Name>_Item_Clicked(uint32_t index, const char * text)` hook. On the
+Waveshare ESP32-P4-WIFI6-Touch-LCD-7B, controlled single taps on Network,
+Display, Diagnostics and About produced exactly one callback each with matching
+indices 0â€“3 and text. Live and standalone ESP-IDF 5.5.4 builds use LVGL 9.2.2
+and compile from the same generated output.
 
 See [FORGEUI_SPINBOX_WIDGET.md](docs/FORGEUI_SPINBOX_WIDGET.md).

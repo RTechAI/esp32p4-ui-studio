@@ -6,8 +6,10 @@ import { getForgeUIStandardListModel } from '../ForgeUIStandardList'
 
 const StandardListPreview = ({
   props,
+  mode = 'browser',
 }: {
   props: Record<string, unknown>
+  mode?: 'canvas' | 'browser'
 }) => {
   const palette = resolveForgeSemanticPalette(useForgePreviewPalette())
   const model = getForgeUIStandardListModel(props)
@@ -36,15 +38,25 @@ const StandardListPreview = ({
       )}
       {model.items.map((item, index) => (
         <Box
+          as={mode === 'browser' ? 'button' : 'div'}
           key={`${index}-${item}`}
+          type={mode === 'browser' ? 'button' : undefined}
           minHeight={`${model.itemHeight}px`}
+          width="100%"
           px="12px"
           display="flex"
           alignItems="center"
+          textAlign="left"
           color={palette.textPrimary}
           bg={palette.surfaceSecondary}
           borderTop={`1px solid ${palette.surfaceBorder}`}
           _active={{ bg: palette.selectedSurface, color: palette.accentText }}
+          _focusVisible={{
+            outline: `2px solid ${palette.accent}`,
+            outlineOffset: '-2px',
+          }}
+          cursor={mode === 'browser' ? 'pointer' : 'default'}
+          pointerEvents={mode === 'browser' ? 'auto' : 'none'}
           data-testid="standard-list-item"
         >
           {item}

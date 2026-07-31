@@ -13,7 +13,7 @@
 
 ## Current proven save point
 
-**FORGEUI_STANDARD_SPINBOX__VERTICAL_SLICE__ESP32P4_PROVEN__2026-07-31**
+**FORGEUI_STANDARD_LIST__VERTICAL_SLICE__ESP32P4_PROVEN__2026-07-31**
 
 This document describes the generated SDK surface currently emitted by the
 shared live/Standalone generator. `90_Studio_Export.h` contains callable
@@ -640,8 +640,8 @@ Native LVGL Spinbox is a selected-digit editor. It is not a free-form numeric
 text-entry control; use NumberInput for that interaction model.
 
 The final registry audit records 44 entries: 39 Standard widgets and five
-Interactive Assets. Spinbox raises Standard physical proof to 23/39 (59%),
-leaving 16 widgets for individual promotion.
+Interactive Assets. List raises Standard physical proof to 24/39 (62%),
+leaving 15 widgets for individual promotion.
 
 ### List generated boundary
 
@@ -652,6 +652,11 @@ registers one shared `LV_EVENT_CLICKED` callback with immutable per-row
 `FG_On_<Name>_Item_Clicked(uint32_t index, const char * text)` only after a
 genuine click. Construction is silent. Duplicate component names receive
 `_2`, `_3` and later suffixes before `_Item_Clicked`.
+
+Physical ESP32-P4 proof on LVGL 9.2.2 and ESP-IDF 5.5.4 observed one callback
+for each single touch of Network, Display, Diagnostics and About, carrying
+indices 0, 1, 2 and 3 with the matching generated text. Live and standalone
+exports both compile from identical generated List C/H. List is **PROVEN**.
 
 ### Scale
 
