@@ -132,8 +132,8 @@ Current Standard-widget milestone evidence:
   Preview, native LVGL export, Runtime SDK, `95_UserEvents`, export-time
   gating, live ESP32-P4 firmware and Standalone Export.
 
-The registry contains 39 Standard widgets; 24 are physically proven (62%) and
-15 remain. TabView is the recommended next proof target. Dedicated
+The registry contains 39 Standard widgets; 26 are physically proven (67%) and
+13 remain. TabView and TileView are **PROVEN**. Dedicated
 Dashboard widgets have not started.
 
 ## Hardware support and proof

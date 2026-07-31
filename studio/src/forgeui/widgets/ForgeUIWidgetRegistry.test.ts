@@ -119,6 +119,16 @@ describe('ForgeUI Widget registry', () => {
           itemHeight: 44,
         },
       })
+    expect(forgeUIWidgetDefinitions.find(item => item.type === 'Tileview'))
+      .toMatchObject({
+        documentationId: 'docs/FORGEUI_TILEVIEW_WIDGET.md',
+        capabilities: {
+          featureGate: {
+            mode: 'serialized-widget',
+            lvglConfigDependencies: ['CONFIG_LV_USE_TILEVIEW'],
+          },
+        },
+      })
   })
 
   it('registers Spinbox as native interactive numeric input', () => {
@@ -174,6 +184,10 @@ describe('ForgeUI Widget registry', () => {
   )
 
   it('records real documentation targets and known LVGL dependencies', () => {
+    expect(forgeUIWidgetDefinitions.find(item => item.type === 'List'))
+      .toMatchObject({
+        documentationId: 'docs/FORGEUI_LIST_WIDGET.md',
+      })
     expect(forgeUIWidgetDefinitions.find(item => item.type === 'Spinbox'))
       .toMatchObject({
         documentationId: 'docs/FORGEUI_SPINBOX_WIDGET.md',

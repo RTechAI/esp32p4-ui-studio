@@ -420,19 +420,23 @@ parity verification gaps and missing export preflight validation.
 Native LVGL Spinbox is a digit-selection editor, not a free-form numeric text
 field. Use NumberInput when arbitrary numeric text entry is required.
 
-The authoritative registry contains 39 Standard widgets. List promotion raises
-physical completion to 24/39 (62%), with 15 remaining. TabView is the
-recommended next proof target.
+The authoritative registry contains 39 Standard widgets. With TileView
+promoted and TabView retaining its existing **PROVEN** status, physical
+completion is 26/39 (67%), with 13 remaining.
 
 ### Native List proof
 
 List uses native `lv_list_create`, optional `lv_list_add_text`, and one
 `lv_list_add_button` per normalized item. It has no retained selection state
 and therefore no Runtime setter. Interactive rows generate the collision-safe
-`FG_On_<Name>_Item_Clicked(uint32_t index, const char * text)` hook. On the
-Waveshare ESP32-P4-WIFI6-Touch-LCD-7B, controlled single taps on Network,
-Display, Diagnostics and About produced exactly one callback each with matching
-indices 0â€“3 and text. Live and standalone ESP-IDF 5.5.4 builds use LVGL 9.2.2
-and compile from the same generated output.
+`FG_On_<Name>_Item_Clicked(uint32_t index, const char * text)` hook. `<Name>` is
+derived from the Studio component name and made collision-safe by the generator.
+On the Waveshare ESP32-P4-WIFI6-Touch-LCD-7B, controlled single taps on
+Overview, Settings and Diagnostics produced exactly one callback each with
+matching indices 0, 1 and 2 and text. Repeated taps remained stable; TabView
+and Spinbox continued operating; Wi-Fi remained connected; SD remained ready;
+runtime remained stable; and connected-stage internal RAM was approximately
+39 KB free. Live and standalone ESP-IDF 5.5.4 builds use LVGL 9.2.2 and compile
+from the same generated output. **LIST — PROVEN ON ESP32-P4**.
 
 See [FORGEUI_SPINBOX_WIDGET.md](docs/FORGEUI_SPINBOX_WIDGET.md).

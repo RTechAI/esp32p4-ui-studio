@@ -187,6 +187,6 @@ void FG_Set_<Name>_Value(int32_t value);
 void FG_On_<Name>_Changed(int32_t value);
 ```
 
-The Widget Registry contains 39 Standard widgets. Spinbox raises the physically
-proven total to 23/39 (59%), leaving 16. List interaction is the recommended
-next physical proof target after the final registry audit.
+The Widget Registry contains 39 Standard widgets. Following the subsequent
+TileView promotion means 26/39 (67%) are physically proven and 13 remain. TabView
+retains its **PROVEN** status.

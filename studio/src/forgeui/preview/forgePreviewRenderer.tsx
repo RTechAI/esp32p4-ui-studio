@@ -786,7 +786,7 @@ case 'Tabview': {
 case 'Tileview': {
   output.push(
     <Box key={child.id} {...commonStyle}>
-      <StandardTileViewPreview component={child} palette={palette} />
+      <StandardTileViewPreview component={child} palette={palette} mode="browser" />
     </Box>,
   )
   break

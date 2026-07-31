@@ -30,9 +30,20 @@ static int32_t fg_spinbox_spinbox_value = 7;
 static bool fg_spinbox_spinbox_programmatic_update = false;
 static const int32_t fg_spinbox_spinbox_minimum = 0;
 static const int32_t fg_spinbox_spinbox_maximum = 99999;
+typedef void (*fg_list_item_hook_t)(uint32_t index, const char * text);
+typedef struct { uint32_t index; const char * text; fg_list_item_hook_t hook; } fg_list_item_event_data_t;
+static const fg_list_item_event_data_t fg_list_list_item_0_data = { 0, "Overview", FG_On_List_Item_Clicked };
+static const fg_list_item_event_data_t fg_list_list_item_1_data = { 1, "Settings", FG_On_List_Item_Clicked };
+static const fg_list_item_event_data_t fg_list_list_item_2_data = { 2, "Diagnostics", FG_On_List_Item_Clicked };
 static lv_obj_t * fg_tab_view_tabview = NULL;
 static uint32_t fg_tab_view_tabview_selected_index = 0;
 static const uint32_t fg_tab_view_tabview_tab_count = 3;
+static lv_obj_t * fg_tileview_tileview = NULL;
+static lv_obj_t * fg_tileview_tileview_tiles[2][2] = {{NULL, NULL}, {NULL, NULL}};
+static uint32_t fg_tileview_tileview_selected_column = 0;
+static uint32_t fg_tileview_tileview_selected_row = 0;
+static const uint32_t fg_tileview_tileview_column_count = 2;
+static const uint32_t fg_tileview_tileview_row_count = 2;
 static lv_obj_t * fg_system_wifi_page = NULL;
 static lv_obj_t * fg_system_wifi_state_label = NULL;
 static lv_obj_t * fg_system_wifi_ssid_label = NULL;
@@ -195,6 +206,19 @@ void FG_Set_Spinbox_Value(int32_t value)
     fg_spinbox_spinbox_programmatic_update = false;
 }
 
+static void fg_list_item_clicked_cb(lv_event_t * event)
+{
+    const fg_list_item_event_data_t * data = lv_event_get_user_data(event);
+    if (data == NULL || data->hook == NULL) return;
+    data->hook(data->index, data->text);
+}
+
+static void fg_comp_ms9_j6_z31_j3065_clicked_cb(lv_event_t * event)
+{
+    LV_UNUSED(event);
+    FG_On_Comp_MS9_J6_Z31_J3065_Clicked();
+}
+
 static void fg_tab_view_tabview_apply_selection(uint32_t tab_index, bool update_widget)
 {
     if (fg_tab_view_tabview == NULL || fg_tab_view_tabview_tab_count == 0) return;
@@ -215,6 +239,41 @@ static void fg_tab_view_tabview_value_changed_cb(lv_event_t * event)
 void FG_Set_Tab_View_Selected(uint32_t tab_index)
 {
     fg_tab_view_tabview_apply_selection(tab_index, true);
+}
+
+static void fg_tileview_tileview_apply_selection(uint32_t column, uint32_t row, bool from_user)
+{
+    if (fg_tileview_tileview == NULL || fg_tileview_tileview_column_count == 0 || fg_tileview_tileview_row_count == 0) return;
+    if (column >= fg_tileview_tileview_column_count) column = fg_tileview_tileview_column_count - 1;
+    if (row >= fg_tileview_tileview_row_count) row = fg_tileview_tileview_row_count - 1;
+    if (column == fg_tileview_tileview_selected_column && row == fg_tileview_tileview_selected_row) return;
+    lv_obj_t * tile = fg_tileview_tileview_tiles[column][row];
+    if (tile == NULL) return;
+    fg_tileview_tileview_selected_column = column;
+    fg_tileview_tileview_selected_row = row;
+    if (!from_user) lv_tileview_set_tile(fg_tileview_tileview, tile, LV_ANIM_OFF);
+    if (from_user) FG_On_Tileview_Changed(column, row);
+}
+
+static void fg_tileview_tileview_value_changed_cb(lv_event_t * event)
+{
+    lv_obj_t * tileview = lv_event_get_current_target(event);
+    if (tileview != fg_tileview_tileview) return;
+    lv_obj_t * selected_tile = lv_tileview_get_tile_active(tileview);
+    if (selected_tile == NULL) return;
+    for (uint32_t column = 0; column < fg_tileview_tileview_column_count; ++column) {
+        for (uint32_t row = 0; row < fg_tileview_tileview_row_count; ++row) {
+            if (fg_tileview_tileview_tiles[column][row] == selected_tile) {
+                fg_tileview_tileview_apply_selection(column, row, true);
+                return;
+            }
+        }
+    }
+}
+
+void FG_Set_Tileview_Selected(uint32_t column, uint32_t row)
+{
+    fg_tileview_tileview_apply_selection(column, row, false);
 }
 
 static void FG_Set_Display_Brightness(uint8_t percent)
@@ -1509,6 +1568,151 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_label_set_text(obj2_lbl3, "Tab 3 content");
     lv_obj_set_style_text_color(obj2_lbl3, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
     lv_obj_center(obj2_lbl3);
+
+    lv_obj_t * obj3 = lv_list_create(fg_application_page);
+    lv_obj_set_pos(obj3, 171, 268);
+    lv_obj_set_size(obj3, 260, 220);
+    lv_obj_set_style_bg_color(obj3, lv_color_hex(0x1E2328), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(obj3, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_border_color(obj3, lv_color_hex(0xF2A900), LV_PART_MAIN);
+    lv_obj_set_style_border_width(obj3, 1, LV_PART_MAIN);
+    lv_obj_set_style_radius(obj3, 8, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(obj3, 0, LV_PART_MAIN);
+    lv_obj_t * obj3_title = lv_list_add_text(obj3, "Menu");
+    lv_obj_set_style_text_color(obj3_title, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(obj3_title, lv_color_hex(0x1E2328), LV_PART_MAIN);
+    lv_obj_t * obj3_item_0 = lv_list_add_button(obj3, NULL, "Overview");
+    lv_obj_set_height(obj3_item_0, 44);
+    lv_obj_set_style_bg_color(obj3_item_0, lv_color_hex(0x2A3138), LV_PART_MAIN);
+    lv_obj_set_style_text_color(obj3_item_0, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
+    lv_obj_set_style_border_color(obj3_item_0, lv_color_hex(0xF2A900), LV_PART_MAIN);
+    lv_obj_set_style_border_width(obj3_item_0, 1, LV_PART_MAIN);
+    lv_obj_set_style_radius(obj3_item_0, 0, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(obj3_item_0, lv_color_hex(0xF2A900), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_set_style_text_color(obj3_item_0, lv_color_hex(0x121417), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_add_event_cb(obj3_item_0, fg_list_item_clicked_cb, LV_EVENT_CLICKED, (void *)&fg_list_list_item_0_data);
+    lv_obj_t * obj3_item_1 = lv_list_add_button(obj3, NULL, "Settings");
+    lv_obj_set_height(obj3_item_1, 44);
+    lv_obj_set_style_bg_color(obj3_item_1, lv_color_hex(0x2A3138), LV_PART_MAIN);
+    lv_obj_set_style_text_color(obj3_item_1, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
+    lv_obj_set_style_border_color(obj3_item_1, lv_color_hex(0xF2A900), LV_PART_MAIN);
+    lv_obj_set_style_border_width(obj3_item_1, 1, LV_PART_MAIN);
+    lv_obj_set_style_radius(obj3_item_1, 0, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(obj3_item_1, lv_color_hex(0xF2A900), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_set_style_text_color(obj3_item_1, lv_color_hex(0x121417), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_add_event_cb(obj3_item_1, fg_list_item_clicked_cb, LV_EVENT_CLICKED, (void *)&fg_list_list_item_1_data);
+    lv_obj_t * obj3_item_2 = lv_list_add_button(obj3, NULL, "Diagnostics");
+    lv_obj_set_height(obj3_item_2, 44);
+    lv_obj_set_style_bg_color(obj3_item_2, lv_color_hex(0x2A3138), LV_PART_MAIN);
+    lv_obj_set_style_text_color(obj3_item_2, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
+    lv_obj_set_style_border_color(obj3_item_2, lv_color_hex(0xF2A900), LV_PART_MAIN);
+    lv_obj_set_style_border_width(obj3_item_2, 1, LV_PART_MAIN);
+    lv_obj_set_style_radius(obj3_item_2, 0, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(obj3_item_2, lv_color_hex(0xF2A900), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_set_style_text_color(obj3_item_2, lv_color_hex(0x121417), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_add_event_cb(obj3_item_2, fg_list_item_clicked_cb, LV_EVENT_CLICKED, (void *)&fg_list_list_item_2_data);
+
+    fg_tileview_tileview = lv_tileview_create(fg_application_page);
+    lv_obj_t * obj4 = fg_tileview_tileview;
+    lv_obj_set_pos(obj4, 557, 338);
+    lv_obj_set_size(obj4, 360, 240);
+    lv_obj_set_style_bg_color(obj4, lv_color_hex(0x1E2328), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(obj4, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_border_color(obj4, lv_color_hex(0xF2A900), LV_PART_MAIN);
+    lv_obj_set_style_border_width(obj4, 1, LV_PART_MAIN);
+    lv_obj_set_style_radius(obj4, 10, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(obj4, 0, LV_PART_MAIN);
+    lv_obj_set_style_clip_corner(obj4, true, LV_PART_MAIN);
+    lv_obj_t * obj4_tile1 = lv_tileview_add_tile(obj4, 0, 0, LV_DIR_RIGHT | LV_DIR_BOTTOM);
+    lv_obj_set_style_pad_all(obj4_tile1, 0, LV_PART_MAIN);
+    lv_obj_t * obj4_tile2 = lv_tileview_add_tile(obj4, 1, 0, LV_DIR_LEFT | LV_DIR_BOTTOM);
+    lv_obj_set_style_pad_all(obj4_tile2, 0, LV_PART_MAIN);
+    lv_obj_t * obj4_tile3 = lv_tileview_add_tile(obj4, 0, 1, LV_DIR_RIGHT | LV_DIR_TOP);
+    lv_obj_set_style_pad_all(obj4_tile3, 0, LV_PART_MAIN);
+    lv_obj_t * obj4_tile4 = lv_tileview_add_tile(obj4, 1, 1, LV_DIR_LEFT | LV_DIR_TOP);
+    lv_obj_set_style_pad_all(obj4_tile4, 0, LV_PART_MAIN);
+    fg_tileview_tileview_tiles[0][0] = obj4_tile1;
+    fg_tileview_tileview_tiles[1][0] = obj4_tile2;
+    fg_tileview_tileview_tiles[0][1] = obj4_tile3;
+    fg_tileview_tileview_tiles[1][1] = obj4_tile4;
+    lv_obj_set_style_bg_color(obj4_tile1, lv_color_hex(0x2A3138), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(obj4_tile1, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_text_color(obj4_tile1, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
+    lv_obj_set_style_border_color(obj4_tile1, lv_color_hex(0xF2A900), LV_PART_MAIN);
+    lv_obj_set_style_border_width(obj4_tile1, 1, LV_PART_MAIN);
+    lv_obj_set_style_radius(obj4_tile1, 10, LV_PART_MAIN);
+    lv_obj_clear_flag(obj4_tile1, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_bg_color(obj4_tile2, lv_color_hex(0x2A3138), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(obj4_tile2, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_text_color(obj4_tile2, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
+    lv_obj_set_style_border_color(obj4_tile2, lv_color_hex(0xF2A900), LV_PART_MAIN);
+    lv_obj_set_style_border_width(obj4_tile2, 1, LV_PART_MAIN);
+    lv_obj_set_style_radius(obj4_tile2, 10, LV_PART_MAIN);
+    lv_obj_clear_flag(obj4_tile2, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_bg_color(obj4_tile3, lv_color_hex(0x2A3138), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(obj4_tile3, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_text_color(obj4_tile3, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
+    lv_obj_set_style_border_color(obj4_tile3, lv_color_hex(0xF2A900), LV_PART_MAIN);
+    lv_obj_set_style_border_width(obj4_tile3, 1, LV_PART_MAIN);
+    lv_obj_set_style_radius(obj4_tile3, 10, LV_PART_MAIN);
+    lv_obj_clear_flag(obj4_tile3, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_bg_color(obj4_tile4, lv_color_hex(0x2A3138), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(obj4_tile4, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_text_color(obj4_tile4, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
+    lv_obj_set_style_border_color(obj4_tile4, lv_color_hex(0xF2A900), LV_PART_MAIN);
+    lv_obj_set_style_border_width(obj4_tile4, 1, LV_PART_MAIN);
+    lv_obj_set_style_radius(obj4_tile4, 10, LV_PART_MAIN);
+    lv_obj_clear_flag(obj4_tile4, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_t * obj4_lbl1 = lv_label_create(obj4_tile1);
+    lv_label_set_text(obj4_lbl1, "Tile 1");
+    lv_obj_clear_flag(obj4_lbl1, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_center(obj4_lbl1);
+    lv_obj_t * obj4_lbl2 = lv_label_create(obj4_tile2);
+    lv_label_set_text(obj4_lbl2, "Tile 2");
+    lv_obj_clear_flag(obj4_lbl2, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_center(obj4_lbl2);
+    lv_obj_t * obj4_lbl3 = lv_label_create(obj4_tile3);
+    lv_label_set_text(obj4_lbl3, "Tile 3");
+    lv_obj_clear_flag(obj4_lbl3, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_center(obj4_lbl3);
+    lv_obj_t * obj4_lbl4 = lv_label_create(obj4_tile4);
+    lv_label_set_text(obj4_lbl4, "Tile 4");
+    lv_obj_clear_flag(obj4_lbl4, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_center(obj4_lbl4);
+    fg_tileview_tileview_selected_column = 0;
+    fg_tileview_tileview_selected_row = 0;
+    lv_tileview_set_tile_by_index(obj4, 0, 0, LV_ANIM_OFF);
+    lv_obj_add_event_cb(obj4, fg_tileview_tileview_value_changed_cb, LV_EVENT_VALUE_CHANGED, NULL);
+
+    lv_obj_t * obj5 = lv_button_create(fg_application_page);
+    lv_obj_set_pos(obj5, 106, 63);
+    lv_obj_set_size(obj5, 120, 40);
+    lv_obj_set_style_radius(obj5, 12, 0);
+    lv_obj_set_style_bg_color(obj5, lv_color_hex(0x1E2328), 0);
+    lv_obj_set_style_bg_opa(obj5, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_color(obj5, lv_color_hex(0xF2A900), 0);
+    lv_obj_set_style_border_width(obj5, 2, 0);
+    lv_obj_set_style_bg_color(obj5, lv_color_hex(0xF2A900), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_set_style_border_color(obj5, lv_color_hex(0xF2A900), LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_bg_color(obj5, lv_color_hex(0x2A3138), LV_PART_MAIN | LV_STATE_DISABLED);
+    lv_obj_set_style_text_color(obj5, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
+    lv_obj_set_style_text_color(obj5, lv_color_hex(0x121417), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_set_style_text_color(obj5, lv_color_hex(0x7F8284), LV_PART_MAIN | LV_STATE_DISABLED);
+    lv_obj_t * obj5_label = lv_label_create(obj5);
+    lv_label_set_text(obj5_label, "press button");
+    lv_obj_set_style_text_font(obj5_label, &lv_font_montserrat_14, 0);
+    lv_obj_set_style_text_align(obj5_label, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_center(obj5_label);
+    lv_obj_add_event_cb(obj5, fg_comp_ms9_j6_z31_j3065_clicked_cb, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_t * obj6 = lv_label_create(fg_application_page);
+    lv_label_set_text(obj6, "press text");
+    lv_obj_set_pos(obj6, 320, 81);
+    lv_obj_set_size(obj6, 80, 24);
+    lv_label_set_long_mode(obj6, LV_LABEL_LONG_WRAP);
+    lv_obj_set_style_text_color(obj6, lv_color_hex(0xF5F5F5), 0);
+    lv_obj_set_style_text_font(obj6, &lv_font_montserrat_24, 0);
+    lv_obj_set_style_text_align(obj6, LV_TEXT_ALIGN_LEFT, 0);
 
 
     fg_ram_probe_log("02 after application page creation");

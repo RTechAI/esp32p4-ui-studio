@@ -1082,6 +1082,7 @@ case 'Tileview':
       <StandardTileViewPreview
         component={component}
         palette={previewPalette}
+        mode="canvas"
       />
     </PreviewContainer>
   )

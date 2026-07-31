@@ -48,17 +48,35 @@ ForgeUI's normal `_2`, `_3` collision-safe suffixes.
 
 ## Proof status
 
-**PROVEN.** Registry, Tray, Inspector, Canvas, Browser Preview, serialization
-defaults, native LVGL export, theme integration, `95_UserEvents`, authoritative
-`CONFIG_LV_USE_LIST` gating, live Studio firmware, standalone export and
-focused automated tests are complete.
+**LIST — PROVEN ON ESP32-P4.** The completed authoritative pipeline is:
+
+```text
+Official LVGL Reference
+→ Widget Registry
+→ Widget Tray
+→ Canvas
+→ Inspector
+→ Browser Preview
+→ Native LVGL Export
+→ 95_UserEvents
+→ Live Studio firmware
+→ Standalone Export
+→ ESP32-P4 physical proof
+→ Documentation
+→ PROVEN
+```
+
+Serialization defaults, semantic theme integration, authoritative
+`CONFIG_LV_USE_LIST` gating and focused automated tests are also complete.
 
 Physical validation used the Waveshare ESP32-P4-WIFI6-Touch-LCD-7B with
-ESP-IDF 5.5.4 and LVGL 9.2.2. The generated List rendered its title and four
-native rows. Controlled single touches on Network, Display, Diagnostics and
-About produced exactly one callback each, with zero-based indices 0â€“3 and the
-matching generated text. Live and standalone projects both built successfully
-from equivalent generated C/H output.
+ESP-IDF 5.5.4 and LVGL 9.2.2. Startup was silent. Controlled taps emitted item
+`0` / `Overview`, item `1` / `Settings` and item `2` / `Diagnostics`, with
+exactly one callback per tap. Repeated row taps remained stable. TabView and
+Spinbox continued operating afterward, Wi-Fi remained connected, SD remained
+ready and the runtime remained stable. Connected-stage internal RAM was
+approximately 39 KB free. Live and standalone projects both build from the
+same generated List C/H contract.
 
 Proof also exposed and resolved two parity/architecture gaps: Browser Preview
 rows now behave as buttons while Canvas rows remain editor-safe, and List

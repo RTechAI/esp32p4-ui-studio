@@ -18,7 +18,6 @@ import {
 import {
   FORGEUI_TAB_TILE_BORDER_WIDTH,
   getForgeUITabViewGeometry,
-  getForgeUITileViewGeometry,
 } from './ForgeUIStandardTabTileGeometry'
 import {
   getForgeUIStandardClockPresentation,
@@ -180,6 +179,22 @@ const esc = (v: string = '') =>
     .replace(/\n/g, '\\n')
     .replace(/\t/g, '\\t')
 
+const supportedMontserratSizes = [12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 36, 40, 48]
+
+const resolveMontserratSize = (value: unknown, fallback: number) => {
+  const requested = Number(value)
+  if (!Number.isFinite(requested)) return fallback
+  return supportedMontserratSizes.reduce((nearest, size) =>
+    Math.abs(size - requested) < Math.abs(nearest - requested) ? size : nearest,
+  supportedMontserratSizes[0])
+}
+
+const resolveLvTextAlign = (value: unknown) => {
+  if (value === 'center') return 'LV_TEXT_ALIGN_CENTER'
+  if (value === 'right' || value === 'end') return 'LV_TEXT_ALIGN_RIGHT'
+  return 'LV_TEXT_ALIGN_LEFT'
+}
+
 const toCIdentifier = (
   value: string,
   fallback = 'InteractiveButton',
@@ -216,6 +231,39 @@ const createUniqueHookName = (
   usedHookNames.add(hookName)
 
   return hookName
+}
+
+type ButtonExport = {
+  hookName: string
+  eventCallbackName: string
+}
+
+const createButtonExports = (
+  components: IComponents,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+): Map<string, ButtonExport> => {
+  const result = new Map<string, ButtonExport>()
+  Object.values(components)
+    .filter(component => component.type === 'Button')
+    .sort((a, b) => a.id.localeCompare(b.id))
+    .forEach(component => {
+      const baseName = toCIdentifier(
+        component.componentName || component.id,
+        'Button',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      const hookName = createUniqueHookName(baseName, usedHookNames)
+      const runtimeStem = hookName
+        .replace(/^FG_On_/, '')
+        .replace(/_Clicked$/, '')
+        .toLowerCase()
+      userEventHooks.add(hookName)
+      result.set(component.id, {
+        hookName,
+        eventCallbackName: `fg_${runtimeStem}_clicked_cb`,
+      })
+    })
+  return result
 }
 
 const createUniqueToggleHookName = (baseName: string, usedHookNames: Set<string>) => {
@@ -2423,6 +2471,7 @@ const buildLvglBlock = (
   checkboxExports: Map<string, SwitchExport>,
   radioExports: Map<string, RadioExport>,
   qrCodeExports: Map<string, QRCodeExport>,
+  buttonExports: Map<string, ButtonExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -2439,18 +2488,20 @@ const buildLvglBlock = (
     switch (child.type) {
       case 'Text': {
         const text = esc(getForgeUIStandardTextValue(child.props))
-
-
-
         const color = palette.textPrimary
-
-        const fontSize = lv(child.props.fontSize, 24)
+        const fontSize = resolveMontserratSize(child.props.fontSize, 24)
+        const textAlign = resolveLvTextAlign(
+          child.props.textAlign || child.props.align,
+        )
 
         lines.push(`lv_obj_t * ${varName} = lv_label_create(${parentVar});`)
-        lines.push(`lv_label_set_text(${varName}, "${text}");`)
         lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
+        lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
+        lines.push(`lv_label_set_long_mode(${varName}, LV_LABEL_LONG_WRAP);`)
+        lines.push(`lv_label_set_text(${varName}, "${text}");`)
         lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${color}), 0);`)
         lines.push(`lv_obj_set_style_text_font(${varName}, &lv_font_montserrat_${fontSize}, 0);`)
+        lines.push(`lv_obj_set_style_text_align(${varName}, ${textAlign}, 0);`)
         lines.push(``)
         break
       }
@@ -2506,6 +2557,7 @@ case 'WiFi': {
       
             case 'Button': {
         const text = esc(getForgeUIStandardButtonText(child.props))
+        const buttonExport = buttonExports.get(child.id)
 
         lines.push(`lv_obj_t * ${varName} = lv_button_create(${parentVar});`)
         lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
@@ -2527,6 +2579,9 @@ case 'WiFi': {
         lines.push(`lv_obj_set_style_text_font(${varName}_label, &lv_font_montserrat_14, 0);`)
         lines.push(`lv_obj_set_style_text_align(${varName}_label, LV_TEXT_ALIGN_CENTER, 0);`)
         lines.push(`lv_obj_center(${varName}_label);`)
+        if (buttonExport) {
+          lines.push(`lv_obj_add_event_cb(${varName}, ${buttonExport.eventCallbackName}, LV_EVENT_CLICKED, NULL);`)
+        }
         lines.push(``)
         break
       }
@@ -4002,8 +4057,7 @@ case 'Tabview': {
 case 'Tileview': {
   const tileViewExport = tileViewExports.get(child.id)
   const tileViewObject = tileViewExport?.objectName || varName
-  const tileGeometry = getForgeUITileViewGeometry(child.props)
-  lines.push(`${tileViewObject} = lv_obj_create(${parentVar});`)
+  lines.push(`${tileViewObject} = lv_tileview_create(${parentVar});`)
   lines.push(`lv_obj_t * ${varName} = ${tileViewObject};`)
   lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
   lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
@@ -4014,18 +4068,15 @@ case 'Tileview': {
   lines.push(`lv_obj_set_style_border_width(${varName}, ${FORGEUI_TAB_TILE_BORDER_WIDTH}, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_radius(${varName}, 10, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_pad_all(${varName}, 0, LV_PART_MAIN);`)
-  lines.push(`lv_obj_clear_flag(${varName}, LV_OBJ_FLAG_SCROLLABLE);`)
   lines.push(`lv_obj_set_style_clip_corner(${varName}, true, LV_PART_MAIN);`)
 
   ;[
-    { number: 1, column: 0, row: 0 },
-    { number: 2, column: 1, row: 0 },
-    { number: 3, column: 0, row: 1 },
-    { number: 4, column: 1, row: 1 },
-  ].forEach(({ number, column, row }) => {
-    lines.push(`lv_obj_t * ${varName}_tile${number} = lv_obj_create(${varName});`)
-    lines.push(`lv_obj_set_pos(${varName}_tile${number}, ${tileGeometry.columnX[column]}, ${tileGeometry.rowY[row]});`)
-    lines.push(`lv_obj_set_size(${varName}_tile${number}, ${tileGeometry.columnWidths[column]}, ${tileGeometry.rowHeights[row]});`)
+    { number: 1, column: 0, row: 0, direction: 'LV_DIR_RIGHT | LV_DIR_BOTTOM' },
+    { number: 2, column: 1, row: 0, direction: 'LV_DIR_LEFT | LV_DIR_BOTTOM' },
+    { number: 3, column: 0, row: 1, direction: 'LV_DIR_RIGHT | LV_DIR_TOP' },
+    { number: 4, column: 1, row: 1, direction: 'LV_DIR_LEFT | LV_DIR_TOP' },
+  ].forEach(({ number, column, row, direction }) => {
+    lines.push(`lv_obj_t * ${varName}_tile${number} = lv_tileview_add_tile(${varName}, ${column}, ${row}, ${direction});`)
     lines.push(`lv_obj_set_style_pad_all(${varName}_tile${number}, 0, LV_PART_MAIN);`)
   })
   if (tileViewExport) {
@@ -4042,13 +4093,7 @@ case 'Tileview': {
     lines.push(`lv_obj_set_style_border_color(${varName}_tile${n}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
     lines.push(`lv_obj_set_style_border_width(${varName}_tile${n}, 1, LV_PART_MAIN);`)
     lines.push(`lv_obj_set_style_radius(${varName}_tile${n}, 10, LV_PART_MAIN);`)
-    lines.push(`lv_obj_set_style_bg_color(${varName}_tile${n}, lv_color_hex(${palette.selectedSurface}), LV_PART_MAIN | LV_STATE_CHECKED);`)
-    lines.push(`lv_obj_set_style_bg_opa(${varName}_tile${n}, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_CHECKED);`)
-    lines.push(`lv_obj_set_style_text_color(${varName}_tile${n}, lv_color_hex(${palette.accentText}), LV_PART_MAIN | LV_STATE_CHECKED);`)
     lines.push(`lv_obj_clear_flag(${varName}_tile${n}, LV_OBJ_FLAG_SCROLLABLE);`)
-    if (tileViewExport) {
-      lines.push(`lv_obj_add_event_cb(${varName}_tile${n}, ${tileViewExport.eventCallbackName}, LV_EVENT_CLICKED, NULL);`)
-    }
   })
 
   lines.push(`lv_obj_t * ${varName}_lbl1 = lv_label_create(${varName}_tile1);`)
@@ -4074,7 +4119,8 @@ case 'Tileview': {
   if (tileViewExport) {
     lines.push(`${tileViewExport.selectedColumnName} = ${tileViewExport.initialColumn};`)
     lines.push(`${tileViewExport.selectedRowName} = ${tileViewExport.initialRow};`)
-    lines.push(`lv_obj_add_state(${tileViewExport.tilesName}[${tileViewExport.initialColumn}][${tileViewExport.initialRow}], LV_STATE_CHECKED);`)
+    lines.push(`lv_tileview_set_tile_by_index(${varName}, ${tileViewExport.initialColumn}, ${tileViewExport.initialRow}, LV_ANIM_OFF);`)
+    lines.push(`lv_obj_add_event_cb(${varName}, ${tileViewExport.eventCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
   }
 
   lines.push(``)
@@ -4587,6 +4633,7 @@ case 'Chart': {
         checkboxExports,
         radioExports,
         qrCodeExports,
+        buttonExports,
       )
     }
   })
@@ -4784,6 +4831,11 @@ export const generateForgeUILvglCode = (
   const usedAssetSources = new Set<string>()
   const usedHookNames = new Set<string>()
   const userEventHooks = new Set<string>()
+  const buttonExports = createButtonExports(
+    components,
+    usedHookNames,
+    userEventHooks,
+  )
   const listExports = createListExports(
     components,
     usedHookNames,
@@ -6360,6 +6412,15 @@ const backgroundMode =
     lines.push(``)
   }
 
+  buttonExports.forEach(buttonExport => {
+    lines.push(`static void ${buttonExport.eventCallbackName}(lv_event_t * event)`)
+    lines.push(`{`)
+    lines.push(`    LV_UNUSED(event);`)
+    lines.push(`    ${buttonExport.hookName}();`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
   buttonMatrixExports.forEach(matrixExport => {
     lines.push(`static void ${matrixExport.transitionName}(uint32_t button_index, bool update_widget)`)
     lines.push(`{`)
@@ -6419,31 +6480,30 @@ const backgroundMode =
   })
 
   tileViewExports.forEach(tileViewExport => {
-    lines.push(`static void ${tileViewExport.transitionName}(uint32_t column, uint32_t row, bool update_widget)`)
+    lines.push(`static void ${tileViewExport.transitionName}(uint32_t column, uint32_t row, bool from_user)`)
     lines.push(`{`)
-    lines.push(`    (void)update_widget;`)
     lines.push(`    if (${tileViewExport.objectName} == NULL || ${tileViewExport.columnCountName} == 0 || ${tileViewExport.rowCountName} == 0) return;`)
     lines.push(`    if (column >= ${tileViewExport.columnCountName}) column = ${tileViewExport.columnCountName} - 1;`)
     lines.push(`    if (row >= ${tileViewExport.rowCountName}) row = ${tileViewExport.rowCountName} - 1;`)
     lines.push(`    if (column == ${tileViewExport.selectedColumnName} && row == ${tileViewExport.selectedRowName}) return;`)
     lines.push(`    lv_obj_t * tile = ${tileViewExport.tilesName}[column][row];`)
     lines.push(`    if (tile == NULL) return;`)
-    lines.push(`    lv_obj_t * previous_tile = ${tileViewExport.tilesName}[${tileViewExport.selectedColumnName}][${tileViewExport.selectedRowName}];`)
-    lines.push(`    if (previous_tile != NULL) lv_obj_clear_state(previous_tile, LV_STATE_CHECKED);`)
     lines.push(`    ${tileViewExport.selectedColumnName} = column;`)
     lines.push(`    ${tileViewExport.selectedRowName} = row;`)
-    lines.push(`    lv_obj_add_state(tile, LV_STATE_CHECKED);`)
-    lines.push(`    ${tileViewExport.hookName}(column, row);`)
+    lines.push(`    if (!from_user) lv_tileview_set_tile(${tileViewExport.objectName}, tile, LV_ANIM_OFF);`)
+    lines.push(`    if (from_user) ${tileViewExport.hookName}(column, row);`)
     lines.push(`}`)
     lines.push(``)
     lines.push(`static void ${tileViewExport.eventCallbackName}(lv_event_t * event)`)
     lines.push(`{`)
-    lines.push(`    lv_obj_t * selected_tile = lv_event_get_current_target(event);`)
+    lines.push(`    lv_obj_t * tileview = lv_event_get_current_target(event);`)
+    lines.push(`    if (tileview != ${tileViewExport.objectName}) return;`)
+    lines.push(`    lv_obj_t * selected_tile = lv_tileview_get_tile_active(tileview);`)
     lines.push(`    if (selected_tile == NULL) return;`)
     lines.push(`    for (uint32_t column = 0; column < ${tileViewExport.columnCountName}; ++column) {`)
     lines.push(`        for (uint32_t row = 0; row < ${tileViewExport.rowCountName}; ++row) {`)
     lines.push(`            if (${tileViewExport.tilesName}[column][row] == selected_tile) {`)
-    lines.push(`                ${tileViewExport.transitionName}(column, row, false);`)
+    lines.push(`                ${tileViewExport.transitionName}(column, row, true);`)
     lines.push(`                return;`)
     lines.push(`            }`)
     lines.push(`        }`)
@@ -6452,7 +6512,7 @@ const backgroundMode =
     lines.push(``)
     lines.push(`void ${tileViewExport.apiName}(uint32_t column, uint32_t row)`)
     lines.push(`{`)
-    lines.push(`    ${tileViewExport.transitionName}(column, row, true);`)
+    lines.push(`    ${tileViewExport.transitionName}(column, row, false);`)
     lines.push(`}`)
     lines.push(``)
   })
@@ -7674,6 +7734,7 @@ lines.push(`    fg_system_root = parent;`)
         checkboxExports,
         radioExports,
         qrCodeExports,
+        buttonExports,
       )
   }
 

@@ -87,17 +87,17 @@ describe('Standard Canvas, TabView, and TileView parity previews', () => {
       background: '#0F2A30',
       border: '1px solid #14B8A6',
       borderRadius: '10px',
-      padding: '8px',
-      gap: '6px',
     })
     expect(screen.getByTestId('standard-tileview-tile-1'))
       .toHaveAttribute('data-selected', 'true')
 
-    fireEvent.click(screen.getByTestId('standard-tileview-tile-2'))
+    fireEvent.keyDown(screen.getByTestId('standard-tileview-preview'), {
+      key: 'ArrowDown',
+    })
 
     expect(screen.getByTestId('standard-tileview-tile-1'))
       .toHaveAttribute('data-selected', 'false')
-    expect(screen.getByTestId('standard-tileview-tile-2'))
+    expect(screen.getByTestId('standard-tileview-tile-3'))
       .toHaveAttribute('data-selected', 'true')
   })
 })

@@ -47,6 +47,28 @@ describe('generated public UI API headers', () => {
     expect(files.source).not.toContain('FG_Set_Status_Light')
   })
 
+  it('generates and preserves Standard Button click hooks without a setter', () => {
+    const hook = 'FG_On_Primary_Action_Clicked'
+    const generated = generateUserEventFiles([hook], [])
+    expect(generated.header).toContain(`void ${hook}(void);`)
+    expect(generated.source).toContain(`void ${hook}(void)`)
+    expect(generated.source).toContain(
+      '[ForgeUI User Event] FG_On_Primary_Action_Clicked\\n',
+    )
+    expect(generateStudioExportHeader([])).not.toContain(
+      'FG_Set_Primary_Action',
+    )
+
+    const preserved = preserveUserEventFiles(
+      `#include "95_UserEvents.h"\n\nvoid ${hook}(void)\n{\n    developer_action();\n}\n`,
+      `#pragma once\nvoid ${hook}(void);\n`,
+      generated,
+    )
+    expect(preserved.source).toContain('developer_action();')
+    expect(preserved.source.match(new RegExp(`void ${hook}`, 'g')))
+      .toHaveLength(1)
+  })
+
   it('generates persistent Toggle Switch hooks with the new boolean state', () => {
     const files = generateUserEventFiles(['FG_On_Main_Power_Toggled'])
     expect(files.hooks).toEqual(['FG_On_Main_Power_Toggled'])

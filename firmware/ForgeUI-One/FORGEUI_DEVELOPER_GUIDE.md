@@ -43,14 +43,20 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
+- `FG_On_Comp_MS9_J6_Z31_J3065_Clicked()`
+- `FG_On_List_Item_Clicked()`
 - `FG_On_Tab_View_Changed()`
+- `FG_On_Tileview_Changed()`
 - `FG_On_Spinbox_Changed()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
+| Comp_MS9_J6_Z31_J3065 | Click | `FG_On_Comp_MS9_J6_Z31_J3065_Clicked()` |
+| List | List item click | `FG_On_List_Item_Clicked(uint32_t index, const char * text)` |
 | Tab_View_Changed | Click | `FG_On_Tab_View_Changed()` |
+| Tileview_Changed | Click | `FG_On_Tileview_Changed()` |
 | Spinbox_Changed | Click | `FG_On_Spinbox_Changed()` |
 
 ---

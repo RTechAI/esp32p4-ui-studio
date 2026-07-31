@@ -103,4 +103,42 @@ describe('standard Text value', () => {
   it('preserves an intentionally empty Text Value', () => {
     expect(getForgeUIStandardTextValue({ textValue: '' })).toBe('')
   })
+
+  it('preserves multiline text in Canvas and Browser Preview', () => {
+    render(
+      <ChakraProvider>
+        <ForgeThemeProvider>
+          <TextPreview component={textComponent({ textValue: 'Line 1\nLine 2' })} />
+          <BrowserPreview component={textComponent({ textValue: 'Line 1\nLine 2' })} />
+        </ForgeThemeProvider>
+      </ChakraProvider>,
+    )
+    screen.getAllByTestId('standard-text-preview').forEach(node => {
+      expect(node).toHaveTextContent('Line 1 Line 2')
+      expect(node).toHaveStyle({
+        overflow: 'hidden',
+        whiteSpace: 'pre-wrap',
+        overflowWrap: 'anywhere',
+      })
+    })
+  })
+
+  it.each(['left', 'center', 'right'])(
+    'uses %s alignment and constrained full-text wrapping in both previews',
+    textAlign => {
+      const value = 'ForgeUI Studio is a professional embedded interface designer running native LVGL 9 on the ESP32-P4.'
+      render(
+        <ChakraProvider>
+          <ForgeThemeProvider>
+            <TextPreview component={textComponent({ textValue: value, textAlign })} />
+            <BrowserPreview component={textComponent({ textValue: value, textAlign, w: 160, h: 72 })} />
+          </ForgeThemeProvider>
+        </ChakraProvider>,
+      )
+      screen.getAllByTestId('standard-text-preview').forEach(node => {
+        expect(node).toHaveTextContent(value)
+        expect(node).toHaveStyle({ textAlign, width: '100%', height: '100%' })
+      })
+    },
+  )
 })

@@ -54,7 +54,7 @@ open. Direct COM-port flashing by GPT is not the default workflow.
 - Runtime setters are silent programmatic projections. UserEvents represent
   genuine user transitions only. Names derive from component names and are
   collision-safe.
-- Slider, Spinner, Spinbox and List are physically **PROVEN** through live and
+- Slider, Spinner, Spinbox, TabView and List are physically **PROVEN** through live and
   standalone ESP32-P4 firmware. List emits exactly one collision-safe item
   callback for each observed physical row tap and intentionally has no setter.
 - Native Spinbox is proven through Registry → Tray → Canvas → Inspector →
@@ -247,8 +247,8 @@ The flashed ESP32-P4 remains the authoritative final visual reference.
 1. Complete operator touchscreen validation of repeated lazy Wi-Fi and Storage open/close cycles and confirm current free heap, largest block and object count recover without a leak.
 2. Replace the overwritten managed-component sysmon edit with a reproducible ForgeUI-owned patch/override and regression check.
 3. Complete and record physical QR phone-scan validation.
-4. Physically prove TabView next, then continue the Proven Widget
-   Pipeline for the remaining registry widgets.
+4. Continue the Proven Widget Pipeline for the remaining registry widgets;
+   TabView remains **PROVEN**.
 5. Begin dedicated Dashboard widgets only after remaining LVGL coverage and proof.
 
 ## Current Must-Not-Regress Rules
@@ -509,7 +509,7 @@ TabView is serialized as `Tabview`. Three fixed tabs remain: `Tab 1`, `Tab 2` an
 
 Canvas and Browser Preview use a shared renderer. Preview selection initializes from serialized state and direct preview tab switching is supported. Current geometry uses a 34 px tab bar, equal/remainder tab widths, square outer bounds and explicit content/page sizing. Selected styling uses a muted accent or selected-surface treatment, an accent bottom indicator and semantic text colours. Browser Preview does not simulate native swipe animation.
 
-Active tab is genuine semantic retained runtime state. Touch and programmatic selection share the existing transition helper, API and hook ownership. The public setter clamps indexes above the final tab, suppresses repeated effective selections, updates retained state before LVGL and calls `lv_tabview_set_active(..., LV_ANIM_OFF)`. Touch parity uses `LV_EVENT_VALUE_CHANGED` and reads `lv_tabview_get_tab_active()`. Creation is silent, and the hook fires exactly once after a real transition. Same-named components receive deterministic `_2` suffixes. Physical proof remains pending.
+Active tab is genuine semantic retained runtime state. Touch and programmatic selection share the existing transition helper, API and hook ownership. The public setter clamps indexes above the final tab, suppresses repeated effective selections, updates retained state before LVGL and calls `lv_tabview_set_active(..., LV_ANIM_OFF)`. Touch parity uses `LV_EVENT_VALUE_CHANGED` and reads `lv_tabview_get_tab_active()`. Creation is silent, and the hook fires exactly once after a real transition. Same-named components receive deterministic `_2` suffixes. TabView remains physically **PROVEN** on ESP32-P4.
 
 Generated example:
 
@@ -520,18 +520,29 @@ void FG_On_Main_Tabs_Changed(uint32_t tab_index);
 
 ### Tileview
 
-Tileview is serialized as `Tileview`. The current ForgeUI contract is a simultaneous visible `2 × 2` panel:
+Tileview is serialized as `Tileview`. The current ForgeUI contract is native swipe paging over a fixed `2 × 2` coordinate space:
 
 - Tile 1 = column 0, row 0
 - Tile 2 = column 1, row 0
 - Tile 3 = column 0, row 1
 - Tile 4 = column 1, row 1
 
-Shared geometry uses 8 px padding, 6 px gaps, equal two-column/two-row layout and clipped child bounds. Canvas and Browser Preview use the same renderer. Generated LVGL uses a bounded parent with four visible child tile objects; the active tile receives `LV_STATE_CHECKED`.
+TileView retains a fixed `2 × 2` coordinate model. Canvas and Browser Preview
+use the same single-active-page renderer. Generated LVGL uses native
+`lv_tileview_create()` and four full-size `lv_tileview_add_tile()` pages with
+direction constraints matching their neighbours.
 
 Initial selection is column `0`, row `0`; persisted `selectedColumn` / `selectedRow` or `initialColumn` / `initialRow` values are honored. Active column and row remain genuine retained runtime state, and the existing setter and hook names remain unchanged. Invalid coordinates clamp safely, unavailable objects and missing mapped tiles are rejected, repeated effective selections are suppressed, and creation remains silent.
 
-Tileview consumes the semantic roles `surface`, `surfaceSecondary`, `surfaceBorder`, `textPrimary`, `accent`, `accentText` and `selectedSurface`. Swipe paging is not part of the current TileView contract. Labels, grid size and navigation directions remain non-configurable. Physical proof remains pending.
+Tileview consumes the semantic roles `surface`, `surfaceSecondary`,
+`surfaceBorder` and `textPrimary`. Native swipe paging and scroll snapping are
+part of the contract. Labels and the fixed grid size remain non-configurable.
+Physical ESP32-P4 proof confirms silent startup, correct `2 × 2` coordinate
+reporting, horizontal and vertical navigation, exactly one callback per
+effective tile change, and stable repeated navigation. Observed callback
+coordinates include `(1,0)`, `(0,0)`, `(1,1)` and `(0,1)`. Wi-Fi remained
+connected, SD remained ready, and TabView, Spinbox and List continued working.
+TileView is **PROVEN**.
 
 Generated example:
 
@@ -1458,7 +1469,7 @@ Preview dispatch and an LVGL export path. Focused registry/Tray tests and
 component/exporter regressions provide automated evidence; no conclusive
 permanent implementation was found outside the registry, so no registry
 definition was added. The Dashboard category remains intentionally empty.
-Twenty-four of 39 Standard widgets are now physically proven (62%); 15 remain
+Twenty-six of 39 Standard widgets are now physically proven (67%); 13 remain
 to be individually promoted.
 
 ```text
@@ -1503,8 +1514,8 @@ Registry → Tray → Canvas → Inspector → Browser Preview → LVGL Export
 | QRCode | implemented / implemented | text setter, no hook | phone scan pending |
 | Progress | implemented / implemented | value setter, no hook | physically proven |
 | CircularProgress | implemented / implemented | value setter, no hook | physically proven |
-| Tabview | implemented / implemented | selected-index setter + change hook | pending for current parity pass |
-| Tileview | implemented / implemented | coordinate setter + change hook | pending for current parity pass |
+| Tabview | implemented / implemented | selected-index setter + change hook | **PROVEN** |
+| Tileview | implemented / implemented | silent coordinate setter + genuine-user change hook | **PROVEN** |
 | ButtonMatrix | implemented / implemented | selection setter + hook | physically proven |
 | Msgbox | implemented / implemented | show/close APIs + dialog hooks | physically proven |
 | Keyboard | implemented / implemented | show/hide APIs + hooks | physically proven |
@@ -1576,6 +1587,20 @@ PROVEN
 ```
 
 Automated coverage or generated-code inspection does not substitute for build, flash and physical interaction or visual validation. Output-only widgets such as QR Code deliberately skip `95_UserEvents`; they still require physical hardware proof before promotion to PROVEN.
+
+List has completed the applicable lifecycle without inventing a Runtime SDK
+setter:
+
+```text
+Official LVGL Reference → Widget Registry → Widget Tray → Canvas
+→ Inspector → Browser Preview → Native LVGL Export → 95_UserEvents
+→ Live Studio firmware → Standalone Export → ESP32-P4 physical proof
+→ Documentation → PROVEN
+```
+
+Its hook is `FG_On_<Name>_Item_Clicked(uint32_t index, const char * text)`;
+`<Name>` is derived from the Studio component name and made collision-safe by
+the generator. **LIST — PROVEN ON ESP32-P4.**
 
 ## Layout Template Library
 
@@ -2635,8 +2660,9 @@ Save points are ordered newest to oldest. Detailed subsystem engineering is main
 - **Theme and gating:** Empty colour overrides resolve to the active semantic accent and secondary-surface roles in preview and export. Spinner code is generated only for serialized Spinner instances and adds no widget-specific runtime source, public declaration, hook or CMake entry.
 - **Validation:** Focused Registry, Tray, hydration, shared preview and LVGL
   exporter tests pass. Slider and Spinner are physically **PROVEN** through
-  live and standalone ESP32-P4 output. List rendering is physically verified;
-  its generated item callback remains **READY FOR PROOF**.
+  live and standalone ESP32-P4 output. List rendering was physically verified
+  at this milestone; its generated item callback was subsequently physically
+  validated and List is now **PROVEN**.
 
 ## FORGEUI_WIDGET_REGISTRY__LAYOUT_TEMPLATE_LIBRARY__QRCODE_RUNTIME__READY_FOR_QR_HARDWARE_PROOF__2026-07-30
 
@@ -2667,10 +2693,10 @@ Save points are ordered newest to oldest. Detailed subsystem engineering is main
 
 ## FORGEUI_STANDARD_LVGL_CANVAS_TABVIEW_TILEVIEW_LINE_TEXT_HEADING_WIFI_PARITY__SHARED_PREVIEWS__SEMANTIC_THEME__LINE_ENDPOINTS__READY_FOR_P4_PROOF__2026-07-29
 
-- **What changed:** Standard Canvas, TabView, TileView, Text, Heading, Line and Wi-Fi now use shared Canvas / Browser Preview renderers where practical. Canvas decorative placeholder artwork was removed and configured artwork support was restored through the existing serialized asset path. TabView was aligned with generated/native LVGL geometry, selection and styling. TileView preview and generated LVGL were aligned around the simultaneous visible `2 × 2` ForgeUI contract. Standard Line gained persisted editable endpoints. Text and Heading consume semantic `textPrimary`, while Line consumes semantic `surfaceBorder`. Wi-Fi restored the established `WIFI` / `WIFI_FAIL` / `IP: -` vocabulary without wrapping or clipping. Browser Preview visual polish aligned Button, Text, Heading, Clock and Wi-Fi without changing serialized geometry or runtime behaviour.
+- **What changed:** Standard Canvas, TabView, TileView, Text, Heading, Line and Wi-Fi adopted shared Canvas / Browser Preview renderers where practical. At this milestone TileView still used the earlier simultaneous visible `2 × 2` panel; the current native swipe-page architecture and physical proof are documented above. Standard Line gained persisted editable endpoints, and Text/Heading/Line/Wi-Fi parity was aligned.
 - **Why it changed:** Duplicated preview implementations had drifted from generated LVGL; Canvas discarded configured artwork; TabView and TileView preview selection did not follow serialized startup state; TileView generated selection did not synchronize checked visual state; Text and Heading allowed legacy literal-colour paths to bypass the semantic theme; Line was fixed to `(0,0) -> (width,height)` and used a legacy border-colour path; Wi-Fi wording, wrapping and clipping regressed; and Browser Preview typography and alignment had drifted from generated LVGL/P4 presentation.
-- **Final architecture:** Canvas and Browser Preview share Standard renderers where practical, while generated LVGL remains the firmware implementation. Canvas artwork resolves through serialized uploaded assets and exports as a clipped parent plus centred child `lv_image`. TabView retains native active-index semantics and existing API/hook ownership. TileView retains active column/row semantics and the simultaneous visible `2 × 2` panel contract. Line remains presentation-only and API-free while storing `startX`, `startY`, `endX` and `endY`. Text and Heading use `textPrimary`; Line uses `surfaceBorder`. Wi-Fi text remains owned by existing runtime polling and `fg_wifi_status_text()`. Generated firmware remains replaceable output and is not the source of fixes.
-- **Proven result:** Focused geometry, preview, semantic-theme, Wi-Fi and exporter regressions passed. Horizontal, vertical, 45-degree and arbitrary-angle Line exports passed, together with legacy compatibility and endpoint rebasing. Text, Heading and Line passed non-default custom-theme proof. Wi-Fi coverage confirmed `WIFI_FAIL`, `IP: -` and no wrapping. TypeScript and `git diff --check` passed. Runtime APIs, hooks, persistence, Inspector behaviour and interaction contracts remain unchanged. Physical ESP32-P4 sign-off remains pending for this group; final Generate -> Build -> Flash -> visual comparison is required before promotion to physically proven status.
+- **Final architecture at this milestone:** Canvas and Browser Preview shared Standard renderers while generated LVGL remained the firmware implementation. TileView's retained active column/row semantics survived its subsequent migration to native `lv_tileview_create()` / `lv_tileview_add_tile()` paging.
+- **Proven result:** The automated parity evidence recorded here remains valid. TileView subsequently completed ESP32-P4 physical proof and is **PROVEN**; the other group members retain their separately documented evidence levels.
 
 ## FORGEUI_STANDARD_LVGL_THEME_PARITY__ELEVEN_COMPONENTS__CANVAS_BROWSER_GENERATED_LVGL_ESP32P4_PROVEN__2026-07-29
 
@@ -2696,7 +2722,7 @@ Save points are ordered newest to oldest. Detailed subsystem engineering is main
 - **What changed:** Added TabView active-index runtime, Tileview active-coordinate runtime, Button Text, Text Value, Heading Text and Clock Presentation configuration; fixed independent retained ownership for multiple Clocks; retained Scale and Line as intentionally API-free.
 - **Why it changed:** Standard components required meaningful developer control only where genuine semantic state exists, visible text placeholders needed real persisted editor properties, Clock needed configurable presentation without serializing runtime time, and multiple Clocks required independent retained state.
 - **Final architecture:** Semantic state receives retained runtime APIs and hooks; static visible content receives serialized Inspector, Preview and export properties; runtime time remains RTC-owned; API-free visuals remain API-free; all live and standalone generation uses the shared exporter; and `95_UserEvents` remains preservation-merged.
-- **Proven result:** Focused exporter, preview, persistence and preservation tests passed, together with TypeScript, export-server syntax and diff checks. Generated Clock firmware was inspected. This save point does not claim new physical ESP32-P4 proof for TabView, Tileview, text properties or Clock Presentation.
+- **Proven result:** This save point originally recorded automated evidence only. TabView and TileView subsequently completed their separately documented ESP32-P4 physical proof.
 
 ## FORGEUI_STANDARD_LVGL_RUNTIME_APIS__LED_BAR_ARC_CHART_KEYBOARD_CALENDAR_ROLLER_MESSAGE_BOX_BUTTON_MATRIX__LIVE_AND_STANDALONE_PROVEN__2026-07-29
 

@@ -17,9 +17,12 @@ const StandardTextPreview: React.FC<{
     <Text
       width="100%"
       height="100%"
+      display="block"
       m="0"
       p="0"
       overflow="hidden"
+      whiteSpace="pre-wrap"
+      overflowWrap="anywhere"
       color={theme.textPrimary}
       fontFamily="Montserrat, Arial, sans-serif"
       fontSize={`${component.props.fontSize || 24}px`}

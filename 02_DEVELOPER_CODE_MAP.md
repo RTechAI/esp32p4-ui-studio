@@ -529,7 +529,12 @@ The 2026-07-30 Standard input and selection group is also physically proven acro
 - Select
 - Spinbox
 
-TabView, TileView, Image, Box and IconButton remain runtime-complete but outside these physical validation milestones. Their existing automated and architectural status is unchanged. The registry audit records 44 total entries, comprising 39 Standard widgets and five Interactive Assets; List raises physical proof to 24/39 Standard widgets (62%) and 15 remain.
+TabView and TileView are **PROVEN**. Image, Box and IconButton remain
+runtime-complete but outside these physical validation
+milestones. Their existing automated and architectural status is unchanged.
+The registry audit records 44 total entries, comprising 39 Standard widgets
+and five Interactive Assets; physical proof is 26/39 Standard widgets (67%)
+and 13 remain.
 
 ### Current next-group parity architecture
 
@@ -541,7 +546,8 @@ TabView, TileView, Image, Box and IconButton remain runtime-complete but outside
 - Heading — shared renderer using semantic `textPrimary`
 - Wi-Fi presentation — shared multiline renderer preserving `WIFI_FAIL`
 
-This next group is not yet physically proven.
+TileView is physically proven; Canvas, Line, Text, Heading and the remaining
+items in this parity group retain their separately documented evidence levels.
 
 Interactive runtime components:
 
@@ -778,24 +784,39 @@ Initial Button Matrix verification used a stale running Studio exporter bundle. 
 
 `src/forgeui/ForgeUILvglExport.ts` owns explicit internal TabView geometry, retained selected index, the transition helper, existing setter and hook, generated semantic styling and native LVGL tab-selection behavior. Programmatic selection uses `lv_tabview_set_active(..., LV_ANIM_OFF)`; `LV_EVENT_VALUE_CHANGED` handling reads `lv_tabview_get_tab_active()`. The runtime suppresses repeated effective selections and generates collision-safe identifiers.
 
-Browser Preview does not simulate native swipe animation. Physical proof remains pending.
+Browser Preview does not simulate native swipe animation. TabView remains
+**PROVEN** on ESP32-P4.
 
 ### Tileview
 
-Serialized type remains `Tileview`. The current ForgeUI TileView is a simultaneous visible `2 × 2` panel:
+Serialized type remains `Tileview`. The current ForgeUI TileView is native
+swipe paging over a fixed `2 × 2` coordinate space:
 
 - Tile 1 = column 0, row 0
 - Tile 2 = column 1, row 0
 - Tile 3 = column 0, row 1
 - Tile 4 = column 1, row 1
 
-`src/forgeui/preview/StandardTileViewPreview.tsx` owns the shared Canvas/Browser renderer, four visible tiles, `2 × 2` layout, current selected column/row, direct preview selection, semantic styling and label centring.
+`src/forgeui/preview/StandardTileViewPreview.tsx` owns the shared Canvas/Browser
+single-active-page renderer, fixed `2 × 2` coordinate model, current selected
+column/row, Browser swipe/keyboard navigation, semantic styling and label
+centring. Canvas remains editor-safe.
 
 `src/forgeui/ForgeUIStandardTabTileGeometry.ts` owns 8 px padding, 6 px gaps, equal row/column sizing, child coordinates/dimensions and clipping calculations.
 
-`src/forgeui/ForgeUILvglExport.ts` owns the bounded parent `lv_obj`, four visible child tile objects, retained selected row/column, `LV_STATE_CHECKED` synchronization, existing public setter/hook names, silent startup and click selection.
+`src/forgeui/ForgeUILvglExport.ts` owns native `lv_tileview_create()`, four
+full-size `lv_tileview_add_tile()` pages, neighbour direction constraints,
+retained selected row/column, the existing public setter/hook names, silent
+startup/setter behavior and genuine-user `LV_EVENT_VALUE_CHANGED` handling.
 
-Invariant: the current TileView contract is a visible four-tile panel, not native LVGL swipe paging. The current architecture does not use `lv_tileview_create()`, `lv_tileview_add_tile()`, `lv_tileview_set_tile()` or `lv_tileview_get_tile_active()`.
+Invariant: TileView is native LVGL swipe paging over a fixed `2 × 2`
+coordinate space. One full-size tile is active at a time.
+
+Physical ESP32-P4 proof confirms silent startup, correct coordinate reporting,
+horizontal and vertical navigation, one callback per effective tile change,
+stable repeated navigation, and callback coordinates `(1,0)`, `(0,0)`,
+`(1,1)` and `(0,1)`. Wi-Fi remained connected, SD remained ready, and TabView,
+Spinbox and List continued working. TileView is **PROVEN**.
 
 ### Input
 
@@ -2651,7 +2672,7 @@ It owns:
 - standard-component LVGL event adapters and hook metadata
 - deterministic sanitized and collision-safe standard-component names
 - TabView retained active-index runtime generation
-- Tileview retained active-coordinate and visible four-child panel runtime generation
+- Tileview retained active coordinates and native four-page runtime generation
 - Button Text serialization
 - Text Value serialization
 - Heading Text serialization
@@ -2962,7 +2983,7 @@ They contain:
 - standard-component public API implementations and declarations
 - shared transition helpers and LVGL event adapters
 - TabView retained object, active index, tab count, transition helper, callback and setter
-- Tileview bounded parent, four visible child objects, active coordinates, checked-state synchronization, click callback and setter
+- Tileview native parent/pages, active coordinates, scroll-end change hook and silent setter
 - serialized Button Text, Text Value and Heading Text label generation
 - per-instance Clock Presentation labels, timers, separator state and formatter callbacks
 
@@ -3386,7 +3407,7 @@ Start at the ownership boundary matching the symptom.
 | Message Box visibility/button hooks are wrong | `ForgeUILvglExport.ts` | `export-server.js`, retained panel metadata, `95_UserEvents.*` |
 | Button Matrix selection API or hook is wrong | `ForgeUILvglExport.ts` | `export-server.js`, map/count/disabled metadata, `95_UserEvents.*` |
 | TabView selects the wrong tab | `ForgeUILvglExport.ts` Tabview branch and transition helper | retained selected index/count, `lv_tabview_set_active()`, `lv_tabview_get_tab_active()` |
-| Tileview selects the wrong tile | `ForgeUILvglExport.ts` Tileview branch and `ForgeUIStandardTabTileGeometry.ts` | retained coordinates, four visible child objects, click selection and `LV_STATE_CHECKED` synchronization |
+| Tileview selects the wrong tile | `ForgeUILvglExport.ts` Tileview branch and `StandardTileViewPreview.tsx` | retained coordinates, native tile map, direction constraints, active-tile lookup and silent setter |
 | Input setter or genuine-user hook is wrong | `ForgeUILvglExport.ts` Input export map/branch | retained text, programmatic guard, textarea event adapter, `export-server.js`, `95_UserEvents.*` |
 | Input focuses but no keyboard appears | Standard Input ownership | expected behavior: native textarea focus only; no automatic Standard Keyboard attachment; System keyboard remains private |
 | Textarea setter or hook is wrong | `ForgeUILvglExport.ts` Textarea export map/branch | multiline retained text, programmatic guard, placeholder ownership, `95_UserEvents.*` |
@@ -3836,7 +3857,7 @@ Save points are ordered newest to oldest.
 - **What changed:** Added TabView active-index runtime, Tileview active-coordinate runtime, Button Text, Text Value, Heading Text and Clock Presentation; repaired per-instance retained ownership for multiple Clocks; kept Scale and Line intentionally API-free.
 - **Why:** Genuine semantic selection state required supported APIs and hooks, static visible content required persisted editor properties, and Clock required configurable presentation without serializing live RTC time.
 - **Final architecture:** `ForgeUILvglExport.ts` owns shared live/standalone generation for semantic runtime state, static text presentation and per-instance Clock formatting; `export-server.js` preservation-merges TabView and Tileview hooks while text and Clock presentation add none.
-- **Validation:** Focused exporter, preview, persistence and preservation tests, TypeScript validation, export-server syntax checks and diff checks passed. No new physical hardware proof is claimed for these features.
+- **Validation:** This save point originally recorded automated evidence only. TabView and TileView subsequently completed their separately documented ESP32-P4 physical proof.
 
 ### FORGEUI_STANDARD_LVGL_RUNTIME_APIS__LED_BAR_ARC_CHART_KEYBOARD_CALENDAR_ROLLER_MESSAGE_BOX_BUTTON_MATRIX__LIVE_AND_STANDALONE_PROVEN__2026-07-29
 

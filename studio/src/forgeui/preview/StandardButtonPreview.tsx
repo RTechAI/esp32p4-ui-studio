@@ -25,7 +25,7 @@ const StandardButtonPreview: React.FC<{
       px="12px"
       py="0"
       bg={theme.surface}
-      color={component.props.color || theme.textPrimary}
+      color={theme.textPrimary}
       border={`2px solid ${theme.surfaceBorder}`}
       borderRadius="12px"
       fontFamily="Montserrat, Arial, sans-serif"

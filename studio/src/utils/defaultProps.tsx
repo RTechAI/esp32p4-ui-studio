@@ -467,6 +467,7 @@ WiFi: {
   },
   Tab: { children: 'Tab' },
   Tabs: { children: '', size: 'md' },
+  Tileview: { initialColumn: 0, initialRow: 0 },
   TabPanel: { children: 'Tab' },
   Tag: {
     children: 'Tag name',

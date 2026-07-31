@@ -84,7 +84,7 @@
 static const char *TAG = "FG_SD";
 
 #define MOUNT_POINT          "/sdcard"
-#define FG_SD_TEST_PATH      "/sdcard/.forgeui_rw_test.tmp"
+#define FG_SD_TEST_PATH      "/sdcard/FGUIRW.TMP"
 #define FG_SD_ROOT           "/sdcard/ForgeUI"
 #define FG_SD_BOOT_MARKER    "/sdcard/ForgeUI/system/boot_marker.txt"
 

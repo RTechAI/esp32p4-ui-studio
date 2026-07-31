@@ -63,6 +63,7 @@ import StandardTextPanel from './components/StandardTextPanel'
 import ClockPanel from './components/ClockPanel'
 import LinePanel from './components/LinePanel'
 import QRCodePanel from './components/QRCodePanel'
+import TileViewPanel from './components/TileViewPanel'
 
 const Panels: React.FC<{ component: IComponent; isRoot: boolean }> = ({
   component,
@@ -105,6 +106,7 @@ const Panels: React.FC<{ component: IComponent; isRoot: boolean }> = ({
       {type === 'Clock' && <ClockPanel />}
       {type === 'Line' && <LinePanel />}
       {type === 'QRCode' && <QRCodePanel />}
+      {type === 'Tileview' && <TileViewPanel />}
       {type === 'Highlight' && <HighlightPanel />}
       {type === 'SimpleGrid' && <SimpleGridPanel />}
       {type === 'Switch' && <SwitchPanel />}

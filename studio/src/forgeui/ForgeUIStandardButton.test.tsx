@@ -3,6 +3,8 @@ import { ChakraProvider } from '@chakra-ui/react'
 import { render, screen } from '@testing-library/react'
 
 import ButtonPreview from '~components/editor/previews/ButtonPreview'
+import StandardButtonPreview from './preview/StandardButtonPreview'
+import { FG_PREVIEW_PALETTES } from './preview/forgeThemeMap'
 import { getPreviewDefaultProps } from '~utils/defaultProps'
 import { ForgeThemeProvider } from './theme/ForgeThemeContext'
 import { renderForgePreview } from './preview/forgePreviewRenderer'
@@ -95,5 +97,20 @@ describe('standard Button text', () => {
       </ChakraProvider>,
     )
     expect(screen.getByText('Button text')).toBeInTheDocument()
+  })
+
+  it('uses semantic Button colors instead of legacy literal overrides', () => {
+    render(
+      <ChakraProvider>
+        <StandardButtonPreview
+          component={button({ buttonText: 'Semantic', color: '#FFFFFF' })}
+          palette={FG_PREVIEW_PALETTES.cyber_teal}
+        />
+      </ChakraProvider>,
+    )
+    expect(screen.getByTestId('standard-button-preview')).toHaveStyle({
+      color: '#CCFBF1',
+      background: '#0F2A30',
+    })
   })
 })

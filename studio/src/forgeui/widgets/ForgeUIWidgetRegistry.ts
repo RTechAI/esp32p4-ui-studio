@@ -262,7 +262,13 @@ const capabilitiesByType: Partial<
     },
   ),
   Tabview: capability(true, true, true, 'structured'),
-  Tileview: capability(true, true, true, 'structured'),
+  Tileview: capability(
+    true, true, true, 'structured', false,
+    {
+      mode: 'serialized-widget',
+      lvglConfigDependencies: ['CONFIG_LV_USE_TILEVIEW'],
+    },
+  ),
   ButtonMatrix: capability(true, true, true),
 
   Msgbox: capability(true, true, true),
@@ -293,6 +299,8 @@ const capabilitiesByType: Partial<
 }
 
 const documentationByType: Partial<Record<ComponentType, string>> = {
+  List: 'docs/FORGEUI_LIST_WIDGET.md',
+  Tileview: 'docs/FORGEUI_TILEVIEW_WIDGET.md',
   Spinbox: 'docs/FORGEUI_SPINBOX_WIDGET.md',
   QRCode: 'docs/FORGEUI_QR_CODE.md',
 }

@@ -63,6 +63,7 @@ void FG_On_Slider_4_Changed(int32_t value);
 void FG_On_List_Item_Clicked(uint32_t index, const char * text);
 void FG_On_Spinbox_Changed(int32_t value);
 void FG_On_List_Proof_Item_Clicked(uint32_t index, const char * text);
+void FG_On_Comp_MS9_J6_Z31_J3065_Clicked(void);
 
 #ifdef __cplusplus
 }

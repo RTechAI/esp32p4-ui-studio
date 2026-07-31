@@ -182,13 +182,14 @@ Current generated-output parity work outside the physical milestone includes:
 
 - Standard Canvas artwork export
 - TabView explicit geometry and selected-state export
-- TileView visible `2 × 2` panel generation
+- TileView native `2 × 2` swipe-page generation
 - Line serialized endpoint generation
 - Text semantic `textPrimary`
 - Heading semantic `textPrimary`
 - Standard Wi-Fi multiline status presentation
 
-This next group is not classified as physically proven.
+TileView within this group is now physically **PROVEN**; the other items retain
+their separately documented evidence levels.
 
 The 2026-07-30 generated-runtime group is also physically proven:
 
@@ -203,7 +204,8 @@ The 2026-07-30 generated-runtime group is also physically proven:
 - Select
 - Spinbox
 
-TabView, TileView, Image, Box and IconButton remain runtime-complete but outside these physical validation milestones.
+TabView and TileView are **PROVEN**. Image, Box and IconButton remain
+runtime-complete but outside these physical validation milestones.
 
 Previously completed runtime components:
 
@@ -527,9 +529,21 @@ TabView retains its native LVGL object, selected index and tab count. Export own
 
 ### Tileview
 
-Tileview is generated as a bounded parent `lv_obj` with four simultaneously visible child tile objects in the current `2 × 2` ForgeUI contract. Geometry uses 8 px padding, 6 px gaps and equal rows/columns. Runtime retains selected row and column; the active child receives `LV_STATE_CHECKED`. Click selection, the existing public setter and the existing changed hook share retained-coordinate ownership. Startup remains silent and generated identifiers are collision-safe.
+Tileview is generated as native LVGL 9.2.2 `lv_tileview` with four full-size
+pages in the fixed `2 × 2` ForgeUI coordinate contract. Runtime retains the
+selected row and column. `FG_Set_<Name>_Selected()` changes the native active
+tile silently; genuine swipe completion invokes the existing changed hook.
+Startup remains silent and generated identifiers are collision-safe.
 
-The current generated contract is not native one-page-at-a-time swipe paging and does not use `lv_tileview_create()`, `lv_tileview_add_tile()`, `lv_tileview_set_tile()` or `lv_tileview_get_tile_active()`.
+Native creation uses `lv_tileview_create()` and `lv_tileview_add_tile()`.
+Programmatic selection uses `lv_tileview_set_tile()`, while genuine-user
+changes resolve the active page through `lv_tileview_get_tile_active()`.
+
+Physical ESP32-P4 proof confirms silent startup, horizontal and vertical
+navigation, correct coordinates including `(1,0)`, `(0,0)`, `(1,1)` and
+`(0,1)`, one callback per effective tile change, and stable repeated
+navigation. Wi-Fi remained connected, SD remained ready, and TabView, Spinbox
+and List continued working. TileView is **PROVEN**.
 
 ### Input generated boundary
 
@@ -640,8 +654,9 @@ Native LVGL Spinbox is a selected-digit editor. It is not a free-form numeric
 text-entry control; use NumberInput for that interaction model.
 
 The final registry audit records 44 entries: 39 Standard widgets and five
-Interactive Assets. List raises Standard physical proof to 24/39 (62%),
-leaving 15 widgets for individual promotion.
+Interactive Assets. With TileView promoted and TabView retaining its existing
+**PROVEN** status, Standard physical proof is 26/39 (67%), leaving 13 widgets
+for individual promotion.
 
 ### List generated boundary
 
@@ -654,9 +669,12 @@ genuine click. Construction is silent. Duplicate component names receive
 `_2`, `_3` and later suffixes before `_Item_Clicked`.
 
 Physical ESP32-P4 proof on LVGL 9.2.2 and ESP-IDF 5.5.4 observed one callback
-for each single touch of Network, Display, Diagnostics and About, carrying
-indices 0, 1, 2 and 3 with the matching generated text. Live and standalone
-exports both compile from identical generated List C/H. List is **PROVEN**.
+for each single touch of Overview, Settings and Diagnostics, carrying indices
+0, 1 and 2 with the matching generated text. Repeated taps remained stable;
+TabView and Spinbox continued operating; Wi-Fi remained connected; SD remained
+ready; runtime remained stable; and connected-stage internal RAM was
+approximately 39 KB free. Live and standalone exports both compile from
+identical generated List C/H. **LIST — PROVEN ON ESP32-P4**.
 
 ### Scale
 
@@ -1223,7 +1241,7 @@ Runtime generation assumes that its candidate result will pass the dedicated cli
 - native QR Code object construction, serialized colors/quiet zone/data and setter-only text updates
 - deterministic sanitized collision-safe standard-component names
 - TabView retained runtime generation
-- Tileview retained coordinates and visible four-child panel generation
+- Tileview retained coordinates and native four-page generation
 - Button Text generation
 - Text Value generation
 - Heading Text generation
@@ -1963,7 +1981,7 @@ Owns generated implementation:
 - standard-component transition helpers and generated event callbacks
 - standard-component public API implementations and calls into generated hooks
 - TabView retained runtime, setter and touch callback
-- Tileview bounded parent, four visible children, retained coordinates, checked-state synchronization, setter and click callback
+- Tileview native parent/pages, retained coordinates, silent setter and swipe callback
 - retained Input and Textarea objects, current text and programmatic guards
 - retained Switch, Checkbox and Radio objects and checked/selected state
 - retained Progress value and range
@@ -2604,7 +2622,7 @@ This physical record includes the named eleven-component Standard group and the 
 | Message Box visibility or button hook is wrong | `ForgeUILvglExport.ts` Msgbox runtime | `export-server.js`, panel metadata, `95_UserEvents.*` |
 | Button Matrix selection or hook is wrong | `ForgeUILvglExport.ts` ButtonMatrix runtime | `export-server.js`, button map/count, `95_UserEvents.*` |
 | TabView selection is wrong | `ForgeUILvglExport.ts` Tabview runtime | retained index/count, shared transition helper, `lv_tabview_set_active()` and `lv_tabview_get_tab_active()` |
-| Tileview coordinate is wrong | `ForgeUILvglExport.ts` Tileview branch and shared geometry | retained row/column, four visible children, click selection and `LV_STATE_CHECKED` synchronization |
+| Tileview coordinate is wrong | `ForgeUILvglExport.ts` Tileview branch and shared preview | retained row/column, native tile map, neighbour directions and active-tile lookup |
 | Input setter does not update text | `ForgeUILvglExport.ts` Input runtime | retained `lv_textarea`, `NULL` handling, unchanged comparison and focused Input exporter test |
 | Input hook fires from setter | Input programmatic guard in `ForgeUILvglExport.ts` | callback registration order, `LV_EVENT_VALUE_CHANGED`, generated `90_Studio_Export.c` |
 | Textarea placeholder and value are confused | Textarea exporter branch | serialized placeholder, retained current text and focused Textarea test |
@@ -2995,7 +3013,7 @@ Preserve these rules:
 
 - **What changed:** Added TabView active-index runtime, Tileview active-coordinate runtime, Button Text, Text Value, Heading Text and Clock Presentation; recorded Line and Scale as intentionally API-free; and repaired per-instance Clock presentation ownership.
 - **Final architecture:** Semantic standard-widget state receives retained APIs and hooks, serialized visible content generates LVGL presentation without runtime transitions, and Clock formats RTC-owned time without a Clock setter or changed hook.
-- **Validation:** Focused runtime, presentation, preview, persistence and preservation tests, TypeScript validation, export-server syntax checks and diff checks passed. No new physical hardware proof is claimed for these additions.
+- **Validation:** This save point originally recorded automated evidence only. TabView and TileView subsequently completed their separately documented ESP32-P4 physical proof.
 
 ## Extension rule
 

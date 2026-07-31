@@ -30,9 +30,10 @@ Widget Registry architecture cleanup is complete at the metadata boundary:
 - Native Spinner is physically proven through Studio and standalone ESP-IDF export on ESP32-P4, including stable animation at approximately 60 FPS. Status: **PROVEN**.
 - Native List is physically proven through Registry, Tray, Inspector, Canvas,
   Browser Preview, native LVGL export, `95_UserEvents`, feature gating, live
-  ESP32-P4 firmware and Standalone Export. Four controlled single taps emitted
-  exactly one callback each with indices 0â€“3 and matching row text. Status:
-  **PROVEN**.
+  ESP32-P4 firmware and Standalone Export. Controlled taps emitted exactly one
+  callback each for `0` / `Overview`, `1` / `Settings` and `2` /
+  `Diagnostics`; repeated taps remained stable. Status:
+  **LIST — PROVEN ON ESP32-P4**.
 - Native Spinbox is physically proven through Registry, Tray, Canvas,
   Inspector, Browser Preview, native LVGL export, Runtime SDK, `95_UserEvents`,
   export-time feature gating, live Studio firmware, ESP32-P4 touch and
@@ -61,20 +62,40 @@ Status language:
 | Keyboard, Calendar, Scale, Roller, Message Box, Button Matrix | **PROVEN** | Detailed physical/runtime records below |
 | Slider | **PROVEN** | Live and Standalone ESP32-P4, touch, setter/hook and multiple instances |
 | Spinner | **PROVEN** | Live and Standalone ESP32-P4 native animation at approximately 60 FPS |
-| List | **PROVEN** | Live/Standalone builds and ESP32-P4 touch; one indexed/text callback per controlled row tap |
+| List | **PROVEN** | **LIST — PROVEN ON ESP32-P4**; live/Standalone builds and one indexed/text callback per controlled row tap |
 | Spinbox | **PROVEN** | Live and Standalone ESP32-P4; drag/drop, previews, touch, setter/hook, multiple instances and gating |
 | QR Code | **READY FOR PROOF** | Registry/export/setter implemented; recorded successful physical scan remains open |
-| Text, Heading, Button, Icon Button, Icon, Box, Line, Divider, Canvas, Image | **PARTIAL** | Implemented pipeline coverage exists; this sprint does not upgrade physical evidence |
+| Button | **PROVEN** | Standard Button hardware proof passed on ESP32-P4 |
+| Text | **SOFTWARE/PARITY INCOMPLETE** | Wrapping parity fix implemented; corrected build still requires flash and visual hardware verification |
+| Heading, Icon Button, Icon, Box, Line, Divider, Canvas, Image | **PARTIAL** | Implemented pipeline coverage exists; this sprint does not upgrade physical evidence |
 | Wi-Fi Status, Clock | **PARTIAL** | Implemented presentation exists; widget-specific proof record is incomplete |
-| TabView, TileView | **PARTIAL** | Implemented native navigation exists; widget-specific proof record is incomplete |
+| TabView | **PROVEN** | ESP32-P4 touch selection remains physically proven; collision-safe selected-index setter/change hook contract retained |
+| TileView | **PROVEN** | Native LVGL 9.2.2 paging; silent startup/setter; correct `2 × 2` coordinates; horizontal/vertical navigation; one callback per effective change; repeated navigation and surrounding Wi-Fi/SD/widgets stable on ESP32-P4 |
 
 The Registry currently contains no Dashboard widgets. Window, Menu and the
 dedicated Dashboard Widget family remain **PLANNED** and must not be
 described as Standard-library completions.
 
 Registry audit total: 44 entries, comprising 39 Standard widgets and five
-Interactive Assets. Twenty-four Standard widgets are physically proven:
-**24/39 (62%)**, leaving **15** for individual proof promotion.
+Interactive Assets. Twenty-six Standard widgets are physically proven:
+**26/39 (67%)**, leaving **13** for individual proof promotion.
+
+## TileView final physical proof
+
+**✅ PROVEN**
+
+Physical ESP32-P4 evidence confirms silent startup, correct fixed `2 × 2`
+coordinate reporting, horizontal and vertical navigation, one callback per
+effective tile change, and stable repeated navigation. Observed callback
+coordinates included `(1,0)`, `(0,0)`, `(1,1)` and `(0,1)`. Wi-Fi remained
+connected, SD remained ready, and TabView, Spinbox and List continued working.
+Generated export remains native `lv_tileview_create()` plus
+`lv_tileview_add_tile()` and preserves these contracts:
+
+```c
+void FG_Set_<Name>_Selected(uint32_t column, uint32_t row);
+void FG_On_<Name>_Changed(uint32_t column, uint32_t row);
+```
 
 ## Spinbox final physical proof
 

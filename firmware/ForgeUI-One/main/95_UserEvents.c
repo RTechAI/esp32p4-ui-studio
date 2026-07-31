@@ -267,3 +267,8 @@ void FG_On_List_Proof_Item_Clicked(uint32_t index, const char * text)
         (unsigned long)index,
         text ? text : "");
 }
+
+void FG_On_Comp_MS9_J6_Z31_J3065_Clicked(void)
+{
+    printf("[ForgeUI User Event] FG_On_Comp_MS9_J6_Z31_J3065_Clicked\n");
+}

@@ -50,25 +50,17 @@ describe('Tileview generated developer API', () => {
     )
   })
 
-  it('exports the simultaneous two-by-two preview layout exactly', () => {
+  it('exports the native LVGL 9.2.2 two-by-two paged TileView', () => {
     const { code } = generate(tileView())
 
     expect(code).toContain(
-      'fg_tileview_tileview = lv_obj_create(fg_application_page);',
+      'fg_tileview_tileview = lv_tileview_create(fg_application_page);',
     )
-    expect(code).toContain('lv_obj_t * obj1_tile1 = lv_obj_create(obj1);')
-    expect(code).toContain('lv_obj_t * obj1_tile4 = lv_obj_create(obj1);')
+    expect(code).toContain('lv_obj_t * obj1_tile1 = lv_tileview_add_tile(obj1, 0, 0, LV_DIR_RIGHT | LV_DIR_BOTTOM);')
+    expect(code).toContain('lv_obj_t * obj1_tile4 = lv_tileview_add_tile(obj1, 1, 1, LV_DIR_LEFT | LV_DIR_TOP);')
     expect(code).toContain('lv_label_set_text(obj1_lbl4, "Tile 4");')
     expect(code).toContain('lv_obj_set_pos(obj1, 20, 30);')
     expect(code).toContain('lv_obj_set_size(obj1, 420, 240);')
-    expect(code).toContain('lv_obj_set_pos(obj1_tile1, 8, 8);')
-    expect(code).toContain('lv_obj_set_size(obj1_tile1, 198, 108);')
-    expect(code).toContain('lv_obj_set_pos(obj1_tile2, 212, 8);')
-    expect(code).toContain('lv_obj_set_size(obj1_tile2, 198, 108);')
-    expect(code).toContain('lv_obj_set_pos(obj1_tile3, 8, 122);')
-    expect(code).toContain('lv_obj_set_size(obj1_tile3, 198, 108);')
-    expect(code).toContain('lv_obj_set_pos(obj1_tile4, 212, 122);')
-    expect(code).toContain('lv_obj_set_size(obj1_tile4, 198, 108);')
     expect(code).toContain(
       'lv_obj_set_style_border_width(obj1, 1, LV_PART_MAIN);',
     )
@@ -78,7 +70,8 @@ describe('Tileview generated developer API', () => {
     expect(code).toContain(
       'lv_obj_set_style_clip_corner(obj1, true, LV_PART_MAIN);',
     )
-    expect(code).not.toContain('lv_tileview_')
+    expect(code).toContain('lv_tileview_set_tile_by_index(obj1, 0, 0, LV_ANIM_OFF);')
+    expect(code).toContain('LV_EVENT_VALUE_CHANGED')
   })
 
   it('maps generated coordinates explicitly', () => {
@@ -97,11 +90,11 @@ describe('Tileview generated developer API', () => {
       'fg_tileview_tileview_tiles[1][1] = obj1_tile4;',
     )
     expect(code).toContain(
-      'lv_obj_t * selected_tile = lv_event_get_current_target(event);',
+      'lv_obj_t * selected_tile = lv_tileview_get_tile_active(tileview);',
     )
   })
 
-  it('emits semantic selected-tile styling and state updates', () => {
+  it('uses native active-page state rather than synthetic checked styling', () => {
     const { code } = generate(tileView())
 
     expect(code).toContain(
@@ -111,15 +104,9 @@ describe('Tileview generated developer API', () => {
       'lv_obj_set_style_bg_color(obj1_tile1, lv_color_hex(0x2A3138), LV_PART_MAIN);',
     )
     expect(code).toContain(
-      'lv_obj_set_style_bg_color(obj1_tile1, lv_color_hex(0xF2A900), LV_PART_MAIN | LV_STATE_CHECKED);',
+      'lv_obj_set_style_bg_color(obj1_tile1, lv_color_hex(0x2A3138), LV_PART_MAIN);',
     )
-    expect(code).toContain(
-      'lv_obj_add_state(fg_tileview_tileview_tiles[0][0], LV_STATE_CHECKED);',
-    )
-    expect(code).toContain(
-      'lv_obj_clear_state(previous_tile, LV_STATE_CHECKED);',
-    )
-    expect(code).toContain('lv_obj_add_state(tile, LV_STATE_CHECKED);')
+    expect(code).not.toContain('lv_obj_add_state(fg_tileview_tileview_tiles')
   })
 
   it('shares one guarded transition for programmatic and touch selection', () => {
@@ -135,16 +122,14 @@ describe('Tileview generated developer API', () => {
       'if (column == fg_tileview_tileview_selected_column && row == fg_tileview_tileview_selected_row) return;',
     )
     expect(code).toContain('if (tile == NULL) return;')
-    expect(code).toContain('(void)update_widget;')
     expect(code).toContain(
-      'fg_tileview_tileview_apply_selection(column, row, false);',
+      'if (!from_user) lv_tileview_set_tile(fg_tileview_tileview, tile, LV_ANIM_OFF);',
     )
     expect(code).toContain(
-      'fg_tileview_tileview_apply_selection(column, row, true);',
+      'if (from_user) FG_On_Tileview_Changed(column, row);',
     )
-    expect(code).toContain('FG_On_Tileview_Changed(column, row);')
     expect(code).toContain(
-      'lv_obj_add_event_cb(obj1_tile1, fg_tileview_tileview_value_changed_cb, LV_EVENT_CLICKED, NULL);',
+      'lv_obj_add_event_cb(obj1, fg_tileview_tileview_value_changed_cb, LV_EVENT_VALUE_CHANGED, NULL);',
     )
   })
 
@@ -160,7 +145,7 @@ describe('Tileview generated developer API', () => {
       initialRow: 1,
     }))
 
-    expect(code).not.toContain('lv_tileview_set_tile')
+    expect(code).toContain('lv_tileview_set_tile_by_index(obj1, 1, 1, LV_ANIM_OFF);')
     expect(code).toContain(
       'fg_tileview_tileview_selected_column = 1;',
     )
@@ -179,10 +164,10 @@ describe('Tileview generated developer API', () => {
       'FG_On_Tileview_2_Changed',
     ]))
     expect(generated.code).toContain(
-      'fg_tileview_tileview = lv_obj_create',
+      'fg_tileview_tileview = lv_tileview_create',
     )
     expect(generated.code).toContain(
-      'fg_tileview_2_tileview = lv_obj_create',
+      'fg_tileview_2_tileview = lv_tileview_create',
     )
   })
 })
