@@ -221,3 +221,27 @@ void FG_On_Icon_Button_Clicked(void)
 {
     printf("[ForgeUI User Event] FG_On_Icon_Button_Clicked\n");
 }
+
+void FG_On_Slider_Changed(int32_t value)
+{
+    printf("[ForgeUI User Event] Slider changed: %ld\n",
+           (long)value);
+}
+
+void FG_On_Slider_2_Changed(int32_t value)
+{
+    printf("[ForgeUI User Event] Slider 2 changed: %ld\n",
+           (long)value);
+}
+
+void FG_On_Slider_3_Changed(int32_t value)
+{
+    printf("[ForgeUI User Event] Slider 3 changed: %ld\n",
+           (long)value);
+}
+
+void FG_On_Slider_4_Changed(int32_t value)
+{
+    printf("[ForgeUI User Event] Slider 4 changed: %ld\n",
+           (long)value);
+}

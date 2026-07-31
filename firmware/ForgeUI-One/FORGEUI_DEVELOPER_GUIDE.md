@@ -43,23 +43,19 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- `FG_On_Data_Chart_Point_Added()`
-- `FG_On_Data_Chart_Cleared()`
-- `FG_On_Input_Changed()`
-- `FG_On_Switch_Changed()`
-- `FG_On_Checkbox_Changed()`
-- `FG_On_Radio_Changed()`
+- `FG_On_Slider_Changed()`
+- `FG_On_Slider_2_Changed()`
+- `FG_On_Slider_3_Changed()`
+- `FG_On_Slider_4_Changed()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| Data_Chart_Point_Added | Click | `FG_On_Data_Chart_Point_Added()` |
-| Data_Chart_Cleared | Click | `FG_On_Data_Chart_Cleared()` |
-| Input_Changed | Click | `FG_On_Input_Changed()` |
-| Switch_Changed | Click | `FG_On_Switch_Changed()` |
-| Checkbox_Changed | Click | `FG_On_Checkbox_Changed()` |
-| Radio_Changed | Click | `FG_On_Radio_Changed()` |
+| Slider_Changed | Click | `FG_On_Slider_Changed()` |
+| Slider_2_Changed | Click | `FG_On_Slider_2_Changed()` |
+| Slider_3_Changed | Click | `FG_On_Slider_3_Changed()` |
+| Slider_4_Changed | Click | `FG_On_Slider_4_Changed()` |
 
 ---
 

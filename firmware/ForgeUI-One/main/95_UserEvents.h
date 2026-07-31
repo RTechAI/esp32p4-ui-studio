@@ -56,6 +56,10 @@ void FG_On_Number_Input_2_Changed(int32_t value);
 void FG_On_Select_Changed(uint32_t index, const char * text);
 void FG_On_Select_2_Changed(uint32_t index, const char * text);
 void FG_On_Icon_Button_Clicked(void);
+void FG_On_Slider_Changed(int32_t value);
+void FG_On_Slider_2_Changed(int32_t value);
+void FG_On_Slider_3_Changed(int32_t value);
+void FG_On_Slider_4_Changed(int32_t value);
 
 #ifdef __cplusplus
 }

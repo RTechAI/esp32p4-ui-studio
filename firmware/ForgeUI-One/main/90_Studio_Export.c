@@ -25,22 +25,26 @@ static lv_obj_t * fg_application_page = NULL;
 static lv_obj_t * fg_system_launcher_page = NULL;
 static lv_obj_t * fg_system_brightness_page = NULL;
 static lv_obj_t * fg_system_brightness_label = NULL;
-static lv_obj_t * fg_box = NULL;
-static bool fg_box_visible = true;
-static lv_obj_t * fg_box_2 = NULL;
-static bool fg_box_2_visible = true;
-static lv_obj_t * fg_data_chart_chart = NULL;
-static lv_chart_series_t * fg_data_chart_chart_series = NULL;
-static const int32_t fg_data_chart_chart_y_minimum = 0;
-static const int32_t fg_data_chart_chart_y_maximum = 100;
-static lv_obj_t * fg_input_input = NULL;
-static bool fg_input_input_programmatic_update = false;
-static lv_obj_t * fg_switch_switch = NULL;
-static bool fg_switch_switch_programmatic_update = false;
-static lv_obj_t * fg_checkbox_checkbox = NULL;
-static bool fg_checkbox_checkbox_programmatic_update = false;
-static lv_obj_t * fg_radio_radio = NULL;
-static bool fg_radio_radio_programmatic_update = false;
+static lv_obj_t * fg_slider_slider = NULL;
+static int32_t fg_slider_slider_value = 50;
+static bool fg_slider_slider_programmatic_update = false;
+static const int32_t fg_slider_slider_minimum = 0;
+static const int32_t fg_slider_slider_maximum = 100;
+static lv_obj_t * fg_slider_2_slider = NULL;
+static int32_t fg_slider_2_slider_value = 50;
+static bool fg_slider_2_slider_programmatic_update = false;
+static const int32_t fg_slider_2_slider_minimum = 0;
+static const int32_t fg_slider_2_slider_maximum = 100;
+static lv_obj_t * fg_slider_3_slider = NULL;
+static int32_t fg_slider_3_slider_value = 50;
+static bool fg_slider_3_slider_programmatic_update = false;
+static const int32_t fg_slider_3_slider_minimum = 0;
+static const int32_t fg_slider_3_slider_maximum = 100;
+static lv_obj_t * fg_slider_4_slider = NULL;
+static int32_t fg_slider_4_slider_value = 50;
+static bool fg_slider_4_slider_programmatic_update = false;
+static const int32_t fg_slider_4_slider_minimum = 0;
+static const int32_t fg_slider_4_slider_maximum = 100;
 static lv_obj_t * fg_system_wifi_page = NULL;
 static lv_obj_t * fg_system_wifi_state_label = NULL;
 static lv_obj_t * fg_system_wifi_ssid_label = NULL;
@@ -161,119 +165,88 @@ static void fg_system_storage_finish_teardown(void);
 static void fg_system_storage_worker(void * arg);
 static void fg_system_storage_tick_cb(lv_timer_t * timer);
 
-void FG_Set_Box_Visible(bool visible)
+static void fg_slider_slider_value_changed_cb(lv_event_t * event)
 {
-    if (fg_box == NULL || fg_box_visible == visible) return;
-    if (visible) lv_obj_clear_flag(fg_box, LV_OBJ_FLAG_HIDDEN);
-    else lv_obj_add_flag(fg_box, LV_OBJ_FLAG_HIDDEN);
-    fg_box_visible = visible;
+    lv_obj_t * slider = lv_event_get_current_target(event);
+    if (slider != fg_slider_slider || fg_slider_slider_programmatic_update) return;
+    int32_t value = lv_slider_get_value(slider);
+    if (fg_slider_slider_value == value) return;
+    fg_slider_slider_value = value;
+    FG_On_Slider_Changed(value);
 }
 
-void FG_Set_Box_2_Visible(bool visible)
+void FG_Set_Slider_Value(int32_t value)
 {
-    if (fg_box_2 == NULL || fg_box_2_visible == visible) return;
-    if (visible) lv_obj_clear_flag(fg_box_2, LV_OBJ_FLAG_HIDDEN);
-    else lv_obj_add_flag(fg_box_2, LV_OBJ_FLAG_HIDDEN);
-    fg_box_2_visible = visible;
+    if (value < fg_slider_slider_minimum) value = fg_slider_slider_minimum;
+    if (value > fg_slider_slider_maximum) value = fg_slider_slider_maximum;
+    if (fg_slider_slider == NULL || fg_slider_slider_value == value) return;
+    fg_slider_slider_programmatic_update = true;
+    lv_slider_set_value(fg_slider_slider, value, LV_ANIM_OFF);
+    fg_slider_slider_value = value;
+    fg_slider_slider_programmatic_update = false;
 }
 
-static void fg_input_input_value_changed_cb(lv_event_t * event)
+static void fg_slider_2_slider_value_changed_cb(lv_event_t * event)
 {
-    lv_obj_t * input = lv_event_get_current_target(event);
-    if (input != fg_input_input || fg_input_input_programmatic_update) return;
-    FG_On_Input_Changed(lv_textarea_get_text(input));
+    lv_obj_t * slider = lv_event_get_current_target(event);
+    if (slider != fg_slider_2_slider || fg_slider_2_slider_programmatic_update) return;
+    int32_t value = lv_slider_get_value(slider);
+    if (fg_slider_2_slider_value == value) return;
+    fg_slider_2_slider_value = value;
+    FG_On_Slider_2_Changed(value);
 }
 
-void FG_Set_Input_Text(const char * text)
+void FG_Set_Slider_2_Value(int32_t value)
 {
-    if (fg_input_input == NULL) return;
-    if (text == NULL) text = "";
-    if (strcmp(lv_textarea_get_text(fg_input_input), text) == 0) return;
-    fg_input_input_programmatic_update = true;
-    lv_textarea_set_text(fg_input_input, text);
-    fg_input_input_programmatic_update = false;
+    if (value < fg_slider_2_slider_minimum) value = fg_slider_2_slider_minimum;
+    if (value > fg_slider_2_slider_maximum) value = fg_slider_2_slider_maximum;
+    if (fg_slider_2_slider == NULL || fg_slider_2_slider_value == value) return;
+    fg_slider_2_slider_programmatic_update = true;
+    lv_slider_set_value(fg_slider_2_slider, value, LV_ANIM_OFF);
+    fg_slider_2_slider_value = value;
+    fg_slider_2_slider_programmatic_update = false;
 }
 
-static void fg_switch_switch_value_changed_cb(lv_event_t * event)
+static void fg_slider_3_slider_value_changed_cb(lv_event_t * event)
 {
-    lv_obj_t * switch_object = lv_event_get_current_target(event);
-    if (switch_object != fg_switch_switch || fg_switch_switch_programmatic_update) return;
-    bool checked = lv_obj_has_state(switch_object, LV_STATE_CHECKED);
-    FG_On_Switch_Changed(checked);
+    lv_obj_t * slider = lv_event_get_current_target(event);
+    if (slider != fg_slider_3_slider || fg_slider_3_slider_programmatic_update) return;
+    int32_t value = lv_slider_get_value(slider);
+    if (fg_slider_3_slider_value == value) return;
+    fg_slider_3_slider_value = value;
+    FG_On_Slider_3_Changed(value);
 }
 
-void FG_Set_Switch_Checked(bool checked)
+void FG_Set_Slider_3_Value(int32_t value)
 {
-    if (fg_switch_switch == NULL) return;
-    bool current_checked = lv_obj_has_state(fg_switch_switch, LV_STATE_CHECKED);
-    if (current_checked == checked) return;
-    fg_switch_switch_programmatic_update = true;
-    if (checked) {
-        lv_obj_add_state(fg_switch_switch, LV_STATE_CHECKED);
-    } else {
-        lv_obj_remove_state(fg_switch_switch, LV_STATE_CHECKED);
-    }
-    fg_switch_switch_programmatic_update = false;
+    if (value < fg_slider_3_slider_minimum) value = fg_slider_3_slider_minimum;
+    if (value > fg_slider_3_slider_maximum) value = fg_slider_3_slider_maximum;
+    if (fg_slider_3_slider == NULL || fg_slider_3_slider_value == value) return;
+    fg_slider_3_slider_programmatic_update = true;
+    lv_slider_set_value(fg_slider_3_slider, value, LV_ANIM_OFF);
+    fg_slider_3_slider_value = value;
+    fg_slider_3_slider_programmatic_update = false;
 }
 
-static void fg_checkbox_checkbox_value_changed_cb(lv_event_t * event)
+static void fg_slider_4_slider_value_changed_cb(lv_event_t * event)
 {
-    lv_obj_t * checkbox_object = lv_event_get_current_target(event);
-    if (checkbox_object != fg_checkbox_checkbox || fg_checkbox_checkbox_programmatic_update) return;
-    bool checked = lv_obj_has_state(checkbox_object, LV_STATE_CHECKED);
-    FG_On_Checkbox_Changed(checked);
+    lv_obj_t * slider = lv_event_get_current_target(event);
+    if (slider != fg_slider_4_slider || fg_slider_4_slider_programmatic_update) return;
+    int32_t value = lv_slider_get_value(slider);
+    if (fg_slider_4_slider_value == value) return;
+    fg_slider_4_slider_value = value;
+    FG_On_Slider_4_Changed(value);
 }
 
-void FG_Set_Checkbox_Checked(bool checked)
+void FG_Set_Slider_4_Value(int32_t value)
 {
-    if (fg_checkbox_checkbox == NULL) return;
-    bool current_checked = lv_obj_has_state(fg_checkbox_checkbox, LV_STATE_CHECKED);
-    if (current_checked == checked) return;
-    fg_checkbox_checkbox_programmatic_update = true;
-    if (checked) {
-        lv_obj_add_state(fg_checkbox_checkbox, LV_STATE_CHECKED);
-    } else {
-        lv_obj_remove_state(fg_checkbox_checkbox, LV_STATE_CHECKED);
-    }
-    fg_checkbox_checkbox_programmatic_update = false;
-}
-
-static void fg_radio_radio_value_changed_cb(lv_event_t * event)
-{
-    lv_obj_t * radio_object = lv_event_get_current_target(event);
-    if (radio_object != fg_radio_radio || fg_radio_radio_programmatic_update) return;
-    bool selected = lv_obj_has_state(radio_object, LV_STATE_CHECKED);
-    FG_On_Radio_Changed(selected);
-}
-
-void FG_Set_Radio_Selected(bool selected)
-{
-    if (fg_radio_radio == NULL) return;
-    bool current_selected = lv_obj_has_state(fg_radio_radio, LV_STATE_CHECKED);
-    if (current_selected == selected) return;
-    fg_radio_radio_programmatic_update = true;
-    if (selected) {
-        lv_obj_add_state(fg_radio_radio, LV_STATE_CHECKED);
-    } else {
-        lv_obj_remove_state(fg_radio_radio, LV_STATE_CHECKED);
-    }
-    fg_radio_radio_programmatic_update = false;
-}
-
-void FG_Add_Data_Chart_Point(int32_t value)
-{
-    if (fg_data_chart_chart == NULL || fg_data_chart_chart_series == NULL) return;
-    if (value < fg_data_chart_chart_y_minimum) value = fg_data_chart_chart_y_minimum;
-    if (value > fg_data_chart_chart_y_maximum) value = fg_data_chart_chart_y_maximum;
-    lv_chart_set_next_value(fg_data_chart_chart, fg_data_chart_chart_series, value);
-    FG_On_Data_Chart_Point_Added(value);
-}
-
-void FG_Clear_Data_Chart(void)
-{
-    if (fg_data_chart_chart == NULL || fg_data_chart_chart_series == NULL) return;
-    lv_chart_set_all_value(fg_data_chart_chart, fg_data_chart_chart_series, LV_CHART_POINT_NONE);
-    FG_On_Data_Chart_Cleared();
+    if (value < fg_slider_4_slider_minimum) value = fg_slider_4_slider_minimum;
+    if (value > fg_slider_4_slider_maximum) value = fg_slider_4_slider_maximum;
+    if (fg_slider_4_slider == NULL || fg_slider_4_slider_value == value) return;
+    fg_slider_4_slider_programmatic_update = true;
+    lv_slider_set_value(fg_slider_4_slider, value, LV_ANIM_OFF);
+    fg_slider_4_slider_value = value;
+    fg_slider_4_slider_programmatic_update = false;
 }
 
 static void FG_Set_Display_Brightness(uint8_t percent)
@@ -1387,317 +1360,75 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_size(bg_texture_0, 1024, 600);
     lv_obj_move_background(bg_texture_0);
 
-    fg_box_2 = lv_obj_create(fg_application_page);
-    lv_obj_t * obj1 = fg_box_2;
-    fg_box_2_visible = true;
-    lv_obj_set_pos(fg_box_2, 24, 24);
-    lv_obj_set_size(fg_box_2, 976, 552);
-    lv_obj_set_style_radius(fg_box_2, 12, 0);
-    lv_obj_set_style_bg_color(fg_box_2, lv_color_hex(0x1E2328), 0);
-    lv_obj_set_style_bg_opa(fg_box_2, 204, 0);
-    lv_obj_set_style_border_color(fg_box_2, lv_color_hex(0xF2A900), 0);
-    lv_obj_set_style_border_width(fg_box_2, 2, 0);
+    fg_slider_slider = lv_slider_create(fg_application_page);
+    lv_obj_t * obj1 = fg_slider_slider;
+    lv_obj_set_pos(fg_slider_slider, 392, 121);
+    lv_obj_set_size(fg_slider_slider, 180, 36);
+    lv_slider_set_range(fg_slider_slider, 0, 100);
+    lv_slider_set_value(fg_slider_slider, 50, LV_ANIM_OFF);
+    lv_obj_set_style_bg_color(fg_slider_slider, lv_color_hex(0x2A3138), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(fg_slider_slider, lv_color_hex(0xF2A900), LV_PART_INDICATOR);
+    lv_obj_set_style_bg_color(fg_slider_slider, lv_color_hex(0x121417), LV_PART_KNOB);
+    fg_slider_slider_value = 50;
+    lv_obj_add_event_cb(fg_slider_slider, fg_slider_slider_value_changed_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
-    fg_box = lv_obj_create(fg_application_page);
-    lv_obj_t * obj2 = fg_box;
-    fg_box_visible = true;
-    lv_obj_set_pos(fg_box, 672, 160);
-    lv_obj_set_size(fg_box, 152, 380);
-    lv_obj_set_style_radius(fg_box, 12, 0);
-    lv_obj_set_style_bg_color(fg_box, lv_color_hex(0x1E2328), 0);
-    lv_obj_set_style_bg_opa(fg_box, 204, 0);
-    lv_obj_set_style_border_color(fg_box, lv_color_hex(0xF2A900), 0);
-    lv_obj_set_style_border_width(fg_box, 2, 0);
+    fg_slider_2_slider = lv_slider_create(fg_application_page);
+    lv_obj_t * obj2 = fg_slider_2_slider;
+    lv_obj_set_pos(fg_slider_2_slider, 422, 282);
+    lv_obj_set_size(fg_slider_2_slider, 180, 36);
+    lv_slider_set_range(fg_slider_2_slider, 0, 100);
+    lv_slider_set_value(fg_slider_2_slider, 50, LV_ANIM_OFF);
+    lv_obj_set_style_bg_color(fg_slider_2_slider, lv_color_hex(0x2A3138), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(fg_slider_2_slider, lv_color_hex(0xF2A900), LV_PART_INDICATOR);
+    lv_obj_set_style_bg_color(fg_slider_2_slider, lv_color_hex(0x121417), LV_PART_KNOB);
+    fg_slider_2_slider_value = 50;
+    lv_obj_add_event_cb(fg_slider_2_slider, fg_slider_2_slider_value_changed_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
-    lv_obj_t * obj3 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj3, "Heading title");
-    lv_obj_set_pos(obj3, 48, 38);
-    lv_obj_set_style_text_color(obj3, lv_color_hex(0xF5F5F5), 0);
-    lv_obj_set_style_text_font(obj3, &lv_font_montserrat_32, 0);
+    lv_obj_t * obj3 = lv_spinner_create(fg_application_page);
+    lv_obj_set_pos(obj3, 734, 135);
+    lv_obj_set_size(obj3, 96, 96);
+    lv_spinner_set_anim_params(obj3, 1000, 60);
+    lv_obj_set_style_arc_width(obj3, 8, LV_PART_MAIN);
+    lv_obj_set_style_arc_width(obj3, 8, LV_PART_INDICATOR);
+    lv_obj_set_style_arc_color(obj3, lv_color_hex(0x2A3138), LV_PART_MAIN);
+    lv_obj_set_style_arc_color(obj3, lv_color_hex(0xF2A900), LV_PART_INDICATOR);
+    lv_obj_set_style_opa(obj3, 255, LV_PART_MAIN);
+    lv_obj_set_style_opa(obj3, 255, LV_PART_INDICATOR);
 
-    lv_obj_t * obj4 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj4, "Industrial monitoring overview");
-    lv_obj_set_pos(obj4, 48, 104);
-    lv_obj_set_style_text_color(obj4, lv_color_hex(0xF5F5F5), 0);
-    lv_obj_set_style_text_font(obj4, &lv_font_montserrat_24, 0);
+    lv_obj_t * obj4 = lv_spinner_create(fg_application_page);
+    lv_obj_set_pos(obj4, 742, 238);
+    lv_obj_set_size(obj4, 96, 96);
+    lv_spinner_set_anim_params(obj4, 1000, 60);
+    lv_obj_set_style_arc_width(obj4, 8, LV_PART_MAIN);
+    lv_obj_set_style_arc_width(obj4, 8, LV_PART_INDICATOR);
+    lv_obj_set_style_arc_color(obj4, lv_color_hex(0x2A3138), LV_PART_MAIN);
+    lv_obj_set_style_arc_color(obj4, lv_color_hex(0xF2A900), LV_PART_INDICATOR);
+    lv_obj_set_style_opa(obj4, 255, LV_PART_MAIN);
+    lv_obj_set_style_opa(obj4, 255, LV_PART_INDICATOR);
 
-    LV_IMAGE_DECLARE(fg_upload_fisettings_80x56_f4f194af);
-    lv_obj_t * obj5 = lv_image_create(fg_application_page);
-    lv_image_set_src(obj5, &fg_upload_fisettings_80x56_f4f194af);
-    lv_image_set_scale(obj5, 256);
-    lv_obj_set_pos(obj5, 916, 36);
-    lv_obj_set_size(obj5, 80, 56);
+    fg_slider_3_slider = lv_slider_create(fg_application_page);
+    lv_obj_t * obj5 = fg_slider_3_slider;
+    lv_obj_set_pos(fg_slider_3_slider, 708, 351);
+    lv_obj_set_size(fg_slider_3_slider, 180, 36);
+    lv_slider_set_range(fg_slider_3_slider, 0, 100);
+    lv_slider_set_value(fg_slider_3_slider, 50, LV_ANIM_OFF);
+    lv_obj_set_style_bg_color(fg_slider_3_slider, lv_color_hex(0x2A3138), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(fg_slider_3_slider, lv_color_hex(0xF2A900), LV_PART_INDICATOR);
+    lv_obj_set_style_bg_color(fg_slider_3_slider, lv_color_hex(0x121417), LV_PART_KNOB);
+    fg_slider_3_slider_value = 50;
+    lv_obj_add_event_cb(fg_slider_3_slider, fg_slider_3_slider_value_changed_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
-    static lv_point_precise_t obj6_pts[] = {
-      {0, 0},
-      {928, 0}
-    };
-    lv_obj_t * obj6 = lv_line_create(fg_application_page);
-    lv_line_set_points(obj6, obj6_pts, 2);
-    lv_obj_set_pos(obj6, 48, 136);
-    lv_obj_set_style_line_color(obj6, lv_color_hex(0xF2A900), LV_PART_MAIN);
-    lv_obj_set_style_line_width(obj6, 2, LV_PART_MAIN);
-
-    fg_data_chart_chart = lv_chart_create(fg_application_page);
-    lv_obj_set_pos(fg_data_chart_chart, 48, 184);
-    lv_obj_set_size(fg_data_chart_chart, 600, 380);
-    lv_obj_set_style_bg_color(fg_data_chart_chart, lv_color_hex(0x1E2328), LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(fg_data_chart_chart, LV_OPA_COVER, LV_PART_MAIN);
-    lv_obj_set_style_border_color(fg_data_chart_chart, lv_color_hex(0xF2A900), LV_PART_MAIN);
-    lv_obj_set_style_border_width(fg_data_chart_chart, 2, LV_PART_MAIN);
-    lv_obj_set_style_radius(fg_data_chart_chart, 12, LV_PART_MAIN);
-    lv_obj_set_style_line_color(fg_data_chart_chart, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_pad_left(fg_data_chart_chart, 42, LV_PART_MAIN);
-    lv_obj_set_style_pad_right(fg_data_chart_chart, 8, LV_PART_MAIN);
-    lv_obj_set_style_pad_top(fg_data_chart_chart, 10, LV_PART_MAIN);
-    lv_obj_set_style_pad_bottom(fg_data_chart_chart, 24, LV_PART_MAIN);
-    lv_chart_set_type(fg_data_chart_chart, LV_CHART_TYPE_LINE);
-    lv_chart_set_point_count(fg_data_chart_chart, 11);
-    lv_chart_set_range(fg_data_chart_chart, LV_CHART_AXIS_PRIMARY_Y, 0, 100);
-    lv_chart_set_div_line_count(fg_data_chart_chart, 3, 11);
-    fg_data_chart_chart_series = lv_chart_add_series(fg_data_chart_chart, lv_color_hex(0xF2A900), LV_CHART_AXIS_PRIMARY_Y);
-    lv_chart_set_next_value(fg_data_chart_chart, fg_data_chart_chart_series, 10);
-    lv_chart_set_next_value(fg_data_chart_chart, fg_data_chart_chart_series, 30);
-    lv_chart_set_next_value(fg_data_chart_chart, fg_data_chart_chart_series, 20);
-    lv_chart_set_next_value(fg_data_chart_chart, fg_data_chart_chart_series, 50);
-    lv_chart_set_next_value(fg_data_chart_chart, fg_data_chart_chart_series, 40);
-    lv_chart_set_next_value(fg_data_chart_chart, fg_data_chart_chart_series, 70);
-    lv_chart_set_next_value(fg_data_chart_chart, fg_data_chart_chart_series, 60);
-    lv_chart_set_next_value(fg_data_chart_chart, fg_data_chart_chart_series, 75);
-    lv_chart_set_next_value(fg_data_chart_chart, fg_data_chart_chart_series, 68);
-    lv_chart_set_next_value(fg_data_chart_chart, fg_data_chart_chart_series, 58);
-    lv_chart_set_next_value(fg_data_chart_chart, fg_data_chart_chart_series, 50);
-    lv_chart_refresh(fg_data_chart_chart);
-    lv_obj_t * obj7_y_label_0 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj7_y_label_0, "100");
-    lv_obj_set_pos(obj7_y_label_0, 48 + 2, 184 + 5);
-    lv_obj_set_size(obj7_y_label_0, 38, 14);
-    lv_obj_set_style_text_color(obj7_y_label_0, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj7_y_label_0, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj7_y_label_0, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);
-    lv_obj_clear_flag(obj7_y_label_0, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj7_y_label_1 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj7_y_label_1, "75");
-    lv_obj_set_pos(obj7_y_label_1, 48 + 2, 184 + 91);
-    lv_obj_set_size(obj7_y_label_1, 38, 14);
-    lv_obj_set_style_text_color(obj7_y_label_1, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj7_y_label_1, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj7_y_label_1, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);
-    lv_obj_clear_flag(obj7_y_label_1, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj7_y_label_2 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj7_y_label_2, "50");
-    lv_obj_set_pos(obj7_y_label_2, 48 + 2, 184 + 176);
-    lv_obj_set_size(obj7_y_label_2, 38, 14);
-    lv_obj_set_style_text_color(obj7_y_label_2, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj7_y_label_2, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj7_y_label_2, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);
-    lv_obj_clear_flag(obj7_y_label_2, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj7_y_label_3 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj7_y_label_3, "25");
-    lv_obj_set_pos(obj7_y_label_3, 48 + 2, 184 + 262);
-    lv_obj_set_size(obj7_y_label_3, 38, 14);
-    lv_obj_set_style_text_color(obj7_y_label_3, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj7_y_label_3, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj7_y_label_3, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);
-    lv_obj_clear_flag(obj7_y_label_3, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj7_y_label_4 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj7_y_label_4, "0");
-    lv_obj_set_pos(obj7_y_label_4, 48 + 2, 184 + 347);
-    lv_obj_set_size(obj7_y_label_4, 38, 14);
-    lv_obj_set_style_text_color(obj7_y_label_4, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj7_y_label_4, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj7_y_label_4, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);
-    lv_obj_clear_flag(obj7_y_label_4, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj7_x_label_0 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj7_x_label_0, "0");
-    lv_obj_set_pos(obj7_x_label_0, 48 + 36, 184 + 357);
-    lv_obj_set_size(obj7_x_label_0, 16, 14);
-    lv_obj_set_style_text_color(obj7_x_label_0, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj7_x_label_0, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj7_x_label_0, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_clear_flag(obj7_x_label_0, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj7_x_label_1 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj7_x_label_1, "1");
-    lv_obj_set_pos(obj7_x_label_1, 48 + 90, 184 + 357);
-    lv_obj_set_size(obj7_x_label_1, 16, 14);
-    lv_obj_set_style_text_color(obj7_x_label_1, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj7_x_label_1, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj7_x_label_1, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_clear_flag(obj7_x_label_1, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj7_x_label_2 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj7_x_label_2, "2");
-    lv_obj_set_pos(obj7_x_label_2, 48 + 145, 184 + 357);
-    lv_obj_set_size(obj7_x_label_2, 16, 14);
-    lv_obj_set_style_text_color(obj7_x_label_2, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj7_x_label_2, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj7_x_label_2, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_clear_flag(obj7_x_label_2, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj7_x_label_3 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj7_x_label_3, "3");
-    lv_obj_set_pos(obj7_x_label_3, 48 + 199, 184 + 357);
-    lv_obj_set_size(obj7_x_label_3, 16, 14);
-    lv_obj_set_style_text_color(obj7_x_label_3, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj7_x_label_3, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj7_x_label_3, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_clear_flag(obj7_x_label_3, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj7_x_label_4 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj7_x_label_4, "4");
-    lv_obj_set_pos(obj7_x_label_4, 48 + 254, 184 + 357);
-    lv_obj_set_size(obj7_x_label_4, 16, 14);
-    lv_obj_set_style_text_color(obj7_x_label_4, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj7_x_label_4, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj7_x_label_4, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_clear_flag(obj7_x_label_4, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj7_x_label_5 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj7_x_label_5, "5");
-    lv_obj_set_pos(obj7_x_label_5, 48 + 309, 184 + 357);
-    lv_obj_set_size(obj7_x_label_5, 16, 14);
-    lv_obj_set_style_text_color(obj7_x_label_5, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj7_x_label_5, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj7_x_label_5, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_clear_flag(obj7_x_label_5, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj7_x_label_6 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj7_x_label_6, "6");
-    lv_obj_set_pos(obj7_x_label_6, 48 + 363, 184 + 357);
-    lv_obj_set_size(obj7_x_label_6, 16, 14);
-    lv_obj_set_style_text_color(obj7_x_label_6, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj7_x_label_6, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj7_x_label_6, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_clear_flag(obj7_x_label_6, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj7_x_label_7 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj7_x_label_7, "7");
-    lv_obj_set_pos(obj7_x_label_7, 48 + 418, 184 + 357);
-    lv_obj_set_size(obj7_x_label_7, 16, 14);
-    lv_obj_set_style_text_color(obj7_x_label_7, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj7_x_label_7, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj7_x_label_7, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_clear_flag(obj7_x_label_7, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj7_x_label_8 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj7_x_label_8, "8");
-    lv_obj_set_pos(obj7_x_label_8, 48 + 472, 184 + 357);
-    lv_obj_set_size(obj7_x_label_8, 16, 14);
-    lv_obj_set_style_text_color(obj7_x_label_8, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj7_x_label_8, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj7_x_label_8, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_clear_flag(obj7_x_label_8, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj7_x_label_9 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj7_x_label_9, "9");
-    lv_obj_set_pos(obj7_x_label_9, 48 + 527, 184 + 357);
-    lv_obj_set_size(obj7_x_label_9, 16, 14);
-    lv_obj_set_style_text_color(obj7_x_label_9, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj7_x_label_9, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj7_x_label_9, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_clear_flag(obj7_x_label_9, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj7_x_label_10 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj7_x_label_10, "10");
-    lv_obj_set_pos(obj7_x_label_10, 48 + 580, 184 + 357);
-    lv_obj_set_size(obj7_x_label_10, 21, 14);
-    lv_obj_set_style_text_color(obj7_x_label_10, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj7_x_label_10, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj7_x_label_10, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_clear_flag(obj7_x_label_10, LV_OBJ_FLAG_CLICKABLE);
-
-    fg_input_input = lv_textarea_create(fg_application_page);
-    lv_textarea_set_one_line(fg_input_input, true);
-    lv_textarea_set_placeholder_text(fg_input_input, "Input");
-    lv_obj_set_pos(fg_input_input, 692, 184);
-    lv_obj_set_size(fg_input_input, 120, 48);
-    lv_obj_set_style_bg_color(fg_input_input, lv_color_hex(0x1E2328), 0);
-    lv_obj_set_style_bg_opa(fg_input_input, LV_OPA_COVER, LV_PART_MAIN);
-    lv_obj_set_style_text_color(fg_input_input, lv_color_hex(0xF5F5F5), 0);
-    lv_obj_set_style_border_color(fg_input_input, lv_color_hex(0xF2A900), 0);
-    lv_obj_set_style_border_opa(fg_input_input, LV_OPA_COVER, LV_PART_MAIN);
-    lv_obj_set_style_border_width(fg_input_input, 1, LV_PART_MAIN);
-    lv_obj_set_style_radius(fg_input_input, 6, LV_PART_MAIN);
-    lv_obj_set_style_outline_width(fg_input_input, 0, LV_PART_MAIN);
-    lv_obj_set_style_shadow_width(fg_input_input, 0, LV_PART_MAIN);
-    lv_obj_set_style_pad_left(fg_input_input, 16, LV_PART_MAIN);
-    lv_obj_set_style_pad_right(fg_input_input, 16, LV_PART_MAIN);
-    lv_obj_set_style_pad_top(fg_input_input, 0, LV_PART_MAIN);
-    lv_obj_set_style_pad_bottom(fg_input_input, 0, LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(fg_input_input, LV_OPA_TRANSP, LV_PART_SCROLLBAR);
-    lv_obj_set_style_border_width(fg_input_input, 0, LV_PART_SCROLLBAR);
-    lv_obj_set_style_outline_width(fg_input_input, 0, LV_PART_SCROLLBAR);
-    lv_obj_set_style_shadow_width(fg_input_input, 0, LV_PART_SCROLLBAR);
-    lv_obj_set_style_text_color(fg_input_input, lv_color_hex(0xB5B6B8), LV_PART_TEXTAREA_PLACEHOLDER);
-    lv_obj_set_style_border_color(fg_input_input, lv_color_hex(0xF2A900), LV_PART_MAIN | LV_STATE_FOCUSED);
-    lv_obj_set_style_border_width(fg_input_input, 1, LV_PART_MAIN | LV_STATE_FOCUSED);
-    lv_obj_set_style_outline_width(fg_input_input, 0, LV_PART_MAIN | LV_STATE_FOCUSED);
-    lv_obj_set_style_shadow_width(fg_input_input, 0, LV_PART_MAIN | LV_STATE_FOCUSED);
-    lv_obj_set_style_text_color(fg_input_input, lv_color_hex(0x7F8284), LV_PART_MAIN | LV_STATE_DISABLED);
-    lv_obj_add_event_cb(fg_input_input, fg_input_input_value_changed_cb, LV_EVENT_VALUE_CHANGED, NULL);
-
-    fg_switch_switch = lv_switch_create(fg_application_page);
-    lv_obj_set_pos(fg_switch_switch, 692, 252);
-    lv_obj_set_size(fg_switch_switch, 64, 40);
-    lv_obj_add_state(fg_switch_switch, LV_STATE_CHECKED);
-    lv_obj_set_style_bg_color(fg_switch_switch, lv_color_hex(0x2A3138), LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(fg_switch_switch, LV_OPA_COVER, LV_PART_MAIN);
-    lv_obj_set_style_bg_color(fg_switch_switch, lv_color_hex(0xF2A900), LV_PART_INDICATOR);
-    lv_obj_set_style_bg_opa(fg_switch_switch, LV_OPA_TRANSP, LV_PART_INDICATOR);
-    lv_obj_set_style_bg_color(fg_switch_switch, lv_color_hex(0xF2A900), LV_PART_INDICATOR | LV_STATE_CHECKED);
-    lv_obj_set_style_bg_opa(fg_switch_switch, LV_OPA_COVER, LV_PART_INDICATOR | LV_STATE_CHECKED);
-    lv_obj_set_style_bg_color(fg_switch_switch, lv_color_hex(0x121417), LV_PART_KNOB);
-    lv_obj_set_style_bg_opa(fg_switch_switch, LV_OPA_COVER, LV_PART_KNOB);
-    lv_obj_add_event_cb(fg_switch_switch, fg_switch_switch_value_changed_cb, LV_EVENT_VALUE_CHANGED, NULL);
-
-    fg_checkbox_checkbox = lv_checkbox_create(fg_application_page);
-    lv_checkbox_set_text(fg_checkbox_checkbox, "Alarm");
-    lv_obj_set_pos(fg_checkbox_checkbox, 692, 314);
-    lv_obj_set_style_text_color(fg_checkbox_checkbox, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
-    lv_obj_set_style_text_color(fg_checkbox_checkbox, lv_color_hex(0x7F8284), LV_PART_MAIN | LV_STATE_DISABLED);
-    lv_obj_set_style_pad_column(fg_checkbox_checkbox, 8, LV_PART_MAIN);
-    lv_obj_set_style_border_color(fg_checkbox_checkbox, lv_color_hex(0xF2A900), LV_PART_INDICATOR);
-    lv_obj_set_style_border_width(fg_checkbox_checkbox, 2, LV_PART_INDICATOR);
-    lv_obj_set_style_radius(fg_checkbox_checkbox, 4, LV_PART_INDICATOR);
-    lv_obj_set_style_bg_color(fg_checkbox_checkbox, lv_color_hex(0x1E2328), LV_PART_INDICATOR);
-    lv_obj_set_style_bg_opa(fg_checkbox_checkbox, LV_OPA_COVER, LV_PART_INDICATOR);
-    lv_obj_set_style_bg_color(fg_checkbox_checkbox, lv_color_hex(0xF2A900), LV_PART_INDICATOR | LV_STATE_CHECKED);
-    lv_obj_set_style_border_color(fg_checkbox_checkbox, lv_color_hex(0xF2A900), LV_PART_INDICATOR | LV_STATE_CHECKED);
-    lv_obj_set_style_text_color(fg_checkbox_checkbox, lv_color_hex(0x121417), LV_PART_INDICATOR | LV_STATE_CHECKED);
-    lv_obj_set_style_bg_color(fg_checkbox_checkbox, lv_color_hex(0x2A3138), LV_PART_INDICATOR | LV_STATE_DISABLED);
-    lv_obj_set_style_border_color(fg_checkbox_checkbox, lv_color_hex(0xF2A900), LV_PART_INDICATOR | LV_STATE_DISABLED);
-    lv_obj_add_event_cb(fg_checkbox_checkbox, fg_checkbox_checkbox_value_changed_cb, LV_EVENT_VALUE_CHANGED, NULL);
-
-    fg_radio_radio = lv_checkbox_create(fg_application_page);
-    lv_checkbox_set_text(fg_radio_radio, "Auto");
-    lv_obj_set_pos(fg_radio_radio, 692, 372);
-    lv_obj_set_style_text_color(fg_radio_radio, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
-    lv_obj_set_style_text_color(fg_radio_radio, lv_color_hex(0x7F8284), LV_PART_MAIN | LV_STATE_DISABLED);
-    lv_obj_set_style_radius(fg_radio_radio, LV_RADIUS_CIRCLE, LV_PART_INDICATOR);
-    lv_obj_set_style_border_color(fg_radio_radio, lv_color_hex(0xF2A900), LV_PART_INDICATOR);
-    lv_obj_set_style_bg_color(fg_radio_radio, lv_color_hex(0x1E2328), LV_PART_INDICATOR);
-    lv_obj_set_style_bg_color(fg_radio_radio, lv_color_hex(0xF2A900), LV_PART_INDICATOR | LV_STATE_CHECKED);
-    lv_obj_set_style_text_color(fg_radio_radio, lv_color_hex(0x121417), LV_PART_INDICATOR | LV_STATE_CHECKED);
-    lv_obj_add_event_cb(fg_radio_radio, fg_radio_radio_value_changed_cb, LV_EVENT_VALUE_CHANGED, NULL);
-
-    lv_obj_t * obj12 = lv_slider_create(fg_application_page);
-    lv_obj_set_pos(obj12, 692, 436);
-    lv_obj_set_size(obj12, 120, 40);
-    lv_slider_set_value(obj12, 0, LV_ANIM_OFF);
-    lv_obj_set_style_bg_color(obj12, lv_color_hex(0x2A3138), LV_PART_MAIN);
-    lv_obj_set_style_bg_color(obj12, lv_color_hex(0xF2A900), LV_PART_INDICATOR);
-    lv_obj_set_style_bg_color(obj12, lv_color_hex(0x121417), LV_PART_KNOB);
-
-    lv_obj_t * obj13 = lv_button_create(fg_application_page);
-    lv_obj_set_pos(obj13, 848, 184);
-    lv_obj_set_size(obj13, 152, 56);
-    lv_obj_set_style_radius(obj13, 12, 0);
-    lv_obj_set_style_bg_color(obj13, lv_color_hex(0x1E2328), 0);
-    lv_obj_set_style_bg_opa(obj13, LV_OPA_COVER, 0);
-    lv_obj_set_style_border_color(obj13, lv_color_hex(0xF2A900), 0);
-    lv_obj_set_style_border_width(obj13, 2, 0);
-    lv_obj_set_style_bg_color(obj13, lv_color_hex(0xF2A900), LV_PART_MAIN | LV_STATE_PRESSED);
-    lv_obj_set_style_border_color(obj13, lv_color_hex(0xF2A900), LV_PART_MAIN | LV_STATE_FOCUSED);
-    lv_obj_set_style_bg_color(obj13, lv_color_hex(0x2A3138), LV_PART_MAIN | LV_STATE_DISABLED);
-    lv_obj_set_style_text_color(obj13, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
-    lv_obj_set_style_text_color(obj13, lv_color_hex(0x121417), LV_PART_MAIN | LV_STATE_PRESSED);
-    lv_obj_set_style_text_color(obj13, lv_color_hex(0x7F8284), LV_PART_MAIN | LV_STATE_DISABLED);
-    lv_obj_t * obj13_label = lv_label_create(obj13);
-    lv_label_set_text(obj13_label, "Run Check");
-    lv_obj_set_style_text_font(obj13_label, &lv_font_montserrat_14, 0);
-    lv_obj_set_style_text_align(obj13_label, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_center(obj13_label);
+    fg_slider_4_slider = lv_slider_create(fg_application_page);
+    lv_obj_t * obj6 = fg_slider_4_slider;
+    lv_obj_set_pos(fg_slider_4_slider, 655, 41);
+    lv_obj_set_size(fg_slider_4_slider, 180, 36);
+    lv_slider_set_range(fg_slider_4_slider, 0, 100);
+    lv_slider_set_value(fg_slider_4_slider, 50, LV_ANIM_OFF);
+    lv_obj_set_style_bg_color(fg_slider_4_slider, lv_color_hex(0x2A3138), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(fg_slider_4_slider, lv_color_hex(0xF2A900), LV_PART_INDICATOR);
+    lv_obj_set_style_bg_color(fg_slider_4_slider, lv_color_hex(0x121417), LV_PART_KNOB);
+    fg_slider_4_slider_value = 50;
+    lv_obj_add_event_cb(fg_slider_4_slider, fg_slider_4_slider_value_changed_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
 
     fg_ram_probe_log("02 after application page creation");
