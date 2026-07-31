@@ -1,4 +1,7 @@
-import { componentsList } from '~componentsList'
+import {
+  componentsList,
+  futureUnregisteredWidgetTypes,
+} from '~componentsList'
 import {
   forgeAIComponentCatalogue,
   forgeAIIntentionalExclusions,
@@ -48,9 +51,16 @@ describe('ForgeUI AI component catalogue', () => {
 
   it('keeps explicit reasons for intentionally unsupported palette entries', () => {
     expect(forgeAIIntentionalExclusions).toEqual(expect.arrayContaining([
-      expect.objectContaining({ type: 'Lottie', reason: expect.any(String) }),
       expect.objectContaining({ type: 'Spinner', reason: expect.any(String) }),
       expect.objectContaining({ type: 'Accordion', reason: expect.any(String) }),
+    ]))
+    expect(futureUnregisteredWidgetTypes).toEqual(new Set([
+      'AnimImage',
+      'ImageButton',
+      'Lottie',
+      'Menu',
+      'ObjxTempl',
+      'Editable',
     ]))
   })
 

@@ -31,7 +31,7 @@ const SUPPORTED_TYPES = [
   'InteractiveThreePositionToggleSwitch', 'IconButton', 'Icon', 'Input',
   'Textarea', 'Switch', 'Checkbox', 'Radio', 'NumberInput', 'Spinbox', 'Select', 'Image',
   'Slider', 'Progress', 'CircularProgress', 'Led', 'Bar', 'Arc', 'Roller',
-  'Canvas', 'Line', 'Tabview', 'Tileview', 'AnimImage', 'ButtonMatrix',
+  'Canvas', 'Line', 'Tabview', 'Tileview', 'ButtonMatrix',
   'Msgbox', 'Table', 'Scale', 'Keyboard', 'Divider', 'Calendar', 'Chart', 'Box',
 ] as const
 
@@ -44,7 +44,7 @@ const CONTROL_TYPES = new Set<SupportedType>([
   'ButtonMatrix', 'Keyboard',
 ])
 
-const MEDIA_TYPES = new Set<SupportedType>(['Image', 'AnimImage', 'Icon'])
+const MEDIA_TYPES = new Set<SupportedType>(['Image', 'Icon'])
 const NAVIGATION_TYPES = new Set<SupportedType>(['Tabview', 'Tileview'])
 const LAYOUT_TYPES = new Set<SupportedType>(['Box', 'Divider', 'Line', 'Canvas'])
 const CONTENT_TYPES = new Set<SupportedType>(['Text', 'Heading'])
@@ -102,7 +102,7 @@ const sizes: Partial<Record<SupportedType, { w: number; h: number }>> = {
 
 const assetRequirement = (type: SupportedType): ForgeAIAssetRequirement => {
   if (type === 'Icon' || type === 'IconButton') return 'icon'
-  if (type === 'Image' || type === 'AnimImage') return 'uploaded-image'
+  if (type === 'Image') return 'uploaded-image'
   if (type === 'InteractiveButton') return 'interactive-button'
   if (type === 'InteractiveLight') return 'interactive-light'
   if (type === 'InteractiveStatusIndicator') return 'interactive-status-indicator'

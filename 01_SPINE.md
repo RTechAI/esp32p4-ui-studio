@@ -17,6 +17,11 @@
 
 ## 2026-07-31 authoritative architecture alignment
 
+- `ForgeUIWidgetRegistry.ts` now owns explicit per-widget Runtime API,
+  UserEvent, user-input, Interactive Asset, child-ownership, documentation and
+  feature-dependency metadata. These values mirror the actual
+  `publicApiDeclarations` and `userEventHooks` generator contracts; broad
+  exclusions such as “everything except Spinner/List” are forbidden.
 - `ForgeUIWidgetRegistry.ts` is the single source of truth for Standard Widget
   Tray membership, categories, insertion geometry, defaults, capability
   metadata, documentation IDs and availability. `ForgeUIWidgetSet.ts` is a
@@ -50,6 +55,16 @@
 - The ForgeUI Runtime SDK is an architectural direction, not a separately
   shipped runtime product. It is the documented surface formed by generated
   Runtime APIs, UserEvents, types and ownership rules.
+- `componentsList.ts` remains only a compatibility list for legacy
+  Chakra-era component parsing. AnimImage, ImageButton, Lottie, Menu,
+  ObjxTempl and Editable are explicitly quarantined as future/unregistered
+  types: they are absent from the Registry and root drop surface, excluded from
+  the active Inspector/AI catalogue and rejected by export preflight.
+- Registry documentation metadata resolves to real Markdown files. Spinbox and
+  QR Code use their focused guides; other entries resolve to the authoritative
+  Feature Status ledger. Registry feature metadata records serialized-widget
+  or registered-asset gating and the known Spinbox/QR LVGL configuration
+  dependencies without yet redesigning sdkconfig generation.
 
 ## Current Proven Status..
 

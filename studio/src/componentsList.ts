@@ -99,18 +99,18 @@ export const menuItems: MenuItems = {
   Arc: {},
   Bar: {},
   Led: {},
-  AnimImage: {},
+  AnimImage: { soon: true },
   ButtonMatrix: {},
   Calendar: {},
   Canvas: {},
   Chart: {},
   QRCode: {},
-  ImageButton: {},
+  ImageButton: { soon: true },
   Keyboard: {},
   Line: {},
-  Lottie: {},
+  Lottie: { soon: true },
   Msgbox: {},
-  ObjxTempl: {},
+  ObjxTempl: { soon: true },
   Roller: {},
   Scale: {},
   Table: {},
@@ -155,7 +155,19 @@ export const menuItems: MenuItems = {
   Menu: { soon: true },
 }
 
-export const componentsList: ComponentType[] = [
+// Compatibility types may still occur in old serialized projects, but they
+// are not registered ForgeUI widgets and must not be advertised to the
+// Inspector, AI catalogue, Tray, or export capability surfaces.
+export const futureUnregisteredWidgetTypes = new Set<ComponentType>([
+  'AnimImage',
+  'ImageButton',
+  'Lottie',
+  'Menu',
+  'ObjxTempl',
+  'Editable',
+])
+
+export const componentsList: ComponentType[] = ([
   'Accordion',
 'AccordionIcon',
 'AccordionItem',
@@ -260,4 +272,6 @@ export const componentsList: ComponentType[] = [
 'Text',
 'Textarea',
 'Tileview',
-]
+] as ComponentType[]).filter(
+  type => !futureUnregisteredWidgetTypes.has(type),
+)

@@ -586,4 +586,35 @@ describe('ForgeUI export preflight', () => {
       replacement.map(image => image.cFile),
     )
   })
+
+  it.each([
+    'AnimImage',
+    'ImageButton',
+    'Lottie',
+    'Menu',
+    'ObjxTempl',
+    'Editable',
+  ])('rejects quarantined legacy placeholder %s', type => {
+    const result = validateForgeUIExport(
+      {
+        legacy: {
+          id: 'legacy',
+          type,
+          componentName: `Legacy ${type}`,
+          parent: 'root',
+          children: [],
+          props: { w: 100, h: 100 },
+        },
+      } as any,
+      [],
+      [],
+      generate([]),
+    )
+
+    expect(result.ok).toBe(false)
+    expect(result.diagnostics).toContainEqual(expect.objectContaining({
+      category: 'Unsupported Widgets',
+      subject: `Legacy ${type}`,
+    }))
+  })
 })

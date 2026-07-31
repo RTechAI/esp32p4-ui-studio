@@ -1,4 +1,5 @@
 import { forgeUIWidgetDefinitions } from '~forgeui/widgets/ForgeUIWidgetRegistry'
+import { futureUnregisteredWidgetTypes } from '~componentsList'
 
 const ALERT_COMPONENTS: (ComponentType | MetaComponentType)[] = [
   'Alert',
@@ -143,5 +144,6 @@ export const rootComponents = Array.from(new Set([
         'AccordionIcon',
         'BreadcrumbItem',
         'BreadcrumbLink',
-      ].includes(name),
+      ].includes(name) &&
+      !futureUnregisteredWidgetTypes.has(name as ComponentType),
   )

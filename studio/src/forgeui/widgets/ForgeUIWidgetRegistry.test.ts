@@ -19,6 +19,19 @@ describe('ForgeUI Widget registry', () => {
       expect(definition.defaultWidth).toBeGreaterThan(0)
       expect(definition.defaultHeight).toBeGreaterThan(0)
       expect(typeof definition.insertionFactory).toBe('function')
+      expect(definition.documentationId).toMatch(/\.md$/)
+      expect(definition.capabilities).toEqual(expect.objectContaining({
+        supportsRuntimeApi: expect.any(Boolean),
+        supportsUserEvents: expect.any(Boolean),
+        supportsChildren: expect.any(Boolean),
+        acceptsUserInput: expect.any(Boolean),
+        isInteractiveAsset: expect.any(Boolean),
+        childOwnership: expect.stringMatching(/^(none|container|structured)$/),
+        featureGate: expect.objectContaining({
+          mode: expect.stringMatching(/^(serialized-widget|registered-asset)$/),
+          lvglConfigDependencies: expect.any(Array),
+        }),
+      }))
       expect(definition.insertionFactory(12.5, 20.25)).toMatchObject({
         positionMode: 'absolute',
         x: 12.5,
@@ -118,6 +131,8 @@ describe('ForgeUI Widget registry', () => {
           supportsRuntimeApi: true,
           supportsUserEvents: true,
           supportsChildren: false,
+          acceptsUserInput: true,
+          isInteractiveAsset: false,
         },
         defaultProperties: {
           min: 0,
@@ -125,6 +140,61 @@ describe('ForgeUI Widget registry', () => {
           value: 0,
           digitCount: 5,
           decimalPlaces: 0,
+        },
+      })
+  })
+
+  it.each([
+    ['Text', false, false, false],
+    ['Heading', false, false, false],
+    ['Button', false, false, true],
+    ['Icon', false, false, false],
+    ['Divider', false, false, false],
+    ['Scale', false, false, false],
+    ['Clock', false, false, false],
+    ['Canvas', false, false, false],
+    ['Slider', true, true, true],
+    ['Switch', true, true, true],
+    ['Select', true, true, true],
+    ['List', false, true, true],
+    ['InteractiveLight', true, false, false],
+    ['InteractiveStatusIndicator', true, false, false],
+  ])(
+    'aligns %s capabilities with generated APIs and hooks',
+    (type, runtime, events, input) => {
+      expect(forgeUIWidgetDefinitions.find(item => item.type === type))
+        .toMatchObject({
+          capabilities: {
+            supportsRuntimeApi: runtime,
+            supportsUserEvents: events,
+            acceptsUserInput: input,
+          },
+        })
+    },
+  )
+
+  it('records real documentation targets and known LVGL dependencies', () => {
+    expect(forgeUIWidgetDefinitions.find(item => item.type === 'Spinbox'))
+      .toMatchObject({
+        documentationId: 'docs/FORGEUI_SPINBOX_WIDGET.md',
+        capabilities: {
+          featureGate: {
+            mode: 'serialized-widget',
+            lvglConfigDependencies: [
+              'CONFIG_LV_USE_SPINBOX',
+              'CONFIG_LV_USE_TEXTAREA',
+            ],
+          },
+        },
+      })
+    expect(forgeUIWidgetDefinitions.find(item => item.type === 'QRCode'))
+      .toMatchObject({
+        documentationId: 'docs/FORGEUI_QR_CODE.md',
+        capabilities: {
+          featureGate: {
+            mode: 'serialized-widget',
+            lvglConfigDependencies: ['CONFIG_LV_USE_QRCODE'],
+          },
         },
       })
   })

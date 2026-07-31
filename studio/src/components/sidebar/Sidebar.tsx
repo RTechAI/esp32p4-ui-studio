@@ -464,7 +464,7 @@ const Menu = () => {
                             category={entry.category}
                             interactive={
                               entry.category === 'Assets' ||
-                              entry.definition?.capabilities.interactive ||
+                              entry.definition?.capabilities.isInteractiveAsset ||
                               entry.id.startsWith('interactive:')
                             }
                           />

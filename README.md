@@ -21,6 +21,8 @@ ForgeUI exists to shorten the path from an interface idea to editable embedded f
 
 - Drag-and-drop, free-form Canvas placement and resizing
 - Registry-driven Widget Tray with search and accessible insertion
+- Authoritative per-widget Registry metadata for Runtime APIs, UserEvents,
+  input semantics, child ownership, documentation and feature-gate preparation
 - Data-driven Board Profiles shared by live and Standalone Export
 - Export-Time Feature Gating across generated C, CMake and dependencies
 - Component properties, semantic themes and uploaded artwork
@@ -36,6 +38,11 @@ ForgeUI exists to shorten the path from an interface idea to editable embedded f
 - Client and server export validation
 - Integrated ESP-IDF Build & Flash
 - Standalone ESP-IDF project export
+
+The active Registry contains only supported widgets. Legacy placeholder types
+such as AnimImage, ImageButton, Lottie, Menu and ObjxTempl are quarantined from
+the Tray, root Canvas drop surface, active Inspector/AI catalogue and export;
+they are not advertised as implemented Standard widgets.
 
 ## Typical workflow
 

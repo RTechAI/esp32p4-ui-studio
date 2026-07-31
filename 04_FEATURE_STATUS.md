@@ -5,6 +5,21 @@
 Current platform save point:
 `FORGEUI_STANDARD_SPINBOX__VERTICAL_SLICE__ESP32P4_PROVEN__2026-07-31`.
 
+Widget Registry architecture cleanup is complete at the metadata boundary:
+
+- all 44 registered entries have explicit API, UserEvent, input,
+  Interactive-Asset and child-ownership capabilities;
+- metadata is aligned with generated `publicApiDeclarations` and
+  `userEventHooks`;
+- every `documentationId` resolves to an existing Markdown document;
+- Spinbox and QR Code record their known LVGL configuration dependencies in
+  preparation for future Registry-driven feature gating;
+- AnimImage, ImageButton, Lottie, Menu, ObjxTempl and Editable are quarantined
+  legacy/future types, not registered widgets, and export preflight rejects
+  them;
+- no widget runtime, preview, generated API or physical-proof classification
+  changed.
+
 - Board/profile ownership is registry-driven; the supported production profile is Waveshare ESP32-P4 WiFi6 Touch LCD 7B.
 - Persisted project features hydrate after mount and generate `00_ForgeUI_Features.h`.
 - Disabled System features are pruned from generated C, assets, CMake sources/components and `idf_component.yml`; they are not merely hidden.

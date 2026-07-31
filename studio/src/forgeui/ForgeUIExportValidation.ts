@@ -4,6 +4,7 @@ import { allocateUniqueOutputApiName } from './ForgeUIGeneratedApiNames'
 import {
   getInteractiveButtonHookName,
 } from './interactive/ForgeUIInteractiveButtonHook'
+import { futureUnregisteredWidgetTypes } from '~componentsList'
 
 export type ForgeUIExportDiagnosticCategory =
   | 'Interactive Button'
@@ -15,6 +16,7 @@ export type ForgeUIExportDiagnosticCategory =
   | 'Canvas'
   | 'Public API'
   | 'Asset Sources'
+  | 'Unsupported Widgets'
 
 export type ForgeUIExportDiagnostic = {
   category: ForgeUIExportDiagnosticCategory
@@ -121,6 +123,15 @@ export const validateForgeUIExport = (
     state: string
     assetId: string
   }> = []
+  Object.values(components).forEach(component => {
+    if (futureUnregisteredWidgetTypes.has(component.type)) {
+      add(
+        'Unsupported Widgets',
+        component.componentName || component.id,
+        `${component.type} is a quarantined legacy placeholder and is not a registered ForgeUI widget`,
+      )
+    }
+  })
   const reachableInteractiveIds = new Set(
     Object.values(components)
       .filter(component =>

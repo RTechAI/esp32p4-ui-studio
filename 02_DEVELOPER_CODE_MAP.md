@@ -21,6 +21,8 @@
 |---|---|
 | Standard Widget catalogue | `studio/src/forgeui/widgets/ForgeUIWidgetRegistry.ts` |
 | Legacy catalogue compatibility | `studio/src/forgeui/ForgeUIWidgetSet.ts` projection |
+| Per-widget API/event/input/child/docs/gate metadata | `studio/src/forgeui/widgets/ForgeUIWidgetRegistry.ts` explicit capability table |
+| Quarantined future/legacy component types | `studio/src/componentsList.ts` `futureUnregisteredWidgetTypes` |
 | Board identity and capabilities | `studio/src/forgeui/boards/ForgeUIBoardRegistry.ts` and profile modules |
 | Project hardware selection | `studio/src/forgeui/boards/ForgeUIProjectHardware.ts` |
 | Shared native generator | `studio/src/forgeui/ForgeUILvglExport.ts` |
@@ -38,6 +40,21 @@ models, Inspectors and shared preview renderers normalize authoring data; the
 single LVGL generator consumes the same serialized component graph for live and
 Standalone Export. Do not create a parallel widget catalogue, preview-only
 implementation or standalone-only generator.
+
+Registry capability metadata is an explicit projection of the generator
+contract. `supportsRuntimeApi` matches `publicApiDeclarations`;
+`supportsUserEvents` matches `userEventHooks`; `acceptsUserInput` describes
+native or artwork-backed user input; `isInteractiveAsset` replaces the former
+ambiguous asset-only `interactive` flag; and `childOwnership` distinguishes
+ordinary leaves, containers and generated structured children. Known LVGL
+configuration dependencies are recorded for future Registry-driven gating but
+do not yet generate sdkconfig.
+
+`componentsList.ts` is not a widget catalogue. Its quarantined
+AnimImage/ImageButton/Lottie/Menu/ObjxTempl/Editable types exist only for
+legacy serialized compatibility. They are removed from active root-drop,
+Inspector and AI capability surfaces, and export validation rejects them
+instead of allowing a placeholder to masquerade as native LVGL.
 
 Runtime API means a generated application-to-UI function declared in
 `90_Studio_Export.h`. UserEvent means a generated UI-to-application callback
