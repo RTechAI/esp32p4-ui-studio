@@ -3,8 +3,13 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "00_ForgeUI_Features.h"
+#if FG_FEATURE_WIFI
 #include "30_WIFI.h"
+#endif
+#if FG_FEATURE_SD_CARD
 #include "40_SD.h"
+#endif
 #include "esp_app_desc.h"
 #include "esp_flash.h"
 #include "esp_heap_caps.h"
@@ -92,6 +97,7 @@ void fg_diagnostics_get_snapshot(fg_diagnostics_snapshot_t *out)
         out->object_count = fg_diagnostics_count_objects(lv_screen_active());
     }
 
+#if FG_FEATURE_WIFI
     fg_wifi_snapshot_t wifi;
     if (fg_wifi_get_snapshot(&wifi) == FG_WIFI_OP_OK) {
         out->wifi_connected = wifi.connected;
@@ -99,7 +105,9 @@ void fg_diagnostics_get_snapshot(fg_diagnostics_snapshot_t *out)
         snprintf(out->wifi_ssid, sizeof(out->wifi_ssid), "%s", wifi.ssid);
         snprintf(out->wifi_ip, sizeof(out->wifi_ip), "%s", wifi.ip);
     }
+#endif
 
+#if FG_FEATURE_SD_CARD
     fg_sd_snapshot_t sd;
     if (fg_sd_get_snapshot(&sd) == FG_SD_OK) {
         out->sd_available = true;
@@ -107,4 +115,5 @@ void fg_diagnostics_get_snapshot(fg_diagnostics_snapshot_t *out)
         out->sd_capacity = sd.total_bytes;
         out->sd_free = sd.free_bytes;
     }
+#endif
 }

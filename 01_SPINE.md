@@ -11,15 +11,15 @@
 
 ## Current Save Point
 
-**FORGEUI_WIDGET_REGISTRY__LAYOUT_TEMPLATE_LIBRARY__QRCODE_RUNTIME__READY_FOR_QR_HARDWARE_PROOF__2026-07-30**
+**FORGEUI_BOARD_PROFILES__EXPORT_TIME_FEATURE_GATING__LAZY_SYSTEM_TOOLS__CONNECTED_WIFI_45KB_FREE__RAM_OVERLAY__READY_FOR_FINAL_OPERATOR_VALIDATION__2026-07-31**
 
-**READY FOR PHYSICAL QR VALIDATION**
+**READY FOR FINAL OPERATOR TOUCHSCREEN VALIDATION**
 
 ## Current Proven Status..
 
-The 2026-07-30 Studio architecture milestone adds the Professional Layout Template Library, six reusable layouts, shared `LayoutDefinition` ownership, template-aware AI Fill, the authoritative Widget Registry, a completely registry-driven Widget Tray, widget and LVGL-term search, deterministic categories, uploaded and Interactive Asset integration, hydration-safe loading and the focused narrow-sidebar visual polish pass.
+The 2026-07-31 architecture milestone adds a data-driven Board Profile registry, persisted per-project hardware and feature selection, hydration-safe Board Selector loading, one generated `00_ForgeUI_Features.h`, export-time C/CMake/component-manifest pruning, deterministic asset-source deduplication, implemented Diagnostics, and lazy Wi-Fi Manager and Storage Browser lifecycles. Live Build & Flash and standalone ESP-IDF export consume the same project hardware profile and shared `ForgeUILvglExport.ts` generator.
 
-QR Code is the first widget completed through the permanent Proven Widget Pipeline. Its registry, Tray discovery and insertion, Canvas, Inspector, shared Browser Preview, semantic theme behavior, project-model compatibility, undo/redo, native LVGL 9.2.2 export and `FG_Set_QR_Code_Text(const char * text)` runtime API are implemented and covered by focused automated tests. QR Code is output-only and intentionally generates no `95_UserEvents` callback. Physical ESP32-P4 QR build, flash and phone scan remain pending, so this save point is READY FOR PHYSICAL QR VALIDATION rather than hardware-proven.
+QR Code is the first widget completed through the permanent Proven Widget Pipeline. Its registry, Tray discovery and insertion, Canvas, Inspector, shared Browser Preview, semantic theme behavior, project-model compatibility, undo/redo, native LVGL 9.2.2 export and `FG_Set_QR_Code_Text(const char * text)` runtime API are implemented and covered by focused automated tests. QR Code is output-only and intentionally generates no `95_UserEvents` callback. The current generated firmware contains the native QR implementation and has a clean-build record, but this repository contains no recorded successful phone scan; physical QR scan proof remains open.
 
 ForgeUI has a reusable Interactive Asset Framework with five fully implemented asset types organized into three generated runtime families:
 
@@ -55,6 +55,7 @@ Current implemented System pages:
 
 - System Launcher
 - Display / Brightness
+- Diagnostics
 - Wi-Fi Manager
 - Storage Browser
 - Native LVGL Keyboard
@@ -73,9 +74,57 @@ Application
 
 Display brightness is physically connected to the ESP32-P4 backlight through `bsp_display_brightness_set()`. Brightness changes live while the slider is moved and remains in memory during the current device session.
 
-The Wi-Fi Manager is a physically proven reusable System Runtime feature rather than a backend demonstration. The complete workflow is proven on the ESP32-P4: Hosted Scan Networks, Refresh, live Available Networks population, SSID selection, RSSI and security display, Connected and Saved indicators, password dialog, native LVGL keyboard password entry, Connect, Disconnect, Reconnect, Forget Network and connected details. The complete Hosted scan pipeline, Browser Preview parity and generated LVGL parity are physically proven. Only minor visual polish remains.
+The Wi-Fi backend and ESP-Hosted connection remain alive independently of the Manager UI. Wi-Fi Manager is created on first open and destroyed on Back. Password and Forget dialogs are created only when requested; teardown detaches and hides the keyboard, deletes UI objects and nulls their pointers without destroying driver, SDIO, lwIP or ESP-Hosted state. The shared backend/status timer remains alive where required.
 
-The Storage Runtime is physically proven through lazy page creation, page reuse, SD status, capacity display, root and folder browsing, parent navigation, Previous / Next paging, Refresh, Read / Write Test, Select Item mode, Delete Empty Folder and Hosted Wi-Fi coexistence. Only Browser Preview / Canvas parity polish remains.
+Storage UI, its timer, worker task, queue and mutex are created on demand. Back requests asynchronous shutdown; RTOS resources and the page are deleted only after worker acknowledgement, with repeated shutdown/send paths guarded. The SD backend remains separately owned and alive.
+
+Diagnostics is implemented as generated System Runtime plus the non-generated `50_DIAGNOSTICS.c/.h` snapshot backend. It reports supported internal heap, PSRAM, flash/application, performance, LVGL/display/object-count, Wi-Fi, SD, build-version and update-timing information. “Internal RAM Total” means the allocatable ESP-IDF internal heap for the queried capability class, not all physical ESP32-P4 SRAM.
+
+The flashed build also contains a compact existing sysmon overlay of the form `66 FPS | RAM 45 KB`. It reuses LVGL's existing performance label/container and timer, samples `heap_caps_get_free_size(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)` at approximately 1000 ms, and is controlled by Diagnostics visibility. The observed implementation was estimated at about 8 bytes BSS and about 550 bytes code, with Canvas and Browser Preview unchanged. Durability is not yet solved: the built ELF contains `%lu FPS | RAM %lu KB`, while the current `managed_components/lvgl__lvgl/src/others/sysmon/lv_sysmon.c` has reverted to upstream CPU/render text. Therefore the overlay came from a direct managed-component edit that was overwritten or is otherwise absent from source. A ForgeUI-owned patch/override applied after dependency resolution, with a regression check for the format string and heap source, is required before this is reproducible architecture.
+
+### Board and project feature ownership
+
+`studio/src/forgeui/boards/ForgeUIBoardRegistry.ts` is authoritative for supported boards. The current production profile is Waveshare ESP32-P4 WiFi6 Touch LCD 7B: target `esp32p4`, 1024 × 600 at 16-bit colour, 32 MiB flash and 32 MiB PSRAM metadata. Its declared capabilities include display, touch, backlight, Wi-Fi, audio, SD card, USB host and camera; Bluetooth is false. Capability metadata does not itself implement a backend or System Tool.
+
+The ownership sequence is:
+
+```text
+Board capability
+  -> limits valid project feature selection
+Persisted project hardware profile
+  -> records enabled features
+00_ForgeUI_Features.h
+  -> generated compile-time flags
+Firmware backend
+  -> owns physical service behavior
+System Tool UI
+  -> generated only when its feature is enabled
+```
+
+Board Selector rendering uses deterministic registry defaults during SSR and the browser's first hydration render. Persisted local project state is applied after mount. Firmware Clean explicitly refreshes hardware state without remounting.
+
+Current generated flags are `FG_FEATURE_WIFI`, `FG_FEATURE_BLUETOOTH`, `FG_FEATURE_AUDIO`, `FG_FEATURE_SD_CARD`, `FG_FEATURE_USB_HOST`, `FG_FEATURE_CAMERA`, `FG_FEATURE_SETTINGS`, `FG_FEATURE_WIFI_MANAGER`, `FG_FEATURE_STORAGE_BROWSER` and `FG_FEATURE_DIAGNOSTICS`. A flag is not proof that its hardware backend or UI is implemented.
+
+`ForgeUILvglExport.ts` owns export-time System generation. Disabled features are removed from applicable includes, globals, typedefs/models, callbacks, page construction, timers and generated assets. `export-server.js` uses the same profile to prune source files, CMake requirements and `idf_component.yml` dependencies. `FG_FEATURE_WIFI` gates backend-facing Wi-Fi generation; `FG_FEATURE_WIFI_MANAGER` gates Manager UI. `FG_FEATURE_SD_CARD` gates backend-facing SD generation; `FG_FEATURE_STORAGE_BROWSER` gates Browser UI and worker resources. `FG_FEATURE_DIAGNOSTICS` gates Diagnostics page/runtime and overlay visibility. `FG_FEATURE_SETTINGS` gates the launcher and System pages.
+
+The tested lean profile contains only the Application page, Settings launcher, canonical Settings icon, Brightness and Diagnostics; Wi-Fi and Storage source, runtime and dependencies are absent. Asset source paths are slash-normalized, canonicalized and deduplicated in first-discovery order. The default hero and canonical Settings icon are each emitted once, and live and standalone exports use the same path.
+
+### Hardware memory validation
+
+These figures identify different configurations and are not interchangeable benchmarks:
+
+| Configuration / measurement point | Observed current internal free heap |
+| --- | ---: |
+| Lean Settings + Diagnostics profile | approximately 113 KB |
+| Wi-Fi backend-only enabled profile | approximately 55 KB |
+| Earlier eager connected/full-tools state | approximately 18 KB |
+| Lazy-lifecycle, connected, Application page; serial probe | 45,795 bytes |
+| Minimum-ever in that connected run; serial probe | 43,871 bytes |
+| Largest internal free block in that connected run; serial probe | 27,648 bytes |
+
+The connected Application page serial probe counted 62 LVGL objects. Compared with the earlier eager connected state, the lazy System Tools work recovered approximately 27.4 KB. Manually observed rounded overlay behavior was approximately 45 KB → approximately 24 KB during Wi-Fi/System UI activity → approximately 45 KB after release. Minimum-ever-free is historical and cannot prove lifecycle recovery; current free heap, largest free block and object count are the relevant comparison.
+
+Codex did not remotely drive the physical touchscreen. The required ten-cycle Wi-Fi and Storage open/close sequence, RAM recovery and no-leak check remain operator proof boundaries.
 
 The Standard LVGL Runtime now provides a consistent developer-facing SDK layer for the currently reviewed exported components. Application code controls generated UI through public `FG_Set_*`, `FG_Show_*`, `FG_Hide_*`, `FG_Add_*` and `FG_Clear_*` declarations in `90_Studio_Export.h`. Genuine user interaction crosses back into application code through generated `FG_On_*` declarations and preservation-merged bodies in `95_UserEvents.h/.c`. Interactive setters use per-instance guards so programmatic updates remain silent and cannot be misreported as genuine user events.
 
@@ -115,14 +164,27 @@ The flashed ESP32-P4 remains the authoritative final visual reference.
 
 ## Current Priorities
 
-1. Complete physical QR Code validation.
-2. Update all project documentation.
-3. Continue proving remaining LVGL widgets through the Proven Widget Pipeline.
-4. Build ForgeUI Dashboard widgets after LVGL coverage is complete.
+1. Complete operator touchscreen validation of repeated lazy Wi-Fi and Storage open/close cycles and confirm current free heap, largest block and object count recover without a leak.
+2. Replace the overwritten managed-component sysmon edit with a reproducible ForgeUI-owned patch/override and regression check.
+3. Complete and record physical QR phone-scan validation.
+4. Continue the Proven Widget Pipeline for remaining registry widgets.
+5. Begin dedicated Dashboard widgets only after remaining LVGL coverage and proof.
 
 ## Current Must-Not-Regress Rules
 
 - Do not weaken the authoritative Widget Registry.
+- Do not bypass the Board Profile registry.
+- Do not read persisted hardware state during SSR render.
+- Do not create a second feature-flag source.
+- Do not let generated feature headers and CMake diverge.
+- Do not generate disabled runtime code and merely hide it.
+- Do not reintroduce eager Wi-Fi Manager or Storage UI construction.
+- Do not destroy Wi-Fi/ESP-Hosted backend state when closing Manager UI.
+- Do not delete Storage RTOS resources before worker shutdown acknowledgement.
+- Do not allow duplicate asset source entries.
+- Do not make managed-component modifications that cannot be reproduced.
+- Do not claim RAM recovery using minimum-ever-free; compare current free heap, largest block and object count.
+- Do not claim repeated-cycle physical proof until an operator performs it.
 - Do not return the Widget Tray to manually maintained Sidebar entries.
 - Preserve registry-driven click, drag and keyboard insertion.
 - Preserve deterministic, hydration-safe Widget Tray loading.
@@ -483,7 +545,7 @@ Named instances generate:
 void FG_Set_QR_Code_Text(const char * text);
 ```
 
-The setter regenerates the native QR data at runtime. QR Code intentionally generates no `95_UserEvents` callback because it is an output-only display and has no genuine user interaction. Registry insertion, normal project serialization, undo/redo, hydration-safe Tray loading, Canvas, Browser Preview, semantic theme resolution, native LVGL export and runtime API generation are covered by focused tests. Physical ESP32-P4 build, flash and successful phone scans of URL and Wi-Fi payloads remain pending; QR Code is not yet claimed as physically proven.
+The setter regenerates the native QR data at runtime. QR Code intentionally generates no `95_UserEvents` callback because it is an output-only display and has no genuine user interaction. Registry insertion, normal project serialization, undo/redo, hydration-safe Tray loading, Canvas, Browser Preview, semantic theme resolution, native LVGL export and runtime API generation are covered by focused tests. Generated C and the current clean ESP32-P4 build are present; successful phone scans of URL and Wi-Fi payloads remain pending, so QR Code is not yet physically proven.
 
 ### Scale
 
@@ -650,7 +712,7 @@ ForgeUISystemPage
 └── diagnostics
 ```
 
-Launcher, Brightness, the complete Wi-Fi Manager and Storage Browser are implemented and physically proven. The shared System Runtime owns Browser Preview parity for the Wi-Fi workflow and Storage parity polish, while the generated LVGL runtime owns the physical pages, password dialog, reusable native keyboard, network interaction, connected details and Storage workflow. The Hosted backend supplies live scan results through the complete Hosted scan pipeline into the generated LVGL interface, together with connection, RSSI, security, gateway and saved-network data, without changing the separation between System Runtime and Hosted Connectivity Runtime. The Storage backend supplies bounded SD status, directory and operation results without changing the separation between System Runtime and Storage Runtime. Only Browser Preview / Canvas parity polish remains for Storage. Bluetooth, Sound, Device and Diagnostics remain visible future page identifiers and disabled launcher placeholders, and their system functions are not implemented.
+Launcher, Brightness, Diagnostics, Wi-Fi Manager and Storage Browser are implemented. Launcher cards are generated only for enabled project features; Bluetooth, Sound and Device are not emitted as always-visible disabled placeholders. Wi-Fi and Storage backends remain independent of their lazy UI lifecycles.
 
 The shared provider owns the active System page, open and back navigation, current-session brightness and the Browser Preview Wi-Fi workflow state. The shared surface renders the same built-in interface over the Studio Canvas and Browser Preview while keeping normal project components separate.
 
@@ -1300,6 +1362,56 @@ The Widget Registry is the authoritative source for every ForgeUI widget. Each `
 - availability
 
 The Widget Tray is completely registry-driven. Future widgets are added by registering one new `WidgetDefinition` rather than modifying Sidebar implementations. Compatibility projections may expose registry data to existing consumers, but they do not become a second widget catalogue.
+
+### Registry-wide implementation and proof audit — 2026-07-31
+
+The authoritative registry contains 41 entries. Every entry is available in the registry-driven Tray, has persisted defaults/insertion, a Canvas dispatch, Inspector dispatch, Browser Preview dispatch and an LVGL export path. Focused registry/Tray tests and component/exporter regressions provide automated evidence; no conclusive permanent implementation was found outside the registry, so no registry definition was added. The Dashboard category remains intentionally empty.
+
+| Registry widget | Studio / exporter | Runtime API and hook classification | Hardware proof |
+| --- | --- | --- | --- |
+| Text | implemented / implemented | intentionally API-free | pending for this exact widget |
+| Heading | implemented / implemented | intentionally API-free | pending for this exact widget |
+| Button | implemented / implemented | API-free serialized text | pending for this exact widget |
+| IconButton | implemented / implemented | enabled setter + click hook | pending |
+| Icon | implemented / implemented | intentionally API-free | pending |
+| Box | implemented / implemented | visibility setter, no hook | pending |
+| Line | implemented / implemented | intentionally API-free | pending |
+| Divider | implemented / implemented | intentionally API-free | pending |
+| Canvas | implemented / implemented | intentionally API-free drawable surface | pending |
+| Image | implemented / implemented | source setter, no hook | pending |
+| Input | implemented / implemented | text setter + change hook | physically proven |
+| Textarea | implemented / implemented | text setter + change hook | physically proven |
+| NumberInput | implemented / implemented | value setter + change hook | physically proven |
+| Checkbox | implemented / implemented | checked setter + change hook | physically proven |
+| Switch | implemented / implemented | checked setter + change hook | physically proven |
+| Slider | implemented / implemented | public runtime API not yet completed | pending |
+| Roller | implemented / implemented | selected setter + change hook | physically proven |
+| Radio | implemented / implemented | selected setter + change hook; no group model | physically proven |
+| Select | implemented / implemented | index setter + change hook | physically proven |
+| Led | implemented / implemented | boolean setter + change hook | physically proven |
+| Bar | implemented / implemented | value setter + change hook | physically proven |
+| Arc | implemented / implemented | value setter + change hook | physically proven |
+| Scale | implemented / implemented | intentionally API-free | physically proven |
+| Chart | implemented / implemented | add/clear APIs + hooks | physically proven |
+| Table | implemented / implemented | existing retained table runtime | physically proven |
+| Clock | implemented / implemented | API-free RTC presentation | pending for current presentation pass |
+| WiFi | implemented / implemented | internal backend projection; no public widget API | pending for current widget parity pass |
+| QRCode | implemented / implemented | text setter, no hook | phone scan pending |
+| Progress | implemented / implemented | value setter, no hook | physically proven |
+| CircularProgress | implemented / implemented | value setter, no hook | physically proven |
+| Tabview | implemented / implemented | selected-index setter + change hook | pending for current parity pass |
+| Tileview | implemented / implemented | coordinate setter + change hook | pending for current parity pass |
+| ButtonMatrix | implemented / implemented | selection setter + hook | physically proven |
+| Msgbox | implemented / implemented | show/close APIs + dialog hooks | physically proven |
+| Keyboard | implemented / implemented | show/hide APIs + hooks | physically proven |
+| Calendar | implemented / implemented | date setter + change hook | physically proven |
+| InteractiveButton | implemented / implemented | input hook | physically proven |
+| InteractiveLight | implemented / implemented | output setter | physically proven |
+| InteractiveStatusIndicator | implemented / implemented | output setter | physically proven |
+| InteractiveToggleSwitch | implemented / implemented | setter + input hook | physically proven |
+| InteractiveThreePositionToggleSwitch | implemented / implemented | three-state input hook | physically proven |
+
+Each row has automated registry/Tray coverage plus focused preview/export or interactive regression evidence at the current repository scope. No registry widget is missing from the Tray, Inspector, Canvas, Browser Preview or exporter dispatch. The registry's current `supportsRuntimeApi` field is broad capability metadata, not the semantic API classification above; it must not be read as proof that Slider or API-free presentation widgets expose a generated API.
 
 ## ForgeUI Widget Tray
 
@@ -2143,7 +2255,7 @@ The keyboard runtime is reusable architecture for future Device settings, MQTT, 
 - `git diff --check` passes for the QR and documentation work.
 - The broader ForgeUI run passed QR, layout, preview, theme and exporter suites before exceeding its command timeout; two pre-existing AI State Sheet tests also exceeded their individual timeouts. That interrupted run is not represented as a full pass.
 - Full TypeScript checking currently reports the pre-existing `ForgeUIStandardCircularProgress.test.tsx` JSX return-type diagnostic; no QR-specific TypeScript diagnostic is present.
-- QR hardware validation remains pending because no active ESP32-P4 serial port was detected and the local ESP-IDF Python environment did not initialize successfully.
+- QR phone-scan validation remains pending; generated C and the current clean ESP-IDF build are now present.
 - Dashboard Layout Designer geometry and Auto Arrange pass 6 focused tests.
 - Browser Preview smart-region coverage passes 1 focused test.
 - AI region composition passes 2 focused tests.
@@ -2307,7 +2419,7 @@ The System Interface is not an Interactive Asset. It is a reusable platform serv
 
 Hosted Connectivity Runtime and Storage Runtime are reusable platform services independent of Interactive Assets. Hosted Connectivity owns ESP-Hosted, Wi-Fi Remote, the ESP32-C6 and SDIO Slot 1 and provides a complete reusable Hosted Wi-Fi service consumed by the built-in Wi-Fi Manager, including hosted scanning, AP retrieval and connection workflow; Storage Runtime owns the SD Card on SDMMC Slot 0 and provides a reusable built-in Storage Browser service alongside Wi-Fi.
 
-This separation lets built-in Wi-Fi and Storage, together with future Bluetooth, Sound, Device and Diagnostics services, reuse the typed System page, shared navigation and generated container framework without affecting project screens or changing existing Interactive Asset runtime contracts. The System Launcher, Display / Brightness, complete Wi-Fi Manager, Storage Browser and reusable native LVGL keyboard are implemented and physically proven. The Hosted backend drives the generated Wi-Fi Manager through the complete Hosted scan pipeline, while the Storage backend drives the lazy generated Storage Browser through bounded status, browsing, Refresh, Read / Write Test and Delete Empty Folder operations. Browser Preview retains the System hierarchy; only Storage Browser Preview / Canvas parity polish remains.
+This separation lets enabled built-in tools reuse typed System navigation without affecting project screens or Interactive Asset runtime contracts. Launcher, Display / Brightness, Diagnostics, Wi-Fi Manager, Storage Browser and the reusable native keyboard are implemented. Wi-Fi Manager and Storage Browser are constructed on demand and destroyed safely on Back while their separately owned backends remain alive.
 
 Interactive Button established the first **Interactive Input Runtime** within the Interactive Asset Framework.
 
@@ -2410,6 +2522,12 @@ These remain future concepts only. Existing Radio and Checkbox runtimes are impl
 # Save Point History
 
 Save points are ordered newest to oldest. Detailed subsystem engineering is maintained in the Developer Code Maps.
+
+## FORGEUI_BOARD_PROFILES__EXPORT_TIME_FEATURE_GATING__LAZY_SYSTEM_TOOLS__CONNECTED_WIFI_45KB_FREE__RAM_OVERLAY__READY_FOR_FINAL_OPERATOR_VALIDATION__2026-07-31
+
+- **What changed:** Added the Board Selector and board/profile registry, hydration-safe persisted project hardware state, generated `00_ForgeUI_Features.h`, C/CMake/component-manifest pruning, canonical asset deduplication, lazy Wi-Fi Manager/dialog lifecycle, acknowledged Storage-worker teardown, Diagnostics, RAM probes and the compact sysmon overlay.
+- **Evidence:** Board, hydration, System exporter/lifecycle and export-server tests cover the permanent generation paths. The current generated firmware and clean ESP-IDF build contain the selected production profile. A connected Application-page serial probe recorded 45,795 bytes current internal free heap, 43,871 bytes minimum-ever, a 27,648-byte largest block and 62 LVGL objects.
+- **Remaining boundary:** Operator-driven ten-cycle Wi-Fi/Storage touchscreen validation and QR phone scanning remain open. The sysmon RAM overlay is present in the built ELF but absent from the current managed-component source, so a reproducible ForgeUI-owned patch/override is still required.
 
 ## FORGEUI_WIDGET_REGISTRY__LAYOUT_TEMPLATE_LIBRARY__QRCODE_RUNTIME__READY_FOR_QR_HARDWARE_PROOF__2026-07-30
 

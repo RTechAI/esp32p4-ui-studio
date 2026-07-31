@@ -32,6 +32,7 @@
 #pragma once
 
 #include "driver/i2c_master.h"
+#include "00_ForgeUI_Features.h"
 
 // ============================================================
 // ForgeUI Version
@@ -54,9 +55,9 @@
 // ============================================================
 
 #define FORGEUI_ENABLE_RTC                 1
-#define FORGEUI_ENABLE_WIFI                1
-#define FORGEUI_ENABLE_SD                  1
-#define FORGEUI_ENABLE_AUDIO               0
+#define FORGEUI_ENABLE_WIFI                FG_FEATURE_WIFI
+#define FORGEUI_ENABLE_SD                  FG_FEATURE_SD_CARD
+#define FORGEUI_ENABLE_AUDIO               FG_FEATURE_AUDIO
 
 // ============================================================
 // Display Options

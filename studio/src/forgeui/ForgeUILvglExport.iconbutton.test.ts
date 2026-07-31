@@ -116,6 +116,9 @@ describe('Standard IconButton generated runtime API', () => {
     expect(code).toContain('lv_image_set_scale(obj1_icon, 85);')
     expect(code).not.toContain('LV_SYMBOL_SETTINGS')
     expect(assetSources).toContain('assets/icons/fg_icon_settings_fi_48px.c')
+    expect(assetSources.filter(
+      source => source === 'assets/icons/fg_icon_settings_fi_48px.c',
+    )).toHaveLength(1)
     expect(code).toContain('lv_obj_set_pos(fg_settings_icon_button, 20, 30);')
     expect(code).toContain('lv_obj_set_size(fg_settings_icon_button, 56, 56);')
   })

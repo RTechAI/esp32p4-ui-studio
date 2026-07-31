@@ -28,6 +28,7 @@ import {
   getForgeUIQRCodeGeometry,
   resolveQRCodePayload,
 } from './ForgeUIStandardQRCode'
+import type { ForgeUIFirmwareFeatures } from './boards/ForgeUIBoardProfile'
 
 import {
   getInteractiveButtonAsset,
@@ -4202,6 +4203,184 @@ case 'Chart': {
   })
 }
 
+const FG_DEFAULT_FIRMWARE_FEATURES: ForgeUIFirmwareFeatures = {
+  wifi: true,
+  bluetooth: false,
+  audio: false,
+  sdCard: true,
+  usbHost: false,
+  camera: false,
+  settingsLauncher: true,
+  wifiManager: true,
+  storageBrowser: true,
+  diagnostics: true,
+}
+
+const removeGeneratedRange = (
+  source: string,
+  startMarker: string,
+  endMarker: string,
+) => {
+  const start = source.indexOf(startMarker)
+  if (start < 0) return source
+  const end = source.indexOf(endMarker, start)
+  return end < 0 ? source : source.slice(0, start) + source.slice(end)
+}
+
+const removeTopLevelGeneratedFunctions = (
+  source: string,
+  shouldRemove: (name: string) => boolean,
+) => {
+  const pattern =
+    /^(?:static\s+)?[A-Za-z_][A-Za-z0-9_\s\*]*\s+([A-Za-z_][A-Za-z0-9_]*)\s*\([^;]*\)\s*\{/gm
+  const ranges: Array<[number, number]> = []
+  let match: RegExpExecArray | null
+  while ((match = pattern.exec(source))) {
+    if (!shouldRemove(match[1])) continue
+    const braceStart = source.indexOf('{', match.index)
+    let depth = 0
+    let cursor = braceStart
+    for (; cursor < source.length; cursor++) {
+      if (source[cursor] === '{') depth++
+      if (source[cursor] === '}') {
+        depth--
+        if (depth === 0) {
+          cursor++
+          while (source[cursor] === '\r' || source[cursor] === '\n') cursor++
+          ranges.push([match.index, cursor])
+          break
+        }
+      }
+    }
+  }
+  return ranges.reverse().reduce(
+    (result, [start, end]) => result.slice(0, start) + result.slice(end),
+    source,
+  )
+}
+
+export const gateForgeUIGeneratedSystemCode = (
+  source: string,
+  requested?: Partial<ForgeUIFirmwareFeatures>,
+) => {
+  const features = { ...FG_DEFAULT_FIRMWARE_FEATURES, ...(requested || {}) }
+  if (!features.wifi) features.wifiManager = false
+  if (!features.sdCard) features.storageBrowser = false
+  if (!features.settingsLauncher) {
+    features.wifiManager = false
+    features.storageBrowser = false
+    features.diagnostics = false
+  }
+
+  let code = source
+  const removeFunctions: Array<(name: string) => boolean> = []
+
+  if (!features.wifi) {
+    code = code.replace('#include "30_WIFI.h"\n', '')
+  }
+  if (!features.sdCard) {
+    code = code.replace('#include "40_SD.h"\n', '')
+  }
+  if (!features.diagnostics) {
+    code = code.replace('#include "50_DIAGNOSTICS.h"\n', '')
+  }
+
+  if (!features.wifiManager) {
+    removeFunctions.push(name =>
+      name.startsWith('fg_system_wifi_') ||
+      name.startsWith('fg_wifi_') ||
+      name.startsWith('fg_keyboard_'),
+    )
+    code = removeGeneratedRange(
+      code,
+      '    fg_system_wifi_page = lv_obj_create(parent);',
+      '    fg_system_brightness_page = lv_obj_create(parent);',
+    )
+    code = removeGeneratedRange(
+      code,
+      'static void fg_wifi_tick_cb(lv_timer_t *timer)\n{',
+      '// ForgeUI LVGL Export Proof V1',
+    )
+    code = code
+      .replace(/^.*wifi_card.*\r?\n/gm, '')
+      .replace(/^.*fg_wifi_tick_cb.*\r?\n/gm, '')
+  }
+
+  if (!features.storageBrowser) {
+    removeFunctions.push(name =>
+      name.startsWith('fg_system_storage_') ||
+      name.startsWith('fg_storage_'),
+    )
+    code = code
+      .replace(/^.*storage_card.*\r?\n/gm, '')
+  }
+
+  if (!features.diagnostics) {
+    removeFunctions.push(name =>
+      name.startsWith('fg_system_diagnostics_') ||
+      name.startsWith('fg_diagnostics_'),
+    )
+    code = removeGeneratedRange(
+      code,
+      '    fg_system_diagnostics_page = lv_obj_create(parent);',
+      '#if 0 /* Legacy eager Storage construction retained only as migration reference. */',
+    )
+    code = code
+      .replace(/^.*diagnostics_card.*\r?\n/gm, '')
+  }
+
+  if (!features.storageBrowser) {
+    code = code.replace(
+      /#if 0 \/\* Legacy eager Storage construction retained only as migration reference\. \*\/[\s\S]*?#endif\r?\n/,
+      '',
+    )
+  }
+
+  if (!features.settingsLauncher) {
+    const declarationStart =
+      'static lv_obj_t * fg_system_launcher_page = NULL;'
+    const declarationEnd = '// ForgeUI LVGL Export Proof V1'
+    code = removeGeneratedRange(code, declarationStart, declarationEnd)
+    const gearStart = code.lastIndexOf(
+      '    LV_IMAGE_DECLARE(fg_icon_settings_fi_48px);',
+    )
+    const functionEnd = code.lastIndexOf('\n}')
+    if (gearStart >= 0 && functionEnd > gearStart) {
+      code = code.slice(0, gearStart) + code.slice(functionEnd)
+    }
+    code = code.replace('    fg_system_root = parent;\n', '')
+  } else {
+    code = removeTopLevelGeneratedFunctions(
+      code,
+      name => removeFunctions.some(predicate => predicate(name)),
+    )
+    const disabledTokens: string[] = []
+    if (!features.wifiManager) {
+      disabledTokens.push('fg_system_wifi', 'fg_wifi_', 'FG_WIFI_')
+    }
+    if (!features.storageBrowser) {
+      disabledTokens.push('fg_system_storage', 'fg_storage_', 'FG_STORAGE_')
+    }
+    if (!features.diagnostics) {
+      disabledTokens.push('fg_system_diagnostics', 'fg_diagnostics_')
+    }
+    if (requested && !features.bluetooth) disabledTokens.push('LV_SYMBOL_BLUETOOTH')
+    if (requested && !features.audio) disabledTokens.push('LV_SYMBOL_VOLUME_MAX')
+    if (requested && !features.usbHost && !features.camera) {
+      disabledTokens.push('LV_SYMBOL_HOME "\\nDevice')
+    }
+    code = code.split(/\r?\n/).filter(
+      line => !disabledTokens.some(token => line.includes(token)),
+    ).join('\n')
+  }
+
+  return {
+    code,
+    features,
+    usesSettingsAsset: features.settingsLauncher,
+  }
+}
+
 export const generateForgeUILvglCode = (
   components: IComponents,
   themeId: string = 'graphite',
@@ -4209,6 +4388,7 @@ export const generateForgeUILvglCode = (
   options?: {
     includeThemeTexture?: boolean
     palette?: ForgePreviewPalette
+    firmwareFeatures?: Partial<ForgeUIFirmwareFeatures>
   },
 ) => {
    const lines: string[] = []
@@ -4864,6 +5044,8 @@ const backgroundMode =
     : palette.textureMode
 
   lines.push(`#include "90_Studio_Export.h"`)
+  lines.push(`#include "00_ForgeUI_Features.h"`)
+  lines.push(`#include "05_FG_RAM_Probe.h"`)
   lines.push(`#include "lvgl.h"`)
   lines.push(`#include "bsp/display.h"`)
   lines.push(`#include "20_RTC.h"`)
@@ -5085,7 +5267,7 @@ const backgroundMode =
   lines.push(`static lv_obj_t * fg_system_storage_delete_folder_text = NULL;`)
   lines.push(`static lv_obj_t * fg_system_storage_delete_folder_input = NULL;`)
   lines.push(`static lv_obj_t * fg_system_storage_delete_folder_error = NULL;`)
-  lines.push(`typedef enum { FG_STORAGE_REQ_REFRESH, FG_STORAGE_REQ_MOUNT, FG_STORAGE_REQ_UNMOUNT, FG_STORAGE_REQ_TEST, FG_STORAGE_REQ_CREATE, FG_STORAGE_REQ_RENAME, FG_STORAGE_REQ_DELETE, FG_STORAGE_REQ_FORMAT, FG_STORAGE_REQ_DELETE_EMPTY_FOLDER } fg_storage_request_kind_t;`)
+  lines.push(`typedef enum { FG_STORAGE_REQ_REFRESH, FG_STORAGE_REQ_MOUNT, FG_STORAGE_REQ_UNMOUNT, FG_STORAGE_REQ_TEST, FG_STORAGE_REQ_CREATE, FG_STORAGE_REQ_RENAME, FG_STORAGE_REQ_DELETE, FG_STORAGE_REQ_FORMAT, FG_STORAGE_REQ_DELETE_EMPTY_FOLDER, FG_STORAGE_REQ_SHUTDOWN } fg_storage_request_kind_t;`)
   lines.push(`typedef struct { fg_storage_request_kind_t kind; char path[FG_SD_MAX_PATH]; char name[FG_SD_MAX_NAME]; } fg_storage_request_t;`)
   lines.push(`typedef struct { uint32_t generation; fg_storage_request_kind_t kind; fg_sd_result_t result; fg_sd_snapshot_t snapshot; fg_sd_directory_t directory; fg_sd_delete_folder_result_t delete_folder_result; } fg_storage_result_model_t;`)
   lines.push(`static QueueHandle_t fg_system_storage_queue = NULL;`)
@@ -5098,6 +5280,8 @@ const backgroundMode =
   lines.push(`static bool fg_system_storage_pending = false;`)
   lines.push(`static bool fg_system_storage_available = false;`)
   lines.push(`static bool fg_system_storage_initialized = false;`)
+  lines.push(`static bool fg_system_storage_teardown_requested = false;`)
+  lines.push(`static bool fg_system_storage_shutdown_sent = false;`)
   lines.push(`static char fg_system_storage_current_path[FG_SD_MAX_PATH] = "";`)
   lines.push(`static size_t fg_system_storage_page_offset = 0;`)
   lines.push(`static int fg_system_storage_selected = -1;`)
@@ -5111,8 +5295,14 @@ const backgroundMode =
   lines.push(`static int fg_system_wifi_selected = -1;`)
   lines.push(`static bool fg_system_wifi_remember = true;`)
   lines.push(`static bool fg_system_wifi_page_active = false;`)
+  lines.push(`static lv_timer_t * fg_system_wifi_timer = NULL;`)
+  lines.push(`static bool fg_system_wifi_connected_probe_logged = false;`)
   lines.push(`static uint8_t fg_system_brightness_percent = 100;`)
   lines.push(`static void fg_wifi_tick_cb(lv_timer_t *timer);`)
+  lines.push(`static bool fg_system_wifi_create_page(void);`)
+  lines.push(`static bool fg_system_wifi_create_password_dialog(void);`)
+  lines.push(`static bool fg_system_wifi_create_forget_dialog(void);`)
+  lines.push(`static void fg_system_wifi_destroy_ui(void);`)
   lines.push(`static void fg_keyboard_hide(void);`)
   lines.push(`static void fg_keyboard_show_for(lv_obj_t * textarea);`)
   lines.push(`static void fg_keyboard_event_cb(lv_event_t * event);`)
@@ -5122,6 +5312,8 @@ const backgroundMode =
   lines.push(`static bool fg_system_storage_create_delete_dialog(void);`)
   lines.push(`static bool fg_system_storage_create_format_dialog(void);`)
   lines.push(`static bool fg_system_storage_create_delete_folder_dialog(void);`)
+  lines.push(`static void fg_system_storage_request_teardown(void);`)
+  lines.push(`static void fg_system_storage_finish_teardown(void);`)
   lines.push(`static void fg_system_storage_worker(void * arg);`)
   lines.push(`static void fg_system_storage_tick_cb(lv_timer_t * timer);`)
   lines.push(``)
@@ -5721,11 +5913,11 @@ const backgroundMode =
   lines.push(``)
   lines.push(`static void fg_system_show_page(lv_obj_t * page)`)
   lines.push(`{`)
-  lines.push(`    if (!page || !fg_application_page || !fg_system_launcher_page || !fg_system_brightness_page || !fg_system_wifi_page) return;`)
-  lines.push(`    lv_obj_add_flag(fg_application_page, LV_OBJ_FLAG_HIDDEN);`)
-  lines.push(`    lv_obj_add_flag(fg_system_launcher_page, LV_OBJ_FLAG_HIDDEN);`)
-  lines.push(`    lv_obj_add_flag(fg_system_brightness_page, LV_OBJ_FLAG_HIDDEN);`)
-  lines.push(`    lv_obj_add_flag(fg_system_wifi_page, LV_OBJ_FLAG_HIDDEN);`)
+  lines.push(`    if (!page || !fg_application_page) return;`)
+  lines.push(`    if (fg_application_page) lv_obj_add_flag(fg_application_page, LV_OBJ_FLAG_HIDDEN);`)
+  lines.push(`    if (fg_system_launcher_page) lv_obj_add_flag(fg_system_launcher_page, LV_OBJ_FLAG_HIDDEN);`)
+  lines.push(`    if (fg_system_brightness_page) lv_obj_add_flag(fg_system_brightness_page, LV_OBJ_FLAG_HIDDEN);`)
+  lines.push(`    if (fg_system_wifi_page) lv_obj_add_flag(fg_system_wifi_page, LV_OBJ_FLAG_HIDDEN);`)
   lines.push(`    if (fg_system_storage_page) lv_obj_add_flag(fg_system_storage_page, LV_OBJ_FLAG_HIDDEN);`)
   lines.push(`    if (fg_system_diagnostics_page) lv_obj_add_flag(fg_system_diagnostics_page, LV_OBJ_FLAG_HIDDEN);`)
   lines.push(`    lv_obj_clear_flag(page, LV_OBJ_FLAG_HIDDEN);`)
@@ -5744,6 +5936,7 @@ const backgroundMode =
   lines.push(`    fg_system_wifi_page_active = false;`)
   lines.push(`    fg_system_diagnostics_page_active = false;`)
   lines.push(`    fg_system_show_page(fg_application_page);`)
+  lines.push(`    fg_ram_probe_log("13 after returning to the application page");`)
   lines.push(`}`)
   lines.push(``)
   lines.push(`static void fg_system_open_brightness_cb(lv_event_t * event)`)
@@ -5761,9 +5954,11 @@ const backgroundMode =
   lines.push(`static void fg_system_open_wifi_cb(lv_event_t * event)`)
   lines.push(`{`)
   lines.push(`    LV_UNUSED(event);`)
+  lines.push(`    if (!fg_system_wifi_create_page()) return;`)
   lines.push(`    fg_system_wifi_page_active = true;`)
   lines.push(`    fg_wifi_tick_cb(NULL);`)
   lines.push(`    fg_system_show_page(fg_system_wifi_page);`)
+  lines.push(`    fg_ram_probe_log("12 after opening the Manager");`)
   lines.push(`}`)
   lines.push(``)
   lines.push(`static void fg_system_wifi_back_cb(lv_event_t * event)`)
@@ -5771,11 +5966,13 @@ const backgroundMode =
   lines.push(`    LV_UNUSED(event);`)
   lines.push(`    fg_system_wifi_page_active = false;`)
   lines.push(`    fg_system_show_page(fg_system_launcher_page);`)
+  lines.push(`    fg_system_wifi_destroy_ui();`)
+  lines.push(`    fg_ram_probe_log("14 after closing the Manager");`)
   lines.push(`}`)
   lines.push(``)
   lines.push(`static bool fg_system_storage_request(fg_storage_request_kind_t kind, const char * path, const char * name)`)
   lines.push(`{`)
-  lines.push(`    if (fg_system_storage_pending || !fg_system_storage_page) return false;`)
+  lines.push(`    if (fg_system_storage_teardown_requested || fg_system_storage_pending || !fg_system_storage_page) return false;`)
   lines.push(`    if (!fg_system_storage_mutex) fg_system_storage_mutex = xSemaphoreCreateMutex();`)
   lines.push(`    if (!fg_system_storage_mutex) goto unavailable;`)
   lines.push(`    if (!fg_system_storage_queue) fg_system_storage_queue = xQueueCreate(1, sizeof(fg_storage_request_t));`)
@@ -5804,6 +6001,7 @@ const backgroundMode =
   lines.push(`    LV_UNUSED(arg); fg_storage_request_t request;`)
   lines.push(`    for (;;) {`)
   lines.push(`        if (xQueueReceive(fg_system_storage_queue, &request, portMAX_DELAY) != pdTRUE) continue;`)
+  lines.push(`        if (request.kind == FG_STORAGE_REQ_SHUTDOWN) break;`)
   lines.push(`        fg_storage_result_model_t next = { .kind = request.kind, .result = FG_SD_OK };`)
   lines.push(`        switch (request.kind) {`)
   lines.push(`            case FG_STORAGE_REQ_MOUNT: next.result = fg_sd_mount(); break;`)
@@ -5826,6 +6024,8 @@ const backgroundMode =
   lines.push(`        fg_system_storage_result = next;`)
   lines.push(`        xSemaphoreGive(fg_system_storage_mutex);`)
   lines.push(`    }`)
+  lines.push(`    fg_system_storage_task = NULL;`)
+  lines.push(`    vTaskDelete(NULL);`)
   lines.push(`}`)
   lines.push(`static void fg_system_storage_clear_selection(void)`)
   lines.push(`{`)
@@ -5843,12 +6043,14 @@ const backgroundMode =
   lines.push(`}`)
   lines.push(`static void fg_system_storage_tick_cb(lv_timer_t * timer)`)
   lines.push(`{`)
+  lines.push(`    if (fg_system_storage_teardown_requested) { fg_system_storage_request_teardown(); return; }`)
   lines.push(`    LV_UNUSED(timer); if (!fg_system_storage_mutex) return;`)
   lines.push(`    xSemaphoreTake(fg_system_storage_mutex, portMAX_DELAY); fg_system_storage_projection = fg_system_storage_result; xSemaphoreGive(fg_system_storage_mutex);`)
   lines.push(`    fg_storage_result_model_t * model_ptr = &fg_system_storage_projection;`)
   lines.push(`    #define model (*model_ptr)`)
   lines.push(`    if (model.generation == fg_system_storage_consumed_generation) return;`)
   lines.push(`    fg_system_storage_consumed_generation = model.generation; fg_system_storage_pending = false;`)
+  lines.push(`    if (fg_system_storage_teardown_requested) { fg_system_storage_request_teardown(); return; }`)
   lines.push(`    lv_obj_clear_state(fg_system_storage_refresh_button, LV_STATE_DISABLED);`)
   lines.push(`    if (model.snapshot.mounted) lv_obj_clear_state(fg_system_storage_test_button, LV_STATE_DISABLED); else lv_obj_add_state(fg_system_storage_test_button, LV_STATE_DISABLED);`)
   lines.push(`    snprintf(fg_system_storage_current_path, sizeof(fg_system_storage_current_path), "%s", model.directory.path[0] == '/' ? model.directory.path + 1 : model.directory.path);`)
@@ -5877,8 +6079,8 @@ const backgroundMode =
   lines.push(`    if (model.kind == FG_STORAGE_REQ_DELETE_EMPTY_FOLDER) { if (model.result == FG_SD_OK) { fg_keyboard_hide(); if (fg_system_storage_delete_folder_dialog) lv_obj_add_flag(fg_system_storage_delete_folder_dialog, LV_OBJ_FLAG_HIDDEN); lv_label_set_text(fg_system_storage_summary, "Folder deleted"); } else if (fg_system_storage_delete_folder_error) lv_label_set_text(fg_system_storage_delete_folder_error, model.result == FG_SD_ERR_NOT_EMPTY ? "Folder is not empty." : fg_sd_result_text(model.result)); }`)
   lines.push(`    #undef model`)
   lines.push(`}`)
-  lines.push(`static void fg_system_open_storage_cb(lv_event_t * event) { LV_UNUSED(event); if (!fg_system_storage_initialized && !fg_system_storage_create_page()) return; fg_system_show_page(fg_system_storage_page); if (!fg_system_storage_summary || !fg_system_storage_refresh_button || !fg_system_storage_test_button) return; (void)fg_system_storage_request(FG_STORAGE_REQ_REFRESH, fg_system_storage_current_path, NULL); }`)
-  lines.push(`static void fg_system_storage_back_cb(lv_event_t * event) { LV_UNUSED(event); fg_system_show_page(fg_system_launcher_page); }`)
+  lines.push(`static void fg_system_open_storage_cb(lv_event_t * event) { LV_UNUSED(event); if (fg_system_storage_teardown_requested) return; if (!fg_system_storage_initialized && !fg_system_storage_create_page()) return; fg_system_show_page(fg_system_storage_page); if (!fg_system_storage_summary || !fg_system_storage_refresh_button || !fg_system_storage_test_button) return; (void)fg_system_storage_request(FG_STORAGE_REQ_REFRESH, fg_system_storage_current_path, NULL); fg_ram_probe_log("15 after opening Storage Browser"); }`)
+  lines.push(`static void fg_system_storage_back_cb(lv_event_t * event) { LV_UNUSED(event); fg_keyboard_hide(); fg_system_show_page(fg_system_launcher_page); fg_system_storage_teardown_requested = true; fg_system_storage_request_teardown(); }`)
   lines.push(`static void fg_system_storage_refresh_cb(lv_event_t * event) { LV_UNUSED(event); fg_system_storage_leave_select_mode(); (void)fg_system_storage_request(FG_STORAGE_REQ_REFRESH, fg_system_storage_current_path, NULL); }`)
   lines.push(`static void fg_system_storage_mount_cb(lv_event_t * event) { LV_UNUSED(event); if (fg_system_storage_pending) return; fg_system_storage_current_path[0] = 0; fg_system_storage_page_offset = 0; fg_system_storage_clear_selection(); (void)fg_system_storage_request(FG_STORAGE_REQ_MOUNT, "", NULL); }`)
   lines.push(`static void fg_system_storage_unmount_cb(lv_event_t * event) { LV_UNUSED(event); if (fg_system_storage_pending) return; fg_system_storage_page_offset = 0; fg_system_storage_clear_selection(); (void)fg_system_storage_request(FG_STORAGE_REQ_UNMOUNT, "", NULL); }`)
@@ -6088,6 +6290,7 @@ const backgroundMode =
   lines.push(`    if (network->security == FG_WIFI_SECURITY_OPEN) {`)
   lines.push(`        (void)fg_wifi_connect_network(network, NULL, fg_system_wifi_remember);`)
   lines.push(`    } else {`)
+  lines.push(`        if (!fg_system_wifi_create_password_dialog()) return;`)
   lines.push(`        lv_textarea_set_text(fg_system_wifi_password_input, "");`)
   lines.push(`        lv_textarea_set_password_mode(fg_system_wifi_password_input, true);`)
   lines.push(`        lv_label_set_text_fmt(fg_system_wifi_password_title, "Connect to %s", network->ssid);`)
@@ -6101,6 +6304,7 @@ const backgroundMode =
   lines.push(`static void fg_system_wifi_forget_request_cb(lv_event_t * event)`)
   lines.push(`{`)
   lines.push(`    LV_UNUSED(event);`)
+  lines.push(`    if (!fg_system_wifi_create_forget_dialog()) return;`)
   lines.push(`    lv_obj_clear_flag(fg_system_wifi_forget_dialog, LV_OBJ_FLAG_HIDDEN);`)
   lines.push(`    lv_obj_move_foreground(fg_system_wifi_forget_dialog);`)
   lines.push(`}`)
@@ -6255,9 +6459,50 @@ const backgroundMode =
   lines.push(`    fg_system_storage_delete_folder_dialog = dialog; lv_obj_add_flag(dialog, LV_OBJ_FLAG_HIDDEN); return true;`)
   lines.push(`}`)
   lines.push(``)
+  lines.push(`static void fg_system_storage_request_teardown(void)`)
+  lines.push(`{`)
+  lines.push(`    if (!fg_system_storage_teardown_requested || fg_system_storage_pending) return;`)
+  lines.push(`    if (fg_system_storage_task) {`)
+  lines.push(`        if (fg_system_storage_shutdown_sent) return;`)
+  lines.push(`        if (!fg_system_storage_queue) return;`)
+  lines.push(`        fg_storage_request_t request = { .kind = FG_STORAGE_REQ_SHUTDOWN };`)
+  lines.push(`        if (xQueueSend(fg_system_storage_queue, &request, 0) == pdTRUE) fg_system_storage_shutdown_sent = true;`)
+  lines.push(`        return;`)
+  lines.push(`    }`)
+  lines.push(`    fg_system_storage_finish_teardown();`)
+  lines.push(`}`)
+  lines.push(``)
+  lines.push(`static void fg_system_storage_finish_teardown(void)`)
+  lines.push(`{`)
+  lines.push(`    if (fg_system_storage_task) return;`)
+  lines.push(`    fg_keyboard_hide();`)
+  lines.push(`    if (fg_system_wifi_keyboard) lv_keyboard_set_textarea(fg_system_wifi_keyboard, NULL);`)
+  lines.push(`    if (fg_system_storage_name_dialog) lv_obj_delete(fg_system_storage_name_dialog);`)
+  lines.push(`    fg_system_storage_name_dialog = NULL; fg_system_storage_name_input = NULL; fg_system_storage_name_title = NULL; fg_system_storage_name_error = NULL;`)
+  lines.push(`    if (fg_system_storage_delete_dialog) lv_obj_delete(fg_system_storage_delete_dialog);`)
+  lines.push(`    fg_system_storage_delete_dialog = NULL; fg_system_storage_delete_text = NULL;`)
+  lines.push(`    if (fg_system_storage_format_dialog) lv_obj_delete(fg_system_storage_format_dialog);`)
+  lines.push(`    fg_system_storage_format_dialog = NULL; fg_system_storage_format_input = NULL; fg_system_storage_format_error = NULL;`)
+  lines.push(`    if (fg_system_storage_delete_folder_dialog) lv_obj_delete(fg_system_storage_delete_folder_dialog);`)
+  lines.push(`    fg_system_storage_delete_folder_dialog = NULL; fg_system_storage_delete_folder_text = NULL; fg_system_storage_delete_folder_input = NULL; fg_system_storage_delete_folder_error = NULL;`)
+  lines.push(`    if (fg_system_storage_page) lv_obj_delete(fg_system_storage_page);`)
+  lines.push(`    fg_system_storage_page = NULL; fg_system_storage_summary = NULL; fg_system_storage_path = NULL; fg_system_storage_list = NULL; fg_system_storage_empty = NULL;`)
+  lines.push(`    fg_system_storage_parent_button = NULL; fg_system_storage_rename_button = NULL; fg_system_storage_delete_button = NULL; fg_system_storage_refresh_button = NULL; fg_system_storage_test_button = NULL;`)
+  lines.push(`    fg_system_storage_previous_button = NULL; fg_system_storage_next_button = NULL; fg_system_storage_select_folder_button = NULL; fg_system_storage_select_folder_label = NULL; fg_system_storage_delete_folder_button = NULL; fg_system_storage_delete_folder_label = NULL;`)
+  lines.push(`    for (int i = 0; i < FG_STORAGE_VISIBLE_ROWS; ++i) { fg_system_storage_rows[i] = NULL; fg_system_storage_row_labels[i] = NULL; fg_system_storage_row_metadata[i].valid = false; }`)
+  lines.push(`    if (fg_system_storage_queue) { vQueueDelete(fg_system_storage_queue); fg_system_storage_queue = NULL; }`)
+  lines.push(`    if (fg_system_storage_mutex) { vSemaphoreDelete(fg_system_storage_mutex); fg_system_storage_mutex = NULL; }`)
+  lines.push(`    lv_timer_t * timer = fg_system_storage_timer; fg_system_storage_timer = NULL;`)
+  lines.push(`    fg_system_storage_pending = false; fg_system_storage_available = false; fg_system_storage_initialized = false; fg_system_storage_teardown_requested = false; fg_system_storage_shutdown_sent = false;`)
+  lines.push(`    fg_system_storage_page_offset = 0; fg_system_storage_selected = -1; fg_system_storage_select_mode = false;`)
+  lines.push(`    if (timer) lv_timer_delete(timer);`)
+  lines.push(`    fg_ram_probe_log("16 after closing Storage Browser");`)
+  lines.push(`}`)
+  lines.push(``)
   lines.push(`static bool fg_system_storage_create_page(void)`)
   lines.push(`{`)
   lines.push(`    if (fg_system_storage_initialized) return fg_system_storage_page != NULL;`)
+  lines.push(`    fg_system_storage_teardown_requested = false; fg_system_storage_shutdown_sent = false;`)
   lines.push(`    fg_system_storage_page = lv_obj_create(fg_system_root);`)
   lines.push(`    if (!fg_system_storage_page) return false;`)
   lines.push(`    lv_obj_set_size(fg_system_storage_page, 1024, 600);`)
@@ -6697,6 +6942,7 @@ lines.push(`}`)
   lines.push(`    LV_UNUSED(timer);`)
   lines.push(``)
   lines.push(`    fg_wifi_pump();`)
+  lines.push(`    if (!fg_system_wifi_connected_probe_logged && fg_wifi_is_connected()) { fg_system_wifi_connected_probe_logged = true; fg_ram_probe_log("17 connected on application page"); }`)
   lines.push(``)
   lines.push(`    if (fg_system_wifi_password_dialog &&`)
   lines.push(`        !lv_obj_has_flag(fg_system_wifi_password_dialog, LV_OBJ_FLAG_HIDDEN)) return;`)
@@ -6879,6 +7125,7 @@ body.forEach(line => {
 })
 
 lines.push(``)
+lines.push(`    fg_ram_probe_log("02 after application page creation");`)
 usedAssetSources.add('assets/icons/fg_icon_settings_fi_48px.c')
 lines.push(`    LV_IMAGE_DECLARE(fg_icon_settings_fi_48px);`)
 lines.push(`    lv_obj_t * system_gear = fg_system_create_button(fg_application_page, "", 948, 18, 58, 58);`)
@@ -6924,6 +7171,7 @@ lines.push(`    fg_system_create_disabled_card(fg_system_launcher_page, LV_SYMBO
 lines.push(`    lv_obj_t * diagnostics_card = fg_system_create_button(fg_system_launcher_page, LV_SYMBOL_WARNING "\\nDiagnostics", 522, 302, 220, 180);`)
 lines.push(`    lv_obj_add_event_cb(diagnostics_card, fg_system_open_diagnostics_cb, LV_EVENT_CLICKED, NULL);`)
 lines.push(`    lv_obj_add_flag(fg_system_launcher_page, LV_OBJ_FLAG_HIDDEN);`)
+lines.push(`    fg_ram_probe_log("03 after Settings launcher creation");`)
 lines.push(``)
 lines.push(`    fg_system_diagnostics_page = lv_obj_create(parent);`)
 lines.push(`    lv_obj_set_size(fg_system_diagnostics_page, 1024, 600); lv_obj_clear_flag(fg_system_diagnostics_page, LV_OBJ_FLAG_SCROLLABLE);`)
@@ -6951,6 +7199,7 @@ lines.push(`    fg_system_diagnostics_internal_label = diagnostics_values[0]; fg
 lines.push(`    fg_system_diagnostics_lvgl_label = diagnostics_values[4]; fg_system_diagnostics_wifi_label = diagnostics_values[5]; fg_system_diagnostics_sd_label = diagnostics_values[6];`)
 lines.push(`    fg_diagnostics_init(); fg_system_diagnostics_timer = lv_timer_create(fg_system_diagnostics_tick_cb, 1000, NULL);`)
 lines.push(`    lv_obj_add_flag(fg_system_diagnostics_page, LV_OBJ_FLAG_HIDDEN);`)
+lines.push(`    fg_ram_probe_log("05 after Diagnostics page creation");`)
 lines.push(``)
 lines.push(`#if 0 /* Legacy eager Storage construction retained only as migration reference. */`)
 lines.push(`    fg_system_storage_page = lv_obj_create(parent);`)
@@ -7072,6 +7321,9 @@ lines.push(`    if (!fg_system_storage_available) lv_label_set_text(fg_system_st
 lines.push(`    lv_obj_add_flag(fg_system_storage_page, LV_OBJ_FLAG_HIDDEN);`)
 lines.push(``)
 lines.push(`#endif`)
+  lines.push(`#if !FG_FEATURE_DIAGNOSTICS`)
+  lines.push(`    lv_sysmon_hide_performance(NULL);`)
+  lines.push(`#endif`)
 lines.push(`    fg_system_wifi_page = lv_obj_create(parent);`)
 lines.push(`    lv_obj_set_pos(fg_system_wifi_page, 0, 0);`)
 lines.push(`    lv_obj_set_size(fg_system_wifi_page, 1024, 600);`)
@@ -7277,6 +7529,7 @@ lines.push(`        lv_label_set_long_mode(fg_system_wifi_network_labels[i], LV_
 lines.push(`        lv_obj_add_flag(fg_system_wifi_network_rows[i], LV_OBJ_FLAG_HIDDEN);`)
 lines.push(`    }`)
 lines.push(`    lv_obj_add_flag(fg_system_wifi_page, LV_OBJ_FLAG_HIDDEN);`)
+lines.push(`    fg_ram_probe_log("07 after Wi-Fi Manager page creation");`)
 lines.push(``)
 lines.push(`    fg_system_wifi_password_dialog = lv_obj_create(parent);`)
 lines.push(`    lv_obj_set_size(fg_system_wifi_password_dialog, 560, 330);`)
@@ -7308,6 +7561,7 @@ lines.push(`    lv_obj_add_event_cb(password_cancel, fg_system_wifi_password_can
 lines.push(`    lv_obj_t * password_connect = fg_system_create_button(fg_system_wifi_password_dialog, "Connect", 276, 220, 230, 58);`)
 lines.push(`    lv_obj_add_event_cb(password_connect, fg_system_wifi_password_connect_cb, LV_EVENT_CLICKED, NULL);`)
 lines.push(`    lv_obj_add_flag(fg_system_wifi_password_dialog, LV_OBJ_FLAG_HIDDEN);`)
+lines.push(`    fg_ram_probe_log("08 after Wi-Fi password dialog creation");`)
 lines.push(``)
 lines.push(`    fg_system_wifi_forget_dialog = lv_obj_create(parent);`)
 lines.push(`    lv_obj_set_size(fg_system_wifi_forget_dialog, 540, 240);`)
@@ -7320,6 +7574,7 @@ lines.push(`    lv_obj_add_event_cb(forget_cancel, fg_system_wifi_forget_cancel_
 lines.push(`    lv_obj_t * forget_confirm = fg_system_create_button(fg_system_wifi_forget_dialog, "Forget Network", 270, 135, 230, 58);`)
 lines.push(`    lv_obj_add_event_cb(forget_confirm, fg_system_wifi_forget_confirm_cb, LV_EVENT_CLICKED, NULL);`)
 lines.push(`    lv_obj_add_flag(fg_system_wifi_forget_dialog, LV_OBJ_FLAG_HIDDEN);`)
+lines.push(`    fg_ram_probe_log("09 after Wi-Fi forget dialog creation");`)
 lines.push(``)
 lines.push(`    fg_system_brightness_page = lv_obj_create(parent);`)
 lines.push(`    lv_obj_set_pos(fg_system_brightness_page, 0, 0);`)
@@ -7367,6 +7622,7 @@ lines.push(`    lv_label_set_text(brightness_max, "100%");`)
 lines.push(`    lv_obj_set_style_text_color(brightness_max, lv_color_hex(${palette.text}), 0);`)
 lines.push(`    lv_obj_set_pos(brightness_max, 828, 390);`)
 lines.push(`    lv_obj_add_flag(fg_system_brightness_page, LV_OBJ_FLAG_HIDDEN);`)
+lines.push(`    fg_ram_probe_log("04 after Brightness page creation");`)
 lines.push(``)
 clockExports.forEach(clockExport => {
   lines.push(`    ${clockExport.tickCallbackName}(NULL);`)
@@ -7374,12 +7630,115 @@ clockExports.forEach(clockExport => {
 })
 if (clockExports.size > 0) lines.push(``)
 lines.push(`    fg_wifi_tick_cb(NULL);`)
-lines.push(`    lv_timer_create(fg_wifi_tick_cb, 1000, NULL);`)
+lines.push(`    if (!fg_system_wifi_timer) fg_system_wifi_timer = lv_timer_create(fg_wifi_tick_cb, 1000, NULL);`)
+lines.push(`    fg_ram_probe_log("10 after Wi-Fi timer creation");`)
 
 lines.push(`}`)
 
+  const takeGeneratedBlock = (
+    startLine: string,
+    endBeforeLine: string,
+  ) => {
+    const start = lines.indexOf(startLine)
+    const end = lines.indexOf(endBeforeLine, start)
+    if (start < 0 || end < 0 || end <= start) {
+      throw new Error(`Unable to extract generated lifecycle block: ${startLine}`)
+    }
+    return lines.splice(start, end - start)
+  }
+  const wifiLifecycleBlock = takeGeneratedBlock(
+    `    fg_system_wifi_page = lv_obj_create(parent);`,
+    `    fg_system_brightness_page = lv_obj_create(parent);`,
+  )
+  const passwordStart = wifiLifecycleBlock.indexOf(
+    `    fg_system_wifi_password_dialog = lv_obj_create(parent);`,
+  )
+  const forgetStart = wifiLifecycleBlock.indexOf(
+    `    fg_system_wifi_forget_dialog = lv_obj_create(parent);`,
+  )
+  if (passwordStart < 0 || forgetStart <= passwordStart) {
+    throw new Error('Unable to split generated Wi-Fi lifecycle blocks')
+  }
+  const wifiPageBlock = wifiLifecycleBlock.slice(0, passwordStart)
+  const wifiPasswordBlock = wifiLifecycleBlock.slice(
+    passwordStart,
+    forgetStart,
+  )
+  const wifiForgetBlock = wifiLifecycleBlock.slice(forgetStart)
+  const lifecycleInsertion = lines.indexOf(
+    `// ForgeUI LVGL Export Proof V1`,
+  )
+  if (lifecycleInsertion < 0) {
+    throw new Error('Unable to insert generated Wi-Fi lifecycle helpers')
+  }
+  const lifecycleRoot = (line: string) =>
+    line.replace(/\bparent\b/g, 'fg_system_root')
+  lines.splice(lifecycleInsertion, 0,
+    `static bool fg_system_wifi_create_page(void)`,
+    `{`,
+    `    if (fg_system_wifi_page) return true;`,
+    `    if (!fg_system_root) return false;`,
+    ...wifiPageBlock.map(lifecycleRoot),
+    `    return fg_system_wifi_page != NULL;`,
+    `}`,
+    ``,
+    `static bool fg_system_wifi_create_password_dialog(void)`,
+    `{`,
+    `    if (fg_system_wifi_password_dialog) return true;`,
+    `    if (!fg_system_root) return false;`,
+    ...wifiPasswordBlock.map(lifecycleRoot),
+    `    return fg_system_wifi_password_dialog != NULL;`,
+    `}`,
+    ``,
+    `static bool fg_system_wifi_create_forget_dialog(void)`,
+    `{`,
+    `    if (fg_system_wifi_forget_dialog) return true;`,
+    `    if (!fg_system_root) return false;`,
+    ...wifiForgetBlock.map(lifecycleRoot),
+    `    return fg_system_wifi_forget_dialog != NULL;`,
+    `}`,
+    ``,
+    `static void fg_system_wifi_destroy_ui(void)`,
+    `{`,
+    `    fg_keyboard_hide();`,
+    `    if (fg_system_wifi_keyboard) lv_keyboard_set_textarea(fg_system_wifi_keyboard, NULL);`,
+    `    if (fg_system_wifi_password_dialog) lv_obj_delete(fg_system_wifi_password_dialog);`,
+    `    fg_system_wifi_password_dialog = NULL;`,
+    `    fg_system_wifi_password_input = NULL;`,
+    `    fg_system_wifi_password_title = NULL;`,
+    `    fg_system_wifi_password_error = NULL;`,
+    `    if (fg_system_wifi_forget_dialog) lv_obj_delete(fg_system_wifi_forget_dialog);`,
+    `    fg_system_wifi_forget_dialog = NULL;`,
+    `    if (fg_system_wifi_page) lv_obj_delete(fg_system_wifi_page);`,
+    `    fg_system_wifi_page = NULL;`,
+    `    fg_system_wifi_state_label = NULL;`,
+    `    fg_system_wifi_ssid_label = NULL;`,
+    `    fg_system_wifi_ip_label = NULL;`,
+    `    fg_system_wifi_gateway_label = NULL;`,
+    `    fg_system_wifi_rssi_label = NULL;`,
+    `    fg_system_wifi_security_label = NULL;`,
+    `    fg_system_wifi_raw_label = NULL;`,
+    `    fg_system_wifi_scan_label = NULL;`,
+    `    fg_system_wifi_network_container = NULL;`,
+    `    fg_system_wifi_network_empty_label = NULL;`,
+    `    fg_system_wifi_scan_button = NULL;`,
+    `    fg_system_wifi_disconnect_button = NULL;`,
+    `    fg_system_wifi_reconnect_button = NULL;`,
+    `    fg_system_wifi_forget_button = NULL;`,
+    `    fg_system_wifi_details_card = NULL;`,
+    `    fg_system_wifi_details_label = NULL;`,
+    `    for (int i = 0; i < FG_WIFI_MAX_SCAN; ++i) {`,
+    `        fg_system_wifi_network_rows[i] = NULL;`,
+    `        fg_system_wifi_network_labels[i] = NULL;`,
+    `    }`,
+    `    fg_system_wifi_network_count = 0;`,
+    `    fg_system_wifi_selected = -1;`,
+    `}`,
+    ``,
+  )
+
   const declaredImages = new Set<string>()
-  const code = lines.filter(line => {
+  const ungatedCode = lines.filter(line => {
     const declaration = line.match(
       /LV_IMAGE_DECLARE\(([A-Za-z_][A-Za-z0-9_]*)\)/,
     )
@@ -7388,10 +7747,35 @@ lines.push(`}`)
     declaredImages.add(declaration[1])
     return true
   }).join('\n')
+  const gated = gateForgeUIGeneratedSystemCode(
+    ungatedCode,
+    options?.firmwareFeatures,
+  )
+  if (!gated.usesSettingsAsset) {
+    usedAssetSources.delete('assets/icons/fg_icon_settings_fi_48px.c')
+  }
+  const normalizedAssetSources = new Map<string, string>()
+  usedAssetSources.forEach(source => {
+    const normalized = source.replace(/\\/g, '/').replace(/\/+/g, '/')
+    const segments = normalized.split('/')
+    const canonicalSegments: string[] = []
+    segments.forEach(segment => {
+      if (!segment || segment === '.') return
+      if (segment === '..' && canonicalSegments.length > 0) {
+        canonicalSegments.pop()
+        return
+      }
+      canonicalSegments.push(segment)
+    })
+    const canonical = canonicalSegments.join('/')
+    if (!normalizedAssetSources.has(canonical)) {
+      normalizedAssetSources.set(canonical, canonical)
+    }
+  })
 
     return {
-    code,
-    assetSources: Array.from(usedAssetSources),
+    code: gated.code,
+    assetSources: Array.from(normalizedAssetSources.values()),
     userEventHooks: Array.from(userEventHooks),
     publicApiDeclarations: Array.from(binaryOutputExports.values())
       .filter(lightExport => lightExport.ready)

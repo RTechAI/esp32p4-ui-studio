@@ -1,5 +1,14 @@
 /build/
-/managed_components/
+/managed_components/*
+!/managed_components/lvgl__lvgl/
+/managed_components/lvgl__lvgl/*
+!/managed_components/lvgl__lvgl/src/
+/managed_components/lvgl__lvgl/src/*
+!/managed_components/lvgl__lvgl/src/others/
+/managed_components/lvgl__lvgl/src/others/*
+!/managed_components/lvgl__lvgl/src/others/sysmon/
+/managed_components/lvgl__lvgl/src/others/sysmon/*
+!/managed_components/lvgl__lvgl/src/others/sysmon/lv_sysmon.c
 /sdkconfig
 /sdkconfig.old
 .vscode/

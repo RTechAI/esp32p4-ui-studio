@@ -6,6 +6,7 @@
 
 #include "lvgl.h"
 #include "90_Studio_Export.h"
+#include "05_FG_RAM_Probe.h"
 #include "esp_log.h"
 
 #include <stdio.h>
@@ -35,6 +36,7 @@ void fg_runtime_init(void)
     );
 
     ESP_LOGI("FG_BOOT", "BOOT 06 export begin");
+    fg_ram_probe_log("01 before fg_studio_export_create");
     fg_studio_export_create(scr);
     ESP_LOGI("FG_BOOT", "BOOT 19 export end");
 }

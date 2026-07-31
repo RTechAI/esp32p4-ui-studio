@@ -11,6 +11,7 @@
 #include "esp_wifi.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "05_FG_RAM_Probe.h"
 
 static const char *TAG = "FG_WIFI";
 #define FG_WIFI_CONNECT_TIMEOUT_MS 20000
@@ -18,6 +19,8 @@ static const char *TAG = "FG_WIFI";
 static bool g_ready;
 static bool g_connected;
 static volatile bool g_scan_in_progress;
+static volatile bool g_first_scan_probe_pending;
+static bool g_first_scan_probe_logged;
 static fg_wifi_state_t g_state = FG_WIFI_STATE_OFF;
 static fg_wifi_result_t g_latest_result = FG_WIFI_OP_OK;
 static TickType_t g_connect_started;
@@ -181,6 +184,7 @@ static void hosted_scan_task(void *arg)
         set_error("SCAN_FAIL", FG_WIFI_OP_FAILED, esp_err_to_name(err));
     }
     g_scan_in_progress = false;
+    if (!g_first_scan_probe_logged) g_first_scan_probe_pending = true;
     vTaskDelete(NULL);
 }
 
@@ -248,6 +252,11 @@ void fg_wifi_init(void)
 
 void fg_wifi_pump(void)
 {
+    if (g_first_scan_probe_pending) {
+        g_first_scan_probe_pending = false;
+        g_first_scan_probe_logged = true;
+        fg_ram_probe_log("11 after first scan");
+    }
     TickType_t now = xTaskGetTickCount();
     if (g_state == FG_WIFI_STATE_CONNECTING &&
         (now - g_connect_started) > pdMS_TO_TICKS(FG_WIFI_CONNECT_TIMEOUT_MS)) {

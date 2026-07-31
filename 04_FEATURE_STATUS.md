@@ -1,5 +1,17 @@
 # 04_FEATURE_STATUS.md
 
+## 2026-07-31 platform alignment
+
+Current platform save point: `FORGEUI_BOARD_PROFILES__EXPORT_TIME_FEATURE_GATING__LAZY_SYSTEM_TOOLS__CONNECTED_WIFI_45KB_FREE__RAM_OVERLAY__READY_FOR_FINAL_OPERATOR_VALIDATION__2026-07-31`.
+
+- Board/profile ownership is registry-driven; the supported production profile is Waveshare ESP32-P4 WiFi6 Touch LCD 7B.
+- Persisted project features hydrate after mount and generate `00_ForgeUI_Features.h`.
+- Disabled System features are pruned from generated C, assets, CMake sources/components and `idf_component.yml`; they are not merely hidden.
+- Diagnostics is implemented. Wi-Fi Manager and Storage UI/worker resources are created lazily and destroyed safely while their backends remain separately alive.
+- Connected Application-page evidence records 45,795 bytes current internal free heap, a 27,648-byte largest block and 62 LVGL objects. Ten-cycle operator validation remains pending.
+- QR Code Studio/export/runtime generation is complete; a recorded successful physical phone scan remains pending.
+- The built firmware contains the compact FPS/RAM overlay, but current managed LVGL source does not reproduce it. Status: implemented in the flashed artifact, durability repair required.
+
 This document records implementation and proof status only.
 
 - Use `01_SPINE.md` for architecture, milestones and product direction.

@@ -13,7 +13,7 @@
 
 ## Current proven save point
 
-**FORGEUI_WIDGET_REGISTRY__LAYOUT_TEMPLATE_LIBRARY__QRCODE_RUNTIME__READY_FOR_QR_HARDWARE_PROOF__2026-07-30**
+**FORGEUI_BOARD_PROFILES__EXPORT_TIME_FEATURE_GATING__LAZY_SYSTEM_TOOLS__CONNECTED_WIFI_45KB_FREE__RAM_OVERLAY__READY_FOR_FINAL_OPERATOR_VALIDATION__2026-07-31**
 
 ### Existing physically proven generated runtime
 
@@ -27,7 +27,7 @@ The earlier physical proof remains valid for Interactive Assets; System Runtime;
 - Standard QR Code generation is implemented as a native LVGL 9.2.2 output component.
 - The live generated `90_Studio_Export.c/.h` contains the QR object, serialized initialization and `FG_Set_QR_Code_Text(const char * text)`.
 - QR contributes no `userEventHooks`, asset C source or `95_UserEvents` declaration.
-- QR-focused preview/export tests pass; ESP-IDF build, flash and physical scan proof for QR remain pending.
+- QR-focused preview/export tests pass and the current clean ESP-IDF build contains native QR output; a recorded successful physical phone scan remains pending.
 
 ## Purpose and scope
 
@@ -761,7 +761,7 @@ Current generated System pages are:
 
 The generated Wi-Fi Manager owns LVGL presentation, a structured selectable network list, Connected and Saved badges, password and forget dialogs, a password textarea, Show / Hide, native keyboard attachment, Connect, Disconnect, Reconnect, Forget, connected details, status, RSSI, gateway, security, station MAC, AP BSSID and periodic backend snapshot projection. Scan and Refresh both invoke the same `fg_wifi_scan_start()` backend path and initiate scan intent only. Generated LVGL never performs Hosted scanning itself; it projects completed backend models, rebuilds SSID row presentation from completed network data, and owns row visibility and layout only. It does not own `esp_wifi_init()`, scanning implementation, credentials, reconnect policy, DHCP, Hosted transport or ESP-IDF APIs; those remain `30_WIFI` backend responsibilities.
 
-The generated Storage Browser owns its Storage container, lazy page creation, persistent page reuse, reusable row pool, paging, Refresh, Read / Write Test, Select Item mode, Delete Empty Folder workflow, Storage projection and internal callbacks. Generated code owns UI presentation and user intent; `40_SD.c` owns filesystem operations.
+The generated Storage Browser owns demand-created UI, timer, worker, queue, mutex, reusable row pool, paging and internal callbacks. Back requests an asynchronous worker shutdown; generated code deletes resources only after acknowledgement. `40_SD.c` separately owns filesystem/backend state.
 
 ## Hosted Connectivity Runtime
 
@@ -1036,7 +1036,7 @@ The generated System Runtime owns:
 - completed-model row visibility and list-layout projection
 - projection pause while password entry is active
 - internal Wi-Fi System navigation
-- lazy Storage page creation and persistent page reuse
+- lazy Storage page/worker creation and acknowledged teardown
 - reusable Storage row pool, paging and row rendering
 - Storage status projection
 - Storage Refresh and Read / Write Test callbacks
@@ -1153,7 +1153,7 @@ Runtime generation assumes that its candidate result will pass the dedicated cli
 - System launcher container generation
 - Brightness container generation
 - complete Wi-Fi Manager container, status, connected details and structured selectable rows
-- lazy Storage page creation and persistent page reuse
+- lazy Storage page/worker creation and acknowledged teardown
 - reusable Storage rows, paging and projection
 - Storage Refresh and Read / Write Test callbacks
 - Storage Select Item mode
@@ -2394,7 +2394,7 @@ Physically confirmed:
 Physically confirmed:
 
 - lazy Storage page creation
-- persistent page reuse
+- acknowledged worker shutdown and resource deletion
 - Refresh
 - directory browsing
 - folder navigation
@@ -2797,7 +2797,7 @@ Preserve these rules:
 71. Storage Runtime is generated System Runtime and never becomes an Interactive Asset or public developer API.
 72. Storage filesystem logic remains in `40_SD.c/.h`.
 73. Generated Storage code owns presentation and user intent only.
-74. Storage page construction remains lazy and the persistent page is reused.
+74. Storage page and worker construction remain lazy; teardown waits for worker acknowledgement before deleting resources.
 75. The Storage worker and reusable row pool remain bounded.
 76. The Storage request model remains compact: operation kind, one path and one name.
 77. The shared Storage projection model remains compact.
@@ -2864,6 +2864,12 @@ Preserve these rules:
 
 ## Save Point History
 
+### FORGEUI_BOARD_PROFILES__EXPORT_TIME_FEATURE_GATING__LAZY_SYSTEM_TOOLS__CONNECTED_WIFI_45KB_FREE__RAM_OVERLAY__READY_FOR_FINAL_OPERATOR_VALIDATION__2026-07-31
+
+- `ForgeUILvglExport.ts` consumes the persisted Board Profile feature set and removes disabled includes, models, callbacks, pages, timers and assets. `export-server.js` writes `00_ForgeUI_Features.h` and applies the same profile to live and standalone CMake/source/component-manifest output.
+- `FG_FEATURE_WIFI` and `FG_FEATURE_SD_CARD` gate backend-facing generation; `FG_FEATURE_WIFI_MANAGER`, `FG_FEATURE_STORAGE_BROWSER`, `FG_FEATURE_DIAGNOSTICS` and `FG_FEATURE_SETTINGS` gate their generated UI/runtime owners.
+- Wi-Fi Manager/dialogs and Storage UI/worker resources are lazy. Diagnostics is implemented. The compact RAM overlay in the built ELF is not reproducible from the current managed-component source and remains a durability issue.
+
 ### FORGEUI_WIDGET_REGISTRY__LAYOUT_TEMPLATE_LIBRARY__QRCODE_RUNTIME__READY_FOR_QR_HARDWARE_PROOF__2026-07-30
 
 - **Generated architecture:** All six Layout Designer definitions resolve to ordinary components and the unchanged four-field exporter result. QR Code generates native LVGL QR construction plus a setter-only declaration/implementation in `90_Studio_Export.*`; it adds no hook, User Event stub, asset source or transport field.
@@ -2924,9 +2930,8 @@ Future pages:
 - Bluetooth
 - Sound
 - Device
-- Diagnostics
 
-Storage Browser is part of the reusable generated System Runtime and is the reference architecture for future built-in System pages requiring lazy construction, bounded backend projection and persistent page reuse. Future pages may reuse the existing generated System Runtime, internal navigation callbacks, persistent container ownership, structured cards, backend projection, password-dialog patterns and shared native keyboard where text entry is required. They do not become Interactive Assets, do not generate User Event callbacks or public APIs, and are not claimed as already implemented.
+Storage Browser is part of the reusable generated System Runtime and is the reference architecture for demand creation, bounded backend projection and acknowledged worker teardown. Future pages may reuse typed navigation, structured cards, backend projection and the shared native keyboard where text entry is required. They do not become Interactive Assets, generate User Event callbacks or public APIs.
 
 Each future System page follows:
 

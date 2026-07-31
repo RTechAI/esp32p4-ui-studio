@@ -14,6 +14,7 @@
 #include "30_WIFI.h"
 #include "20_RTC.h"
 #include "40_SD.h"
+#include "05_FG_RAM_Probe.h"
 #include "00_ForgeUI_Config.h"
 
 #include "01_FG_Runtime.h"
@@ -97,6 +98,7 @@ void app_main(void)
     ESP_LOGI(TAG, "========================================");
 
     fg_wifi_init();
+    fg_ram_probe_log("06 after Wi-Fi backend initialization");
 
     vTaskDelay(pdMS_TO_TICKS(2500));
 

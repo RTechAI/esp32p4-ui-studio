@@ -95,6 +95,8 @@ export raster QR artwork.
 
 ## Hardware validation
 
+Generated C inspection and the current clean ESP-IDF build are complete. The repository still contains no recorded successful phone scan of the flashed QR output. URL and Wi-Fi payload scans therefore remain the final physical proof boundary; QR Code must not be described as physically proven until that result is recorded.
+
 Software tests verify registry insertion, vector previews, native generated C,
 runtime API generation, persistence-compatible component data, and the LVGL
 configuration. Physical scan validation still requires exporting, building,

@@ -1,5 +1,7 @@
 # ForgeUI Studio
 
+Current architecture save point: `FORGEUI_BOARD_PROFILES__EXPORT_TIME_FEATURE_GATING__LAZY_SYSTEM_TOOLS__CONNECTED_WIFI_45KB_FREE__RAM_OVERLAY__READY_FOR_FINAL_OPERATOR_VALIDATION__2026-07-31`.
+
 **ForgeUI Studio is an open-source, AI-assisted visual HMI and embedded GUI designer for ESP32-P4.** It combines a drag-and-drop Canvas, reusable Interactive Assets, AI Layout tools, Browser Preview, native LVGL 9 generation, integrated ESP-IDF Build & Flash, and standalone ESP-IDF project export.
 
 ForgeUI exists to shorten the path from an interface idea to editable embedded firmware without putting a web runtime on the device. The Studio is a development tool; exported interfaces compile as native LVGL C inside ESP-IDF.
@@ -105,6 +107,8 @@ Detailed signatures and ownership belong in [03 — Generated Export API Code Ma
 
 ## Hardware support and proof
 
+The Board Selector is backed by a data-driven profile registry. The current supported production profile is the Waveshare ESP32-P4 WiFi6 Touch LCD 7B (`esp32p4`, 1024 × 600). Project feature selection is persisted after hydration and shared by live Build & Flash and standalone export. Generated `00_ForgeUI_Features.h`, CMake sources/components and `idf_component.yml` are pruned together; a capability or flag alone is not a claim that a backend is implemented.
+
 The proven target is:
 
 - **Waveshare ESP32-P4-WiFi6-Touch-LCD-7B**
@@ -117,6 +121,10 @@ Recorded physical proof includes the established Standard component groups, all 
 The repository does not currently advertise ESP32-S3 or additional board export support. Preview or automated validation is not treated as physical proof. For the authoritative feature-by-feature evidence level, see [04 — Feature Status](04_FEATURE_STATUS.md).
 
 ## Built-in System Runtime
+
+Implemented generated tools are Settings, Brightness, Diagnostics, Wi-Fi Manager, Storage Browser and the private native keyboard. Wi-Fi Manager/dialogs and Storage UI/worker resources are created on demand and destroyed safely on Back; Wi-Fi/ESP-Hosted and SD backend state remains separately alive. Launcher cards follow enabled generated features instead of always showing unavailable placeholders.
+
+The connected lazy-lifecycle Application-page serial probe recorded 45,795 bytes current internal free heap, 43,871 bytes minimum-ever, a 27,648-byte largest block and 62 LVGL objects. Operator-driven repeated touchscreen lifecycle validation remains open. The flashed build contains a compact FPS/RAM overlay, but its direct managed-LVGL edit is absent from current source and needs a reproducible ForgeUI-owned patch.
 
 ForgeUI generates platform UI alongside the application:
 

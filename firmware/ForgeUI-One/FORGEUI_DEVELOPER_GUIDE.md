@@ -43,13 +43,23 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- None
+- `FG_On_Data_Chart_Point_Added()`
+- `FG_On_Data_Chart_Cleared()`
+- `FG_On_Input_Changed()`
+- `FG_On_Switch_Changed()`
+- `FG_On_Checkbox_Changed()`
+- `FG_On_Radio_Changed()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| None | - | - |
+| Data_Chart_Point_Added | Click | `FG_On_Data_Chart_Point_Added()` |
+| Data_Chart_Cleared | Click | `FG_On_Data_Chart_Cleared()` |
+| Input_Changed | Click | `FG_On_Input_Changed()` |
+| Switch_Changed | Click | `FG_On_Switch_Changed()` |
+| Checkbox_Changed | Click | `FG_On_Checkbox_Changed()` |
+| Radio_Changed | Click | `FG_On_Radio_Changed()` |
 
 ---
 

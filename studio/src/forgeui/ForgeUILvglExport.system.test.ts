@@ -364,18 +364,73 @@ describe('built-in System LVGL export', () => {
     )
   })
 
-  it('exports the persistent Wi-Fi page and internal navigation', () => {
+  it('creates and destroys the Wi-Fi Manager independently of its backend', () => {
     expect(generated.code).toContain(
-      'fg_system_wifi_page = lv_obj_create(parent);',
+      'static bool fg_system_wifi_create_page(void)',
     )
     expect(generated.code).toContain(
-      'lv_obj_add_flag(fg_system_wifi_page, LV_OBJ_FLAG_HIDDEN);',
+      'fg_system_wifi_page = lv_obj_create(fg_system_root);',
     )
     expect(generated.code).toContain(
       'fg_system_wifi_back_cb, LV_EVENT_CLICKED, NULL',
     )
     expect(generated.code).toContain(
       'fg_system_show_page(fg_system_wifi_page);',
+    )
+    const boot = generated.code.slice(
+      generated.code.indexOf('void fg_studio_export_create'),
+    )
+    expect(boot).not.toContain(
+      'fg_system_wifi_page = lv_obj_create',
+    )
+    expect(generated.code).toContain(
+      'fg_system_wifi_destroy_ui();',
+    )
+    expect(generated.code).toContain(
+      'if (fg_system_wifi_page) lv_obj_delete(fg_system_wifi_page);',
+    )
+    expect(generated.code).toContain(
+      'fg_system_wifi_page = NULL;',
+    )
+  })
+
+  it('creates Wi-Fi dialogs only on their matching user intent', () => {
+    expect(generated.code).toContain(
+      'if (!fg_system_wifi_create_password_dialog()) return;',
+    )
+    expect(generated.code).toContain(
+      'if (!fg_system_wifi_create_forget_dialog()) return;',
+    )
+    const page = generated.code.slice(
+      generated.code.indexOf('static bool fg_system_wifi_create_page(void)'),
+      generated.code.indexOf('static bool fg_system_wifi_create_password_dialog(void)'),
+    )
+    expect(page).not.toContain('lv_textarea_create')
+    expect(page).not.toContain('fg_system_wifi_forget_dialog = lv_obj_create')
+  })
+
+  it('tears Storage UI and worker resources down safely for reopening', () => {
+    expect(generated.code).toContain('FG_STORAGE_REQ_SHUTDOWN')
+    expect(generated.code).toContain(
+      'if (request.kind == FG_STORAGE_REQ_SHUTDOWN) break;',
+    )
+    expect(generated.code).toContain(
+      'fg_system_storage_task = NULL;\n    vTaskDelete(NULL);',
+    )
+    expect(generated.code).toContain(
+      'if (fg_system_storage_page) lv_obj_delete(fg_system_storage_page);',
+    )
+    expect(generated.code).toContain(
+      'vQueueDelete(fg_system_storage_queue)',
+    )
+    expect(generated.code).toContain(
+      'vSemaphoreDelete(fg_system_storage_mutex)',
+    )
+    expect(generated.code).toContain(
+      'fg_system_storage_initialized = false',
+    )
+    expect(generated.code).toContain(
+      'if (timer) lv_timer_delete(timer);',
     )
   })
 
@@ -582,6 +637,93 @@ describe('built-in System LVGL export', () => {
   })
 })
 
+describe('generated System feature gating', () => {
+  const generateFeatures = (firmwareFeatures: any) =>
+    generateForgeUILvglCode(
+      components,
+      'reactor_dark',
+      undefined,
+      { includeThemeTexture: false, firmwareFeatures },
+    )
+
+  it('emits only Settings, Brightness and Diagnostics for the selected profile', () => {
+    const generated = generateFeatures({
+      wifi: false,
+      bluetooth: false,
+      audio: false,
+      sdCard: false,
+      usbHost: false,
+      camera: false,
+      settingsLauncher: true,
+      wifiManager: false,
+      storageBrowser: false,
+      diagnostics: true,
+    })
+
+    expect(generated.code).toContain('fg_application_page = lv_obj_create(parent);')
+    expect(generated.code).toContain('fg_system_launcher_page')
+    expect(generated.code).toContain('fg_system_brightness_page')
+    expect(generated.code).toContain('fg_system_diagnostics_page')
+    expect(generated.code).toContain('fg_icon_settings_fi_48px')
+    ;[
+      '#include "30_WIFI.h"',
+      'fg_system_wifi',
+      'fg_wifi_',
+      'FG_WIFI_MAX_SCAN',
+      '#include "40_SD.h"',
+      'fg_system_storage',
+      'fg_storage_',
+      'FG_STORAGE_',
+      'fg_wifi_tick_cb(NULL)',
+      'lv_timer_create(fg_wifi_tick_cb',
+      'Coming Later',
+    ].forEach(symbol => expect(generated.code).not.toContain(symbol))
+  })
+
+  it('removes Diagnostics completely when disabled', () => {
+    const { code } = generateFeatures({ diagnostics: false })
+    expect(code).not.toContain('#include "50_DIAGNOSTICS.h"')
+    expect(code).not.toContain('fg_system_diagnostics')
+    expect(code).not.toContain('fg_diagnostics_')
+    expect(code).toContain('lv_sysmon_hide_performance(NULL);')
+  })
+
+  it('keeps the built-in performance overlay visible with Diagnostics enabled', () => {
+    const { code } = generateFeatures({ diagnostics: true })
+    expect(code).toContain('#if !FG_FEATURE_DIAGNOSTICS')
+    expect(code).toContain('lv_sysmon_hide_performance(NULL);')
+  })
+
+  it('removes Settings and all System pages when disabled', () => {
+    const generated = generateFeatures({ settingsLauncher: false })
+    expect(generated.code).toContain('fg_application_page = lv_obj_create(parent);')
+    expect(generated.code).not.toContain('fg_system_launcher')
+    expect(generated.code).not.toContain('fg_system_brightness')
+    expect(generated.code).not.toContain('fg_system_wifi')
+    expect(generated.code).not.toContain('fg_system_storage')
+    expect(generated.code).not.toContain('fg_system_diagnostics')
+    expect(generated.code).not.toContain('system_gear')
+    expect(generated.assetSources).not.toContain(
+      'assets/icons/fg_icon_settings_fi_48px.c',
+    )
+  })
+
+  it('restores enabled Wi-Fi and Storage runtime sections', () => {
+    const { code } = generateFeatures({
+      wifi: true,
+      wifiManager: true,
+      sdCard: true,
+      storageBrowser: true,
+    })
+    expect(code).toContain('#include "30_WIFI.h"')
+    expect(code).toContain('fg_system_wifi_password_dialog')
+    expect(code).toContain('lv_timer_create(fg_wifi_tick_cb, 1000, NULL)')
+    expect(code).toContain('#include "40_SD.h"')
+    expect(code).toContain('fg_system_storage_worker')
+    expect(code).toContain('fg_system_storage_queue')
+  })
+})
+
 if (process.env.FORGEUI_REGENERATE_FIRMWARE === '1') {
   test('regenerates the firmware Studio export from the generator', () => {
     const emptyProject: IComponents = {
@@ -597,7 +739,23 @@ if (process.env.FORGEUI_REGENERATE_FIRMWARE === '1') {
       emptyProject,
       'graphite',
       undefined,
-      { includeThemeTexture: false },
+      {
+        includeThemeTexture: false,
+        firmwareFeatures: process.env.FORGEUI_REGENERATE_PROFILE === 'settings-diagnostics'
+          ? {
+            wifi: false,
+            bluetooth: false,
+            audio: false,
+            sdCard: false,
+            usbHost: false,
+            camera: false,
+            settingsLauncher: true,
+            wifiManager: false,
+            storageBrowser: false,
+            diagnostics: true,
+          }
+          : undefined,
+      },
     ).code
     fs.writeFileSync(
       path.resolve(__dirname, '../../../firmware/ForgeUI-One/main/90_Studio_Export.c'),

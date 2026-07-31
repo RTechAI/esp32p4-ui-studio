@@ -13,6 +13,10 @@ const {
   materializeCanonicalAssetSources,
   copyAssetSourcesToProject,
   appendAssetSourcesToCMake,
+  normalizeProjectHardware,
+  generateFeatureHeader,
+  generateIdfComponentManifest,
+  resolveFirmwareBuild,
   validateExportPayload,
 } = require('./export-server')
 
@@ -774,11 +778,23 @@ describe('server export preflight', () => {
   it('registers the exact canonical Settings filename in generated CMake', () => {
     expect(appendAssetSourcesToCMake(
       ['"90_Studio_Export.c"'],
-      [settingsSource],
+      [settingsSource, `assets\\icons\\..\\icons\\${path.basename(settingsSource)}`],
     )).toEqual([
       '"90_Studio_Export.c"',
       `"${settingsSource}"`,
     ])
+  })
+
+  it('emits a source once when seed and discovered paths normalize identically', () => {
+    const heroSource =
+      'assets/defaults/fg_upload_ai_hero_1784342478518_b95a7dc0.c'
+    expect(appendAssetSourcesToCMake(
+      [`"${heroSource}"`],
+      [
+        `assets\\defaults\\${path.basename(heroSource)}`,
+        `assets/defaults/./${path.basename(heroSource)}`,
+      ],
+    )).toEqual([`"${heroSource}"`])
   })
 
   it('accepts the built-in default-theme asset sources from firmware', () => {
@@ -794,4 +810,100 @@ describe('server export preflight', () => {
       assetSources,
     })
   })
+})
+
+describe('board profile firmware resolution', () => {
+  it('preserves historical features for legacy export payloads', () => {
+    expect(normalizeProjectHardware()).toEqual(expect.objectContaining({
+      boardId: 'waveshare-esp32p4-wifi6-touch-lcd-7b',
+      firmwareFeatures: expect.objectContaining({
+        wifi: true,
+        sdCard: true,
+        settingsLauncher: true,
+        diagnostics: true,
+      }),
+    }))
+  })
+
+  it('corrects dependencies and emits one authoritative feature header', () => {
+    const project = normalizeProjectHardware({
+      firmwareFeatures: {
+        wifi: false,
+        wifiManager: true,
+        sdCard: false,
+        storageBrowser: true,
+        settingsLauncher: false,
+      },
+    })
+    expect(project.firmwareFeatures).toEqual(expect.objectContaining({
+      wifi: false,
+      wifiManager: false,
+      sdCard: false,
+      storageBrowser: false,
+      settingsLauncher: false,
+      diagnostics: false,
+    }))
+    const header = generateFeatureHeader(project)
+    expect(header).toContain('#define FG_FEATURE_WIFI 0')
+    expect(header).toContain('#define FG_FEATURE_SETTINGS 0')
+  })
+
+  it('removes optional sources and dependencies for a core-only build', () => {
+    const build = resolveFirmwareBuild({
+      firmwareFeatures: {
+        wifi: false, audio: false, sdCard: false,
+        settingsLauncher: false, diagnostics: false,
+      },
+    })
+    expect(build.sources).not.toEqual(expect.arrayContaining([
+      '"30_Audio.c"', '"30_WIFI.c"', '"40_SD.c"', '"50_DIAGNOSTICS.c"',
+    ]))
+    expect(build.components).not.toEqual(expect.arrayContaining([
+      'esp_wifi', 'esp_hosted', 'fatfs', 'sdmmc', 'spi_flash',
+    ]))
+  })
+
+  it('keeps CMake consistent with the Settings plus Diagnostics profile', () => {
+    const build = resolveFirmwareBuild({
+      firmwareFeatures: {
+        wifi: false,
+        sdCard: false,
+        settingsLauncher: true,
+        wifiManager: false,
+        storageBrowser: false,
+        diagnostics: true,
+      },
+    })
+    expect(build.sources).toEqual(expect.arrayContaining([
+      '"50_DIAGNOSTICS.c"',
+      '"90_Studio_Export.c"',
+    ]))
+    expect(build.sources).not.toEqual(expect.arrayContaining([
+      '"30_WIFI.c"',
+      '"40_SD.c"',
+    ]))
+    expect(build.components).toContain('spi_flash')
+    expect(build.components).not.toEqual(expect.arrayContaining([
+      'esp_wifi',
+      'esp_hosted',
+      'fatfs',
+      'sdmmc',
+    ]))
+  })
+
+  it('gates hosted Wi-Fi dependencies in the component manifest', () => {
+    const disabled = generateIdfComponentManifest({
+      firmwareFeatures: { wifi: false },
+    })
+    expect(disabled).toContain('lvgl/lvgl')
+    expect(disabled).not.toContain('esp_wifi_remote')
+    expect(disabled).not.toContain('esp_hosted')
+
+    const enabled = generateIdfComponentManifest({
+      firmwareFeatures: { wifi: true },
+    })
+    expect(enabled).toContain('esp_wifi_remote')
+    expect(enabled).toContain('esp_hosted')
+  })
+
 })

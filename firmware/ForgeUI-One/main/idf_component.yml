@@ -1,37 +1,8 @@
-## ============================================================
-## ForgeUI One Component Dependencies
-## ============================================================
-##
-## File:
-## idf_component.yml
-##
-## ESP-IDF Component Manager Manifest
-##
-## Target Board:
-##   Waveshare ESP32-P4-WIFI6-Touch-LCD-7B
-##
-## Hosted WiFi Architecture:
-##
-##   ESP32-P4
-##     -> ESP-Hosted
-##     -> SDIO
-##     -> onboard ESP32-C6
-##     -> WiFi Remote
-##
-## Hosted WiFi requires:
-##
-##   espressif/esp_wifi_remote
-##   espressif/esp_hosted
-##
-## ============================================================
-
 dependencies:
 
   lvgl/lvgl:
     version: 9.2.*
     public: true
-
-  # Hosted WiFi (ESP32-P4 -> ESP32-C6)
 
   espressif/esp_wifi_remote:
     version: "1.3.*"

@@ -22,6 +22,10 @@ import { getAllInteractiveAssets } from '~forgeui/interactive'
 import { useForgeTheme } from '~forgeui/theme/ForgeThemeContext'
 import { FG_PREVIEW_PALETTES } from '~forgeui/preview/forgeThemeMap'
 import ForgeAIPanel from '~forgeui/ai/ForgeAIPanel'
+import ForgeUIBoardSelector from '~forgeui/boards/ForgeUIBoardSelector'
+import {
+  useForgeUIProjectHardware,
+} from '~forgeui/boards/ForgeUIProjectHardware'
 import {
   forgeUIGetUploadedAssets,
   forgeUIClearUploadedAssets,
@@ -193,6 +197,11 @@ const selectedHeroAsset =
   const [flashRunning, setFlashRunning] = useState(false)
 
   const [previewOpen, setPreviewOpen] = useState(false)
+  const {
+    project: projectHardware,
+    update: updateProjectHardware,
+    refresh: refreshProjectHardware,
+  } = useForgeUIProjectHardware()
 
   const [assetManagerOpen, setAssetManagerOpen] = useState(false)
   const [themeManagerOpen, setThemeManagerOpen] = useState(false)
@@ -325,7 +334,7 @@ const exportToForgeUIOne = async () => {
         components,
         themeId,
         selectedHeroAsset,
-        { palette },
+        { palette, firmwareFeatures: projectHardware.firmwareFeatures },
       ),
     )
   } catch (error) {
@@ -349,6 +358,7 @@ const exportToForgeUIOne = async () => {
   assetSources: result.assetSources,
   userEventHooks: result.userEventHooks,
   publicApiDeclarations: result.publicApiDeclarations,
+  projectHardware,
 }),
   })
   if (!response.ok) {
@@ -376,7 +386,7 @@ const exportToForgeUIOne = async () => {
         components,
         themeId,
         selectedHeroAsset,
-        { palette },
+        { palette, firmwareFeatures: projectHardware.firmwareFeatures },
       ),
     )
   } catch (error) {
@@ -399,6 +409,7 @@ const exportToForgeUIOne = async () => {
   userEventHooks: result.userEventHooks,
   publicApiDeclarations: result.publicApiDeclarations,
   projectName: 'ForgeUI_Export',
+  projectHardware,
 }),
   })
   if (!response.ok) {
@@ -437,7 +448,7 @@ const cleanBuildFlashForgeUIOne = async () => {
         components,
         themeId,
         selectedHeroAsset,
-        { palette },
+        { palette, firmwareFeatures: projectHardware.firmwareFeatures },
       ),
     )
   } catch (error) {
@@ -461,6 +472,7 @@ const cleanBuildFlashForgeUIOne = async () => {
   assetSources: result.assetSources,
   userEventHooks: result.userEventHooks,
   publicApiDeclarations: result.publicApiDeclarations,
+  projectHardware,
 }),
   })
   if (!response.ok) {
@@ -471,6 +483,7 @@ const cleanBuildFlashForgeUIOne = async () => {
     return
   }
 
+  refreshProjectHardware()
   await fetch('http://localhost:3030/clean-flash', {
     method: 'POST',
   })
@@ -572,19 +585,10 @@ const cleanBuildFlashForgeUIOne = async () => {
             <ExportProjectButton exportEspIdfProject={exportEspIdfProject} />
 
             <HStack spacing={2}>
-              <Box
-                fontSize="10px"
-                color="gray.300"
-                px={2}
-                py={1}
-                borderWidth="1px"
-                borderColor="gray.600"
-                borderRadius="md"
-                bg="#202938"
-                whiteSpace="nowrap"
-              >
-                ESP32-P4-WIFI6-Touch-LCD-7B
-              </Box>
+              <ForgeUIBoardSelector
+                project={projectHardware}
+                onChange={updateProjectHardware}
+              />
               
               <Button
   size="sm"

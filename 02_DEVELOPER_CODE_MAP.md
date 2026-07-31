@@ -13,7 +13,7 @@
 
 ## Current save point
 
-**FORGEUI_WIDGET_REGISTRY__LAYOUT_TEMPLATE_LIBRARY__QRCODE_RUNTIME__READY_FOR_QR_HARDWARE_PROOF__2026-07-30**
+**FORGEUI_BOARD_PROFILES__EXPORT_TIME_FEATURE_GATING__LAZY_SYSTEM_TOOLS__CONNECTED_WIFI_45KB_FREE__RAM_OVERLAY__READY_FOR_FINAL_OPERATOR_VALIDATION__2026-07-31**
 
 - The Layout Designer exposes Dashboard, Industrial HMI, Control Panel, Monitoring, SCADA Overview and Mobile / Portrait through one reusable template-definition architecture.
 - Apply Layout, smart regions, semantic assignment, Auto Arrange and template-aware AI Fill resolve into ordinary persisted ForgeUI components.
@@ -21,7 +21,11 @@
 - The Widget Tray is driven by `ForgeUIWidgetRegistry.ts`; `ForgeUIWidgetSet.ts` is a compatibility projection rather than a second catalogue.
 - Standard QR Code authoring, Canvas/Browser SVG preview, LVGL export and setter-only generated runtime are implemented.
 - Focused Layout Designer, Widget Tray, hydration, registry, QR preview and exporter tests are passing at the recorded scope.
-- QR Code generated-C inspection, ESP-IDF build, flash and physical ESP32-P4 scan proof remain pending.
+- QR Code generated C and the current clean ESP-IDF build are present; a recorded successful phone scan remains pending.
+- `src/forgeui/boards/ForgeUIBoardRegistry.ts` owns the production Waveshare ESP32-P4 WiFi6 Touch LCD 7B profile. Persisted project hardware drives live and standalone export after hydration.
+- `ForgeUILvglExport.ts` prunes disabled System runtime; `export-server.js` generates `00_ForgeUI_Features.h` and prunes CMake sources/components plus `idf_component.yml`.
+- Wi-Fi Manager/dialogs and Storage UI/worker resources are demand-created and safely destroyed on Back. Their Wi-Fi/ESP-Hosted and SD backends remain separately alive.
+- Diagnostics is implemented. Repeated operator lifecycle proof and a reproducible replacement for the overwritten managed-LVGL sysmon overlay edit remain open.
 
 ## Purpose
 
@@ -105,7 +109,7 @@ Display brightness is physically connected to the ESP32-P4 backlight through `bs
 
 Display / Brightness and the complete Wi-Fi Manager are physically proven. The generated Wi-Fi System page supports Hosted scan execution, immediate AP count and record retrieval, live structured SSID list population, RSSI, security, Connected and Saved badges, network selection, open-network connection, protected-network password entry through the reusable native LVGL keyboard, validation, Connect, Disconnect, Reconnect, Forget Network and connected details including IP address, gateway, station MAC, AP BSSID and backend status/error projection. Scan and Refresh use the same backend path. Repeated scans atomically replace prior results without duplicate or stale SSID rows. Browser Preview provides deterministic hardware-independent parity while generated LVGL integrates with the live ESP32-P4 backend. Only minor visual polish remains.
 
-Storage Browser is physically proven through lazy page construction, persistent page reuse, a bounded row pool, Refresh, Read / Write Test, SD status and capacity, directory browsing, folder navigation, Previous / Next paging, Select Item mode, Delete Empty Folder and Hosted Wi-Fi coexistence.
+Storage Browser functionality is physically proven. Its current lifecycle creates the page, timer, worker, queue and mutex on demand; Back performs an acknowledged asynchronous worker shutdown before deleting UI and RTOS resources. Repeated-cycle leak validation remains an operator boundary.
 
 ## System architecture
 
@@ -344,18 +348,11 @@ System Runtime
   └── Future Pages
 ```
 
-Current future placeholders:
-
-- Bluetooth
-- Sound
-- Device
-- Diagnostics
-
-System Launcher, Display / Brightness, the complete Wi-Fi Manager, Storage Browser and the reusable native LVGL keyboard are implemented and physically proven. The future pages are typed identifiers and disabled launcher placeholders, not completed services.
+System Launcher, Display / Brightness, Diagnostics, Wi-Fi Manager, Storage Browser and the reusable native LVGL keyboard are implemented. Launcher cards are emitted from enabled generated features; Bluetooth, Sound and Device are not always-generated disabled cards.
 
 The System Runtime is not an Interactive Asset. It is not a user project screen. It is a reusable built-in platform layer generated alongside the user's application.
 
-Studio and Browser Preview share typed System page state, current-session brightness and navigation. Generated LVGL represents the same hierarchy through persistent sibling containers. The application and its Interactive Assets remain instantiated while a System page is visible.
+Studio and Browser Preview share typed System page state, current-session brightness and navigation. Generated LVGL keeps the Application, launcher, Brightness and enabled Diagnostics owners while demand-creating Wi-Fi and Storage UI. The application and its Interactive Assets remain instantiated while a System page is visible.
 
 ## Hosted Connectivity Runtime
 
@@ -3063,7 +3060,7 @@ Physically confirmed:
 
 - Storage page creation
 - lazy construction
-- persistent page reuse
+- demand-created page/worker resources and acknowledged teardown
 - SD status and capacity
 - Refresh
 - directory browsing
@@ -3696,6 +3693,12 @@ Preserve these rules:
 
 Save points are ordered newest to oldest.
 
+### FORGEUI_BOARD_PROFILES__EXPORT_TIME_FEATURE_GATING__LAZY_SYSTEM_TOOLS__CONNECTED_WIFI_45KB_FREE__RAM_OVERLAY__READY_FOR_FINAL_OPERATOR_VALIDATION__2026-07-31
+
+- **Ownership:** Board registry → persisted project selection → generated feature header → shared exporter/runtime pruning. Backends remain separate from generated System Tool UI.
+- **Lifecycle:** Wi-Fi Manager/dialogs and Storage page/worker resources are demand-created and safely destroyed. Diagnostics and serial RAM probes are implemented.
+- **Proof boundary:** The connected Application-page probe recorded 45,795 bytes current internal free heap, 43,871 minimum-ever, a 27,648-byte largest block and 62 LVGL objects. Ten operator touchscreen cycles and QR scanning remain open. The built ELF contains the compact RAM overlay, but current managed LVGL source does not, so the edit needs a ForgeUI-owned reproducible patch.
+
 ### FORGEUI_WIDGET_REGISTRY__LAYOUT_TEMPLATE_LIBRARY__QRCODE_RUNTIME__READY_FOR_QR_HARDWARE_PROOF__2026-07-30
 
 - **Architecture:** The Widget Tray derives from `ForgeUIWidgetRegistry.ts`; six layouts derive from `ForgeUILayoutTemplate` definitions and shared composition/preview logic; QR Code follows the existing Standard component preview, persistence and exporter boundaries.
@@ -3803,7 +3806,7 @@ System Runtime
 └── Future System Pages
 ```
 
-Display / Brightness, the Wi-Fi Manager, Storage Browser and the reusable native LVGL keyboard are complete within the recorded physical proof. Storage Runtime is a reusable built-in platform service alongside Hosted Connectivity Runtime. Future System Pages remain placeholders.
+Display / Brightness, Diagnostics, Wi-Fi Manager, Storage Browser and the reusable native LVGL keyboard are implemented. Storage Runtime remains a reusable built-in platform service alongside Hosted Connectivity Runtime. Bluetooth, Sound and Device remain future concepts and are not always-generated placeholders.
 
 Future built-in System pages should reuse:
 
@@ -3823,7 +3826,6 @@ Future page identifiers currently include:
 - Bluetooth
 - Sound
 - Device
-- Diagnostics
 
 These future pages and services are not implemented today. Adding one may extend the shared System Context, System Surface, a dedicated page component, generated persistent LVGL containers, internal callbacks, a non-generated hardware backend and the shared native keyboard where text entry is required. It must not convert the page into an Interactive Asset or user project screen.
 
