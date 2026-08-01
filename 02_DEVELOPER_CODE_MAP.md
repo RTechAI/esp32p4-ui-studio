@@ -4078,3 +4078,13 @@ HARDWARE RE-PROOF**.
 - Generated 90 owns creation, binding and event attachment; generated 96 owns
   retained presentation state/setters; preservation-merged 95 owns click logic.
 - Authoritative architecture and future direction: `09_FORGEUI_FI_RUNTIME_GUIDE.md`.
+
+Current evidence is **SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN**.
+The generated 90 → preservation-merged 95 click path is physically **PROVEN** on
+ESP32-P4: three click-enabled instances produced three collision-safe callbacks,
+exactly once per deliberate tap, with no startup callback. SD remained ready;
+the run's Wi-Fi failure was unrelated. The generated 90 → 96 presentation path
+is **PENDING HARDWARE PROOF**, including color, opacity, hide/show, retained
+pre-bind state and repeated silent setters. Click-disabled behavior, independent
+presentation instances and Standalone parity also remain to be physically
+checked. Icon and the overall Fi Runtime are not promoted to fully **PROVEN**.

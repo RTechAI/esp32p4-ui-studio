@@ -1,7 +1,7 @@
 # ForgeUI Fi Runtime Guide
 
 Last updated: 2026-08-01  
-Status: **SOFTWARE COMPLETE / READY FOR ESP32-P4 PROOF**
+Status: **SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN**
 
 ## Purpose
 
@@ -211,8 +211,31 @@ renderers or require raw LVGL for ordinary application integration.
 
 ## Proof Status
 
-The architecture and focused software validation are complete. Fi Runtime is not
-physically proven until image-backed and symbol-backed instances, pre/post-init
-setters, click cardinality, collision independence and Live/Standalone parity are
-observed on the ESP32-P4. Icon remains **READY FOR FINAL HARDWARE RE-PROOF** and
+The architecture and focused software validation are complete. The evidence is
+deliberately split at the existing ownership boundary:
+
+- **90 → 95 click path: PROVEN.** Three separate click-enabled Fi icons were
+  touchable on ESP32-P4 and generated three separate collision-safe callbacks:
+  `FG_On_Comp_MS9QE1N7GA5O3_Clicked`,
+  `FG_On_Comp_MS9Q2MXPEJP7D_Clicked`, and
+  `FG_On_Comp_MS9Q42SGCB4EB_Clicked`. Exactly one callback was observed per
+  deliberate tap and none at startup. SD remained ready. Wi-Fi failure during
+  the run was unrelated to the Fi click proof.
+- **90 → 96 presentation path: PENDING HARDWARE PROOF.** No physical-proof claim
+  is made yet for `FG_Set_<Name>_Visible(...)`,
+  `FG_Set_<Name>_Opacity(...)`, `FG_Set_<Name>_Color(...)`, pre-bind retained
+  state, or repeated-setter suppression.
+
+Remaining physical checklist:
+
+- color;
+- opacity;
+- hide/show;
+- repeated silent setters;
+- click-disabled icon non-interaction;
+- independent presentation instances;
+- Standalone parity, including comparison with Live output.
+
+Icon remains **READY FOR FINAL HARDWARE RE-PROOF**. Fi Runtime remains
+**SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN**, not fully **PROVEN**, and
 the Standard Widget proof total remains **29/39 (74%)**, with **10 remaining**.

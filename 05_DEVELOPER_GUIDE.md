@@ -467,3 +467,12 @@ Enable **tap/click** only for an input icon, then implement the generated
 regeneration replaces 90 and 96 but preservation-merges matching 95 bodies.
 Standalone output becomes developer-owned under the normal export rules. Full
 contract: [`09_FORGEUI_FI_RUNTIME_GUIDE.md`](09_FORGEUI_FI_RUNTIME_GUIDE.md).
+
+Current evidence is **SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN**. The
+90 → 95 click path is physically **PROVEN** on ESP32-P4 across three independent,
+collision-safe callbacks, exactly once per deliberate tap and never at startup.
+SD stayed ready; an observed Wi-Fi failure was unrelated. The 90 → 96
+presentation path is **PENDING HARDWARE PROOF**: color, opacity, hide/show,
+pre-bind retention, repeated silent setters, independent presentation instances
+and Standalone parity remain open, as does click-disabled non-interaction. Do
+not treat the setters, Icon, or the complete Fi Runtime as physically proven.

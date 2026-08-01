@@ -254,6 +254,12 @@ Standard Fi Icons now generate optional component-name-based presentation APIs
 in `96_FiRuntime.c/.h` and optional click hooks in `95_UserEvents`. Runtime API
 generation defaults on; click defaults off. The canonical 92% icon renderer and
 used-asset gating remain shared by Canvas, Browser Preview, Live and Standalone.
-The feature is **SOFTWARE COMPLETE / READY FOR ESP32-P4 PROOF** and does not
-change the 29/39 Standard widget proof total. See the
+The overall feature is **SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN** and
+does not change the 29/39 Standard widget proof total. ESP32-P4 evidence proves
+the 90 → 95 click path across three independent collision-safe callbacks, with
+exactly one callback per deliberate tap and none at startup. The 90 → 96
+presentation path remains pending hardware proof for color, opacity, hide/show,
+pre-bind retention, repeated silent setters, independent instances and
+Standalone parity; click-disabled non-interaction also remains open. Icon and
+the complete Fi Runtime are not yet fully **PROVEN**. See the
 [Fi Runtime Guide](09_FORGEUI_FI_RUNTIME_GUIDE.md).

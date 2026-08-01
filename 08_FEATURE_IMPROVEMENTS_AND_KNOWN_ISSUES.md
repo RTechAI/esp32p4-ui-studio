@@ -386,21 +386,23 @@ records the milestone and outstanding proof rather than duplicating the guide.
 - **Reason:** A selected Fi asset needed to become a reusable runtime object
   without coupling public APIs to catalogue identity or emitting unused code.
 - **Validation:** Focused generator, naming, Registry, canonical icon, selector,
-  preview and export-server tests passed. ESP32-P4 evidence remains outstanding,
-  so status is **SOFTWARE COMPLETE / READY FOR ESP32-P4 PROOF**.
+  preview and export-server tests passed. ESP32-P4 evidence now proves only the
+  90 → 95 click path, so overall status is
+  **SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN**.
 
 ### P1 — Fi Icon Runtime physical proof
 
 - **Priority:** P1
 - **Subsystem:** Standard Icon runtime presentation and optional input.
-- **Description:** Software contracts are complete; retained setters, image and
-  symbol styling, click cardinality, collision independence and Live/Standalone
-  output still require ESP32-P4 observation.
-- **Current workaround:** Use the generated APIs only in development/proof builds
-  and do not claim physical proof.
-- **Next action:** Run the 1024×600 five-icon proof in
-  `09_FORGEUI_FI_RUNTIME_GUIDE.md`, compare 90/95/96/CMake outputs, flash Live
-  and Standalone, and record serial plus visual evidence.
+- **Description:** Software contracts are complete. Click cardinality and three
+  collision-safe click-hook instances are physically proven through 90 → 95.
+  The 90 → 96 presentation path and remaining acceptance checks still require
+  ESP32-P4 observation.
+- **Current workaround:** Claim physical proof only for Fi Icon click hooks; do
+  not claim the presentation setters, Icon, or full Fi Runtime as proven.
+- **Next action:** Complete color, opacity, hide/show, repeated silent-setter,
+  click-disabled, independent presentation-instance and Standalone-parity proof,
+  including pre-bind retained state, using the guide's ESP32-P4 procedure.
 - **Date last reviewed:** 2026-08-01
 
 ### 2026-08-01 — Fi Icon Runtime validation

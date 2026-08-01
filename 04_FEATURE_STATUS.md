@@ -1532,10 +1532,24 @@ void FG_On_Menu_Matrix_Button_Selected(uint32_t index, const char * text);
 Architecture reference: [`09_FORGEUI_FI_RUNTIME_GUIDE.md`](09_FORGEUI_FI_RUNTIME_GUIDE.md).
 This status ledger remains authoritative for proof promotion and totals.
 
-The generic Fi Icon Runtime vertical slice is **SOFTWARE COMPLETE / READY FOR
-ESP32-P4 PROOF**. Standard Icon supports default-on generated visibility,
+The generic Fi Icon Runtime vertical slice is **SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN**.
+Standard Icon supports default-on generated visibility,
 opacity and color setters in `96_FiRuntime`, plus default-off optional click
 hooks in `95_UserEvents`. Image-backed and supported LVGL-symbol-backed objects
 share the same instance contract and canonical 92% sizing model. This software
 milestone does not promote Icon: Standard proof remains **29/39 (74%)**, with
 **10 remaining**, and Icon remains **READY FOR FINAL HARDWARE RE-PROOF**.
+
+**FI ICON CLICK HOOKS — PHYSICALLY PROVEN.** On ESP32-P4, three separate
+click-enabled icons were touchable and emitted three separate collision-safe
+callbacks—`FG_On_Comp_MS9QE1N7GA5O3_Clicked`,
+`FG_On_Comp_MS9Q2MXPEJP7D_Clicked`, and
+`FG_On_Comp_MS9Q42SGCB4EB_Clicked`—with exactly one callback per deliberate tap
+and no startup callback. This proves the 90 → 95 click path. SD remained ready;
+the Wi-Fi failure observed during the run was unrelated to this proof.
+
+**FI RUNTIME PRESENTATION SETTERS — HARDWARE PROOF PENDING.** The 90 → 96 path
+still requires color, opacity, hide/show, pre-bind retained-state, repeated
+silent-setter, independent-instance and Standalone-parity checks. A
+click-disabled icon must also be physically confirmed non-interactive. Fi
+Runtime and Icon therefore remain short of fully **PROVEN**.

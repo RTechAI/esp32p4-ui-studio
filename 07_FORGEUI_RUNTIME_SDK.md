@@ -260,5 +260,11 @@ state and safely retains calls made before object binding. 90 remains the LVGL
 construction/event layer; 95 remains the only preservation-merged behavior
 layer. Default-on presentation and default-off click are resolved per serialized
 instance by Registry metadata. File and CMake emission are feature-gated. The
-feature is software complete but awaits ESP32-P4 proof; the 29/39 Standard proof
-total is unchanged.
+overall feature status is **SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN**;
+the 29/39 Standard proof total is unchanged. The 90 → 95 click path is
+physically **PROVEN** on ESP32-P4: three independent collision-safe icon hooks
+each emitted exactly once per deliberate tap and never on startup. SD remained
+ready, and the run's Wi-Fi failure was unrelated. The 90 → 96 presentation path
+is **PENDING HARDWARE PROOF**. Remaining checks are color, opacity, hide/show,
+pre-bind retained state, repeated silent setters, click-disabled
+non-interaction, independent presentation instances and Standalone parity.

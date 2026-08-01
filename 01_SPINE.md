@@ -2945,13 +2945,18 @@ I welcome feedback, ideas and contributions from developers around the world.
 Creator & Lead Developer — ForgeUI Studio
 
 📧 **forgeui.esp32@gmail.com**
-## 2026-08-01 — Fi Icon Runtime software milestone
+## 2026-08-01 — Fi Icon Runtime partial physical proof
 
 Standard Icon now has a generic per-instance runtime foundation. The canonical
 icon pipeline remains authoritative; component names allocate collision-safe
 `Visible`, `Opacity` and `Color` APIs in regenerated `96_FiRuntime.c/.h`, while
 optional click behavior attaches in 90 and preservation-merges its hook in 95.
 Runtime API defaults on, click defaults off, and unused runtime files/assets are
-gated out. This is **SOFTWARE COMPLETE / READY FOR ESP32-P4 PROOF** and does not
-change the 29/39 physical proof total. See
+gated out. The overall status is **SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN**
+and does not change the 29/39 physical proof total. Physical ESP32-P4
+evidence proves the 90 → 95 click path: three click-enabled instances emitted
+exactly one separate collision-safe callback per deliberate tap, no callback at
+startup, and SD remained ready. The unrelated Wi-Fi failure during the run is
+not Fi click evidence. The 90 → 96 presentation path remains pending hardware
+proof, so neither Icon nor Fi Runtime is fully **PROVEN**. See
 [`09_FORGEUI_FI_RUNTIME_GUIDE.md`](09_FORGEUI_FI_RUNTIME_GUIDE.md).

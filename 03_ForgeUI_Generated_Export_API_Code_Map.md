@@ -3204,3 +3204,14 @@ declares/preserves `FG_On_<ComponentName>_Clicked(void)`. The setters are silent
 Names are deterministic and collision-safe; the selected Fi asset does not name
 the API. Runtime-disabled instances emit no setters, click-disabled instances
 emit no hook, and an unused 96 layer is omitted from files, headers and CMake.
+
+Current status: **SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN**. Physical
+ESP32-P4 evidence proves the 90 → 95 path: the three separate generated hooks
+`FG_On_Comp_MS9QE1N7GA5O3_Clicked`,
+`FG_On_Comp_MS9Q2MXPEJP7D_Clicked` and
+`FG_On_Comp_MS9Q42SGCB4EB_Clicked` each fired exactly once per deliberate tap,
+with no startup callback. SD remained ready; Wi-Fi failure during the run was
+unrelated. The 90 → 96 path remains **PENDING HARDWARE PROOF**. None of the
+`Visible`, `Opacity` or `Color` setters, retained pre-bind state, repeated-setter
+suppression, click-disabled non-interaction, independent presentation instances,
+or Live/Standalone parity is claimed as physically proven.
