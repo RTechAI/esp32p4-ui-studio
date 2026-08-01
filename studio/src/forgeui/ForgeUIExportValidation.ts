@@ -35,6 +35,8 @@ type GeneratedExport = {
   assetSources: string[]
   userEventHooks: string[]
   publicApiDeclarations: string[]
+  fiRuntimeSource?: string
+  fiRuntimeHeader?: string
 }
 
 const toCIdentifier = (value: unknown, fallback: string) => {

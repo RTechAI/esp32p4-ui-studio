@@ -113,7 +113,11 @@ ForgeUI generates native LVGL objects and semantic runtime APIs for supported St
 - Presentation-only components remain API-free.
 - QR Code exposes a silent generated Text setter and no hook.
 
-Generated implementation and public declarations live in `90_Studio_Export.c/.h`. Genuine-user hooks are declared through `95_UserEvents.h`; live Studio regeneration preservation-merges matching hook bodies in `95_UserEvents.c`.
+Generated implementation and public declarations normally live in
+`90_Studio_Export.c/.h`; Standard Fi Icon presentation setters use the dedicated
+generated `96_FiRuntime.c/.h` boundary. Genuine-user hooks are declared through
+`95_UserEvents.h`; live Studio regeneration preservation-merges matching hook
+bodies in `95_UserEvents.c`.
 
 Detailed signatures and ownership belong in [03 — Generated Export API Code Map](03_ForgeUI_Generated_Export_API_Code_Map.md), not this front page.
 
@@ -216,6 +220,7 @@ The [ForgeUI Developer Portal](https://forgeui.co.nz/developers) is the public o
 | [05 — Developer Hardware Integration](05_DEVELOPER_HARDWARE_INTEGRATION.md) | Connecting ForgeUI to application code, drivers and hardware |
 | [06 — OpenAI API Setup](06_OpenAI%20API%20Setup%20Instructions.md) | Configuring optional OpenAI-assisted layouts and artwork |
 | [07 — Runtime SDK Direction](07_FORGEUI_RUNTIME_SDK.md) | Long-term generated SDK concept and evolution rules |
+| [09 — Fi Runtime Guide](09_FORGEUI_FI_RUNTIME_GUIDE.md) | Canonical Fi pipeline, 90/95/96 ownership, generated presentation APIs and optional click hooks |
 | [Layout Designer Guide](docs/FORGEUI_LAYOUT_DESIGNER.md) | Preset, Smart Region, Auto Arrange and AI Fill workflow |
 | [QR Code Guide](docs/FORGEUI_QR_CODE.md) | QR authoring, preview, export and validation |
 | [Spinbox Guide](docs/FORGEUI_SPINBOX_WIDGET.md) | Proven native digit editor, integer-backed decimals, APIs and physical evidence |
@@ -243,3 +248,12 @@ ForgeUI builds on open-source projects including [LVGL](https://lvgl.io/), [ESP-
 - [GitHub repository](https://github.com/RTechAI/esp32p4-ui-studio)
 - [ForgeUI Developer Portal](https://forgeui.co.nz/developers)
 - Contact: `forgeui.esp32@gmail.com`
+## Fi Icon Runtime
+
+Standard Fi Icons now generate optional component-name-based presentation APIs
+in `96_FiRuntime.c/.h` and optional click hooks in `95_UserEvents`. Runtime API
+generation defaults on; click defaults off. The canonical 92% icon renderer and
+used-asset gating remain shared by Canvas, Browser Preview, Live and Standalone.
+The feature is **SOFTWARE COMPLETE / READY FOR ESP32-P4 PROOF** and does not
+change the 29/39 Standard widget proof total. See the
+[Fi Runtime Guide](09_FORGEUI_FI_RUNTIME_GUIDE.md).

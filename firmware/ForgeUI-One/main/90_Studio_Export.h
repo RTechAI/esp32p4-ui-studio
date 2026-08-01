@@ -3,6 +3,7 @@
 #include "lvgl.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include "96_FiRuntime.h"
 
 #ifdef __cplusplus
 extern "C" {

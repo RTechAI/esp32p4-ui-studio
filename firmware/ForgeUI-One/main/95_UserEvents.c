@@ -277,3 +277,18 @@ void FG_On_Comp_MS9_N9_UYTN4_TDB_Clicked(void)
 {
     printf("[ForgeUI User Event] FG_On_Comp_MS9_N9_UYTN4_TDB_Clicked\n");
 }
+
+void FG_On_Comp_MS9Q2MXPEJP7D_Clicked(void)
+{
+    printf("[ForgeUI User Event] FG_On_Comp_MS9Q2MXPEJP7D_Clicked\n");
+}
+
+void FG_On_Comp_MS9Q42SGCB4EB_Clicked(void)
+{
+    printf("[ForgeUI User Event] FG_On_Comp_MS9Q42SGCB4EB_Clicked\n");
+}
+
+void FG_On_Comp_MS9QE1N7GA5O3_Clicked(void)
+{
+    printf("[ForgeUI User Event] FG_On_Comp_MS9QE1N7GA5O3_Clicked\n");
+}

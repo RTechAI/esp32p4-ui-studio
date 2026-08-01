@@ -2,10 +2,26 @@ import { forgeuiCoreWidgets } from '~forgeui/ForgeUIWidgetSet'
 import {
   FORGEUI_WIDGET_CATEGORIES,
   forgeUIWidgetDefinitions,
+  getForgeUIWidgetInstanceCapabilities,
   searchForgeUIWidgets,
 } from './ForgeUIWidgetRegistry'
 
 describe('ForgeUI Widget registry', () => {
+  it('resolves Standard Icon runtime and optional event capabilities per instance', () => {
+    expect(getForgeUIWidgetInstanceCapabilities('Icon', {})).toMatchObject({
+      runtimeApiEnabled: true,
+      userEventsEnabled: false,
+      acceptsUserInput: false,
+    })
+    expect(getForgeUIWidgetInstanceCapabilities('Icon', {
+      generateRuntimeApi: false,
+      enableClick: true,
+    })).toMatchObject({
+      runtimeApiEnabled: false,
+      userEventsEnabled: true,
+    })
+  })
+
   it('registers every supported tray widget exactly once with valid metadata', () => {
     expect(forgeUIWidgetDefinitions.map(item => item.type).sort())
       .toEqual([...forgeuiCoreWidgets].sort())
@@ -158,7 +174,7 @@ describe('ForgeUI Widget registry', () => {
     ['Text', false, false, false],
     ['Heading', false, false, false],
     ['Button', false, false, true],
-    ['Icon', false, false, false],
+      ['Icon', true, true, false],
     ['Divider', false, false, false],
     ['Scale', false, false, false],
     ['Clock', false, false, false],

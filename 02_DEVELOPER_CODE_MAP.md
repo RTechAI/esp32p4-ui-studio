@@ -29,6 +29,7 @@
 | Export materialization and gating | `studio/export-server.js` |
 | Generated replaceable UI | `firmware/ForgeUI-One/main/90_Studio_Export.c/.h` |
 | Developer UserEvents | `firmware/ForgeUI-One/main/95_UserEvents.c/.h` |
+| Generated Fi presentation runtime | `firmware/ForgeUI-One/main/96_FiRuntime.c/.h` |
 | Feature evidence | `04_FEATURE_STATUS.md` |
 | Runtime SDK direction | `07_FORGEUI_RUNTIME_SDK.md` |
 | Native Spinbox model | `studio/src/forgeui/ForgeUIStandardSpinbox.ts` |
@@ -3762,7 +3763,9 @@ Preserve these rules:
 102. Interactive Standard semantic state uses a retained object/state, guarded setter, LVGL event adapter and genuine-user hook.
 103. Output Standard semantic state uses a retained object/state and setter only when no genuine user transition exists.
 104. Serialized presentation generates no runtime API.
-105. Components with no semantic runtime state, including Icon and Divider, remain intentionally API-free.
+105. Components with no semantic runtime state, including Divider, remain
+intentionally API-free. Icon now has per-instance optional runtime and click
+capabilities described by Registry metadata.
 106. Slider Canvas interaction, its silent clamped runtime setter and its
 genuine-user change hook are complete and physically proven.
 107. Proven Standard components consume semantic theme roles rather than hard-coded decorative colours.
@@ -3903,7 +3906,11 @@ No semantic state
   → intentionally API-free
 ```
 
-Icon and Divider are explicit API-free examples. Icon is a Studio icon-picker convenience whose export uses the existing image-symbol path; runtime image replacement belongs to Image. Divider is visual separation only; dynamic visibility belongs to its parent Box.
+Divider remains an explicit API-free example. Icon is a Studio icon-picker whose
+canonical image/symbol path now binds optional visibility, opacity and color
+setters in 96 and optional click behavior in 95. Runtime source replacement still
+belongs to Image. Divider is visual separation only; dynamic visibility belongs
+to its parent Box.
 
 ### System Runtime extension
 
@@ -4060,3 +4067,14 @@ Debug Text through the shared normalized presentation and native label geometry
 path, and debug Icon through descriptor dimensions, shared 92% automatic fit,
 native scale/pivot and centered image bounds. Both remain **READY FOR FINAL
 HARDWARE RE-PROOF**.
+## Fi Icon Runtime vertical slice — 2026-08-01
+
+- Canonical model: `studio/src/forgeui/ForgeUIStandardIcon.ts`.
+- Inspector: `studio/src/components/inspector/panels/components/IconPanel.tsx`.
+- Canvas/Browser renderer: `studio/src/forgeui/preview/StandardIconPreview.tsx`.
+- Registry authority: `studio/src/forgeui/widgets/ForgeUIWidgetRegistry.ts`.
+- Native generation: `studio/src/forgeui/ForgeUILvglExport.ts`.
+- Live/Standalone materialization and CMake gating: `studio/export-server.js`.
+- Generated 90 owns creation, binding and event attachment; generated 96 owns
+  retained presentation state/setters; preservation-merged 95 owns click logic.
+- Authoritative architecture and future direction: `09_FORGEUI_FI_RUNTIME_GUIDE.md`.

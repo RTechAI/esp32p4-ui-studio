@@ -1,6 +1,18 @@
 import { getForgeUIStandardIconPresentation } from './ForgeUIStandardIcon'
 
 describe('Standard Icon presentation parity', () => {
+  it('hydrates legacy interaction defaults without changing serialized identity', () => {
+    expect(getForgeUIStandardIconPresentation(
+      { icon: 'FiAirplay', w: 48, h: 48 },
+      '#F5F5F5',
+    )).toMatchObject({
+      icon: 'FiAirplay',
+      runtimeApiEnabled: true,
+      clickEnabled: false,
+      pressedOpacity: 0.75,
+    })
+  })
+
   it('fits an unset icon size to the shortest component edge', () => {
     expect(getForgeUIStandardIconPresentation(
       { icon: 'FiSettings', w: 96, h: 80 },

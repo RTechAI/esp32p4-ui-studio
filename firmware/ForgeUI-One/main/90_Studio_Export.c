@@ -12,6 +12,8 @@
 #include "freertos/semphr.h"
 #include "freertos/task.h"
 #include "esp_timer.h"
+#include "95_UserEvents.h"
+#include "96_FiRuntime.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <limits.h>
@@ -24,6 +26,24 @@ static lv_obj_t * fg_application_page = NULL;
 static lv_obj_t * fg_system_launcher_page = NULL;
 static lv_obj_t * fg_system_brightness_page = NULL;
 static lv_obj_t * fg_system_brightness_label = NULL;
+static void fg_comp_ms9q2mxpejp7d_clicked_cb(lv_event_t * event)
+{
+    if (lv_event_get_code(event) != LV_EVENT_CLICKED) return;
+    FG_On_Comp_MS9Q2MXPEJP7D_Clicked();
+}
+
+static void fg_comp_ms9q42sgcb4eb_clicked_cb(lv_event_t * event)
+{
+    if (lv_event_get_code(event) != LV_EVENT_CLICKED) return;
+    FG_On_Comp_MS9Q42SGCB4EB_Clicked();
+}
+
+static void fg_comp_ms9qe1n7ga5o3_clicked_cb(lv_event_t * event)
+{
+    if (lv_event_get_code(event) != LV_EVENT_CLICKED) return;
+    FG_On_Comp_MS9QE1N7GA5O3_Clicked();
+}
+
 static lv_obj_t * fg_system_wifi_page = NULL;
 static lv_obj_t * fg_system_wifi_state_label = NULL;
 static lv_obj_t * fg_system_wifi_ssid_label = NULL;
@@ -1255,55 +1275,91 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_size(bg_texture_0, 1024, 600);
     lv_obj_move_background(bg_texture_0);
 
-    LV_IMAGE_DECLARE(fg_upload_fiairplay_e5c623c2);
+    LV_IMAGE_DECLARE(fg_upload_fiairplay_64x64_3e15f892);
     lv_obj_t * obj1 = lv_image_create(fg_application_page);
-    lv_image_set_src(obj1, &fg_upload_fiairplay_e5c623c2);
+    lv_image_set_src(obj1, &fg_upload_fiairplay_64x64_3e15f892);
     lv_image_set_scale(obj1, 176);
     lv_image_set_pivot(obj1, 32, 32);
-    lv_obj_set_pos(obj1, 742, 160);
+    lv_obj_set_pos(obj1, 754, 140);
     lv_obj_set_size(obj1, 48, 48);
     lv_image_set_inner_align(obj1, LV_IMAGE_ALIGN_CENTER);
     lv_obj_set_style_image_recolor(obj1, lv_color_hex(0xF5F5F5), 0);
     lv_obj_set_style_image_recolor_opa(obj1, LV_OPA_COVER, 0);
     lv_obj_set_style_opa(obj1, 255, 0);
+    fg_fi_bind_comp_ms9q2mxpejp7d(obj1, true);
+    lv_obj_add_flag(obj1, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE);
+    lv_obj_set_style_opa(obj1, 191, LV_STATE_PRESSED);
+    lv_obj_set_style_image_recolor(obj1, lv_color_hex(0xF5F5F5), LV_STATE_PRESSED);
+    lv_obj_set_style_image_recolor_opa(obj1, LV_OPA_COVER, LV_STATE_PRESSED);
+    lv_obj_add_event_cb(obj1, fg_comp_ms9q2mxpejp7d_clicked_cb, LV_EVENT_CLICKED, NULL);
 
-    LV_IMAGE_DECLARE(fg_upload_fibox_fff0bdd3);
+    LV_IMAGE_DECLARE(fg_upload_ficast_64x64_080c1cb7);
     lv_obj_t * obj2 = lv_image_create(fg_application_page);
-    lv_image_set_src(obj2, &fg_upload_fibox_fff0bdd3);
+    lv_image_set_src(obj2, &fg_upload_ficast_64x64_080c1cb7);
     lv_image_set_scale(obj2, 176);
     lv_image_set_pivot(obj2, 32, 32);
-    lv_obj_set_pos(obj2, 700, 50);
+    lv_obj_set_pos(obj2, 766.3999938964844, 273.7999954223633);
     lv_obj_set_size(obj2, 48, 48);
     lv_image_set_inner_align(obj2, LV_IMAGE_ALIGN_CENTER);
     lv_obj_set_style_image_recolor(obj2, lv_color_hex(0xF5F5F5), 0);
     lv_obj_set_style_image_recolor_opa(obj2, LV_OPA_COVER, 0);
     lv_obj_set_style_opa(obj2, 255, 0);
+    fg_fi_bind_comp_ms9q3o2k5hc6o(obj2, true);
+    lv_obj_clear_flag(obj2, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE);
 
-    LV_IMAGE_DECLARE(fg_icon_settings_fi_48px);
+    LV_IMAGE_DECLARE(fg_upload_fiarrowupcircle_64x64_0dd7076f);
     lv_obj_t * obj3 = lv_image_create(fg_application_page);
-    lv_image_set_src(obj3, &fg_icon_settings_fi_48px);
-    lv_image_set_scale(obj3, 235);
-    lv_image_set_pivot(obj3, 24, 24);
-    lv_obj_set_pos(obj3, 777, 262);
+    lv_image_set_src(obj3, &fg_upload_fiarrowupcircle_64x64_0dd7076f);
+    lv_image_set_scale(obj3, 176);
+    lv_image_set_pivot(obj3, 32, 32);
+    lv_obj_set_pos(obj3, 671.1999969482422, 41.79999542236328);
     lv_obj_set_size(obj3, 48, 48);
     lv_image_set_inner_align(obj3, LV_IMAGE_ALIGN_CENTER);
     lv_obj_set_style_image_recolor(obj3, lv_color_hex(0xF5F5F5), 0);
     lv_obj_set_style_image_recolor_opa(obj3, LV_OPA_COVER, 0);
     lv_obj_set_style_opa(obj3, 255, 0);
+    fg_fi_bind_comp_ms9q42sgcb4eb(obj3, true);
+    lv_obj_add_flag(obj3, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE);
+    lv_obj_set_style_opa(obj3, 191, LV_STATE_PRESSED);
+    lv_obj_set_style_image_recolor(obj3, lv_color_hex(0xF5F5F5), LV_STATE_PRESSED);
+    lv_obj_set_style_image_recolor_opa(obj3, LV_OPA_COVER, LV_STATE_PRESSED);
+    lv_obj_add_event_cb(obj3, fg_comp_ms9q42sgcb4eb_clicked_cb, LV_EVENT_CLICKED, NULL);
 
+    LV_IMAGE_DECLARE(fg_upload_ficloudoff_64x64_8b31949f);
     lv_obj_t * obj4 = lv_image_create(fg_application_page);
-    lv_image_set_src(obj4, &fg_upload_fiairplay_e5c623c2);
+    lv_image_set_src(obj4, &fg_upload_ficloudoff_64x64_8b31949f);
     lv_image_set_scale(obj4, 176);
     lv_image_set_pivot(obj4, 32, 32);
-    lv_obj_set_pos(obj4, 876, 145);
+    lv_obj_set_pos(obj4, 173.1999969482422, 51.79999542236328);
     lv_obj_set_size(obj4, 48, 48);
     lv_image_set_inner_align(obj4, LV_IMAGE_ALIGN_CENTER);
     lv_obj_set_style_image_recolor(obj4, lv_color_hex(0xF5F5F5), 0);
     lv_obj_set_style_image_recolor_opa(obj4, LV_OPA_COVER, 0);
     lv_obj_set_style_opa(obj4, 255, 0);
+    fg_fi_bind_comp_ms9q4ga18lmom(obj4, true);
+    lv_obj_clear_flag(obj4, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE);
+
+    LV_IMAGE_DECLARE(fg_upload_ficheckcircle_64x64_20c4a1fe);
+    lv_obj_t * obj5 = lv_image_create(fg_application_page);
+    lv_image_set_src(obj5, &fg_upload_ficheckcircle_64x64_20c4a1fe);
+    lv_image_set_scale(obj5, 176);
+    lv_image_set_pivot(obj5, 32, 32);
+    lv_obj_set_pos(obj5, 636.1999969482422, 199.79999542236328);
+    lv_obj_set_size(obj5, 48, 48);
+    lv_image_set_inner_align(obj5, LV_IMAGE_ALIGN_CENTER);
+    lv_obj_set_style_image_recolor(obj5, lv_color_hex(0xF5F5F5), 0);
+    lv_obj_set_style_image_recolor_opa(obj5, LV_OPA_COVER, 0);
+    lv_obj_set_style_opa(obj5, 255, 0);
+    fg_fi_bind_comp_ms9qe1n7ga5o3(obj5, true);
+    lv_obj_add_flag(obj5, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE);
+    lv_obj_set_style_opa(obj5, 191, LV_STATE_PRESSED);
+    lv_obj_set_style_image_recolor(obj5, lv_color_hex(0xF5F5F5), LV_STATE_PRESSED);
+    lv_obj_set_style_image_recolor_opa(obj5, LV_OPA_COVER, LV_STATE_PRESSED);
+    lv_obj_add_event_cb(obj5, fg_comp_ms9qe1n7ga5o3_clicked_cb, LV_EVENT_CLICKED, NULL);
 
 
     fg_ram_probe_log("02 after application page creation");
+    LV_IMAGE_DECLARE(fg_icon_settings_fi_48px);
     lv_obj_t * system_gear = fg_system_create_button(fg_application_page, "", 948, 18, 58, 58);
     lv_obj_set_style_radius(system_gear, LV_RADIUS_CIRCLE, 0);
     lv_obj_t * system_gear_label = lv_obj_get_child(system_gear, 0);

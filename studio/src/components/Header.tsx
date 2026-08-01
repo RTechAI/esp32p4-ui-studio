@@ -358,6 +358,8 @@ const exportToForgeUIOne = async () => {
   assetSources: result.assetSources,
   userEventHooks: result.userEventHooks,
   publicApiDeclarations: result.publicApiDeclarations,
+  fiRuntimeSource: result.fiRuntimeSource,
+  fiRuntimeHeader: result.fiRuntimeHeader,
   projectHardware,
 }),
   })
@@ -408,6 +410,8 @@ const exportToForgeUIOne = async () => {
   assetSources,
   userEventHooks: result.userEventHooks,
   publicApiDeclarations: result.publicApiDeclarations,
+  fiRuntimeSource: result.fiRuntimeSource,
+  fiRuntimeHeader: result.fiRuntimeHeader,
   projectName: 'ForgeUI_Export',
   projectHardware,
 }),
@@ -472,6 +476,8 @@ const cleanBuildFlashForgeUIOne = async () => {
   assetSources: result.assetSources,
   userEventHooks: result.userEventHooks,
   publicApiDeclarations: result.publicApiDeclarations,
+  fiRuntimeSource: result.fiRuntimeSource,
+  fiRuntimeHeader: result.fiRuntimeHeader,
   projectHardware,
 }),
   })

@@ -70,7 +70,7 @@ Status language:
 | Heading | **PROVEN** | Multiline content, wrapping, configured alignment and generated geometry physically verified on ESP32-P4 |
 | Box | **PROVEN** | Geometry, styling, child ownership and Browser/Standalone nesting parity physically verified on ESP32-P4 |
 | Divider | **PROVEN** | Horizontal and vertical presentation physically verified on ESP32-P4; vertical drop geometry usability improved |
-| Icon | **READY FOR FINAL HARDWARE RE-PROOF** | Native source resolution, automatic sizing, centre pivot and clipping correction implemented; corrected build still requires visual acceptance |
+| Icon | **READY FOR FINAL HARDWARE RE-PROOF** | Native source resolution, automatic sizing, centre pivot and clipping correction implemented; generic Fi Icon Runtime software slice is complete, but corrected rendering and runtime behavior still require ESP32-P4 acceptance |
 | Icon Button, Line, Canvas, Image | **PARTIAL** | Implemented pipeline coverage exists; widget-specific physical evidence remains incomplete |
 | Wi-Fi Status, Clock | **PARTIAL** | Implemented presentation exists; widget-specific proof record is incomplete |
 | TabView | **PROVEN** | ESP32-P4 touch selection remains physically proven; collision-safe selected-index setter/change hook contract retained |
@@ -1527,3 +1527,15 @@ void FG_On_Menu_Matrix_Button_Selected(uint32_t index, const char * text);
 - Selected semantic theme surface, buttons, borders, text, selected and disabled states.
 - Canvas, Browser and P4 parity.
 - Hardware proven.
+## Fi Icon Runtime — 2026-08-01
+
+Architecture reference: [`09_FORGEUI_FI_RUNTIME_GUIDE.md`](09_FORGEUI_FI_RUNTIME_GUIDE.md).
+This status ledger remains authoritative for proof promotion and totals.
+
+The generic Fi Icon Runtime vertical slice is **SOFTWARE COMPLETE / READY FOR
+ESP32-P4 PROOF**. Standard Icon supports default-on generated visibility,
+opacity and color setters in `96_FiRuntime`, plus default-off optional click
+hooks in `95_UserEvents`. Image-backed and supported LVGL-symbol-backed objects
+share the same instance contract and canonical 92% sizing model. This software
+milestone does not promote Icon: Standard proof remains **29/39 (74%)**, with
+**10 remaining**, and Icon remains **READY FOR FINAL HARDWARE RE-PROOF**.

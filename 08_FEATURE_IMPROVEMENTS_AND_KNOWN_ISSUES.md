@@ -311,8 +311,8 @@ Only completed, recorded runs belong in this section.
 | 2026-08-01 | Studio TypeScript | Failed on two existing unrelated diagnostics: CircularProgress test JSX return type and StandardListPreview polymorphic `type` prop |
 | 2026-08-01 | Website TypeScript | Passed `npm run typecheck` |
 | 2026-08-01 | Website ESLint | Passed `npm run lint` |
-| 2026-08-01 | Website production build and static export | Passed; 47 static pages generated, including `/docs/feature-improvements` |
-| 2026-08-01 | Website tests | 69/69 passed, including Documentation Centre route, sitemap, internal-link and local-search validation |
+| 2026-08-01 | Website production build and static export | Passed; 49 static pages generated, including `/docs/feature-improvements`, `/docs/fi-runtime` and the authoritative Fi Runtime source page |
+| 2026-08-01 | Website tests | 70/70 passed, including Documentation Centre routes, sitemap, navigation, internal-link and local-search validation |
 | 2026-07-31 | Spinbox focused and integration validation | Passed through Registry, previews, exporter, Runtime SDK, UserEvents, live and Standalone output |
 | 2026-07-31 | TileView physical validation | Native paging, coordinates, silent setter/startup, callbacks and stability passed |
 | 2026-07-31 | List physical validation | Matching index/text and one callback per controlled tap passed |
@@ -373,3 +373,46 @@ not be included by broad type exclusions or hard-coded board checks.
 Canvas and Browser Preview are authoring evidence; generated C is export
 evidence; a successful build is firmware evidence; photographed and observed
 ESP32-P4 behaviour is physical proof. The journal preserves these boundaries.
+### 2026-08-01 — Generic Fi Icon Runtime
+
+Authoritative architecture:
+[`09_FORGEUI_FI_RUNTIME_GUIDE.md`](09_FORGEUI_FI_RUNTIME_GUIDE.md). This journal
+records the milestone and outstanding proof rather than duplicating the guide.
+
+- **Subsystem:** Standard Icon, Runtime SDK, UserEvents and export server.
+- **Improvement:** Added per-instance, component-name-based `Visible`, `Opacity`
+  and `Color` APIs in generated `96_FiRuntime.c/.h`, plus default-off optional
+  click hooks in 95 for image-backed and supported symbol-backed icons.
+- **Reason:** A selected Fi asset needed to become a reusable runtime object
+  without coupling public APIs to catalogue identity or emitting unused code.
+- **Validation:** Focused generator, naming, Registry, canonical icon, selector,
+  preview and export-server tests passed. ESP32-P4 evidence remains outstanding,
+  so status is **SOFTWARE COMPLETE / READY FOR ESP32-P4 PROOF**.
+
+### P1 — Fi Icon Runtime physical proof
+
+- **Priority:** P1
+- **Subsystem:** Standard Icon runtime presentation and optional input.
+- **Description:** Software contracts are complete; retained setters, image and
+  symbol styling, click cardinality, collision independence and Live/Standalone
+  output still require ESP32-P4 observation.
+- **Current workaround:** Use the generated APIs only in development/proof builds
+  and do not claim physical proof.
+- **Next action:** Run the 1024×600 five-icon proof in
+  `09_FORGEUI_FI_RUNTIME_GUIDE.md`, compare 90/95/96/CMake outputs, flash Live
+  and Standalone, and record serial plus visual evidence.
+- **Date last reviewed:** 2026-08-01
+
+### 2026-08-01 — Fi Icon Runtime validation
+
+| Validation | Recorded result |
+| --- | --- |
+| Focused runtime/Registry/icon/selector/preview/export-server | 7 suites, 104/104 tests passed |
+| Focused ESLint | Passed with no findings |
+| Export-server syntax | Passed (`node --check`) |
+| TypeScript | Feature code clean; two existing unrelated diagnostics remain in CircularProgress test JSX and StandardListPreview polymorphic props |
+| Full regression | 148/152 suites passed; 1046 passed, 1 skipped, 11 existing unrelated failures in component fixture naming, Spinbox live-fixture parity, AI Prompt Builder catalogue and Layout Designer preview positioning |
+| Production build | Reached lint/type validation; blocked by existing unrelated lint errors in Spinbox/Spinner tests and ForgeAIPanel state-sheet test mocks |
+| ESP-IDF 5.5.4 Live build | Toolchain configured and compilation started; blocked in existing `esp_hosted` configuration by `Unknown Slave Target`, before ForgeUI application compilation |
+| Standalone feature build | Not established; no external proof export was created after the Live configuration blocker |
+| Diff whitespace | Passed (`git diff --check`) |

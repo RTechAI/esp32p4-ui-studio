@@ -86,12 +86,13 @@ describe('Standard Icon LVGL export', () => {
     expect(generated.code).toContain('lv_image_set_pivot(obj1, 32, 32);')
   })
 
-  it('keeps multiple instances independent and remains API/event-free', () => {
+  it('keeps multiple instances independent with runtime APIs but no default events', () => {
     const generated = generate(icon('first'), icon('second', { x: 180, icon: 'FiWifi' }))
     expect(generated.code).toContain('lv_obj_t * obj1 = lv_image_create')
     expect(generated.code).toContain('lv_obj_t * obj2 = lv_label_create')
     expect(generated.code).toContain('LV_SYMBOL_WIFI')
-    expect(generated.publicApiDeclarations).toEqual([])
+    expect(generated.fiRuntimeHeader).toContain('FG_Set_First_Visible')
+    expect(generated.fiRuntimeHeader).toContain('FG_Set_Second_Color')
     expect(generated.userEventHooks).toEqual([])
   })
 

@@ -6,7 +6,8 @@ not describe a finished, separately packaged SDK product.
 Today the "Runtime SDK" is the coherent developer-facing surface generated with
 an interface:
 
-- callable Runtime APIs in `90_Studio_Export.h`;
+- callable Runtime APIs in `90_Studio_Export.h`, including the feature-gated
+  `96_FiRuntime.h` public include for Standard Icon presentation;
 - genuine-user callbacks in `95_UserEvents.h`;
 - required public types and semantic conventions;
 - ownership and regeneration rules;
@@ -242,6 +243,22 @@ made collision-safe by the generator. TabView remains **PROVEN**.
 
 The generated Runtime SDK remains capability-driven while Standard physical
 proof advances to **29/39 (74%)**, with **10 remaining**. Button, Heading, Box
-and Divider are proven. Presentation-only Text and Icon add no speculative
-runtime APIs: both have corrected preview/export paths but remain **READY FOR
-FINAL HARDWARE RE-PROOF**.
+and Divider are proven. Text remains presentation-only. Icon now has an
+implemented generic generated presentation API and optional click contract, but
+both corrected rendering and the new runtime behavior remain **READY FOR FINAL
+HARDWARE RE-PROOF**.
+## Generated Fi presentation layer — 2026-08-01
+
+This document remains the generated Runtime SDK reference and naming philosophy.
+The Fi-specific canonical pipeline, ownership model and future semantic direction
+are documented separately in
+[`09_FORGEUI_FI_RUNTIME_GUIDE.md`](09_FORGEUI_FI_RUNTIME_GUIDE.md).
+
+`96_FiRuntime.c/.h` is the first dedicated generated presentation layer in the
+Runtime SDK. It owns per-instance Standard Icon visibility, opacity and color
+state and safely retains calls made before object binding. 90 remains the LVGL
+construction/event layer; 95 remains the only preservation-merged behavior
+layer. Default-on presentation and default-off click are resolved per serialized
+instance by Registry metadata. File and CMake emission are feature-gated. The
+feature is software complete but awaits ESP32-P4 proof; the 29/39 Standard proof
+total is unchanged.

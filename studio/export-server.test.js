@@ -21,6 +21,11 @@ const {
 } = require('./export-server')
 
 describe('generated public UI API headers', () => {
+  it('publishes the generated Fi runtime header only when the feature is present', () => {
+    expect(generateStudioExportHeader([], true)).toContain('#include "96_FiRuntime.h"')
+    expect(generateStudioExportHeader([], false)).not.toContain('96_FiRuntime.h')
+  })
+
   it('uses the same validated setter declarations for export headers', () => {
     const header = generateStudioExportHeader([
       'void FG_Set_Status_Light(bool enabled);',

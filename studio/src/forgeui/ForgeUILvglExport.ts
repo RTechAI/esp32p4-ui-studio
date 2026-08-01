@@ -244,6 +244,63 @@ type ButtonExport = {
   eventCallbackName: string
 }
 
+type FiIconExport = {
+  stem: string
+  runtimeStem: string
+  runtimeEnabled: boolean
+  clickEnabled: boolean
+  hookName?: string
+  eventCallbackName?: string
+  props: Record<string, unknown>
+}
+
+const createFiIconExports = (
+  components: IComponents,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+): Map<string, FiIconExport> => {
+  const result = new Map<string, FiIconExport>()
+  const usedStems = new Set<string>()
+  Object.values(components)
+    .filter(component => component.type === 'Icon')
+    .sort((a, b) => a.id.localeCompare(b.id))
+    .forEach(component => {
+      const tokens = String(component.componentName || component.id || 'Icon')
+        .trim()
+        .split(/[^a-zA-Z0-9]+/)
+        .filter(Boolean)
+      const base = (tokens.length ? tokens : ['Icon'])
+        .map(token => token.charAt(0).toUpperCase() + token.slice(1))
+        .join('_')
+        .replace(/^[^a-zA-Z_]/, '_')
+      let stem = base
+      let suffix = 2
+      while (usedStems.has(stem)) stem = `${base}_${suffix++}`
+      usedStems.add(stem)
+      const runtimeEnabled = component.props.generateRuntimeApi !== false
+      const clickEnabled = component.props.enableClick === true
+      const hookName = clickEnabled
+        ? createUniqueHookName(stem, usedHookNames)
+        : undefined
+      const callbackStem = hookName
+        ? hookName.replace(/^FG_On_/, '').replace(/_Clicked$/, '').toLowerCase()
+        : stem.toLowerCase()
+      if (hookName) userEventHooks.add(hookName)
+      result.set(component.id, {
+        stem,
+        runtimeStem: stem.toLowerCase(),
+        runtimeEnabled,
+        clickEnabled,
+        hookName,
+        eventCallbackName: clickEnabled
+          ? `fg_${callbackStem}_clicked_cb`
+          : undefined,
+        props: component.props,
+      })
+    })
+  return result
+}
+
 const createButtonExports = (
   components: IComponents,
   usedHookNames: Set<string>,
@@ -2478,6 +2535,7 @@ const buildLvglBlock = (
   radioExports: Map<string, RadioExport>,
   qrCodeExports: Map<string, QRCodeExport>,
   buttonExports: Map<string, ButtonExport>,
+  fiIconExports: Map<string, FiIconExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -3037,6 +3095,8 @@ case 'InteractiveThreePositionToggleSwitch': {
 
 case 'Icon': {
 
+  const fiIconExport = fiIconExports.get(child.id)
+
   const iconModel = getForgeUIStandardIconPresentation(
     child.props,
     `#${palette.textPrimary.slice(2)}`,
@@ -3138,6 +3198,26 @@ case 'Icon': {
       lines.push(`lv_obj_set_style_opa(${varName}, ${iconOpacity}, 0);`)
       if (!iconModel.visible) lines.push(`lv_obj_add_flag(${varName}, LV_OBJ_FLAG_HIDDEN);`)
     }
+  }
+
+  const imageBacked = Boolean(
+    (uploadedAsset?.exportStatus === 'lvgl_ready' && uploadedAsset?.lvgl) ||
+    iconModel.icon === 'FiSettings',
+  )
+  if (fiIconExport?.runtimeEnabled) {
+    lines.push(`fg_fi_bind_${fiIconExport.runtimeStem}(${varName}, ${imageBacked ? 'true' : 'false'});`)
+  }
+  if (fiIconExport?.clickEnabled && fiIconExport.eventCallbackName) {
+    const pressedColor = `0x${iconModel.pressedColor.slice(1)}`
+    lines.push(`lv_obj_add_flag(${varName}, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE);`)
+    lines.push(`lv_obj_set_style_opa(${varName}, ${Math.round(iconModel.pressedOpacity * 255)}, LV_STATE_PRESSED);`)
+    lines.push(imageBacked
+      ? `lv_obj_set_style_image_recolor(${varName}, lv_color_hex(${pressedColor}), LV_STATE_PRESSED);`
+      : `lv_obj_set_style_text_color(${varName}, lv_color_hex(${pressedColor}), LV_STATE_PRESSED);`)
+    if (imageBacked) lines.push(`lv_obj_set_style_image_recolor_opa(${varName}, LV_OPA_COVER, LV_STATE_PRESSED);`)
+    lines.push(`lv_obj_add_event_cb(${varName}, ${fiIconExport.eventCallbackName}, LV_EVENT_CLICKED, NULL);`)
+  } else {
+    lines.push(`lv_obj_clear_flag(${varName}, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE);`)
   }
 
   lines.push(``)
@@ -4664,6 +4744,7 @@ case 'Chart': {
         radioExports,
         qrCodeExports,
         buttonExports,
+        fiIconExports,
       )
     }
   })
@@ -4847,6 +4928,113 @@ export const gateForgeUIGeneratedSystemCode = (
   }
 }
 
+const generateFiRuntimeFiles = (
+  fiIconExports: Map<string, FiIconExport>,
+  textPrimary: string,
+) => {
+  const enabled = Array.from(fiIconExports.values()).filter(icon => icon.runtimeEnabled)
+  if (enabled.length === 0) return { header: '', source: '' }
+
+  const header = [
+    `#ifndef FORGEUI_FI_RUNTIME_H`,
+    `#define FORGEUI_FI_RUNTIME_H`,
+    ``,
+    `#include <stdbool.h>`,
+    `#include <stdint.h>`,
+    `#include "lvgl.h"`,
+    ``,
+    `#ifdef __cplusplus`,
+    `extern "C" {`,
+    `#endif`,
+    ``,
+    ...enabled.flatMap(icon => [
+      `void FG_Set_${icon.stem}_Visible(bool visible);`,
+      `void FG_Set_${icon.stem}_Opacity(uint8_t opacity);`,
+      `void FG_Set_${icon.stem}_Color(uint32_t rgb);`,
+      `void fg_fi_bind_${icon.runtimeStem}(lv_obj_t * object, bool image_backed);`,
+      ``,
+    ]),
+    `#ifdef __cplusplus`,
+    `}`,
+    `#endif`,
+    ``,
+    `#endif`,
+    ``,
+  ].join('\n')
+
+  const source = [
+    `#include "96_FiRuntime.h"`,
+    ``,
+    ...enabled.flatMap(icon => {
+      const model = getForgeUIStandardIconPresentation(icon.props, textPrimary)
+      const color = `0x${model.color.slice(1)}`
+      const opacity = Math.round(model.opacity * 255)
+      return [
+        `static lv_obj_t * fg_fi_${icon.runtimeStem}_object = NULL;`,
+        `static bool fg_fi_${icon.runtimeStem}_image_backed = false;`,
+        `static bool fg_fi_${icon.runtimeStem}_visible = ${model.visible ? 'true' : 'false'};`,
+        `static uint8_t fg_fi_${icon.runtimeStem}_opacity = ${opacity};`,
+        `static uint32_t fg_fi_${icon.runtimeStem}_color = ${color};`,
+        ``,
+        `static void fg_fi_apply_${icon.runtimeStem}(void)`,
+        `{`,
+        `    lv_obj_t * object = fg_fi_${icon.runtimeStem}_object;`,
+        `    if (object == NULL) return;`,
+        `    if (fg_fi_${icon.runtimeStem}_visible) lv_obj_clear_flag(object, LV_OBJ_FLAG_HIDDEN);`,
+        `    else lv_obj_add_flag(object, LV_OBJ_FLAG_HIDDEN);`,
+        `    lv_obj_set_style_opa(object, fg_fi_${icon.runtimeStem}_opacity, 0);`,
+        `    if (fg_fi_${icon.runtimeStem}_image_backed) {`,
+        `        lv_obj_set_style_image_recolor(object, lv_color_hex(fg_fi_${icon.runtimeStem}_color), 0);`,
+        `        lv_obj_set_style_image_recolor_opa(object, LV_OPA_COVER, 0);`,
+        `    } else {`,
+        `        lv_obj_set_style_text_color(object, lv_color_hex(fg_fi_${icon.runtimeStem}_color), 0);`,
+        `    }`,
+        `}`,
+        ``,
+        `void fg_fi_bind_${icon.runtimeStem}(lv_obj_t * object, bool image_backed)`,
+        `{`,
+        `    fg_fi_${icon.runtimeStem}_object = object;`,
+        `    fg_fi_${icon.runtimeStem}_image_backed = image_backed;`,
+        `    fg_fi_apply_${icon.runtimeStem}();`,
+        `}`,
+        ``,
+        `void FG_Set_${icon.stem}_Visible(bool visible)`,
+        `{`,
+        `    if (fg_fi_${icon.runtimeStem}_visible == visible) return;`,
+        `    fg_fi_${icon.runtimeStem}_visible = visible;`,
+        `    if (fg_fi_${icon.runtimeStem}_object == NULL) return;`,
+        `    if (visible) lv_obj_clear_flag(fg_fi_${icon.runtimeStem}_object, LV_OBJ_FLAG_HIDDEN);`,
+        `    else lv_obj_add_flag(fg_fi_${icon.runtimeStem}_object, LV_OBJ_FLAG_HIDDEN);`,
+        `}`,
+        ``,
+        `void FG_Set_${icon.stem}_Opacity(uint8_t opacity)`,
+        `{`,
+        `    if (fg_fi_${icon.runtimeStem}_opacity == opacity) return;`,
+        `    fg_fi_${icon.runtimeStem}_opacity = opacity;`,
+        `    if (fg_fi_${icon.runtimeStem}_object == NULL) return;`,
+        `    lv_obj_set_style_opa(fg_fi_${icon.runtimeStem}_object, opacity, 0);`,
+        `}`,
+        ``,
+        `void FG_Set_${icon.stem}_Color(uint32_t rgb)`,
+        `{`,
+        `    rgb &= 0xFFFFFFu;`,
+        `    if (fg_fi_${icon.runtimeStem}_color == rgb) return;`,
+        `    fg_fi_${icon.runtimeStem}_color = rgb;`,
+        `    if (fg_fi_${icon.runtimeStem}_object == NULL) return;`,
+        `    if (fg_fi_${icon.runtimeStem}_image_backed) {`,
+        `        lv_obj_set_style_image_recolor(fg_fi_${icon.runtimeStem}_object, lv_color_hex(rgb), 0);`,
+        `        lv_obj_set_style_image_recolor_opa(fg_fi_${icon.runtimeStem}_object, LV_OPA_COVER, 0);`,
+        `    } else {`,
+        `        lv_obj_set_style_text_color(fg_fi_${icon.runtimeStem}_object, lv_color_hex(rgb), 0);`,
+        `    }`,
+        `}`,
+        ``,
+      ]
+    }),
+  ].join('\n')
+  return { header, source }
+}
+
 export const generateForgeUILvglCode = (
   components: IComponents,
   themeId: string = 'graphite',
@@ -4862,6 +5050,11 @@ export const generateForgeUILvglCode = (
   const usedHookNames = new Set<string>()
   const userEventHooks = new Set<string>()
   const buttonExports = createButtonExports(
+    components,
+    usedHookNames,
+    userEventHooks,
+  )
+  const fiIconExports = createFiIconExports(
     components,
     usedHookNames,
     userEventHooks,
@@ -5590,8 +5783,11 @@ const backgroundMode =
   lines.push(`#include "freertos/semphr.h"`)
   lines.push(`#include "freertos/task.h"`)
   lines.push(`#include "esp_timer.h"`)
-  if (hasInteractiveButtons || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0) {
+  if (hasInteractiveButtons || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
     lines.push(`#include "95_UserEvents.h"`)
+  }
+  if (Array.from(fiIconExports.values()).some(icon => icon.runtimeEnabled)) {
+    lines.push(`#include "96_FiRuntime.h"`)
   }
   lines.push(`#include <stdbool.h>`)
   lines.push(`#include <stdint.h>`)
@@ -5671,6 +5867,16 @@ const backgroundMode =
   iconButtonExports.forEach(iconButtonExport => {
     lines.push(`static lv_obj_t * ${iconButtonExport.objectName} = NULL;`)
     lines.push(`static bool ${iconButtonExport.enabledName} = ${iconButtonExport.initialEnabled ? 'true' : 'false'};`)
+  })
+
+  fiIconExports.forEach(fiIconExport => {
+    if (!fiIconExport.clickEnabled || !fiIconExport.eventCallbackName || !fiIconExport.hookName) return
+    lines.push(`static void ${fiIconExport.eventCallbackName}(lv_event_t * event)`)
+    lines.push(`{`)
+    lines.push(`    if (lv_event_get_code(event) != LV_EVENT_CLICKED) return;`)
+    lines.push(`    ${fiIconExport.hookName}();`)
+    lines.push(`}`)
+    lines.push(``)
   })
   arcExports.forEach(arcExport => {
     lines.push(`static lv_obj_t * ${arcExport.objectName} = NULL;`)
@@ -7765,6 +7971,7 @@ lines.push(`    fg_system_root = parent;`)
         radioExports,
         qrCodeExports,
         buttonExports,
+        fiIconExports,
       )
   }
 
@@ -8421,8 +8628,15 @@ lines.push(`}`)
     }
   })
 
+  const fiRuntime = generateFiRuntimeFiles(
+    fiIconExports,
+    `#${palette.textPrimary.slice(2)}`,
+  )
+
     return {
     code: gated.code,
+    fiRuntimeHeader: fiRuntime.header,
+    fiRuntimeSource: fiRuntime.source,
     assetSources: Array.from(normalizedAssetSources.values()),
     userEventHooks: Array.from(userEventHooks),
     publicApiDeclarations: Array.from(binaryOutputExports.values())

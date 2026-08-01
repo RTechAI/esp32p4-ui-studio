@@ -20,6 +20,12 @@ export type ForgeUIWidgetCapabilities = {
   acceptsUserInput: boolean
   isInteractiveAsset: boolean
   childOwnership: 'none' | 'container' | 'structured'
+  instanceConfiguration?: {
+    runtimeApiProperty?: string
+    runtimeApiDefault?: boolean
+    userEventProperty?: string
+    userEventDefault?: boolean
+  }
   featureGate: {
     mode: 'serialized-widget' | 'registered-asset'
     lvglConfigDependencies: string[]
@@ -197,7 +203,15 @@ const capabilitiesByType: Partial<
   Heading: capability(false, false, false),
   Button: capability(false, false, true),
   IconButton: capability(true, true, true),
-  Icon: capability(false, false, false),
+  Icon: {
+    ...capability(true, true, false),
+    instanceConfiguration: {
+      runtimeApiProperty: 'generateRuntimeApi',
+      runtimeApiDefault: true,
+      userEventProperty: 'enableClick',
+      userEventDefault: false,
+    },
+  },
   Box: capability(true, false, false, 'container'),
   Line: capability(false, false, false),
   Divider: capability(false, false, false),
@@ -389,6 +403,30 @@ export const getForgeUIWidgetDefinition = (
   type: ComponentType,
 ): ForgeUIWidgetDefinition | undefined =>
   definitionsByType.get(type)
+
+export const getForgeUIWidgetInstanceCapabilities = (
+  type: ComponentType,
+  props: Record<string, unknown> = {},
+) => {
+  const capabilities = definitionsByType.get(type)?.capabilities
+  if (!capabilities) return undefined
+  const config = capabilities.instanceConfiguration
+  const enabled = (property: string | undefined, fallback: boolean) =>
+    property && typeof props[property] === 'boolean'
+      ? props[property] as boolean
+      : fallback
+  return {
+    ...capabilities,
+    runtimeApiEnabled: capabilities.supportsRuntimeApi && enabled(
+      config?.runtimeApiProperty,
+      config?.runtimeApiDefault ?? capabilities.supportsRuntimeApi,
+    ),
+    userEventsEnabled: capabilities.supportsUserEvents && enabled(
+      config?.userEventProperty,
+      config?.userEventDefault ?? capabilities.supportsUserEvents,
+    ),
+  }
+}
 
 export const searchForgeUIWidgets = (
   query: string,

@@ -1496,7 +1496,7 @@ Registry → Tray → Canvas → Inspector → Browser Preview → LVGL Export
 | Heading | implemented / implemented | intentionally API-free | **PROVEN** |
 | Button | implemented / implemented | API-free serialized text | **PROVEN** |
 | IconButton | implemented / implemented | enabled setter + click hook | pending |
-| Icon | implemented / implemented | intentionally API-free | **READY FOR FINAL HARDWARE RE-PROOF** |
+| Icon | implemented / implemented | generic 96 presentation API; optional 95 click | **READY FOR FINAL HARDWARE RE-PROOF** |
 | Box | implemented / implemented | visibility setter, no hook | **PROVEN** |
 | Line | implemented / implemented | intentionally API-free | pending |
 | Divider | implemented / implemented | intentionally API-free | **PROVEN** |
@@ -1893,7 +1893,13 @@ void FG_On_Mode_Select_Changed(uint32_t index, const char * text);
 void FG_On_Settings_Icon_Button_Clicked(void);
 ```
 
-Progress, Image, Box and QR Code are setter-only outputs and add no hooks. Icon, Divider, Scale, Line, Clock, Button Text, Text and Heading are presentation/API-free and also add no `95_UserEvents` declarations. Live `95_UserEvents.c` bodies remain preserved, missing stubs are appended, and existing hooks are not deleted merely because their component is absent from the current Canvas. Standalone copies become developer-owned.
+Progress, Image, Box and QR Code are setter-only outputs and add no hooks.
+Divider, Scale, Line, Clock, Button Text, Text and Heading are presentation/API-free
+and add no `95_UserEvents` declarations. Icon uses generated 96 presentation
+setters and adds a 95 declaration only when click is enabled. Live
+`95_UserEvents.c` bodies remain preserved, missing stubs are appended, and
+existing hooks are not deleted merely because their component is absent from the
+current Canvas. Standalone copies become developer-owned.
 
 ## Major Files
 
@@ -2527,7 +2533,12 @@ Standard LVGL Component Runtime
     ├── Icon
     └── Divider
 
-Interactive state receives a guarded setter plus a genuine-user hook. Output state receives a setter only. Serialized presentation receives no runtime API, and components with no semantic state remain intentionally API-free. TabView owns an active index and Tileview owns active coordinates. Clock presents RTC-owned state. Button, Text and Heading own serialized content. Scale, Line, Icon and Divider remain API-free.
+Interactive state receives a guarded setter plus a genuine-user hook. Output
+state receives a setter only. Serialized presentation normally receives no
+runtime API, and components with no semantic state remain intentionally API-free.
+TabView owns an active index and Tileview owns active coordinates. Clock presents
+RTC-owned state. Button, Text and Heading own serialized content. Scale, Line and
+Divider remain API-free. Icon has optional generic presentation and click state.
 
 Slider Canvas interaction and generated runtime are complete. It exposes a clamped, collision-safe `FG_Set_<Name>_Value(int32_t)` setter and a genuine-user-only `FG_On_<Name>_Changed(int32_t)` hook. Initialization and programmatic updates are silent and repeated values are suppressed.
 
@@ -2720,7 +2731,7 @@ Save points are ordered newest to oldest. Detailed subsystem engineering is main
 
 - **What changed:** Added Standard Runtime APIs and Preview parity for Input,
   Textarea, Switch, Checkbox, Radio, Progress, NumberInput, Select, Image, Box,
-  IconButton and Slider; classified Icon and Divider as intentionally API-free
+  IconButton and Slider; classified Divider as intentionally API-free
   presentation; preserved Button, Text, Heading and Clock as serialized
   presentation; and expanded deterministic collision handling,
   live/standalone generation and user-hook preservation coverage.
@@ -2934,3 +2945,13 @@ I welcome feedback, ideas and contributions from developers around the world.
 Creator & Lead Developer — ForgeUI Studio
 
 📧 **forgeui.esp32@gmail.com**
+## 2026-08-01 — Fi Icon Runtime software milestone
+
+Standard Icon now has a generic per-instance runtime foundation. The canonical
+icon pipeline remains authoritative; component names allocate collision-safe
+`Visible`, `Opacity` and `Color` APIs in regenerated `96_FiRuntime.c/.h`, while
+optional click behavior attaches in 90 and preservation-merges its hook in 95.
+Runtime API defaults on, click defaults off, and unused runtime files/assets are
+gated out. This is **SOFTWARE COMPLETE / READY FOR ESP32-P4 PROOF** and does not
+change the 29/39 physical proof total. See
+[`09_FORGEUI_FI_RUNTIME_GUIDE.md`](09_FORGEUI_FI_RUNTIME_GUIDE.md).

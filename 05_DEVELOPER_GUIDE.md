@@ -27,7 +27,7 @@ shared ForgeUILvglExport generator
         |
 live firmware or Standalone ESP-IDF project
         |
-90_Studio_Export Runtime APIs
+90_Studio_Export Runtime APIs and generated 96_FiRuntime presentation APIs
 95_UserEvents genuine-user callbacks
         |
 ESP-IDF build -> ESP32-P4 physical proof
@@ -51,6 +51,7 @@ diverge.
 | Export materialization | `studio/export-server.js` | Files, manifests, feature pruning and merge |
 | Generated UI | `90_Studio_Export.c/.h` | Replaceable |
 | Application hooks | `95_UserEvents.c/.h` | Preservation-merged live; developer-owned standalone |
+| Fi Icon presentation runtime | `96_FiRuntime.c/.h` | Generated and replaceable; call its APIs but keep permanent logic elsewhere |
 | Hardware/backend | ESP-IDF application modules | Source of device truth |
 
 ## 2. Widget Registry
@@ -450,3 +451,19 @@ sizing/clipping correction, Divider vertical-drop usability, Heading
 multiline/alignment parity and Box child/nesting parity. Text and Icon remain
 **READY FOR FINAL HARDWARE RE-PROOF** and must not be promoted from software
 evidence alone.
+## Calling a Standard Fi Icon at runtime
+
+Enable **Generate runtime API** on the Icon (on by default), give the component
+a stable name, include `90_Studio_Export.h` or `96_FiRuntime.h`, then call:
+
+```c
+FG_Set_Living_Room_AirPlay_Visible(true);
+FG_Set_Living_Room_AirPlay_Opacity(220);
+FG_Set_Living_Room_AirPlay_Color(0xF2A900);
+```
+
+Enable **tap/click** only for an input icon, then implement the generated
+`FG_On_Living_Room_AirPlay_Clicked(void)` body in `95_UserEvents.c`. Live Studio
+regeneration replaces 90 and 96 but preservation-merges matching 95 bodies.
+Standalone output becomes developer-owned under the normal export rules. Full
+contract: [`09_FORGEUI_FI_RUNTIME_GUIDE.md`](09_FORGEUI_FI_RUNTIME_GUIDE.md).

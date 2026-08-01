@@ -43,12 +43,17 @@ const opacity = (value: unknown) => {
   return Math.max(0, Math.min(1, parsed > 1 ? parsed / 100 : parsed))
 }
 
+const color = (value: unknown, fallback: string) => {
+  const candidate = String(value || '')
+  return /^#[0-9a-f]{6}$/i.test(candidate) ? candidate.toUpperCase() : fallback
+}
+
 export const getForgeUIStandardIconPresentation = (
   props: StandardIconProps | undefined,
   textPrimary: string,
 ) => {
   const source = props || {}
-  const explicitColor = String(source.color || '')
+  const normalColor = color(source.color, textPrimary)
   return {
     icon: String(source.icon || 'FiSettings'),
     src: String(source.src || source.browserSrc || ''),
@@ -57,10 +62,12 @@ export const getForgeUIStandardIconPresentation = (
     iconSize: source.boxSize == null || source.boxSize === ''
       ? componentSize(source)
       : size(source.boxSize),
-    color: /^#[0-9a-f]{6}$/i.test(explicitColor)
-      ? explicitColor.toUpperCase()
-      : textPrimary,
+    color: normalColor,
     opacity: opacity(source.opacity),
     visible: source.visible !== false && source.isVisible !== false,
+    runtimeApiEnabled: source.generateRuntimeApi !== false,
+    clickEnabled: source.enableClick === true,
+    pressedColor: color(source.pressedColor, normalColor),
+    pressedOpacity: opacity(source.pressedOpacity == null ? 0.75 : source.pressedOpacity),
   }
 }

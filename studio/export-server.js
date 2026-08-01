@@ -1311,7 +1311,7 @@ function validateExportPayload(payload, options = {}) {
   return { code, assetSources }
 }
 
-function generateStudioExportHeader(publicApiDeclarations) {
+function generateStudioExportHeader(publicApiDeclarations, hasFiRuntime = false) {
   const declarations = normalizePublicApiDeclarations(
     publicApiDeclarations
   )
@@ -1321,6 +1321,7 @@ function generateStudioExportHeader(publicApiDeclarations) {
 #include "lvgl.h"
 #include <stdbool.h>
 #include <stdint.h>
+${hasFiRuntime ? '#include "96_FiRuntime.h"' : ''}
 
 #ifdef __cplusplus
 extern "C" {
@@ -1767,6 +1768,9 @@ const userEventHooks =
 const publicApiDeclarations = normalizePublicApiDeclarations(
   req.body.publicApiDeclarations
 )
+const fiRuntimeSource = typeof req.body.fiRuntimeSource === 'string' ? req.body.fiRuntimeSource : ''
+const fiRuntimeHeader = typeof req.body.fiRuntimeHeader === 'string' ? req.body.fiRuntimeHeader : ''
+const hasFiRuntime = fiRuntimeSource.trim().length > 0 && fiRuntimeHeader.trim().length > 0
 
 const userEvents =
   generateUserEventFiles(userEventHooks, publicApiDeclarations)
@@ -1775,7 +1779,8 @@ const userEvents =
   generateDeveloperGuide(userEvents.hooks)
 
     const header = generateStudioExportHeader(
-      publicApiDeclarations
+      publicApiDeclarations,
+      hasFiRuntime
     )
    
 const mainDir = path.resolve(
@@ -1789,6 +1794,8 @@ const mainDir = path.resolve(
 
 const userEventsHTarget =
   path.join(mainDir, '95_UserEvents.h')
+const fiRuntimeCTarget = path.join(mainDir, '96_FiRuntime.c')
+const fiRuntimeHTarget = path.join(mainDir, '96_FiRuntime.h')
 
 const developerGuideTarget =
   path.join(
@@ -1801,10 +1808,11 @@ const developerGuideTarget =
 const featureHeaderTarget = path.join(mainDir, '00_ForgeUI_Features.h')
 const componentManifestTarget = path.join(mainDir, 'idf_component.yml')
 
-    const cmakeSources = [
+const cmakeSources = [
   ...firmwareBuild.sources,
   `"${defaultHeroCSource}"`,
 ]
+if (hasFiRuntime) cmakeSources.push('"96_FiRuntime.c"')
 
 appendAssetSourcesToCMake(cmakeSources, assetSources)
 
@@ -1829,6 +1837,13 @@ target_compile_definitions(\${COMPONENT_LIB} PRIVATE
 
     fs.writeFileSync(cTarget, code, 'utf8')
 fs.writeFileSync(hTarget, header, 'utf8')
+if (hasFiRuntime) {
+  fs.writeFileSync(fiRuntimeCTarget, fiRuntimeSource, 'utf8')
+  fs.writeFileSync(fiRuntimeHTarget, fiRuntimeHeader, 'utf8')
+} else {
+  fs.rmSync(fiRuntimeCTarget, { force: true })
+  fs.rmSync(fiRuntimeHTarget, { force: true })
+}
 fs.writeFileSync(featureHeaderTarget, generateFeatureHeader(firmwareBuild), 'utf8')
 fs.writeFileSync(componentManifestTarget, generateIdfComponentManifest(firmwareBuild), 'utf8')
 
@@ -1918,6 +1933,9 @@ const userEventHooks =
 const publicApiDeclarations = normalizePublicApiDeclarations(
   req.body.publicApiDeclarations
 )
+const fiRuntimeSource = typeof req.body.fiRuntimeSource === 'string' ? req.body.fiRuntimeSource : ''
+const fiRuntimeHeader = typeof req.body.fiRuntimeHeader === 'string' ? req.body.fiRuntimeHeader : ''
+const hasFiRuntime = fiRuntimeSource.trim().length > 0 && fiRuntimeHeader.trim().length > 0
 
 const userEvents =
   generateUserEventFiles(userEventHooks, publicApiDeclarations)
@@ -2012,7 +2030,8 @@ copyAssetSourcesToProject(
 )
 
     const header = generateStudioExportHeader(
-      publicApiDeclarations
+      publicApiDeclarations,
+      hasFiRuntime
     )
 
    const cTarget = path.join(
@@ -2026,6 +2045,8 @@ const hTarget = path.join(
   'main',
   '90_Studio_Export.h'
 )
+const fiRuntimeCTarget = path.join(exportDir, 'main', '96_FiRuntime.c')
+const fiRuntimeHTarget = path.join(exportDir, 'main', '96_FiRuntime.h')
 
 const userEventsCTarget = path.join(
   exportDir,
@@ -2054,6 +2075,7 @@ const cmakeSources = [
   ...firmwareBuild.sources,
   `"${defaultHeroCSource}"`,
 ]
+if (hasFiRuntime) cmakeSources.push('"96_FiRuntime.c"')
 
 appendAssetSourcesToCMake(cmakeSources, assetSources)
 
@@ -2087,6 +2109,13 @@ fs.writeFileSync(
   header,
   'utf8'
 )
+if (hasFiRuntime) {
+  fs.writeFileSync(fiRuntimeCTarget, fiRuntimeSource, 'utf8')
+  fs.writeFileSync(fiRuntimeHTarget, fiRuntimeHeader, 'utf8')
+} else {
+  fs.rmSync(fiRuntimeCTarget, { force: true })
+  fs.rmSync(fiRuntimeHTarget, { force: true })
+}
 
 fs.writeFileSync(
   featureHeaderTarget,

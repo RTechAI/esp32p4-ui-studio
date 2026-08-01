@@ -78,6 +78,10 @@ type ForgeUICanvasProps = {
   w?: number
   h?: number
   imageScale?: number
+  enableClick?: boolean
+  generateRuntimeApi?: boolean
+  pressedColor?: string
+  pressedOpacity?: number
 }
 
 type PropsWithForm<T> = T & ForgeUICanvasProps & { form?: T }
@@ -293,7 +297,13 @@ WiFi: {
     children: 'Heading title',
     query: 'title',
   },
-  Icon: { icon: 'FiSettings' },
+    Icon: {
+      icon: 'FiSettings',
+      enableClick: false,
+      generateRuntimeApi: true,
+      pressedColor: '',
+      pressedOpacity: 75,
+    },
   IconButton: {
     'aria-label': 'icon',
     // @ts-ignore
