@@ -13,6 +13,7 @@ const IconButtonPanel = () => {
   return (
     <>
       <IconControl name="icon" label="Icon" />
+      <SwitchControl label="Disabled" name="isDisabled" />
       <SizeControl name="size" label="Size" value={size} />
       <ColorsControl label="Color" name="colorScheme" />
       <SwitchControl label="Loading" name="isLoading" />

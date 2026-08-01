@@ -13,7 +13,7 @@
 
 ## Current proven save point
 
-**FORGEUI_IMAGE_AND_LINE__31_OF_39_STANDARD_WIDGETS_ESP32P4_PROVEN__2026-08-01**
+**FORGEUI_LVGL9_CLOSURE_BATCH1__SPAN_ANIMIMAGE_IMAGEBUTTON_ESP32P4_PROVEN__DOCUMENTATION_ALIGNED__READY_FOR_WINDOW_MENU__2026-08-02**
 
 This document describes the generated SDK surface currently emitted by the
 shared live/Standalone generator. `90_Studio_Export.h` contains callable
@@ -21,6 +21,13 @@ Runtime APIs. `95_UserEvents.h` contains genuine-user callback declarations.
 Internal `fg_*` helpers are implementation details and are not public SDK
 functions. All per-component public symbols derive from the component name and
 use deterministic collision suffixes.
+
+Batch 1 adds native `lv_spangroup`, `lv_animimg` and `lv_imagebutton` output.
+Span is presentation-only. Animation Image serializes initial running state but
+has no public API until clean pause/resume/frame ownership is established.
+Image Button emits `FG_Set_<Name>_Enabled(bool)` and
+`FG_On_<Name>_Clicked(void)` through the existing collision-safe runtime and
+`95_UserEvents` path.
 
 Previous platform milestone:
 `FORGEUI_BOARD_PROFILES__EXPORT_TIME_FEATURE_GATING__LAZY_SYSTEM_TOOLS__CONNECTED_WIFI_45KB_FREE__RAM_OVERLAY__READY_FOR_FINAL_OPERATOR_VALIDATION__2026-07-31`.
@@ -42,7 +49,7 @@ proven Standard set through live and Standalone ESP32-P4 output.
 - Standard QR Code generation is implemented as a native LVGL 9.2.2 output component.
 - The live generated `90_Studio_Export.c/.h` contains the QR object, serialized initialization and `FG_Set_QR_Code_Text(const char * text)`.
 - QR contributes no `userEventHooks`, asset C source or `95_UserEvents` declaration.
-- QR-focused preview/export tests pass and the current clean ESP-IDF build contains native QR output; a recorded successful physical phone scan remains pending.
+- QR-focused preview/export tests, native ESP32-P4 output, successful mobile scan and Live/Standalone parity are proven.
 
 ## Purpose and scope
 
@@ -619,6 +626,8 @@ The structural role does not create APIs for region assignment, padding, gap, ar
 
 IconButton retains native button and enabled state. The setter applies `LV_STATE_DISABLED` silently. `LV_EVENT_CLICKED` invokes the void hook only while enabled. Icon selection remains serialized; no runtime icon-source setter exists.
 
+Batch D software validation covers serialized disabled initialization, Inspector editing, canonical icon presentation, semantic normal/pressed/disabled styling, guarded setters, genuine click routing and deterministic collision-safe multiple instances. QR Code likewise allocates collision-safe retained objects and text setters. Neither boundary introduces a duplicate runtime family.
+
 ### Slider generated boundary
 
 Canvas track/thumb interaction changes temporary preview value, surrounding component interaction supports movement, Browser Preview remains interactive, and project JSON remains unchanged. Native export retains the Slider. `FG_Set_<Name>_Value(int32_t value)` normalizes the serialized range, clamps signed inputs, ignores repeats and guards the LVGL update so it cannot notify application code. The LVGL callback updates retained state and invokes `FG_On_<Name>_Changed(int32_t value)` only for a changed user value. Initial value assignment precedes callback registration, so startup is silent.
@@ -657,10 +666,10 @@ repeated/no-op transitions and programmatic setters remain silent.
 Native LVGL Spinbox is a selected-digit editor. It is not a free-form numeric
 text-entry control; use NumberInput for that interaction model.
 
-The final registry audit records 44 entries: 39 Standard widgets and five
-Interactive Assets. With TileView promoted and TabView retaining its existing
-**PROVEN** status, Standard physical proof is 34/39 (87%), leaving 5 widgets
-for individual promotion.
+The current registry records 47 entries: 42 practical Standard LVGL
+widgets/components and five Interactive Assets. All **42/42** practical
+Standard LVGL entries are physically proven on ESP32-P4. Window and Menu remain
+the final structured-widget closure sprint.
 
 ### List generated boundary
 
@@ -2976,6 +2985,38 @@ Preserve these rules:
 
 ## Save Point History
 
+### FORGEUI_LVGL9_CLOSURE_BATCH1__SPAN_ANIMIMAGE_IMAGEBUTTON_ESP32P4_PROVEN__DOCUMENTATION_ALIGNED__READY_FOR_WINDOW_MENU__2026-08-02
+
+- Native `lv_spangroup`, `lv_animimg` and `lv_imagebutton` output passed
+  ESP32-P4 Live/Standalone parity.
+- Span remains presentation-only; Animation Image remains API-free; Image
+  Button retains only enabled control and a genuine click hook.
+- Window and Menu are next.
+
+### Historical Closure Batch 1 software milestone — superseded 2026-08-02
+
+- Span and Animation Image add no public SDK surface.
+- Image Button adds only `FG_Set_<Name>_Enabled(bool)` and
+  `FG_On_<Name>_Clicked(void)` through existing generated ownership.
+- All three native branches are shared by Live and Standalone Export and remain
+  recorded here at their historical pre-proof boundary; physical validation
+  completed on 2026-08-02.
+
+### FORGEUI_FINAL_LVGL9_AUDIT__39_REGISTERED_STANDARD_WIDGETS_PROVEN__5_PRACTICAL_CLOSURE_WIDGETS__2026-08-01
+
+- No runtime API changed during the audit.
+- Span and Animation Image remain API-free unless meaningful application state
+  is established; Image Button, Window and Menu receive APIs
+  or UserEvents only for genuine native semantics.
+
+### FORGEUI_STANDARD_WIDGET_PIPELINE__39_OF_39_STANDARD_WIDGETS_ESP32P4_PROVEN__BATCH_D_COMPLETE__READY_FOR_FORGEUI_WIDGETS__2026-08-01
+
+- All Standard generated API and UserEvent families retain their existing
+  ownership; Batch D added no duplicate runtime concept or unnecessary public
+  API.
+- QR Code, Icon Button, Icon and Canvas completed physical ESP32-P4 proof and
+  Live/Standalone parity, closing the Standard Widget Library at **39/39**.
+
 ### FORGEUI_BOARD_PROFILES__EXPORT_TIME_FEATURE_GATING__LAZY_SYSTEM_TOOLS__CONNECTED_WIFI_45KB_FREE__RAM_OVERLAY__READY_FOR_FINAL_OPERATOR_VALIDATION__2026-07-31
 
 - `ForgeUILvglExport.ts` consumes the persisted Board Profile feature set and removes disabled includes, models, callbacks, pages, timers and assets. `export-server.js` writes `00_ForgeUI_Features.h` and applies the same profile to live and standalone CMake/source/component-manifest output.
@@ -3182,7 +3223,8 @@ preservation-merges the matching declaration and implementation in
 `90_Studio_Export.h` is introduced.
 ## 2026-08-01 generated-export proof boundary
 
-Standard physical proof is **34/39 (87%)**, leaving **5**. Image export uses
+This dated boundary recorded the original **39/39** milestone. The current
+practical LVGL 9.2 proof total is **42**. Image export uses
 native `lv_image_create()`, persisted intrinsic dimensions and canonical
 source-aware Contain scaling; the physical proof emitted scale 60 from the
 serialized model. Line export uses native `lv_line_create()` with persisted
@@ -3191,7 +3233,7 @@ Box and Divider are also proven. Text export now applies complete multiline cont
 geometry, wrap mode and alignment consistently. Icon export now derives
 source-aware scale from the shared 92% automatic target and emits centered
 pivots/alignment. Text has since completed physical validation and is
-**PROVEN**. Icon remains **READY FOR FINAL HARDWARE RE-PROOF**.
+**PROVEN**. Icon final re-proof is also **PROVEN**.
 ## Fi Icon Runtime contract — 2026-08-01
 
 The complete canonical pipeline and 90/95/96 ownership explanation is maintained
@@ -3208,13 +3250,13 @@ Names are deterministic and collision-safe; the selected Fi asset does not name
 the API. Runtime-disabled instances emit no setters, click-disabled instances
 emit no hook, and an unused 96 layer is omitted from files, headers and CMake.
 
-Current status: **SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN**. Physical
+Current status: **PROVEN ON ESP32-P4**. Physical
 ESP32-P4 evidence proves the 90 → 95 path: the three separate generated hooks
 `FG_On_Comp_MS9QE1N7GA5O3_Clicked`,
 `FG_On_Comp_MS9Q2MXPEJP7D_Clicked` and
 `FG_On_Comp_MS9Q42SGCB4EB_Clicked` each fired exactly once per deliberate tap,
 with no startup callback. SD remained ready; Wi-Fi failure during the run was
-unrelated. The 90 → 96 path remains **PENDING HARDWARE PROOF**. None of the
-`Visible`, `Opacity` or `Color` setters, retained pre-bind state, repeated-setter
-suppression, click-disabled non-interaction, independent presentation instances,
-or Live/Standalone parity is claimed as physically proven.
+unrelated. Batch D also physically proved the 90 → 96 path: `Visible`,
+`Opacity` and `Color` setters, retained pre-bind state, repeated-setter
+suppression, click-disabled non-interaction, independent presentation instances
+and Live/Standalone parity.

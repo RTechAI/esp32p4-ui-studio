@@ -70,6 +70,7 @@ import {
 } from '@chakra-ui/react'
 
 import iconsList from '~iconsList'
+import { DEFAULT_FORGEUI_SPANS } from '~forgeui/ForgeUIClosureWidgets'
 
 type ForgeUICanvasProps = {
   positionMode?: string
@@ -96,6 +97,9 @@ type PreviewDefaultProps = {
   IconButton?: PropsWithForm<IconButtonProps>
   Image?: PropsWithForm<ImageProps>
   Text?: PropsWithForm<TextProps> & { textValue?: string }
+  Span?: PropsWithForm<BoxProps> & { spans?: any[]; textAlign?: string; overflow?: string }
+  AnimImage?: PropsWithForm<BoxProps> & { frameAssetIds?: string[]; frameDuration?: number; loop?: boolean; autoStart?: boolean }
+  ImageButton?: PropsWithForm<BoxProps> & { releasedAssetId?: string; pressedAssetId?: string; disabledAssetId?: string; isDisabled?: boolean }
   Progress?: PropsWithForm<ProgressProps>
   Bar?: PropsWithForm<ProgressProps>
   Arc?: PropsWithForm<ProgressProps>
@@ -317,6 +321,7 @@ WiFi: {
     // @ts-ignore
     icon: 'FiSettings',
     size: 'md',
+    isDisabled: false,
   },
   Image: {
   height: '100px',
@@ -327,6 +332,12 @@ WiFi: {
   opacity: 1,
   visible: true,
   },
+  Span: {
+    spans: DEFAULT_FORGEUI_SPANS.map(span => ({ ...span })),
+    textAlign: 'left', overflow: 'ellipsis', positionMode: 'absolute', x: 40, y: 40, w: 280, h: 90,
+  },
+  AnimImage: { frameAssetIds: [], frameDuration: 250, loop: true, autoStart: true, generateRuntimeApi: true, positionMode: 'absolute', x: 40, y: 40, w: 160, h: 160 },
+  ImageButton: { releasedAssetId: '', pressedAssetId: '', disabledAssetId: '', isDisabled: false, generateRuntimeApi: true, enableClick: true, positionMode: 'absolute', x: 40, y: 40, w: 96, h: 64 },
   QRCode: {
     contentType: 'custom',
     qrText: 'https://forgeui.co.nz',

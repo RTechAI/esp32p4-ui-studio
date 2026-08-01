@@ -95,7 +95,7 @@ describe('ForgeUI Widget Tray', () => {
 
   it('collapses categories and inserts by click or keyboard', () => {
     const store = renderTray()
-    const basic = screen.getByRole('button', { name: /Basic 10/ })
+    const basic = screen.getByRole('button', { name: /Basic 11/ })
     fireEvent.click(basic)
     expect(screen.queryByRole('button', {
       name: 'Insert Button',

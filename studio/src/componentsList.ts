@@ -73,6 +73,7 @@ export const menuItems: MenuItems = {
   Highlight: {},
   Icon: {},
   IconButton: {},
+  Span: {},
   Image: {},
   Input: {},
   InputGroup: {
@@ -99,13 +100,13 @@ export const menuItems: MenuItems = {
   Arc: {},
   Bar: {},
   Led: {},
-  AnimImage: { soon: true },
+  AnimImage: {},
   ButtonMatrix: {},
   Calendar: {},
   Canvas: {},
   Chart: {},
   QRCode: {},
-  ImageButton: { soon: true },
+  ImageButton: {},
   Keyboard: {},
   Line: {},
   Lottie: { soon: true },
@@ -159,8 +160,6 @@ export const menuItems: MenuItems = {
 // are not registered ForgeUI widgets and must not be advertised to the
 // Inspector, AI catalogue, Tray, or export capability surfaces.
 export const futureUnregisteredWidgetTypes = new Set<ComponentType>([
-  'AnimImage',
-  'ImageButton',
   'Lottie',
   'Menu',
   'ObjxTempl',
@@ -218,6 +217,7 @@ export const componentsList: ComponentType[] = ([
 'Highlight',
 'Icon',
 'IconButton',
+'Span',
 'Image',
 'ImageButton',
 'Input',

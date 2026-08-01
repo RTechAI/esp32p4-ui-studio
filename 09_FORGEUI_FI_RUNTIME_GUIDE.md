@@ -1,7 +1,7 @@
 # ForgeUI Fi Runtime Guide
 
 Last updated: 2026-08-01  
-Status: **SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN**
+Status: **PROVEN ON ESP32-P4**
 
 ## Purpose
 
@@ -221,12 +221,12 @@ deliberately split at the existing ownership boundary:
   `FG_On_Comp_MS9Q42SGCB4EB_Clicked`. Exactly one callback was observed per
   deliberate tap and none at startup. SD remained ready. Wi-Fi failure during
   the run was unrelated to the Fi click proof.
-- **90 → 96 presentation path: PENDING HARDWARE PROOF.** No physical-proof claim
-  is made yet for `FG_Set_<Name>_Visible(...)`,
+- **90 → 96 presentation path: PROVEN.** Physical validation covers
+  `FG_Set_<Name>_Visible(...)`,
   `FG_Set_<Name>_Opacity(...)`, `FG_Set_<Name>_Color(...)`, pre-bind retained
   state, or repeated-setter suppression.
 
-Remaining physical checklist:
+Completed physical checklist:
 
 - color;
 - opacity;
@@ -236,7 +236,5 @@ Remaining physical checklist:
 - independent presentation instances;
 - Standalone parity, including comparison with Live output.
 
-Icon remains **READY FOR FINAL HARDWARE RE-PROOF**. Fi Runtime remains
-**SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN**, not fully **PROVEN**, and
-the Standard Widget proof total is **34/39 (87%)**, with **5 remaining**.
-Image and Line proof does not change Fi Runtime status.
+Icon and Fi Runtime are **PROVEN ON ESP32-P4**. The Standard Widget proof total
+is **39/39 (100%)**, with none remaining.

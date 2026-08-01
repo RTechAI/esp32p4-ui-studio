@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { Box, Button, HStack, Text, VStack } from '@chakra-ui/react'
+import { Box, Button, Checkbox, HStack, Text, VStack } from '@chakra-ui/react'
+import { ForgeUIAssetSelectionRequest } from './ForgeUIAssetSelection'
 import { getAllInteractiveAssets } from '../interactive'
 import {
   findUploadedAssetReferences,
@@ -18,6 +19,8 @@ import {
 
 type ForgeUIAssetManagerProps = {
   onClose: () => void
+  selectionRequest?: ForgeUIAssetSelectionRequest | null
+  onSelectAssets?: (assetIds: string[]) => void
 }
 
 const forgeUIAssetStatusLabel = (
@@ -40,11 +43,20 @@ const fileToBase64 = (file: File) =>
 
 export function ForgeUIAssetManager({
   onClose,
+  selectionRequest,
+  onSelectAssets,
 }: ForgeUIAssetManagerProps) {
   const { heroBackground } = useForgeTheme()
   const [assets, setAssets] = useState<ForgeUIUploadedAsset[]>(
     forgeUIGetUploadedAssets(),
   )
+  const [selectedIds, setSelectedIds] = useState<string[]>(
+    selectionRequest?.selectedAssetIds || [],
+  )
+
+  useEffect(() => {
+    setSelectedIds(selectionRequest?.selectedAssetIds || [])
+  }, [selectionRequest])
 
   useEffect(() => {
     const refreshAssets = () => {
@@ -151,7 +163,7 @@ export function ForgeUIAssetManager({
     >
       <HStack justify="space-between" mb={5}>
         <Text fontSize="22px" fontWeight="bold">
-          Asset Manager
+          {selectionRequest?.title || 'Asset Manager'}
         </Text>
 
         <Button size="sm" onClick={onClose}>
@@ -201,6 +213,13 @@ export function ForgeUIAssetManager({
               >
                 <HStack justify="space-between">
                   <HStack spacing={3}>
+                    {selectionRequest && <Checkbox
+                      aria-label={`Select ${asset.name}`}
+                      isChecked={selectedIds.includes(asset.id)}
+                      onChange={event => setSelectedIds(current => event.target.checked
+                        ? [...current, asset.id]
+                        : current.filter(id => id !== asset.id))}
+                    />}
                     <Box
                       as="img"
                       src={asset.browserSrc}
@@ -233,7 +252,7 @@ export function ForgeUIAssetManager({
                     </Box>
                   </HStack>
 
-                  <Button
+                  {!selectionRequest && <Button
                   size="sm"
                   colorScheme="red"
                   onClick={async () => {
@@ -256,13 +275,19 @@ export function ForgeUIAssetManager({
                  }}
                   >
                     Delete
-                  </Button>
+                  </Button>}
                 </HStack>
               </Box>
             ))}
           </VStack>
         )}
       </Box>
+      {selectionRequest && <HStack position="sticky" bottom={0} mt={5} py={3}
+        justify="flex-end" bg="#10141c" borderTop="1px solid #263241">
+        <Text mr="auto" fontSize="sm" opacity={0.75}>{selectedIds.length} frame{selectedIds.length === 1 ? '' : 's'} selected</Text>
+        <Button size="sm" variant="ghost" onClick={onClose}>Cancel</Button>
+        <Button size="sm" colorScheme="teal" onClick={() => onSelectAssets?.(selectedIds)}>Use Selected Frames</Button>
+      </HStack>}
     </Box>
   )
 }

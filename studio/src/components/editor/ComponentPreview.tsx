@@ -52,6 +52,7 @@ import StandardBoxPreview from '~forgeui/preview/StandardBoxPreview'
 import StandardDividerPreview from '~forgeui/preview/StandardDividerPreview'
 import StandardWifiPreview from '~forgeui/preview/StandardWifiPreview'
 import StandardLineCanvasPreview from './previews/StandardLineCanvasPreview'
+import { StandardSpanPreview, StandardAnimImagePreview, StandardImageButtonPreview } from '~forgeui/preview/StandardClosureWidgetPreviews'
 import { useForgePreviewPalette } from '~forgeui/theme/ForgeThemeContext'
 import { resolveForgeSemanticPalette } from '~forgeui/preview/forgeThemeMap'
 import InteractiveButtonCanvasPreview, {
@@ -1027,7 +1028,6 @@ case 'Tabview':
     </PreviewContainer>
   )
 
-  case 'ImageButton':
 case 'Lottie':
 case 'ObjxTempl':
   return (
@@ -1074,21 +1074,15 @@ case 'AnimImage':
       enableVisualHelper
       {...forwardedProps}
     >
-      <Chakra.Box
-        width="100%"
-        height="100%"
-        border="1px solid #00d4ff"
-        borderRadius="8px"
-        bg="#1e2328"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-        color="white"
-      >
-        AnimImage
-      </Chakra.Box>
+      <StandardAnimImagePreview component={component} palette={previewTheme} />
     </PreviewContainer>
   )
+
+case 'Span':
+  return <PreviewContainer component={component} enableVisualHelper {...forwardedProps}><StandardSpanPreview component={component} palette={previewTheme} /></PreviewContainer>
+
+case 'ImageButton':
+  return <PreviewContainer component={component} enableVisualHelper {...forwardedProps}><StandardImageButtonPreview component={component} mode="canvas" /></PreviewContainer>
 
     default:
       return null

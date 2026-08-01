@@ -1,5 +1,11 @@
 import { getPreviewDefaultProps } from '~utils/defaultProps'
 
+// This is authoritative for widgets currently supported by ForgeUI, not an
+// assertion that every official LVGL widget is registered. The final LVGL 9.2
+// comparison lives in docs/LVGL_9_STANDARD_WIDGET_AUDIT.md. Span, AnimImage and
+// ImageButton are physically proven; Window and Menu remain. Lottie is
+// explicitly excluded pending a separate dependency/memory decision.
+
 export const FORGEUI_WIDGET_CATEGORIES = [
   'Basic',
   'Input',
@@ -67,12 +73,14 @@ const displayNames: Partial<Record<ComponentType, string>> = {
   WiFi: 'Wi-Fi Status',
   QRCode: 'QR Code',
   Textarea: 'Textarea',
+  AnimImage: 'Animation Image',
+  ImageButton: 'Image Button',
 }
 
 const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
   Basic: [
     'Text', 'Heading', 'Button', 'IconButton', 'Icon', 'Box',
-    'Line', 'Divider', 'Canvas', 'Image',
+    'Line', 'Divider', 'Canvas', 'Image', 'Span',
   ],
   Input: [
     'Input', 'Textarea', 'NumberInput', 'Checkbox', 'Switch',
@@ -80,9 +88,9 @@ const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
   ],
   Display: [
     'Led', 'Bar', 'Arc', 'Scale', 'Chart', 'Table', 'Clock',
-    'WiFi', 'QRCode', 'Progress', 'CircularProgress',
+    'WiFi', 'QRCode', 'Progress', 'CircularProgress', 'AnimImage',
   ],
-  Navigation: ['List', 'Tabview', 'Tileview', 'ButtonMatrix'],
+  Navigation: ['List', 'Tabview', 'Tileview', 'ButtonMatrix', 'ImageButton'],
   Feedback: ['Msgbox', 'Keyboard', 'Calendar', 'Spinner'],
   Dashboard: [],
   Assets: [
@@ -146,6 +154,9 @@ const sizes: Partial<Record<ComponentType, [number, number]>> = {
   Image: [240, 160],
   QRCode: [180, 180],
   Spinner: [96, 96],
+  Span: [280, 90],
+  AnimImage: [160, 160],
+  ImageButton: [96, 64],
 }
 
 const keywords: Partial<Record<ComponentType, string[]>> = {
@@ -168,6 +179,9 @@ const keywords: Partial<Record<ComponentType, string[]>> = {
   WiFi: ['network', 'wireless', 'connection'],
   QRCode: ['qr', 'qrcode', 'scan', 'barcode', 'url', 'wifi', 'pairing', 'device'],
   Spinner: ['loading', 'activity', 'busy', 'lv_spinner'],
+  Span: ['rich text', 'formatted text', 'lv_spangroup'],
+  AnimImage: ['animation', 'frames', 'lv_animimg'],
+  ImageButton: ['image action', 'pressed image', 'lv_imagebutton'],
 }
 
 type CapabilityDefinition = Omit<
@@ -200,6 +214,7 @@ const capabilitiesByType: Partial<
   Record<ComponentType, CapabilityDefinition>
 > = {
   Text: capability(false, false, false),
+  Span: capability(false, false, false, 'none', false, { mode: 'serialized-widget', lvglConfigDependencies: ['CONFIG_LV_USE_SPAN'] }),
   Heading: capability(false, false, false),
   Button: capability(false, false, true),
   IconButton: capability(true, true, true),
@@ -229,6 +244,11 @@ const capabilitiesByType: Partial<
       lvglConfigDependencies: ['CONFIG_LV_USE_IMAGE'],
     },
   ),
+  AnimImage: capability(true, false, false, 'none', false, { mode: 'serialized-widget', lvglConfigDependencies: ['CONFIG_LV_USE_ANIMIMG', 'CONFIG_LV_USE_IMAGE'] }),
+  ImageButton: {
+    ...capability(true, true, true, 'none', false, { mode: 'serialized-widget', lvglConfigDependencies: ['CONFIG_LV_USE_IMAGEBUTTON', 'CONFIG_LV_USE_IMAGE'] }),
+    instanceConfiguration: { runtimeApiProperty: 'generateRuntimeApi', runtimeApiDefault: true, userEventProperty: 'enableClick', userEventDefault: true },
+  },
 
   Input: capability(true, true, true),
   Textarea: capability(true, true, true),
@@ -325,6 +345,9 @@ const capabilitiesByType: Partial<
 }
 
 const documentationByType: Partial<Record<ComponentType, string>> = {
+  Span: 'docs/FORGEUI_LVGL_CLOSURE_BATCH1.md',
+  AnimImage: 'docs/FORGEUI_LVGL_CLOSURE_BATCH1.md',
+  ImageButton: 'docs/FORGEUI_LVGL_CLOSURE_BATCH1.md',
   List: 'docs/FORGEUI_LIST_WIDGET.md',
   Tileview: 'docs/FORGEUI_TILEVIEW_WIDGET.md',
   Spinbox: 'docs/FORGEUI_SPINBOX_WIDGET.md',
@@ -347,6 +370,10 @@ const describe = (
     Chart: 'Trend and telemetry data visualization.',
     Box: 'General-purpose visual container.',
     Canvas: 'Drawable LVGL canvas surface.',
+    IconButton: 'Canonical-icon action with enabled runtime state and click event.',
+    QRCode: 'Native QR display with typed payloads and a runtime text setter.',
+    AnimImage: 'Asset-Manager-authored native frame animation with ordered frames and a clickable zero-frame placeholder.',
+    Span: 'Inspector-authored ordered rich text with semantic styling and an actionable empty state.',
     InteractiveButton: 'Reusable state-sheet driven button.',
   }
   return special[type] || `${name} ${category.toLowerCase()} widget.`

@@ -55,8 +55,6 @@ describe('ForgeUI AI component catalogue', () => {
       expect.objectContaining({ type: 'Accordion', reason: expect.any(String) }),
     ]))
     expect(futureUnregisteredWidgetTypes).toEqual(new Set([
-      'AnimImage',
-      'ImageButton',
       'Lottie',
       'Menu',
       'ObjxTempl',

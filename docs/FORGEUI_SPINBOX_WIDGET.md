@@ -188,6 +188,6 @@ void FG_On_<Name>_Changed(int32_t value);
 ```
 
 The Widget Registry contains 39 Standard widgets. Following the 2026-08-01
-Batch C physical-proof update, 34/39 (87%) are physically proven and 5 remain.
+Batch D completion records all **39/39 Standard widgets PROVEN on ESP32-P4**.
 Spinbox and TabView retain their **PROVEN** status; Text, Clock and Wi-Fi Status
 are also **PROVEN**.

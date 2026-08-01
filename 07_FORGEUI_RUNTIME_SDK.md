@@ -1,5 +1,8 @@
 # ForgeUI Runtime SDK Direction
 
+Current save point:
+`FORGEUI_LVGL9_CLOSURE_BATCH1__SPAN_ANIMIMAGE_IMAGEBUTTON_ESP32P4_PROVEN__DOCUMENTATION_ALIGNED__READY_FOR_WINDOW_MENU__2026-08-02`.
+
 This document introduces the long-term ForgeUI Runtime SDK direction. It does
 not describe a finished, separately packaged SDK product.
 
@@ -72,6 +75,11 @@ SDK rules:
 - guard unavailable LVGL objects;
 - keep programmatic updates silent;
 - avoid exposing private LVGL object pointers as the application contract.
+
+Batch D retains the existing SDK rules. QR Code exposes only its meaningful
+text-regeneration setter and no hook. Icon Button exposes only enabled state
+plus a genuine-click hook; icon-source swapping remains owned by Image. Both
+families allocate collision-safe names for multiple instances.
 
 ## UserEvents
 
@@ -233,10 +241,10 @@ When a Widget Registry capability changes:
 The Runtime SDK should grow from physically credible widget contracts. It must
 not become a speculative list of APIs disconnected from native LVGL behaviour.
 
-Current registry evidence is 34 of 39 Standard widgets physically proven (87%),
-with 5 remaining. Text, Image, Line, Clock and Wi-Fi Status are physically
-proven across Live and Standalone export. Icon remains **READY FOR FINAL HARDWARE RE-PROOF**
-and is excluded from that total. List is proven with no setter and one collision-safe
+Current registry evidence is **39 of 39 Standard widgets physically proven
+(100%)**. Batch D completed QR Code, Icon Button, Icon final re-proof and Canvas
+across the applicable Canvas, Browser Preview, Live and Standalone paths. List
+is proven with no setter and one collision-safe
 `FG_On_<Name>_Item_Clicked(uint32_t index, const char * text)` callback per
 physical row action. Hook names are derived from the Studio component name and
 made collision-safe by the generator. TabView remains **PROVEN**.
@@ -249,12 +257,11 @@ Neither has meaningful application-owned setter state, and neither generates a
 `95_UserEvents` hook. This API-free decision is part of the capability-driven
 Runtime SDK contract, not a missing implementation.
 
-The generated Runtime SDK remains capability-driven while Standard physical
-proof advances to **34/39 (87%)**, with **5 remaining**. Button, Text, Heading,
-Box, Divider, Clock and Wi-Fi Status are proven. Icon has an
-implemented generic generated presentation API and optional click contract, but
-both corrected rendering and the new runtime behavior remain **READY FOR FINAL
-HARDWARE RE-PROOF**.
+The generated Runtime SDK remains capability-driven. The practical Standard
+LVGL proof total is **42**. Button, Text, Heading, Box, Divider, Clock, Wi-Fi
+Status, Icon, Span, Animation Image and Image Button are proven. Icon's generic
+generated presentation API and optional click contract passed final ESP32-P4
+re-proof.
 ## Generated Fi presentation layer — 2026-08-01
 
 This document remains the generated Runtime SDK reference and naming philosophy.
@@ -268,11 +275,14 @@ state and safely retains calls made before object binding. 90 remains the LVGL
 construction/event layer; 95 remains the only preservation-merged behavior
 layer. Default-on presentation and default-off click are resolved per serialized
 instance by Registry metadata. File and CMake emission are feature-gated. The
-overall feature status is **SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN**;
-it does not change the current **34/39** Standard proof total. The 90 → 95 click path is
+overall feature status is **PROVEN ON ESP32-P4** and contributes to the
+practical Standard LVGL proof total of **42**. Batch 1 added and physically
+proved three registered widgets. Span and Animation Image intentionally add no
+public SDK surface; native Image Button adds a collision-safe
+`FG_Set_<Name>_Enabled(bool)` setter and `FG_On_<Name>_Clicked(void)` hook. The
+90 → 95 click path is
 physically **PROVEN** on ESP32-P4: three independent collision-safe icon hooks
 each emitted exactly once per deliberate tap and never on startup. SD remained
 ready, and the run's Wi-Fi failure was unrelated. The 90 → 96 presentation path
-is **PENDING HARDWARE PROOF**. Remaining checks are color, opacity, hide/show,
-pre-bind retained state, repeated silent setters, click-disabled
-non-interaction, independent presentation instances and Standalone parity.
+is also **PROVEN ON ESP32-P4**, including presentation state, independent
+instances and Standalone parity.

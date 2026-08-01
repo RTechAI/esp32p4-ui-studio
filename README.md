@@ -1,7 +1,7 @@
 # ForgeUI Studio
 
 Current architecture save point:
-`FORGEUI_IMAGE_AND_LINE__31_OF_39_STANDARD_WIDGETS_ESP32P4_PROVEN__2026-08-01`.
+`FORGEUI_LVGL9_CLOSURE_BATCH1__SPAN_ANIMIMAGE_IMAGEBUTTON_ESP32P4_PROVEN__DOCUMENTATION_ALIGNED__READY_FOR_WINDOW_MENU__2026-08-02`.
 
 **ForgeUI Studio is an open-source, AI-assisted visual HMI and embedded GUI designer for ESP32-P4.** It combines a drag-and-drop Canvas, reusable Interactive Assets, AI Layout tools, Browser Preview, native LVGL 9 generation, integrated ESP-IDF Build & Flash, and standalone ESP-IDF project export.
 
@@ -40,7 +40,7 @@ ForgeUI exists to shorten the path from an interface idea to editable embedded f
 - Standalone ESP-IDF project export
 
 The active Registry contains only supported widgets. Legacy placeholder types
-such as AnimImage, ImageButton, Lottie, Menu and ObjxTempl are quarantined from
+such as Lottie, Menu and ObjxTempl are quarantined from
 the Tray, root Canvas drop surface, active Inspector/AI catalogue and export;
 they are not advertised as implemented Standard widgets.
 
@@ -140,13 +140,21 @@ Current Standard-widget milestone evidence:
   consumes the existing backend snapshot with no duplicate manager, setter or
   UserEvent architecture.
 
-The registry contains 39 Standard widgets; 34 are physically proven (87%) and
-5 remain. Text, Clock and Wi-Fi Status join Image, Line, TabView, TileView, Button, Heading, Box and
+The registry contains 42 practical Standard LVGL widgets/components and all
+**42/42 are PROVEN on ESP32-P4**. The original 39-widget milestone remains the
+foundation; Closure Batch 1 added Span, Animation Image and Image Button.
+Batch D completed QR Code, Icon Button, Icon final re-proof and
+Canvas, including Canvas/Browser/Live/Standalone parity and a successful mobile
+scan of the generated QR Code. Text, Clock and Wi-Fi Status join Image, Line, TabView, TileView, Button, Heading, Box and
 Divider as **PROVEN**. Image uses native uploaded-asset Contain scaling with
 persistent source dimensions; Line uses native endpoint geometry and styling.
-Icon is **READY FOR FINAL HARDWARE RE-PROOF** and is not included in the proven
-total. Dedicated
-Dashboard widgets have not started.
+Icon is included in the proven total. A final official LVGL 9.2 catalogue audit
+found five practical closure widgets. Span, Animation Image and Image Button
+are now registered and **PROVEN ON ESP32-P4**; Window and Menu remain.
+Lottie is intentionally excluded. See [Final LVGL 9 Standard Widget Audit](docs/LVGL_9_STANDARD_WIDGET_AUDIT.md).
+
+Batch 1 implementation and hardware steps are recorded in
+[LVGL 9.2 Practical Closure — Batch 1](docs/FORGEUI_LVGL_CLOSURE_BATCH1.md).
 
 ## Hardware support and proof
 
@@ -260,12 +268,13 @@ Standard Fi Icons now generate optional component-name-based presentation APIs
 in `96_FiRuntime.c/.h` and optional click hooks in `95_UserEvents`. Runtime API
 generation defaults on; click defaults off. The canonical 92% icon renderer and
 used-asset gating remain shared by Canvas, Browser Preview, Live and Standalone.
-The overall feature is **SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN** and
-does not change the current **34/39** Standard widget proof total. ESP32-P4 evidence proves
+The overall feature is **PROVEN ON ESP32-P4** and contributed to the original
+39-widget milestone; the current practical LVGL 9.2 proof total is **42**.
+ESP32-P4 evidence proves
 the 90 → 95 click path across three independent collision-safe callbacks, with
 exactly one callback per deliberate tap and none at startup. The 90 → 96
-presentation path remains pending hardware proof for color, opacity, hide/show,
-pre-bind retention, repeated silent setters, independent instances and
-Standalone parity; click-disabled non-interaction also remains open. Icon and
-the complete Fi Runtime are not yet fully **PROVEN**. See the
+presentation path is physically proven for color, opacity, hide/show, pre-bind
+retention, repeated silent setters, independent instances, Standalone parity
+and click-disabled non-interaction. Icon and the complete Fi Runtime are
+**PROVEN**. See the
 [Fi Runtime Guide](09_FORGEUI_FI_RUNTIME_GUIDE.md).

@@ -136,4 +136,52 @@ describe('QRCode LVGL export', () => {
     )
     expect(generated.code).not.toContain('quietZone')
   })
+
+  it('allocates collision-safe runtime APIs for multiple named instances', () => {
+    const second = {
+      ...components.qr,
+      id: 'qr-2',
+      componentName: 'QR Code',
+      props: {
+        ...components.qr.props,
+        x: 240,
+        qrText: 'https://forgeui.co.nz/device/43',
+      },
+    }
+    const third = {
+      ...components.qr,
+      id: 'qr-3',
+      componentName: 'QR-Code',
+      props: {
+        ...components.qr.props,
+        x: 460,
+        qrText: 'https://forgeui.co.nz/device/44',
+      },
+    }
+    const generated = generateForgeUILvglCode({
+      ...components,
+      qr: {
+        ...components.qr,
+        componentName: 'QR Code',
+      },
+      root: {
+        ...components.root,
+        children: ['qr', second.id, third.id],
+      },
+      [second.id]: second,
+      [third.id]: third,
+    }, 'graphite', undefined, { includeThemeTexture: false })
+
+    expect(generated.publicApiDeclarations).toEqual(expect.arrayContaining([
+      'void FG_Set_QRCode_Text(const char * text);',
+      'void FG_Set_QRCode_2_Text(const char * text);',
+      'void FG_Set_QRCode_3_Text(const char * text);',
+    ]))
+    expect(generated.code).toContain(
+      'static lv_obj_t * fg_qrcode_2_qrcode = NULL;',
+    )
+    expect(generated.code).toContain(
+      'static lv_obj_t * fg_qrcode_3_qrcode = NULL;',
+    )
+  })
 })

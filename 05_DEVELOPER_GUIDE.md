@@ -5,7 +5,7 @@ how authoring metadata becomes native LVGL firmware and how to preserve parity
 across the complete pipeline.
 
 Current save point:
-`FORGEUI_STANDARD_WIDGET_PIPELINE__CLOCK_WIFI_STATUS_PROVEN__PROJECT_HARDWARE_PROFILE_AUTHORITY__FI_RUNTIME__2026-08-01`.
+`FORGEUI_LVGL9_CLOSURE_BATCH1__SPAN_ANIMIMAGE_IMAGEBUTTON_ESP32P4_PROVEN__DOCUMENTATION_ALIGNED__READY_FOR_WINDOW_MENU__2026-08-02`.
 
 For application-to-hardware examples after export, use
 [05_DEVELOPER_HARDWARE_INTEGRATION.md](05_DEVELOPER_HARDWARE_INTEGRATION.md).
@@ -388,9 +388,12 @@ substitute repeated direct COM-port troubleshooting unless the operator asks.
 
 ## 20. Current direction
 
-Finish and physically prove the Standard Widget library first. Do not begin the
-dedicated Dashboard Widget family early. The Runtime SDK documentation should
-grow from proven generated contracts rather than speculative APIs.
+All 42 practical Standard LVGL widgets/components currently registered are
+physically proven. Closure Batch 1 proved Span, Animation Image and Image
+Button. Complete Window and then Menu through the Proven Widget Pipeline before
+ForgeUI-native Dashboard widgets. Lottie remains an explicit
+dependency-heavy exclusion. Future work must reuse proven generated contracts
+rather than introduce speculative duplicates.
 
 ### Native Spinbox example
 
@@ -421,10 +424,8 @@ parity verification gaps and missing export preflight validation.
 Native LVGL Spinbox is a digit-selection editor, not a free-form numeric text
 field. Use NumberInput when arbitrary numeric text entry is required.
 
-The authoritative registry contains 39 Standard widgets. With TileView
-promoted and TabView retaining its existing **PROVEN** status, physical
-completion is 34/39 (87%), with 5 remaining. Icon remains **READY FOR
-FINAL HARDWARE RE-PROOF** and are excluded from the proven count.
+The authoritative registry contains 42 practical Standard LVGL
+widgets/components. All **42/42 are physically proven on ESP32-P4**.
 
 ### Native List proof
 
@@ -444,15 +445,16 @@ from the same generated output. **LIST — PROVEN ON ESP32-P4**.
 See [FORGEUI_SPINBOX_WIDGET.md](docs/FORGEUI_SPINBOX_WIDGET.md).
 ## 2026-08-01 end-of-sprint engineering state
 
-The Standard proof ledger is **34/39 (87%)**, with **5 remaining**. Text, Clock, Wi-Fi Status, Image and
+The practical Standard LVGL proof ledger is **42/42**, with Window and Menu
+remaining outside the active Registry. Text, Clock, Wi-Fi Status, Image and
 Line are proven through native constructors, shared preview/export models,
 Live/Standalone output and ESP32-P4 physical validation. Button,
 Heading, Box and Divider are physically proven. The sprint also completed
 native TileView replacement, Text multiline wrapping parity, Icon automatic
 sizing/clipping correction, Divider vertical-drop usability, Heading
 multiline/alignment parity and Box child/nesting parity. Text has since
-completed physical validation and is **PROVEN**. Icon remains **READY FOR FINAL
-HARDWARE RE-PROOF** and must not be promoted from software evidence alone.
+completed physical validation and is **PROVEN**. Batch D subsequently completed
+Icon final physical re-proof together with QR Code, Icon Button and Canvas.
 ## Calling a Standard Fi Icon at runtime
 
 Enable **Generate runtime API** on the Icon (on by default), give the component
@@ -470,11 +472,11 @@ regeneration replaces 90 and 96 but preservation-merges matching 95 bodies.
 Standalone output becomes developer-owned under the normal export rules. Full
 contract: [`09_FORGEUI_FI_RUNTIME_GUIDE.md`](09_FORGEUI_FI_RUNTIME_GUIDE.md).
 
-Current evidence is **SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN**. The
+Current evidence is **PROVEN ON ESP32-P4**. The
 90 → 95 click path is physically **PROVEN** on ESP32-P4 across three independent,
 collision-safe callbacks, exactly once per deliberate tap and never at startup.
 SD stayed ready; an observed Wi-Fi failure was unrelated. The 90 → 96
-presentation path is **PENDING HARDWARE PROOF**: color, opacity, hide/show,
-pre-bind retention, repeated silent setters, independent presentation instances
-and Standalone parity remain open, as does click-disabled non-interaction. Do
-not treat the setters, Icon, or the complete Fi Runtime as physically proven.
+presentation path is physically proven: color, opacity, hide/show, pre-bind
+retention, repeated silent setters, independent presentation instances,
+Standalone parity and click-disabled non-interaction were accepted. The
+setters, Icon and complete Fi Runtime are physically proven.

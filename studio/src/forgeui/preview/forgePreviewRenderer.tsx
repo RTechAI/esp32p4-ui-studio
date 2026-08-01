@@ -49,6 +49,7 @@ import StandardBoxPreview from './StandardBoxPreview'
 import StandardDividerPreview from './StandardDividerPreview'
 import StandardWifiPreview from './StandardWifiPreview'
 import StandardLinePreview from './StandardLinePreview'
+import { StandardSpanPreview, StandardAnimImagePreview, StandardImageButtonPreview } from './StandardClosureWidgetPreviews'
 import ImagePreview from '~components/editor/previews/ImagePreview'
 import StandardCalendarPreview from './StandardCalendarPreview'
 import { resolveForgeSemanticPalette } from './forgeThemeMap'
@@ -755,19 +756,7 @@ case 'Tileview': {
 
 case 'AnimImage': {
   output.push(
-    <Box
-      key={child.id}
-      {...commonStyle}
-      border={`1px solid ${palette.border}`}
-      borderRadius="8px"
-      bg={palette.surface}
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
-      color={palette.text}
-    >
-      AnimImage
-    </Box>,
+    <Box key={child.id} {...commonStyle}><StandardAnimImagePreview component={child} palette={theme} /></Box>,
   )
   break
 }
@@ -789,6 +778,16 @@ case 'Lottie': {
       {child.type}
     </Box>,
   )
+  break
+}
+
+case 'Span': {
+  output.push(<Box key={child.id} {...commonStyle}><StandardSpanPreview component={child} palette={theme} /></Box>)
+  break
+}
+
+case 'ImageButton': {
+  output.push(<Box key={child.id} {...commonStyle}><StandardImageButtonPreview component={child} mode="browser" /></Box>)
   break
 }
 

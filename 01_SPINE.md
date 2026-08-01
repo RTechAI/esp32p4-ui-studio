@@ -11,15 +11,17 @@
 
 ## Current Save Point
 
-**FORGEUI_STANDARD_WIDGET_PIPELINE__CLOCK_WIFI_STATUS_PROVEN__PROJECT_HARDWARE_PROFILE_AUTHORITY__FI_RUNTIME__2026-08-01**
+**FORGEUI_LVGL9_CLOSURE_BATCH1__SPAN_ANIMIMAGE_IMAGEBUTTON_ESP32P4_PROVEN__DOCUMENTATION_ALIGNED__READY_FOR_WINDOW_MENU__2026-08-02**
 
-**CURRENT PRIORITY: COMPLETE THE STANDARD WIDGET LIBRARY AND PHYSICALLY PROVE EACH SLICE**
+**CURRENT PRIORITY: CLOSE THE PRACTICAL OFFICIAL LVGL 9.2 CATALOGUE BEFORE FORGEUI-NATIVE WIDGETS**
 
 ### 2026-08-01 end-of-sprint save point
 
-Physical proof now stands at **34/39 Standard widgets (87%)**, with **5
-remaining**. Text, Clock and Wi-Fi Status join Image, Line, Button, Heading,
-Box and Divider as proven.
+Physical proof now stands at **42 practical LVGL 9.2 widgets/components**: the
+previous 39 plus Span, Animation Image and Image Button. Batch D
+physically proved QR Code, Icon Button, Icon and Canvas across the applicable
+Canvas, Browser Preview, Live Studio and Standalone Export paths. The QR Code
+displayed correctly on ESP32-P4 and scanned successfully with a mobile phone.
 Image uses native `lv_image_create()`, uploaded assets with persistent intrinsic
 dimensions, canonical Contain sizing and source-aware LVGL scaling across Live
 and Standalone export. Line uses native `lv_line_create()` with proven geometry,
@@ -28,7 +30,10 @@ replaces the synthetic export; Heading owns multiline/alignment parity; Box
 owns child nesting across Browser and native export; Divider has a visible
 vertical insertion default without changing horizontal behavior; Text owns
 multiline wrapping parity; and Icon owns source-aware centered automatic fit.
-Icon remains **READY FOR FINAL HARDWARE RE-PROOF** and is not counted as proven.
+All 39 previously registered Standard widgets remain physically proven. Span,
+Animation Image and native Image Button have now also passed ESP32-P4 proof
+across Canvas, Browser, Live and Standalone. Window and Menu are the only two
+remaining practical LVGL 9.2 closure widgets. Lottie remains excluded.
 
 ### Technical-manager continuity note
 
@@ -78,16 +83,16 @@ open. Direct COM-port flashing by GPT is not the default workflow.
   Browser Preview → LVGL Export → Runtime SDK → UserEvents → ESP32-P4 →
   Standalone Export. Its setter is silent, its changed hook fires exactly once
   per effective user action, and generated names are collision-safe.
-- Dashboard is the only implemented Layout Designer template. The dedicated
-  Dashboard Widget family remains roadmap work and must not begin until the
-  Standard Widget library is complete and physically proven.
+- Dashboard is the only implemented Layout Designer template. All 42 practical
+  Standard LVGL Registry entries are physically proven; Window and Menu remain
+  before the dedicated ForgeUI Dashboard Widget family begins.
 - The ForgeUI Runtime SDK is an architectural direction, not a separately
   shipped runtime product. It is the documented surface formed by generated
   Runtime APIs, UserEvents, types and ownership rules.
-- `componentsList.ts` remains only a compatibility list for legacy
-  Chakra-era component parsing. AnimImage, ImageButton, Lottie, Menu,
-  ObjxTempl and Editable are explicitly quarantined as future/unregistered
-  types: they are absent from the Registry and root drop surface, excluded from
+- `componentsList.ts` remains only a compatibility list for legacy Chakra-era
+  component parsing. Lottie, Menu, ObjxTempl and Editable remain explicitly
+  quarantined future/unregistered types. AnimImage and ImageButton are active,
+  proven Registry widgets. Quarantined types remain excluded from
   the active Inspector/AI catalogue and rejected by export preflight.
 - Registry documentation metadata resolves to real Markdown files. Spinbox and
   QR Code use their focused guides; other entries resolve to the authoritative
@@ -99,7 +104,7 @@ open. Direct COM-port flashing by GPT is not the default workflow.
 
 The 2026-07-31 architecture milestone adds a data-driven Board Profile registry, persisted per-project hardware and feature selection, hydration-safe Board Selector loading, one generated `00_ForgeUI_Features.h`, export-time C/CMake/component-manifest pruning, deterministic asset-source deduplication, implemented Diagnostics, and lazy Wi-Fi Manager and Storage Browser lifecycles. Live Build & Flash and standalone ESP-IDF export consume the same project hardware profile and shared `ForgeUILvglExport.ts` generator.
 
-QR Code is the first widget completed through the permanent Proven Widget Pipeline. Its registry, Tray discovery and insertion, Canvas, Inspector, shared Browser Preview, semantic theme behavior, project-model compatibility, undo/redo, native LVGL 9.2.2 export and `FG_Set_QR_Code_Text(const char * text)` runtime API are implemented and covered by focused automated tests. QR Code is output-only and intentionally generates no `95_UserEvents` callback. The current generated firmware contains the native QR implementation and has a clean-build record, but this repository contains no recorded successful phone scan; physical QR scan proof remains open.
+QR Code is completed through the permanent Proven Widget Pipeline. Its Registry, Tray discovery and insertion, Canvas, Inspector, shared Browser Preview, semantic theme behavior, project-model compatibility, undo/redo, native LVGL 9.2.2 export and `FG_Set_QR_Code_Text(const char * text)` runtime API are implemented and validated. QR Code is output-only and intentionally generates no `95_UserEvents` callback. The generated code displayed correctly on ESP32-P4, scanned successfully with a mobile phone and matched across Live and Standalone export. Status: **PROVEN**.
 
 ForgeUI has a reusable Interactive Asset Framework with five fully implemented asset types organized into three generated runtime families:
 
@@ -638,7 +643,7 @@ Slider track/thumb interaction changes temporary preview value, surrounding Canv
 
 ### QR Code
 
-`QRCode` is a Standard Runtime Display widget registered through the authoritative Widget Registry. Its default geometry is `180 × 180` and its default payload is `https://forgeui.co.nz`. The Inspector exposes QR Text, Foreground Colour, Background Colour and Padding (Quiet Zone), together with the normal geometry controls.
+`QRCode` is a Standard Runtime Display widget registered through the authoritative Widget Registry. Its default geometry is `180 × 180` and its default payload is `https://forgeui.co.nz`. The Inspector exposes typed content fields plus optional Foreground and Background colour overrides together with the normal geometry controls. LVGL 9.2.2 has no quiet-zone setter; Canvas and Browser Preview intentionally mirror its native integer-module sizing and centered remainder pixels without inventing an unsupported property.
 
 Canvas and Browser Preview share one deterministic vector module renderer. The preview contains no raster QR artwork, reflects the actual encoded text, remains sharp while resized and uses the selected semantic accent and surface unless explicit colours are saved.
 
@@ -649,8 +654,7 @@ lv_obj_t * qr = lv_qrcode_create(parent);
 lv_qrcode_set_size(qr, size);
 lv_qrcode_set_dark_color(qr, foreground);
 lv_qrcode_set_light_color(qr, background);
-lv_qrcode_set_quiet_zone(qr, true);
-lv_qrcode_set_data(qr, text);
+lv_qrcode_update(qr, text, strlen(text));
 ```
 
 Named instances generate:
@@ -659,7 +663,7 @@ Named instances generate:
 void FG_Set_QR_Code_Text(const char * text);
 ```
 
-The setter regenerates the native QR data at runtime. QR Code intentionally generates no `95_UserEvents` callback because it is an output-only display and has no genuine user interaction. Registry insertion, normal project serialization, undo/redo, hydration-safe Tray loading, Canvas, Browser Preview, semantic theme resolution, native LVGL export and runtime API generation are covered by focused tests. Generated C and the current clean ESP32-P4 build are present; successful phone scans of URL and Wi-Fi payloads remain pending, so QR Code is not yet physically proven.
+The setter regenerates the native QR data at runtime. QR Code intentionally generates no `95_UserEvents` callback because it is an output-only display and has no genuine user interaction. Registry insertion, normal project serialization, undo/redo, hydration-safe Tray loading, Canvas, Browser Preview, semantic theme resolution, native LVGL export and runtime API generation are covered by focused tests. Generated C, ESP32-P4 display, successful mobile scan and matching Live/Standalone behavior are physically accepted. **QR CODE — PROVEN.**
 
 ### Scale
 
@@ -1484,14 +1488,14 @@ The Widget Tray is completely registry-driven. Future widgets are added by regis
 
 ### Registry-wide implementation and proof audit — 2026-07-31
 
-The authoritative registry contains 44 entries: 39 Standard widgets and five
+The authoritative registry contains 47 entries: 42 Standard widgets and five
 Interactive Assets. Every entry is available in the registry-driven Tray, has
 persisted defaults/insertion, a Canvas dispatch, Inspector dispatch, Browser
 Preview dispatch and an LVGL export path. Focused registry/Tray tests and
 component/exporter regressions provide automated evidence; no conclusive
 permanent implementation was found outside the registry, so no registry
 definition was added. The Dashboard category remains intentionally empty.
-Thirty-four of 39 Standard widgets are now physically proven (87%); 5 remain
+All 39 Standard widgets are now physically proven (100%); none remain
 to be individually promoted.
 
 ```text
@@ -1507,7 +1511,7 @@ Registry → Tray → Canvas → Inspector → Browser Preview → LVGL Export
 | Heading | implemented / implemented | intentionally API-free | **PROVEN** |
 | Button | implemented / implemented | API-free serialized text | **PROVEN** |
 | IconButton | implemented / implemented | enabled setter + click hook | pending |
-| Icon | implemented / implemented | generic 96 presentation API; optional 95 click | **READY FOR FINAL HARDWARE RE-PROOF** |
+| Icon | implemented / implemented | generic 96 presentation API; optional 95 click | **PROVEN** |
 | Box | implemented / implemented | visibility setter, no hook | **PROVEN** |
 | Line | implemented / implemented | intentionally API-free | **PROVEN** |
 | Divider | implemented / implemented | intentionally API-free | **PROVEN** |
@@ -1533,7 +1537,7 @@ Registry → Tray → Canvas → Inspector → Browser Preview → LVGL Export
 | Table | implemented / implemented | existing retained table runtime | physically proven |
 | Clock | implemented / implemented | API-free RTC presentation | **PROVEN** |
 | WiFi | implemented / implemented | collision-safe backend projection; no public widget API/hook | **PROVEN** |
-| QRCode | implemented / implemented | text setter, no hook | phone scan pending |
+| QRCode | implemented / implemented | text setter, no hook | **PROVEN; ESP32-P4 display and mobile scan passed** |
 | Progress | implemented / implemented | value setter, no hook | physically proven |
 | CircularProgress | implemented / implemented | value setter, no hook | physically proven |
 | Tabview | implemented / implemented | selected-index setter + change hook | **PROVEN** |
@@ -2680,6 +2684,50 @@ These remain future concepts only. Existing Radio and Checkbox runtimes are impl
 
 Save points are ordered newest to oldest. Detailed subsystem engineering is maintained in the Developer Code Maps.
 
+## FORGEUI_LVGL9_CLOSURE_BATCH1__SPAN_ANIMIMAGE_IMAGEBUTTON_ESP32P4_PROVEN__DOCUMENTATION_ALIGNED__READY_FOR_WINDOW_MENU__2026-08-02
+
+- **Milestone:** Span, Animation Image and Image Button passed ESP32-P4
+  physical validation, raising the practical LVGL 9.2 proof total to **42**.
+- **Parity:** Canvas, Browser Preview, Live Studio and Standalone Export matched;
+  no hardware regressions were observed.
+- **Next:** Window, then Menu. Lottie remains intentionally excluded.
+
+## Historical Closure Batch 1 software milestone — superseded 2026-08-02
+
+- **Software result:** Span, Animation Image and Image Button now traverse the
+  authoritative Registry, Tray, Canvas, Inspector, Browser Preview and shared
+  native Live/Standalone generator.
+- **Proof boundary:** 39 established widgets remain PROVEN; these three are
+  recorded here at their former pre-proof boundary; they were subsequently
+  promoted to PROVEN by the 2026-08-02 milestone above.
+- **Runtime:** Span is API/event-free; Animation Image has no public control API;
+  Image Button owns enabled state and a genuine click hook.
+
+## FORGEUI_FINAL_LVGL9_AUDIT__39_REGISTERED_STANDARD_WIDGETS_PROVEN__5_PRACTICAL_CLOSURE_WIDGETS__2026-08-01
+
+- **Audit result:** The current Registry remains 39/39 physically proven, but
+  the official LVGL 9.2 catalogue has six unregistered classes.
+- **Closure decision:** Implement Span, Animation Image, Image Button, Window
+  and Menu. Explicitly exclude Lottie pending a separate ThorVG/vector/C++ and
+  framebuffer architecture decision.
+- **Authority:** `docs/LVGL_9_STANDARD_WIDGET_AUDIT.md`.
+
+## FORGEUI_STANDARD_WIDGET_PIPELINE__39_OF_39_STANDARD_WIDGETS_ESP32P4_PROVEN__BATCH_D_COMPLETE__READY_FOR_FORGEUI_WIDGETS__2026-08-01
+
+Superseded as the current roadmap by the final LVGL 9 catalogue audit above;
+its 39/39 physical-proof result remains valid for the then-current Registry.
+
+- **Milestone:** QR Code, Icon Button, Icon final re-proof and Canvas passed
+  ESP32-P4 physical validation, completing the Standard Widget Library at
+  **39/39 PROVEN**.
+- **Evidence:** QR rendered correctly and scanned successfully on a mobile
+  phone; Clock, Wi-Fi Status, Icon Button and Canvas operated correctly in Live
+  firmware; Canvas, Browser Preview, Live Studio and Standalone Export parity
+  was accepted with no observed regression.
+- **Next phase:** ForgeUI Widgets: Dashboard family, Window, Menu, Dashboard
+  Designer, future Background Designer architecture, generated Runtime SDK
+  expansion, template library and higher-level application widgets.
+
 ## FORGEUI_BOARD_PROFILES__EXPORT_TIME_FEATURE_GATING__LAZY_SYSTEM_TOOLS__CONNECTED_WIFI_45KB_FREE__RAM_OVERLAY__READY_FOR_FINAL_OPERATOR_VALIDATION__2026-07-31
 
 - **What changed:** Added the Board Selector and board/profile registry, hydration-safe persisted project hardware state, generated `00_ForgeUI_Features.h`, C/CMake/component-manifest pruning, canonical asset deduplication, lazy Wi-Fi Manager/dialog lifecycle, acknowledged Storage-worker teardown, Diagnostics, RAM probes and the compact sysmon overlay.
@@ -2708,7 +2756,7 @@ Save points are ordered newest to oldest. Detailed subsystem engineering is main
   Preview, native LVGL export, semantic theme and runtime API generation.
 - **Why it changed:** Layouts and widgets needed scalable definition-driven extension points instead of Dashboard-only or Sidebar-owned implementations. Future Codex sessions also need one mandatory widget lifecycle grounded in the exact LVGL version used by ForgeUI.
 - **Final architecture:** `WidgetDefinition` is authoritative for widget identity, metadata, defaults, insertion and capabilities. The Widget Tray renders registry data and assets without a second catalogue. Six layouts share `LayoutDefinition`; AI selects content, semantic regions own placement intent and Auto Arrange owns geometry. Future widgets follow Official LVGL Reference → Widget Registry → Widget Tray → Canvas → Inspector → Browser Preview → LVGL Export → Runtime API when appropriate → `95_UserEvents` for genuine interaction only → ESP32-P4 → Documentation → PROVEN. QR Code uses native `lv_qrcode`, exposes `FG_Set_QR_Code_Text(const char * text)` and intentionally creates no user-event hook.
-- **Proven result:** Focused Widget Tray, search, insertion, undo/redo, hydration, QR preview, registry and runtime-export tests pass, and all current LVGL exporter suites pass. The existing Dashboard behavior remains the layout reference while all six definitions use the shared architecture. No physical QR proof is claimed: ESP32-P4 build, flash and successful phone scans remain required. Status is READY FOR PHYSICAL QR VALIDATION.
+- **Proven result:** Focused Widget Tray, search, insertion, undo/redo, hydration, QR preview, registry and runtime-export tests pass. The existing Dashboard behavior remains the layout reference while all six definitions use the shared architecture. Batch D subsequently completed ESP32-P4 display, successful mobile scan and Live/Standalone parity. QR Code is **PROVEN**.
 
 ## FORGEUI_LAYOUT_DESIGNER__DASHBOARD_SMART_REGIONS_AUTO_ARRANGE_AI_FILL__CANVAS_AND_BROWSER_PREVIEW_MANUALLY_VERIFIED__READY_FOR_EXPORT_AND_HARDWARE_PROOF__2026-07-30
 
@@ -2956,18 +3004,18 @@ I welcome feedback, ideas and contributions from developers around the world.
 Creator & Lead Developer — ForgeUI Studio
 
 📧 **forgeui.esp32@gmail.com**
-## 2026-08-01 — Fi Icon Runtime partial physical proof
+## 2026-08-01 — Fi Icon Runtime physical proof complete
 
 Standard Icon now has a generic per-instance runtime foundation. The canonical
 icon pipeline remains authoritative; component names allocate collision-safe
 `Visible`, `Opacity` and `Color` APIs in regenerated `96_FiRuntime.c/.h`, while
 optional click behavior attaches in 90 and preservation-merges its hook in 95.
 Runtime API defaults on, click defaults off, and unused runtime files/assets are
-gated out. The overall status is **SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN**
-and does not change the then-current proof total. Physical ESP32-P4
+gated out. The overall status is **PROVEN ON ESP32-P4** and contributes to the
+completed 39/39 proof total. Physical ESP32-P4
 evidence proves the 90 → 95 click path: three click-enabled instances emitted
 exactly one separate collision-safe callback per deliberate tap, no callback at
 startup, and SD remained ready. The unrelated Wi-Fi failure during the run is
-not Fi click evidence. The 90 → 96 presentation path remains pending hardware
-proof, so neither Icon nor Fi Runtime is fully **PROVEN**. See
+not Fi click evidence. Batch D subsequently proved the 90 → 96 presentation
+path and Standalone parity, so Icon and Fi Runtime are fully **PROVEN**. See
 [`09_FORGEUI_FI_RUNTIME_GUIDE.md`](09_FORGEUI_FI_RUNTIME_GUIDE.md).

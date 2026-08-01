@@ -107,6 +107,7 @@ type ComponentType =
   | 'TabPanels'
   | 'Tag'
   | 'Text'
+  | 'Span'
   | 'Textarea'
 
 type MetaComponentType =

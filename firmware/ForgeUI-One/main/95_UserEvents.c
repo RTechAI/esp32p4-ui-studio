@@ -292,3 +292,13 @@ void FG_On_Comp_MS9QE1N7GA5O3_Clicked(void)
 {
     printf("[ForgeUI User Event] FG_On_Comp_MS9QE1N7GA5O3_Clicked\n");
 }
+
+void FG_On_Image_Button_Clicked(void)
+{
+    printf("[ForgeUI User Event] FG_On_Image_Button_Clicked\n");
+}
+
+void FG_On_Image_Button_2_Clicked(void)
+{
+    printf("[ForgeUI User Event] FG_On_Image_Button_2_Clicked\n");
+}

@@ -10,17 +10,99 @@ each feature and the official widget totals.
 | Item | Current record |
 | --- | --- |
 | Last updated | 2026-08-01 |
-| Current Standard Widget proof total | 34 of 39 (87%), as recorded in `04_FEATURE_STATUS.md` |
-| Remaining Standard widgets | 5 |
+| Current practical LVGL 9.2 proof total | 42 physically proven, as recorded in `04_FEATURE_STATUS.md` |
+| Remaining practical closure widgets | Window and Menu |
 | LVGL version | 9.2.2 |
 | ESP-IDF version | 5.5.4 |
 | Target hardware | Waveshare ESP32-P4-WiFi6-Touch-LCD-7B, 1024 × 600 |
-| Current development phase | Hardware-first Standard Widget proof and authoring/export parity closure |
+| Current development phase | Implement and prove Window, then Menu |
 
 Totals are copied only as a dated summary pointer. Change them in
 `04_FEATURE_STATUS.md` after proof acceptance, then refresh this summary.
 
 ## Recently Improved
+
+### 2026-08-02 — Closure Batch 1 ESP32-P4 proof
+
+Span, Animation Image and Image Button passed physical ESP32-P4 validation and
+Canvas, Browser Preview, Live Studio and Standalone parity. Span proved ordered
+native rich text, semantic and explicit colours, sizing, underline and
+alignment. Animation Image proved Asset Manager authoring, ordered animation
+and zero-frame parity. Image Button proved native released, pressed, disabled
+and click behavior. The practical LVGL 9.2 proof total is now **42**, with only
+Window and Menu remaining. No hardware regressions were observed.
+
+### 2026-08-02 — Inspector native dropdown theme refinement
+
+Chakra Inspector dropdowns are native HTML selects, not portal-rendered Chakra
+menus. The Studio previously forced pale selected text globally without owning
+the native option palette, allowing Windows to open a light popup with
+low-contrast text. One shared ForgeUI control contract now declares a dark
+native colour scheme plus dark option background, readable text, hover,
+teal-selected, disabled and keyboard-focus states. The correction applies to
+semantic colours, sizes/fonts, alignment, overflow, themes and widget options;
+it is not Span-specific and does not change widget data or export behavior.
+
+### 2026-08-02 — Span authoring workflow completion
+
+Span previously had native export and a minimal panel, but its index-keyed,
+unlabelled collection controls did not form a dependable authoring workflow and
+the empty state was inert. One typed normalized span record now owns defaults,
+Inspector edits, both previews and export. Stable IDs and immutable helpers
+cover add, edit, reorder and removal; explicit colour is a clear override of the
+selected semantic role; alignment and clip/ellipsis are labelled. The empty
+placeholder creates the first persisted span. This is an authoring workflow
+repair subsequently accepted during Span's ESP32-P4 physical proof.
+
+### 2026-08-02 — Animation Image authoring workflow completion
+
+Animation Image now opens the existing Asset Manager in multi-select mode from
+both its empty-state button and Inspector. Applying a selection updates the
+ordered frame IDs in one component transaction. The Inspector supports
+individual replacement, empty-slot addition, Up/Down reordering, removal,
+duration, looping and initial running state. Browser Preview responds to the
+same serialized list consumed by Live and Standalone export. No second asset
+picker, registry or conversion path was introduced.
+
+### 2026-08-01 — Animation Image empty-state parity refinement
+
+Canvas and Browser Preview already communicated that frames must be added, but
+the generated zero-frame fallback retained native object defaults and displayed
+as a white clipped panel on ESP32-P4. The zero-frame path now uses an identical
+transparent, semantic-border panel with centred `Add animation frames` text in
+Canvas, Browser, Live and Standalone. Valid one-frame and multi-frame native
+`lv_animimg` output is unchanged. This is recorded as a visual parity
+refinement, not an implementation failure.
+
+### 2026-08-01 — LVGL 9.2 practical closure Batch 1
+
+Span, Animation Image and Image Button now use the authoritative Registry,
+Tray, Canvas, Inspector, shared Browser Preview, canonical uploaded-image
+pipeline and shared Live/Standalone LVGL generator. Span remains
+presentation-only. Image Button reuses the collision-safe enabled API and
+`95_UserEvents` click path. All three subsequently passed ESP32-P4 validation
+and are **PROVEN**. Window and Menu remain next.
+
+### 2026-08-01 — Batch D physical proof and Standard Widget Library completion
+
+- **QR Code:** Registry-to-export software slice, typed payload editing,
+  semantic colours, native LVGL generation, shared previews and collision-safe
+  multiple instances pass focused validation. ESP32-P4 display, successful
+  mobile scan and Live/Standalone parity passed. Status is **PROVEN**.
+- **Icon Button:** Added the missing Inspector control for serialized disabled
+  state. Canonical icon presentation, Browser pressed feedback, native LVGL
+  pressed/disabled styling, the guarded enabled setter, genuine click hook and
+  collision-safe multiple instances pass focused validation and physical
+  ESP32-P4 operation. Status is **PROVEN**.
+- **Icon:** Registry, Inspector, canonical ownership, semantic theme,
+  Browser/Canvas rendering, runtime generation and multiple-instance paths were
+  audited without finding a new architectural defect and passed final ESP32-P4
+  re-proof. Status is **PROVEN**.
+- **Canvas:** Standard Canvas preview/export and the Studio editing surface were
+  audited across selection, movement, resizing, supported rotation, ordering,
+  hit testing, fractional geometry, property synchronization and Browser
+  Preview handoff and physical Live/Standalone parity. No duplicate Canvas
+  runtime was introduced. Status is **PROVEN**.
 
 ### 2026-08-01 — Batch C Clock and Wi-Fi Status physical proof
 
@@ -47,9 +129,9 @@ Totals are copied only as a dated summary pointer. Change them in
   retained its native replacement for the former synthetic export.
 - **Reason:** Hardware-first comparison exposed presentation, nesting, wrapping,
   sizing and clipping differences that automation alone could not establish.
-- **Validation:** Button, Heading, Box and Divider passed ESP32-P4 proof. Text and
-  Icon software regressions passed but both remain **READY FOR FINAL HARDWARE
-  RE-PROOF** and are excluded from the 29-widget proven total.
+- **Validation:** Button, Heading, Box and Divider passed ESP32-P4 proof. Text
+  later passed physical proof, and Icon passed final Batch D re-proof. Both are
+  included in the completed 39-widget proven total.
 
 ### 2026-08-01 — Standard Text parity
 
@@ -189,8 +271,8 @@ Totals are copied only as a dated summary pointer. Change them in
   Explicit `boxSize` remains exact.
 - **Regression protection:** Source-size, padding, scale, pivot, alignment,
   opacity, recolour and deterministic Live/Standalone block tests.
-- **Physical validation:** Correction awaits final flash and visual comparison.
-  Icon remains **READY FOR FINAL HARDWARE RE-PROOF**.
+- **Physical validation:** Final flash and visual comparison passed during
+  Batch D. Icon is **PROVEN**.
 
 ### 2026-07-31 — Spinbox export coordinates
 
@@ -333,7 +415,7 @@ This is a compact evidence journal, not the full status catalogue.
 | Box | Passed | Passed | Passed | Complete | **PROVEN** |
 | Divider | Passed | Passed | Passed | Complete | **PROVEN** |
 | Text | Passed | Passed | Passed | Complete | **PROVEN** |
-| Icon | Software passed | Deterministic shared generator | Corrected build not yet accepted | Re-proof procedure recorded | **READY FOR FINAL HARDWARE RE-PROOF** |
+| Icon | Passed | Passed | Passed | Complete | **PROVEN** |
 
 ## Validation History
 
@@ -362,15 +444,13 @@ Failures remain visible rather than being rewritten as historical passes.
 
 ## Current Sprint
 
-- **Current objective:** Preserve the 34/39 proven save point and begin Batch D:
-  QR Code and Icon Button.
-- **Current proof batch:** Clock and Wi-Fi Status completed Canvas, Browser,
-  Live, Standalone and ESP32-P4 physical proof. Text is also **PROVEN**; Icon
-  remains queued for final hardware re-proof.
-- **Current proven pipeline set includes:** Text, Heading, Button, Box, Divider,
-  Image, Line, Spinbox, List, TabView, TileView, Clock and Wi-Fi Status.
-- **Next planned widgets:** QR Code and Icon Button, following the same
-  Registry-owned Standard Widget Pipeline.
+- **Current objective:** Close the practical official LVGL 9.2 catalogue.
+- **Current proven pipeline set:** All 42 practical registered Standard LVGL
+  widgets/components, including Closure Batch 1.
+- **Next action:** Implement and prove Window, then Menu. Keep Lottie explicitly
+  excluded pending a separate
+  ThorVG/vector/C++ and framebuffer decision. Then begin ForgeUI-native
+  Dashboard widgets and designers.
 
 ## Engineering Notes
 
@@ -426,21 +506,19 @@ records the milestone and outstanding proof rather than duplicating the guide.
 - **Validation:** Focused generator, naming, Registry, canonical icon, selector,
   preview and export-server tests passed. ESP32-P4 evidence now proves only the
   90 → 95 click path, so overall status is
-  **SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN**.
+  **PROVEN ON ESP32-P4** after Batch D completed the presentation path.
 
-### P1 — Fi Icon Runtime physical proof
+### Resolved — Fi Icon Runtime physical proof
 
-- **Priority:** P1
+- **Priority:** Complete
 - **Subsystem:** Standard Icon runtime presentation and optional input.
 - **Description:** Software contracts are complete. Click cardinality and three
   collision-safe click-hook instances are physically proven through 90 → 95.
-  The 90 → 96 presentation path and remaining acceptance checks still require
-  ESP32-P4 observation.
-- **Current workaround:** Claim physical proof only for Fi Icon click hooks; do
-  not claim the presentation setters, Icon, or full Fi Runtime as proven.
-- **Next action:** Complete color, opacity, hide/show, repeated silent-setter,
-  click-disabled, independent presentation-instance and Standalone-parity proof,
-  including pre-bind retained state, using the guide's ESP32-P4 procedure.
+  The 90 → 96 presentation path and remaining acceptance checks were completed
+  on ESP32-P4 during Batch D.
+- **Resolution:** Batch D physically proved the Icon presentation setters,
+  click-disabled behavior, independent instances and Standalone parity. Icon
+  and the complete Fi Runtime are **PROVEN**.
 - **Date last reviewed:** 2026-08-01
 
 ### 2026-08-01 — Fi Icon Runtime validation

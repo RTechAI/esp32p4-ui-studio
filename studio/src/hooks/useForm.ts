@@ -24,5 +24,5 @@ export const useForm = () => {
     [componentId, dispatch.components],
   )
 
-  return { setValue, setValueFromEvent }
+  return { componentId, setValue, setValueFromEvent }
 }

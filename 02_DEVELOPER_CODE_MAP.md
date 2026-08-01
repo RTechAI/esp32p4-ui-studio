@@ -13,7 +13,7 @@
 
 ## Current save point
 
-**FORGEUI_STANDARD_WIDGET_PIPELINE__CLOCK_WIFI_STATUS_PROVEN__PROJECT_HARDWARE_PROFILE_AUTHORITY__FI_RUNTIME__2026-08-01**
+**FORGEUI_LVGL9_CLOSURE_BATCH1__SPAN_ANIMIMAGE_IMAGEBUTTON_ESP32P4_PROVEN__DOCUMENTATION_ALIGNED__READY_FOR_WINDOW_MENU__2026-08-02**
 
 ## Current authoritative ownership summary
 
@@ -52,10 +52,15 @@ configuration dependencies are recorded for future Registry-driven gating but
 do not yet generate sdkconfig.
 
 `componentsList.ts` is not a widget catalogue. Its quarantined
-AnimImage/ImageButton/Lottie/Menu/ObjxTempl/Editable types exist only for
+Lottie/Menu/ObjxTempl/Editable types exist only for
 legacy serialized compatibility. They are removed from active root-drop,
 Inspector and AI capability surfaces, and export validation rejects them
 instead of allowing a placeholder to masquerade as native LVGL.
+
+`ForgeUIClosureWidgets.ts`, `StandardClosureWidgetPreviews.tsx` and
+`ClosureWidgetPanels.tsx` own the Batch 1 authoring model, shared previews and
+Inspectors. Native output remains solely in `ForgeUILvglExport.ts`; artwork
+remains in the canonical uploaded-asset pipeline.
 
 Runtime API means a generated application-to-UI function declared in
 `90_Studio_Export.h`. UserEvent means a generated UI-to-application callback
@@ -84,7 +89,7 @@ usage plus project feature selection gate the emitted code and dependencies.
 - The Widget Tray is driven by `ForgeUIWidgetRegistry.ts`; `ForgeUIWidgetSet.ts` is a compatibility projection rather than a second catalogue.
 - Standard QR Code authoring, Canvas/Browser SVG preview, LVGL export and setter-only generated runtime are implemented.
 - Focused Layout Designer, Widget Tray, hydration, registry, QR preview and exporter tests are passing at the recorded scope.
-- QR Code generated C and the current clean ESP-IDF build are present; a recorded successful phone scan remains pending.
+- QR Code generated C, ESP32-P4 display, successful mobile scan and matching Live/Standalone behavior are physically proven.
 - `src/forgeui/boards/ForgeUIBoardRegistry.ts` owns the production Waveshare ESP32-P4 WiFi6 Touch LCD 7B profile. Persisted project hardware drives live and standalone export after hydration.
 - `ForgeUILvglExport.ts` prunes disabled System runtime; `export-server.js` generates `00_ForgeUI_Features.h` and prunes CMake sources/components plus `idf_component.yml`.
 - Wi-Fi Manager/dialogs and Storage UI/worker resources are demand-created and safely destroyed on Back. Their Wi-Fi/ESP-Hosted and SD backends remain separately alive.
@@ -530,13 +535,13 @@ The 2026-07-30 Standard input and selection group is also physically proven acro
 - Select
 - Spinbox
 
-TabView, TileView, Image and Box are **PROVEN**. IconButton remains
-runtime-complete but outside these physical validation milestones. Its existing
-automated and architectural status is unchanged.
-The registry audit records 44 total entries, comprising 39 Standard widgets
-and five Interactive Assets; physical proof is 34/39 Standard widgets (87%)
-and 5 remain. Text, Clock and Wi-Fi Status joined Image, Line, Heading, Box and
-Divider in the proven set; Icon remains **READY FOR FINAL HARDWARE RE-PROOF**.
+TabView, TileView, Image, Box and Icon Button are **PROVEN**.
+The registry audit records 47 total entries, comprising 42 practical Standard
+LVGL widgets/components and five Interactive Assets; physical proof is
+**42/42**. Closure Batch 1 promoted Span, Animation Image and Image Button after
+successful ESP32-P4 validation. Window and Menu remain outside the Registry;
+Lottie is an intentional dependency-heavy exclusion. The authoritative comparison is
+`docs/LVGL_9_STANDARD_WIDGET_AUDIT.md`.
 
 ### Current next-group parity architecture
 
@@ -877,6 +882,8 @@ Serialized `Box` remains a presentation/layout container with runtime visibility
 ### IconButton
 
 Serialized `IconButton` is an interactive native button. Runtime owns enabled state only and generates `FG_Set_<Name>_Enabled(bool enabled)` plus `FG_On_<Name>_Clicked(void)`. Creation and setter calls are silent, and disabled buttons do not notify. Canvas remains selectable, draggable and resizable; Browser Preview uses temporary pressed state. Icon selection remains serialized and Image exclusively owns runtime source replacement.
+
+Batch D closes the widget-specific software slice: `IconButtonPanel.tsx` exposes the serialized disabled state, `StandardIconButtonPreview.tsx` owns shared Canvas/Browser icon presentation and temporary Browser pressed feedback, and `ForgeUILvglExport.ts` owns native pressed/disabled styles, the guarded enabled setter, the genuine-click adapter and deterministic collision-safe names. No source-swapping API was added.
 
 ### Slider Canvas interaction and runtime
 
@@ -3811,6 +3818,41 @@ Panel, Monitoring, SCADA Overview and Mobile / Portrait are roadmap candidates.
 
 Save points are ordered newest to oldest.
 
+### FORGEUI_LVGL9_CLOSURE_BATCH1__SPAN_ANIMIMAGE_IMAGEBUTTON_ESP32P4_PROVEN__DOCUMENTATION_ALIGNED__READY_FOR_WINDOW_MENU__2026-08-02
+
+- Span, Animation Image and Image Button are physically proven through the
+  shared Canvas, Browser, Live and Standalone architecture.
+- Practical LVGL 9.2 proof is 42; Window and Menu remain.
+- Batch 1 introduced no duplicate registry, asset browser, preview renderer,
+  exporter, runtime or event system.
+
+### Historical Closure Batch 1 software milestone — superseded 2026-08-02
+
+- Added three active Registry definitions and removed AnimImage/ImageButton
+  from quarantine.
+- Added one shared normalized model, shared Canvas/Browser previews and focused
+  Inspector collection/state editors.
+- Added native spangroup, animimg and imagebutton branches to the existing
+  generator; no parallel pipeline was introduced.
+- Historical pre-proof save point; all three were promoted on 2026-08-02.
+
+### FORGEUI_FINAL_LVGL9_AUDIT__39_REGISTERED_STANDARD_WIDGETS_PROVEN__5_PRACTICAL_CLOSURE_WIDGETS__2026-08-01
+
+- The Registry remains authoritative for supported ForgeUI widgets; it is not
+  an exhaustive mirror of LVGL's upstream catalogue.
+- The final audit maps all 33 LVGL 9.2 widget classes and records five practical
+  closure implementations plus the explicit Lottie exclusion.
+
+### FORGEUI_STANDARD_WIDGET_PIPELINE__39_OF_39_STANDARD_WIDGETS_ESP32P4_PROVEN__BATCH_D_COMPLETE__READY_FOR_FORGEUI_WIDGETS__2026-08-01
+
+- **Result:** All 39 registered Standard widgets are physically proven on the
+  Waveshare ESP32-P4 target through their applicable Registry, authoring,
+  preview, generated runtime, Live and Standalone boundaries.
+- **Architecture:** Widget Registry, Proven Widget Pipeline, canonical Image
+  and Icon pipelines, Project Hardware Profiles, Export-Time Feature Gating,
+  Fi Runtime and generated Runtime SDK are the completed foundation for the
+  ForgeUI Widgets phase.
+
 ### FORGEUI_BOARD_PROFILES__EXPORT_TIME_FEATURE_GATING__LAZY_SYSTEM_TOOLS__CONNECTED_WIFI_45KB_FREE__RAM_OVERLAY__READY_FOR_FINAL_OPERATOR_VALIDATION__2026-07-31
 
 - **Ownership:** Board registry → persisted project selection → generated feature header → shared exporter/runtime pruning. Backends remain separate from generated System Tool UI.
@@ -4062,14 +4104,15 @@ NumberInput and Select support must not be described as unimplemented.
 Do not create a new registry, persistence system, AI pipeline, uploaded-asset store, exporter, or duplicate runtime generator for a future type. Reuse an existing runtime family whenever its state and API contract match. Create a new runtime family only when the existing momentary input, persistent binary input, persistent three-position input and binary output contracts cannot represent the control.
 ## 2026-08-01 documentation save-point note
 
-The current proof ledger is **34/39 (87%)**, with **5 remaining**. Text, Clock, Wi-Fi Status, Image and
+This dated note recorded the original **39/39** milestone. The current practical
+LVGL 9.2 proof ledger is **42**, with only Window and Menu remaining. Text,
+Clock, Wi-Fi Status, Image and
 Line are proven with native constructors and Live/Standalone ESP32-P4 parity;
 Heading, Box and Divider are also newly proven, and Button proof is recorded in
 the same sprint.
 Debug Text through the shared normalized presentation and native label geometry
 path, and debug Icon through descriptor dimensions, shared 92% automatic fit,
-native scale/pivot and centered image bounds. Both remain **READY FOR FINAL
-HARDWARE RE-PROOF**.
+native scale/pivot and centered image bounds. Both are **PROVEN**.
 ## Fi Icon Runtime vertical slice — 2026-08-01
 
 - Canonical model: `studio/src/forgeui/ForgeUIStandardIcon.ts`.
@@ -4082,12 +4125,12 @@ HARDWARE RE-PROOF**.
   retained presentation state/setters; preservation-merged 95 owns click logic.
 - Authoritative architecture and future direction: `09_FORGEUI_FI_RUNTIME_GUIDE.md`.
 
-Current evidence is **SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN**.
+Current evidence is **PROVEN ON ESP32-P4**.
 The generated 90 → preservation-merged 95 click path is physically **PROVEN** on
 ESP32-P4: three click-enabled instances produced three collision-safe callbacks,
 exactly once per deliberate tap, with no startup callback. SD remained ready;
 the run's Wi-Fi failure was unrelated. The generated 90 → 96 presentation path
-is **PENDING HARDWARE PROOF**, including color, opacity, hide/show, retained
-pre-bind state and repeated silent setters. Click-disabled behavior, independent
-presentation instances and Standalone parity also remain to be physically
-checked. Icon and the overall Fi Runtime are not promoted to fully **PROVEN**.
+is also physically proven, including color, opacity, hide/show, retained
+pre-bind state, repeated silent setters, click-disabled behavior, independent
+presentation instances and Standalone parity. Icon and the overall Fi Runtime
+are fully **PROVEN**.

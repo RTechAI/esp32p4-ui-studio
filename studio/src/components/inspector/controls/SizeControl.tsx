@@ -23,15 +23,6 @@ const SizeControl = (props: SizeControlPropsType) => {
     <FormControl label={props.label} htmlFor={props.name || 'size'}>
       <Select
         {...forgeuiInputStyle}
-        color="#e5e7eb"
-        textColor="#e5e7eb"
-        sx={{
-          WebkitTextFillColor: '#e5e7eb',
-          option: {
-            background: '#0f172a',
-            color: '#e5e7eb',
-          },
-        }}
         size="sm"
         id={props.name || 'size'}
         name={props.name || 'size'}

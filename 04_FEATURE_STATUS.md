@@ -1,31 +1,30 @@
 # 04_FEATURE_STATUS.md
 
-## 2026-07-31 platform alignment
+## 2026-08-01 Standard Widget Library completion
 
 Current platform save point:
-`FORGEUI_STANDARD_WIDGET_PIPELINE__CLOCK_WIFI_STATUS_PROVEN__PROJECT_HARDWARE_PROFILE_AUTHORITY__FI_RUNTIME__2026-08-01`.
+`FORGEUI_LVGL9_CLOSURE_BATCH1__SPAN_ANIMIMAGE_IMAGEBUTTON_ESP32P4_PROVEN__DOCUMENTATION_ALIGNED__READY_FOR_WINDOW_MENU__2026-08-02`.
 
 Widget Registry architecture cleanup is complete at the metadata boundary:
 
-- all 44 registered entries have explicit API, UserEvent, input,
+- all 47 registered entries have explicit API, UserEvent, input,
   Interactive-Asset and child-ownership capabilities;
 - metadata is aligned with generated `publicApiDeclarations` and
   `userEventHooks`;
 - every `documentationId` resolves to an existing Markdown document;
 - Spinbox and QR Code record their known LVGL configuration dependencies in
   preparation for future Registry-driven feature gating;
-- AnimImage, ImageButton, Lottie, Menu, ObjxTempl and Editable are quarantined
-  legacy/future types, not registered widgets, and export preflight rejects
-  them;
-- no widget runtime, preview, generated API or physical-proof classification
-  changed.
+- Lottie, Menu, ObjxTempl and Editable remain quarantined; Span, AnimImage and
+  ImageButton are now active registered widgets;
+- Batch 1 proof promotion changes documentation status only; runtime, preview
+  and generated API behavior remain unchanged.
 
 - Board/profile ownership is registry-driven; the supported production profile is Waveshare ESP32-P4 WiFi6 Touch LCD 7B.
 - Persisted project features hydrate after mount and generate `00_ForgeUI_Features.h`.
 - Disabled System features are pruned from generated C, assets, CMake sources/components and `idf_component.yml`; they are not merely hidden.
 - Diagnostics is implemented. Wi-Fi Manager and Storage UI/worker resources are created lazily and destroyed safely while their backends remain separately alive.
 - Connected Application-page evidence records 45,795 bytes current internal free heap, a 27,648-byte largest block and 62 LVGL objects. Ten-cycle operator validation remains pending.
-- QR Code Studio/export/runtime generation is complete; a recorded successful physical phone scan remains pending.
+- QR Code displayed correctly on ESP32-P4 and was successfully scanned with a mobile phone. Live and Standalone output match. Status: **PROVEN**.
 - Slider is physically proven through Studio, standalone ESP-IDF export, ESP32-P4 touch interaction, collision-safe runtime APIs and multiple instances. Status: **PROVEN**.
 - Native Spinner is physically proven through Studio and standalone ESP-IDF export on ESP32-P4, including stable animation at approximately 60 FPS. Status: **PROVEN**.
 - Native List is physically proven through Registry, Tray, Inspector, Canvas,
@@ -48,7 +47,7 @@ Status language:
 
 - **PROVEN**: physically exercised on the target hardware through the claimed
   live and/or Standalone path.
-- **READY FOR PROOF**: Registry-to-export software slice and focused tests are
+- **READY FOR PHYSICAL PROOF**: Registry-to-export software slice and focused tests are
   complete, but the remaining physical behaviour has not been recorded.
 - **PARTIAL**: some pipeline stages exist, but the full authoritative slice or
   its evidence has not been re-established.
@@ -64,27 +63,39 @@ Status language:
 | Spinner | **PROVEN** | Live and Standalone ESP32-P4 native animation at approximately 60 FPS |
 | List | **PROVEN** | **LIST — PROVEN ON ESP32-P4**; live/Standalone builds and one indexed/text callback per controlled row tap |
 | Spinbox | **PROVEN** | Live and Standalone ESP32-P4; drag/drop, previews, touch, setter/hook, multiple instances and gating |
-| QR Code | **READY FOR PROOF** | Registry/export/setter implemented; recorded successful physical scan remains open |
+| QR Code | **PROVEN** | Registry, Tray, Canvas, Inspector, shared Browser Preview, semantic colours, native export, setter, collision-safe instances, ESP32-P4 display, successful mobile scan and Live/Standalone parity passed |
 | Button | **PROVEN** | Standard Button hardware proof passed on ESP32-P4 |
 | Text | **PROVEN** | Multiline wrapping and presentation parity physically accepted on ESP32-P4 |
 | Heading | **PROVEN** | Multiline content, wrapping, configured alignment and generated geometry physically verified on ESP32-P4 |
 | Box | **PROVEN** | Geometry, styling, child ownership and Browser/Standalone nesting parity physically verified on ESP32-P4 |
 | Divider | **PROVEN** | Horizontal and vertical presentation physically verified on ESP32-P4; vertical drop geometry usability improved |
-| Icon | **READY FOR FINAL HARDWARE RE-PROOF** | Native source resolution, automatic sizing, centre pivot and clipping correction implemented; generic Fi Icon Runtime software slice is complete, but corrected rendering and runtime behavior still require ESP32-P4 acceptance |
+| Icon | **PROVEN** | Final ESP32-P4 re-proof passed Registry/Inspector configuration, canonical ownership, semantic theme/runtime behavior, multiple instances and Canvas/Browser/Live/Standalone parity |
 | Image, Line | **PROVEN** | Native `lv_image_create()` Contain scaling and native `lv_line_create()` geometry/style passed Live and Standalone ESP32-P4 proof |
-| Icon Button, Canvas | **PARTIAL** | Implemented pipeline coverage exists; widget-specific physical evidence remains incomplete |
+| Icon Button | **PROVEN** | Canonical icon selection, disabled state, pressed feedback, native enabled setter/click hook, collision-safe instances and Canvas/Browser/Live/Standalone ESP32-P4 parity passed |
+| Canvas | **PROVEN** | Rendering/export and editing-surface selection, drag, resize, supported rotation, ordering, hit testing, fractional geometry, synchronization and physical Live/Standalone parity passed |
 | Wi-Fi Status, Clock | **PROVEN** | Batch C Canvas, Browser, Live and Standalone ESP32-P4 presentation physically accepted |
 | TabView | **PROVEN** | ESP32-P4 touch selection remains physically proven; collision-safe selected-index setter/change hook contract retained |
 | TileView | **PROVEN** | Native LVGL 9.2.2 paging; silent startup/setter; correct `2 × 2` coordinates; horizontal/vertical navigation; one callback per effective change; repeated navigation and surrounding Wi-Fi/SD/widgets stable on ESP32-P4 |
+
+| Span | **PROVEN** | ESP32-P4 proved ordered native `lv_spangroup`, semantic/explicit colours, font sizes, underline, ordering, alignment and Canvas/Browser/Live/Standalone parity |
+| Animation Image | **PROVEN** | Existing Asset Manager multi-select authoring, ordered native `lv_animimg` frames, animation, zero-frame placeholder and Canvas/Browser/Live/Standalone parity passed ESP32-P4 validation |
+| Image Button | **PROVEN** | Native `lv_imagebutton` released, pressed and disabled states, enabled setter, click hook, multiple instances and Canvas/Browser/Live/Standalone parity passed ESP32-P4 validation |
 
 The Registry currently contains no Dashboard widgets. Window, Menu and the
 dedicated Dashboard Widget family remain **PLANNED** and must not be
 described as Standard-library completions.
 
-Registry audit total: 44 entries, comprising 39 Standard widgets and five
-Interactive Assets. Thirty-four Standard widgets are physically proven:
-**34/39 (87%)**, leaving **5** for individual proof promotion. Icon remains
-excluded pending its final hardware re-proof.
+Registry audit total: 47 entries, comprising 42 practical Standard LVGL
+widgets/components and five Interactive Assets. All **42/42 practical Standard
+LVGL widgets/components are physically PROVEN on ESP32-P4**.
+
+The final official-catalogue audit found five practical LVGL 9.2 closure
+widgets. Batch 1 completed and physically proved Span, Animation Image and
+Image Button; Window and Menu remain. Lottie is
+intentionally excluded because its ThorVG/vector/C++ and framebuffer boundary
+requires a separate opt-in architecture decision. Complete and physically
+prove Window and Menu before beginning the ForgeUI Dashboard Widget
+family. See `docs/LVGL_9_STANDARD_WIDGET_AUDIT.md`.
 
 ## 2026-08-01 end-of-sprint proof update
 
@@ -98,8 +109,8 @@ presentation status.
 This sprint also replaced synthetic TileView export with native LVGL paging,
 corrected Standard Text wrapping/multiline parity, and corrected native Icon
 automatic sizing, source-aware scaling, centering and clipping. Text has since
-completed physical proof and is **PROVEN**. Icon remains **READY FOR FINAL
-HARDWARE RE-PROOF**.
+completed physical proof and is **PROVEN**. Icon subsequently passed final
+Batch D hardware re-proof and is **PROVEN**.
 
 ## Image and Line final physical proof
 
@@ -1546,13 +1557,13 @@ void FG_On_Menu_Matrix_Button_Selected(uint32_t index, const char * text);
 Architecture reference: [`09_FORGEUI_FI_RUNTIME_GUIDE.md`](09_FORGEUI_FI_RUNTIME_GUIDE.md).
 This status ledger remains authoritative for proof promotion and totals.
 
-The generic Fi Icon Runtime vertical slice is **SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN**.
+The generic Fi Icon Runtime vertical slice is **PROVEN ON ESP32-P4**.
 Standard Icon supports default-on generated visibility,
 opacity and color setters in `96_FiRuntime`, plus default-off optional click
 hooks in `95_UserEvents`. Image-backed and supported LVGL-symbol-backed objects
 share the same instance contract and canonical 92% sizing model. This software
-milestone does not promote Icon: Standard proof is now **34/39 (87%)**, with
-**5 remaining**, and Icon remains **READY FOR FINAL HARDWARE RE-PROOF**.
+milestone now promotes Icon: Standard proof is **39/39 (100%)** with none
+remaining.
 
 **FI ICON CLICK HOOKS — PHYSICALLY PROVEN.** On ESP32-P4, three separate
 click-enabled icons were touchable and emitted three separate collision-safe
@@ -1562,8 +1573,7 @@ callbacks—`FG_On_Comp_MS9QE1N7GA5O3_Clicked`,
 and no startup callback. This proves the 90 → 95 click path. SD remained ready;
 the Wi-Fi failure observed during the run was unrelated to this proof.
 
-**FI RUNTIME PRESENTATION SETTERS — HARDWARE PROOF PENDING.** The 90 → 96 path
-still requires color, opacity, hide/show, pre-bind retained-state, repeated
-silent-setter, independent-instance and Standalone-parity checks. A
-click-disabled icon must also be physically confirmed non-interactive. Fi
-Runtime and Icon therefore remain short of fully **PROVEN**.
+**FI RUNTIME PRESENTATION SETTERS — PHYSICALLY PROVEN.** The 90 → 96 path,
+including presentation state, independent instances, click-disabled behavior
+and Standalone parity, passed final ESP32-P4 validation. Fi Runtime and Icon are
+fully **PROVEN**.

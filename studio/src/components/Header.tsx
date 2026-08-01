@@ -13,6 +13,8 @@ import ForgeUIThemeManager from '~forgeui/theme/ForgeUIThemeManager'
 import React, { memo, useEffect, useRef, useState } from 'react'
 import DevicePreview from '~forgeui/preview/DevicePreview'
 import { ForgeUIAssetManager } from '~forgeui/assets/ForgeUIAssetManager'
+import { ForgeUIAssetSelectionRequest } from '~forgeui/assets/ForgeUIAssetSelection'
+import { createForgeUISpan, FORGEUI_ADD_FIRST_SPAN_EVENT } from '~forgeui/ForgeUIClosureWidgets'
 import { generateForgeUILvglCode } from '~forgeui/ForgeUILvglExport'
 import {
   assertForgeUIExportValid,
@@ -204,6 +206,7 @@ const selectedHeroAsset =
   } = useForgeUIProjectHardware()
 
   const [assetManagerOpen, setAssetManagerOpen] = useState(false)
+  const [assetSelectionRequest, setAssetSelectionRequest] = useState<ForgeUIAssetSelectionRequest | null>(null)
   const [themeManagerOpen, setThemeManagerOpen] = useState(false)
   const [aiPlaygroundOpen, setAiPlaygroundOpen] = useState(false)
   const [
@@ -295,7 +298,10 @@ useEffect(() => {
 }, [])
 
 useEffect(() => {
-  const openAssetManager = () => {
+  const openAssetManager = (event: Event) => {
+    setAssetSelectionRequest(
+      (event as CustomEvent<ForgeUIAssetSelectionRequest>).detail || null,
+    )
     setAssetManagerOpen(true)
   }
 
@@ -311,14 +317,22 @@ useEffect(() => {
   setAiPlaygroundOpen(true)
  }
 
+  const addFirstSpan = (event: Event) => {
+    const componentId = (event as CustomEvent<{ componentId: string }>).detail?.componentId
+    if (!componentId) return
+    dispatch.components.updateProps({ id: componentId, name: 'spans', value: [createForgeUISpan('Rich text')] })
+  }
+
  
   window.addEventListener('forgeui-open-asset-manager', openAssetManager)
   window.addEventListener('forgeui-open-theme-manager', openThemeManager)
+  window.addEventListener(FORGEUI_ADD_FIRST_SPAN_EVENT, addFirstSpan)
   window.addEventListener(FORGEUI_OPEN_AI_PLAYGROUND_EVENT, openAiPlayground)
 
   return () => {
     window.removeEventListener('forgeui-open-asset-manager', openAssetManager)
     window.removeEventListener('forgeui-open-theme-manager', openThemeManager)
+    window.removeEventListener(FORGEUI_ADD_FIRST_SPAN_EVENT, addFirstSpan)
     window.removeEventListener(FORGEUI_OPEN_AI_PLAYGROUND_EVENT, openAiPlayground)
   }
 }, [])
@@ -1056,7 +1070,22 @@ if (data.defaultHero) {
 
 {assetManagerOpen && (
   <ForgeUIAssetManager
-    onClose={() => setAssetManagerOpen(false)}
+    selectionRequest={assetSelectionRequest}
+    onClose={() => {
+      setAssetManagerOpen(false)
+      setAssetSelectionRequest(null)
+    }}
+    onSelectAssets={assetIds => {
+      if (assetSelectionRequest) {
+        dispatch.components.updateProps({
+          id: assetSelectionRequest.componentId,
+          name: assetSelectionRequest.propertyName,
+          value: assetIds,
+        })
+      }
+      setAssetManagerOpen(false)
+      setAssetSelectionRequest(null)
+    }}
   />
 )}
   

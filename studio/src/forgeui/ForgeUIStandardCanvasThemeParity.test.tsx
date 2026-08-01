@@ -226,7 +226,7 @@ describe('Standard Canvas selected-theme parity', () => {
         padding: '0',
         textAlign: 'left',
       })
-      expect(preview).toHaveTextContent('WIFI WIFI_FAIL IP: -')
+      expect(preview).toHaveTextContent('Failed')
     })
   })
 

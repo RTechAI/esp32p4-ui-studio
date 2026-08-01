@@ -11,12 +11,14 @@ import AppErrorBoundary from '~components/errorBoundaries/AppErrorBoundary'
 import { ForgeThemeProvider } from '~forgeui/theme/ForgeThemeContext'
 import { ForgeUISystemProvider } from '~forgeui/system'
 import { AppProps } from 'next/app'
+import { forgeuiNativeSelectGlobalStyles } from '~forgeui/ForgeUIControlStyle'
 
 const Main = ({ Component, pageProps }: AppProps) => {
   const app = (
     <ChakraProvider resetCSS theme={theme}>
       <Global
         styles={{
+          ...forgeuiNativeSelectGlobalStyles,
           '.chakra-input, .chakra-select, input, select, textarea': {
             background: '#020617 !important',
             color: '#f8fafc !important',

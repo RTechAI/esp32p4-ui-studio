@@ -588,8 +588,6 @@ describe('ForgeUI export preflight', () => {
   })
 
   it.each([
-    'AnimImage',
-    'ImageButton',
     'Lottie',
     'Menu',
     'ObjxTempl',

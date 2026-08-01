@@ -42,6 +42,7 @@ import {
   resolveQRCodePayload,
 } from './ForgeUIStandardQRCode'
 import { getForgeUIStandardListModel } from './ForgeUIStandardList'
+import { normalizeForgeUISpans, normalizeFrameAssetIds } from './ForgeUIClosureWidgets'
 import {
   getForgeUIStandardSpinboxModel,
   type ForgeUIStandardSpinboxModel,
@@ -2339,15 +2340,15 @@ const createIconButtonExports = (
   const usedApiNames = new Set(existingApiNames)
 
   Object.values(components)
-    .filter(component => component.type === 'IconButton')
+    .filter(component => component.type === 'IconButton' || component.type === 'ImageButton')
     .sort((left, right) => left.id.localeCompare(right.id))
     .forEach(component => {
       const baseName = toCIdentifier(
         component.componentName ||
         component.props.name ||
         component.props.label ||
-        'IconButton',
-        'IconButton',
+        component.type,
+        component.type,
       ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
       let allocatedBase = baseName
       let suffix = 2
@@ -3706,6 +3707,55 @@ case 'Slider': {
   break
 }
 
+case 'Span': {
+  const spans = normalizeForgeUISpans(child.props.spans)
+  lines.push(`lv_obj_t * ${varName} = lv_spangroup_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
+  lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_TRANSP, 0);`)
+  const align = child.props.textAlign === 'center' ? 'LV_TEXT_ALIGN_CENTER' : child.props.textAlign === 'right' ? 'LV_TEXT_ALIGN_RIGHT' : 'LV_TEXT_ALIGN_LEFT'
+  lines.push(`lv_spangroup_set_align(${varName}, ${align});`)
+  lines.push(`lv_spangroup_set_overflow(${varName}, ${child.props.overflow === 'clip' || child.props.overflow === 'visible' ? 'LV_SPAN_OVERFLOW_CLIP' : 'LV_SPAN_OVERFLOW_ELLIPSIS'});`)
+  spans.forEach((span, index) => {
+    const role = span.semanticColor && palette[span.semanticColor] ? palette[span.semanticColor] : palette.text
+    const color = span.color ? `0x${span.color.replace('#', '')}` : role
+    const fontSize = resolveMontserratSize(span.fontSize, 16)
+    lines.push(`lv_span_t * ${varName}_span_${index} = lv_spangroup_new_span(${varName});`)
+    lines.push(`lv_span_set_text(${varName}_span_${index}, "${esc(span.text)}");`)
+    lines.push(`lv_style_set_text_color(lv_span_get_style(${varName}_span_${index}), lv_color_hex(${color}));`)
+    lines.push(`lv_style_set_text_font(lv_span_get_style(${varName}_span_${index}), &lv_font_montserrat_${fontSize});`)
+    if (span.underline) lines.push(`lv_style_set_text_decor(lv_span_get_style(${varName}_span_${index}), LV_TEXT_DECOR_UNDERLINE);`)
+  })
+  lines.push(``)
+  break
+}
+
+case 'ImageButton': {
+  const imageButtonExport = iconButtonExports.get(child.id)
+  const objectName = imageButtonExport?.objectName || varName
+  const assets = forgeUIGetUploadedAssets()
+  const released: any = assets.find(asset => asset.id === child.props.releasedAssetId)
+  const pressed: any = assets.find(asset => asset.id === child.props.pressedAssetId) || released
+  const disabled: any = assets.find(asset => asset.id === child.props.disabledAssetId) || released
+  lines.push(imageButtonExport ? `${objectName} = lv_imagebutton_create(${parentVar});` : `lv_obj_t * ${objectName} = lv_imagebutton_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${objectName}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${objectName}, ${w}, ${h});`)
+  ;[[released, 'LV_IMAGEBUTTON_STATE_RELEASED'], [pressed, 'LV_IMAGEBUTTON_STATE_PRESSED'], [disabled, 'LV_IMAGEBUTTON_STATE_DISABLED']].forEach(([asset, state]) => {
+    if (!asset?.lvgl) return
+    if (asset.cFile) usedAssetSources.add(asset.cFile)
+    lines.push(`LV_IMAGE_DECLARE(${asset.lvgl});`)
+    lines.push(`lv_imagebutton_set_src(${objectName}, ${state}, NULL, &${asset.lvgl}, NULL);`)
+  })
+  lines.push(`lv_obj_set_style_image_opa(${objectName}, LV_OPA_COVER, LV_PART_MAIN);`)
+  if (child.props.isDisabled) lines.push(`lv_obj_add_state(${objectName}, LV_STATE_DISABLED);`)
+  if (imageButtonExport) {
+    lines.push(`${imageButtonExport.enabledName} = ${imageButtonExport.initialEnabled ? 'true' : 'false'};`)
+    lines.push(`lv_obj_add_event_cb(${objectName}, ${imageButtonExport.eventCallbackName}, LV_EVENT_CLICKED, NULL);`)
+  }
+  lines.push(``)
+  break
+}
+
 case 'Spinbox': {
   const spinboxExport = spinboxExports.get(child.id)
   if (!spinboxExport) break
@@ -4273,18 +4323,35 @@ case 'Tileview': {
 }
 
 case 'AnimImage': {
-  lines.push(`lv_obj_t * ${varName} = lv_obj_create(${parentVar});`)
+  const frameIds = normalizeFrameAssetIds(child.props.frameAssetIds)
+  const frames: any[] = frameIds.map(id => forgeUIGetUploadedAssets().find(asset => asset.id === id)).filter(asset => asset?.lvgl)
+  frames.forEach(asset => { if (asset.cFile) usedAssetSources.add(asset.cFile); lines.push(`LV_IMAGE_DECLARE(${asset.lvgl});`) })
+  if (frames.length === 0) {
+    lines.push(`lv_obj_t * ${varName} = lv_obj_create(${parentVar});`)
+    lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_TRANSP, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_border_width(${varName}, 1, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_radius(${varName}, 8, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_pad_all(${varName}, 0, LV_PART_MAIN);`)
+    lines.push(`lv_obj_clear_flag(${varName}, LV_OBJ_FLAG_SCROLLABLE);`)
+    lines.push(`lv_obj_t * ${varName}_label = lv_label_create(${varName});`)
+    lines.push(`lv_label_set_text(${varName}_label, "Add animation frames");`)
+    lines.push(`lv_obj_set_width(${varName}_label, ${Math.max(1, w - 16)});`)
+    lines.push(`lv_obj_set_style_text_align(${varName}_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_color(${varName}_label, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_font(${varName}_label, &lv_font_montserrat_14, LV_PART_MAIN);`)
+    lines.push(`lv_obj_center(${varName}_label);`)
+  } else {
+    lines.push(`static const void * ${varName}_frames[] = { ${frames.map(asset => `&${asset.lvgl}`).join(', ')} };`)
+    lines.push(`lv_obj_t * ${varName} = lv_animimg_create(${parentVar});`)
+    lines.push(`lv_animimg_set_src(${varName}, ${varName}_frames, ${frames.length});`)
+    lines.push(`lv_animimg_set_duration(${varName}, ${Math.max(40, Number(child.props.frameDuration) || 250) * frames.length});`)
+    lines.push(`lv_animimg_set_repeat_count(${varName}, ${child.props.loop === false ? '0' : 'LV_ANIM_REPEAT_INFINITE'});`)
+    if (child.props.autoStart !== false) lines.push(`lv_animimg_start(${varName});`)
+    lines.push(`lv_image_set_inner_align(${varName}, LV_IMAGE_ALIGN_CENTER);`)
+  }
   lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
   lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
-
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.border}), LV_PART_MAIN);`)
-
-  lines.push(`lv_obj_t * ${varName}_label = lv_label_create(${varName});`)
-  lines.push(`lv_label_set_text(${varName}_label, "AnimImage");`)
-  lines.push(`lv_obj_set_style_text_color(${varName}_label, lv_color_hex(${palette.text}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_center(${varName}_label);`)
-
   lines.push(``)
   break
 }

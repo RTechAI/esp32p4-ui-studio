@@ -47,6 +47,9 @@ CONFIG_LV_USE_SYSMON=y
 CONFIG_LV_USE_PERF_MONITOR=y
 CONFIG_LV_USE_IMGFONT=y
 CONFIG_LV_USE_QRCODE=y
+CONFIG_LV_USE_SPAN=y
+CONFIG_LV_USE_ANIMIMG=y
+CONFIG_LV_USE_IMAGEBUTTON=y
 CONFIG_LV_USE_TEXTAREA=y
 CONFIG_LV_USE_SPINBOX=y
 CONFIG_LV_USE_LIST=y
@@ -62,6 +65,22 @@ CONFIG_LV_USE_TILEVIEW=y
 # CONFIG_LV_USE_DEMO_FLEX_LAYOUT is not set
 # CONFIG_LV_USE_DEMO_MULTILANG is not set
 CONFIG_IDF_EXPERIMENTAL_FEATURES=y
+
+# Generated from ForgeUI project hardware profile.
+
+# Generated from ForgeUI project hardware profile.
+
+# Generated from ForgeUI project hardware profile.
+
+# Generated from ForgeUI project hardware profile.
+
+# Generated from ForgeUI project hardware profile.
+
+# Generated from ForgeUI project hardware profile.
+
+# Generated from ForgeUI project hardware profile.
+
+# Generated from ForgeUI project hardware profile.
 
 # Generated from ForgeUI project hardware profile.
 
