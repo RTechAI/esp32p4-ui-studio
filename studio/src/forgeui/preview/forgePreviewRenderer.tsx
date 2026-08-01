@@ -44,6 +44,9 @@ import StandardTileViewPreview from './StandardTileViewPreview'
 import StandardButtonPreview from './StandardButtonPreview'
 import StandardTextPreview from './StandardTextPreview'
 import StandardHeadingPreview from './StandardHeadingPreview'
+import StandardIconPreview from './StandardIconPreview'
+import StandardBoxPreview from './StandardBoxPreview'
+import StandardDividerPreview from './StandardDividerPreview'
 import StandardWifiPreview from './StandardWifiPreview'
 import StandardLinePreview from './StandardLinePreview'
 import StandardCalendarPreview from './StandardCalendarPreview'
@@ -92,6 +95,7 @@ export const renderForgePreview = ({
       width: `${w}px`,
       height: `${h}px`,
     }
+    let ownsRenderedChildren = false
 
     switch (child.type) {
 
@@ -225,58 +229,28 @@ case 'WiFi': {
     y === 0 &&
     w >= 1024 &&
     h >= 600
-  const regionSurface =
-    child.props.layoutSurfaceRole === 'surfaceSecondary'
-      ? theme.surfaceSecondary
-      : theme.surface
-
   output.push(
     <Box
       key={child.id}
       {...commonStyle}
-      data-layout-region={child.props.layoutRegionKey}
-      background={
-        isFullScreenBackground
-          ? 'transparent'
-          : regionSurface
-      }
-      border={
-        isFullScreenBackground
-          ? 'none'
-          : `${Number(child.props.layoutBorderWidth ?? 2)}px solid ${palette.border}`
-      }
-      opacity={isFullScreenBackground
-        ? 1
-        : Number(child.props.layoutOpacity ?? 0.8)}
-      borderRadius={isFullScreenBackground
-        ? '0'
-        : `${Number(child.props.layoutRadius ?? 12)}px`}
-    />,
+    >
+      {isFullScreenBackground
+        ? renderForgePreview({ component: child, components })
+        : (
+          <StandardBoxPreview component={child} palette={palette}>
+            {renderForgePreview({ component: child, components })}
+          </StandardBoxPreview>
+        )}
+    </Box>,
   )
+  ownsRenderedChildren = true
   break
 }
 
       case 'Icon': {
-  const Icon =
-    icons[child.props.icon as keyof typeof icons]
-
-  if (!Icon) break
-
-  const iconSize =
-    parseInt(String(child.props.boxSize || '48'), 10) || 48
-
   output.push(
-    <Box
-      key={child.id}
-      {...commonStyle}
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
-    >
-      <Icon
-        color={child.props.color || palette.text}
-        size={iconSize}
-      />
+    <Box key={child.id} {...commonStyle}>
+      <StandardIconPreview component={child} palette={palette} />
     </Box>,
   )
 
@@ -762,13 +736,8 @@ case 'QRCode': {
 
 case 'Divider': {
   output.push(
-    <Box
-      key={child.id}
-      {...commonStyle}
-      display="flex"
-      alignItems="center"
-    >
-      <Box width="100%" height="1px" bg={theme.surfaceBorder} />
+    <Box key={child.id} {...commonStyle}>
+      <StandardDividerPreview component={child} palette={palette} />
     </Box>,
   )
   break
@@ -871,7 +840,7 @@ case 'List': {
         break
     }
 
-    if (child.children?.length) {
+    if (child.children?.length && !ownsRenderedChildren) {
 
             output.push(
         ...renderForgePreview({

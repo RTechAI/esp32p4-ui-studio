@@ -325,6 +325,10 @@ export function forgeUICreateUploadedAsset(
     file.type === 'image/svg+xml' ||
     /\.(png|jpe?g|svg)$/i.test(file.name)
 
+  const dimensions = forgeUIResolveUploadedAssetDimensions({
+    browserSrc,
+  })
+
   return {
     id,
     name: file.name,
@@ -341,6 +345,7 @@ export function forgeUICreateUploadedAsset(
 
     lvgl: symbol,
     cFile: `assets/uploads/${symbol}.c`,
+    ...(dimensions || {}),
   }
 }
 

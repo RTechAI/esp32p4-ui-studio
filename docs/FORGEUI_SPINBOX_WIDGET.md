@@ -188,5 +188,5 @@ void FG_On_<Name>_Changed(int32_t value);
 ```
 
 The Widget Registry contains 39 Standard widgets. Following the subsequent
-TileView promotion means 26/39 (67%) are physically proven and 13 remain. TabView
+The 2026-08-01 proof update means 29/39 (74%) are physically proven and 10 remain. TabView
 retains its **PROVEN** status.

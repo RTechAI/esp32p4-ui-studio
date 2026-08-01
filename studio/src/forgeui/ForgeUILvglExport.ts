@@ -8,7 +8,13 @@ import { getForgeUIStandardButtonText } from './ForgeUIStandardButton'
 import { getForgeUIStandardCheckboxText } from './ForgeUIStandardCheckbox'
 import { getForgeUIStandardRadioText } from './ForgeUIStandardRadio'
 import { getForgeUIStandardTextValue } from './ForgeUIStandardText'
-import { getForgeUIStandardHeadingText } from './ForgeUIStandardHeading'
+import { getForgeUIStandardHeadingPresentation } from './ForgeUIStandardHeading'
+import { getForgeUIStandardBoxPresentation } from './ForgeUIStandardBox'
+import { getForgeUIStandardDividerPresentation } from './ForgeUIStandardDivider'
+import {
+  getForgeUIStandardIconPresentation,
+  getForgeUIStandardIconSourceDimensions,
+} from './ForgeUIStandardIcon'
 import { getForgeUIStandardLineGeometry } from './ForgeUIStandardLine'
 import {
   FORGEUI_STANDARD_CHART_DEFAULT_DATA,
@@ -2507,15 +2513,19 @@ const buildLvglBlock = (
       }
 
       case 'Heading': {
-  const text = esc(getForgeUIStandardHeadingText(child.props))
-
+  const heading = getForgeUIStandardHeadingPresentation(child.props)
+  const text = esc(heading.text)
   const color = palette.textPrimary
+  const textAlign = resolveLvTextAlign(heading.textAlign)
 
   lines.push(`lv_obj_t * ${varName} = lv_label_create(${parentVar});`)
-  lines.push(`lv_label_set_text(${varName}, "${text}");`)
   lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
+  lines.push(`lv_label_set_long_mode(${varName}, LV_LABEL_LONG_WRAP);`)
+  lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
+  lines.push(`lv_label_set_text(${varName}, "${text}");`)
   lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${color}), 0);`)
-  lines.push(`lv_obj_set_style_text_font(${varName}, &lv_font_montserrat_32, 0);`)
+  lines.push(`lv_obj_set_style_text_font(${varName}, &lv_font_montserrat_${heading.fontSize}, 0);`)
+  lines.push(`lv_obj_set_style_text_align(${varName}, ${textAlign}, 0);`)
   lines.push(``)
   break
 }
@@ -3027,10 +3037,13 @@ case 'InteractiveThreePositionToggleSwitch': {
 
 case 'Icon': {
 
-  const src =
-    child.props.src ||
-    child.props.browserSrc ||
-    ''
+  const iconModel = getForgeUIStandardIconPresentation(
+    child.props,
+    `#${palette.textPrimary.slice(2)}`,
+  )
+  const src = iconModel.src
+  const iconOpacity = Math.round(iconModel.opacity * 255)
+  const iconColor = `0x${iconModel.color.slice(1)}`
 
   const uploadedAssets = forgeUIGetUploadedAssets()
 
@@ -3051,9 +3064,15 @@ case 'Icon': {
       usedAssetSources.add(cFile)
     }
 
-    const imageScale = Number(
-      child.props.imageScale || 256,
-    )
+    const uploadedDimensions =
+      forgeUIResolveUploadedAssetDimensions(uploadedAsset) ||
+      getForgeUIStandardIconSourceDimensions(uploadedAsset, iconModel.icon)
+    const uploadedSourceSize = uploadedDimensions
+      ? Math.max(uploadedDimensions.width, uploadedDimensions.height)
+      : undefined
+    const imageScale = uploadedSourceSize
+      ? Math.round(iconModel.iconSize * 256 / uploadedSourceSize)
+      : Number(child.props.imageScale || 256)
 
     lines.push(`LV_IMAGE_DECLARE(${symbol});`)
     lines.push(
@@ -3065,25 +3084,26 @@ case 'Icon': {
     lines.push(
       `lv_image_set_scale(${varName}, ${imageScale});`,
     )
+    if (uploadedDimensions) {
+      lines.push(
+        `lv_image_set_pivot(${varName}, ${Math.floor(uploadedDimensions.width / 2)}, ${Math.floor(uploadedDimensions.height / 2)});`,
+      )
+    }
     lines.push(
       `lv_obj_set_pos(${varName}, ${x}, ${y});`,
     )
     lines.push(
       `lv_obj_set_size(${varName}, ${w}, ${h});`,
     )
+    lines.push(`lv_image_set_inner_align(${varName}, LV_IMAGE_ALIGN_CENTER);`)
+    lines.push(`lv_obj_set_style_image_recolor(${varName}, lv_color_hex(${iconColor}), 0);`)
+    lines.push(`lv_obj_set_style_image_recolor_opa(${varName}, LV_OPA_COVER, 0);`)
+    lines.push(`lv_obj_set_style_opa(${varName}, ${iconOpacity}, 0);`)
+    if (!iconModel.visible) lines.push(`lv_obj_add_flag(${varName}, LV_OBJ_FLAG_HIDDEN);`)
   } else {
-    const icon =
-      child.props.icon ||
-      'FiSettings'
-
-    const color = child.props.color
-      ? `0x${String(child.props.color).replace('#', '')}`
-      : palette.textPrimary
-
-    const iconSize = lv(
-      child.props.boxSize,
-      48,
-    )
+    const icon = iconModel.icon
+    const color = iconColor
+    const iconSize = iconModel.iconSize
 
     if (icon === 'FiSettings') {
       usedAssetSources.add('assets/icons/fg_icon_settings_fi_48px.c')
@@ -3093,16 +3113,30 @@ case 'Icon': {
       lines.push(`lv_obj_t * ${varName} = lv_image_create(${parentVar});`)
       lines.push(`lv_image_set_src(${varName}, &fg_icon_settings_fi_48px);`)
       lines.push(`lv_image_set_scale(${varName}, ${imageScale});`)
-      lines.push(`lv_obj_set_pos(${varName}, ${x + Math.round((w - numericIconSize) / 2)}, ${y + Math.round((h - numericIconSize) / 2)});`)
+      lines.push(`lv_image_set_pivot(${varName}, 24, 24);`)
+      lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
+      lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
+      lines.push(`lv_image_set_inner_align(${varName}, LV_IMAGE_ALIGN_CENTER);`)
       lines.push(`lv_obj_set_style_image_recolor(${varName}, lv_color_hex(${color}), 0);`)
       lines.push(`lv_obj_set_style_image_recolor_opa(${varName}, LV_OPA_COVER, 0);`)
+      lines.push(`lv_obj_set_style_opa(${varName}, ${iconOpacity}, 0);`)
+      if (!iconModel.visible) lines.push(`lv_obj_add_flag(${varName}, LV_OBJ_FLAG_HIDDEN);`)
     } else {
-      const symbol = FG_ICON_LVGL_SYMBOLS[icon] || 'LV_SYMBOL_OK'
+      const symbol = FG_ICON_LVGL_SYMBOLS[icon]
+      if (!symbol) {
+        throw new Error(
+          `Icon ${icon} requires a converted LVGL asset; refusing placeholder export.`,
+        )
+      }
       lines.push(`lv_obj_t * ${varName} = lv_label_create(${parentVar});`)
       lines.push(`lv_label_set_text(${varName}, ${symbol});`)
       lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
+      lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
       lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${color}), 0);`)
-      lines.push(`lv_obj_set_style_text_font(${varName}, &lv_font_montserrat_${iconSize}, 0);`)
+      lines.push(`lv_obj_set_style_text_font(${varName}, &lv_font_montserrat_${resolveMontserratSize(iconSize, 48)}, 0);`)
+      lines.push(`lv_obj_set_style_text_align(${varName}, LV_TEXT_ALIGN_CENTER, 0);`)
+      lines.push(`lv_obj_set_style_opa(${varName}, ${iconOpacity}, 0);`)
+      if (!iconModel.visible) lines.push(`lv_obj_add_flag(${varName}, LV_OBJ_FLAG_HIDDEN);`)
     }
   }
 
@@ -4426,11 +4460,15 @@ case 'Keyboard': {
 }
 
 case 'Divider': {
+  const divider = getForgeUIStandardDividerPresentation(
+    child.props,
+    `#${palette.surfaceBorder.slice(2)}`,
+  )
   lines.push(`lv_obj_t * ${varName} = lv_obj_create(${parentVar});`)
-  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${Number(y) + Math.floor((Number(h) || 1) / 2)});`)
-  lines.push(`lv_obj_set_size(${varName}, ${w}, 1);`)
-  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_COVER, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${varName}, ${divider.width}, ${divider.height});`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(0x${divider.color.slice(1)}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_opa(${varName}, ${Math.round(divider.opacity * 255)}, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_border_width(${varName}, 0, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_radius(${varName}, 0, LV_PART_MAIN);`)
   lines.push(`lv_obj_clear_flag(${varName}, LV_OBJ_FLAG_CLICKABLE);`)
@@ -4556,33 +4594,25 @@ case 'Chart': {
             : `lv_obj_t * ${boxObject} = lv_obj_create(${parentVar});`)
           if (boxExport) {
             lines.push(`lv_obj_t * ${varName} = ${boxObject};`)
-            lines.push(`${boxExport.visibleName} = true;`)
           }
           lines.push(`lv_obj_set_pos(${boxObject}, ${x}, ${y});`)
           lines.push(`lv_obj_set_size(${boxObject}, ${w}, ${h});`)
-          const regionSurface =
-            child.props.layoutSurfaceRole === 'surfaceSecondary'
-              ? palette.surfaceSecondary
-              : palette.surface
-          const regionRadius = Math.max(
-            0,
-            Number(child.props.layoutRadius ?? 12),
-          )
-          const regionBorderWidth = Math.max(
-            0,
-            Number(child.props.layoutBorderWidth ?? 2),
-          )
-          const regionOpacity = Math.max(
-            0,
-            Math.min(255, Math.round(
-              Number(child.props.layoutOpacity ?? 0.8) * 255,
-            )),
-          )
-          lines.push(`lv_obj_set_style_radius(${boxObject}, ${regionRadius}, 0);`)
-          lines.push(`lv_obj_set_style_bg_color(${boxObject}, lv_color_hex(${regionSurface}), 0);`)
-          lines.push(`lv_obj_set_style_bg_opa(${boxObject}, ${regionOpacity}, 0);`)
-          lines.push(`lv_obj_set_style_border_color(${boxObject}, lv_color_hex(${palette.border}), 0);`)
-          lines.push(`lv_obj_set_style_border_width(${boxObject}, ${regionBorderWidth}, 0);`)
+          const box = getForgeUIStandardBoxPresentation(child.props, {
+            surface: `#${palette.surface.slice(2)}`,
+            surfaceSecondary: `#${palette.surfaceSecondary.slice(2)}`,
+            surfaceBorder: `#${palette.surfaceBorder.slice(2)}`,
+          })
+          if (boxExport) lines.push(`${boxExport.visibleName} = ${box.visible ? 'true' : 'false'};`)
+          if (!box.visible) lines.push(`lv_obj_add_flag(${boxObject}, LV_OBJ_FLAG_HIDDEN);`)
+          lines.push(`lv_obj_clear_flag(${boxObject}, LV_OBJ_FLAG_SCROLLABLE);`)
+          lines.push(`lv_obj_set_scrollbar_mode(${boxObject}, LV_SCROLLBAR_MODE_OFF);`)
+          lines.push(`lv_obj_set_style_pad_all(${boxObject}, 0, LV_PART_MAIN);`)
+          lines.push(`lv_obj_set_style_radius(${boxObject}, ${box.borderRadius}, 0);`)
+          lines.push(`lv_obj_set_style_bg_color(${boxObject}, lv_color_hex(0x${box.backgroundColor.slice(1)}), 0);`)
+          lines.push(`lv_obj_set_style_bg_opa(${boxObject}, ${Math.round(box.backgroundOpacity * 255)}, 0);`)
+          lines.push(`lv_obj_set_style_border_color(${boxObject}, lv_color_hex(0x${box.borderColor.slice(1)}), 0);`)
+          lines.push(`lv_obj_set_style_border_width(${boxObject}, ${box.borderWidth}, 0);`)
+          lines.push(`lv_obj_set_style_border_opa(${boxObject}, ${Math.round(box.borderOpacity * 255)}, 0);`)
         }
         lines.push(``)
         break

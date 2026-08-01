@@ -99,6 +99,9 @@ describe('Standard Box generated runtime API', () => {
       y: 55,
       w: 300,
       h: 180,
+      backgroundColor: '#123456',
+      borderColor: '#ABCDEF',
+      borderOpacity: 50,
     }))
 
     expect(code).toContain('lv_obj_set_pos(fg_status_box, 45, 55);')
@@ -109,6 +112,24 @@ describe('Standard Box generated runtime API', () => {
     expect(code).toContain(
       'lv_obj_set_style_border_width(fg_status_box, 2, 0);',
     )
+    expect(code).toContain('lv_color_hex(0x123456)')
+    expect(code).toContain('lv_color_hex(0xABCDEF)')
+    expect(code).toContain('lv_obj_set_style_border_opa(fg_status_box, 128, 0);')
+    expect(code).toContain('lv_obj_clear_flag(fg_status_box, LV_OBJ_FLAG_SCROLLABLE);')
+    expect(code).toContain('lv_obj_set_style_pad_all(fg_status_box, 0, LV_PART_MAIN);')
+  })
+
+  it('hydrates initial visibility and keeps children natively owned', () => {
+    const child: IComponent = {
+      id: 'child', parent: 'hidden-box', type: 'Divider', props: { x: 8, y: 8, w: 100, h: 4 }, children: [],
+    }
+    const { code } = generate(
+      box('hidden-box', 'Hidden Box', { visible: false }, ['child']),
+      child,
+    )
+    expect(code).toContain('fg_hidden_box_visible = false;')
+    expect(code).toContain('lv_obj_add_flag(fg_hidden_box, LV_OBJ_FLAG_HIDDEN);')
+    expect(code).toContain('lv_obj_t * obj2 = lv_obj_create(obj1);')
   })
 
   it('exports smart-region semantic surface styling without exporting metadata', () => {

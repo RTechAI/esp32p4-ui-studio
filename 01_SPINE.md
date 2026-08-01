@@ -11,9 +11,20 @@
 
 ## Current Save Point
 
-**FORGEUI_STANDARD_LIST__VERTICAL_SLICE__ESP32P4_PROVEN__2026-07-31**
+**FORGEUI_END_OF_SPRINT__29_OF_39_STANDARD_WIDGETS_ESP32P4_PROVEN__2026-08-01**
 
 **CURRENT PRIORITY: COMPLETE THE STANDARD WIDGET LIBRARY AND PHYSICALLY PROVE EACH SLICE**
+
+### 2026-08-01 end-of-sprint save point
+
+Physical proof now stands at **29/39 Standard widgets (74%)**, with **10
+remaining**. Button, Heading, Box and Divider are proven. Native TileView now
+replaces the synthetic export; Heading owns multiline/alignment parity; Box
+owns child nesting across Browser and native export; Divider has a visible
+vertical insertion default without changing horizontal behavior; Text owns
+multiline wrapping parity; and Icon owns source-aware centered automatic fit.
+Text and Icon remain **READY FOR FINAL HARDWARE RE-PROOF** and are not counted
+as proven.
 
 ### Technical-manager continuity note
 
@@ -1469,7 +1480,7 @@ Preview dispatch and an LVGL export path. Focused registry/Tray tests and
 component/exporter regressions provide automated evidence; no conclusive
 permanent implementation was found outside the registry, so no registry
 definition was added. The Dashboard category remains intentionally empty.
-Twenty-six of 39 Standard widgets are now physically proven (67%); 13 remain
+Twenty-nine of 39 Standard widgets are now physically proven (74%); 10 remain
 to be individually promoted.
 
 ```text
@@ -1481,14 +1492,14 @@ Registry → Tray → Canvas → Inspector → Browser Preview → LVGL Export
 
 | Registry widget | Studio / exporter | Runtime API and hook classification | Hardware proof |
 | --- | --- | --- | --- |
-| Text | implemented / implemented | intentionally API-free | pending for this exact widget |
-| Heading | implemented / implemented | intentionally API-free | pending for this exact widget |
-| Button | implemented / implemented | API-free serialized text | pending for this exact widget |
+| Text | implemented / implemented | intentionally API-free | **READY FOR FINAL HARDWARE RE-PROOF** |
+| Heading | implemented / implemented | intentionally API-free | **PROVEN** |
+| Button | implemented / implemented | API-free serialized text | **PROVEN** |
 | IconButton | implemented / implemented | enabled setter + click hook | pending |
-| Icon | implemented / implemented | intentionally API-free | pending |
-| Box | implemented / implemented | visibility setter, no hook | pending |
+| Icon | implemented / implemented | intentionally API-free | **READY FOR FINAL HARDWARE RE-PROOF** |
+| Box | implemented / implemented | visibility setter, no hook | **PROVEN** |
 | Line | implemented / implemented | intentionally API-free | pending |
-| Divider | implemented / implemented | intentionally API-free | pending |
+| Divider | implemented / implemented | intentionally API-free | **PROVEN** |
 | Canvas | implemented / implemented | intentionally API-free drawable surface | pending |
 | Image | implemented / implemented | source setter, no hook | pending |
 | Input | implemented / implemented | text setter + change hook | physically proven |

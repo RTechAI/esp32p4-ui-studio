@@ -8,6 +8,7 @@ import { ForgeThemeProvider } from './theme/ForgeThemeContext'
 import { renderForgePreview } from './preview/forgePreviewRenderer'
 import {
   FORGEUI_STANDARD_HEADING_DEFAULT_TEXT,
+  getForgeUIStandardHeadingPresentation,
   getForgeUIStandardHeadingText,
 } from './ForgeUIStandardHeading'
 
@@ -102,5 +103,37 @@ describe('standard Heading text', () => {
       </ChakraProvider>,
     )
     expect(screen.getByText('Heading title')).toBeInTheDocument()
+  })
+
+  it('shares multiline wrapping, supported font selection and alignment', () => {
+    render(
+      <ChakraProvider>
+        <ForgeThemeProvider>
+          <HeadingPreview component={heading({
+            headingText: 'FORGEUI HEADING\nESP32-P4 PROOF',
+            size: '2xl',
+            textAlign: 'center',
+          })} />
+          <BrowserPreview component={heading({
+            headingText: 'FORGEUI HEADING\nESP32-P4 PROOF',
+            size: '2xl',
+            textAlign: 'center',
+          })} />
+        </ForgeThemeProvider>
+      </ChakraProvider>,
+    )
+    screen.getAllByTestId('standard-heading-preview').forEach(node => {
+      expect(node).toHaveTextContent('FORGEUI HEADING ESP32-P4 PROOF')
+    })
+    expect(getForgeUIStandardHeadingPresentation({
+      headingText: 'FORGEUI HEADING\nESP32-P4 PROOF',
+      size: '2xl',
+      textAlign: 'center',
+    })).toEqual({
+      text: 'FORGEUI HEADING\nESP32-P4 PROOF',
+      fontSize: 48,
+      fontWeight: 'normal',
+      textAlign: 'center',
+    })
   })
 })

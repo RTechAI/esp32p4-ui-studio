@@ -1,5 +1,6 @@
 import {
   forgeUIAddUploadedAssets,
+  forgeUICreateUploadedAsset,
   forgeUIClearUploadedAssets,
   forgeUIFindAlphaContentBounds,
   forgeUIGetUploadedAssets,
@@ -28,6 +29,15 @@ const dataUrl = (bytes: Uint8Array) =>
   )}`
 
 describe('uploaded image dimension resolution', () => {
+  it('persists selector-created PNG dimensions before browser URLs replace data URLs', () => {
+    const source = dataUrl(pngBytes(64, 64))
+    const asset = forgeUICreateUploadedAsset(
+      new File([pngBytes(64, 64)], 'FiAirplay_64x64.png', { type: 'image/png' }),
+      source,
+    )
+    expect(asset).toMatchObject({ width: 64, height: 64 })
+  })
+
   it('prefers modern registry dimensions', () => {
     expect(forgeUIResolveUploadedAssetDimensions({
       width: 320,

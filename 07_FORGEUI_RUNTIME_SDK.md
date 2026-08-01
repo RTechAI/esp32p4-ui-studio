@@ -232,8 +232,16 @@ When a Widget Registry capability changes:
 The Runtime SDK should grow from physically credible widget contracts. It must
 not become a speculative list of APIs disconnected from native LVGL behaviour.
 
-Current registry evidence is 26 of 39 Standard widgets physically proven (67%),
-with 13 remaining. List is proven with no setter and one collision-safe
+Current registry evidence is 29 of 39 Standard widgets physically proven (74%),
+with 10 remaining. Text and Icon remain **READY FOR FINAL HARDWARE RE-PROOF**
+and are excluded from that total. List is proven with no setter and one collision-safe
 `FG_On_<Name>_Item_Clicked(uint32_t index, const char * text)` callback per
 physical row action. Hook names are derived from the Studio component name and
 made collision-safe by the generator. TabView remains **PROVEN**.
+## 2026-08-01 proof ledger synchronization
+
+The generated Runtime SDK remains capability-driven while Standard physical
+proof advances to **29/39 (74%)**, with **10 remaining**. Button, Heading, Box
+and Divider are proven. Presentation-only Text and Icon add no speculative
+runtime APIs: both have corrected preview/export paths but remain **READY FOR
+FINAL HARDWARE RE-PROOF**.

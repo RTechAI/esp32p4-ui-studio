@@ -1,7 +1,7 @@
 import React from 'react'
 import { Text } from '@chakra-ui/react'
 
-import { getForgeUIStandardHeadingText } from '../ForgeUIStandardHeading'
+import { getForgeUIStandardHeadingPresentation } from '../ForgeUIStandardHeading'
 import {
   ForgePreviewPalette,
   resolveForgeSemanticPalette,
@@ -12,6 +12,7 @@ const StandardHeadingPreview: React.FC<{
   palette: ForgePreviewPalette
 }> = ({ component, palette }) => {
   const theme = resolveForgeSemanticPalette(palette)
+  const model = getForgeUIStandardHeadingPresentation(component.props)
 
   return (
     <Text
@@ -20,15 +21,17 @@ const StandardHeadingPreview: React.FC<{
       m="0"
       p="0"
       overflow="hidden"
+      whiteSpace="pre-wrap"
+      overflowWrap="anywhere"
       color={theme.textPrimary}
       fontFamily="Montserrat, Arial, sans-serif"
-      fontSize={`${component.props.fontSize || 32}px`}
-      fontWeight={component.props.fontWeight || 'normal'}
+      fontSize={`${model.fontSize}px`}
+      fontWeight={model.fontWeight}
       lineHeight="1.2"
-      textAlign={component.props.textAlign || component.props.align || 'left'}
+      textAlign={model.textAlign}
       data-testid="standard-heading-preview"
     >
-      {getForgeUIStandardHeadingText(component.props)}
+      {model.text}
     </Text>
   )
 }

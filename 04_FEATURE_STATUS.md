@@ -3,7 +3,7 @@
 ## 2026-07-31 platform alignment
 
 Current platform save point:
-`FORGEUI_STANDARD_LIST__VERTICAL_SLICE__ESP32P4_PROVEN__2026-07-31`.
+`FORGEUI_END_OF_SPRINT__29_OF_39_STANDARD_WIDGETS_ESP32P4_PROVEN__2026-08-01`.
 
 Widget Registry architecture cleanup is complete at the metadata boundary:
 
@@ -66,8 +66,12 @@ Status language:
 | Spinbox | **PROVEN** | Live and Standalone ESP32-P4; drag/drop, previews, touch, setter/hook, multiple instances and gating |
 | QR Code | **READY FOR PROOF** | Registry/export/setter implemented; recorded successful physical scan remains open |
 | Button | **PROVEN** | Standard Button hardware proof passed on ESP32-P4 |
-| Text | **SOFTWARE/PARITY INCOMPLETE** | Wrapping parity fix implemented; corrected build still requires flash and visual hardware verification |
-| Heading, Icon Button, Icon, Box, Line, Divider, Canvas, Image | **PARTIAL** | Implemented pipeline coverage exists; this sprint does not upgrade physical evidence |
+| Text | **READY FOR FINAL HARDWARE RE-PROOF** | Wrapping and multiline parity correction implemented; corrected Live and Standalone builds still require flash and visual acceptance |
+| Heading | **PROVEN** | Multiline content, wrapping, configured alignment and generated geometry physically verified on ESP32-P4 |
+| Box | **PROVEN** | Geometry, styling, child ownership and Browser/Standalone nesting parity physically verified on ESP32-P4 |
+| Divider | **PROVEN** | Horizontal and vertical presentation physically verified on ESP32-P4; vertical drop geometry usability improved |
+| Icon | **READY FOR FINAL HARDWARE RE-PROOF** | Native source resolution, automatic sizing, centre pivot and clipping correction implemented; corrected build still requires visual acceptance |
+| Icon Button, Line, Canvas, Image | **PARTIAL** | Implemented pipeline coverage exists; widget-specific physical evidence remains incomplete |
 | Wi-Fi Status, Clock | **PARTIAL** | Implemented presentation exists; widget-specific proof record is incomplete |
 | TabView | **PROVEN** | ESP32-P4 touch selection remains physically proven; collision-safe selected-index setter/change hook contract retained |
 | TileView | **PROVEN** | Native LVGL 9.2.2 paging; silent startup/setter; correct `2 × 2` coordinates; horizontal/vertical navigation; one callback per effective change; repeated navigation and surrounding Wi-Fi/SD/widgets stable on ESP32-P4 |
@@ -77,8 +81,24 @@ dedicated Dashboard Widget family remain **PLANNED** and must not be
 described as Standard-library completions.
 
 Registry audit total: 44 entries, comprising 39 Standard widgets and five
-Interactive Assets. Twenty-six Standard widgets are physically proven:
-**26/39 (67%)**, leaving **13** for individual proof promotion.
+Interactive Assets. Twenty-nine Standard widgets are physically proven:
+**29/39 (74%)**, leaving **10** for individual proof promotion. Text and Icon
+are explicitly excluded from that total pending their final hardware re-proof.
+
+## 2026-08-01 end-of-sprint proof update
+
+Button, Heading, Box and Divider completed physical ESP32-P4 proof. Heading
+proved multiline wrapping and alignment parity. Box proved native child
+ownership and matching Browser/Standalone nesting. Divider proved its visual
+geometry; its horizontal behavior is unchanged and only the untouched vertical
+drop default now becomes immediately visible. Button retains its proven native
+presentation status.
+
+This sprint also replaced synthetic TileView export with native LVGL paging,
+corrected Standard Text wrapping/multiline parity, and corrected native Icon
+automatic sizing, source-aware scaling, centering and clipping. Those software
+corrections do not promote Text or Icon: both remain **READY FOR FINAL HARDWARE
+RE-PROOF**.
 
 ## TileView final physical proof
 

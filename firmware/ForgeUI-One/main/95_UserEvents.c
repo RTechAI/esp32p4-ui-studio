@@ -272,3 +272,8 @@ void FG_On_Comp_MS9_J6_Z31_J3065_Clicked(void)
 {
     printf("[ForgeUI User Event] FG_On_Comp_MS9_J6_Z31_J3065_Clicked\n");
 }
+
+void FG_On_Comp_MS9_N9_UYTN4_TDB_Clicked(void)
+{
+    printf("[ForgeUI User Event] FG_On_Comp_MS9_N9_UYTN4_TDB_Clicked\n");
+}

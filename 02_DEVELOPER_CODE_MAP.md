@@ -13,7 +13,7 @@
 
 ## Current save point
 
-**FORGEUI_STANDARD_LIST__VERTICAL_SLICE__ESP32P4_PROVEN__2026-07-31**
+**FORGEUI_END_OF_SPRINT__29_OF_39_STANDARD_WIDGETS_ESP32P4_PROVEN__2026-08-01**
 
 ## Current authoritative ownership summary
 
@@ -533,8 +533,9 @@ TabView and TileView are **PROVEN**. Image, Box and IconButton remain
 runtime-complete but outside these physical validation
 milestones. Their existing automated and architectural status is unchanged.
 The registry audit records 44 total entries, comprising 39 Standard widgets
-and five Interactive Assets; physical proof is 26/39 Standard widgets (67%)
-and 13 remain.
+and five Interactive Assets; physical proof is 29/39 Standard widgets (74%)
+and 10 remain. Heading, Box and Divider joined the proven set this sprint;
+Text and Icon remain **READY FOR FINAL HARDWARE RE-PROOF**.
 
 ### Current next-group parity architecture
 
@@ -4051,3 +4052,11 @@ These are future only. Slider, Progress, CircularProgress, Checkbox, Radio,
 NumberInput and Select support must not be described as unimplemented.
 
 Do not create a new registry, persistence system, AI pipeline, uploaded-asset store, exporter, or duplicate runtime generator for a future type. Reuse an existing runtime family whenever its state and API contract match. Create a new runtime family only when the existing momentary input, persistent binary input, persistent three-position input and binary output contracts cannot represent the control.
+## 2026-08-01 documentation save-point note
+
+The current proof ledger is **29/39 (74%)**, with **10 remaining**. Heading,
+Box and Divider are newly proven; Button proof is recorded in the same sprint.
+Debug Text through the shared normalized presentation and native label geometry
+path, and debug Icon through descriptor dimensions, shared 92% automatic fit,
+native scale/pivot and centered image bounds. Both remain **READY FOR FINAL
+HARDWARE RE-PROOF**.

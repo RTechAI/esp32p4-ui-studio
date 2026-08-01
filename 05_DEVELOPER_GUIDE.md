@@ -5,7 +5,7 @@ how authoring metadata becomes native LVGL firmware and how to preserve parity
 across the complete pipeline.
 
 Current save point:
-`FORGEUI_STANDARD_LIST__VERTICAL_SLICE__ESP32P4_PROVEN__2026-07-31`.
+`FORGEUI_END_OF_SPRINT__29_OF_39_STANDARD_WIDGETS_ESP32P4_PROVEN__2026-08-01`.
 
 For application-to-hardware examples after export, use
 [05_DEVELOPER_HARDWARE_INTEGRATION.md](05_DEVELOPER_HARDWARE_INTEGRATION.md).
@@ -422,7 +422,8 @@ field. Use NumberInput when arbitrary numeric text entry is required.
 
 The authoritative registry contains 39 Standard widgets. With TileView
 promoted and TabView retaining its existing **PROVEN** status, physical
-completion is 26/39 (67%), with 13 remaining.
+completion is 29/39 (74%), with 10 remaining. Text and Icon remain **READY FOR
+FINAL HARDWARE RE-PROOF** and are excluded from the proven count.
 
 ### Native List proof
 
@@ -440,3 +441,12 @@ runtime remained stable; and connected-stage internal RAM was approximately
 from the same generated output. **LIST — PROVEN ON ESP32-P4**.
 
 See [FORGEUI_SPINBOX_WIDGET.md](docs/FORGEUI_SPINBOX_WIDGET.md).
+## 2026-08-01 end-of-sprint engineering state
+
+The Standard proof ledger is **29/39 (74%)**, with **10 remaining**. Button,
+Heading, Box and Divider are physically proven. The sprint also completed
+native TileView replacement, Text multiline wrapping parity, Icon automatic
+sizing/clipping correction, Divider vertical-drop usability, Heading
+multiline/alignment parity and Box child/nesting parity. Text and Icon remain
+**READY FOR FINAL HARDWARE RE-PROOF** and must not be promoted from software
+evidence alone.

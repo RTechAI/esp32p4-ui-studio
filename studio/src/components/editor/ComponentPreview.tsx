@@ -22,7 +22,6 @@ import { InputLeftElementPreview } from '~components/editor/previews/InputLeftEl
 import AspectRatioPreview from '~components/editor/previews/AspectRatioBoxPreview'
 import PreviewContainer from '~components/editor/PreviewContainer'
 import WithChildrenPreviewContainer from '~components/editor/WithChildrenPreviewContainer'
-import IconPreview from './previews/IconPreview'
 import IconButtonPreview from './previews/IconButtonPreview'
 import SelectPreview from '~components/editor/previews/SelectPreview'
 import NumberInputPreview from '~components/editor/previews/NumberInputPreview'
@@ -48,6 +47,9 @@ import StandardTileViewPreview from '~forgeui/preview/StandardTileViewPreview'
 import StandardButtonPreview from '~forgeui/preview/StandardButtonPreview'
 import StandardTextPreview from '~forgeui/preview/StandardTextPreview'
 import StandardHeadingPreview from '~forgeui/preview/StandardHeadingPreview'
+import StandardIconPreview from '~forgeui/preview/StandardIconPreview'
+import StandardBoxPreview from '~forgeui/preview/StandardBoxPreview'
+import StandardDividerPreview from '~forgeui/preview/StandardDividerPreview'
 import StandardWifiPreview from '~forgeui/preview/StandardWifiPreview'
 import StandardLineCanvasPreview from './previews/StandardLineCanvasPreview'
 import { useForgePreviewPalette } from '~forgeui/theme/ForgeThemeContext'
@@ -458,7 +460,7 @@ case 'CloseButton':
       enableVisualHelper
       {...forwardedProps}
     >
-      <IconPreview component={component} />
+      <StandardIconPreview component={component} palette={previewPalette} />
     </PreviewContainer>
   )
   
@@ -643,28 +645,13 @@ case 'Select':
   )
 
   case 'Box': {
-  const boxSurface =
-    component.props.layoutSurfaceRole === 'surfaceSecondary'
-      ? previewTheme.surfaceSecondary
-      : previewTheme.surface
   return (
     <PreviewContainer
       component={component}
       enableVisualHelper
       {...forwardedProps}
     >
-      <Chakra.Box
-        data-layout-region={component.props.layoutRegionKey}
-        width="100%"
-        height="100%"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-        border={`${Number(component.props.layoutBorderWidth ?? 2)}px solid ${previewTheme.surfaceBorder}`}
-        borderRadius={`${Number(component.props.layoutRadius ?? 12)}px`}
-        bg={boxSurface}
-        opacity={Number(component.props.layoutOpacity ?? 0.8)}
-      />
+      <StandardBoxPreview component={component} palette={previewPalette} />
     </PreviewContainer>
   )
   }
@@ -1022,14 +1009,7 @@ case 'Line':
 case 'Divider':
   return (
     <PreviewContainer component={component} enableVisualHelper {...forwardedProps}>
-      <Chakra.Box
-        width="100%"
-        height="100%"
-        display="flex"
-        alignItems="center"
-      >
-        <Chakra.Divider borderColor={previewTheme.surfaceBorder} opacity={1} />
-      </Chakra.Box>
+      <StandardDividerPreview component={component} palette={previewPalette} />
     </PreviewContainer>
   )
 

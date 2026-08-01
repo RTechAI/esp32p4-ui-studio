@@ -1,7 +1,7 @@
 # ForgeUI Studio
 
 Current architecture save point:
-`FORGEUI_STANDARD_LIST__VERTICAL_SLICE__ESP32P4_PROVEN__2026-07-31`.
+`FORGEUI_END_OF_SPRINT__29_OF_39_STANDARD_WIDGETS_ESP32P4_PROVEN__2026-08-01`.
 
 **ForgeUI Studio is an open-source, AI-assisted visual HMI and embedded GUI designer for ESP32-P4.** It combines a drag-and-drop Canvas, reusable Interactive Assets, AI Layout tools, Browser Preview, native LVGL 9 generation, integrated ESP-IDF Build & Flash, and standalone ESP-IDF project export.
 
@@ -132,8 +132,10 @@ Current Standard-widget milestone evidence:
   Preview, native LVGL export, Runtime SDK, `95_UserEvents`, export-time
   gating, live ESP32-P4 firmware and Standalone Export.
 
-The registry contains 39 Standard widgets; 26 are physically proven (67%) and
-13 remain. TabView and TileView are **PROVEN**. Dedicated
+The registry contains 39 Standard widgets; 29 are physically proven (74%) and
+10 remain. TabView, TileView, Button, Heading, Box and Divider are **PROVEN**.
+Text and Icon are **READY FOR FINAL HARDWARE RE-PROOF** and are not included in
+the proven total. Dedicated
 Dashboard widgets have not started.
 
 ## Hardware support and proof

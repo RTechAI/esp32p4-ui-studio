@@ -13,7 +13,7 @@
 
 ## Current proven save point
 
-**FORGEUI_STANDARD_LIST__VERTICAL_SLICE__ESP32P4_PROVEN__2026-07-31**
+**FORGEUI_END_OF_SPRINT__29_OF_39_STANDARD_WIDGETS_ESP32P4_PROVEN__2026-08-01**
 
 This document describes the generated SDK surface currently emitted by the
 shared live/Standalone generator. `90_Studio_Export.h` contains callable
@@ -655,7 +655,7 @@ text-entry control; use NumberInput for that interaction model.
 
 The final registry audit records 44 entries: 39 Standard widgets and five
 Interactive Assets. With TileView promoted and TabView retaining its existing
-**PROVEN** status, Standard physical proof is 26/39 (67%), leaving 13 widgets
+**PROVEN** status, Standard physical proof is 29/39 (74%), leaving 10 widgets
 for individual promotion.
 
 ### List generated boundary
@@ -3166,3 +3166,11 @@ Both live generation and standalone export carry the hook through the existing
 preservation-merges the matching declaration and implementation in
 `95_UserEvents.h/.c`; no new payload field or public declaration in
 `90_Studio_Export.h` is introduced.
+## 2026-08-01 generated-export proof boundary
+
+Standard physical proof is **29/39 (74%)**, leaving **10**. Button, Heading,
+Box and Divider are proven. Text export now applies complete multiline content,
+geometry, wrap mode and alignment consistently. Icon export now derives
+source-aware scale from the shared 92% automatic target and emits centered
+pivots/alignment. Text and Icon remain **READY FOR FINAL HARDWARE RE-PROOF**;
+their corrected generated paths are not physical-proof promotions.

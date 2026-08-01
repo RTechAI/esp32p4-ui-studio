@@ -10,8 +10,8 @@ each feature and the official widget totals.
 | Item | Current record |
 | --- | --- |
 | Last updated | 2026-08-01 |
-| Current Standard Widget proof total | 26 of 39 (67%), as recorded in `04_FEATURE_STATUS.md` |
-| Remaining Standard widgets | 13 |
+| Current Standard Widget proof total | 29 of 39 (74%), as recorded in `04_FEATURE_STATUS.md` |
+| Remaining Standard widgets | 10 |
 | LVGL version | 9.2.2 |
 | ESP-IDF version | 5.5.4 |
 | Target hardware | Waveshare ESP32-P4-WiFi6-Touch-LCD-7B, 1024 × 600 |
@@ -21,6 +21,21 @@ Totals are copied only as a dated summary pointer. Change them in
 `04_FEATURE_STATUS.md` after proof acceptance, then refresh this summary.
 
 ## Recently Improved
+
+### 2026-08-01 — End-of-sprint Standard proof and parity closure
+
+- **Subsystem:** Button, Heading, Box, Divider, Text, Icon and native TileView.
+- **Improvement:** Button, Heading, Box and Divider completed physical proof;
+  Heading gained multiline/alignment parity, Box gained authoritative child
+  ownership and Browser nesting parity, Divider gained visible default vertical
+  geometry, Text gained multiline wrapping/export parity, Icon gained
+  source-aware 92% automatic fitting with centered native pivots, and TileView
+  retained its native replacement for the former synthetic export.
+- **Reason:** Hardware-first comparison exposed presentation, nesting, wrapping,
+  sizing and clipping differences that automation alone could not establish.
+- **Validation:** Button, Heading, Box and Divider passed ESP32-P4 proof. Text and
+  Icon software regressions passed but both remain **READY FOR FINAL HARDWARE
+  RE-PROOF** and are excluded from the 29-widget proven total.
 
 ### 2026-08-01 — Standard Text parity
 
@@ -121,8 +136,24 @@ Totals are copied only as a dated summary pointer. Change them in
   shared Canvas/Browser rendering tests, all alignments, full escaped C,
   geometry/call-order assertions and explicit absence of DOT/CLIP modes.
 - **Physical validation:** Not yet complete. Text remains
-  **SOFTWARE/PARITY INCOMPLETE** until the corrected build is flashed and
-  visually accepted.
+  **READY FOR FINAL HARDWARE RE-PROOF** until the corrected build is flashed
+  and visually accepted.
+
+### 2026-08-01 — Icon native scaling and clipping correction
+
+- **Issue:** A 64 × 64 uploaded FiAirplay descriptor was emitted into a 48 × 48
+  native image object at scale 256, clipping the centered image at its bounds.
+- **Root cause:** Uploaded images retained source scale instead of deriving
+  scale from the shared rendered target; exact-edge automatic fitting also left
+  no allowance for transformed anti-aliased pixels.
+- **Resolution:** Canvas, Browser Preview and export now share a 92% automatic
+  fit of the shorter component edge when `boxSize` is unset. Native export uses
+  actual descriptor dimensions, a centered pivot and `LV_IMAGE_ALIGN_CENTER`.
+  Explicit `boxSize` remains exact.
+- **Regression protection:** Source-size, padding, scale, pivot, alignment,
+  opacity, recolour and deterministic Live/Standalone block tests.
+- **Physical validation:** Correction awaits final flash and visual comparison.
+  Icon remains **READY FOR FINAL HARDWARE RE-PROOF**.
 
 ### 2026-07-31 — Spinbox export coordinates
 
@@ -213,6 +244,18 @@ Totals are copied only as a dated summary pointer. Change them in
   alignments before changing totals.
 - **Date last reviewed:** 2026-08-01.
 
+### P1 — Standard Icon hardware re-proof
+
+- **Subsystem:** Standard Icon / generated LVGL image sizing.
+- **Description:** Source resolution and scaling now work, and the native
+  clipping defect has a shared 92% automatic-fit correction, but the corrected
+  Live and Standalone builds still need final visual hardware acceptance.
+- **Current workaround:** Set an explicit conservative `boxSize`; do not treat
+  the current software result as proven.
+- **Next action:** Compare regenerated Live and Standalone Icon blocks, flash
+  both and confirm all anti-aliased edges match Canvas and Browser Preview.
+- **Date last reviewed:** 2026-08-01.
+
 ### P2 — Existing TypeScript diagnostics
 
 - **Subsystem:** Studio test/preview typing.
@@ -229,7 +272,7 @@ Totals are copied only as a dated summary pointer. Change them in
 ### P2 — Remaining Standard Widget proof backlog
 
 - **Subsystem:** Proven Widget Pipeline.
-- **Description:** The authoritative ledger records 13 Standard widgets still
+- **Description:** The authoritative ledger records 10 Standard widgets still
   outside full physical proof. QR Code has software coverage but still needs
   recorded phone scans; Text is awaiting corrected visual re-proof.
 - **Current workaround:** Use the per-widget status and evidence boundaries in
@@ -249,7 +292,11 @@ This is a compact evidence journal, not the full status catalogue.
 | List | Passed | Passed | Passed | Complete | **PROVEN** |
 | TileView | Passed | Passed | Passed | Complete | **PROVEN** |
 | Button | Passed | Passed | Passed | Recorded | **PROVEN** |
-| Text | Software passed | Software parity path shared | Corrected build not yet flashed | Re-proof procedure recorded | **SOFTWARE/PARITY INCOMPLETE** |
+| Heading | Passed | Passed | Passed | Complete | **PROVEN** |
+| Box | Passed | Passed | Passed | Complete | **PROVEN** |
+| Divider | Passed | Passed | Passed | Complete | **PROVEN** |
+| Text | Software passed | Software parity path shared | Corrected build not yet accepted | Re-proof procedure recorded | **READY FOR FINAL HARDWARE RE-PROOF** |
+| Icon | Software passed | Deterministic shared generator | Corrected build not yet accepted | Re-proof procedure recorded | **READY FOR FINAL HARDWARE RE-PROOF** |
 
 ## Validation History
 
@@ -259,6 +306,11 @@ Only completed, recorded runs belong in this section.
 | --- | --- | --- |
 | 2026-08-01 | Focused Standard Text tests | 3 suites, 18/18 tests passed |
 | 2026-08-01 | Broader Text/theme/export regression selection | 6 suites, 72/72 tests passed |
+| 2026-08-01 | Icon sizing/clipping focused validation | 6 suites, 157/157 tests passed; focused ESLint, export-server syntax and diff check passed |
+| 2026-08-01 | Button, Heading, Box and Divider hardware proof | Live/Standalone and ESP32-P4 physical evidence accepted |
+| 2026-08-01 | Documentation consistency audit | Authoritative totals/statuses and website mirrors synchronized at 29/39, 10 remaining; no stale current-total language found |
+| 2026-08-01 | Documentation/Registry test | 33/33 passed, including real documentation targets |
+| 2026-08-01 | Website documentation, link and search tests | 69/69 passed after production static generation of 47 pages |
 | 2026-08-01 | Studio TypeScript | Failed on two existing unrelated diagnostics: CircularProgress test JSX return type and StandardListPreview polymorphic `type` prop |
 | 2026-08-01 | Website TypeScript | Passed `npm run typecheck` |
 | 2026-08-01 | Website ESLint | Passed `npm run lint` |
@@ -276,15 +328,14 @@ Failures remain visible rather than being rewritten as historical passes.
 
 ## Current Sprint
 
-- **Current objective:** Close the Standard Text authoring/export parity defect
-  without beginning another widget.
-- **Current proof batch:** Standard Text long paragraph, explicit multiline text,
-  left/centre/right alignment, live/Standalone generated-C comparison and
-  ESP32-P4 visual proof.
-- **Recently completed widgets:** Button physical proof; native TileView proof;
-  Spinbox, List and TabView proof milestones remain current.
-- **Next planned widgets:** None begins until Text is re-flashed and accepted.
-  Heading is the next named candidate only after that gate is complete.
+- **Current objective:** Archive the 29/39 end-of-sprint save point, then close
+  the pending Text and Icon final hardware re-proofs without premature promotion.
+- **Current proof batch:** Button, Heading, Box and Divider completed; Text and
+  Icon are corrected in software and queued for final Live/Standalone flash.
+- **Recently completed widgets:** Button, Heading, Box and Divider physical
+  proof; native TileView, Spinbox, List and TabView milestones remain current.
+- **Next planned widgets:** No new widget begins before this save point is
+  archived and the remaining proof pipeline is explicitly resumed.
 
 ## Engineering Notes
 

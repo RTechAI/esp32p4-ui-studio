@@ -1,9 +1,8 @@
 import React, { memo } from 'react'
-import { Input, Select } from '@chakra-ui/react'
+import { Select, Textarea } from '@chakra-ui/react'
 import { useForm } from '~hooks/useForm'
 import FormControl from '~components/inspector/controls/FormControl'
 import usePropsSelector from '~hooks/usePropsSelector'
-import SwitchControl from '~components/inspector/controls/SwitchControl'
 import { getForgeUIStandardHeadingText } from '~forgeui/ForgeUIStandardHeading'
 
 const HeadingPanel = () => {
@@ -19,11 +18,11 @@ const HeadingPanel = () => {
   return (
     <>
       <FormControl htmlFor="headingText" label="Heading Text">
-        <Input
+        <Textarea
           id="headingText"
           name="headingText"
           size="sm"
-          type="text"
+          rows={3}
           value={getForgeUIStandardHeadingText({
             headingText,
             children: legacyChildren,
@@ -64,8 +63,6 @@ const HeadingPanel = () => {
           <option>h6</option>
         </Select>
       </FormControl>
-
-      <SwitchControl label="Truncated" name="isTruncated" />
     </>
   )
 }

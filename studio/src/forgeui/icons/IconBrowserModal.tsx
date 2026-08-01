@@ -1,6 +1,5 @@
 import { searchForgeUIIcons } from './ForgeUIIconSearch'
 import React, { useMemo, useState } from 'react'
-import { renderToStaticMarkup } from 'react-dom/server'
 import {
   Modal,
   ModalOverlay,
@@ -15,7 +14,9 @@ import {
   Button,
 } from '@chakra-ui/react'
 
-import iconsList, { ICON_COUNT, ICON_NAMES } from '~iconsList'
+import { ICON_COUNT, ICON_NAMES } from '~iconsList'
+import { forgeUIIconNameToPngFile } from './ForgeUIIconAssetRenderer'
+import { ForgeUIIconGlyph } from './ForgeUIIconGlyph'
 
 import {
   forgeUICreateUploadedAsset,
@@ -37,54 +38,6 @@ type Props = {
   onClose: () => void
   onSelect: (selection: ForgeUIIconSelection) => void
   onAssetsAdded?: () => void
-}
-
-const iconNameToPngFile = async (iconName: string): Promise<File | null> => {
-  const IconComponent = iconsList[iconName as keyof typeof iconsList]
-
-  if (!IconComponent) return null
-
-  const svgMarkup = renderToStaticMarkup(
-    <IconComponent size={64} color="white" />
-  )
-
-  const svgBlob = new Blob([svgMarkup], {
-    type: 'image/svg+xml',
-  })
-
-  const svgUrl = URL.createObjectURL(svgBlob)
-
-  try {
-    const image = new Image()
-
-    await new Promise<void>((resolve, reject) => {
-      image.onload = () => resolve()
-      image.onerror = reject
-      image.src = svgUrl
-    })
-
-    const canvas = document.createElement('canvas')
-    canvas.width = 64
-    canvas.height = 64
-
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return null
-
-    ctx.clearRect(0, 0, 64, 64)
-    ctx.drawImage(image, 0, 0, 64, 64)
-
-    const pngBlob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob(resolve, 'image/png')
-    })
-
-    if (!pngBlob) return null
-
-    return new File([pngBlob], `${iconName}.png`, {
-      type: 'image/png',
-    })
-  } finally {
-    URL.revokeObjectURL(svgUrl)
-  }
 }
 
 const fileToBase64 = (file: File) =>
@@ -129,15 +82,7 @@ const IconBrowserModal = ({
   const handleUseSelectedIcon = async (
   iconName: string,
 ) => {
-  const file = await iconNameToPngFile(iconName)
-
-  if (!file) {
-    console.error(
-      'Failed to create icon PNG:',
-      iconName,
-    )
-    return
-  }
+  const file = await forgeUIIconNameToPngFile(iconName)
 
   const browserSrc = await fileToBase64(file)
 
@@ -208,9 +153,9 @@ const IconBrowserModal = ({
   const handleAddSelectedToAssets = async () => {
   const files = (
     await Promise.all(
-      selectedIcons.map(iconNameToPngFile),
+      selectedIcons.map(iconName => forgeUIIconNameToPngFile(iconName)),
     )
-  ).filter(Boolean) as File[]
+  )
 
   if (files.length === 0) {
     return
@@ -335,7 +280,6 @@ const IconBrowserModal = ({
                 }}
               >
                 {filteredIcons.map(iconName => {
-                  const IconPreview = iconsList[iconName as keyof typeof iconsList]
                   const isSelected = selectedIcons.includes(iconName)
 
                   return (
@@ -363,7 +307,7 @@ const IconBrowserModal = ({
                         borderRadius: '6px',
                       }}
                     >
-                      {IconPreview && <IconPreview size={18} />}
+                      <ForgeUIIconGlyph iconName={iconName} width={18} height={18} />
                       <span>{iconName}</span>
                     </button>
                   )
@@ -394,8 +338,6 @@ const IconBrowserModal = ({
                 }}
               >
                 {selectedIcons.map(iconName => {
-                  const IconPreview = iconsList[iconName as keyof typeof iconsList]
-
                   return (
                     <HStack
                       key={iconName}
@@ -405,7 +347,7 @@ const IconBrowserModal = ({
                       p={2}
                     >
                       <HStack>
-                        {IconPreview && <IconPreview size={18} />}
+                        <ForgeUIIconGlyph iconName={iconName} width={18} height={18} />
                         <Text fontSize="xs">{iconName}</Text>
                       </HStack>
 

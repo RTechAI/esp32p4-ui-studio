@@ -1,11 +1,4 @@
-import React from 'react'
-import {
-  renderToStaticMarkup,
-} from 'react-dom/server'
-
-import iconsList, {
-  ICON_NAMES,
-} from '~iconsList'
+import { ICON_NAMES } from '~iconsList'
 
 import {
   searchForgeUIIcons,
@@ -17,6 +10,7 @@ import {
   forgeUIGetUploadedAssets,
   forgeUIUpdateUploadedAsset,
 } from '~forgeui/ForgeUIUploadedAssetRegistry'
+import { forgeUIIconNameToPngFile } from './ForgeUIIconAssetRenderer'
 
 export type ForgeUIResolvedIcon = {
   iconName: string
@@ -28,138 +22,6 @@ export type ForgeUIResolvedIcon = {
   objectFit: 'contain'
   lvgl: string
   cFile: string
-}
-
-const iconNameToPngFile = async (
-  iconName: string,
-  requestedWidth = 32,
-  requestedHeight = 32,
-): Promise<File> => {
-  const IconComponent =
-    iconsList[
-      iconName as keyof typeof iconsList
-    ]
-
-  if (!IconComponent) {
-    throw new Error(
-      `Unknown ForgeUI icon: ${iconName}`,
-    )
-  }
-
-  const width = Math.max(
-    1,
-    Math.round(requestedWidth),
-  )
-
-  const height = Math.max(
-    1,
-    Math.round(requestedHeight),
-  )
-
-  const iconSize =
-    Math.min(width, height)
-
-  const svgMarkup =
-    renderToStaticMarkup(
-      <IconComponent
-        size={iconSize}
-        color="white"
-      />,
-    )
-
-  const svgBlob = new Blob(
-    [svgMarkup],
-    {
-      type: 'image/svg+xml',
-    },
-  )
-
-  const svgUrl =
-    URL.createObjectURL(svgBlob)
-
-  try {
-    const image = new Image()
-
-    await new Promise<void>(
-      (resolve, reject) => {
-        image.onload = () => resolve()
-
-        image.onerror = () =>
-          reject(
-            new Error(
-              `Failed to render icon: ${iconName}`,
-            ),
-          )
-
-        image.src = svgUrl
-      },
-    )
-
-    const canvas =
-      document.createElement('canvas')
-
-    canvas.width = width
-    canvas.height = height
-
-    const ctx =
-      canvas.getContext('2d')
-
-    if (!ctx) {
-      throw new Error(
-        'Canvas rendering is unavailable',
-      )
-    }
-
-    ctx.clearRect(
-      0,
-      0,
-      width,
-      height,
-    )
-
-    const drawSize =
-      Math.min(width, height)
-
-    const drawX =
-      (width - drawSize) / 2
-
-    const drawY =
-      (height - drawSize) / 2
-
-    ctx.drawImage(
-      image,
-      drawX,
-      drawY,
-      drawSize,
-      drawSize,
-    )
-
-    const pngBlob =
-      await new Promise<Blob | null>(
-        resolve => {
-          canvas.toBlob(
-            resolve,
-            'image/png',
-          )
-        },
-      )
-
-    if (!pngBlob) {
-      throw new Error(
-        `Failed to create PNG for ${iconName}`,
-      )
-    }
-
-    return new File(
-      [pngBlob],
-      `${iconName}_${width}x${height}.png`,
-      {
-        type: 'image/png',
-      },
-    )
-  } finally {
-    URL.revokeObjectURL(svgUrl)
-  }
 }
 
 const fileToBase64 = (
@@ -274,7 +136,7 @@ export const resolveForgeUIIcon = async (
   }
 
   const file =
-    await iconNameToPngFile(
+    await forgeUIIconNameToPngFile(
       iconName,
       width,
       height,
