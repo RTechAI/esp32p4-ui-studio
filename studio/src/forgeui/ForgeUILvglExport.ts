@@ -43,6 +43,7 @@ import {
 } from './ForgeUIStandardQRCode'
 import { getForgeUIStandardListModel } from './ForgeUIStandardList'
 import { normalizeForgeUISpans, normalizeFrameAssetIds } from './ForgeUIClosureWidgets'
+import { normalizeWindowActions, windowScrollbarMode } from './ForgeUIWindow'
 import {
   getForgeUIStandardSpinboxModel,
   type ForgeUIStandardSpinboxModel,
@@ -2568,6 +2569,7 @@ const buildLvglBlock = (
 
     counter.value++
     const varName = `obj${counter.value}`
+    let childParentVar = varName
 
     const x = lv(child.props.x, 0)
     const y = lv(child.props.y, 0)
@@ -3756,6 +3758,60 @@ case 'ImageButton': {
   break
 }
 
+case 'Window': {
+  const p = child.props || {}
+  const headerHeight = Math.max(28, integerProp(p.headerHeight, 48))
+  const buttonSize = Math.max(20, integerProp(p.buttonSize, 32))
+  const contentPadding = Math.max(0, integerProp(p.contentPadding, 8))
+  const color = (value: unknown, fallback: string) =>
+    `0x${String(value || fallback).replace('#', '').slice(0, 6)}`
+  lines.push(`lv_obj_t * ${varName} = lv_win_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
+  if (p.visible === false) lines.push(`lv_obj_add_flag(${varName}, LV_OBJ_FLAG_HIDDEN);`)
+  lines.push(`lv_obj_set_style_opa(${varName}, ${Math.round(Math.max(0, Math.min(1, Number(p.opacity ?? 1))) * 255)}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${varName}, ${Math.max(0, integerProp(p.cornerRadius, 10))}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${varName}, ${Math.max(0, integerProp(p.borderWidth, 1))}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${color(p.borderColor, '#334155')}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_t * ${varName}_header = lv_win_get_header(${varName});`)
+  lines.push(`lv_obj_set_height(${varName}_header, ${headerHeight});`)
+  lines.push(`lv_obj_set_style_pad_hor(${varName}_header, ${Math.max(0, integerProp(p.headerPadding, 12))}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_pad_column(${varName}_header, ${Math.max(0, integerProp(p.buttonSpacing, 6))}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}_header, lv_color_hex(${color(p.headerBackground, '#172033')}), LV_PART_MAIN);`)
+  if (p.showIcon !== false) {
+    lines.push(`lv_obj_t * ${varName}_icon = lv_label_create(${varName}_header);`)
+    lines.push(`lv_label_set_text(${varName}_icon, LV_SYMBOL_IMAGE);`)
+    lines.push(`lv_obj_set_style_text_color(${varName}_icon, lv_color_hex(${color(p.headerTextColor, '#F8FAFC')}), LV_PART_MAIN);`)
+  }
+  lines.push(`lv_obj_t * ${varName}_title = lv_win_add_title(${varName}, "${esc(String(p.title || 'Window'))}");`)
+  lines.push(`lv_obj_set_style_text_color(${varName}_title, lv_color_hex(${color(p.headerTextColor, '#F8FAFC')}), LV_PART_MAIN);`)
+  const titleAlign = p.titleAlign === 'center' ? 'LV_TEXT_ALIGN_CENTER' : p.titleAlign === 'right' ? 'LV_TEXT_ALIGN_RIGHT' : 'LV_TEXT_ALIGN_LEFT'
+  lines.push(`lv_obj_set_style_text_align(${varName}_title, ${titleAlign}, LV_PART_MAIN);`)
+  normalizeWindowActions(p.actionButtons).forEach((action, index) => {
+    lines.push(`lv_obj_t * ${varName}_action_${index} = lv_win_add_button(${varName}, NULL, ${buttonSize});`)
+    lines.push(`lv_obj_t * ${varName}_action_${index}_label = lv_label_create(${varName}_action_${index});`)
+    lines.push(`lv_label_set_text(${varName}_action_${index}_label, ${/^LV_SYMBOL_[A-Z0-9_]+$/.test(action.icon) ? action.icon : 'LV_SYMBOL_SETTINGS'});`)
+    lines.push(`lv_obj_center(${varName}_action_${index}_label);`)
+    if (!action.enabled) lines.push(`lv_obj_add_state(${varName}_action_${index}, LV_STATE_DISABLED);`)
+  })
+  if (p.showCloseButton !== false) {
+    lines.push(`lv_obj_t * ${varName}_close = lv_win_add_button(${varName}, NULL, ${buttonSize});`)
+    lines.push(`lv_obj_t * ${varName}_close_label = lv_label_create(${varName}_close);`)
+    lines.push(`lv_label_set_text(${varName}_close_label, LV_SYMBOL_CLOSE);`)
+    lines.push(`lv_obj_center(${varName}_close_label);`)
+    lines.push(`lv_obj_add_event_cb(${varName}_close, fg_window_close_cb, LV_EVENT_CLICKED, ${varName});`)
+  }
+  lines.push(`lv_obj_t * ${varName}_content = lv_win_get_content(${varName});`)
+  lines.push(`lv_obj_set_style_pad_all(${varName}_content, ${contentPadding}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}_content, lv_color_hex(${color(p.contentBackground, '#0F172A')}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_scrollbar_mode(${varName}_content, LV_SCROLLBAR_MODE_${windowScrollbarMode(p.scrollbarMode).toUpperCase()});`)
+  if (p.scrollingEnabled === false) lines.push(`lv_obj_clear_flag(${varName}_content, LV_OBJ_FLAG_SCROLLABLE);`)
+  if (p.childClipping === false) lines.push(`lv_obj_add_flag(${varName}_content, LV_OBJ_FLAG_OVERFLOW_VISIBLE);`)
+  childParentVar = `${varName}_content`
+  lines.push(``)
+  break
+}
+
 case 'Spinbox': {
   const spinboxExport = spinboxExports.get(child.id)
   if (!spinboxExport) break
@@ -4804,7 +4860,7 @@ case 'Chart': {
             buildLvglBlock(
         child,
         components,
-        varName,
+        childParentVar,
         lines,
         counter,
         palette,
@@ -6593,6 +6649,13 @@ const backgroundMode =
     lines.push(`}`)
     lines.push(``)
   })
+
+  lines.push(`static void fg_window_close_cb(lv_event_t * event)`)
+  lines.push(`{`)
+  lines.push(`    lv_obj_t * window = (lv_obj_t *)lv_event_get_user_data(event);`)
+  lines.push(`    if (window) lv_obj_add_flag(window, LV_OBJ_FLAG_HIDDEN);`)
+  lines.push(`}`)
+  lines.push(``)
 
   if (keyboardExports.size > 0) {
     lines.push(`static bool fg_component_keyboard_set_visible(lv_obj_t * keyboard, bool visible)`)

@@ -3,7 +3,7 @@ import { getPreviewDefaultProps } from '~utils/defaultProps'
 // This is authoritative for widgets currently supported by ForgeUI, not an
 // assertion that every official LVGL widget is registered. The final LVGL 9.2
 // comparison lives in docs/LVGL_9_STANDARD_WIDGET_AUDIT.md. Span, AnimImage and
-// ImageButton are physically proven; Window and Menu remain. Lottie is
+// ImageButton are physically proven; Window is ready for physical proof and Menu remains. Lottie is
 // explicitly excluded pending a separate dependency/memory decision.
 
 export const FORGEUI_WIDGET_CATEGORIES = [
@@ -75,6 +75,7 @@ const displayNames: Partial<Record<ComponentType, string>> = {
   Textarea: 'Textarea',
   AnimImage: 'Animation Image',
   ImageButton: 'Image Button',
+  Window: 'Window',
 }
 
 const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
@@ -90,7 +91,7 @@ const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
     'Led', 'Bar', 'Arc', 'Scale', 'Chart', 'Table', 'Clock',
     'WiFi', 'QRCode', 'Progress', 'CircularProgress', 'AnimImage',
   ],
-  Navigation: ['List', 'Tabview', 'Tileview', 'ButtonMatrix', 'ImageButton'],
+  Navigation: ['List', 'Tabview', 'Tileview', 'ButtonMatrix', 'ImageButton', 'Window'],
   Feedback: ['Msgbox', 'Keyboard', 'Calendar', 'Spinner'],
   Dashboard: [],
   Assets: [
@@ -157,6 +158,7 @@ const sizes: Partial<Record<ComponentType, [number, number]>> = {
   Span: [280, 90],
   AnimImage: [160, 160],
   ImageButton: [96, 64],
+  Window: [420, 300],
 }
 
 const keywords: Partial<Record<ComponentType, string[]>> = {
@@ -182,6 +184,7 @@ const keywords: Partial<Record<ComponentType, string[]>> = {
   Span: ['rich text', 'formatted text', 'lv_spangroup'],
   AnimImage: ['animation', 'frames', 'lv_animimg'],
   ImageButton: ['image action', 'pressed image', 'lv_imagebutton'],
+  Window: ['panel', 'dialog', 'title bar', 'container', 'lv_win'],
 }
 
 type CapabilityDefinition = Omit<
@@ -249,6 +252,7 @@ const capabilitiesByType: Partial<
     ...capability(true, true, true, 'none', false, { mode: 'serialized-widget', lvglConfigDependencies: ['CONFIG_LV_USE_IMAGEBUTTON', 'CONFIG_LV_USE_IMAGE'] }),
     instanceConfiguration: { runtimeApiProperty: 'generateRuntimeApi', runtimeApiDefault: true, userEventProperty: 'enableClick', userEventDefault: true },
   },
+  Window: capability(false, false, false, 'structured', false, { mode: 'serialized-widget', lvglConfigDependencies: ['CONFIG_LV_USE_WIN'] }),
 
   Input: capability(true, true, true),
   Textarea: capability(true, true, true),
@@ -348,6 +352,7 @@ const documentationByType: Partial<Record<ComponentType, string>> = {
   Span: 'docs/FORGEUI_LVGL_CLOSURE_BATCH1.md',
   AnimImage: 'docs/FORGEUI_LVGL_CLOSURE_BATCH1.md',
   ImageButton: 'docs/FORGEUI_LVGL_CLOSURE_BATCH1.md',
+  Window: 'docs/FORGEUI_WINDOW_WIDGET.md',
   List: 'docs/FORGEUI_LIST_WIDGET.md',
   Tileview: 'docs/FORGEUI_TILEVIEW_WIDGET.md',
   Spinbox: 'docs/FORGEUI_SPINBOX_WIDGET.md',
@@ -374,6 +379,7 @@ const describe = (
     QRCode: 'Native QR display with typed payloads and a runtime text setter.',
     AnimImage: 'Asset-Manager-authored native frame animation with ordered frames and a clickable zero-frame placeholder.',
     Span: 'Inspector-authored ordered rich text with semantic styling and an actionable empty state.',
+    Window: 'Native structured window with a title header and child-owned scrollable content region.',
     InteractiveButton: 'Reusable state-sheet driven button.',
   }
   return special[type] || `${name} ${category.toLowerCase()} widget.`

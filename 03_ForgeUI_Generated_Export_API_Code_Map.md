@@ -666,9 +666,9 @@ repeated/no-op transitions and programmatic setters remain silent.
 Native LVGL Spinbox is a selected-digit editor. It is not a free-form numeric
 text-entry control; use NumberInput for that interaction model.
 
-The current registry records 47 entries: 42 practical Standard LVGL
+The current registry records 48 entries: 43 practical Standard LVGL
 widgets/components and five Interactive Assets. All **42/42** practical
-Standard LVGL entries are physically proven on ESP32-P4. Window and Menu remain
+Standard LVGL entries are physically proven on ESP32-P4. Window is implemented through native `lv_win_create` and ready for physical proof; Menu remains
 the final structured-widget closure sprint.
 
 ### List generated boundary
@@ -2991,7 +2991,7 @@ Preserve these rules:
   ESP32-P4 Live/Standalone parity.
 - Span remains presentation-only; Animation Image remains API-free; Image
   Button retains only enabled control and a genuine click hook.
-- Window and Menu are next.
+- Window is implemented and ready for physical proof; Menu is next after proof.
 
 ### Historical Closure Batch 1 software milestone — superseded 2026-08-02
 

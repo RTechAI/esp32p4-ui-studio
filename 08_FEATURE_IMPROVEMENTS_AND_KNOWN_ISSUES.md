@@ -11,11 +11,11 @@ each feature and the official widget totals.
 | --- | --- |
 | Last updated | 2026-08-01 |
 | Current practical LVGL 9.2 proof total | 42 physically proven, as recorded in `04_FEATURE_STATUS.md` |
-| Remaining practical closure widgets | Window and Menu |
+| Remaining practical closure widgets | Window physical proof, then Menu implementation |
 | LVGL version | 9.2.2 |
 | ESP-IDF version | 5.5.4 |
 | Target hardware | Waveshare ESP32-P4-WiFi6-Touch-LCD-7B, 1024 × 600 |
-| Current development phase | Implement and prove Window, then Menu |
+| Current development phase | Window implemented — ready for physical proof; then Menu |
 
 Totals are copied only as a dated summary pointer. Change them in
 `04_FEATURE_STATUS.md` after proof acceptance, then refresh this summary.
@@ -447,7 +447,7 @@ Failures remain visible rather than being rewritten as historical passes.
 - **Current objective:** Close the practical official LVGL 9.2 catalogue.
 - **Current proven pipeline set:** All 42 practical registered Standard LVGL
   widgets/components, including Closure Batch 1.
-- **Next action:** Implement and prove Window, then Menu. Keep Lottie explicitly
+- **Next action:** Physically prove the implemented Window, then implement Menu. Keep Lottie explicitly
   excluded pending a separate
   ThorVG/vector/C++ and framebuffer decision. Then begin ForgeUI-native
   Dashboard widgets and designers.

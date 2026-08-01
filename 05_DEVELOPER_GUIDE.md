@@ -388,9 +388,9 @@ substitute repeated direct COM-port troubleshooting unless the operator asks.
 
 ## 20. Current direction
 
-All 42 practical Standard LVGL widgets/components currently registered are
-physically proven. Closure Batch 1 proved Span, Animation Image and Image
-Button. Complete Window and then Menu through the Proven Widget Pipeline before
+The 42 previously registered practical Standard LVGL widgets/components are
+physically proven; Window is the 43rd registered practical widget. Closure Batch 1 proved Span, Animation Image and Image
+Button. Window is implemented and ready for physical proof; complete that proof and then Menu through the Proven Widget Pipeline before
 ForgeUI-native Dashboard widgets. Lottie remains an explicit
 dependency-heavy exclusion. Future work must reuse proven generated contracts
 rather than introduce speculative duplicates.
@@ -424,7 +424,7 @@ parity verification gaps and missing export preflight validation.
 Native LVGL Spinbox is a digit-selection editor, not a free-form numeric text
 field. Use NumberInput when arbitrary numeric text entry is required.
 
-The authoritative registry contains 42 practical Standard LVGL
+The authoritative registry contains 43 practical Standard LVGL
 widgets/components. All **42/42 are physically proven on ESP32-P4**.
 
 ### Native List proof
@@ -445,7 +445,7 @@ from the same generated output. **LIST — PROVEN ON ESP32-P4**.
 See [FORGEUI_SPINBOX_WIDGET.md](docs/FORGEUI_SPINBOX_WIDGET.md).
 ## 2026-08-01 end-of-sprint engineering state
 
-The practical Standard LVGL proof ledger is **42/42**, with Window and Menu
+The practical Standard LVGL proof ledger is **42/42**, with Window implemented and awaiting physical proof and Menu
 remaining outside the active Registry. Text, Clock, Wi-Fi Status, Image and
 Line are proven through native constructors, shared preview/export models,
 Live/Standalone output and ESP32-P4 physical validation. Button,

@@ -338,6 +338,15 @@ WiFi: {
   },
   AnimImage: { frameAssetIds: [], frameDuration: 250, loop: true, autoStart: true, generateRuntimeApi: true, positionMode: 'absolute', x: 40, y: 40, w: 160, h: 160 },
   ImageButton: { releasedAssetId: '', pressedAssetId: '', disabledAssetId: '', isDisabled: false, generateRuntimeApi: true, enableClick: true, positionMode: 'absolute', x: 40, y: 40, w: 96, h: 64 },
+  Window: {
+    title: 'Window', titleAlign: 'left', titleIcon: 'FiLayout', showIcon: true,
+    headerHeight: 48, headerBackground: '#172033', headerTextColor: '#F8FAFC', headerPadding: 12,
+    showCloseButton: true, actionButtons: [], buttonSize: 32, buttonSpacing: 6,
+    contentBackground: '#0F172A', contentPadding: 8, scrollingEnabled: true,
+    scrollbarMode: 'auto', childClipping: true, borderWidth: 1,
+    borderColor: '#334155', cornerRadius: 10, visible: true, opacity: 1,
+    positionMode: 'absolute', x: 40, y: 40, w: 420, h: 300,
+  },
   QRCode: {
     contentType: 'custom',
     qrText: 'https://forgeui.co.nz',

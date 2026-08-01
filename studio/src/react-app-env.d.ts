@@ -78,6 +78,7 @@ type ComponentType =
   | 'Table'
   | 'Tabview'
   | 'Tileview'
+  | 'Window'
   | 'Menu'
   | 'NumberInput'
   | 'Progress'

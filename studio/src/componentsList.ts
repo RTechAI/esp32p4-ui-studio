@@ -153,6 +153,7 @@ export const menuItems: MenuItems = {
   Tag: {},
   Text: {},
   Textarea: {},
+  Window: {},
   Menu: { soon: true },
 }
 
@@ -272,6 +273,7 @@ export const componentsList: ComponentType[] = ([
 'Text',
 'Textarea',
 'Tileview',
+'Window',
 ] as ComponentType[]).filter(
   type => !futureUnregisteredWidgetTypes.has(type),
 )

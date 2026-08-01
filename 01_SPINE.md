@@ -32,7 +32,7 @@ vertical insertion default without changing horizontal behavior; Text owns
 multiline wrapping parity; and Icon owns source-aware centered automatic fit.
 All 39 previously registered Standard widgets remain physically proven. Span,
 Animation Image and native Image Button have now also passed ESP32-P4 proof
-across Canvas, Browser, Live and Standalone. Window and Menu are the only two
+across Canvas, Browser, Live and Standalone. Window is **IMPLEMENTED — READY FOR PHYSICAL PROOF**; Menu is the only remaining practical closure widget
 remaining practical LVGL 9.2 closure widgets. Lottie remains excluded.
 
 ### Technical-manager continuity note
@@ -1488,7 +1488,7 @@ The Widget Tray is completely registry-driven. Future widgets are added by regis
 
 ### Registry-wide implementation and proof audit — 2026-07-31
 
-The authoritative registry contains 47 entries: 42 Standard widgets and five
+The authoritative registry contains 48 entries: 43 Standard widgets and five
 Interactive Assets. Every entry is available in the registry-driven Tray, has
 persisted defaults/insertion, a Canvas dispatch, Inspector dispatch, Browser
 Preview dispatch and an LVGL export path. Focused registry/Tray tests and
@@ -2690,7 +2690,7 @@ Save points are ordered newest to oldest. Detailed subsystem engineering is main
   physical validation, raising the practical LVGL 9.2 proof total to **42**.
 - **Parity:** Canvas, Browser Preview, Live Studio and Standalone Export matched;
   no hardware regressions were observed.
-- **Next:** Window, then Menu. Lottie remains intentionally excluded.
+- **Next:** Physically prove Window, then implement Menu. Lottie remains intentionally excluded.
 
 ## Historical Closure Batch 1 software milestone — superseded 2026-08-02
 

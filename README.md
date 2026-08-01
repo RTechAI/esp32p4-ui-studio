@@ -140,8 +140,8 @@ Current Standard-widget milestone evidence:
   consumes the existing backend snapshot with no duplicate manager, setter or
   UserEvent architecture.
 
-The registry contains 42 practical Standard LVGL widgets/components and all
-**42/42 are PROVEN on ESP32-P4**. The original 39-widget milestone remains the
+The registry contains 43 practical Standard LVGL widgets/components: 42 are
+**PROVEN on ESP32-P4** and Window is ready for proof. The original 39-widget milestone remains the
 foundation; Closure Batch 1 added Span, Animation Image and Image Button.
 Batch D completed QR Code, Icon Button, Icon final re-proof and
 Canvas, including Canvas/Browser/Live/Standalone parity and a successful mobile
@@ -150,7 +150,7 @@ Divider as **PROVEN**. Image uses native uploaded-asset Contain scaling with
 persistent source dimensions; Line uses native endpoint geometry and styling.
 Icon is included in the proven total. A final official LVGL 9.2 catalogue audit
 found five practical closure widgets. Span, Animation Image and Image Button
-are now registered and **PROVEN ON ESP32-P4**; Window and Menu remain.
+are now registered and **PROVEN ON ESP32-P4**; Window is **IMPLEMENTED — READY FOR PHYSICAL PROOF**, and Menu remains.
 Lottie is intentionally excluded. See [Final LVGL 9 Standard Widget Audit](docs/LVGL_9_STANDARD_WIDGET_AUDIT.md).
 
 Batch 1 implementation and hardware steps are recorded in

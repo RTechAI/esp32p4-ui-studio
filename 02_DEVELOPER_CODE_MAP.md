@@ -536,10 +536,10 @@ The 2026-07-30 Standard input and selection group is also physically proven acro
 - Spinbox
 
 TabView, TileView, Image, Box and Icon Button are **PROVEN**.
-The registry audit records 47 total entries, comprising 42 practical Standard
+The registry audit records 48 total entries, comprising 43 practical Standard
 LVGL widgets/components and five Interactive Assets; physical proof is
 **42/42**. Closure Batch 1 promoted Span, Animation Image and Image Button after
-successful ESP32-P4 validation. Window and Menu remain outside the Registry;
+successful ESP32-P4 validation. Window is registered and ready for physical proof; Menu remains outside the Registry;
 Lottie is an intentional dependency-heavy exclusion. The authoritative comparison is
 `docs/LVGL_9_STANDARD_WIDGET_AUDIT.md`.
 
@@ -3822,7 +3822,7 @@ Save points are ordered newest to oldest.
 
 - Span, Animation Image and Image Button are physically proven through the
   shared Canvas, Browser, Live and Standalone architecture.
-- Practical LVGL 9.2 proof is 42; Window and Menu remain.
+- Practical LVGL 9.2 proof is 42; Window is implemented and ready for physical proof, and Menu remains.
 - Batch 1 introduced no duplicate registry, asset browser, preview renderer,
   exporter, runtime or event system.
 
@@ -4105,7 +4105,7 @@ Do not create a new registry, persistence system, AI pipeline, uploaded-asset st
 ## 2026-08-01 documentation save-point note
 
 This dated note recorded the original **39/39** milestone. The current practical
-LVGL 9.2 proof ledger is **42**, with only Window and Menu remaining. Text,
+LVGL 9.2 proof ledger is **42**, with Window awaiting physical proof and only Menu remaining to implement. Text,
 Clock, Wi-Fi Status, Image and
 Line are proven with native constructors and Live/Standalone ESP32-P4 parity;
 Heading, Box and Divider are also newly proven, and Button proof is recorded in

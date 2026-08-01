@@ -81,17 +81,17 @@ Status language:
 | Animation Image | **PROVEN** | Existing Asset Manager multi-select authoring, ordered native `lv_animimg` frames, animation, zero-frame placeholder and Canvas/Browser/Live/Standalone parity passed ESP32-P4 validation |
 | Image Button | **PROVEN** | Native `lv_imagebutton` released, pressed and disabled states, enabled setter, click hook, multiple instances and Canvas/Browser/Live/Standalone parity passed ESP32-P4 validation |
 
-The Registry currently contains no Dashboard widgets. Window, Menu and the
+The Registry currently contains no Dashboard widgets. Window is **IMPLEMENTED — READY FOR PHYSICAL PROOF**; Menu and the
 dedicated Dashboard Widget family remain **PLANNED** and must not be
 described as Standard-library completions.
 
-Registry audit total: 47 entries, comprising 42 practical Standard LVGL
-widgets/components and five Interactive Assets. All **42/42 practical Standard
-LVGL widgets/components are physically PROVEN on ESP32-P4**.
+Registry audit total: 48 entries, comprising 43 practical Standard LVGL
+widgets/components and five Interactive Assets. **42 practical Standard LVGL
+widgets/components are physically PROVEN on ESP32-P4**; Window is ready for proof.
 
 The final official-catalogue audit found five practical LVGL 9.2 closure
 widgets. Batch 1 completed and physically proved Span, Animation Image and
-Image Button; Window and Menu remain. Lottie is
+Image Button; Window awaits physical proof and Menu remains. Lottie is
 intentionally excluded because its ThorVG/vector/C++ and framebuffer boundary
 requires a separate opt-in architecture decision. Complete and physically
 prove Window and Menu before beginning the ForgeUI Dashboard Widget

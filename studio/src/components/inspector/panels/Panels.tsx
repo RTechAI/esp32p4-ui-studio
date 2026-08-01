@@ -12,6 +12,7 @@ import AvatarBadgePanel from '~components/inspector/panels/components/AvatarBadg
 import CheckboxPanel from '~components/inspector/panels/components/CheckboxPanel'
 import IconButtonPanel from '~components/inspector/panels/components/IconButtonPanel'
 import { SpanPanel, AnimImagePanel, ImageButtonPanel } from '~components/inspector/panels/components/ClosureWidgetPanels'
+import { WindowPanel } from '~components/inspector/panels/components/WindowPanel'
 import ProgressPanel from '~components/inspector/panels/components/ProgressPanel'
 import BarPanel from '~components/inspector/panels/components/BarPanel'
 import ArcPanel from '~components/inspector/panels/components/ArcPanel'
@@ -91,6 +92,7 @@ const Panels: React.FC<{ component: IComponent; isRoot: boolean }> = ({
       {type === 'Span' && <SpanPanel />}
       {type === 'AnimImage' && <AnimImagePanel />}
       {type === 'ImageButton' && <ImageButtonPanel />}
+      {type === 'Window' && <WindowPanel />}
       {type === 'Progress' && <ProgressPanel />}
       {type === 'Bar' && <BarPanel />}
       {type === 'Arc' && <ArcPanel />}

@@ -143,6 +143,12 @@ static void fg_system_storage_finish_teardown(void);
 static void fg_system_storage_worker(void * arg);
 static void fg_system_storage_tick_cb(lv_timer_t * timer);
 
+static void fg_window_close_cb(lv_event_t * event)
+{
+    lv_obj_t * window = (lv_obj_t *)lv_event_get_user_data(event);
+    if (window) lv_obj_add_flag(window, LV_OBJ_FLAG_HIDDEN);
+}
+
 static void FG_Set_Display_Brightness(uint8_t percent)
 {
     if (percent < 10) percent = 10;
@@ -1249,25 +1255,61 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_size(bg_texture_0, 1024, 600);
     lv_obj_move_background(bg_texture_0);
 
-    lv_obj_t * obj1 = lv_spangroup_create(fg_application_page);
-    lv_obj_set_pos(obj1, 508, 146);
-    lv_obj_set_size(obj1, 280, 90);
-    lv_obj_set_style_bg_opa(obj1, LV_OPA_TRANSP, 0);
-    lv_spangroup_set_align(obj1, LV_TEXT_ALIGN_CENTER);
-    lv_spangroup_set_overflow(obj1, LV_SPAN_OVERFLOW_ELLIPSIS);
-    lv_span_t * obj1_span_0 = lv_spangroup_new_span(obj1);
-    lv_span_set_text(obj1_span_0, "Engine ");
-    lv_style_set_text_color(lv_span_get_style(obj1_span_0), lv_color_hex(0xc25151));
-    lv_style_set_text_font(lv_span_get_style(obj1_span_0), &lv_font_montserrat_20);
-    lv_span_t * obj1_span_1 = lv_spangroup_new_span(obj1);
-    lv_span_set_text(obj1_span_1, "82c");
-    lv_style_set_text_color(lv_span_get_style(obj1_span_1), lv_color_hex(0xF2A900));
-    lv_style_set_text_font(lv_span_get_style(obj1_span_1), &lv_font_montserrat_20);
-    lv_style_set_text_decor(lv_span_get_style(obj1_span_1), LV_TEXT_DECOR_UNDERLINE);
-    lv_span_t * obj1_span_2 = lv_spangroup_new_span(obj1);
-    lv_span_set_text(obj1_span_2, "Warning");
-    lv_style_set_text_color(lv_span_get_style(obj1_span_2), lv_color_hex(0x22C55E));
-    lv_style_set_text_font(lv_span_get_style(obj1_span_2), &lv_font_montserrat_16);
+    lv_obj_t * obj1 = lv_win_create(fg_application_page);
+    lv_obj_set_pos(obj1, 58, 122);
+    lv_obj_set_size(obj1, 420, 300);
+    lv_obj_set_style_opa(obj1, 255, LV_PART_MAIN);
+    lv_obj_set_style_radius(obj1, 10, LV_PART_MAIN);
+    lv_obj_set_style_border_width(obj1, 1, LV_PART_MAIN);
+    lv_obj_set_style_border_color(obj1, lv_color_hex(0x334155), LV_PART_MAIN);
+    lv_obj_t * obj1_header = lv_win_get_header(obj1);
+    lv_obj_set_height(obj1_header, 48);
+    lv_obj_set_style_pad_hor(obj1_header, 12, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(obj1_header, 6, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(obj1_header, lv_color_hex(0x172033), LV_PART_MAIN);
+    lv_obj_t * obj1_icon = lv_label_create(obj1_header);
+    lv_label_set_text(obj1_icon, LV_SYMBOL_IMAGE);
+    lv_obj_set_style_text_color(obj1_icon, lv_color_hex(0xF8FAFC), LV_PART_MAIN);
+    lv_obj_t * obj1_title = lv_win_add_title(obj1, "Window");
+    lv_obj_set_style_text_color(obj1_title, lv_color_hex(0xF8FAFC), LV_PART_MAIN);
+    lv_obj_set_style_text_align(obj1_title, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
+    lv_obj_t * obj1_close = lv_win_add_button(obj1, NULL, 32);
+    lv_obj_t * obj1_close_label = lv_label_create(obj1_close);
+    lv_label_set_text(obj1_close_label, LV_SYMBOL_CLOSE);
+    lv_obj_center(obj1_close_label);
+    lv_obj_add_event_cb(obj1_close, fg_window_close_cb, LV_EVENT_CLICKED, obj1);
+    lv_obj_t * obj1_content = lv_win_get_content(obj1);
+    lv_obj_set_style_pad_all(obj1_content, 8, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(obj1_content, lv_color_hex(0x0F172A), LV_PART_MAIN);
+    lv_obj_set_scrollbar_mode(obj1_content, LV_SCROLLBAR_MODE_AUTO);
+
+    lv_obj_t * obj2 = lv_win_create(fg_application_page);
+    lv_obj_set_pos(obj2, 545, 133);
+    lv_obj_set_size(obj2, 420, 300);
+    lv_obj_set_style_opa(obj2, 255, LV_PART_MAIN);
+    lv_obj_set_style_radius(obj2, 10, LV_PART_MAIN);
+    lv_obj_set_style_border_width(obj2, 1, LV_PART_MAIN);
+    lv_obj_set_style_border_color(obj2, lv_color_hex(0x334155), LV_PART_MAIN);
+    lv_obj_t * obj2_header = lv_win_get_header(obj2);
+    lv_obj_set_height(obj2_header, 48);
+    lv_obj_set_style_pad_hor(obj2_header, 12, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(obj2_header, 6, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(obj2_header, lv_color_hex(0x172033), LV_PART_MAIN);
+    lv_obj_t * obj2_icon = lv_label_create(obj2_header);
+    lv_label_set_text(obj2_icon, LV_SYMBOL_IMAGE);
+    lv_obj_set_style_text_color(obj2_icon, lv_color_hex(0xF8FAFC), LV_PART_MAIN);
+    lv_obj_t * obj2_title = lv_win_add_title(obj2, "Window");
+    lv_obj_set_style_text_color(obj2_title, lv_color_hex(0xF8FAFC), LV_PART_MAIN);
+    lv_obj_set_style_text_align(obj2_title, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
+    lv_obj_t * obj2_close = lv_win_add_button(obj2, NULL, 32);
+    lv_obj_t * obj2_close_label = lv_label_create(obj2_close);
+    lv_label_set_text(obj2_close_label, LV_SYMBOL_CLOSE);
+    lv_obj_center(obj2_close_label);
+    lv_obj_add_event_cb(obj2_close, fg_window_close_cb, LV_EVENT_CLICKED, obj2);
+    lv_obj_t * obj2_content = lv_win_get_content(obj2);
+    lv_obj_set_style_pad_all(obj2_content, 8, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(obj2_content, lv_color_hex(0x0F172A), LV_PART_MAIN);
+    lv_obj_set_scrollbar_mode(obj2_content, LV_SCROLLBAR_MODE_AUTO);
 
 
     fg_ram_probe_log("02 after application page creation");

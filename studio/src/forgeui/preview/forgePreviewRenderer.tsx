@@ -50,6 +50,7 @@ import StandardDividerPreview from './StandardDividerPreview'
 import StandardWifiPreview from './StandardWifiPreview'
 import StandardLinePreview from './StandardLinePreview'
 import { StandardSpanPreview, StandardAnimImagePreview, StandardImageButtonPreview } from './StandardClosureWidgetPreviews'
+import { StandardWindowPreview } from './StandardWindowPreview'
 import ImagePreview from '~components/editor/previews/ImagePreview'
 import StandardCalendarPreview from './StandardCalendarPreview'
 import { resolveForgeSemanticPalette } from './forgeThemeMap'
@@ -788,6 +789,14 @@ case 'Span': {
 
 case 'ImageButton': {
   output.push(<Box key={child.id} {...commonStyle}><StandardImageButtonPreview component={child} mode="browser" /></Box>)
+  break
+}
+
+case 'Window': {
+  output.push(<Box key={child.id} {...commonStyle}>
+    <StandardWindowPreview component={child} mode="browser">{renderForgePreview({ component: child, components })}</StandardWindowPreview>
+  </Box>)
+  ownsRenderedChildren = true
   break
 }
 
