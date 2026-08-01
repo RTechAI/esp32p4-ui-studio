@@ -308,9 +308,6 @@ Only completed, recorded runs belong in this section.
 | 2026-08-01 | Broader Text/theme/export regression selection | 6 suites, 72/72 tests passed |
 | 2026-08-01 | Icon sizing/clipping focused validation | 6 suites, 157/157 tests passed; focused ESLint, export-server syntax and diff check passed |
 | 2026-08-01 | Button, Heading, Box and Divider hardware proof | Live/Standalone and ESP32-P4 physical evidence accepted |
-| 2026-08-01 | Documentation consistency audit | Authoritative totals/statuses and website mirrors synchronized at 29/39, 10 remaining; no stale current-total language found |
-| 2026-08-01 | Documentation/Registry test | 33/33 passed, including real documentation targets |
-| 2026-08-01 | Website documentation, link and search tests | 69/69 passed after production static generation of 47 pages |
 | 2026-08-01 | Studio TypeScript | Failed on two existing unrelated diagnostics: CircularProgress test JSX return type and StandardListPreview polymorphic `type` prop |
 | 2026-08-01 | Website TypeScript | Passed `npm run typecheck` |
 | 2026-08-01 | Website ESLint | Passed `npm run lint` |
