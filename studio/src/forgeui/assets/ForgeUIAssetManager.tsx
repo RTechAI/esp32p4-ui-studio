@@ -115,7 +115,7 @@ export function ForgeUIAssetManager({
     lvgl: data.symbolName || asset.lvgl,
     cFile: data.assetSource || asset.cFile,
     browserSrc: data.browserSrc || asset.browserSrc,
-  }),
+  }, { preserveDimensions: true }),
 )
     } catch (err) {
       console.error('LVGL conversion error:', err)

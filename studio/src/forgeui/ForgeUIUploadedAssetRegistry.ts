@@ -434,6 +434,7 @@ export function forgeUIUpdateUploadedAsset(
       | 'contentHeight'
     >
   >,
+  options: { preserveDimensions?: boolean } = {},
 ) {
   let changed = false
   forgeUIUploadedAssets = forgeUIUploadedAssets.map(asset => {
@@ -446,7 +447,7 @@ export function forgeUIUpdateUploadedAsset(
       patch.browserSrc !== asset.browserSrc
     const next = {
       ...asset,
-      ...(browserSourceChanged
+      ...(browserSourceChanged && !options.preserveDimensions
         ? {
             width: undefined,
             height: undefined,

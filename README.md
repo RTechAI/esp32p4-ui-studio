@@ -1,7 +1,7 @@
 # ForgeUI Studio
 
 Current architecture save point:
-`FORGEUI_END_OF_SPRINT__29_OF_39_STANDARD_WIDGETS_ESP32P4_PROVEN__2026-08-01`.
+`FORGEUI_IMAGE_AND_LINE__31_OF_39_STANDARD_WIDGETS_ESP32P4_PROVEN__2026-08-01`.
 
 **ForgeUI Studio is an open-source, AI-assisted visual HMI and embedded GUI designer for ESP32-P4.** It combines a drag-and-drop Canvas, reusable Interactive Assets, AI Layout tools, Browser Preview, native LVGL 9 generation, integrated ESP-IDF Build & Flash, and standalone ESP-IDF project export.
 
@@ -136,8 +136,10 @@ Current Standard-widget milestone evidence:
   Preview, native LVGL export, Runtime SDK, `95_UserEvents`, export-time
   gating, live ESP32-P4 firmware and Standalone Export.
 
-The registry contains 39 Standard widgets; 29 are physically proven (74%) and
-10 remain. TabView, TileView, Button, Heading, Box and Divider are **PROVEN**.
+The registry contains 39 Standard widgets; 31 are physically proven (79%) and
+8 remain. Image and Line join TabView, TileView, Button, Heading, Box and
+Divider as **PROVEN**. Image uses native uploaded-asset Contain scaling with
+persistent source dimensions; Line uses native endpoint geometry and styling.
 Text and Icon are **READY FOR FINAL HARDWARE RE-PROOF** and are not included in
 the proven total. Dedicated
 Dashboard widgets have not started.
@@ -255,7 +257,7 @@ in `96_FiRuntime.c/.h` and optional click hooks in `95_UserEvents`. Runtime API
 generation defaults on; click defaults off. The canonical 92% icon renderer and
 used-asset gating remain shared by Canvas, Browser Preview, Live and Standalone.
 The overall feature is **SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN** and
-does not change the 29/39 Standard widget proof total. ESP32-P4 evidence proves
+does not change the 31/39 Standard widget proof total. ESP32-P4 evidence proves
 the 90 → 95 click path across three independent collision-safe callbacks, with
 exactly one callback per deliberate tap and none at startup. The 90 → 96
 presentation path remains pending hardware proof for color, opacity, hide/show,

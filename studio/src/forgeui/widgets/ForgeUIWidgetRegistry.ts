@@ -213,10 +213,22 @@ const capabilitiesByType: Partial<
     },
   },
   Box: capability(true, false, false, 'container'),
-  Line: capability(false, false, false),
+  Line: capability(
+    false, false, false, 'none', false,
+    {
+      mode: 'serialized-widget',
+      lvglConfigDependencies: ['CONFIG_LV_USE_LINE'],
+    },
+  ),
   Divider: capability(false, false, false),
   Canvas: capability(false, false, false, 'container'),
-  Image: capability(true, false, false),
+  Image: capability(
+    true, false, false, 'none', false,
+    {
+      mode: 'serialized-widget',
+      lvglConfigDependencies: ['CONFIG_LV_USE_IMAGE'],
+    },
+  ),
 
   Input: capability(true, true, true),
   Textarea: capability(true, true, true),

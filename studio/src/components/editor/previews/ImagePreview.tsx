@@ -1,15 +1,17 @@
 import React from 'react'
 import * as Chakra from '@chakra-ui/react'
-import { useForgePreviewPalette } from '~forgeui/theme/ForgeThemeContext'
-import { resolveForgeSemanticPalette } from '~forgeui/preview/forgeThemeMap'
+import { getForgeUIStandardImagePresentation } from '~forgeui/ForgeUIStandardImage'
+import {
+  forgeUIRecordRenderedImageMetadata,
+} from '~forgeui/ForgeUIUploadedAssetRegistry'
+import { resolveForgeUIStandardImageAsset } from '~forgeui/ForgeUIStandardImage'
 
 interface IProps {
   component: IComponent
 }
 
 const ImagePreview = ({ component }: IProps) => {
-  const theme = resolveForgeSemanticPalette(useForgePreviewPalette())
-  const src = component.props.src || ''
+  const model = getForgeUIStandardImagePresentation(component)
 
   return (
     <Chakra.Box
@@ -19,14 +21,28 @@ const ImagePreview = ({ component }: IProps) => {
       display="flex"
       alignItems="center"
       justifyContent="center"
-      bg={theme.surface}
-      border={`1px solid ${theme.surfaceBorder}`}
+      opacity={model.opacity}
+      visibility={model.visible ? 'visible' : 'hidden'}
+      data-image-fit={model.fit}
+      data-lvgl-scale={model.lvglScale}
+      data-testid="standard-image-preview"
     >
       <Chakra.Image
-        src={src}
-        width="100%"
-        height="100%"
-        objectFit={component.props.objectFit || 'contain'}
+        src={model.src}
+        alt={component.props.alt || 'Image'}
+        width={model.targetWidth ? `${model.targetWidth}px` : '100%'}
+        height={model.targetHeight ? `${model.targetHeight}px` : '100%'}
+        maxWidth="none"
+        objectFit="fill"
+        onLoad={event => {
+          const asset = resolveForgeUIStandardImageAsset(component)
+          if (asset && 'browserSrc' in asset) {
+            forgeUIRecordRenderedImageMetadata(
+              asset,
+              event.currentTarget,
+            )
+          }
+        }}
         draggable={false}
         pointerEvents="none"
       />

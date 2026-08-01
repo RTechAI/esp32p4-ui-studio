@@ -40,6 +40,8 @@ describe('ForgeUI board registry', () => {
     expect(normalizeProjectHardware()).toEqual({
       boardId: DEFAULT_FORGEUI_BOARD_ID,
       firmwareFeatures: waveshareEsp32P4Wifi6Touch7B.defaultFeatures,
+      wifiHosted: waveshareEsp32P4Wifi6Touch7B.defaultWifiHosted,
+      sd: waveshareEsp32P4Wifi6Touch7B.defaultSd,
     })
   })
 

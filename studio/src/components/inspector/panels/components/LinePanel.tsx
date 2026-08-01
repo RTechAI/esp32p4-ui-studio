@@ -7,6 +7,8 @@ import { useSelector } from 'react-redux'
 
 import FormControl from '~components/inspector/controls/FormControl'
 import NumberControl from '~components/inspector/controls/NumberControl'
+import ColorsControl from '~components/inspector/controls/ColorsControl'
+import SwitchControl from '~components/inspector/controls/SwitchControl'
 import { forgeuiInputStyle } from '~forgeui/ForgeUIControlStyle'
 import useDispatch from '~hooks/useDispatch'
 import { getSelectedComponent } from '~core/selectors/components'
@@ -82,6 +84,8 @@ const LinePanel = () => (
     <EndpointControl name="endX" label="End X" />
     <EndpointControl name="endY" label="End Y" />
     <NumberControl name="lineWidth" label="Line Width" min={1} precision={0} />
+    <ColorsControl withFullColor label="Line Color" name="borderColor" enableHues />
+    <SwitchControl name="visible" label="Visible" defaultValue />
   </>
 )
 

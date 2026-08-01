@@ -11,14 +11,18 @@
 
 ## Current Save Point
 
-**FORGEUI_END_OF_SPRINT__29_OF_39_STANDARD_WIDGETS_ESP32P4_PROVEN__2026-08-01**
+**FORGEUI_IMAGE_AND_LINE__31_OF_39_STANDARD_WIDGETS_ESP32P4_PROVEN__2026-08-01**
 
 **CURRENT PRIORITY: COMPLETE THE STANDARD WIDGET LIBRARY AND PHYSICALLY PROVE EACH SLICE**
 
 ### 2026-08-01 end-of-sprint save point
 
-Physical proof now stands at **29/39 Standard widgets (74%)**, with **10
-remaining**. Button, Heading, Box and Divider are proven. Native TileView now
+Physical proof now stands at **31/39 Standard widgets (79%)**, with **8
+remaining**. Image and Line join Button, Heading, Box and Divider as proven.
+Image uses native `lv_image_create()`, uploaded assets with persistent intrinsic
+dimensions, canonical Contain sizing and source-aware LVGL scaling across Live
+and Standalone export. Line uses native `lv_line_create()` with proven geometry,
+colour, opacity and thickness across Live and Standalone export. Native TileView now
 replaces the synthetic export; Heading owns multiline/alignment parity; Box
 owns child nesting across Browser and native export; Divider has a visible
 vertical insertion default without changing horizontal behavior; Text owns
@@ -512,7 +516,7 @@ The first live Button Matrix inspection used a stale running Studio exporter bun
 
 Standard Canvas is a bounded LVGL container and may contain configured serialized artwork. The generic renderer must neither invent decorative SVG artwork nor discard configured artwork and render only an empty surface. Artwork resolves through the existing serialized fields and uploaded-asset registry, and Canvas and Browser Preview use the same artwork-aware renderer.
 
-Artwork preserves contain scaling, centred alignment, clipping, transparency and serialized `x` / `y` / `w` / `h`. Generated LVGL emits a clipped Canvas parent with a centred child `lv_image`, the configured generated image symbol and the saved scale. The exporter and asset registry remain the source of truth. Physical proof of the restored image remains pending final regeneration and flash.
+Artwork preserves contain scaling, centred alignment, clipping, transparency and serialized `x` / `y` / `w` / `h`. Generated LVGL emits a clipped Canvas parent with a centred child `lv_image`, the configured generated image symbol and the saved scale. The exporter and asset registry remain the source of truth. Physical proof of the restored Canvas-artwork path remains pending final regeneration and flash; this is separate from the proven Standard Image widget.
 
 ### TabView
 
@@ -665,7 +669,7 @@ Line is serialized as `Line`, remains presentation-only and API-free, and contin
 
 Selected Canvas Lines expose draggable start/end handles. Endpoint dragging redraws immediately, rebases `x` / `y`, recalculates `w` / `h` and preserves relative endpoint coordinates. The existing wrapper continues to own whole-component movement. The Inspector exposes the four endpoint coordinates and Line Width. Canvas and Browser Preview share the endpoint-aware renderer.
 
-Generated LVGL emits the stored endpoints through `lv_line_set_points()`. Legacy projects without endpoint properties resolve to start `(0,0)` and end `(width,height)`. Horizontal, vertical, 45-degree, crossed and arbitrary-angle lines are supported. Shift snapping is not implemented. Line consumes semantic `surfaceBorder`. Physical proof remains pending.
+Generated LVGL emits the stored endpoints through `lv_line_set_points()`. Legacy projects without endpoint properties resolve to start `(0,0)` and end `(width,height)`. Horizontal, vertical, 45-degree, crossed and arbitrary-angle lines are supported. Shift snapping is not implemented. Line consumes its persisted colour, opacity and thickness. Live and Standalone output were physically validated on ESP32-P4. **LINE — PROVEN.**
 
 ### Icon runtime decision
 
@@ -1480,7 +1484,7 @@ Preview dispatch and an LVGL export path. Focused registry/Tray tests and
 component/exporter regressions provide automated evidence; no conclusive
 permanent implementation was found outside the registry, so no registry
 definition was added. The Dashboard category remains intentionally empty.
-Twenty-nine of 39 Standard widgets are now physically proven (74%); 10 remain
+Thirty-one of 39 Standard widgets are now physically proven (79%); 8 remain
 to be individually promoted.
 
 ```text
@@ -1498,10 +1502,10 @@ Registry → Tray → Canvas → Inspector → Browser Preview → LVGL Export
 | IconButton | implemented / implemented | enabled setter + click hook | pending |
 | Icon | implemented / implemented | generic 96 presentation API; optional 95 click | **READY FOR FINAL HARDWARE RE-PROOF** |
 | Box | implemented / implemented | visibility setter, no hook | **PROVEN** |
-| Line | implemented / implemented | intentionally API-free | pending |
+| Line | implemented / implemented | intentionally API-free | **PROVEN** |
 | Divider | implemented / implemented | intentionally API-free | **PROVEN** |
 | Canvas | implemented / implemented | intentionally API-free drawable surface | pending |
-| Image | implemented / implemented | source setter, no hook | pending |
+| Image | implemented / implemented | source setter, no hook | **PROVEN** |
 | Input | implemented / implemented | text setter + change hook | physically proven |
 | Textarea | implemented / implemented | text setter + change hook | physically proven |
 | NumberInput | implemented / implemented | value setter + change hook | physically proven |
@@ -2953,7 +2957,7 @@ icon pipeline remains authoritative; component names allocate collision-safe
 optional click behavior attaches in 90 and preservation-merges its hook in 95.
 Runtime API defaults on, click defaults off, and unused runtime files/assets are
 gated out. The overall status is **SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN**
-and does not change the 29/39 physical proof total. Physical ESP32-P4
+and does not change the 31/39 physical proof total. Physical ESP32-P4
 evidence proves the 90 → 95 click path: three click-enabled instances emitted
 exactly one separate collision-safe callback per deliberate tap, no callback at
 startup, and SD remained ready. The unrelated Wi-Fi failure during the run is

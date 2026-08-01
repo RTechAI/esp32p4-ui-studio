@@ -238,8 +238,8 @@ bool fg_sd_init(void)
     if (g_sd_ldo == NULL)
     {
         esp_ldo_channel_config_t ldo_cfg = {
-            .chan_id = 4,
-            .voltage_mv = 2500
+            .chan_id = CONFIG_FORGEUI_SD_LDO_CHANNEL,
+            .voltage_mv = CONFIG_FORGEUI_SD_LDO_MV
         };
 
         esp_err_t ldo_ret = esp_ldo_acquire_channel(&ldo_cfg, &g_sd_ldo);
@@ -253,7 +253,8 @@ bool fg_sd_init(void)
             return false;
         }
 
-        ESP_LOGI(TAG, "SD LDO forced ON: channel 4 @ 2500mV");
+        ESP_LOGI(TAG, "SD LDO forced ON: channel %d @ %dmV",
+                 CONFIG_FORGEUI_SD_LDO_CHANNEL, CONFIG_FORGEUI_SD_LDO_MV);
     }
 
     esp_vfs_fat_sdmmc_mount_config_t mount_config = {
@@ -263,30 +264,30 @@ bool fg_sd_init(void)
     };
 
     sdmmc_host_t host = SDMMC_HOST_DEFAULT();
-    host.slot = SDMMC_HOST_SLOT_0;
-    host.max_freq_khz = SDMMC_FREQ_HIGHSPEED;
+    host.slot = CONFIG_FORGEUI_SD_SLOT;
+    host.max_freq_khz = CONFIG_FORGEUI_SD_FREQ_KHZ;
 
     sdmmc_slot_config_t slot_config = {
-        .clk = BSP_SD_CLK,
-        .cmd = BSP_SD_CMD,
-        .d0 = BSP_SD_D0,
-        .d1 = BSP_SD_D1,
-        .d2 = BSP_SD_D2,
-        .d3 = BSP_SD_D3,
+        .clk = CONFIG_FORGEUI_SD_CLK,
+        .cmd = CONFIG_FORGEUI_SD_CMD,
+        .d0 = CONFIG_FORGEUI_SD_D0,
+        .d1 = CONFIG_FORGEUI_SD_D1,
+        .d2 = CONFIG_FORGEUI_SD_D2,
+        .d3 = CONFIG_FORGEUI_SD_D3,
         .cd = SDMMC_SLOT_NO_CD,
         .wp = SDMMC_SLOT_NO_WP,
-        .width = 4,
+        .width = CONFIG_FORGEUI_SD_WIDTH,
         .flags = SDMMC_SLOT_FLAG_INTERNAL_PULLUP,
     };
 
     ESP_LOGI(TAG,
              "Pins: SLOT=0 CLK=%d CMD=%d D0=%d D1=%d D2=%d D3=%d WIDTH=4",
-             BSP_SD_CLK,
-             BSP_SD_CMD,
-             BSP_SD_D0,
-             BSP_SD_D1,
-             BSP_SD_D2,
-             BSP_SD_D3);
+             CONFIG_FORGEUI_SD_CLK,
+             CONFIG_FORGEUI_SD_CMD,
+             CONFIG_FORGEUI_SD_D0,
+             CONFIG_FORGEUI_SD_D1,
+             CONFIG_FORGEUI_SD_D2,
+             CONFIG_FORGEUI_SD_D3);
 
     esp_err_t ret = esp_vfs_fat_sdmmc_mount(
         MOUNT_POINT,

@@ -26,6 +26,16 @@ export const waveshareEsp32P4Wifi6Touch7B: ForgeUIBoardProfile = {
     usbHost: false, camera: false, settingsLauncher: true,
     wifiManager: true, storageBrowser: true, diagnostics: true,
   },
+  defaultWifiHosted: {
+    transport: 'sdio', slot: 1, width: 4, frequencyKHz: 40000,
+    clk: 18, cmd: 19, d0: 14, d1: 15, d2: 16, d3: 17,
+    reset: 54, resetDelayMs: 1500, txQueueSize: 20, rxQueueSize: 20,
+  },
+  defaultSd: {
+    host: 'sdmmc', slot: 0, width: 4, frequencyKHz: 40000,
+    clk: 43, cmd: 44, d0: 39, d1: 40, d2: 41, d3: 42,
+    ldoChannel: 4, ldoVoltageMv: 2500,
+  },
   firmware: {
     bspComponent: 'waveshare__esp32_p4_wifi6_touch_lcd_7b',
     sdkconfigDefaults: 'sdkconfig.defaults',

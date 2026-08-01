@@ -38,6 +38,19 @@ describe('uploaded image dimension resolution', () => {
     expect(asset).toMatchObject({ width: 64, height: 64 })
   })
 
+  it('persists intrinsic dimensions in reloadable registry JSON', () => {
+    forgeUIClearUploadedAssets()
+    forgeUIAddUploadedAssets([{
+      id: 'persisted-size', name: 'proof.png', type: 'image/png', size: 1,
+      createdAt: 1, browserSrc: '/proof.png', kind: 'uploaded',
+      exportStatus: 'lvgl_ready', lvgl: 'fg_proof', cFile: 'proof.c',
+      width: 1024, height: 600,
+    }])
+    expect(JSON.parse(localStorage.getItem('forgeui_uploaded_assets_v1') || '[]')[0])
+      .toMatchObject({ id: 'persisted-size', width: 1024, height: 600 })
+    forgeUIClearUploadedAssets()
+  })
+
   it('prefers modern registry dimensions', () => {
     expect(forgeUIResolveUploadedAssetDimensions({
       width: 320,
@@ -208,5 +221,23 @@ describe('uploaded image metadata updates', () => {
     })
     expect(forgeUIGetUploadedAssets()[0].width).toBeUndefined()
     expect(forgeUIGetUploadedAssets()[0].contentWidth).toBeUndefined()
+  })
+
+  it('preserves dimensions when conversion only replaces the persistent URL', () => {
+    forgeUIAddUploadedAssets([{
+      id: 'converted', name: 'proof.png', type: 'image/png', size: 1,
+      createdAt: 1, browserSrc: 'data:image/png;base64,old', kind: 'uploaded',
+      exportStatus: 'pending_conversion', lvgl: 'fg_proof', cFile: 'proof.c',
+      width: 1024, height: 600,
+    }])
+    forgeUIUpdateUploadedAsset('converted', {
+      browserSrc: 'http://localhost:3030/proof.png',
+      exportStatus: 'lvgl_ready',
+    }, { preserveDimensions: true })
+    expect(forgeUIGetUploadedAssets()[0]).toMatchObject({
+      width: 1024,
+      height: 600,
+      browserSrc: 'http://localhost:3030/proof.png',
+    })
   })
 })

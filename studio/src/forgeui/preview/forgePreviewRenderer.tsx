@@ -49,6 +49,7 @@ import StandardBoxPreview from './StandardBoxPreview'
 import StandardDividerPreview from './StandardDividerPreview'
 import StandardWifiPreview from './StandardWifiPreview'
 import StandardLinePreview from './StandardLinePreview'
+import ImagePreview from '~components/editor/previews/ImagePreview'
 import StandardCalendarPreview from './StandardCalendarPreview'
 import { resolveForgeSemanticPalette } from './forgeThemeMap'
 
@@ -467,18 +468,9 @@ case 'WiFi': {
 
     case 'Image': {
   output.push(
-    <Image
-      key={child.id}
-      position="absolute"
-      left={`${x}px`}
-      top={`${y}px`}
-      width={`${w}px`}
-      height={`${h}px`}
-      src={child.props.src || child.props.url || ''}
-      alt={child.props.alt || 'Image'}
-      objectFit="contain"
-      border={`1px solid ${palette.border}`}
-    />,
+    <Box key={child.id} {...commonStyle}>
+      <ImagePreview component={child} />
+    </Box>,
   )
   break
 }

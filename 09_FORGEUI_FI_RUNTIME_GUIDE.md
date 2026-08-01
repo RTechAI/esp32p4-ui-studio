@@ -238,4 +238,5 @@ Remaining physical checklist:
 
 Icon remains **READY FOR FINAL HARDWARE RE-PROOF**. Fi Runtime remains
 **SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN**, not fully **PROVEN**, and
-the Standard Widget proof total remains **29/39 (74%)**, with **10 remaining**.
+the Standard Widget proof total is **31/39 (79%)**, with **8 remaining**.
+Image and Line proof does not change Fi Runtime status.

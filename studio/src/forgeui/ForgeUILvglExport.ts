@@ -17,6 +17,10 @@ import {
 } from './ForgeUIStandardIcon'
 import { getForgeUIStandardLineGeometry } from './ForgeUIStandardLine'
 import {
+  getForgeUIStandardImagePresentation,
+  resolveForgeUIStandardImageAsset,
+} from './ForgeUIStandardImage'
+import {
   FORGEUI_STANDARD_CHART_DEFAULT_DATA,
   FORGEUI_STANDARD_CHART_DEFAULT_POINT_COUNT,
   getForgeUIStandardChartLayout,
@@ -615,22 +619,6 @@ type IconButtonExport = {
   enabledName: string
   eventCallbackName: string
   initialEnabled: boolean
-}
-
-const resolveStandardImageAsset = (component: IComponent) => {
-  const src = component.props.src || component.props.browserSrc || ''
-  const presetAsset = FORGEUI_IMAGE_ASSETS.find(
-    (asset: any) => asset.src === src,
-  )
-  const uploadedAsset = forgeUIGetUploadedAssets().find((asset: any) =>
-    asset.id === component.props.uploadedAssetId ||
-    asset.browserSrc === src ||
-    asset.browserSrc === component.props.src ||
-    asset.name === component.props.assetName ||
-    asset.name === component.props.alt,
-  )
-
-  return presetAsset || uploadedAsset
 }
 
 type ArcExport = {
@@ -2251,7 +2239,7 @@ const createImageExports = (
       const apiName = `FG_Set_${allocatedBase}_Source`
       usedApiNames.add(apiName)
       const runtimeStem = allocatedBase.toLowerCase()
-      const asset: any = resolveStandardImageAsset(component)
+      const asset: any = resolveForgeUIStandardImageAsset(component)
 
       exportsByComponent.set(component.id, {
         apiName,
@@ -3594,13 +3582,16 @@ case 'Icon': {
       }
 
 case 'Image': {
+  const imageModel = getForgeUIStandardImagePresentation(child)
   const imageExport = imageExports.get(child.id)
   const asset: any = imageExport?.asset ||
-    resolveStandardImageAsset(child)
+    resolveForgeUIStandardImageAsset(child)
   const imageObject = imageExport?.objectName || varName
   const renderObject = asset?.lvgl || asset?.symbolName
     ? imageObject
     : varName
+
+  lines.push(`/* ForgeUI Image export: serialized source=${child.props.sourceWidth ?? 'unset'}x${child.props.sourceHeight ?? 'unset'}, fit=${child.props.imageFit ?? child.props.objectFit ?? 'unset'}, legacy_scale=${child.props.imageScale ?? 'unset'}; resolved source=${imageModel.sourceWidth ?? 'unknown'}x${imageModel.sourceHeight ?? 'unknown'}, bounds=${imageModel.componentWidth}x${imageModel.componentHeight}, fit=${imageModel.fit}, target=${imageModel.targetWidth ?? 'unknown'}x${imageModel.targetHeight ?? 'unknown'}, calculated_scale=${imageModel.lvglScale}, emitted_scale=${imageModel.lvglScale} */`)
 
   if (asset?.lvgl || asset?.symbolName) {
     const symbol = asset.lvgl || asset.symbolName
@@ -3610,15 +3601,14 @@ case 'Image': {
       usedAssetSources.add(cFile)
     }
 
-    const imageScale = Number(child.props.imageScale || 256)
-
     lines.push(`LV_IMAGE_DECLARE(${symbol});`)
     lines.push(`${imageObject} = lv_image_create(${parentVar});`)
     lines.push(`lv_image_set_src(${imageObject}, &${symbol});`)
     if (imageExport) {
       lines.push(`${imageExport.sourceName} = &${symbol};`)
     }
-    lines.push(`lv_image_set_scale(${imageObject}, ${imageScale});`)
+    lines.push(`lv_image_set_scale(${imageObject}, ${imageModel.lvglScale});`)
+    lines.push(`lv_image_set_inner_align(${imageObject}, LV_IMAGE_ALIGN_CENTER);`)
   } else {
     const uploadName = esc(
       child.props.alt ||
@@ -3643,11 +3633,11 @@ case 'Image': {
   lines.push(`lv_obj_set_pos(${renderObject}, ${x}, ${y});`)
   lines.push(`lv_obj_set_size(${renderObject}, ${w}, ${h});`)
 
-  lines.push(`lv_obj_add_flag(${renderObject}, LV_OBJ_FLAG_CLICKABLE);`)
-  lines.push(`lv_obj_set_style_transform_pivot_x(${renderObject}, ${Math.floor(w / 2)}, 0);`)
-  lines.push(`lv_obj_set_style_transform_pivot_y(${renderObject}, ${Math.floor(h / 2)}, 0);`)
-  lines.push(`lv_obj_set_style_transform_scale(${renderObject}, 256, 0);`)
-  lines.push(`lv_obj_set_style_transform_scale(${renderObject}, 235, LV_STATE_PRESSED);`)
+  lines.push(`lv_obj_set_style_opa(${renderObject}, ${Math.round(imageModel.opacity * 255)}, 0);`)
+  if (!imageModel.visible) {
+    lines.push(`lv_obj_add_flag(${renderObject}, LV_OBJ_FLAG_HIDDEN);`)
+  }
+  lines.push(`lv_obj_clear_flag(${renderObject}, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE);`)
 
   lines.push(``)
   break
@@ -4025,7 +4015,7 @@ case 'Roller': {
 }
 
 case 'Canvas': {
-  const asset: any = resolveStandardImageAsset(child)
+  const asset: any = resolveForgeUIStandardImageAsset(child)
   const hasImage = Boolean(asset?.lvgl || asset?.symbolName)
   lines.push(`lv_obj_t * ${varName} = lv_obj_create(${parentVar});`)
   lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
@@ -4065,8 +4055,12 @@ case 'Line': {
   lines.push(`lv_line_set_points(${varName}, ${varName}_pts, 2);`)
   lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
 
-  lines.push(`lv_obj_set_style_line_color(${varName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_line_color(${varName}, lv_color_hex(${toLvHex(child.props.borderColor, palette.surfaceBorder)}), LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_line_width(${varName}, ${lv(child.props.lineWidth, 3)}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_line_opa(${varName}, ${Math.round(Math.max(0, Math.min(1, Number(child.props.opacity ?? 1))) * 255)}, LV_PART_MAIN);`)
+  if (child.props.visible === false) {
+    lines.push(`lv_obj_add_flag(${varName}, LV_OBJ_FLAG_HIDDEN);`)
+  }
 
   lines.push(``)
   break

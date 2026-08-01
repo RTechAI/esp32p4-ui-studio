@@ -12,6 +12,10 @@ const StandardLinePreview: React.FC<{
 }> = ({ component, palette }) => {
   const theme = resolveForgeSemanticPalette(palette)
   const geometry = getForgeUIStandardLineGeometry(component.props)
+  const parsedOpacity = Number(component.props.opacity ?? 1)
+  const opacity = Number.isFinite(parsedOpacity)
+    ? Math.max(0, Math.min(1, parsedOpacity))
+    : 1
 
   return (
     <svg
@@ -27,7 +31,9 @@ const StandardLinePreview: React.FC<{
         y1={geometry.startY}
         x2={geometry.endX}
         y2={geometry.endY}
-        stroke={theme.surfaceBorder}
+        stroke={component.props.borderColor || theme.surfaceBorder}
+        opacity={opacity}
+        visibility={component.props.visible === false ? 'hidden' : 'visible'}
         strokeWidth={component.props.lineWidth || 3}
         data-testid="standard-line-stroke"
       />

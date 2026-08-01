@@ -200,6 +200,28 @@ describe('ForgeUI Widget registry', () => {
   )
 
   it('records real documentation targets and known LVGL dependencies', () => {
+    expect(forgeUIWidgetDefinitions.find(item => item.type === 'Image'))
+      .toMatchObject({
+        capabilities: {
+          supportsRuntimeApi: true,
+          supportsUserEvents: false,
+          featureGate: {
+            mode: 'serialized-widget',
+            lvglConfigDependencies: ['CONFIG_LV_USE_IMAGE'],
+          },
+        },
+      })
+    expect(forgeUIWidgetDefinitions.find(item => item.type === 'Line'))
+      .toMatchObject({
+        capabilities: {
+          supportsRuntimeApi: false,
+          supportsUserEvents: false,
+          featureGate: {
+            mode: 'serialized-widget',
+            lvglConfigDependencies: ['CONFIG_LV_USE_LINE'],
+          },
+        },
+      })
     expect(forgeUIWidgetDefinitions.find(item => item.type === 'List'))
       .toMatchObject({
         documentationId: 'docs/FORGEUI_LIST_WIDGET.md',

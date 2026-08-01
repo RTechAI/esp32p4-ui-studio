@@ -73,5 +73,13 @@ export const normalizeProjectHardware = (
       profile.id,
       project?.firmwareFeatures,
     ),
+    wifiHosted: {
+      ...profile.defaultWifiHosted,
+      ...(project?.wifiHosted || {}),
+    },
+    sd: {
+      ...profile.defaultSd,
+      ...(project?.sd || {}),
+    },
   }
 }

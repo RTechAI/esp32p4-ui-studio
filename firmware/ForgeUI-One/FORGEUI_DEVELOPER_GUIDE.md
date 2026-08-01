@@ -43,17 +43,13 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- `FG_On_Comp_MS9Q2MXPEJP7D_Clicked()`
-- `FG_On_Comp_MS9Q42SGCB4EB_Clicked()`
-- `FG_On_Comp_MS9QE1N7GA5O3_Clicked()`
+- None
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| Comp_MS9Q2MXPEJP7D | Click | `FG_On_Comp_MS9Q2MXPEJP7D_Clicked()` |
-| Comp_MS9Q42SGCB4EB | Click | `FG_On_Comp_MS9Q42SGCB4EB_Clicked()` |
-| Comp_MS9QE1N7GA5O3 | Click | `FG_On_Comp_MS9QE1N7GA5O3_Clicked()` |
+| None | - | - |
 
 ---
 

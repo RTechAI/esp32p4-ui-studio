@@ -35,6 +35,8 @@ export interface ForgeUIBoardProfile {
     diagnostics: boolean
   }
   defaultFeatures: ForgeUIFirmwareFeatures
+  defaultWifiHosted: ForgeUIProjectHardware['wifiHosted']
+  defaultSd: ForgeUIProjectHardware['sd']
   firmware: {
     bspComponent: string
     sdkconfigDefaults: string | string[]
@@ -47,4 +49,41 @@ export interface ForgeUIBoardProfile {
 export interface ForgeUIProjectHardware {
   boardId: string
   firmwareFeatures: ForgeUIFirmwareFeatures
+  wifiHosted: {
+    transport: 'sdio' | 'spi'
+    slot?: 0 | 1
+    width?: 1 | 4
+    frequencyKHz: number
+    clk: number
+    cmd?: number
+    d0?: number
+    d1?: number
+    d2?: number
+    d3?: number
+    mode?: 0 | 1 | 2 | 3
+    controller?: number
+    mosi?: number
+    miso?: number
+    cs?: number
+    handshake?: number
+    dataReady?: number
+    reset: number
+    resetDelayMs: number
+    txQueueSize: number
+    rxQueueSize: number
+  }
+  sd: {
+    host: 'sdmmc'
+    slot: 0 | 1
+    width: 1 | 4
+    frequencyKHz: number
+    clk: number
+    cmd: number
+    d0: number
+    d1: number
+    d2: number
+    d3: number
+    ldoChannel: number
+    ldoVoltageMv: number
+  }
 }

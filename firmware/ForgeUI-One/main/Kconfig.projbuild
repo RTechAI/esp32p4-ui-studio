@@ -1,0 +1,47 @@
+menu "ForgeUI project hardware"
+
+config FORGEUI_SD_ENABLED
+    bool "SD runtime enabled"
+    default y
+
+config FORGEUI_SD_SLOT
+    int "SDMMC host slot"
+    range 0 1
+    default 0
+
+config FORGEUI_SD_WIDTH
+    int "SDMMC bus width"
+    range 1 4
+    default 4
+
+config FORGEUI_SD_FREQ_KHZ
+    int "SDMMC maximum frequency (kHz)"
+    default 40000
+
+config FORGEUI_SD_CLK
+    int "SD CLK GPIO"
+    default 43
+config FORGEUI_SD_CMD
+    int "SD CMD GPIO"
+    default 44
+config FORGEUI_SD_D0
+    int "SD D0 GPIO"
+    default 39
+config FORGEUI_SD_D1
+    int "SD D1 GPIO"
+    default 40
+config FORGEUI_SD_D2
+    int "SD D2 GPIO"
+    default 41
+config FORGEUI_SD_D3
+    int "SD D3 GPIO"
+    default 42
+config FORGEUI_SD_LDO_CHANNEL
+    int "SD power LDO channel"
+    range 0 4
+    default 4
+config FORGEUI_SD_LDO_MV
+    int "SD power LDO voltage (mV)"
+    default 2500
+
+endmenu

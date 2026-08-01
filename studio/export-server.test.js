@@ -15,6 +15,9 @@ const {
   appendAssetSourcesToCMake,
   normalizeProjectHardware,
   generateFeatureHeader,
+  generateSdkconfigDefaults,
+  validateHardwareArtifacts,
+  shouldCopyFirmwareSource,
   generateIdfComponentManifest,
   resolveFirmwareBuild,
   validateExportPayload,
@@ -951,6 +954,60 @@ lv_obj_add_event_cb(fg_spinbox_decrement_button, fg_decrement, LV_EVENT_CLICKED,
 })
 
 describe('board profile firmware resolution', () => {
+  it('exports the selected SDIO project hardware configuration', () => {
+    const project = normalizeProjectHardware({
+      wifiHosted: {
+        transport: 'sdio', slot: 1, width: 4, frequencyKHz: 40000,
+        clk: 18, cmd: 19, d0: 14, d1: 15, d2: 16, d3: 17,
+        reset: 54, resetDelayMs: 1500, txQueueSize: 20, rxQueueSize: 20,
+      },
+    })
+    const defaults = generateSdkconfigDefaults(project)
+    expect(defaults).toContain('CONFIG_ESP_HOSTED_SDIO_HOST_INTERFACE=y')
+    expect(defaults).toContain('CONFIG_ESP_HOSTED_PRIV_SDIO_PIN_CLK_SLOT_1=18')
+    expect(defaults).toContain('CONFIG_ESP_HOSTED_SDIO_GPIO_RESET_SLAVE=54')
+    expect(defaults).not.toContain('CONFIG_ESP_HOSTED_SPI_HOST_INTERFACE=y')
+  })
+
+  it('preserves a deliberate SPI project configuration', () => {
+    const defaults = generateSdkconfigDefaults({
+      wifiHosted: {
+        transport: 'spi', mode: 3, controller: 1, frequencyKHz: 40000,
+        clk: 9, mosi: 8, miso: 10, cs: 7, handshake: 6,
+        dataReady: 11, reset: 12, resetDelayMs: 1500,
+        txQueueSize: 20, rxQueueSize: 20,
+      },
+    })
+    expect(defaults).toContain('CONFIG_ESP_HOSTED_SPI_HOST_INTERFACE=y')
+    expect(defaults).toContain('CONFIG_ESP_HOSTED_SPI_GPIO_HANDSHAKE=6')
+    expect(defaults).not.toContain('CONFIG_ESP_HOSTED_SDIO_HOST_INTERFACE=y')
+  })
+
+  it('does not package a stale live sdkconfig', () => {
+    expect(shouldCopyFirmwareSource('C:/firmware/sdkconfig')).toBe(false)
+    expect(shouldCopyFirmwareSource('C:/firmware/sdkconfig.defaults')).toBe(true)
+  })
+
+  it('rejects profile/default/header/board mismatches', () => {
+    const project = normalizeProjectHardware()
+    const defaults = generateSdkconfigDefaults(project)
+    const header = generateFeatureHeader(project)
+    expect(() => validateHardwareArtifacts(
+      project,
+      defaults.replace('CONFIG_ESP_HOSTED_SDIO_HOST_INTERFACE=y', 'CONFIG_ESP_HOSTED_SPI_HOST_INTERFACE=y'),
+      header,
+      project.boardId,
+    )).toThrow(/selected Wi-Fi transport sdio/)
+    expect(() => validateHardwareArtifacts(project, defaults, header, 'wrong-board'))
+      .toThrow(/board profile/)
+  })
+
+  it('uses the same normalized hardware profile for Live and Standalone generation', () => {
+    const persisted = normalizeProjectHardware({ sd: { frequencyKHz: 20000 } })
+    expect(generateSdkconfigDefaults(persisted)).toBe(generateSdkconfigDefaults(persisted))
+    expect(generateFeatureHeader(persisted)).toBe(generateFeatureHeader(persisted))
+  })
+
   it('preserves historical features for legacy export payloads', () => {
     expect(normalizeProjectHardware()).toEqual(expect.objectContaining({
       boardId: 'waveshare-esp32p4-wifi6-touch-lcd-7b',

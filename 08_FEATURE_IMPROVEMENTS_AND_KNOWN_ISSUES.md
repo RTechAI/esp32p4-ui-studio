@@ -10,8 +10,8 @@ each feature and the official widget totals.
 | Item | Current record |
 | --- | --- |
 | Last updated | 2026-08-01 |
-| Current Standard Widget proof total | 29 of 39 (74%), as recorded in `04_FEATURE_STATUS.md` |
-| Remaining Standard widgets | 10 |
+| Current Standard Widget proof total | 31 of 39 (79%), as recorded in `04_FEATURE_STATUS.md` |
+| Remaining Standard widgets | 8 |
 | LVGL version | 9.2.2 |
 | ESP-IDF version | 5.5.4 |
 | Target hardware | Waveshare ESP32-P4-WiFi6-Touch-LCD-7B, 1024 × 600 |
@@ -120,6 +120,30 @@ Totals are copied only as a dated summary pointer. Change them in
   suite.
 
 ## Resolved Issues
+
+### 2026-08-01 — Canonical Image Contain export parity
+
+- **Issue:** Native Image export used scale 256 and clipped a centred uploaded
+  source even though Canvas and Browser Preview showed the complete image.
+- **Root cause:** LVGL conversion replaced the temporary asset URL with its
+  persistent URL; the registry treated that as artwork replacement and cleared
+  correct intrinsic dimensions, forcing the legacy scale-256 fallback.
+- **Resolution:** Preserve intrinsic dimensions during URL replacement, recover
+  dimensions for legacy persisted assets, and use one source-aware canonical
+  Contain model across Canvas, Browser Preview, Live and Standalone export.
+- **Regression protection:** Landscape/portrait/bounds combinations, Contain,
+  Cover, Native, persistence/reload, opacity, visibility, non-clickable output,
+  exporter tracing and Live/Standalone parity tests.
+- **Physical validation:** The `1024 × 600` proof source in `240 × 160` bounds
+  generated `calculated_scale=60`, `emitted_scale=60` and
+  `lv_image_set_scale(fg_image, 60)`. ESP32-P4 displayed the complete image
+  without clipping. **IMAGE — PROVEN.**
+
+### 2026-08-01 — Standard Line physical proof
+
+- **Resolution:** Native `lv_line_create()` output passed geometry, horizontal,
+  vertical and arbitrary-angle rendering, colour, opacity, thickness, multiple
+  instances and Live/Standalone parity on ESP32-P4. **LINE — PROVEN.**
 
 ### 2026-08-01 — Text wrapping correction (software resolved; re-proof open)
 
@@ -272,7 +296,7 @@ Totals are copied only as a dated summary pointer. Change them in
 ### P2 — Remaining Standard Widget proof backlog
 
 - **Subsystem:** Proven Widget Pipeline.
-- **Description:** The authoritative ledger records 10 Standard widgets still
+- **Description:** The authoritative ledger records 8 Standard widgets still
   outside full physical proof. QR Code has software coverage but still needs
   recorded phone scans; Text is awaiting corrected visual re-proof.
 - **Current workaround:** Use the per-widget status and evidence boundaries in
@@ -325,12 +349,14 @@ Failures remain visible rather than being rewritten as historical passes.
 
 ## Current Sprint
 
-- **Current objective:** Archive the 29/39 end-of-sprint save point, then close
+- **Current objective:** Archive the 31/39 end-of-sprint save point, then close
   the pending Text and Icon final hardware re-proofs without premature promotion.
-- **Current proof batch:** Button, Heading, Box and Divider completed; Text and
-  Icon are corrected in software and queued for final Live/Standalone flash.
-- **Recently completed widgets:** Button, Heading, Box and Divider physical
-  proof; native TileView, Spinbox, List and TabView milestones remain current.
+- **Current proof batch:** Image, Line, Button, Heading, Box and Divider
+  completed; Text and Icon are corrected in software and queued for final
+  Live/Standalone flash.
+- **Recently completed widgets:** Image, Line, Button, Heading, Box and Divider
+  physical proof; native TileView, Spinbox, List and TabView milestones remain
+  current.
 - **Next planned widgets:** No new widget begins before this save point is
   archived and the remaining proof pipeline is explicitly resumed.
 

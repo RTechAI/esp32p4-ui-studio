@@ -1072,7 +1072,82 @@ const DEFAULT_PROJECT_HARDWARE = Object.freeze({
     usbHost: false, camera: false, settingsLauncher: true,
     wifiManager: true, storageBrowser: true, diagnostics: true,
   }),
+  wifiHosted: Object.freeze({
+    transport: 'sdio', slot: 1, width: 4, frequencyKHz: 40000,
+    clk: 18, cmd: 19, d0: 14, d1: 15, d2: 16, d3: 17,
+    reset: 54, resetDelayMs: 1500, txQueueSize: 20, rxQueueSize: 20,
+  }),
+  sd: Object.freeze({
+    host: 'sdmmc', slot: 0, width: 4, frequencyKHz: 40000,
+    clk: 43, cmd: 44, d0: 39, d1: 40, d2: 41, d3: 42,
+    ldoChannel: 4, ldoVoltageMv: 2500,
+  }),
 })
+
+const integerSetting = (value, fallback, name, min = 0, max = 100000) => {
+  const resolved = value === undefined ? fallback : value
+  if (!Number.isInteger(resolved) || resolved < min || resolved > max) {
+    throw new Error(`Invalid project hardware setting ${name}: ${resolved}`)
+  }
+  return resolved
+}
+
+function normalizeWifiHosted(value = {}) {
+  const defaults = DEFAULT_PROJECT_HARDWARE.wifiHosted
+  const transport = value.transport === undefined ? defaults.transport : value.transport
+  if (transport !== 'sdio' && transport !== 'spi') {
+    throw new Error(`Invalid ESP-Hosted transport: ${transport}`)
+  }
+  const common = {
+    transport,
+    frequencyKHz: integerSetting(value.frequencyKHz, defaults.frequencyKHz, 'wifiHosted.frequencyKHz', 1),
+    reset: integerSetting(value.reset, defaults.reset, 'wifiHosted.reset'),
+    resetDelayMs: integerSetting(value.resetDelayMs, defaults.resetDelayMs, 'wifiHosted.resetDelayMs'),
+    txQueueSize: integerSetting(value.txQueueSize, defaults.txQueueSize, 'wifiHosted.txQueueSize', 1),
+    rxQueueSize: integerSetting(value.rxQueueSize, defaults.rxQueueSize, 'wifiHosted.rxQueueSize', 1),
+  }
+  if (transport === 'sdio') return {
+    ...common,
+    slot: integerSetting(value.slot, defaults.slot, 'wifiHosted.slot', 0, 1),
+    width: integerSetting(value.width, defaults.width, 'wifiHosted.width', 1, 4),
+    clk: integerSetting(value.clk, defaults.clk, 'wifiHosted.clk'),
+    cmd: integerSetting(value.cmd, defaults.cmd, 'wifiHosted.cmd'),
+    d0: integerSetting(value.d0, defaults.d0, 'wifiHosted.d0'),
+    d1: integerSetting(value.d1, defaults.d1, 'wifiHosted.d1'),
+    d2: integerSetting(value.d2, defaults.d2, 'wifiHosted.d2'),
+    d3: integerSetting(value.d3, defaults.d3, 'wifiHosted.d3'),
+  }
+  const spiDefaults = { mode: 3, controller: 1, clk: 9, mosi: 8, miso: 10, cs: 7, handshake: 6, dataReady: 11, reset: 12 }
+  return {
+    ...common,
+    reset: integerSetting(value.reset, spiDefaults.reset, 'wifiHosted.reset'),
+    mode: integerSetting(value.mode, spiDefaults.mode, 'wifiHosted.mode', 0, 3),
+    controller: integerSetting(value.controller, spiDefaults.controller, 'wifiHosted.controller', 0, 2),
+    clk: integerSetting(value.clk, spiDefaults.clk, 'wifiHosted.clk'),
+    mosi: integerSetting(value.mosi, spiDefaults.mosi, 'wifiHosted.mosi'),
+    miso: integerSetting(value.miso, spiDefaults.miso, 'wifiHosted.miso'),
+    cs: integerSetting(value.cs, spiDefaults.cs, 'wifiHosted.cs'),
+    handshake: integerSetting(value.handshake, spiDefaults.handshake, 'wifiHosted.handshake'),
+    dataReady: integerSetting(value.dataReady, spiDefaults.dataReady, 'wifiHosted.dataReady'),
+  }
+}
+
+function normalizeSd(value = {}) {
+  const d = DEFAULT_PROJECT_HARDWARE.sd
+  const host = value.host === undefined ? d.host : value.host
+  if (host !== 'sdmmc') throw new Error(`Invalid SD host: ${host}`)
+  return {
+    host,
+    slot: integerSetting(value.slot, d.slot, 'sd.slot', 0, 1),
+    width: integerSetting(value.width, d.width, 'sd.width', 1, 4),
+    frequencyKHz: integerSetting(value.frequencyKHz, d.frequencyKHz, 'sd.frequencyKHz', 1),
+    clk: integerSetting(value.clk, d.clk, 'sd.clk'), cmd: integerSetting(value.cmd, d.cmd, 'sd.cmd'),
+    d0: integerSetting(value.d0, d.d0, 'sd.d0'), d1: integerSetting(value.d1, d.d1, 'sd.d1'),
+    d2: integerSetting(value.d2, d.d2, 'sd.d2'), d3: integerSetting(value.d3, d.d3, 'sd.d3'),
+    ldoChannel: integerSetting(value.ldoChannel, d.ldoChannel, 'sd.ldoChannel', 0, 4),
+    ldoVoltageMv: integerSetting(value.ldoVoltageMv, d.ldoVoltageMv, 'sd.ldoVoltageMv', 500, 5000),
+  }
+}
 
 function normalizeProjectHardware(project) {
   const supplied = project && typeof project === 'object' ? project : {}
@@ -1102,7 +1177,91 @@ function normalizeProjectHardware(project) {
   return {
     boardId: DEFAULT_PROJECT_HARDWARE.boardId,
     firmwareFeatures: features,
+    wifiHosted: normalizeWifiHosted(supplied.wifiHosted),
+    sd: normalizeSd(supplied.sd),
   }
+}
+
+function generateSdkconfigDefaults(project, baseline = '') {
+  const p = normalizeProjectHardware(project)
+  const keep = String(baseline).split(/\r?\n/).filter(line =>
+    !/^CONFIG_ESP_HOSTED_/.test(line) &&
+    !/^# CONFIG_ESP_HOSTED_/.test(line) &&
+    !/^CONFIG_ESP_(SPI|SDIO)_(HOST_INTERFACE|PRIV_|MODE|CONTROLLER|GPIO|CLK_FREQ|TX_Q_SIZE|RX_Q_SIZE)/.test(line) &&
+    !/^# CONFIG_ESP_(SPI|SDIO)_HOST_INTERFACE/.test(line) &&
+    !/^CONFIG_ESP_WIFI_REMOTE_/.test(line) &&
+    !/^CONFIG_SLAVE_IDF_TARGET_/.test(line) &&
+    !/^CONFIG_FORGEUI_SD_/.test(line)
+  )
+  const lines = [...keep, '', '# Generated from ForgeUI project hardware profile.']
+  if (p.firmwareFeatures.wifi) {
+    const w = p.wifiHosted
+    lines.push('CONFIG_ESP_HOSTED_ENABLED=y', 'CONFIG_ESP_HOSTED_IDF_SLAVE_TARGET="esp32c6"')
+    if (w.transport === 'sdio') {
+      lines.push('CONFIG_ESP_HOSTED_SDIO_HOST_INTERFACE=y', '# CONFIG_ESP_HOSTED_SPI_HOST_INTERFACE is not set',
+        `CONFIG_ESP_HOSTED_SDIO_SLOT_${w.slot}=y`, `CONFIG_ESP_HOSTED_SDIO_${w.width}_BIT_BUS=y`,
+        `CONFIG_ESP_HOSTED_SDIO_CLOCK_FREQ_KHZ=${w.frequencyKHz}`,
+        `CONFIG_ESP_HOSTED_PRIV_SDIO_PIN_CLK_SLOT_${w.slot}=${w.clk}`,
+        `CONFIG_ESP_HOSTED_PRIV_SDIO_PIN_CMD_SLOT_${w.slot}=${w.cmd}`,
+        `CONFIG_ESP_HOSTED_PRIV_SDIO_PIN_D0_SLOT_${w.slot}=${w.d0}`,
+        `CONFIG_ESP_HOSTED_PRIV_SDIO_PIN_D1_4BIT_BUS_SLOT_${w.slot}=${w.d1}`,
+        `CONFIG_ESP_HOSTED_PRIV_SDIO_PIN_D2_4BIT_BUS_SLOT_${w.slot}=${w.d2}`,
+        `CONFIG_ESP_HOSTED_PRIV_SDIO_PIN_D3_4BIT_BUS_SLOT_${w.slot}=${w.d3}`,
+        `CONFIG_ESP_HOSTED_SDIO_GPIO_RESET_SLAVE=${w.reset}`,
+        `CONFIG_ESP_HOSTED_SDIO_RESET_DELAY_MS=${w.resetDelayMs}`,
+        `CONFIG_ESP_HOSTED_SDIO_TX_Q_SIZE=${w.txQueueSize}`, `CONFIG_ESP_HOSTED_SDIO_RX_Q_SIZE=${w.rxQueueSize}`)
+    } else {
+      lines.push('CONFIG_ESP_HOSTED_SPI_HOST_INTERFACE=y', '# CONFIG_ESP_HOSTED_SDIO_HOST_INTERFACE is not set',
+        `CONFIG_ESP_HOSTED_SPI_PRIV_MODE_${w.mode}_ESP32XX=y`, `CONFIG_ESP_HOSTED_SPI_MODE=${w.mode}`,
+        `CONFIG_ESP_HOSTED_SPI_CONTROLLER=${w.controller}`, `CONFIG_ESP_HOSTED_SPI_GPIO_CLK=${w.clk}`,
+        `CONFIG_ESP_HOSTED_SPI_GPIO_MOSI=${w.mosi}`, `CONFIG_ESP_HOSTED_SPI_GPIO_MISO=${w.miso}`,
+        `CONFIG_ESP_HOSTED_SPI_GPIO_CS=${w.cs}`, `CONFIG_ESP_HOSTED_SPI_GPIO_HANDSHAKE=${w.handshake}`,
+        `CONFIG_ESP_HOSTED_SPI_GPIO_DATA_READY=${w.dataReady}`, `CONFIG_ESP_HOSTED_SPI_GPIO_RESET_SLAVE=${w.reset}`,
+        `CONFIG_ESP_HOSTED_SPI_CLK_FREQ=${Math.round(w.frequencyKHz / 1000)}`,
+        `CONFIG_ESP_HOSTED_SPI_TX_Q_SIZE=${w.txQueueSize}`, `CONFIG_ESP_HOSTED_SPI_RX_Q_SIZE=${w.rxQueueSize}`)
+    }
+    lines.push('CONFIG_ESP_HOSTED_SLAVE_RESET_ON_EVERY_HOST_BOOTUP=y', 'CONFIG_ESP_HOSTED_TRANSPORT_RESTART_ON_FAILURE=y',
+      'CONFIG_ESP_WIFI_REMOTE_ENABLED=y', 'CONFIG_ESP_WIFI_REMOTE_LIBRARY_HOSTED=y', 'CONFIG_SLAVE_IDF_TARGET_ESP32C6=y')
+  } else {
+    lines.push('# CONFIG_ESP_HOSTED_ENABLED is not set', '# CONFIG_ESP_WIFI_REMOTE_ENABLED is not set')
+  }
+  const s = p.sd
+  lines.push(p.firmwareFeatures.sdCard ? 'CONFIG_FORGEUI_SD_ENABLED=y' : '# CONFIG_FORGEUI_SD_ENABLED is not set',
+    `CONFIG_FORGEUI_SD_SLOT=${s.slot}`, `CONFIG_FORGEUI_SD_WIDTH=${s.width}`,
+    `CONFIG_FORGEUI_SD_FREQ_KHZ=${s.frequencyKHz}`, `CONFIG_FORGEUI_SD_CLK=${s.clk}`,
+    `CONFIG_FORGEUI_SD_CMD=${s.cmd}`, `CONFIG_FORGEUI_SD_D0=${s.d0}`, `CONFIG_FORGEUI_SD_D1=${s.d1}`,
+    `CONFIG_FORGEUI_SD_D2=${s.d2}`, `CONFIG_FORGEUI_SD_D3=${s.d3}`,
+    `CONFIG_FORGEUI_SD_LDO_CHANNEL=${s.ldoChannel}`, `CONFIG_FORGEUI_SD_LDO_MV=${s.ldoVoltageMv}`)
+  return `${lines.join('\n').replace(/\n{3,}/g, '\n\n').trim()}\n`
+}
+
+function validateHardwareArtifacts(project, defaults, featureHeader, boardId) {
+  const p = normalizeProjectHardware(project)
+  const errors = []
+  if (boardId !== p.boardId) errors.push(`board profile ${boardId} != ${p.boardId}`)
+  const expectedTransport = p.wifiHosted.transport === 'sdio' ? 'CONFIG_ESP_HOSTED_SDIO_HOST_INTERFACE=y' : 'CONFIG_ESP_HOSTED_SPI_HOST_INTERFACE=y'
+  if (p.firmwareFeatures.wifi && !defaults.includes(expectedTransport)) errors.push(`selected Wi-Fi transport ${p.wifiHosted.transport} missing from sdkconfig.defaults`)
+  if (featureHeader.includes(`#define FG_FEATURE_WIFI ${p.firmwareFeatures.wifi ? 0 : 1}`)) errors.push('Wi-Fi feature header disagrees with project profile')
+  if (featureHeader.includes(`#define FG_FEATURE_SD_CARD ${p.firmwareFeatures.sdCard ? 0 : 1}`)) errors.push('SD feature header disagrees with project profile')
+  const expectedHardwareLines = generateSdkconfigDefaults(p).split('\n').filter(line =>
+    /^(CONFIG_ESP_HOSTED_|# CONFIG_ESP_HOSTED_|CONFIG_ESP_WIFI_REMOTE_|# CONFIG_ESP_WIFI_REMOTE_|CONFIG_SLAVE_IDF_TARGET_|CONFIG_FORGEUI_SD_)/.test(line)
+  )
+  expectedHardwareLines.forEach(line => {
+    if (!defaults.split(/\r?\n/).includes(line)) errors.push(`sdkconfig.defaults missing ${line}`)
+  })
+  const oppositeTransport = p.wifiHosted.transport === 'sdio'
+    ? 'CONFIG_ESP_HOSTED_SPI_HOST_INTERFACE=y'
+    : 'CONFIG_ESP_HOSTED_SDIO_HOST_INTERFACE=y'
+  if (p.firmwareFeatures.wifi && defaults.includes(oppositeTransport)) {
+    errors.push(`sdkconfig.defaults also enables conflicting ${oppositeTransport}`)
+  }
+  if (errors.length) throw new Error(`Project hardware export mismatch: ${errors.join('; ')}`)
+  return true
+}
+
+function shouldCopyFirmwareSource(src) {
+  const blocked = new Set(['build', '.vscode', '.vs', 'managed_components', 'sdkconfig'])
+  return !blocked.has(path.basename(src).toLowerCase())
 }
 
 function generateFeatureHeader(project) {
@@ -1807,6 +1966,7 @@ const developerGuideTarget =
   )
 const featureHeaderTarget = path.join(mainDir, '00_ForgeUI_Features.h')
 const componentManifestTarget = path.join(mainDir, 'idf_component.yml')
+const sdkconfigDefaultsTarget = path.resolve(mainDir, '..', 'sdkconfig.defaults')
 
 const cmakeSources = [
   ...firmwareBuild.sources,
@@ -1846,6 +2006,20 @@ if (hasFiRuntime) {
 }
 fs.writeFileSync(featureHeaderTarget, generateFeatureHeader(firmwareBuild), 'utf8')
 fs.writeFileSync(componentManifestTarget, generateIdfComponentManifest(firmwareBuild), 'utf8')
+const generatedSdkconfigDefaults = generateSdkconfigDefaults(
+  firmwareBuild,
+  fs.existsSync(sdkconfigDefaultsTarget) ? fs.readFileSync(sdkconfigDefaultsTarget, 'utf8') : '',
+)
+validateHardwareArtifacts(
+  firmwareBuild,
+  generatedSdkconfigDefaults,
+  generateFeatureHeader(firmwareBuild),
+  firmwareBuild.boardId,
+)
+fs.writeFileSync(sdkconfigDefaultsTarget, generatedSdkconfigDefaults, 'utf8')
+// sdkconfig is an IDF build artifact. Removing it ensures the next Live build
+// consumes the same freshly generated profile defaults as Standalone.
+fs.rmSync(path.resolve(mainDir, '..', 'sdkconfig'), { force: true })
 
 const preservedUserEvents = preserveUserEventFiles(
   fs.existsSync(userEventsCTarget) ? fs.readFileSync(userEventsCTarget, 'utf8') : '',
@@ -1995,18 +2169,7 @@ fs.cpSync(sourceDir, exportDir, {
   force: false,
   errorOnExist: true,
 
-  filter: (src) => {
-    const name = path.basename(src).toLowerCase()
-
-    const blocked = [
-      'build',
-      '.vscode',
-      '.vs',
-      'managed_components',
-    ]
-
-    return !blocked.includes(name)
-  },
+  filter: shouldCopyFirmwareSource,
 })
 
 const exportUploadsDir = path.join(
@@ -2070,6 +2233,7 @@ const featureHeaderTarget = path.join(
 const componentManifestTarget = path.join(
   exportDir, 'main', 'idf_component.yml'
 )
+const sdkconfigDefaultsTarget = path.join(exportDir, 'sdkconfig.defaults')
 
 const cmakeSources = [
   ...firmwareBuild.sources,
@@ -2127,6 +2291,17 @@ fs.writeFileSync(
   generateIdfComponentManifest(firmwareBuild),
   'utf8'
 )
+const generatedSdkconfigDefaults = generateSdkconfigDefaults(
+  firmwareBuild,
+  fs.existsSync(sdkconfigDefaultsTarget) ? fs.readFileSync(sdkconfigDefaultsTarget, 'utf8') : '',
+)
+validateHardwareArtifacts(
+  firmwareBuild,
+  generatedSdkconfigDefaults,
+  generateFeatureHeader(firmwareBuild),
+  firmwareBuild.boardId,
+)
+fs.writeFileSync(sdkconfigDefaultsTarget, generatedSdkconfigDefaults, 'utf8')
 
 fs.writeFileSync(
   userEventsCTarget,
@@ -2316,6 +2491,9 @@ module.exports = {
   appendAssetSourcesToCMake,
   normalizeProjectHardware,
   generateFeatureHeader,
+  generateSdkconfigDefaults,
+  validateHardwareArtifacts,
+  shouldCopyFirmwareSource,
   generateIdfComponentManifest,
   resolveFirmwareBuild,
   validateExportPayload,

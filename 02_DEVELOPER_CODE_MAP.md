@@ -13,7 +13,7 @@
 
 ## Current save point
 
-**FORGEUI_END_OF_SPRINT__29_OF_39_STANDARD_WIDGETS_ESP32P4_PROVEN__2026-08-01**
+**FORGEUI_IMAGE_AND_LINE__31_OF_39_STANDARD_WIDGETS_ESP32P4_PROVEN__2026-08-01**
 
 ## Current authoritative ownership summary
 
@@ -530,12 +530,12 @@ The 2026-07-30 Standard input and selection group is also physically proven acro
 - Select
 - Spinbox
 
-TabView and TileView are **PROVEN**. Image, Box and IconButton remain
-runtime-complete but outside these physical validation
-milestones. Their existing automated and architectural status is unchanged.
+TabView, TileView, Image and Box are **PROVEN**. IconButton remains
+runtime-complete but outside these physical validation milestones. Its existing
+automated and architectural status is unchanged.
 The registry audit records 44 total entries, comprising 39 Standard widgets
-and five Interactive Assets; physical proof is 29/39 Standard widgets (74%)
-and 10 remain. Heading, Box and Divider joined the proven set this sprint;
+and five Interactive Assets; physical proof is 31/39 Standard widgets (79%)
+and 8 remain. Image, Line, Heading, Box and Divider joined the proven set this sprint;
 Text and Icon remain **READY FOR FINAL HARDWARE RE-PROOF**.
 
 ### Current next-group parity architecture
@@ -4061,8 +4061,10 @@ NumberInput and Select support must not be described as unimplemented.
 Do not create a new registry, persistence system, AI pipeline, uploaded-asset store, exporter, or duplicate runtime generator for a future type. Reuse an existing runtime family whenever its state and API contract match. Create a new runtime family only when the existing momentary input, persistent binary input, persistent three-position input and binary output contracts cannot represent the control.
 ## 2026-08-01 documentation save-point note
 
-The current proof ledger is **29/39 (74%)**, with **10 remaining**. Heading,
-Box and Divider are newly proven; Button proof is recorded in the same sprint.
+The current proof ledger is **31/39 (79%)**, with **8 remaining**. Image and
+Line are proven with native constructors and Live/Standalone ESP32-P4 parity;
+Heading, Box and Divider are also newly proven, and Button proof is recorded in
+the same sprint.
 Debug Text through the shared normalized presentation and native label geometry
 path, and debug Icon through descriptor dimensions, shared 92% automatic fit,
 native scale/pivot and centered image bounds. Both remain **READY FOR FINAL

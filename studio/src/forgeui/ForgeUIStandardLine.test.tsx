@@ -121,4 +121,39 @@ describe('Standard Line endpoint model', () => {
     expect(screen.getByTestId('standard-line-stroke'))
       .toHaveAttribute('stroke-width', '5')
   })
+
+  it('keeps colour, opacity, visibility, and multiple instances native', () => {
+    const first = line('first', {
+      borderColor: '#123456', opacity: 0.5, visible: false,
+    })
+    const second = line('second', {
+      x: 200, y: 100, startX: 5, startY: 8, endX: 90, endY: 20,
+    })
+    const code = generateForgeUILvglCode({
+      root: {
+        id: 'root', parent: 'root', type: 'Box', props: {},
+        children: ['first', 'second'],
+      },
+      first,
+      second,
+    }, 'cyber_teal', undefined, { includeThemeTexture: false }).code
+
+    expect(code.match(/lv_line_create\(fg_application_page\)/g)).toHaveLength(2)
+    expect(code).toContain('lv_color_hex(0x123456)')
+    expect(code).toContain('lv_obj_set_style_line_opa(obj1, 128, LV_PART_MAIN);')
+    expect(code).toContain('lv_obj_add_flag(obj1, LV_OBJ_FLAG_HIDDEN);')
+  })
+
+  it('emits deterministic native code for Live and Standalone consumers', () => {
+    const component = line('proof-line', {
+      startX: 9,
+      startY: 81,
+      endX: 111,
+      endY: 14,
+      borderColor: '#22D3EE',
+      opacity: 0.75,
+    })
+
+    expect(generate(component)).toBe(generate(component))
+  })
 })

@@ -233,8 +233,9 @@ When a Widget Registry capability changes:
 The Runtime SDK should grow from physically credible widget contracts. It must
 not become a speculative list of APIs disconnected from native LVGL behaviour.
 
-Current registry evidence is 29 of 39 Standard widgets physically proven (74%),
-with 10 remaining. Text and Icon remain **READY FOR FINAL HARDWARE RE-PROOF**
+Current registry evidence is 31 of 39 Standard widgets physically proven (79%),
+with 8 remaining. Image and Line are physically proven across Live and
+Standalone export. Text and Icon remain **READY FOR FINAL HARDWARE RE-PROOF**
 and are excluded from that total. List is proven with no setter and one collision-safe
 `FG_On_<Name>_Item_Clicked(uint32_t index, const char * text)` callback per
 physical row action. Hook names are derived from the Studio component name and
@@ -242,7 +243,7 @@ made collision-safe by the generator. TabView remains **PROVEN**.
 ## 2026-08-01 proof ledger synchronization
 
 The generated Runtime SDK remains capability-driven while Standard physical
-proof advances to **29/39 (74%)**, with **10 remaining**. Button, Heading, Box
+proof advances to **31/39 (79%)**, with **8 remaining**. Button, Heading, Box
 and Divider are proven. Text remains presentation-only. Icon now has an
 implemented generic generated presentation API and optional click contract, but
 both corrected rendering and the new runtime behavior remain **READY FOR FINAL
@@ -261,7 +262,7 @@ construction/event layer; 95 remains the only preservation-merged behavior
 layer. Default-on presentation and default-off click are resolved per serialized
 instance by Registry metadata. File and CMake emission are feature-gated. The
 overall feature status is **SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN**;
-the 29/39 Standard proof total is unchanged. The 90 → 95 click path is
+the 31/39 Standard proof total is unchanged. The 90 → 95 click path is
 physically **PROVEN** on ESP32-P4: three independent collision-safe icon hooks
 each emitted exactly once per deliberate tap and never on startup. SD remained
 ready, and the run's Wi-Fi failure was unrelated. The 90 → 96 presentation path

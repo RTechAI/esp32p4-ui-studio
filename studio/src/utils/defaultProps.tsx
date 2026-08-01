@@ -78,10 +78,12 @@ type ForgeUICanvasProps = {
   w?: number
   h?: number
   imageScale?: number
+  imageFit?: 'contain' | 'cover' | 'native'
   enableClick?: boolean
   generateRuntimeApi?: boolean
   pressedColor?: string
   pressedOpacity?: number
+  visible?: boolean
 }
 
 type PropsWithForm<T> = T & ForgeUICanvasProps & { form?: T }
@@ -314,6 +316,10 @@ WiFi: {
   height: '100px',
   width: '100px',
   imageScale: 256,
+  imageFit: 'contain',
+  objectFit: 'contain',
+  opacity: 1,
+  visible: true,
   },
   QRCode: {
     contentType: 'custom',
@@ -348,6 +354,9 @@ WiFi: {
     endX: 120,
     endY: 120,
     lineWidth: 3,
+    borderColor: '',
+    opacity: 1,
+    visible: true,
   },
   InputLeftAddon: { children: 'left' },
   InputRightAddon: {

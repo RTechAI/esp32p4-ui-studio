@@ -10,15 +10,14 @@ import usePropsSelector from
 import {
   forgeUIGetUploadedAssets,
 } from '~forgeui/ForgeUIUploadedAssetRegistry'
+import SwitchControl from '~components/inspector/controls/SwitchControl'
 
 const ImagePanel = () => {
   const { setValueFromEvent } = useForm()
 
-  const objectFit =
-    usePropsSelector('objectFit')
-
-  const imageScale =
-    usePropsSelector('imageScale')
+  const selectedImageFit = usePropsSelector('imageFit')
+  const legacyObjectFit = usePropsSelector('objectFit')
+  const imageFit = selectedImageFit || legacyObjectFit
 
   const uploadedAssetId =
     usePropsSelector('uploadedAssetId')
@@ -55,6 +54,15 @@ const ImagePanel = () => {
 
             if (!asset) return
 
+            if (asset.width && asset.height) {
+              setValueFromEvent({
+                target: { name: 'sourceWidth', value: asset.width },
+              } as any)
+              setValueFromEvent({
+                target: { name: 'sourceHeight', value: asset.height },
+              } as any)
+            }
+
             setValueFromEvent({
               target: {
                 name: 'src',
@@ -86,13 +94,13 @@ const ImagePanel = () => {
       </FormControl>
 
       <FormControl
-        label="Object fit"
-        htmlFor="objectFit"
+        label="Image fit"
+        htmlFor="imageFit"
       >
         <Select
-          value={objectFit || 'contain'}
+          value={imageFit || 'contain'}
           size="sm"
-          name="objectFit"
+          name="imageFit"
           onChange={setValueFromEvent}
         >
           <option value="contain">
@@ -103,43 +111,13 @@ const ImagePanel = () => {
             cover
           </option>
 
-          <option value="fill">
-            fill
+          <option value="native">
+            native
           </option>
         </Select>
       </FormControl>
 
-      <FormControl
-        label="LVGL image scale"
-        htmlFor="imageScale"
-      >
-        <Select
-          value={imageScale || 256}
-          size="sm"
-          name="imageScale"
-          onChange={setValueFromEvent}
-        >
-          <option value="128">
-            128 - half size
-          </option>
-
-          <option value="256">
-            256 - normal
-          </option>
-
-          <option value="384">
-            384 - 1.5x
-          </option>
-
-          <option value="512">
-            512 - 2x
-          </option>
-
-          <option value="768">
-            768 - 3x
-          </option>
-        </Select>
-      </FormControl>
+      <SwitchControl name="visible" label="Visible" defaultValue />
     </>
   )
 }
