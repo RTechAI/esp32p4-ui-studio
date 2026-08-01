@@ -19,7 +19,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-static lv_obj_t * fg_wifi_label = NULL;
+static lv_obj_t * fg_clock_label = NULL;
+static lv_timer_t * fg_clock_timer = NULL;
+static bool fg_clock_separator_visible = true;
+static lv_obj_t * fg_wi_fi_status_label = NULL;
 static lv_obj_t * fg_application_page = NULL;
 static lv_obj_t * fg_system_launcher_page = NULL;
 static lv_obj_t * fg_system_brightness_page = NULL;
@@ -837,6 +840,20 @@ static void fg_system_create_disabled_card(lv_obj_t * parent, const char * text,
     lv_obj_center(label);
 }
 
+static void fg_clock_tick_cb(lv_timer_t * timer)
+{
+    LV_UNUSED(timer);
+    if (fg_clock_label == NULL) return;
+
+    int hour, minute, second;
+    fg_rtc_get(NULL, NULL, NULL, &hour, &minute, &second);
+    char separator = fg_clock_separator_visible ? ':' : ' ';
+    char time_buf[24];
+    snprintf(time_buf, sizeof(time_buf), "%02d%c%02d%c%02d", hour, separator, minute, separator, second);
+    fg_clock_separator_visible = !fg_clock_separator_visible;
+    lv_label_set_text(fg_clock_label, time_buf);
+}
+
 static const char * fg_wifi_signal_quality(int rssi)
 {
     if (rssi >= -55) return "Excellent";
@@ -855,10 +872,30 @@ static void fg_wifi_tick_cb(lv_timer_t *timer)
     if (fg_system_wifi_password_dialog &&
         !lv_obj_has_flag(fg_system_wifi_password_dialog, LV_OBJ_FLAG_HIDDEN)) return;
 
-    if (fg_wifi_label) {
-        char wifi_buf[128];
-        snprintf(wifi_buf, sizeof(wifi_buf), "WIFI\n%s\nIP: %s", fg_wifi_status_text(), fg_wifi_ip_text());
-        lv_label_set_text(fg_wifi_label, wifi_buf);
+    fg_wifi_snapshot_t widget_snapshot;
+    bool widget_snapshot_ready = fg_wifi_get_snapshot(&widget_snapshot) == FG_WIFI_OP_OK;
+    const char * widget_status = "Disabled";
+    if (widget_snapshot_ready) {
+        const char * backend_status = fg_wifi_status_text();
+        if (backend_status && (strcmp(backend_status, "INTERNET") == 0 || strcmp(backend_status, "INTERNET_AVAILABLE") == 0)) widget_status = "Internet Available";
+        else {
+        switch (widget_snapshot.state) {
+            case FG_WIFI_STATE_INIT: widget_status = "Starting"; break;
+            case FG_WIFI_STATE_READY:
+            case FG_WIFI_STATE_DISCONNECTING:
+            case FG_WIFI_STATE_DISCONNECTED:
+            case FG_WIFI_STATE_SCANNING: widget_status = "Starting"; break;
+            case FG_WIFI_STATE_CONNECTING: widget_status = "Connecting"; break;
+            case FG_WIFI_STATE_CONNECTED: widget_status = "Connected"; break;
+            case FG_WIFI_STATE_ERROR: widget_status = "Failed"; break;
+            default: widget_status = "Disabled"; break;
+        }
+        }
+    }
+    if (fg_wi_fi_status_label) {
+        char widget_buf[96];
+        snprintf(widget_buf, sizeof(widget_buf), LV_SYMBOL_WIFI " %s", widget_status);
+        lv_label_set_text(fg_wi_fi_status_label, widget_buf);
     }
 
     if (!fg_system_wifi_page || !fg_system_wifi_page_active) return;
@@ -1255,6 +1292,23 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_size(bg_texture_0, 1024, 600);
     lv_obj_move_background(bg_texture_0);
 
+    fg_clock_label = lv_label_create(fg_application_page);
+    lv_label_set_text(fg_clock_label, "12:34");
+    lv_obj_set_pos(fg_clock_label, 563, 155);
+    lv_obj_set_size(fg_clock_label, 90, 32);
+    lv_obj_set_style_text_color(fg_clock_label, lv_color_hex(0xF2A900), 0);
+    lv_obj_set_style_text_font(fg_clock_label, &lv_font_montserrat_32, 0);
+    lv_obj_set_style_text_align(fg_clock_label, LV_TEXT_ALIGN_LEFT, 0);
+
+    fg_wi_fi_status_label = lv_label_create(fg_application_page);
+    lv_label_set_text(fg_wi_fi_status_label, "Failed");
+    lv_obj_set_pos(fg_wi_fi_status_label, 706, 29);
+    lv_obj_set_size(fg_wi_fi_status_label, 120, 60);
+    lv_obj_set_style_text_color(fg_wi_fi_status_label, lv_color_hex(0xF2A900), 0);
+    lv_obj_set_style_text_font(fg_wi_fi_status_label, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_align(fg_wi_fi_status_label, LV_TEXT_ALIGN_LEFT, 0);
+    lv_label_set_long_mode(fg_wi_fi_status_label, LV_LABEL_LONG_CLIP);
+
 
     fg_ram_probe_log("02 after application page creation");
     LV_IMAGE_DECLARE(fg_icon_settings_fi_48px);
@@ -1498,6 +1552,9 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_pos(brightness_max, 828, 390);
     lv_obj_add_flag(fg_system_brightness_page, LV_OBJ_FLAG_HIDDEN);
     fg_ram_probe_log("04 after Brightness page creation");
+
+    fg_clock_tick_cb(NULL);
+    fg_clock_timer = lv_timer_create(fg_clock_tick_cb, 1000, NULL);
 
     fg_wifi_tick_cb(NULL);
     if (!fg_system_wifi_timer) fg_system_wifi_timer = lv_timer_create(fg_wifi_tick_cb, 1000, NULL);

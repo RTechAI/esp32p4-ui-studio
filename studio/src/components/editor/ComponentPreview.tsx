@@ -611,7 +611,7 @@ case 'Select':
       enableVisualHelper
       {...forwardedProps}
     >
-      <StandardWifiPreview palette={previewPalette} />
+      <StandardWifiPreview palette={previewPalette} component={component} />
     </PreviewContainer>
   )
 

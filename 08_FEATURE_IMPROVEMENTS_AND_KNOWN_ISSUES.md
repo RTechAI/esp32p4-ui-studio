@@ -10,8 +10,8 @@ each feature and the official widget totals.
 | Item | Current record |
 | --- | --- |
 | Last updated | 2026-08-01 |
-| Current Standard Widget proof total | 31 of 39 (79%), as recorded in `04_FEATURE_STATUS.md` |
-| Remaining Standard widgets | 8 |
+| Current Standard Widget proof total | 34 of 39 (87%), as recorded in `04_FEATURE_STATUS.md` |
+| Remaining Standard widgets | 5 |
 | LVGL version | 9.2.2 |
 | ESP-IDF version | 5.5.4 |
 | Target hardware | Waveshare ESP32-P4-WiFi6-Touch-LCD-7B, 1024 × 600 |
@@ -21,6 +21,20 @@ Totals are copied only as a dated summary pointer. Change them in
 `04_FEATURE_STATUS.md` after proof acceptance, then refresh this summary.
 
 ## Recently Improved
+
+### 2026-08-01 — Batch C Clock and Wi-Fi Status physical proof
+
+- **Subsystem:** Proven Widget Pipeline, Clock and Standard Wi-Fi Status.
+- **Improvement:** Audited Clock formatting/parity and removed preview-only
+  literal styling drift. Replaced the fixed global Wi-Fi label with a shared
+  serialized presentation model, Inspector controls, Canvas/Browser parity,
+  collision-safe native labels, existing-backend state projection and optional
+  RSSI. Internet Available is future-compatible.
+- **Ownership:** Clock remains RTC-owned and Wi-Fi Status remains a presentation
+  consumer of `30_WIFI`; neither emits a setter or `95_UserEvents` hook.
+- **Validation:** Focused Clock/Wi-Fi software suites pass and Canvas, Browser,
+  Live and Standalone behavior was physically accepted on ESP32-P4. Both are
+  **PROVEN**.
 
 ### 2026-08-01 — End-of-sprint Standard proof and parity closure
 
@@ -159,9 +173,8 @@ Totals are copied only as a dated summary pointer. Change them in
 - **Regression protection:** Inspector long-value/newline tests, JSON reload,
   shared Canvas/Browser rendering tests, all alignments, full escaped C,
   geometry/call-order assertions and explicit absence of DOT/CLIP modes.
-- **Physical validation:** Not yet complete. Text remains
-  **READY FOR FINAL HARDWARE RE-PROOF** until the corrected build is flashed
-  and visually accepted.
+- **Physical validation:** Complete. The corrected Text build has been
+  physically accepted across Live and Standalone and Text is **PROVEN**.
 
 ### 2026-08-01 — Icon native scaling and clipping correction
 
@@ -296,9 +309,9 @@ Totals are copied only as a dated summary pointer. Change them in
 ### P2 — Remaining Standard Widget proof backlog
 
 - **Subsystem:** Proven Widget Pipeline.
-- **Description:** The authoritative ledger records 8 Standard widgets still
+- **Description:** The authoritative ledger records 5 Standard widgets still
   outside full physical proof. QR Code has software coverage but still needs
-  recorded phone scans; Text is awaiting corrected visual re-proof.
+  recorded phone scans; Text, Clock and Wi-Fi Status are now **PROVEN**.
 - **Current workaround:** Use the per-widget status and evidence boundaries in
   `04_FEATURE_STATUS.md`; never infer hardware proof from automation.
 - **Next action:** Complete one isolated widget proof at a time through live and
@@ -319,7 +332,7 @@ This is a compact evidence journal, not the full status catalogue.
 | Heading | Passed | Passed | Passed | Complete | **PROVEN** |
 | Box | Passed | Passed | Passed | Complete | **PROVEN** |
 | Divider | Passed | Passed | Passed | Complete | **PROVEN** |
-| Text | Software passed | Software parity path shared | Corrected build not yet accepted | Re-proof procedure recorded | **READY FOR FINAL HARDWARE RE-PROOF** |
+| Text | Passed | Passed | Passed | Complete | **PROVEN** |
 | Icon | Software passed | Deterministic shared generator | Corrected build not yet accepted | Re-proof procedure recorded | **READY FOR FINAL HARDWARE RE-PROOF** |
 
 ## Validation History
@@ -349,16 +362,15 @@ Failures remain visible rather than being rewritten as historical passes.
 
 ## Current Sprint
 
-- **Current objective:** Archive the 31/39 end-of-sprint save point, then close
-  the pending Text and Icon final hardware re-proofs without premature promotion.
-- **Current proof batch:** Image, Line, Button, Heading, Box and Divider
-  completed; Text and Icon are corrected in software and queued for final
-  Live/Standalone flash.
-- **Recently completed widgets:** Image, Line, Button, Heading, Box and Divider
-  physical proof; native TileView, Spinbox, List and TabView milestones remain
-  current.
-- **Next planned widgets:** No new widget begins before this save point is
-  archived and the remaining proof pipeline is explicitly resumed.
+- **Current objective:** Preserve the 34/39 proven save point and begin Batch D:
+  QR Code and Icon Button.
+- **Current proof batch:** Clock and Wi-Fi Status completed Canvas, Browser,
+  Live, Standalone and ESP32-P4 physical proof. Text is also **PROVEN**; Icon
+  remains queued for final hardware re-proof.
+- **Current proven pipeline set includes:** Text, Heading, Button, Box, Divider,
+  Image, Line, Spinbox, List, TabView, TileView, Clock and Wi-Fi Status.
+- **Next planned widgets:** QR Code and Icon Button, following the same
+  Registry-owned Standard Widget Pipeline.
 
 ## Engineering Notes
 

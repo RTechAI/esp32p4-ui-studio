@@ -135,18 +135,22 @@ Current Standard-widget milestone evidence:
 - Spinbox: **PROVEN** through Registry, Tray, Canvas, Inspector, Browser
   Preview, native LVGL export, Runtime SDK, `95_UserEvents`, export-time
   gating, live ESP32-P4 firmware and Standalone Export.
+- Clock and Wi-Fi Status: **PROVEN**. Their complete software slices
+  share Canvas/Browser/LVGL presentation. Clock consumes RTC time; Wi-Fi Status
+  consumes the existing backend snapshot with no duplicate manager, setter or
+  UserEvent architecture.
 
-The registry contains 39 Standard widgets; 31 are physically proven (79%) and
-8 remain. Image and Line join TabView, TileView, Button, Heading, Box and
+The registry contains 39 Standard widgets; 34 are physically proven (87%) and
+5 remain. Text, Clock and Wi-Fi Status join Image, Line, TabView, TileView, Button, Heading, Box and
 Divider as **PROVEN**. Image uses native uploaded-asset Contain scaling with
 persistent source dimensions; Line uses native endpoint geometry and styling.
-Text and Icon are **READY FOR FINAL HARDWARE RE-PROOF** and are not included in
-the proven total. Dedicated
+Icon is **READY FOR FINAL HARDWARE RE-PROOF** and is not included in the proven
+total. Dedicated
 Dashboard widgets have not started.
 
 ## Hardware support and proof
 
-The Board Selector is backed by a data-driven profile registry. The current supported production profile is the Waveshare ESP32-P4 WiFi6 Touch LCD 7B (`esp32p4`, 1024 × 600). Project feature selection is persisted after hydration and shared by live Build & Flash and standalone export. Generated `00_ForgeUI_Features.h`, CMake sources/components and `idf_component.yml` are pruned together; a capability or flag alone is not a claim that a backend is implemented.
+The Board Selector is backed by a data-driven profile registry. The current supported production profile is the Waveshare ESP32-P4 WiFi6 Touch LCD 7B (`esp32p4`, 1024 × 600). Project feature and transport selection is persisted after hydration and shared by live Build & Flash and standalone export. The profile owns ESP-Hosted SDIO/SPI settings and SDMMC host, pin, width, frequency and power settings. Generated `sdkconfig.defaults`, `00_ForgeUI_Features.h`, CMake sources/components and `idf_component.yml` are validated together; standalone packaging never copies a stale live `sdkconfig`.
 
 The proven target is:
 
@@ -257,7 +261,7 @@ in `96_FiRuntime.c/.h` and optional click hooks in `95_UserEvents`. Runtime API
 generation defaults on; click defaults off. The canonical 92% icon renderer and
 used-asset gating remain shared by Canvas, Browser Preview, Live and Standalone.
 The overall feature is **SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN** and
-does not change the 31/39 Standard widget proof total. ESP32-P4 evidence proves
+does not change the current **34/39** Standard widget proof total. ESP32-P4 evidence proves
 the 90 → 95 click path across three independent collision-safe callbacks, with
 exactly one callback per deliberate tap and none at startup. The 90 → 96
 presentation path remains pending hardware proof for color, opacity, hide/show,

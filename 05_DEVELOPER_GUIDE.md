@@ -5,7 +5,7 @@ how authoring metadata becomes native LVGL firmware and how to preserve parity
 across the complete pipeline.
 
 Current save point:
-`FORGEUI_IMAGE_AND_LINE__31_OF_39_STANDARD_WIDGETS_ESP32P4_PROVEN__2026-08-01`.
+`FORGEUI_STANDARD_WIDGET_PIPELINE__CLOCK_WIFI_STATUS_PROVEN__PROJECT_HARDWARE_PROFILE_AUTHORITY__FI_RUNTIME__2026-08-01`.
 
 For application-to-hardware examples after export, use
 [05_DEVELOPER_HARDWARE_INTEGRATION.md](05_DEVELOPER_HARDWARE_INTEGRATION.md).
@@ -423,7 +423,7 @@ field. Use NumberInput when arbitrary numeric text entry is required.
 
 The authoritative registry contains 39 Standard widgets. With TileView
 promoted and TabView retaining its existing **PROVEN** status, physical
-completion is 31/39 (79%), with 8 remaining. Text and Icon remain **READY FOR
+completion is 34/39 (87%), with 5 remaining. Icon remains **READY FOR
 FINAL HARDWARE RE-PROOF** and are excluded from the proven count.
 
 ### Native List proof
@@ -444,15 +444,15 @@ from the same generated output. **LIST — PROVEN ON ESP32-P4**.
 See [FORGEUI_SPINBOX_WIDGET.md](docs/FORGEUI_SPINBOX_WIDGET.md).
 ## 2026-08-01 end-of-sprint engineering state
 
-The Standard proof ledger is **31/39 (79%)**, with **8 remaining**. Image and
+The Standard proof ledger is **34/39 (87%)**, with **5 remaining**. Text, Clock, Wi-Fi Status, Image and
 Line are proven through native constructors, shared preview/export models,
 Live/Standalone output and ESP32-P4 physical validation. Button,
 Heading, Box and Divider are physically proven. The sprint also completed
 native TileView replacement, Text multiline wrapping parity, Icon automatic
 sizing/clipping correction, Divider vertical-drop usability, Heading
-multiline/alignment parity and Box child/nesting parity. Text and Icon remain
-**READY FOR FINAL HARDWARE RE-PROOF** and must not be promoted from software
-evidence alone.
+multiline/alignment parity and Box child/nesting parity. Text has since
+completed physical validation and is **PROVEN**. Icon remains **READY FOR FINAL
+HARDWARE RE-PROOF** and must not be promoted from software evidence alone.
 ## Calling a Standard Fi Icon at runtime
 
 Enable **Generate runtime API** on the Icon (on by default), give the component

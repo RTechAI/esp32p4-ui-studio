@@ -34,6 +34,10 @@ import {
   type ForgeUIClockHourFormat,
 } from './ForgeUIStandardClock'
 import {
+  getForgeUIStandardWifiStatusPresentation,
+  type ForgeUIWifiStatusDisplayMode,
+} from './ForgeUIStandardWifiStatus'
+import {
   getForgeUIQRCodeGeometry,
   resolveQRCodePayload,
 } from './ForgeUIStandardQRCode'
@@ -803,6 +807,12 @@ type ClockExport = {
   blinkSeparator: boolean
 }
 
+type WifiStatusExport = {
+  labelName: string
+  displayMode: ForgeUIWifiStatusDisplayMode
+  showSignalStrength: boolean
+}
+
 type InputExport = {
   apiName: string
   hookName: string
@@ -1032,6 +1042,31 @@ const createClockExports = (
     })
 
   return exportsByComponent
+}
+
+const createWifiStatusExports = (
+  components: IComponents,
+): Map<string, WifiStatusExport> => {
+  const result = new Map<string, WifiStatusExport>()
+  const usedStems = new Set<string>()
+  Object.values(components)
+    .filter(component => component.type === 'WiFi')
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .forEach(component => {
+      const base = toCIdentifier(
+        component.componentName || component.props.name || 'WiFi_Status',
+        'WiFi_Status',
+      ).replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase()
+      let stem = base
+      let suffix = 2
+      while (usedStems.has(stem)) stem = `${base}_${suffix++}`
+      usedStems.add(stem)
+      result.set(component.id, {
+        labelName: `fg_${stem}_label`,
+        ...getForgeUIStandardWifiStatusPresentation(component.props),
+      })
+    })
+  return result
 }
 
 const createTabViewExports = (
@@ -2517,6 +2552,7 @@ const buildLvglBlock = (
   tabViewExports: Map<string, TabViewExport>,
   tileViewExports: Map<string, TileViewExport>,
   clockExports: Map<string, ClockExport>,
+  wifiStatusExports: Map<string, WifiStatusExport>,
   inputExports: Map<string, InputExport>,
   switchExports: Map<string, SwitchExport>,
   checkboxExports: Map<string, SwitchExport>,
@@ -2598,15 +2634,16 @@ case 'Clock': {
 }
 
 case 'WiFi': {
-  lines.push(`fg_wifi_label = lv_label_create(${parentVar});`)
-  lines.push(`lv_label_set_text(fg_wifi_label, "WIFI\\nWIFI_FAIL\\nIP: -");`)
-  lines.push(`lv_obj_set_pos(fg_wifi_label, ${x}, ${y});`)
-  lines.push(`lv_obj_set_size(fg_wifi_label, ${w}, ${h});`)
-  lines.push(`lv_obj_set_style_text_color(fg_wifi_label, lv_color_hex(${palette.accent}), 0);`)
-  lines.push(`lv_obj_set_style_text_font(fg_wifi_label, &lv_font_montserrat_20, 0);`)
-  lines.push(`lv_obj_set_style_text_align(fg_wifi_label, LV_TEXT_ALIGN_LEFT, 0);`)
-  lines.push(`lv_obj_set_style_text_line_space(fg_wifi_label, -2, 0);`)
-  lines.push(`lv_label_set_long_mode(fg_wifi_label, LV_LABEL_LONG_CLIP);`)
+  const wifi = wifiStatusExports.get(child.id)
+  const label = wifi?.labelName || varName
+  lines.push(`${label} = lv_label_create(${parentVar});`)
+  lines.push(`lv_label_set_text(${label}, "Failed");`)
+  lines.push(`lv_obj_set_pos(${label}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${label}, ${w}, ${h});`)
+  lines.push(`lv_obj_set_style_text_color(${label}, lv_color_hex(${palette.accent}), 0);`)
+  lines.push(`lv_obj_set_style_text_font(${label}, &lv_font_montserrat_20, 0);`)
+  lines.push(`lv_obj_set_style_text_align(${label}, LV_TEXT_ALIGN_LEFT, 0);`)
+  lines.push(`lv_label_set_long_mode(${label}, LV_LABEL_LONG_CLIP);`)
   lines.push(``)
   break
 }
@@ -4732,6 +4769,7 @@ case 'Chart': {
         tabViewExports,
         tileViewExports,
         clockExports,
+        wifiStatusExports,
         inputExports,
         switchExports,
         checkboxExports,
@@ -5686,6 +5724,7 @@ export const generateForgeUILvglCode = (
     ],
   )
   const clockExports = createClockExports(components)
+  const wifiStatusExports = createWifiStatusExports(components)
 
   const previewPalette =
   options?.palette ||
@@ -5795,7 +5834,9 @@ const backgroundMode =
     lines.push(`static lv_timer_t * ${clockExport.timerName} = NULL;`)
     lines.push(`static bool ${clockExport.separatorVisibleName} = true;`)
   })
-  lines.push(`static lv_obj_t * fg_wifi_label = NULL;`)
+  wifiStatusExports.forEach(wifi => {
+    lines.push(`static lv_obj_t * ${wifi.labelName} = NULL;`)
+  })
   lines.push(`static lv_obj_t * fg_application_page = NULL;`)
   lines.push(`static lv_obj_t * fg_system_launcher_page = NULL;`)
   lines.push(`static lv_obj_t * fg_system_brightness_page = NULL;`)
@@ -7791,11 +7832,50 @@ lines.push(`}`)
   lines.push(`    if (fg_system_wifi_password_dialog &&`)
   lines.push(`        !lv_obj_has_flag(fg_system_wifi_password_dialog, LV_OBJ_FLAG_HIDDEN)) return;`)
   lines.push(``)
-  lines.push(`    if (fg_wifi_label) {`)
-  lines.push(`        char wifi_buf[128];`)
-  lines.push(`        snprintf(wifi_buf, sizeof(wifi_buf), "WIFI\\n%s\\nIP: %s", fg_wifi_status_text(), fg_wifi_ip_text());`)
-  lines.push(`        lv_label_set_text(fg_wifi_label, wifi_buf);`)
-  lines.push(`    }`)
+  if (wifiStatusExports.size > 0) {
+    lines.push(`    fg_wifi_snapshot_t widget_snapshot;`)
+    lines.push(`    bool widget_snapshot_ready = fg_wifi_get_snapshot(&widget_snapshot) == FG_WIFI_OP_OK;`)
+    lines.push(`    const char * widget_status = "Disabled";`)
+    lines.push(`    if (widget_snapshot_ready) {`)
+    lines.push(`        const char * backend_status = fg_wifi_status_text();`)
+    lines.push(`        if (backend_status && (strcmp(backend_status, "INTERNET") == 0 || strcmp(backend_status, "INTERNET_AVAILABLE") == 0)) widget_status = "Internet Available";`)
+    lines.push(`        else {`)
+    lines.push(`        switch (widget_snapshot.state) {`)
+    lines.push(`            case FG_WIFI_STATE_INIT: widget_status = "Starting"; break;`)
+    lines.push(`            case FG_WIFI_STATE_READY:`)
+    lines.push(`            case FG_WIFI_STATE_DISCONNECTING:`)
+    lines.push(`            case FG_WIFI_STATE_DISCONNECTED:`)
+    lines.push(`            case FG_WIFI_STATE_SCANNING: widget_status = "Starting"; break;`)
+    lines.push(`            case FG_WIFI_STATE_CONNECTING: widget_status = "Connecting"; break;`)
+    lines.push(`            case FG_WIFI_STATE_CONNECTED: widget_status = "Connected"; break;`)
+    lines.push(`            case FG_WIFI_STATE_ERROR: widget_status = "Failed"; break;`)
+    lines.push(`            default: widget_status = "Disabled"; break;`)
+    lines.push(`        }`)
+    lines.push(`        }`)
+    lines.push(`    }`)
+    wifiStatusExports.forEach(wifi => {
+      lines.push(`    if (${wifi.labelName}) {`)
+      lines.push(`        char widget_buf[96];`)
+      const format = wifi.displayMode === 'icon-only'
+        ? `LV_SYMBOL_WIFI`
+        : wifi.displayMode === 'text-only'
+          ? `widget_status`
+          : `NULL`
+      if (format === 'NULL') {
+        lines.push(`        snprintf(widget_buf, sizeof(widget_buf), LV_SYMBOL_WIFI " %s", widget_status);`)
+      } else {
+        lines.push(`        snprintf(widget_buf, sizeof(widget_buf), "%s", ${format});`)
+      }
+      if (wifi.showSignalStrength) {
+        lines.push(`        if (widget_snapshot_ready && widget_snapshot.connected) {`)
+        lines.push(`            size_t used = strlen(widget_buf);`)
+        lines.push(`            snprintf(widget_buf + used, sizeof(widget_buf) - used, "  %d dBm", widget_snapshot.rssi);`)
+        lines.push(`        }`)
+      }
+      lines.push(`        lv_label_set_text(${wifi.labelName}, widget_buf);`)
+      lines.push(`    }`)
+    })
+  }
   lines.push(``)
   lines.push(`    if (!fg_system_wifi_page || !fg_system_wifi_page_active) return;`)
   lines.push(`    fg_wifi_snapshot_t snapshot;`)
@@ -7959,6 +8039,7 @@ lines.push(`    fg_system_root = parent;`)
         tabViewExports,
         tileViewExports,
         clockExports,
+        wifiStatusExports,
         inputExports,
         switchExports,
         checkboxExports,

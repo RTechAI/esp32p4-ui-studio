@@ -11,14 +11,15 @@
 
 ## Current Save Point
 
-**FORGEUI_IMAGE_AND_LINE__31_OF_39_STANDARD_WIDGETS_ESP32P4_PROVEN__2026-08-01**
+**FORGEUI_STANDARD_WIDGET_PIPELINE__CLOCK_WIFI_STATUS_PROVEN__PROJECT_HARDWARE_PROFILE_AUTHORITY__FI_RUNTIME__2026-08-01**
 
 **CURRENT PRIORITY: COMPLETE THE STANDARD WIDGET LIBRARY AND PHYSICALLY PROVE EACH SLICE**
 
 ### 2026-08-01 end-of-sprint save point
 
-Physical proof now stands at **31/39 Standard widgets (79%)**, with **8
-remaining**. Image and Line join Button, Heading, Box and Divider as proven.
+Physical proof now stands at **34/39 Standard widgets (87%)**, with **5
+remaining**. Text, Clock and Wi-Fi Status join Image, Line, Button, Heading,
+Box and Divider as proven.
 Image uses native `lv_image_create()`, uploaded assets with persistent intrinsic
 dimensions, canonical Contain sizing and source-aware LVGL scaling across Live
 and Standalone export. Line uses native `lv_line_create()` with proven geometry,
@@ -27,8 +28,7 @@ replaces the synthetic export; Heading owns multiline/alignment parity; Box
 owns child nesting across Browser and native export; Divider has a visible
 vertical insertion default without changing horizontal behavior; Text owns
 multiline wrapping parity; and Icon owns source-aware centered automatic fit.
-Text and Icon remain **READY FOR FINAL HARDWARE RE-PROOF** and are not counted
-as proven.
+Icon remains **READY FOR FINAL HARDWARE RE-PROOF** and is not counted as proven.
 
 ### Technical-manager continuity note
 
@@ -53,9 +53,11 @@ open. Direct COM-port flashing by GPT is not the default workflow.
   Tray membership, categories, insertion geometry, defaults, capability
   metadata, documentation IDs and availability. `ForgeUIWidgetSet.ts` is a
   compatibility projection, never a second registry.
-- Board Profiles own supported target identity, dimensions, capabilities and
-  default feature selection. Hydrated project hardware selection drives both
-  live Build & Flash and Standalone Export.
+- Board Profiles own supported target identity, dimensions, capabilities,
+  feature selection, ESP-Hosted transport/pins and SDMMC host/pins/power.
+  Hydrated project hardware selection generates validated `sdkconfig.defaults`
+  for both Live Build & Flash and Standalone Export; stale live `sdkconfig`
+  files are never packaged.
 - Export-Time Feature Gating prunes generated C, CMake sources, managed
   components and `idf_component.yml` together. A disabled feature must not
   survive through a different export layer.
@@ -734,15 +736,20 @@ Button, Text and Heading now have real serialized visible-text properties. These
 
 ### Standard Wi-Fi Status Presentation
 
-Standard Wi-Fi remains presentation driven by the existing runtime polling and status mappings. No new Wi-Fi behaviour or runtime API was introduced. The established failed/disconnected display format is:
-
-```text
-WIFI
-WIFI_FAIL
-IP: -
-```
-
-Canvas and Browser Preview use the same three-line text structure inside the serialized component bounds. The restored structure prevents status wrapping and clipping while retaining semantic theme colours. Runtime ownership remains with `fg_wifi_status_text()` and the existing polling path. Physical confirmation remains pending final regeneration and flash.
+Standard Wi-Fi remains presentation driven by the existing runtime polling and
+status mappings. Its serialized properties are `displayMode` (`icon-text`,
+`icon-only`, or `text-only`), `showSignalStrength`, and `previewState`.
+`previewState` provides deterministic Studio presentation for Disabled,
+Starting, Connecting, Connected, Internet Available and Failed; firmware never
+uses it as network truth. Canvas and Browser share
+`ForgeUIStandardWifiStatus.ts`. Generated LVGL consumes the existing
+`fg_wifi_get_snapshot()` / `fg_wifi_status_text()` backend, gives every widget
+instance a collision-safe label, recognizes a future backend Internet state,
+and optionally appends connected RSSI. Colours come only from semantic theme
+roles. Wi-Fi Status is output-only and generates neither a public setter nor a
+`95_UserEvents` hook. Canvas, Browser Preview, Live Studio and Standalone Export
+presentation have completed ESP32-P4 physical validation; Wi-Fi Status is
+**PROVEN**.
 
 ### Clock Presentation
 
@@ -1484,7 +1491,7 @@ Preview dispatch and an LVGL export path. Focused registry/Tray tests and
 component/exporter regressions provide automated evidence; no conclusive
 permanent implementation was found outside the registry, so no registry
 definition was added. The Dashboard category remains intentionally empty.
-Thirty-one of 39 Standard widgets are now physically proven (79%); 8 remain
+Thirty-four of 39 Standard widgets are now physically proven (87%); 5 remain
 to be individually promoted.
 
 ```text
@@ -1496,7 +1503,7 @@ Registry → Tray → Canvas → Inspector → Browser Preview → LVGL Export
 
 | Registry widget | Studio / exporter | Runtime API and hook classification | Hardware proof |
 | --- | --- | --- | --- |
-| Text | implemented / implemented | intentionally API-free | **READY FOR FINAL HARDWARE RE-PROOF** |
+| Text | implemented / implemented | intentionally API-free | **PROVEN** |
 | Heading | implemented / implemented | intentionally API-free | **PROVEN** |
 | Button | implemented / implemented | API-free serialized text | **PROVEN** |
 | IconButton | implemented / implemented | enabled setter + click hook | pending |
@@ -1524,8 +1531,8 @@ Registry → Tray → Canvas → Inspector → Browser Preview → LVGL Export
 | Scale | implemented / implemented | intentionally API-free | physically proven |
 | Chart | implemented / implemented | add/clear APIs + hooks | physically proven |
 | Table | implemented / implemented | existing retained table runtime | physically proven |
-| Clock | implemented / implemented | API-free RTC presentation | pending for current presentation pass |
-| WiFi | implemented / implemented | internal backend projection; no public widget API | pending for current widget parity pass |
+| Clock | implemented / implemented | API-free RTC presentation | **PROVEN** |
+| WiFi | implemented / implemented | collision-safe backend projection; no public widget API/hook | **PROVEN** |
 | QRCode | implemented / implemented | text setter, no hook | phone scan pending |
 | Progress | implemented / implemented | value setter, no hook | physically proven |
 | CircularProgress | implemented / implemented | value setter, no hook | physically proven |
@@ -2957,7 +2964,7 @@ icon pipeline remains authoritative; component names allocate collision-safe
 optional click behavior attaches in 90 and preservation-merges its hook in 95.
 Runtime API defaults on, click defaults off, and unused runtime files/assets are
 gated out. The overall status is **SOFTWARE COMPLETE / PARTIALLY PHYSICALLY PROVEN**
-and does not change the 31/39 physical proof total. Physical ESP32-P4
+and does not change the then-current proof total. Physical ESP32-P4
 evidence proves the 90 → 95 click path: three click-enabled instances emitted
 exactly one separate collision-safe callback per deliberate tap, no callback at
 startup, and SD remained ready. The unrelated Wi-Fi failure during the run is

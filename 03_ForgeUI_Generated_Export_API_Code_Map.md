@@ -394,7 +394,7 @@ Runtime hot theme switching on the ESP32-P4 was not added.
 | Button | None; owns serialized Button Text only | None |
 | Text | None; owns serialized Text Value only | None |
 | Heading | None; owns serialized Heading Text only | None |
-| Standard Wi-Fi presentation | None; existing generated polling/status projection | None |
+| Standard Wi-Fi presentation | None; per-instance projection of existing backend snapshot/status | None |
 | Clock | None; owns presentation configuration only | None |
 | Scale | None | None |
 | Line | None | None |
@@ -659,7 +659,7 @@ text-entry control; use NumberInput for that interaction model.
 
 The final registry audit records 44 entries: 39 Standard widgets and five
 Interactive Assets. With TileView promoted and TabView retaining its existing
-**PROVEN** status, Standard physical proof is 31/39 (79%), leaving 8 widgets
+**PROVEN** status, Standard physical proof is 34/39 (87%), leaving 5 widgets
 for individual promotion.
 
 ### List generated boundary
@@ -710,15 +710,14 @@ Legacy components without endpoint properties resolve to start `(0,0)` and end `
 
 ### Standard Wi-Fi presentation generated boundary
 
-Standard Wi-Fi presentation remains owned by existing generated polling and `fg_wifi_status_text()` mapping. It generates no new public setter or developer hook. Canvas, Browser Preview and generated output preserve the established three-line structure:
-
-```text
-WIFI
-WIFI_FAIL
-IP: -
-```
-
-Generated output must not substitute `DISCONNECTED`, enable wrapping that creates an additional clipped line, or move Wi-Fi behavior into preview code. Runtime state mapping, silent startup and existing ownership remain unchanged.
+Standard Wi-Fi presentation is a per-instance projection of existing
+`fg_wifi_get_snapshot()` and `fg_wifi_status_text()` data. It generates no
+public setter or developer hook. Canvas and Browser share the serialized
+display-mode, preview-state and optional-signal model; generated output ignores
+preview state and maps backend Disabled, Starting, Connecting, Connected,
+future Internet Available and Failed states. Collision-safe labels allow
+multiple instances. Runtime state mapping and Wi-Fi management remain in the
+existing backend.
 
 ### Clock generated runtime ownership
 
@@ -3183,7 +3182,7 @@ preservation-merges the matching declaration and implementation in
 `90_Studio_Export.h` is introduced.
 ## 2026-08-01 generated-export proof boundary
 
-Standard physical proof is **31/39 (79%)**, leaving **8**. Image export uses
+Standard physical proof is **34/39 (87%)**, leaving **5**. Image export uses
 native `lv_image_create()`, persisted intrinsic dimensions and canonical
 source-aware Contain scaling; the physical proof emitted scale 60 from the
 serialized model. Line export uses native `lv_line_create()` with persisted
@@ -3191,8 +3190,8 @@ geometry and style. Both passed Live/Standalone ESP32-P4 proof. Button, Heading,
 Box and Divider are also proven. Text export now applies complete multiline content,
 geometry, wrap mode and alignment consistently. Icon export now derives
 source-aware scale from the shared 92% automatic target and emits centered
-pivots/alignment. Text and Icon remain **READY FOR FINAL HARDWARE RE-PROOF**;
-their corrected generated paths are not physical-proof promotions.
+pivots/alignment. Text has since completed physical validation and is
+**PROVEN**. Icon remains **READY FOR FINAL HARDWARE RE-PROOF**.
 ## Fi Icon Runtime contract — 2026-08-01
 
 The complete canonical pipeline and 90/95/96 ownership explanation is maintained

@@ -61,6 +61,7 @@ import SkeletonPanel from './components/SkeletonPanel'
 import ForgeUILayoutPanel from '~forgeui/ForgeUILayoutPanel'
 import StandardTextPanel from './components/StandardTextPanel'
 import ClockPanel from './components/ClockPanel'
+import WifiStatusPanel from './components/WifiStatusPanel'
 import LinePanel from './components/LinePanel'
 import QRCodePanel from './components/QRCodePanel'
 import TileViewPanel from './components/TileViewPanel'
@@ -104,6 +105,7 @@ const Panels: React.FC<{ component: IComponent; isRoot: boolean }> = ({
       {type === 'CircularProgress' && <CircularProgressPanel />}
       {type === 'Heading' && <HeadingPanel />}
       {type === 'Clock' && <ClockPanel />}
+      {type === 'WiFi' && <WifiStatusPanel />}
       {type === 'Line' && <LinePanel />}
       {type === 'QRCode' && <QRCodePanel />}
       {type === 'Tileview' && <TileViewPanel />}

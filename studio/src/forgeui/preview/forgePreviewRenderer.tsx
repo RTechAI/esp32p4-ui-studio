@@ -128,7 +128,7 @@ export const renderForgePreview = ({
 case 'WiFi': {
   output.push(
     <Box key={child.id} {...commonStyle}>
-      <StandardWifiPreview palette={palette} />
+      <StandardWifiPreview palette={palette} component={child} />
     </Box>,
   )
   break

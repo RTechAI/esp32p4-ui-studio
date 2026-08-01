@@ -116,7 +116,11 @@ type PreviewDefaultProps = {
     showSeconds?: boolean
     blinkSeparator?: boolean
   }
-  WiFi?: PropsWithForm<TextProps>
+  WiFi?: PropsWithForm<TextProps> & {
+    displayMode?: 'icon-text' | 'icon-only' | 'text-only'
+    showSignalStrength?: boolean
+    previewState?: 'disabled' | 'starting' | 'connecting' | 'connected' | 'internet' | 'failed'
+  }
   QRCode?: PropsWithForm<BoxProps> & {
     contentType?: 'text' | 'url' | 'wifi' | 'email' | 'phone' | 'sms' | 'custom'
     qrText?: string
@@ -288,7 +292,9 @@ export const DEFAULT_PROPS: PreviewDefaultProps = {
      h: 60,
 },
 WiFi: {
-    children: 'WiFi\nDISCONNECTED\nIP: -',
+    displayMode: 'icon-text',
+    showSignalStrength: false,
+    previewState: 'failed',
     positionMode: 'absolute',
     x: 40,
     y: 120,

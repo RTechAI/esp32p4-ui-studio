@@ -187,6 +187,7 @@ void FG_Set_<Name>_Value(int32_t value);
 void FG_On_<Name>_Changed(int32_t value);
 ```
 
-The Widget Registry contains 39 Standard widgets. Following the subsequent
-The 2026-08-01 proof update means 29/39 (74%) are physically proven and 10 remain. TabView
-retains its **PROVEN** status.
+The Widget Registry contains 39 Standard widgets. Following the 2026-08-01
+Batch C physical-proof update, 34/39 (87%) are physically proven and 5 remain.
+Spinbox and TabView retain their **PROVEN** status; Text, Clock and Wi-Fi Status
+are also **PROVEN**.

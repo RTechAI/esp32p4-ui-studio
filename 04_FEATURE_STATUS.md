@@ -3,7 +3,7 @@
 ## 2026-07-31 platform alignment
 
 Current platform save point:
-`FORGEUI_IMAGE_AND_LINE__31_OF_39_STANDARD_WIDGETS_ESP32P4_PROVEN__2026-08-01`.
+`FORGEUI_STANDARD_WIDGET_PIPELINE__CLOCK_WIFI_STATUS_PROVEN__PROJECT_HARDWARE_PROFILE_AUTHORITY__FI_RUNTIME__2026-08-01`.
 
 Widget Registry architecture cleanup is complete at the metadata boundary:
 
@@ -66,14 +66,14 @@ Status language:
 | Spinbox | **PROVEN** | Live and Standalone ESP32-P4; drag/drop, previews, touch, setter/hook, multiple instances and gating |
 | QR Code | **READY FOR PROOF** | Registry/export/setter implemented; recorded successful physical scan remains open |
 | Button | **PROVEN** | Standard Button hardware proof passed on ESP32-P4 |
-| Text | **READY FOR FINAL HARDWARE RE-PROOF** | Wrapping and multiline parity correction implemented; corrected Live and Standalone builds still require flash and visual acceptance |
+| Text | **PROVEN** | Multiline wrapping and presentation parity physically accepted on ESP32-P4 |
 | Heading | **PROVEN** | Multiline content, wrapping, configured alignment and generated geometry physically verified on ESP32-P4 |
 | Box | **PROVEN** | Geometry, styling, child ownership and Browser/Standalone nesting parity physically verified on ESP32-P4 |
 | Divider | **PROVEN** | Horizontal and vertical presentation physically verified on ESP32-P4; vertical drop geometry usability improved |
 | Icon | **READY FOR FINAL HARDWARE RE-PROOF** | Native source resolution, automatic sizing, centre pivot and clipping correction implemented; generic Fi Icon Runtime software slice is complete, but corrected rendering and runtime behavior still require ESP32-P4 acceptance |
 | Image, Line | **PROVEN** | Native `lv_image_create()` Contain scaling and native `lv_line_create()` geometry/style passed Live and Standalone ESP32-P4 proof |
 | Icon Button, Canvas | **PARTIAL** | Implemented pipeline coverage exists; widget-specific physical evidence remains incomplete |
-| Wi-Fi Status, Clock | **PARTIAL** | Implemented presentation exists; widget-specific proof record is incomplete |
+| Wi-Fi Status, Clock | **PROVEN** | Batch C Canvas, Browser, Live and Standalone ESP32-P4 presentation physically accepted |
 | TabView | **PROVEN** | ESP32-P4 touch selection remains physically proven; collision-safe selected-index setter/change hook contract retained |
 | TileView | **PROVEN** | Native LVGL 9.2.2 paging; silent startup/setter; correct `2 × 2` coordinates; horizontal/vertical navigation; one callback per effective change; repeated navigation and surrounding Wi-Fi/SD/widgets stable on ESP32-P4 |
 
@@ -82,9 +82,9 @@ dedicated Dashboard Widget family remain **PLANNED** and must not be
 described as Standard-library completions.
 
 Registry audit total: 44 entries, comprising 39 Standard widgets and five
-Interactive Assets. Thirty-one Standard widgets are physically proven:
-**31/39 (79%)**, leaving **8** for individual proof promotion. Text and Icon
-are explicitly excluded from that total pending their final hardware re-proof.
+Interactive Assets. Thirty-four Standard widgets are physically proven:
+**34/39 (87%)**, leaving **5** for individual proof promotion. Icon remains
+excluded pending its final hardware re-proof.
 
 ## 2026-08-01 end-of-sprint proof update
 
@@ -97,9 +97,9 @@ presentation status.
 
 This sprint also replaced synthetic TileView export with native LVGL paging,
 corrected Standard Text wrapping/multiline parity, and corrected native Icon
-automatic sizing, source-aware scaling, centering and clipping. Those software
-corrections do not promote Text or Icon: both remain **READY FOR FINAL HARDWARE
-RE-PROOF**.
+automatic sizing, source-aware scaling, centering and clipping. Text has since
+completed physical proof and is **PROVEN**. Icon remains **READY FOR FINAL
+HARDWARE RE-PROOF**.
 
 ## Image and Line final physical proof
 
@@ -1551,8 +1551,8 @@ Standard Icon supports default-on generated visibility,
 opacity and color setters in `96_FiRuntime`, plus default-off optional click
 hooks in `95_UserEvents`. Image-backed and supported LVGL-symbol-backed objects
 share the same instance contract and canonical 92% sizing model. This software
-milestone does not promote Icon: Standard proof remains **31/39 (79%)**, with
-**8 remaining**, and Icon remains **READY FOR FINAL HARDWARE RE-PROOF**.
+milestone does not promote Icon: Standard proof is now **34/39 (87%)**, with
+**5 remaining**, and Icon remains **READY FOR FINAL HARDWARE RE-PROOF**.
 
 **FI ICON CLICK HOOKS — PHYSICALLY PROVEN.** On ESP32-P4, three separate
 click-enabled icons were touchable and emitted three separate collision-safe

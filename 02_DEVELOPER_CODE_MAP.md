@@ -13,7 +13,7 @@
 
 ## Current save point
 
-**FORGEUI_IMAGE_AND_LINE__31_OF_39_STANDARD_WIDGETS_ESP32P4_PROVEN__2026-08-01**
+**FORGEUI_STANDARD_WIDGET_PIPELINE__CLOCK_WIFI_STATUS_PROVEN__PROJECT_HARDWARE_PROFILE_AUTHORITY__FI_RUNTIME__2026-08-01**
 
 ## Current authoritative ownership summary
 
@@ -534,9 +534,9 @@ TabView, TileView, Image and Box are **PROVEN**. IconButton remains
 runtime-complete but outside these physical validation milestones. Its existing
 automated and architectural status is unchanged.
 The registry audit records 44 total entries, comprising 39 Standard widgets
-and five Interactive Assets; physical proof is 31/39 Standard widgets (79%)
-and 8 remain. Image, Line, Heading, Box and Divider joined the proven set this sprint;
-Text and Icon remain **READY FOR FINAL HARDWARE RE-PROOF**.
+and five Interactive Assets; physical proof is 34/39 Standard widgets (87%)
+and 5 remain. Text, Clock and Wi-Fi Status joined Image, Line, Heading, Box and
+Divider in the proven set; Icon remains **READY FOR FINAL HARDWARE RE-PROOF**.
 
 ### Current next-group parity architecture
 
@@ -546,7 +546,7 @@ Text and Icon remain **READY FOR FINAL HARDWARE RE-PROOF**.
 - Line — editable serialized endpoints with native `lv_line_set_points()`
 - Text — shared renderer using semantic `textPrimary`
 - Heading — shared renderer using semantic `textPrimary`
-- Wi-Fi presentation — shared multiline renderer preserving `WIFI_FAIL`
+- Wi-Fi presentation — shared state/display model with existing-backend projection
 
 TileView is physically proven; Canvas, Line, Text, Heading and the remaining
 items in this parity group retain their separately documented evidence levels.
@@ -973,15 +973,14 @@ Property `headingText` is owned across the Heading Inspector, shared `StandardHe
 
 #### Standard Wi-Fi presentation
 
-`src/forgeui/preview/StandardWifiPreview.tsx` owns the shared Canvas/Browser three-line presentation. It preserves the established runtime vocabulary:
-
-```text
-WIFI
-WIFI_FAIL
-IP: -
-```
-
-`src/components/editor/ComponentPreview.tsx` and `src/forgeui/preview/forgePreviewRenderer.tsx` own Canvas and Browser integration respectively. Runtime polling and `fg_wifi_status_text()` remain authoritative for firmware state mapping. The presentation renderer must not substitute `DISCONNECTED`, introduce wrapping or create a fourth clipped visual line. No new runtime API or behavior is introduced.
+`src/forgeui/ForgeUIStandardWifiStatus.ts` owns the serialized presentation
+model and state vocabulary. `src/forgeui/preview/StandardWifiPreview.tsx`
+renders that model for both Canvas and Browser. The Inspector edits display
+mode, preview state and optional signal strength. Preview state never replaces
+network truth: generated firmware projects `fg_wifi_get_snapshot()` and
+`fg_wifi_status_text()` into collision-safe per-instance labels. Internet
+Available is accepted as a future backend state. Wi-Fi Status is presentation
+only, uses semantic theme colours, and emits no Runtime setter or UserEvent.
 
 #### Clock Presentation
 
@@ -1000,6 +999,8 @@ Properties `hourFormat`, `showSeconds` and `blinkSeparator` are owned across the
 - `studio/src/forgeui/preview/StandardTextPreview.tsx`
 - `studio/src/forgeui/preview/StandardHeadingPreview.tsx`
 - `studio/src/forgeui/preview/StandardWifiPreview.tsx`
+- `studio/src/forgeui/ForgeUIStandardWifiStatus.ts`
+- `studio/src/components/inspector/panels/components/WifiStatusPanel.tsx`
 - `studio/src/components/editor/previews/StandardLineCanvasPreview.tsx`
 - `studio/src/components/inspector/panels/components/LinePanel.tsx`
 - `studio/src/forgeui/ForgeUILvglExport.led.test.ts`
@@ -4061,7 +4062,7 @@ NumberInput and Select support must not be described as unimplemented.
 Do not create a new registry, persistence system, AI pipeline, uploaded-asset store, exporter, or duplicate runtime generator for a future type. Reuse an existing runtime family whenever its state and API contract match. Create a new runtime family only when the existing momentary input, persistent binary input, persistent three-position input and binary output contracts cannot represent the control.
 ## 2026-08-01 documentation save-point note
 
-The current proof ledger is **31/39 (79%)**, with **8 remaining**. Image and
+The current proof ledger is **34/39 (87%)**, with **5 remaining**. Text, Clock, Wi-Fi Status, Image and
 Line are proven with native constructors and Live/Standalone ESP32-P4 parity;
 Heading, Box and Divider are also newly proven, and Button proof is recorded in
 the same sprint.
