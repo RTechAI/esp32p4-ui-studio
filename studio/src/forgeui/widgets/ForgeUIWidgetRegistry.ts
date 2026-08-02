@@ -89,6 +89,7 @@ const displayNames: Partial<Record<ComponentType, string>> = {
   DashboardCard: 'Dashboard Card',
   SensorTile: 'Sensor Tile',
   RelayPanel: 'Relay Panel',
+  PwmController: 'PWM Controller',
 }
 
 const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
@@ -106,7 +107,7 @@ const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
   ],
   Navigation: ['List', 'Tabview', 'Tileview', 'ButtonMatrix', 'ImageButton', 'Window', 'Menu'],
   Feedback: ['Msgbox', 'Keyboard', 'Calendar', 'Spinner'],
-  Dashboard: ['DashboardCard', 'SensorTile', 'RelayPanel'],
+  Dashboard: ['DashboardCard', 'SensorTile', 'RelayPanel', 'PwmController'],
   Assets: [
     'InteractiveButton',
     'InteractiveLight',
@@ -176,6 +177,7 @@ const sizes: Partial<Record<ComponentType, [number, number]>> = {
   DashboardCard: [300, 190],
   SensorTile: [260, 180],
   RelayPanel: [340, 360],
+  PwmController: [320, 220],
 }
 
 const keywords: Partial<Record<ComponentType, string[]>> = {
@@ -206,6 +208,7 @@ const keywords: Partial<Record<ComponentType, string[]>> = {
   DashboardCard: ['dashboard', 'card', 'kpi', 'metric', 'forgeui native'],
   SensorTile: ['sensor', 'measurement', 'engineering', 'telemetry', 'forgeui native'],
   RelayPanel: ['relay', 'contactor', 'solenoid', 'pump', 'light', 'fan', 'valve', 'digital output', 'forgeui native'],
+  PwmController: ['pwm', 'duty cycle', 'fan speed', 'motor speed', 'analogue output', 'forgeui native'],
 }
 
 type CapabilityDefinition = Omit<
@@ -292,6 +295,13 @@ const capabilitiesByType: Partial<
     },
   },
   RelayPanel: {
+    ...capability(true, true, true),
+    instanceConfiguration: {
+      runtimeApiProperty: 'generateRuntimeApi', runtimeApiDefault: true,
+      userEventProperty: 'enableUserEvents', userEventDefault: true,
+    },
+  },
+  PwmController: {
     ...capability(true, true, true),
     instanceConfiguration: {
       runtimeApiProperty: 'generateRuntimeApi', runtimeApiDefault: true,
@@ -402,6 +412,7 @@ const documentationByType: Partial<Record<ComponentType, string>> = {
   DashboardCard: 'docs/FORGEUI_DASHBOARD_CARD.md',
   SensorTile: 'docs/FORGEUI_SENSOR_TILE.md',
   RelayPanel: 'docs/FORGEUI_RELAY_PANEL.md',
+  PwmController: 'docs/FORGEUI_PWM_CONTROLLER.md',
   List: 'docs/FORGEUI_LIST_WIDGET.md',
   Tileview: 'docs/FORGEUI_TILEVIEW_WIDGET.md',
   Spinbox: 'docs/FORGEUI_SPINBOX_WIDGET.md',
@@ -433,6 +444,7 @@ const describe = (
     DashboardCard: 'ForgeUI Native application card for a value, status, progress and timestamp.',
     SensorTile: 'ForgeUI Native engineering measurement tile with thresholds, trend and status.',
     RelayPanel: 'ForgeUI Native logical relay-bank control with semantic state and genuine-user events.',
+    PwmController: 'ForgeUI Native semantic PWM output card with value and enable control.',
     InteractiveButton: 'Reusable state-sheet driven button.',
   }
   return special[type] || `${name} ${category.toLowerCase()} widget.`
@@ -487,14 +499,14 @@ export const forgeUIWidgetDefinitions: ForgeUIWidgetDefinition[] =
       documentationId:
         documentationByType[type] || '04_FEATURE_STATUS.md',
       status: 'available',
-      origin: type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' ? 'forgeui-native' : 'lvgl-standard',
-      ...(type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' ? { nativeWidgetSchemaVersion: 1 } : {}),
-      ...(type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' ? { platform: {
+      origin: type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' || type === 'PwmController' ? 'forgeui-native' : 'lvgl-standard',
+      ...(type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' || type === 'PwmController' ? { nativeWidgetSchemaVersion: 1 } : {}),
+      ...(type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' || type === 'PwmController' ? { platform: {
         kind: 'native-widget' as const,
-        family: type === 'SensorTile' ? 'sensors' : type === 'RelayPanel' ? 'controls' : 'dashboard',
-        layoutRoles: type === 'RelayPanel' ? ['controls', 'main', 'control-grid'] : ['status', 'metrics', 'main', 'card-grid'],
-        preferredArrangements: type === 'RelayPanel' ? ['grid', 'control-panel', 'fit-to-region'] : ['grid', 'kpi-cards', 'fit-to-region'],
-        templateTags: type === 'RelayPanel'
+        family: type === 'SensorTile' ? 'sensors' : type === 'RelayPanel' || type === 'PwmController' ? 'controls' : 'dashboard',
+        layoutRoles: type === 'RelayPanel' || type === 'PwmController' ? ['controls', 'main', 'control-grid'] : ['status', 'metrics', 'main', 'card-grid'],
+        preferredArrangements: type === 'RelayPanel' || type === 'PwmController' ? ['grid', 'control-panel', 'fit-to-region'] : ['grid', 'kpi-cards', 'fit-to-region'],
+        templateTags: type === 'RelayPanel' || type === 'PwmController'
           ? ['industrial-hmi', 'home-automation', 'marine', 'plant-control', 'electrical-distribution', 'workshop-control', 'smart-building']
           : ['dashboard', 'monitoring', 'industrial-hmi', 'scada-overview'],
       } } : {}),

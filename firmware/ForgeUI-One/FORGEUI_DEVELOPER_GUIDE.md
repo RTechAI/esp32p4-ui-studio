@@ -43,15 +43,29 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- `FG_On_Comp_MSBHEOFNU0_CVL_Channel_Changed()`
-- `FG_On_Comp_MSBHEOFNU0_CVL_Master_Changed()`
+- `FG_On_Comp_MSBP3_KNW1_DR6_E_Clicked()`
+- `FG_On_Comp_MSBP1_FCKFZKHP_Clicked()`
+- `FG_On_Comp_MSBP1_VT0_NVT6_A_Clicked()`
+- `FG_On_Comp_MSBP0_UC0_W25_Q1_Channel_Changed()`
+- `FG_On_Comp_MSBP0_UC0_W25_Q1_Master_Changed()`
+- `FG_On_Comp_MSBOX6_QTG8_Z2_W_Value_Changed()`
+- `FG_On_Comp_MSBOX6_QTG8_Z2_W_Enabled_Changed()`
+- `FG_On_Comp_MSBOZT2_XBP996_Value_Changed()`
+- `FG_On_Comp_MSBOZT2_XBP996_Enabled_Changed()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| Comp_MSBHEOFNU0_CVL_Channel_Changed | Click | `FG_On_Comp_MSBHEOFNU0_CVL_Channel_Changed()` |
-| Comp_MSBHEOFNU0_CVL_Master_Changed | Click | `FG_On_Comp_MSBHEOFNU0_CVL_Master_Changed()` |
+| Comp_MSBP3_KNW1_DR6_E | Click | `FG_On_Comp_MSBP3_KNW1_DR6_E_Clicked()` |
+| Comp_MSBP1_FCKFZKHP | Click | `FG_On_Comp_MSBP1_FCKFZKHP_Clicked()` |
+| Comp_MSBP1_VT0_NVT6_A | Click | `FG_On_Comp_MSBP1_VT0_NVT6_A_Clicked()` |
+| Comp_MSBP0_UC0_W25_Q1_Channel_Changed | Click | `FG_On_Comp_MSBP0_UC0_W25_Q1_Channel_Changed()` |
+| Comp_MSBP0_UC0_W25_Q1_Master_Changed | Click | `FG_On_Comp_MSBP0_UC0_W25_Q1_Master_Changed()` |
+| Comp_MSBOX6_QTG8_Z2_W_Value_Changed | Click | `FG_On_Comp_MSBOX6_QTG8_Z2_W_Value_Changed()` |
+| Comp_MSBOX6_QTG8_Z2_W_Enabled_Changed | Click | `FG_On_Comp_MSBOX6_QTG8_Z2_W_Enabled_Changed()` |
+| Comp_MSBOZT2_XBP996_Value_Changed | Click | `FG_On_Comp_MSBOZT2_XBP996_Value_Changed()` |
+| Comp_MSBOZT2_XBP996_Enabled_Changed | Click | `FG_On_Comp_MSBOZT2_XBP996_Enabled_Changed()` |
 
 ---
 

@@ -55,6 +55,7 @@ import { StandardMenuPreview } from './StandardMenuPreview'
 import { ForgeUIDashboardCardPreview } from './ForgeUIDashboardCardPreview'
 import { ForgeUISensorTilePreview } from './ForgeUISensorTilePreview'
 import { ForgeUIRelayPanelPreview } from './ForgeUIRelayPanelPreview'
+import { ForgeUIPwmControllerPreview } from './ForgeUIPwmControllerPreview'
 import ImagePreview from '~components/editor/previews/ImagePreview'
 import StandardCalendarPreview from './StandardCalendarPreview'
 import { resolveForgeSemanticPalette } from './forgeThemeMap'
@@ -823,6 +824,11 @@ case 'SensorTile': {
 
 case 'RelayPanel': {
   output.push(<Box key={child.id} {...commonStyle}><ForgeUIRelayPanelPreview component={child} palette={palette} /></Box>)
+  break
+}
+
+case 'PwmController': {
+  output.push(<Box key={child.id} {...commonStyle}><ForgeUIPwmControllerPreview component={child} palette={palette} /></Box>)
   break
 }
 

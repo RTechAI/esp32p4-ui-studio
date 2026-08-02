@@ -83,6 +83,7 @@ type ComponentType =
   | 'DashboardCard'
   | 'SensorTile'
   | 'RelayPanel'
+  | 'PwmController'
   | 'NumberInput'
   | 'Progress'
   | 'QRCode'

@@ -24,6 +24,19 @@ const {
 } = require('./export-server')
 
 describe('generated public UI API headers', () => {
+  it('generates typed PWM value and enabled hooks with developer-owned hardware guidance', () => {
+    const generated = generateUserEventFiles([
+      'FG_On_Comp_Fan_Output_Value_Changed',
+      'FG_On_Comp_Fan_Output_Enabled_Changed',
+    ], [
+      'void FG_Set_Comp_Fan_Output_Value(float value);',
+      'void FG_Set_Comp_Fan_Output_Enabled(bool enabled);',
+    ])
+    expect(generated.header).toContain('void FG_On_Comp_Fan_Output_Value_Changed(float value);')
+    expect(generated.header).toContain('void FG_On_Comp_Fan_Output_Enabled_Changed(bool enabled);')
+    expect(generated.source).toContain('Bind semantic PWM value to developer-owned hardware here')
+  })
+
   it('generates typed Relay Panel channel and master hooks', () => {
     const generated = generateUserEventFiles([
       'FG_On_Comp_RELAY_Channel_Changed',
@@ -1138,6 +1151,17 @@ describe('board profile firmware resolution', () => {
     const persisted = normalizeProjectHardware({ sd: { frequencyKHz: 20000 } })
     expect(generateSdkconfigDefaults(persisted)).toBe(generateSdkconfigDefaults(persisted))
     expect(generateFeatureHeader(persisted)).toBe(generateFeatureHeader(persisted))
+  })
+
+  it('materializes profile defaults idempotently without retaining stale transport state', () => {
+    const project = normalizeProjectHardware()
+    const once = generateSdkconfigDefaults(project)
+    const twice = generateSdkconfigDefaults(project, once)
+    expect(twice).toBe(once)
+    expect(twice.match(/Generated from ForgeUI project hardware profile\./g)).toHaveLength(1)
+    expect(twice).toContain('CONFIG_SLAVE_IDF_TARGET_ESP32C6=y')
+    expect(twice).toContain('CONFIG_ESP_HOSTED_SDIO_HOST_INTERFACE=y')
+    expect(twice).not.toContain('CONFIG_ESP_HOSTED_SPI_HOST_INTERFACE=y')
   })
 
   it('preserves historical features for legacy export payloads', () => {

@@ -75,6 +75,12 @@ Current Native Component roadmap:
 8. Gauge Cluster
 9. Energy Monitor
 
+### PWM Controller implementation update — 2026-08-02
+
+ForgeUI Native Component #4 is **IMPLEMENTED — READY FOR FINAL HARDWARE PROOF**. Physical ESP32-P4 evidence confirms independent value interaction for two instances, duplicate isolation, correct UserEvents identity routing, value sweeps through 100, SD remaining `READY`, operational RAM telemetry, and no observed crash or watchdog reset. Independent enable-switch behavior, silent Runtime SDK setters, connected-Wi-Fi stability and the final five-to-ten-minute soak remain pending. It owns no GPIO or LEDC configuration. The exact evidence and final procedure are in [`docs/FORGEUI_PWM_CONTROLLER.md`](docs/FORGEUI_PWM_CONTROLLER.md). Do not promote it until all four remaining gates are confirmed.
+
+After PWM proof, the next architecture sprint is the **ForgeUI ESP32-S3 Simulator Platform**. Its recorded scope is simulated digital inputs/outputs, PWM, analogue, battery, tank, motor and relay behavior; Wi-Fi communication; repeatable hardware validation; a future Test Certificate Card; and a public hardware-proof workflow. This milestone is recorded only; no simulator code is implemented in the PWM closure task.
+
 ## Authoritative Standard Widget status matrix
 
 Status language:

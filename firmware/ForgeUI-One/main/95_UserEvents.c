@@ -322,15 +322,134 @@ void FG_On_Comp_MSBCEON9_ITWY7_Clicked(void)
 }
 #endif
 
-void FG_On_Comp_MSBHEOFNU0_CVL_Channel_Changed(uint32_t channel, bool enabled)
+#if 0 /* ForgeUI orphaned legacy Native Component hook: no active component owns FG_On_Comp_MSBNY8_YAG2_OA3_Value_Changed. */
+void FG_On_Comp_MSBNY8_YAG2_OA3_Value_Changed(float value)
 {
-    printf("[ForgeUI User Event] Comp MSBHEOFNU0 CVL channel %lu: %s\n",
+    /* Bind semantic PWM value to developer-owned hardware here. */
+    printf("[ForgeUI User Event] Comp MSBNY8 YAG2 OA3 value: %.3f\n", (double)value);
+}
+#endif
+
+#if 0 /* ForgeUI orphaned legacy Native Component hook: no active component owns FG_On_Comp_MSBNY8_YAG2_OA3_Enabled_Changed. */
+void FG_On_Comp_MSBNY8_YAG2_OA3_Enabled_Changed(bool enabled)
+{
+    printf("[ForgeUI User Event] Comp MSBNY8 YAG2 OA3 Enabled changed: %s\n",
+           enabled ? "ON" : "OFF");
+}
+#endif
+
+#if 0 /* ForgeUI orphaned legacy Native Component hook: no active component owns FG_On_Comp_MSBNYL9_ACWFHC_Value_Changed. */
+void FG_On_Comp_MSBNYL9_ACWFHC_Value_Changed(float value)
+{
+    /* Bind semantic PWM value to developer-owned hardware here. */
+    printf("[ForgeUI User Event] Comp MSBNYL9 ACWFHC value: %.3f\n", (double)value);
+}
+#endif
+
+#if 0 /* ForgeUI orphaned legacy Native Component hook: no active component owns FG_On_Comp_MSBNYL9_ACWFHC_Enabled_Changed. */
+void FG_On_Comp_MSBNYL9_ACWFHC_Enabled_Changed(bool enabled)
+{
+    printf("[ForgeUI User Event] Comp MSBNYL9 ACWFHC Enabled changed: %s\n",
+           enabled ? "ON" : "OFF");
+}
+#endif
+
+#if 0 /* ForgeUI orphaned legacy Native Component hook: no active component owns FG_On_Comp_MSBOQVOZWLLEK_Value_Changed. */
+void FG_On_Comp_MSBOQVOZWLLEK_Value_Changed(float value)
+{
+    /* Bind semantic PWM value to developer-owned hardware here. */
+    printf("[ForgeUI User Event] Comp MSBOQVOZWLLEK value: %.3f\n", (double)value);
+}
+#endif
+
+#if 0 /* ForgeUI orphaned legacy Native Component hook: no active component owns FG_On_Comp_MSBOQVOZWLLEK_Enabled_Changed. */
+void FG_On_Comp_MSBOQVOZWLLEK_Enabled_Changed(bool enabled)
+{
+    printf("[ForgeUI User Event] Comp MSBOQVOZWLLEK Enabled changed: %s\n",
+           enabled ? "ON" : "OFF");
+}
+#endif
+
+#if 0 /* ForgeUI orphaned legacy Native Component hook: no active component owns FG_On_Comp_MSBOQXJA4_HF7_M_Value_Changed. */
+void FG_On_Comp_MSBOQXJA4_HF7_M_Value_Changed(float value)
+{
+    /* Bind semantic PWM value to developer-owned hardware here. */
+    printf("[ForgeUI User Event] Comp MSBOQXJA4 HF7 M value: %.3f\n", (double)value);
+}
+#endif
+
+#if 0 /* ForgeUI orphaned legacy Native Component hook: no active component owns FG_On_Comp_MSBOQXJA4_HF7_M_Enabled_Changed. */
+void FG_On_Comp_MSBOQXJA4_HF7_M_Enabled_Changed(bool enabled)
+{
+    printf("[ForgeUI User Event] Comp MSBOQXJA4 HF7 M Enabled changed: %s\n",
+           enabled ? "ON" : "OFF");
+}
+#endif
+
+#if 0 /* ForgeUI orphaned legacy Native Component hook: no active component owns FG_On_Comp_MSBOQZ8_US8_BBT_Value_Changed. */
+void FG_On_Comp_MSBOQZ8_US8_BBT_Value_Changed(float value)
+{
+    /* Bind semantic PWM value to developer-owned hardware here. */
+    printf("[ForgeUI User Event] Comp MSBOQZ8 US8 BBT value: %.3f\n", (double)value);
+}
+#endif
+
+#if 0 /* ForgeUI orphaned legacy Native Component hook: no active component owns FG_On_Comp_MSBOQZ8_US8_BBT_Enabled_Changed. */
+void FG_On_Comp_MSBOQZ8_US8_BBT_Enabled_Changed(bool enabled)
+{
+    printf("[ForgeUI User Event] Comp MSBOQZ8 US8 BBT Enabled changed: %s\n",
+           enabled ? "ON" : "OFF");
+}
+#endif
+
+void FG_On_Comp_MSBP3_KNW1_DR6_E_Clicked(void)
+{
+    printf("[ForgeUI User Event] FG_On_Comp_MSBP3_KNW1_DR6_E_Clicked\n");
+}
+
+void FG_On_Comp_MSBP1_FCKFZKHP_Clicked(void)
+{
+    printf("[ForgeUI User Event] FG_On_Comp_MSBP1_FCKFZKHP_Clicked\n");
+}
+
+void FG_On_Comp_MSBP1_VT0_NVT6_A_Clicked(void)
+{
+    printf("[ForgeUI User Event] FG_On_Comp_MSBP1_VT0_NVT6_A_Clicked\n");
+}
+
+void FG_On_Comp_MSBP0_UC0_W25_Q1_Channel_Changed(uint32_t channel, bool enabled)
+{
+    printf("[ForgeUI User Event] Comp MSBP0 UC0 W25 Q1 channel %lu: %s\n",
            (unsigned long)channel,
            enabled ? "ON" : "OFF");
 }
 
-void FG_On_Comp_MSBHEOFNU0_CVL_Master_Changed(bool enabled)
+void FG_On_Comp_MSBP0_UC0_W25_Q1_Master_Changed(bool enabled)
 {
-    printf("[ForgeUI User Event] Comp MSBHEOFNU0 CVL master: %s\n",
+    printf("[ForgeUI User Event] Comp MSBP0 UC0 W25 Q1 master: %s\n",
+           enabled ? "ON" : "OFF");
+}
+
+void FG_On_Comp_MSBOX6_QTG8_Z2_W_Value_Changed(float value)
+{
+    /* Bind semantic PWM value to developer-owned hardware here. */
+    printf("[ForgeUI User Event] Comp MSBOX6 QTG8 Z2 W value: %.3f\n", (double)value);
+}
+
+void FG_On_Comp_MSBOX6_QTG8_Z2_W_Enabled_Changed(bool enabled)
+{
+    printf("[ForgeUI User Event] Comp MSBOX6 QTG8 Z2 W Enabled changed: %s\n",
+           enabled ? "ON" : "OFF");
+}
+
+void FG_On_Comp_MSBOZT2_XBP996_Value_Changed(float value)
+{
+    /* Bind semantic PWM value to developer-owned hardware here. */
+    printf("[ForgeUI User Event] Comp MSBOZT2 XBP996 value: %.3f\n", (double)value);
+}
+
+void FG_On_Comp_MSBOZT2_XBP996_Enabled_Changed(bool enabled)
+{
+    printf("[ForgeUI User Event] Comp MSBOZT2 XBP996 Enabled changed: %s\n",
            enabled ? "ON" : "OFF");
 }

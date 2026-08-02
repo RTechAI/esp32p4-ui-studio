@@ -207,6 +207,7 @@ export const componentsList: ComponentType[] = ([
 'DashboardCard',
 'SensorTile',
 'RelayPanel',
+'PwmController',
 'Editable',
 'Flex',
 'FormControl',

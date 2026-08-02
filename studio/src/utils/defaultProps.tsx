@@ -384,6 +384,14 @@ WiFi: {
     footerText: 'Ready', padding: 14, gap: 8, generateRuntimeApi: true,
     enableUserEvents: true, positionMode: 'absolute', x: 40, y: 40, w: 340, h: 360,
   },
+  PwmController: {
+    nativeWidgetSchemaVersion: 1, label: 'PWM Output', subtitle: 'Analogue output control',
+    value: 50, minimum: 0, maximum: 100, step: 1, unit: '%', enabled: true,
+    showSlider: true, showNumericValue: true, showEnableControl: true,
+    orientation: 'horizontal', accentColour: '', statusText: 'Ready',
+    generateRuntimeApi: true, enableUserEvents: true,
+    positionMode: 'absolute', x: 40, y: 40, w: 320, h: 220,
+  },
   QRCode: {
     contentType: 'custom',
     qrText: 'https://forgeui.co.nz',

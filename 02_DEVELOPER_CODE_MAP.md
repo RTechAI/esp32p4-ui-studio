@@ -1,5 +1,9 @@
 # Developer Code Map: where features live, who owns each layer, and which files are authoritative
 
+## PWM Controller vertical slice — 2026-08-02
+
+Semantic model: `studio/src/forgeui/ForgeUIPwmController.ts`; Inspector: `PwmControllerPanel.tsx`; shared preview: `ForgeUIPwmControllerPreview.tsx`; Registry: `ForgeUIWidgetRegistry.ts`; shared Live/Standalone composition and SDK: `ForgeUILvglExport.ts`; existing UserEvents reconciliation: `studio/export-server.js`. Status: **IMPLEMENTED — READY FOR HARDWARE PROOF**. See `docs/FORGEUI_PWM_CONTROLLER.md`.
+
 ## WHY 01_SPINE & 02_DEVELOPER & 03_FORGEUI_GEN -  means Codex spends less time guessing and is much less likely to:
 
 - edit generated files directly

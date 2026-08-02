@@ -1199,6 +1199,7 @@ function normalizeProjectHardware(project) {
 function generateSdkconfigDefaults(project, baseline = '') {
   const p = normalizeProjectHardware(project)
   const keep = String(baseline).split(/\r?\n/).filter(line =>
+    line !== '# Generated from ForgeUI project hardware profile.' &&
     !/^CONFIG_ESP_HOSTED_/.test(line) &&
     !/^# CONFIG_ESP_HOSTED_/.test(line) &&
     !/^CONFIG_ESP_(SPI|SDIO)_(HOST_INTERFACE|PRIV_|MODE|CONTROLLER|GPIO|CLK_FREQ|TX_Q_SIZE|RX_Q_SIZE)/.test(line) &&
@@ -1515,6 +1516,7 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
   const checkboxCheckedChanged = new Set()
   const radioSelectedChanged = new Set()
   const integerChanged = new Set()
+  const floatChanged = new Set()
   const integerPointAdded = new Set()
   const cleared = new Set()
   const shown = new Set()
@@ -1623,6 +1625,13 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
         integerChanged.add(`FG_On_${valueMatch[1]}_Changed`)
         return
       }
+      const floatValueMatch = declaration.match(
+        /^void FG_Set_([A-Za-z0-9_]+)_Value\(float value\);$/
+      )
+      if (floatValueMatch) {
+        floatChanged.add(`FG_On_${floatValueMatch[1]}_Value_Changed`)
+        return
+      }
       const match = declaration.match(
         /^void FG_Set_([A-Za-z0-9_]+)\((bool|int32_t) /
       )
@@ -1657,6 +1666,8 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
       ? `void ${hook}(uint32_t channel, bool enabled);`
       : relayMasterChanged.has(hook)
         ? `void ${hook}(bool enabled);`
+      : floatChanged.has(hook)
+        ? `void ${hook}(float value);`
       : integerChanged.has(hook) || integerPointAdded.has(hook)
       ? `void ${hook}(int32_t value);`
       : cleared.has(hook)
@@ -1703,6 +1714,12 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
 {
     printf("[ForgeUI User Event] ${hook.replace(/^FG_On_|_Master_Changed$/g, '').replace(/_/g, ' ')} master: %s\\n",
            enabled ? "ON" : "OFF");
+}`
+      : floatChanged.has(hook)
+        ? `void ${hook}(float value)
+{
+    /* Bind semantic PWM value to developer-owned hardware here. */
+    printf("[ForgeUI User Event] ${hook.replace(/^FG_On_|_Value_Changed$/g, '').replace(/_/g, ' ')} value: %.3f\\n", (double)value);
 }`
       : integerPointAdded.has(hook)
       ? `void ${hook}(int32_t value)
@@ -1898,7 +1915,7 @@ ${definitions}
   }
 }
 
-const NATIVE_COMPONENT_HOOK_PATTERN = /^FG_On_Comp_[A-Za-z0-9_]+_(?:Clicked|Channel_Changed|Master_Changed)$/
+const NATIVE_COMPONENT_HOOK_PATTERN = /^FG_On_Comp_[A-Za-z0-9_]+_(?:Clicked|Channel_Changed|Master_Changed|Value_Changed|Enabled_Changed)$/
 const ORPHANED_NATIVE_HOOK_MARKER = 'ForgeUI orphaned legacy Native Component hook'
 
 function findVoidHookDefinitions(source) {

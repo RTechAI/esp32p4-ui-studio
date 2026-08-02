@@ -13,6 +13,8 @@ type FormControlPropType = {
   hasColumn?: boolean
 }
 
+export const INSPECTOR_PROPERTY_TEXT_COLOR = '#94a3b8'
+
 const FormControl: React.FC<FormControlPropType> = ({
   label,
   htmlFor,
@@ -33,7 +35,7 @@ const FormControl: React.FC<FormControlPropType> = ({
     <FormLabel
       p={0}
       mr={2}
-      color="#94a3b8"
+      color={INSPECTOR_PROPERTY_TEXT_COLOR}
       lineHeight="1rem"
       width={hasColumn ? '2.5rem' : '90px'}
       fontSize="xs"

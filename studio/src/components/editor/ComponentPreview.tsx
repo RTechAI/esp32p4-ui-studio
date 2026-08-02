@@ -58,6 +58,7 @@ import { StandardMenuPreview } from '~forgeui/preview/StandardMenuPreview'
 import { ForgeUIDashboardCardPreview } from '~forgeui/preview/ForgeUIDashboardCardPreview'
 import { ForgeUISensorTilePreview } from '~forgeui/preview/ForgeUISensorTilePreview'
 import { ForgeUIRelayPanelPreview } from '~forgeui/preview/ForgeUIRelayPanelPreview'
+import { ForgeUIPwmControllerPreview } from '~forgeui/preview/ForgeUIPwmControllerPreview'
 import { useForgePreviewPalette } from '~forgeui/theme/ForgeThemeContext'
 import { resolveForgeSemanticPalette } from '~forgeui/preview/forgeThemeMap'
 import InteractiveButtonCanvasPreview, {
@@ -1114,6 +1115,11 @@ case 'SensorTile':
 case 'RelayPanel':
   return <PreviewContainer component={component} enableVisualHelper {...forwardedProps}>
     <ForgeUIRelayPanelPreview component={component} palette={previewPalette} />
+  </PreviewContainer>
+
+case 'PwmController':
+  return <PreviewContainer component={component} enableVisualHelper {...forwardedProps}>
+    <ForgeUIPwmControllerPreview component={component} palette={previewPalette} />
   </PreviewContainer>
 
     default:

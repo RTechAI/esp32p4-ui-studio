@@ -48,6 +48,7 @@ import { normalizeForgeUIMenuPages, resolveForgeUIMenuRootPageId } from './Forge
 import { normalizeForgeUIDashboardCard } from './ForgeUIDashboardCard'
 import { getForgeUISensorTrendLabel, normalizeForgeUISensorTile } from './ForgeUISensorTile'
 import { normalizeForgeUIRelayPanel } from './ForgeUIRelayPanel'
+import { normalizeForgeUIPwmController } from './ForgeUIPwmController'
 import {
   getForgeUIStandardSpinboxModel,
   type ForgeUIStandardSpinboxModel,
@@ -197,6 +198,16 @@ const esc = (v: string = '') =>
     .replace(/"/g, '\\"')
     .replace(/\r/g, '\\r')
     .replace(/\n/g, '\\n')
+
+// Escape text that is embedded inside a printf-style C format string. C
+// string escaping remains owned by esc(); this helper only makes every user
+// percent character literal so units can never introduce a conversion.
+const escPrintfLiteral = (value: string = '') => esc(value).replace(/%/g, '%%')
+
+// C rejects integer spellings with a floating suffix (for example 50f).
+// Always include a decimal point for whole-number finite values.
+const cFloatLiteral = (value: number) =>
+  `${Number.isInteger(value) ? `${value}.0` : value}f`
     .replace(/\t/g, '\\t')
 
 const supportedMontserratSizes = [12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 36, 40, 48]
@@ -434,6 +445,52 @@ const createRelayPanelExports = (
         setChannelEnabledApiName: `FG_Set_${stem}_Channel_Enabled`, setAllApiName: `FG_Set_${stem}_All`,
         setLabelApiName: `FG_Set_${stem}_Label`, setStatusApiName: `FG_Set_${stem}_Status`,
         setMasterApiName: `FG_Set_${stem}_Master`,
+      })
+    })
+  return result
+}
+
+type PwmControllerExport = {
+  stem: string; runtimeStem: string; rootName: string; sliderName: string; valueLabelName: string
+  enableName: string; stateName: string; enabledName: string; programmaticName: string
+  scale: number; minimum: number; maximum: number; step: number; runtimeEnabled: boolean
+  unit: string
+  initialValue: number; initialEnabled: boolean
+  valueHookName?: string; enabledHookName?: string; valueCallbackName?: string; enabledCallbackName?: string
+  setValueApiName: string; getValueApiName: string; setEnabledApiName: string; getEnabledApiName: string
+}
+
+const createPwmControllerExports = (
+  components: IComponents, usedHookNames: Set<string>, userEventHooks: Set<string>,
+): Map<string, PwmControllerExport> => {
+  const result = new Map<string, PwmControllerExport>()
+  const usedStems = new Set<string>()
+  Object.values(components).filter(component => component.type === 'PwmController')
+    .sort((a, b) => a.id.localeCompare(b.id)).forEach(component => {
+      const base = toCIdentifier(component.id, 'Pwm_Controller').replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let stem = base; let suffix = 2
+      while (usedStems.has(stem)) stem = `${base}_${suffix++}`
+      usedStems.add(stem)
+      const runtimeStem = stem.toLowerCase()
+      const model = normalizeForgeUIPwmController(component.props)
+      const decimals = Math.min(6, Math.max(0, ...[model.minimum, model.maximum, model.step, model.value].map(value => {
+        const part = String(value).split('.')[1]; return part ? part.length : 0
+      })))
+      const scale = Math.pow(10, decimals)
+      const uniqueHook = (name: string) => { let hook = name; let collision = 2; while (usedHookNames.has(hook)) hook = `${name}_${collision++}`; usedHookNames.add(hook); userEventHooks.add(hook); return hook }
+      const valueHookName = model.enableUserEvents ? uniqueHook(`FG_On_${stem}_Value_Changed`) : undefined
+      const enabledHookName = model.enableUserEvents ? uniqueHook(`FG_On_${stem}_Enabled_Changed`) : undefined
+      result.set(component.id, {
+        stem, runtimeStem, rootName: `fg_${runtimeStem}_pwm`, sliderName: `fg_${runtimeStem}_pwm_slider`,
+        valueLabelName: `fg_${runtimeStem}_pwm_value_label`, enableName: `fg_${runtimeStem}_pwm_enable`,
+        stateName: `fg_${runtimeStem}_pwm_value`, enabledName: `fg_${runtimeStem}_pwm_enabled`,
+        programmaticName: `fg_${runtimeStem}_pwm_programmatic`, scale, minimum: model.minimum, maximum: model.maximum, step: model.step,
+        runtimeEnabled: model.generateRuntimeApi, unit: model.unit, initialValue: model.value, initialEnabled: model.enabled,
+        valueHookName, enabledHookName,
+        valueCallbackName: valueHookName ? `fg_${runtimeStem}_pwm_value_changed_cb` : undefined,
+        enabledCallbackName: enabledHookName ? `fg_${runtimeStem}_pwm_enabled_changed_cb` : undefined,
+        setValueApiName: `FG_Set_${stem}_Value`, getValueApiName: `FG_Get_${stem}_Value`,
+        setEnabledApiName: `FG_Set_${stem}_Enabled`, getEnabledApiName: `FG_Get_${stem}_Enabled`,
       })
     })
   return result
@@ -2750,6 +2807,7 @@ const buildLvglBlock = (
   dashboardCardExports: Map<string, DashboardCardExport>,
   sensorTileExports: Map<string, SensorTileExport>,
   relayPanelExports: Map<string, RelayPanelExport>,
+  pwmControllerExports: Map<string, PwmControllerExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -4348,6 +4406,64 @@ case 'RelayPanel': {
   break
 }
 
+case 'PwmController': {
+  const model = normalizeForgeUIPwmController(child.props)
+  const pwm = pwmControllerExports.get(child.id)
+  if (!pwm) break
+  const accent = model.accentColour ? toLvHex(model.accentColour) : palette.accent
+  const scaled = (value: number) => Math.round(value * pwm.scale)
+  lines.push(`${pwm.rootName} = lv_obj_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${pwm.rootName}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${pwm.rootName}, ${w}, ${h});`)
+  lines.push(`lv_obj_set_style_bg_color(${pwm.rootName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${pwm.rootName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${pwm.rootName}, 1, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${pwm.rootName}, 12, LV_PART_MAIN);`)
+  lines.push(`lv_obj_clear_flag(${pwm.rootName}, LV_OBJ_FLAG_SCROLLABLE);`)
+  lines.push(`${pwm.stateName} = ${cFloatLiteral(model.value)};`)
+  lines.push(`${pwm.enabledName} = ${model.enabled ? 'true' : 'false'};`)
+  lines.push(`lv_obj_t * ${varName}_title = lv_label_create(${pwm.rootName});`)
+  lines.push(`lv_label_set_text(${varName}_title, "${esc(model.label)}");`)
+  lines.push(`lv_obj_set_pos(${varName}_title, 16, 14);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}_title, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+  if (model.subtitle) {
+    lines.push(`lv_obj_t * ${varName}_subtitle = lv_label_create(${pwm.rootName});`)
+    lines.push(`lv_label_set_text(${varName}_subtitle, "${esc(model.subtitle)}");`)
+    lines.push(`lv_obj_set_pos(${varName}_subtitle, 16, 36);`)
+    lines.push(`lv_obj_set_style_text_font(${varName}_subtitle, &lv_font_montserrat_12, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_color(${varName}_subtitle, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
+  }
+  if (model.showNumericValue) {
+    lines.push(`${pwm.valueLabelName} = lv_label_create(${pwm.rootName});`)
+    lines.push(`lv_label_set_text_fmt(${pwm.valueLabelName}, "%.6g ${escPrintfLiteral(model.unit)}", (double)${cFloatLiteral(model.value)});`)
+    lines.push(`lv_obj_align(${pwm.valueLabelName}, LV_ALIGN_TOP_MID, 0, 62);`)
+    lines.push(`lv_obj_set_style_text_font(${pwm.valueLabelName}, &lv_font_montserrat_24, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_color(${pwm.valueLabelName}, lv_color_hex(${accent}), LV_PART_MAIN);`)
+  }
+  if (model.showSlider) {
+    lines.push(`${pwm.sliderName} = lv_slider_create(${pwm.rootName});`)
+    lines.push(`lv_slider_set_range(${pwm.sliderName}, ${scaled(model.minimum)}, ${scaled(model.maximum)});`)
+    lines.push(`lv_slider_set_value(${pwm.sliderName}, ${scaled(model.value)}, LV_ANIM_OFF);`)
+    if (model.orientation === 'vertical') lines.push(`lv_obj_set_size(${pwm.sliderName}, 18, ${Math.max(50, Number(h) - 105 || 90)}); lv_obj_align(${pwm.sliderName}, LV_ALIGN_CENTER, 0, 18);`)
+    else lines.push(`lv_obj_set_size(${pwm.sliderName}, ${Math.max(80, Number(w) - 32 || 200)}, 18); lv_obj_align(${pwm.sliderName}, LV_ALIGN_CENTER, 0, 30);`)
+    lines.push(`lv_obj_set_style_bg_color(${pwm.sliderName}, lv_color_hex(${accent}), LV_PART_INDICATOR);`)
+    if (!model.enabled) lines.push(`lv_obj_add_state(${pwm.sliderName}, LV_STATE_DISABLED);`)
+    if (pwm.valueCallbackName) lines.push(`lv_obj_add_event_cb(${pwm.sliderName}, ${pwm.valueCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
+  }
+  if (model.showEnableControl) {
+    lines.push(`${pwm.enableName} = lv_switch_create(${pwm.rootName});`)
+    lines.push(`lv_obj_align(${pwm.enableName}, LV_ALIGN_TOP_RIGHT, -16, 14);`)
+    if (model.enabled) lines.push(`lv_obj_add_state(${pwm.enableName}, LV_STATE_CHECKED);`)
+    if (pwm.enabledCallbackName) lines.push(`lv_obj_add_event_cb(${pwm.enableName}, ${pwm.enabledCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
+  }
+  if (model.statusText) {
+    lines.push(`lv_obj_t * ${varName}_footer = lv_label_create(${pwm.rootName}); lv_label_set_text(${varName}_footer, "${esc(model.statusText)}");`)
+    lines.push(`lv_obj_align(${varName}_footer, LV_ALIGN_BOTTOM_LEFT, 16, -12); lv_obj_set_style_text_font(${varName}_footer, &lv_font_montserrat_12, LV_PART_MAIN);`)
+  }
+  lines.push(``)
+  break
+}
+
 case 'Spinbox': {
   const spinboxExport = spinboxExports.get(child.id)
   if (!spinboxExport) break
@@ -5439,6 +5555,7 @@ case 'Chart': {
         dashboardCardExports,
         sensorTileExports,
         relayPanelExports,
+        pwmControllerExports,
       )
     }
   })
@@ -5740,7 +5857,7 @@ export const generateForgeUILvglCode = (
   },
 ) => {
   const nativeIdentityDiagnostics = Object.entries(components)
-    .filter(([, component]) => component.type === 'DashboardCard' || component.type === 'SensorTile' || component.type === 'RelayPanel')
+    .filter(([, component]) => component.type === 'DashboardCard' || component.type === 'SensorTile' || component.type === 'RelayPanel' || component.type === 'PwmController')
     .map(([persistedId, component]) => {
       if (!component.id || component.id !== persistedId) {
         throw new Error(
@@ -5778,6 +5895,7 @@ export const generateForgeUILvglCode = (
   )
   const sensorTileExports = createSensorTileExports(components, usedHookNames, userEventHooks)
   const relayPanelExports = createRelayPanelExports(components, usedHookNames, userEventHooks)
+  const pwmControllerExports = createPwmControllerExports(components, usedHookNames, userEventHooks)
   const fiIconExports = createFiIconExports(
     components,
     usedHookNames,
@@ -6508,7 +6626,7 @@ const backgroundMode =
   lines.push(`#include "freertos/semphr.h"`)
   lines.push(`#include "freertos/task.h"`)
   lines.push(`#include "esp_timer.h"`)
-  if (hasInteractiveButtons || dashboardCardExports.size > 0 || sensorTileExports.size > 0 || relayPanelExports.size > 0 || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
+  if (hasInteractiveButtons || dashboardCardExports.size > 0 || sensorTileExports.size > 0 || relayPanelExports.size > 0 || pwmControllerExports.size > 0 || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
     lines.push(`#include "95_UserEvents.h"`)
   }
   if (Array.from(fiIconExports.values()).some(icon => icon.runtimeEnabled)) {
@@ -6520,6 +6638,7 @@ const backgroundMode =
   lines.push(`#include <stdio.h>`)
   lines.push(`#include <stdlib.h>`)
   lines.push(`#include <string.h>`)
+  lines.push(`#include <math.h>`)
   lines.push(``)
   clockExports.forEach(clockExport => {
     lines.push(`static lv_obj_t * ${clockExport.labelName} = NULL;`)
@@ -6557,6 +6676,15 @@ const backgroundMode =
     lines.push(`static bool ${panel.enabledName}[${panel.channelCount}] = {0};`)
     lines.push(`static bool ${panel.programmaticName} = false;`)
     lines.push(`static lv_obj_t * ${panel.masterObjectName} = NULL;`)
+  })
+  pwmControllerExports.forEach(pwm => {
+    lines.push(`static lv_obj_t * ${pwm.rootName} = NULL;`)
+    lines.push(`static lv_obj_t * ${pwm.sliderName} = NULL;`)
+    lines.push(`static lv_obj_t * ${pwm.valueLabelName} = NULL;`)
+    lines.push(`static lv_obj_t * ${pwm.enableName} = NULL;`)
+    lines.push(`static float ${pwm.stateName} = ${cFloatLiteral(pwm.initialValue)};`)
+    lines.push(`static bool ${pwm.enabledName} = ${pwm.initialEnabled ? 'true' : 'false'};`)
+    lines.push(`static bool ${pwm.programmaticName} = false;`)
   })
   lines.push(`static lv_obj_t * fg_application_page = NULL;`)
   lines.push(`static lv_obj_t * fg_system_launcher_page = NULL;`)
@@ -7244,6 +7372,65 @@ const backgroundMode =
     lines.push(`    ${panel.setAllApiName}(enabled);`)
     lines.push(`}`)
     lines.push(``)
+  })
+
+  pwmControllerExports.forEach(pwm => {
+    const scale = cFloatLiteral(pwm.scale)
+    if (pwm.valueHookName && pwm.valueCallbackName) {
+      lines.push(`static void ${pwm.valueCallbackName}(lv_event_t * event)`)
+      lines.push(`{`)
+      lines.push(`    LV_UNUSED(event); if (${pwm.programmaticName} || ${pwm.sliderName} == NULL) return;`)
+      lines.push(`    float value = (float)lv_slider_get_value(${pwm.sliderName}) / ${scale};`)
+      lines.push(`    value = roundf((value - ${cFloatLiteral(pwm.minimum)}) / ${cFloatLiteral(pwm.step)}) * ${cFloatLiteral(pwm.step)} + ${cFloatLiteral(pwm.minimum)};`)
+      lines.push(`    if (value < ${cFloatLiteral(pwm.minimum)})`)
+      lines.push(`    {`)
+      lines.push(`        value = ${cFloatLiteral(pwm.minimum)};`)
+      lines.push(`    }`)
+      lines.push(`    if (value > ${cFloatLiteral(pwm.maximum)})`)
+      lines.push(`    {`)
+      lines.push(`        value = ${cFloatLiteral(pwm.maximum)};`)
+      lines.push(`    }`)
+      lines.push(`    ${pwm.stateName} = value;`)
+      lines.push(`    if (${pwm.valueLabelName}) lv_label_set_text_fmt(${pwm.valueLabelName}, "%.6g ${escPrintfLiteral(pwm.unit)}", (double)value);`)
+      lines.push(`    ${pwm.valueHookName}(value);`)
+      lines.push(`}`); lines.push(``)
+    }
+    if (pwm.enabledHookName && pwm.enabledCallbackName) {
+      lines.push(`static void ${pwm.enabledCallbackName}(lv_event_t * event)`)
+      lines.push(`{`)
+      lines.push(`    LV_UNUSED(event); if (${pwm.programmaticName} || ${pwm.enableName} == NULL) return;`)
+      lines.push(`    ${pwm.enabledName} = lv_obj_has_state(${pwm.enableName}, LV_STATE_CHECKED);`)
+      lines.push(`    if (${pwm.sliderName}) { if (${pwm.enabledName}) lv_obj_remove_state(${pwm.sliderName}, LV_STATE_DISABLED); else lv_obj_add_state(${pwm.sliderName}, LV_STATE_DISABLED); }`)
+      lines.push(`    ${pwm.enabledHookName}(${pwm.enabledName});`)
+      lines.push(`}`); lines.push(``)
+    }
+    if (!pwm.runtimeEnabled) return
+    lines.push(`void ${pwm.setValueApiName}(float value)`)
+    lines.push(`{`)
+    lines.push(`    if (value < ${cFloatLiteral(pwm.minimum)})`)
+    lines.push(`    {`)
+    lines.push(`        value = ${cFloatLiteral(pwm.minimum)};`)
+    lines.push(`    }`)
+    lines.push(`    if (value > ${cFloatLiteral(pwm.maximum)})`)
+    lines.push(`    {`)
+    lines.push(`        value = ${cFloatLiteral(pwm.maximum)};`)
+    lines.push(`    }`)
+    lines.push(`    value = roundf((value - ${cFloatLiteral(pwm.minimum)}) / ${cFloatLiteral(pwm.step)}) * ${cFloatLiteral(pwm.step)} + ${cFloatLiteral(pwm.minimum)};`)
+    lines.push(`    ${pwm.programmaticName} = true;`)
+    lines.push(`    ${pwm.stateName} = value;`)
+    lines.push(`    if (${pwm.sliderName}) lv_slider_set_value(${pwm.sliderName}, (int32_t)lroundf(value * ${scale}), LV_ANIM_OFF);`)
+    lines.push(`    if (${pwm.valueLabelName}) lv_label_set_text_fmt(${pwm.valueLabelName}, "%.6g ${escPrintfLiteral(pwm.unit)}", (double)value);`)
+    lines.push(`    ${pwm.programmaticName} = false;`)
+    lines.push(`}`); lines.push(``)
+    lines.push(`float ${pwm.getValueApiName}(void) { return ${pwm.stateName}; }`); lines.push(``)
+    lines.push(`void ${pwm.setEnabledApiName}(bool enabled)`)
+    lines.push(`{`)
+    lines.push(`    ${pwm.programmaticName} = true; ${pwm.enabledName} = enabled;`)
+    lines.push(`    if (${pwm.enableName}) { if (enabled) lv_obj_add_state(${pwm.enableName}, LV_STATE_CHECKED); else lv_obj_remove_state(${pwm.enableName}, LV_STATE_CHECKED); }`)
+    lines.push(`    if (${pwm.sliderName}) { if (enabled) lv_obj_remove_state(${pwm.sliderName}, LV_STATE_DISABLED); else lv_obj_add_state(${pwm.sliderName}, LV_STATE_DISABLED); }`)
+    lines.push(`    ${pwm.programmaticName} = false;`)
+    lines.push(`}`); lines.push(``)
+    lines.push(`bool ${pwm.getEnabledApiName}(void) { return ${pwm.enabledName}; }`); lines.push(``)
   })
 
   spinboxExports.forEach(spinboxExport => {
@@ -8961,6 +9148,7 @@ lines.push(`    fg_system_root = parent;`)
         dashboardCardExports,
         sensorTileExports,
         relayPanelExports,
+        pwmControllerExports,
       )
   }
 
@@ -9654,6 +9842,11 @@ lines.push(`}`)
         `void ${panel.setLabelApiName}(uint32_t channel, const char * label);`,
         `void ${panel.setStatusApiName}(uint32_t channel, const char * text);`,
         `void ${panel.setMasterApiName}(bool enabled);`,
+      ])).concat(Array.from(pwmControllerExports.values()).filter(pwm => pwm.runtimeEnabled).flatMap(pwm => [
+        `void ${pwm.setValueApiName}(float value);`,
+        `float ${pwm.getValueApiName}(void);`,
+        `void ${pwm.setEnabledApiName}(bool enabled);`,
+        `bool ${pwm.getEnabledApiName}(void);`,
       ])).concat(Array.from(barExports.values()).map(
         barExport => `void ${barExport.apiName}(int32_t value);`,
       )).concat(Array.from(progressExports.values()).map(

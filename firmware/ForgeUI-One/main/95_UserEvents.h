@@ -65,8 +65,25 @@ void FG_On_Spinbox_Changed(int32_t value);
 void FG_On_List_Proof_Item_Clicked(uint32_t index, const char * text);
 void FG_On_Image_Button_Clicked(void);
 void FG_On_Image_Button_2_Clicked(void);
-void FG_On_Comp_MSBHEOFNU0_CVL_Channel_Changed(uint32_t channel, bool enabled);
-void FG_On_Comp_MSBHEOFNU0_CVL_Master_Changed(bool enabled);
+void FG_On_Comp_MSBNY8_YAG2_OA3_Value_Changed(float value);
+void FG_On_Comp_MSBNY8_YAG2_OA3_Enabled_Changed(bool enabled);
+void FG_On_Comp_MSBNYL9_ACWFHC_Value_Changed(float value);
+void FG_On_Comp_MSBNYL9_ACWFHC_Enabled_Changed(bool enabled);
+void FG_On_Comp_MSBOQVOZWLLEK_Value_Changed(float value);
+void FG_On_Comp_MSBOQVOZWLLEK_Enabled_Changed(bool enabled);
+void FG_On_Comp_MSBOQXJA4_HF7_M_Value_Changed(float value);
+void FG_On_Comp_MSBOQXJA4_HF7_M_Enabled_Changed(bool enabled);
+void FG_On_Comp_MSBOQZ8_US8_BBT_Value_Changed(float value);
+void FG_On_Comp_MSBOQZ8_US8_BBT_Enabled_Changed(bool enabled);
+void FG_On_Comp_MSBP3_KNW1_DR6_E_Clicked(void);
+void FG_On_Comp_MSBP1_FCKFZKHP_Clicked(void);
+void FG_On_Comp_MSBP1_VT0_NVT6_A_Clicked(void);
+void FG_On_Comp_MSBP0_UC0_W25_Q1_Channel_Changed(uint32_t channel, bool enabled);
+void FG_On_Comp_MSBP0_UC0_W25_Q1_Master_Changed(bool enabled);
+void FG_On_Comp_MSBOX6_QTG8_Z2_W_Value_Changed(float value);
+void FG_On_Comp_MSBOX6_QTG8_Z2_W_Enabled_Changed(bool enabled);
+void FG_On_Comp_MSBOZT2_XBP996_Value_Changed(float value);
+void FG_On_Comp_MSBOZT2_XBP996_Enabled_Changed(bool enabled);
 
 #ifdef __cplusplus
 }

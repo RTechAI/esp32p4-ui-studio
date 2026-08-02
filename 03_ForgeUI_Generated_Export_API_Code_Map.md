@@ -1,5 +1,9 @@
 # Generated Export API Code Map: what generated firmware exposes, how callbacks and runtime APIs fit together, and what developers are allowed to extend.
 
+## PWM Controller generated API — 2026-08-02
+
+Generated 90 owns `FG_Set/Get_<PersistedId>_Value(float)` and `FG_Set/Get_<PersistedId>_Enabled(bool)`. Silent setters clamp/quantize and update private LVGL state under a programmatic guard. Genuine interaction calls `FG_On_<PersistedId>_Value_Changed(float)` and `FG_On_<PersistedId>_Enabled_Changed(bool)` through preservation-merged 95. Live and Standalone use the same generator. Status: **READY FOR HARDWARE PROOF**.
+
 ## WHY 01_SPINE & 02_DEVELOPER & 03_FORGEUI_GEN -  means Codex spends less time guessing and is much less likely to:
 
 - edit generated files directly

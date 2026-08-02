@@ -1,5 +1,9 @@
 # Project Spine: what ForgeUI is, what is proven, current priorities, and what must not regress
 
+## 2026-08-02 — Native Component #4 PWM Controller
+
+PWM Controller is implemented through the existing Registry, semantic persistence, shared Browser Preview, shared Live/Standalone LVGL generator, Runtime SDK and `95_UserEvents` reconciliation. Persisted `IComponent.id` owns symbols/hooks; visible label renames do not. ForgeUI owns no GPIO or LEDC configuration. Status is **READY FOR HARDWARE PROOF**, not proven. See [`docs/FORGEUI_PWM_CONTROLLER.md`](docs/FORGEUI_PWM_CONTROLLER.md).
+
 ## WHY 01_SPINE & 02_DEVELOPER & 03_FORGEUI_GEN -  means Codex spends less time guessing and is much less likely to:
 
 - edit generated files directly
