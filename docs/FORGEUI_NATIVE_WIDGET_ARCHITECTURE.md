@@ -6,7 +6,7 @@ Current milestone:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
 Current ForgeUI Platform milestone:
-`FORGEUI_NATIVE_COMPONENT_1__DASHBOARD_CARD_PROVEN__ESP32P4_VALIDATED__READY_FOR_SENSOR_TILE__2026-08-02`.
+`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02`.
 
 ## Decision
 
@@ -20,6 +20,9 @@ Native Widgets extend the existing component graph, Widget Registry, preview
 dispatcher, shared LVGL generator, Runtime API/UserEvents outputs, feature
 gating, asset pipelines and layout metadata. They do not introduce another
 registry, renderer, exporter, event system or runtime product.
+
+Developer-facing post-export contracts for this architecture are maintained in
+the [ForgeUI Native Component Runtime Guide](../10_FORGEUI_NATIVE_COMPONENT_RUNTIME_GUIDE.md).
 
 ## Proven architecture milestone
 
@@ -306,8 +309,9 @@ Dashboard Card Version 1 is the first proven implementation of this
 architecture. Subsequent components remain ordered as follows.
 
 1. **Dashboard Card** — **PROVEN**.
-2. **Sensor Tile** — next; proves typed value/unit/status/alarm updates and canonical
-   Icon use without owning a sensor transport.
+2. **Sensor Tile** — implemented and ready for ESP32-P4 physical proof; proves
+   typed engineering value/unit/status/trend/timestamp/colour updates without
+   owning a sensor transport.
 3. **Relay Panel** — proves multi-control genuine UserEvents, silent state
    projection and safe initialization.
 4. **PWM Controller** — proves bounded numeric state, Slider-style interaction

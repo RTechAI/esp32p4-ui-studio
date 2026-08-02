@@ -48,22 +48,24 @@ This document records implementation and proof status only.
 ## ForgeUI Native Components
 
 Current platform milestone:
-`FORGEUI_NATIVE_COMPONENT_1__DASHBOARD_CARD_PROVEN__ESP32P4_VALIDATED__READY_FOR_SENSOR_TILE__2026-08-02`.
+`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02`.
 
 | Native component | Status | Evidence boundary |
 |---|---|---|
 | Dashboard Card | **PROVEN** | Origin: ForgeUI Native; ESP32-P4 validated; Browser Preview, Live Studio, Standalone Export, Runtime SDK and UserEvents verified; one versioned serialized component with private internal LVGL composition and independent multi-instance behavior |
+| Sensor Tile | **IMPLEMENTED — READY FOR ESP32-P4 PHYSICAL PROOF** | ForgeUI Native Component #2; versioned engineering measurement model, sensor-type defaults, thresholds/auto colour, one-object Canvas/Browser composition, shared Live/Standalone export, six semantic Runtime APIs, optional root UserEvent and collision-safe multi-instance coverage |
 
 Native Component totals are separate from the completed practical LVGL ledger.
 The 44/44 practical LVGL proof result remains unchanged. Dashboard Card is
 **ForgeUI Native Component #1 — PROVEN** and establishes a separate platform
-proof ledger. Sensor Tile is the next implementation target and has not begun.
+proof ledger. Sensor Tile is implemented and awaits ESP32-P4 physical proof;
+Relay Panel has not begun.
 
 Current Native Component roadmap:
 
 1. Dashboard Card — **PROVEN**
-2. Sensor Tile — next
-3. Relay Panel
+2. Sensor Tile — **IMPLEMENTED; READY FOR ESP32-P4 PHYSICAL PROOF**
+3. Relay Panel — begins only after Sensor Tile proof
 4. PWM Controller
 5. System Health
 6. Network Widget
@@ -1588,6 +1590,9 @@ void FG_On_Menu_Matrix_Button_Selected(uint32_t index, const char * text);
 ## Fi Icon Runtime — 2026-08-01
 
 Architecture reference: [`09_FORGEUI_FI_RUNTIME_GUIDE.md`](09_FORGEUI_FI_RUNTIME_GUIDE.md).
+
+Native Component developer runtime reference:
+[`10_FORGEUI_NATIVE_COMPONENT_RUNTIME_GUIDE.md`](10_FORGEUI_NATIVE_COMPONENT_RUNTIME_GUIDE.md).
 This status ledger remains authoritative for proof promotion and totals.
 
 The generic Fi Icon Runtime vertical slice is **PROVEN ON ESP32-P4**.

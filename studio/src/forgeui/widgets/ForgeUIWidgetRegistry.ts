@@ -87,6 +87,7 @@ const displayNames: Partial<Record<ComponentType, string>> = {
   Window: 'Window',
   Menu: 'Menu',
   DashboardCard: 'Dashboard Card',
+  SensorTile: 'Sensor Tile',
 }
 
 const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
@@ -104,7 +105,7 @@ const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
   ],
   Navigation: ['List', 'Tabview', 'Tileview', 'ButtonMatrix', 'ImageButton', 'Window', 'Menu'],
   Feedback: ['Msgbox', 'Keyboard', 'Calendar', 'Spinner'],
-  Dashboard: ['DashboardCard'],
+  Dashboard: ['DashboardCard', 'SensorTile'],
   Assets: [
     'InteractiveButton',
     'InteractiveLight',
@@ -172,6 +173,7 @@ const sizes: Partial<Record<ComponentType, [number, number]>> = {
   Window: [420, 300],
   Menu: [420, 420],
   DashboardCard: [300, 190],
+  SensorTile: [260, 180],
 }
 
 const keywords: Partial<Record<ComponentType, string[]>> = {
@@ -200,6 +202,7 @@ const keywords: Partial<Record<ComponentType, string[]>> = {
   Window: ['panel', 'dialog', 'title bar', 'container', 'lv_win'],
   Menu: ['navigation', 'pages', 'settings', 'hierarchy', 'lv_menu'],
   DashboardCard: ['dashboard', 'card', 'kpi', 'metric', 'forgeui native'],
+  SensorTile: ['sensor', 'measurement', 'engineering', 'telemetry', 'forgeui native'],
 }
 
 type CapabilityDefinition = Omit<
@@ -275,6 +278,10 @@ const capabilitiesByType: Partial<
       userEventProperty: 'enableClick',
       userEventDefault: true,
     },
+  },
+  SensorTile: {
+    ...capability(true, true, true),
+    instanceConfiguration: { userEventProperty: 'enableClick', userEventDefault: true },
   },
 
   Input: capability(true, true, true),
@@ -378,6 +385,7 @@ const documentationByType: Partial<Record<ComponentType, string>> = {
   Window: 'docs/FORGEUI_WINDOW_WIDGET.md',
   Menu: 'docs/FORGEUI_MENU_WIDGET.md',
   DashboardCard: 'docs/FORGEUI_DASHBOARD_CARD.md',
+  SensorTile: 'docs/FORGEUI_SENSOR_TILE.md',
   List: 'docs/FORGEUI_LIST_WIDGET.md',
   Tileview: 'docs/FORGEUI_TILEVIEW_WIDGET.md',
   Spinbox: 'docs/FORGEUI_SPINBOX_WIDGET.md',
@@ -407,6 +415,7 @@ const describe = (
     Window: 'Native structured window with a title header and child-owned scrollable content region.',
     Menu: 'Native multi-page navigation framework with sections, child-page links and back history.',
     DashboardCard: 'ForgeUI Native application card for a value, status, progress and timestamp.',
+    SensorTile: 'ForgeUI Native engineering measurement tile with thresholds, trend and status.',
     InteractiveButton: 'Reusable state-sheet driven button.',
   }
   return special[type] || `${name} ${category.toLowerCase()} widget.`
@@ -461,14 +470,14 @@ export const forgeUIWidgetDefinitions: ForgeUIWidgetDefinition[] =
       documentationId:
         documentationByType[type] || '04_FEATURE_STATUS.md',
       status: 'available',
-      origin: type === 'DashboardCard' ? 'forgeui-native' : 'lvgl-standard',
-      ...(type === 'DashboardCard' ? { nativeWidgetSchemaVersion: 1 } : {}),
-      ...(type === 'DashboardCard' ? { platform: {
+      origin: type === 'DashboardCard' || type === 'SensorTile' ? 'forgeui-native' : 'lvgl-standard',
+      ...(type === 'DashboardCard' || type === 'SensorTile' ? { nativeWidgetSchemaVersion: 1 } : {}),
+      ...(type === 'DashboardCard' || type === 'SensorTile' ? { platform: {
         kind: 'native-widget' as const,
-        family: 'dashboard',
+        family: type === 'SensorTile' ? 'sensors' : 'dashboard',
         layoutRoles: ['status', 'metrics', 'main', 'card-grid'],
         preferredArrangements: ['grid', 'kpi-cards', 'fit-to-region'],
-        templateTags: ['dashboard', 'monitoring', 'industrial-hmi'],
+        templateTags: ['dashboard', 'monitoring', 'industrial-hmi', 'scada-overview'],
       } } : {}),
     }
   })

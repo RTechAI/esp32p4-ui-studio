@@ -8,13 +8,14 @@ Current save point:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
 Current ForgeUI Platform milestone:
-`FORGEUI_NATIVE_COMPONENT_1__DASHBOARD_CARD_PROVEN__ESP32P4_VALIDATED__READY_FOR_SENSOR_TILE__2026-08-02`.
+`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02`.
 
 Dashboard Card is **ForgeUI Native Component #1 — PROVEN**. It validates the
 application-level composite pattern while remaining one serialized and
 Canvas-owned component. Extend this pattern through the existing Registry,
 preview, shared generator, Runtime SDK and UserEvents; do not expose private
-LVGL composition. Sensor Tile is next and is not implemented yet.
+LVGL composition. Sensor Tile is implemented through the same pattern and is
+ready for ESP32-P4 proof. Relay Panel must not begin before proof closes.
 
 For application-to-hardware examples after export, use
 [05_DEVELOPER_HARDWARE_INTEGRATION.md](05_DEVELOPER_HARDWARE_INTEGRATION.md).
@@ -482,6 +483,10 @@ Enable **tap/click** only for an input icon, then implement the generated
 regeneration replaces 90 and 96 but preservation-merges matching 95 bodies.
 Standalone output becomes developer-owned under the normal export rules. Full
 contract: [`09_FORGEUI_FI_RUNTIME_GUIDE.md`](09_FORGEUI_FI_RUNTIME_GUIDE.md).
+
+For ForgeUI Native Component semantic setters, root UserEvents, generated-file
+ownership and LVGL task-safety, use
+[`10_FORGEUI_NATIVE_COMPONENT_RUNTIME_GUIDE.md`](10_FORGEUI_NATIVE_COMPONENT_RUNTIME_GUIDE.md).
 
 Current evidence is **PROVEN ON ESP32-P4**. The
 90 → 95 click path is physically **PROVEN** on ESP32-P4 across three independent,

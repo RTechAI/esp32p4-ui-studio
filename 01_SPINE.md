@@ -17,15 +17,16 @@
 
 ## Current ForgeUI Platform milestone
 
-**FORGEUI_NATIVE_COMPONENT_1__DASHBOARD_CARD_PROVEN__ESP32P4_VALIDATED__READY_FOR_SENSOR_TILE__2026-08-02**
+**FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02**
 
 Dashboard Card is **ForgeUI Native Component #1 — PROVEN**. Physical validation
 confirmed Registry integration, semantic serialization, single-component Canvas
 ownership, closely matched Browser Preview, shared Live/Standalone export,
 Runtime setters, UserEvents, responsive touch, independent instances and stable
 ESP32-P4 operation without crash, watchdog reset or rendering corruption.
-Internal LVGL composition remained private. The next implementation target is
-**ForgeUI Native Component #2 — Sensor Tile**.
+Internal LVGL composition remained private. Sensor Tile is now **ForgeUI Native
+Component #2 — IMPLEMENTED — READY FOR ESP32-P4 PHYSICAL PROOF**. Relay Panel
+must not begin until Sensor Tile completes proof.
 
 ### 2026-08-02 Practical LVGL 9.2 completion
 
@@ -48,7 +49,7 @@ foundation for the next chapter.
 
 LVGL parity is complete. Future work builds on this foundation in this order:
 
-1. ForgeUI-native Widgets — Dashboard Card PROVEN; Sensor Tile next
+1. ForgeUI-native Widgets — Dashboard Card PROVEN; Sensor Tile implemented and awaiting ESP32-P4 proof
 2. Dashboard Widget Family
 3. Dashboard Designer
 4. Template Library
@@ -3120,3 +3121,7 @@ startup, and SD remained ready. The unrelated Wi-Fi failure during the run is
 not Fi click evidence. Batch D subsequently proved the 90 → 96 presentation
 path and Standalone parity, so Icon and Fi Runtime are fully **PROVEN**. See
 [`09_FORGEUI_FI_RUNTIME_GUIDE.md`](09_FORGEUI_FI_RUNTIME_GUIDE.md).
+
+The living post-export reference for ForgeUI Native Component semantic APIs,
+UserEvents, ownership and task safety is
+[`10_FORGEUI_NATIVE_COMPONENT_RUNTIME_GUIDE.md`](10_FORGEUI_NATIVE_COMPONENT_RUNTIME_GUIDE.md).

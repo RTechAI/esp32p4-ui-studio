@@ -8,6 +8,8 @@ Platform milestone:
 Dashboard Card is **ForgeUI Native Component #1**. It is an application-level
 component built above the completed LVGL foundation, not an LVGL widget wrapper.
 It follows [ForgeUI Native Widget Architecture](FORGEUI_NATIVE_WIDGET_ARCHITECTURE.md).
+The authoritative post-export API, UserEvent, ownership and task-safety guide is
+the [ForgeUI Native Component Runtime Guide](../10_FORGEUI_NATIVE_COMPONENT_RUNTIME_GUIDE.md).
 
 ## Architecture
 

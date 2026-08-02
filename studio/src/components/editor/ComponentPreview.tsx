@@ -56,6 +56,7 @@ import { StandardSpanPreview, StandardAnimImagePreview, StandardImageButtonPrevi
 import { StandardWindowPreview } from '~forgeui/preview/StandardWindowPreview'
 import { StandardMenuPreview } from '~forgeui/preview/StandardMenuPreview'
 import { ForgeUIDashboardCardPreview } from '~forgeui/preview/ForgeUIDashboardCardPreview'
+import { ForgeUISensorTilePreview } from '~forgeui/preview/ForgeUISensorTilePreview'
 import { useForgePreviewPalette } from '~forgeui/theme/ForgeThemeContext'
 import { resolveForgeSemanticPalette } from '~forgeui/preview/forgeThemeMap'
 import InteractiveButtonCanvasPreview, {
@@ -1102,6 +1103,11 @@ case 'Menu':
 case 'DashboardCard':
   return <PreviewContainer component={component} enableVisualHelper {...forwardedProps}>
     <ForgeUIDashboardCardPreview component={component} palette={previewPalette} />
+  </PreviewContainer>
+
+case 'SensorTile':
+  return <PreviewContainer component={component} enableVisualHelper {...forwardedProps}>
+    <ForgeUISensorTilePreview component={component} palette={previewPalette} />
   </PreviewContainer>
 
     default:

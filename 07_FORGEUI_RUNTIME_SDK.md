@@ -4,12 +4,17 @@ Current save point:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
 Current ForgeUI Platform milestone:
-`FORGEUI_NATIVE_COMPONENT_1__DASHBOARD_CARD_PROVEN__ESP32P4_VALIDATED__READY_FOR_SENSOR_TILE__2026-08-02`.
+`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02`.
 
 Dashboard Card is **ForgeUI Native Component #1 — PROVEN**. ESP32-P4 proof
 verified its semantic Value, Units, Status and Progress setters, optional root
 click UserEvent, collision-safe independent instances and Live/Standalone
 parity. No internal Label, status indicator or Bar object is public SDK state.
+
+Sensor Tile adds semantic float Value, Units, Status, Trend, Timestamp and
+Colour setters plus an optional root click hook. Threshold-based automatic
+colour remains private generated behavior. No internal Label or Bar pointer is
+public. Status is **IMPLEMENTED — READY FOR ESP32-P4 PHYSICAL PROOF**.
 
 This document introduces the long-term ForgeUI Runtime SDK direction. It does
 not describe a finished, separately packaged SDK product.
@@ -25,6 +30,10 @@ an interface:
 - native LVGL implementation inside generated C.
 
 This document must evolve alongside the Widget Registry.
+
+The maintained component-by-component usage reference, beginning with Dashboard
+Card, is
+[`10_FORGEUI_NATIVE_COMPONENT_RUNTIME_GUIDE.md`](10_FORGEUI_NATIVE_COMPONENT_RUNTIME_GUIDE.md).
 
 ## Purpose
 

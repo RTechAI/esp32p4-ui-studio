@@ -20,7 +20,7 @@ widgets/components are physically proven on ESP32-P4**. Window and Menu are
 **PROVEN**. Lottie remains intentionally excluded.
 
 Current ForgeUI Platform milestone:
-**FORGEUI_NATIVE_COMPONENT_1__DASHBOARD_CARD_PROVEN__ESP32P4_VALIDATED__READY_FOR_SENSOR_TILE__2026-08-02**.
+**FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02**.
 
 Dashboard Card is **ForgeUI Native Component #1 — PROVEN**. The shared
 Live/Standalone generator emits its private LVGL composition, four semantic
@@ -28,6 +28,12 @@ Runtime setters and optional root click UserEvent with collision-safe
 multi-instance names. Browser, Live Studio, Standalone Export and ESP32-P4
 behavior are verified. Internal labels, status objects and progress bars remain
 private and expose no application API or event surface.
+
+Sensor Tile is **ForgeUI Native Component #2 — IMPLEMENTED — READY FOR
+ESP32-P4 PHYSICAL PROOF**. It emits semantic Value, Units, Status, Trend,
+Timestamp and Colour APIs plus an optional root click hook. Its measurement,
+threshold and private composite objects share the existing Live/Standalone
+generator. Relay Panel has not begun.
 
 This document describes the generated SDK surface currently emitted by the
 shared live/Standalone generator. `90_Studio_Export.h` contains callable
@@ -3296,6 +3302,10 @@ in `96_FiRuntime.h`, with implementation and retained pre-init state in
 `96_FiRuntime.c`. `90_Studio_Export.c` binds the actual `lv_image` or `lv_label`.
 When `enableClick` is true, 90 attaches one `LV_EVENT_CLICKED` callback and 95
 declares/preserves `FG_On_<ComponentName>_Clicked(void)`. The setters are silent.
+
+Application examples, ownership rules and LVGL task-safety guidance for Native
+Components are maintained in
+[`10_FORGEUI_NATIVE_COMPONENT_RUNTIME_GUIDE.md`](10_FORGEUI_NATIVE_COMPONENT_RUNTIME_GUIDE.md).
 Names are deterministic and collision-safe; the selected Fi asset does not name
 the API. Runtime-disabled instances emit no setters, click-disabled instances
 emit no hook, and an unused 96 layer is omitted from files, headers and CMake.

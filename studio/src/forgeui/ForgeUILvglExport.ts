@@ -46,6 +46,7 @@ import { normalizeForgeUISpans, normalizeFrameAssetIds } from './ForgeUIClosureW
 import { normalizeWindowActions, windowScrollbarMode } from './ForgeUIWindow'
 import { normalizeForgeUIMenuPages, resolveForgeUIMenuRootPageId } from './ForgeUIMenu'
 import { normalizeForgeUIDashboardCard } from './ForgeUIDashboardCard'
+import { getForgeUISensorTrendLabel, normalizeForgeUISensorTile } from './ForgeUISensorTile'
 import {
   getForgeUIStandardSpinboxModel,
   type ForgeUIStandardSpinboxModel,
@@ -309,6 +310,48 @@ const createDashboardCardExports = (
         progressApiName: `FG_Set_${stem}_Progress`,
         hookName,
         callbackName: hookName ? `fg_${runtimeStem}_dashboard_card_clicked_cb` : undefined,
+      })
+    })
+  return result
+}
+
+type SensorTileExport = {
+  stem: string; rootName: string; iconName: string; valueName: string; unitsName: string;
+  statusName: string; statusIndicatorName: string; trendName: string;
+  timestampName: string; progressName: string;
+  valueApiName: string; unitsApiName: string; statusApiName: string;
+  trendApiName: string; timestampApiName: string; colourApiName: string;
+  hookName?: string; callbackName?: string;
+  decimals: number; rangeMin: number; rangeMax: number; warningLow: number;
+  warningHigh: number; criticalLow: number; criticalHigh: number; autoColour: boolean;
+}
+
+const createSensorTileExports = (
+  components: IComponents, usedHookNames: Set<string>, userEventHooks: Set<string>,
+): Map<string, SensorTileExport> => {
+  const result = new Map<string, SensorTileExport>()
+  const usedStems = new Set<string>()
+  Object.values(components).filter(component => component.type === 'SensorTile')
+    .sort((a, b) => a.id.localeCompare(b.id)).forEach(component => {
+      const base = toCIdentifier(component.componentName || component.id, 'Sensor_Tile').replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let stem = base; let suffix = 2
+      while (usedStems.has(stem)) stem = `${base}_${suffix++}`
+      usedStems.add(stem)
+      const runtimeStem = stem.toLowerCase()
+      const model = normalizeForgeUISensorTile(component.props)
+      const hookName = model.enableClick ? createUniqueHookName(stem, usedHookNames) : undefined
+      if (hookName) userEventHooks.add(hookName)
+      result.set(component.id, {
+        stem, rootName: `fg_${runtimeStem}_sensor_tile`, iconName: `fg_${runtimeStem}_sensor_tile_icon`, valueName: `fg_${runtimeStem}_sensor_tile_value`,
+        unitsName: `fg_${runtimeStem}_sensor_tile_units`, statusName: `fg_${runtimeStem}_sensor_tile_status`,
+        statusIndicatorName: `fg_${runtimeStem}_sensor_tile_status_indicator`, trendName: `fg_${runtimeStem}_sensor_tile_trend`,
+        timestampName: `fg_${runtimeStem}_sensor_tile_timestamp`, progressName: `fg_${runtimeStem}_sensor_tile_progress`,
+        valueApiName: `FG_Set_${stem}_Value`, unitsApiName: `FG_Set_${stem}_Units`, statusApiName: `FG_Set_${stem}_Status`,
+        trendApiName: `FG_Set_${stem}_Trend`, timestampApiName: `FG_Set_${stem}_Timestamp`, colourApiName: `FG_Set_${stem}_Colour`,
+        hookName, callbackName: hookName ? `fg_${runtimeStem}_sensor_tile_clicked_cb` : undefined,
+        decimals: model.decimals, rangeMin: model.rangeMin, rangeMax: model.rangeMax,
+        warningLow: model.warningLow, warningHigh: model.warningHigh,
+        criticalLow: model.criticalLow, criticalHigh: model.criticalHigh, autoColour: model.autoColour,
       })
     })
   return result
@@ -2623,6 +2666,7 @@ const buildLvglBlock = (
   buttonExports: Map<string, ButtonExport>,
   fiIconExports: Map<string, FiIconExport>,
   dashboardCardExports: Map<string, DashboardCardExport>,
+  sensorTileExports: Map<string, SensorTileExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -4043,6 +4087,86 @@ case 'DashboardCard': {
   break
 }
 
+case 'SensorTile': {
+  const model = normalizeForgeUISensorTile(child.props)
+  const tile = sensorTileExports.get(child.id)
+  if (!tile) break
+  const statusColor = model.status === 'critical' ? palette.healthCritical : model.status === 'warning'
+    ? palette.healthHigh : model.status === 'offline' ? palette.disabledText : palette.healthNormal
+  const accent = model.accentColor ? `0x${model.accentColor.slice(1)}` : model.autoColour ? statusColor : palette.accent
+  const symbol = /^LV_SYMBOL_[A-Z0-9_]+$/.test(model.icon) ? model.icon : 'LV_SYMBOL_BULLET'
+  const tileWidth = integerProp(w, 260)
+  lines.push(`${tile.rootName} = lv_obj_create(${parentVar});`)
+  lines.push(`lv_obj_t * ${varName} = ${tile.rootName};`)
+  lines.push(`lv_obj_set_pos(${tile.rootName}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${tile.rootName}, ${w}, ${h});`)
+  lines.push(`lv_obj_set_style_bg_color(${tile.rootName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${tile.rootName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${tile.rootName}, 1, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${tile.rootName}, 12, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_pad_all(${tile.rootName}, ${model.padding}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_clear_flag(${tile.rootName}, LV_OBJ_FLAG_SCROLLABLE);`)
+  if (model.enableClick && tile.callbackName) {
+    lines.push(`lv_obj_add_flag(${tile.rootName}, LV_OBJ_FLAG_CLICKABLE);`)
+    lines.push(`lv_obj_add_event_cb(${tile.rootName}, ${tile.callbackName}, LV_EVENT_CLICKED, NULL);`)
+  } else lines.push(`lv_obj_clear_flag(${tile.rootName}, LV_OBJ_FLAG_CLICKABLE);`)
+  lines.push(`${tile.iconName} = lv_label_create(${tile.rootName});`)
+  lines.push(`lv_label_set_text(${tile.iconName}, ${symbol});`)
+  lines.push(`lv_obj_set_pos(${tile.iconName}, ${model.padding}, ${model.padding});`)
+  lines.push(`lv_obj_set_style_text_color(${tile.iconName}, lv_color_hex(${accent}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_t * ${varName}_title = lv_label_create(${tile.rootName});`)
+  lines.push(`lv_label_set_text(${varName}_title, "${esc(model.title)}");`)
+  lines.push(`lv_obj_set_pos(${varName}_title, ${model.padding + 26}, ${model.padding});`)
+  lines.push(`lv_obj_set_width(${varName}_title, ${Math.max(20, tileWidth - model.padding * 2 - 105)});`)
+  lines.push(`lv_label_set_long_mode(${varName}_title, LV_LABEL_LONG_DOT);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}_title, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+  lines.push(`${tile.statusIndicatorName} = lv_obj_create(${tile.rootName});`)
+  lines.push(`lv_obj_set_size(${tile.statusIndicatorName}, 8, 8);`)
+  lines.push(`lv_obj_align(${tile.statusIndicatorName}, LV_ALIGN_TOP_RIGHT, -${model.padding + 64}, ${model.padding + 5});`)
+  lines.push(`lv_obj_set_style_radius(${tile.statusIndicatorName}, LV_RADIUS_CIRCLE, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_color(${tile.statusIndicatorName}, lv_color_hex(${statusColor}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${tile.statusIndicatorName}, 0, LV_PART_MAIN);`)
+  lines.push(`${tile.statusName} = lv_label_create(${tile.rootName});`)
+  lines.push(`lv_label_set_text(${tile.statusName}, "${esc(model.statusText)}");`)
+  lines.push(`lv_obj_align(${tile.statusName}, LV_ALIGN_TOP_RIGHT, -${model.padding}, ${model.padding});`)
+  lines.push(`lv_obj_set_style_text_font(${tile.statusName}, &lv_font_montserrat_12, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_color(${tile.statusName}, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
+  lines.push(`${tile.valueName} = lv_label_create(${tile.rootName});`)
+  lines.push(`lv_label_set_text_fmt(${tile.valueName}, "%.*f", ${model.decimals}, (double)${model.value});`)
+  lines.push(`lv_obj_set_pos(${tile.valueName}, ${model.padding}, ${model.padding + 38});`)
+  lines.push(`lv_obj_set_style_text_font(${tile.valueName}, &lv_font_montserrat_28, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_color(${tile.valueName}, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+  lines.push(`${tile.unitsName} = lv_label_create(${tile.rootName});`)
+  lines.push(`lv_label_set_text(${tile.unitsName}, "${esc(model.units)}");`)
+  lines.push(`lv_obj_align_to(${tile.unitsName}, ${tile.valueName}, LV_ALIGN_OUT_RIGHT_BOTTOM, 6, -2);`)
+  lines.push(`lv_obj_set_style_text_color(${tile.unitsName}, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
+  if (model.showTrend) {
+    lines.push(`${tile.trendName} = lv_label_create(${tile.rootName});`)
+    lines.push(`lv_label_set_text(${tile.trendName}, "${esc(getForgeUISensorTrendLabel(model.trend))}");`)
+    lines.push(`lv_obj_set_pos(${tile.trendName}, ${model.padding}, ${model.padding + 78});`)
+    lines.push(`lv_obj_set_style_text_font(${tile.trendName}, &lv_font_montserrat_12, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_color(${tile.trendName}, lv_color_hex(${accent}), LV_PART_MAIN);`)
+  }
+  if (model.showProgress) {
+    lines.push(`${tile.progressName} = lv_bar_create(${tile.rootName});`)
+    lines.push(`lv_obj_set_pos(${tile.progressName}, ${model.padding}, ${model.padding + 104});`)
+    lines.push(`lv_obj_set_size(${tile.progressName}, ${Math.max(20, tileWidth - model.padding * 2)}, 8);`)
+    lines.push(`lv_bar_set_range(${tile.progressName}, 0, 100);`)
+    lines.push(`lv_bar_set_value(${tile.progressName}, ${Math.round(model.progress)}, LV_ANIM_OFF);`)
+    lines.push(`lv_obj_set_style_bg_color(${tile.progressName}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_bg_color(${tile.progressName}, lv_color_hex(${accent}), LV_PART_INDICATOR);`)
+  }
+  if (model.showTimestamp) {
+    lines.push(`${tile.timestampName} = lv_label_create(${tile.rootName});`)
+    lines.push(`lv_label_set_text(${tile.timestampName}, "${esc(model.timestamp)}");`)
+    lines.push(`lv_obj_align(${tile.timestampName}, LV_ALIGN_BOTTOM_LEFT, ${model.padding}, -${model.padding});`)
+    lines.push(`lv_obj_set_style_text_font(${tile.timestampName}, &lv_font_montserrat_12, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_color(${tile.timestampName}, lv_color_hex(${palette.disabledText}), LV_PART_MAIN);`)
+  }
+  lines.push(``)
+  break
+}
+
 case 'Spinbox': {
   const spinboxExport = spinboxExports.get(child.id)
   if (!spinboxExport) break
@@ -5132,6 +5256,7 @@ case 'Chart': {
         buttonExports,
         fiIconExports,
         dashboardCardExports,
+        sensorTileExports,
       )
     }
   })
@@ -5446,6 +5571,7 @@ export const generateForgeUILvglCode = (
     usedHookNames,
     userEventHooks,
   )
+  const sensorTileExports = createSensorTileExports(components, usedHookNames, userEventHooks)
   const fiIconExports = createFiIconExports(
     components,
     usedHookNames,
@@ -6176,7 +6302,7 @@ const backgroundMode =
   lines.push(`#include "freertos/semphr.h"`)
   lines.push(`#include "freertos/task.h"`)
   lines.push(`#include "esp_timer.h"`)
-  if (hasInteractiveButtons || dashboardCardExports.size > 0 || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
+  if (hasInteractiveButtons || dashboardCardExports.size > 0 || sensorTileExports.size > 0 || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
     lines.push(`#include "95_UserEvents.h"`)
   }
   if (Array.from(fiIconExports.values()).some(icon => icon.runtimeEnabled)) {
@@ -6204,6 +6330,17 @@ const backgroundMode =
     lines.push(`static lv_obj_t * ${card.statusName} = NULL;`)
     lines.push(`static lv_obj_t * ${card.statusIndicatorName} = NULL;`)
     lines.push(`static lv_obj_t * ${card.progressName} = NULL;`)
+  })
+  sensorTileExports.forEach(tile => {
+    lines.push(`static lv_obj_t * ${tile.rootName} = NULL;`)
+    lines.push(`static lv_obj_t * ${tile.iconName} = NULL;`)
+    lines.push(`static lv_obj_t * ${tile.valueName} = NULL;`)
+    lines.push(`static lv_obj_t * ${tile.unitsName} = NULL;`)
+    lines.push(`static lv_obj_t * ${tile.statusName} = NULL;`)
+    lines.push(`static lv_obj_t * ${tile.statusIndicatorName} = NULL;`)
+    lines.push(`static lv_obj_t * ${tile.trendName} = NULL;`)
+    lines.push(`static lv_obj_t * ${tile.timestampName} = NULL;`)
+    lines.push(`static lv_obj_t * ${tile.progressName} = NULL;`)
   })
   lines.push(`static lv_obj_t * fg_application_page = NULL;`)
   lines.push(`static lv_obj_t * fg_system_launcher_page = NULL;`)
@@ -6742,6 +6879,63 @@ const backgroundMode =
     lines.push(`    if (value < 0) value = 0;`)
     lines.push(`    if (value > 100) value = 100;`)
     lines.push(`    if (${card.progressName}) lv_bar_set_value(${card.progressName}, value, LV_ANIM_OFF);`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
+  sensorTileExports.forEach(tile => {
+    if (tile.hookName && tile.callbackName) {
+      lines.push(`static void ${tile.callbackName}(lv_event_t * event)`)
+      lines.push(`{`)
+      lines.push(`    if (lv_event_get_current_target(event) == ${tile.rootName}) ${tile.hookName}();`)
+      lines.push(`}`)
+      lines.push(``)
+    }
+    lines.push(`void ${tile.colourApiName}(uint32_t rgb)`)
+    lines.push(`{`)
+    lines.push(`    rgb &= 0xFFFFFFu;`)
+    lines.push(`    if (${tile.iconName}) lv_obj_set_style_text_color(${tile.iconName}, lv_color_hex(rgb), LV_PART_MAIN);`)
+    lines.push(`    if (${tile.trendName}) lv_obj_set_style_text_color(${tile.trendName}, lv_color_hex(rgb), LV_PART_MAIN);`)
+    lines.push(`    if (${tile.progressName}) lv_obj_set_style_bg_color(${tile.progressName}, lv_color_hex(rgb), LV_PART_INDICATOR);`)
+    lines.push(`    if (${tile.statusIndicatorName}) lv_obj_set_style_bg_color(${tile.statusIndicatorName}, lv_color_hex(rgb), LV_PART_MAIN);`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${tile.valueApiName}(float value)`)
+    lines.push(`{`)
+    lines.push(`    if (${tile.valueName}) lv_label_set_text_fmt(${tile.valueName}, "%.*f", ${tile.decimals}, (double)value);`)
+    lines.push(`    int32_t progress = (int32_t)(((value - ${tile.rangeMin}f) * 100.0f) / (${tile.rangeMax}f - ${tile.rangeMin}f));`)
+    lines.push(`    if (progress < 0) progress = 0;`)
+    lines.push(`    if (progress > 100) progress = 100;`)
+    lines.push(`    if (${tile.progressName}) lv_bar_set_value(${tile.progressName}, progress, LV_ANIM_OFF);`)
+    if (tile.autoColour) {
+      lines.push(`    uint32_t rgb = 0x22C55Eu;`)
+      lines.push(`    if (value <= ${tile.criticalLow}f || value >= ${tile.criticalHigh}f) rgb = 0xEF4444u;`)
+      lines.push(`    else if (value <= ${tile.warningLow}f || value >= ${tile.warningHigh}f) rgb = 0xF59E0Bu;`)
+      lines.push(`    ${tile.colourApiName}(rgb);`)
+    }
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${tile.unitsApiName}(const char * units)`)
+    lines.push(`{`)
+    lines.push(`    if (${tile.unitsName}) lv_label_set_text(${tile.unitsName}, units ? units : "");`)
+    lines.push(`    if (${tile.unitsName} && ${tile.valueName}) lv_obj_align_to(${tile.unitsName}, ${tile.valueName}, LV_ALIGN_OUT_RIGHT_BOTTOM, 6, -2);`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${tile.statusApiName}(const char * text, uint32_t rgb)`)
+    lines.push(`{`)
+    lines.push(`    if (${tile.statusName}) lv_label_set_text(${tile.statusName}, text ? text : "");`)
+    lines.push(`    if (${tile.statusIndicatorName}) lv_obj_set_style_bg_color(${tile.statusIndicatorName}, lv_color_hex(rgb & 0xFFFFFFu), LV_PART_MAIN);`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${tile.trendApiName}(int32_t trend)`)
+    lines.push(`{`)
+    lines.push(`    if (${tile.trendName} == NULL) return;`)
+    lines.push(`    lv_label_set_text(${tile.trendName}, trend > 0 ? "^ Rising" : trend < 0 ? "v Falling" : "- Stable");`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${tile.timestampApiName}(const char * timestamp)`)
+    lines.push(`{`)
+    lines.push(`    if (${tile.timestampName}) lv_label_set_text(${tile.timestampName}, timestamp ? timestamp : "");`)
     lines.push(`}`)
     lines.push(``)
   })
@@ -8459,6 +8653,7 @@ lines.push(`    fg_system_root = parent;`)
         buttonExports,
         fiIconExports,
         dashboardCardExports,
+        sensorTileExports,
       )
   }
 
@@ -9137,6 +9332,13 @@ lines.push(`}`)
         `void ${card.unitsApiName}(const char * units);`,
         `void ${card.statusApiName}(const char * text, uint32_t rgb);`,
         `void ${card.progressApiName}(int32_t value);`,
+      ])).concat(Array.from(sensorTileExports.values()).flatMap(tile => [
+        `void ${tile.valueApiName}(float value);`,
+        `void ${tile.unitsApiName}(const char * units);`,
+        `void ${tile.statusApiName}(const char * text, uint32_t rgb);`,
+        `void ${tile.trendApiName}(int32_t trend);`,
+        `void ${tile.timestampApiName}(const char * timestamp);`,
+        `void ${tile.colourApiName}(uint32_t rgb);`,
       ])).concat(Array.from(barExports.values()).map(
         barExport => `void ${barExport.apiName}(int32_t value);`,
       )).concat(Array.from(progressExports.values()).map(

@@ -34,6 +34,7 @@ const SUPPORTED_TYPES = [
   'Canvas', 'Line', 'Tabview', 'Tileview', 'ButtonMatrix',
   'Msgbox', 'Table', 'Scale', 'Keyboard', 'Divider', 'Calendar', 'Chart', 'Box',
   'DashboardCard',
+  'SensorTile',
 ] as const
 
 type SupportedType = typeof SUPPORTED_TYPES[number]
@@ -49,7 +50,7 @@ const MEDIA_TYPES = new Set<SupportedType>(['Image', 'Icon'])
 const NAVIGATION_TYPES = new Set<SupportedType>(['Tabview', 'Tileview'])
 const LAYOUT_TYPES = new Set<SupportedType>(['Box', 'Divider', 'Line', 'Canvas'])
 const CONTENT_TYPES = new Set<SupportedType>(['Text', 'Heading'])
-const DASHBOARD_TYPES = new Set<SupportedType>(['DashboardCard'])
+const DASHBOARD_TYPES = new Set<SupportedType>(['DashboardCard', 'SensorTile'])
 
 const descriptions: Partial<Record<SupportedType, string>> = {
   NumberInput: 'Editable numeric field with increment and decrement controls.',
@@ -65,6 +66,7 @@ const descriptions: Partial<Record<SupportedType, string>> = {
   InteractiveToggleSwitch: 'Project Interactive two-state switch asset instance.',
   InteractiveThreePositionToggleSwitch: 'Project Interactive three-position switch asset instance.',
   DashboardCard: 'ForgeUI Native value, status and progress card.',
+  SensorTile: 'ForgeUI Native live engineering measurement tile.',
 }
 
 const aliases: Partial<Record<SupportedType, string[]>> = {
@@ -84,6 +86,7 @@ const aliases: Partial<Record<SupportedType, string[]>> = {
   InteractiveToggleSwitch: ['interactive toggle switch'],
   InteractiveThreePositionToggleSwitch: ['interactive three position toggle'],
   DashboardCard: ['dashboard card', 'kpi card', 'metric card'],
+  SensorTile: ['sensor tile', 'engineering measurement', 'telemetry tile'],
 }
 
 const sizes: Partial<Record<SupportedType, { w: number; h: number }>> = {
@@ -103,6 +106,7 @@ const sizes: Partial<Record<SupportedType, { w: number; h: number }>> = {
   CircularProgress: { w: 120, h: 120 },
   Divider: { w: 240, h: 2 },
   DashboardCard: { w: 300, h: 190 },
+  SensorTile: { w: 260, h: 180 },
 }
 
 const assetRequirement = (type: SupportedType): ForgeAIAssetRequirement => {

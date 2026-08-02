@@ -20,13 +20,14 @@ Practical LVGL 9.2 is complete: **44 registered practical widgets/components,
 intentionally excluded. The next major chapter is ForgeUI Platform development.
 
 Current ForgeUI Platform milestone:
-**FORGEUI_NATIVE_COMPONENT_1__DASHBOARD_CARD_PROVEN__ESP32P4_VALIDATED__READY_FOR_SENSOR_TILE__2026-08-02**.
+**FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02**.
 
 Dashboard Card is **ForgeUI Native Component #1 — PROVEN** across Registry,
 versioned semantic model, Inspector, single-object Canvas ownership, shared
 preview/export, Runtime SDK, UserEvents, Live Studio, Standalone Export and
 ESP32-P4 hardware. Its private LVGL object composition is not project state.
-Sensor Tile is the next implementation target.
+Sensor Tile is implemented through the same owners and awaits ESP32-P4 proof.
+Relay Panel has not begun.
 
 ## Current authoritative ownership summary
 
@@ -35,6 +36,7 @@ Sensor Tile is the next implementation target.
 | Standard Widget catalogue | `studio/src/forgeui/widgets/ForgeUIWidgetRegistry.ts` |
 | ForgeUI Native Component catalogue | The same `studio/src/forgeui/widgets/ForgeUIWidgetRegistry.ts`; `origin: forgeui-native` distinguishes platform components |
 | Dashboard Card semantic model | `studio/src/forgeui/ForgeUIDashboardCard.ts` |
+| Sensor Tile semantic model | `studio/src/forgeui/ForgeUISensorTile.ts` |
 | Dashboard Card Preview | `studio/src/forgeui/preview/ForgeUIDashboardCardPreview.tsx` through the shared preview dispatchers |
 | Legacy catalogue compatibility | `studio/src/forgeui/ForgeUIWidgetSet.ts` projection |
 | Per-widget API/event/input/child/docs/gate metadata | `studio/src/forgeui/widgets/ForgeUIWidgetRegistry.ts` explicit capability table |
@@ -4180,6 +4182,8 @@ native scale/pivot and centered image bounds. Both are **PROVEN**.
 - Generated 90 owns creation, binding and event attachment; generated 96 owns
   retained presentation state/setters; preservation-merged 95 owns click logic.
 - Authoritative architecture and future direction: `09_FORGEUI_FI_RUNTIME_GUIDE.md`.
+- Native Component post-export API and integration reference:
+  `10_FORGEUI_NATIVE_COMPONENT_RUNTIME_GUIDE.md`.
 
 Current evidence is **PROVEN ON ESP32-P4**.
 The generated 90 → preservation-merged 95 click path is physically **PROVEN** on
