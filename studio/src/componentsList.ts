@@ -209,6 +209,7 @@ export const componentsList: ComponentType[] = ([
   'RelayPanel',
   'PwmController',
   'TrendChart',
+  'TrendChartPro',
   'Editable',
   'Flex',
   'FormControl',

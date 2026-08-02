@@ -1209,6 +1209,7 @@ const ComponentPreview: React.FC<{
       )
 
     case 'TrendChart':
+    case 'TrendChartPro':
       return (
         <PreviewContainer
           component={component}

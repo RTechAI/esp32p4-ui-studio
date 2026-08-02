@@ -87,6 +87,7 @@ const displayNames: Partial<Record<ComponentType, string>> = {
   RelayPanel: 'Relay Panel',
   PwmController: 'PWM Controller',
   TrendChart: 'Trend Chart',
+  TrendChartPro: 'Trend Chart Pro',
 }
 
 const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
@@ -145,6 +146,7 @@ const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
     'RelayPanel',
     'PwmController',
     'TrendChart',
+    'TrendChartPro',
   ],
   Assets: [
     'InteractiveButton',
@@ -217,6 +219,7 @@ const sizes: Partial<Record<ComponentType, [number, number]>> = {
   RelayPanel: [340, 360],
   PwmController: [320, 220],
   TrendChart: [420, 260],
+  TrendChartPro: [440, 280],
 }
 
 const keywords: Partial<Record<ComponentType, string[]>> = {
@@ -288,6 +291,7 @@ const keywords: Partial<Record<ComponentType, string[]>> = {
     'time series',
     'forgeui native',
   ],
+  TrendChartPro: ['premium trend', 'telemetry', 'scada', 'time series', 'glow', 'forgeui native'],
 }
 
 type CapabilityDefinition = Omit<
@@ -420,6 +424,13 @@ const capabilitiesByType: Partial<Record<
       userEventDefault: true,
     },
   },
+  TrendChartPro: {
+    ...capability(true, true, false),
+    instanceConfiguration: {
+      runtimeApiProperty: 'generateRuntimeApi', runtimeApiDefault: true,
+      userEventProperty: 'enableUserEvents', userEventDefault: true,
+    },
+  },
 
   Input: capability(true, true, true),
   Textarea: capability(true, true, true),
@@ -503,6 +514,7 @@ const documentationByType: Partial<Record<ComponentType, string>> = {
   RelayPanel: 'docs/FORGEUI_RELAY_PANEL.md',
   PwmController: 'docs/FORGEUI_PWM_CONTROLLER.md',
   TrendChart: 'docs/FORGEUI_TREND_CHART.md',
+  TrendChartPro: 'docs/FORGEUI_TREND_CHART_PRO.md',
   List: 'docs/FORGEUI_LIST_WIDGET.md',
   Tileview: 'docs/FORGEUI_TILEVIEW_WIDGET.md',
   Spinbox: 'docs/FORGEUI_SPINBOX_WIDGET.md',
@@ -545,7 +557,9 @@ const describe = (
     PwmController:
       'ForgeUI Native semantic PWM output card with value and enable control.',
     TrendChart:
-      'ForgeUI Native semantic history chart with fixed buffering, thresholds and runtime point APIs.',
+      'Lightweight semantic time-series chart with fixed buffering and runtime point APIs.',
+    TrendChartPro:
+      'Premium semantic time-series chart for higher-capability targets.',
     InteractiveButton: 'Reusable state-sheet driven button.',
   }
   return special[type] || `${name} ${category.toLowerCase()} widget.`
@@ -598,21 +612,21 @@ export const forgeUIWidgetDefinitions: ForgeUIWidgetDefinition[] = (Object.value
       type === 'SensorTile' ||
       type === 'RelayPanel' ||
       type === 'PwmController' ||
-      type === 'TrendChart'
+      type === 'TrendChart' || type === 'TrendChartPro'
         ? 'forgeui-native'
         : 'lvgl-standard',
     ...(type === 'DashboardCard' ||
     type === 'SensorTile' ||
     type === 'RelayPanel' ||
     type === 'PwmController' ||
-    type === 'TrendChart'
+    type === 'TrendChart' || type === 'TrendChartPro'
       ? { nativeWidgetSchemaVersion: 1 }
       : {}),
     ...(type === 'DashboardCard' ||
     type === 'SensorTile' ||
     type === 'RelayPanel' ||
     type === 'PwmController' ||
-    type === 'TrendChart'
+    type === 'TrendChart' || type === 'TrendChartPro'
       ? {
           platform: {
             kind: 'native-widget' as const,

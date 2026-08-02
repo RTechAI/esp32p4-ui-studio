@@ -53,6 +53,7 @@ import {
   createForgeUITrendSimulation,
   normalizeForgeUITrendChart,
 } from './ForgeUITrendChart'
+import { normalizeForgeUITrendChartPro } from './ForgeUITrendChartPro'
 import {
   getForgeUIStandardSpinboxModel,
   type ForgeUIStandardSpinboxModel,
@@ -517,14 +518,16 @@ const createTrendChartExports = (
 ): Map<string, TrendChartExport> => {
   const result = new Map<string, TrendChartExport>()
   const usedStems = new Set<string>()
-  Object.values(components).filter(component => component.type === 'TrendChart')
+  Object.values(components).filter(component => component.type === 'TrendChart' || component.type === 'TrendChartPro')
     .sort((a, b) => a.id.localeCompare(b.id)).forEach(component => {
       const base = toCIdentifier(component.id, 'Trend_Chart').replace(/([a-z0-9])([A-Z])/g, '$1_$2')
       let stem = base; let suffix = 2
       while (usedStems.has(stem)) stem = `${base}_${suffix++}`
       usedStems.add(stem)
       const runtimeStem = stem.toLowerCase()
-      const model = normalizeForgeUITrendChart(component.props)
+      const model = component.type === 'TrendChartPro'
+        ? normalizeForgeUITrendChartPro(component.props)
+        : normalizeForgeUITrendChart(component.props)
       const uniqueHook = (name: string) => {
         let hook = name; let collision = 2
         while (usedHookNames.has(hook)) hook = `${name}_${collision++}`
@@ -4518,8 +4521,12 @@ case 'PwmController': {
   break
 }
 
-case 'TrendChart': {
-  const model = normalizeForgeUITrendChart(child.props)
+case 'TrendChart':
+case 'TrendChartPro': {
+  const pro = child.type === 'TrendChartPro'
+  const model: any = pro
+    ? normalizeForgeUITrendChartPro(child.props)
+    : normalizeForgeUITrendChart(child.props)
   const initialHistory = model.history.length > 1
     ? model.history
     : createForgeUITrendSimulation(model, Math.min(model.historyLength, 48))
@@ -4533,6 +4540,15 @@ case 'TrendChart': {
   lines.push(`lv_obj_set_pos(${trend.rootName}, ${x}, ${y});`)
   lines.push(`lv_obj_set_size(${trend.rootName}, ${w}, ${h});`)
   lines.push(`lv_obj_set_style_bg_color(${trend.rootName}, lv_color_hex(${model.backgroundColour ? toLvHex(model.backgroundColour) : palette.surface}), LV_PART_MAIN);`)
+  if (pro && model.glassSurfaceEnabled) {
+    lines.push(`lv_obj_set_style_bg_grad_color(${trend.rootName}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_bg_grad_dir(${trend.rootName}, LV_GRAD_DIR_VER, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_bg_opa(${trend.rootName}, LV_OPA_90, LV_PART_MAIN);`)
+  }
+  if (pro && model.shadowEnabled) {
+    lines.push(`lv_obj_set_style_shadow_width(${trend.rootName}, 18, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_shadow_opa(${trend.rootName}, LV_OPA_30, LV_PART_MAIN);`)
+  }
   lines.push(`lv_obj_set_style_border_width(${trend.rootName}, ${model.border ? 1 : 0}, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_border_color(${trend.rootName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_radius(${trend.rootName}, ${model.rounded ? 12 : 0}, LV_PART_MAIN);`)
@@ -4556,20 +4572,30 @@ case 'TrendChart': {
   lines.push(`lv_chart_set_update_mode(${trend.chartName}, LV_CHART_UPDATE_MODE_CIRCULAR);`)
   lines.push(`lv_chart_set_point_count(${trend.chartName}, ${trend.historyLength});`)
   lines.push(`lv_chart_set_range(${trend.chartName}, LV_CHART_AXIS_PRIMARY_Y, (int32_t)lroundf(${cFloatLiteral(model.minimum)} * 1000.0f), (int32_t)lroundf(${cFloatLiteral(model.maximum)} * 1000.0f));`)
-  lines.push(`lv_chart_set_div_line_count(${trend.chartName}, ${model.showGrid ? 5 : 0}, ${model.showGrid ? 7 : 0});`)
+  lines.push(`lv_chart_set_div_line_count(${trend.chartName}, ${model.showGrid ? (pro ? model.majorDivisions : 5) : 0}, ${model.showGrid ? (pro ? Math.max(model.majorDivisions + 2, model.minorDivisions) : 7) : 0});`)
+  if (pro) lines.push(`lv_obj_set_style_line_opa(${trend.chartName}, ${Math.round(model.gridOpacity * 2.55)}, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_border_width(${trend.chartName}, ${model.showAxes ? 1 : 0}, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_bg_opa(${trend.chartName}, LV_OPA_TRANSP, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_line_width(${trend.chartName}, 2, LV_PART_ITEMS);`)
+  if (pro && model.glowEnabled) {
+    lines.push(`lv_obj_set_style_shadow_color(${trend.chartName}, lv_color_hex(${lineColour}), LV_PART_ITEMS);`)
+    lines.push(`lv_obj_set_style_shadow_width(${trend.chartName}, ${Math.round(model.glowWidth)}, LV_PART_ITEMS);`)
+    lines.push(`lv_obj_set_style_shadow_opa(${trend.chartName}, ${Math.round(model.glowOpacity * 2.55)}, LV_PART_ITEMS);`)
+  }
   lines.push(`lv_obj_set_style_size(${trend.chartName}, ${model.showLatestMarker ? 5 : 0}, LV_PART_INDICATOR);`)
   lines.push(`${trend.seriesName} = lv_chart_add_series(${trend.chartName}, lv_color_hex(${lineColour}), LV_CHART_AXIS_PRIMARY_Y);`)
   lines.push(`for (uint32_t i = 0; i < ${trend.historyLength}u; ++i) ${trend.bufferName}[i] = LV_CHART_POINT_NONE;`)
   lines.push(`lv_chart_set_ext_y_array(${trend.chartName}, ${trend.seriesName}, ${trend.bufferName});`)
-  initialHistory.forEach(value => {
+  initialHistory.forEach((value: number) => {
     lines.push(`lv_chart_set_next_value(${trend.chartName}, ${trend.seriesName}, (int32_t)lroundf(${cFloatLiteral(value)} * 1000.0f));`)
   })
-  if (model.showMinMax || model.showLegend) {
+  if (model.showMinMax || model.showLegend || (pro && model.footerMode !== 'none')) {
     lines.push(`lv_obj_t * ${varName}_footer = lv_label_create(${trend.rootName});`)
-    const footer = model.showMinMax
+    const footer = pro && model.footerMode === 'history'
+      ? `${model.historyLength} samples`
+      : pro && model.footerMode === 'range-history'
+      ? `${model.minimum} ${model.units} - ${model.maximum} ${model.units}    ${model.historyLength} samples`
+      : model.showMinMax || (pro && model.footerMode === 'range')
       ? `${model.minimum} ${model.units}    ${model.maximum} ${model.units}`
       : model.semanticType
     lines.push(`lv_label_set_text(${varName}_footer, "${esc(footer)}"); lv_obj_align(${varName}_footer, LV_ALIGN_BOTTOM_LEFT, 0, 0);`)
@@ -5974,7 +6000,7 @@ export const generateForgeUILvglCode = (
   },
 ) => {
   const nativeIdentityDiagnostics = Object.entries(components)
-    .filter(([, component]) => component.type === 'DashboardCard' || component.type === 'SensorTile' || component.type === 'RelayPanel' || component.type === 'PwmController' || component.type === 'TrendChart')
+    .filter(([, component]) => component.type === 'DashboardCard' || component.type === 'SensorTile' || component.type === 'RelayPanel' || component.type === 'PwmController' || component.type === 'TrendChart' || component.type === 'TrendChartPro')
     .map(([persistedId, component]) => {
       if (!component.id || component.id !== persistedId) {
         throw new Error(

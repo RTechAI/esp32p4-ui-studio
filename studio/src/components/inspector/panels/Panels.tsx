@@ -105,6 +105,7 @@ const Panels: React.FC<{ component: IComponent; isRoot: boolean }> = ({
       {type === 'RelayPanel' && <RelayPanelPanel />}
       {type === 'PwmController' && <PwmControllerPanel />}
       {type === 'TrendChart' && <TrendChartPanel />}
+      {type === 'TrendChartPro' && <TrendChartPanel pro />}
       {type === 'Progress' && <ProgressPanel />}
       {type === 'Bar' && <BarPanel />}
       {type === 'Arc' && <ArcPanel />}

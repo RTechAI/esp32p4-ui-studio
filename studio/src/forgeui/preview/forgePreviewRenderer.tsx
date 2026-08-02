@@ -811,7 +811,8 @@ export const renderForgePreview = ({
         )
         break
       }
-      case 'TrendChart': {
+      case 'TrendChart':
+      case 'TrendChartPro': {
         output.push(
           <Box key={child.id} {...commonStyle}>
             <ForgeUITrendChartPreview component={child} palette={palette} />

@@ -83,6 +83,12 @@ void FG_On_Comp_MSBOZT2_XBP996_Enabled_Changed(bool enabled);
 void FG_On_Comp_MSCDSCYNJ6_TAP_Warning(void);
 void FG_On_Comp_MSCDSCYNJ6_TAP_Alarm(void);
 void FG_On_Comp_MSCDSCYNJ6_TAP_Cleared(void);
+void FG_On_Comp_MSCE8_PS3_KU0_JC_Warning(void);
+void FG_On_Comp_MSCE8_PS3_KU0_JC_Alarm(void);
+void FG_On_Comp_MSCE8_PS3_KU0_JC_Cleared(void);
+void FG_On_Comp_MSCE8_QSZM592_L_Warning(void);
+void FG_On_Comp_MSCE8_QSZM592_L_Alarm(void);
+void FG_On_Comp_MSCE8_QSZM592_L_Cleared(void);
 
 #ifdef __cplusplus
 }

@@ -78,6 +78,7 @@ const SUPPORTED_TYPES = [
   'SensorTile',
   'RelayPanel',
   'TrendChart',
+  'TrendChartPro',
 ] as const
 
 type SupportedType = typeof SUPPORTED_TYPES[number]
@@ -117,6 +118,7 @@ const DASHBOARD_TYPES = new Set<SupportedType>([
   'SensorTile',
   'RelayPanel',
   'TrendChart',
+  'TrendChartPro',
 ])
 
 const descriptions: Partial<Record<SupportedType, string>> = {
@@ -139,6 +141,8 @@ const descriptions: Partial<Record<SupportedType, string>> = {
   RelayPanel: 'ForgeUI Native logical relay bank control panel.',
   TrendChart:
     'ForgeUI Native live-value history chart with semantic thresholds.',
+  TrendChartPro:
+    'Premium ForgeUI Native history chart for higher-capability targets.',
 }
 
 const aliases: Partial<Record<SupportedType, string[]>> = {
@@ -166,6 +170,7 @@ const aliases: Partial<Record<SupportedType, string[]>> = {
     'telemetry trend',
     'time series',
   ],
+  TrendChartPro: ['trend chart pro', 'premium telemetry trend', 'premium time series'],
 }
 
 const sizes: Partial<Record<SupportedType, { w: number; h: number }>> = {
@@ -188,6 +193,7 @@ const sizes: Partial<Record<SupportedType, { w: number; h: number }>> = {
   SensorTile: { w: 260, h: 180 },
   RelayPanel: { w: 340, h: 360 },
   TrendChart: { w: 420, h: 260 },
+  TrendChartPro: { w: 440, h: 280 },
 }
 
 const assetRequirement = (type: SupportedType): ForgeAIAssetRequirement => {

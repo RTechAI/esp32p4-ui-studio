@@ -43,17 +43,23 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- `FG_On_Comp_MSCDSCYNJ6_TAP_Warning()`
-- `FG_On_Comp_MSCDSCYNJ6_TAP_Alarm()`
-- `FG_On_Comp_MSCDSCYNJ6_TAP_Cleared()`
+- `FG_On_Comp_MSCE8_PS3_KU0_JC_Warning()`
+- `FG_On_Comp_MSCE8_PS3_KU0_JC_Alarm()`
+- `FG_On_Comp_MSCE8_PS3_KU0_JC_Cleared()`
+- `FG_On_Comp_MSCE8_QSZM592_L_Warning()`
+- `FG_On_Comp_MSCE8_QSZM592_L_Alarm()`
+- `FG_On_Comp_MSCE8_QSZM592_L_Cleared()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| Comp_MSCDSCYNJ6_TAP_Warning | Click | `FG_On_Comp_MSCDSCYNJ6_TAP_Warning()` |
-| Comp_MSCDSCYNJ6_TAP_Alarm | Click | `FG_On_Comp_MSCDSCYNJ6_TAP_Alarm()` |
-| Comp_MSCDSCYNJ6_TAP_Cleared | Click | `FG_On_Comp_MSCDSCYNJ6_TAP_Cleared()` |
+| Comp_MSCE8_PS3_KU0_JC_Warning | Click | `FG_On_Comp_MSCE8_PS3_KU0_JC_Warning()` |
+| Comp_MSCE8_PS3_KU0_JC_Alarm | Click | `FG_On_Comp_MSCE8_PS3_KU0_JC_Alarm()` |
+| Comp_MSCE8_PS3_KU0_JC_Cleared | Click | `FG_On_Comp_MSCE8_PS3_KU0_JC_Cleared()` |
+| Comp_MSCE8_QSZM592_L_Warning | Click | `FG_On_Comp_MSCE8_QSZM592_L_Warning()` |
+| Comp_MSCE8_QSZM592_L_Alarm | Click | `FG_On_Comp_MSCE8_QSZM592_L_Alarm()` |
+| Comp_MSCE8_QSZM592_L_Cleared | Click | `FG_On_Comp_MSCE8_QSZM592_L_Cleared()` |
 
 ---
 

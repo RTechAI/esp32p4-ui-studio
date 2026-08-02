@@ -14,12 +14,13 @@ import {
 import { useForm } from '~hooks/useForm'
 import usePropsSelector from '~hooks/usePropsSelector'
 import { normalizeForgeUITrendChart } from '~forgeui/ForgeUITrendChart'
+import { normalizeForgeUITrendChartPro } from '~forgeui/ForgeUITrendChartPro'
 import { INSPECTOR_PROPERTY_TEXT_COLOR } from '~components/inspector/controls/FormControl'
 
 const labelProps = { fontSize: 'xs', color: INSPECTOR_PROPERTY_TEXT_COLOR }
 const checkboxProps = { color: INSPECTOR_PROPERTY_TEXT_COLOR }
 
-export const TrendChartPanel = () => {
+export const TrendChartPanel = ({ pro = false }: { pro?: boolean }) => {
   const { setValue } = useForm()
   const raw = {
     title: usePropsSelector('title'),
@@ -46,8 +47,21 @@ export const TrendChartPanel = () => {
     simulationMode: usePropsSelector('simulationMode'),
     generateRuntimeApi: usePropsSelector('generateRuntimeApi'),
     enableUserEvents: usePropsSelector('enableUserEvents'),
+    glowEnabled: usePropsSelector('glowEnabled'),
+    glowOpacity: usePropsSelector('glowOpacity'),
+    glowWidth: usePropsSelector('glowWidth'),
+    gradientFillEnabled: usePropsSelector('gradientFillEnabled'),
+    gradientOpacity: usePropsSelector('gradientOpacity'),
+    thresholdBandsEnabled: usePropsSelector('thresholdBandsEnabled'),
+    premiumMarkerEnabled: usePropsSelector('premiumMarkerEnabled'),
+    markerPulseEnabled: usePropsSelector('markerPulseEnabled'),
+    glassSurfaceEnabled: usePropsSelector('glassSurfaceEnabled'),
+    shadowEnabled: usePropsSelector('shadowEnabled'),
+    animationEnabled: usePropsSelector('animationEnabled'),
+    gridOpacity: usePropsSelector('gridOpacity'),
+    footerMode: usePropsSelector('footerMode'),
   }
-  const model = normalizeForgeUITrendChart(raw)
+  const model: any = pro ? normalizeForgeUITrendChartPro(raw) : normalizeForgeUITrendChart(raw)
   const number = (key: string, value: number) =>
     setValue(key, Number.isFinite(value) ? value : 0)
   const check = (key: string, label: string, value: boolean) => (
@@ -62,7 +76,7 @@ export const TrendChartPanel = () => {
   return (
     <Stack spacing={3} color={INSPECTOR_PROPERTY_TEXT_COLOR}>
       <Text fontSize="sm" fontWeight="bold">
-        ForgeUI Native Trend Chart
+        ForgeUI Native Trend Chart{pro ? ' Pro' : ''}
       </Text>
       <Text fontSize="xs" fontWeight="bold">
         General
@@ -93,6 +107,26 @@ export const TrendChartPanel = () => {
           onChange={e => setValue('semanticType', e.target.value)}
         />
       </FormControl>
+      {pro && (
+        <>
+          <Text fontSize="xs" fontWeight="bold">Pro Presentation</Text>
+          {check('glowEnabled', 'Glow', model.glowEnabled)}
+          <HStack>
+            <FormControl><FormLabel {...labelProps}>Glow width</FormLabel><NumberInput size="sm" min={2} max={16} value={model.glowWidth} onChange={(_, value) => number('glowWidth', value)}><NumberInputField /></NumberInput></FormControl>
+            <FormControl><FormLabel {...labelProps}>Glow opacity %</FormLabel><NumberInput size="sm" min={0} max={60} value={model.glowOpacity} onChange={(_, value) => number('glowOpacity', value)}><NumberInputField /></NumberInput></FormControl>
+          </HStack>
+          {check('gradientFillEnabled', 'Gradient fill', model.gradientFillEnabled)}
+          <FormControl><FormLabel {...labelProps}>Fill opacity %</FormLabel><NumberInput size="sm" min={0} max={50} value={model.gradientOpacity} onChange={(_, value) => number('gradientOpacity', value)}><NumberInputField /></NumberInput></FormControl>
+          {check('thresholdBandsEnabled', 'Threshold bands', model.thresholdBandsEnabled)}
+          {check('premiumMarkerEnabled', 'Premium marker', model.premiumMarkerEnabled)}
+          {check('markerPulseEnabled', 'Marker pulse', model.markerPulseEnabled)}
+          {check('glassSurfaceEnabled', 'Glass surface', model.glassSurfaceEnabled)}
+          {check('shadowEnabled', 'Shadow', model.shadowEnabled)}
+          {check('animationEnabled', 'Animations', model.animationEnabled)}
+          <FormControl><FormLabel {...labelProps}>Grid opacity %</FormLabel><NumberInput size="sm" min={0} max={100} value={model.gridOpacity} onChange={(_, value) => number('gridOpacity', value)}><NumberInputField /></NumberInput></FormControl>
+          <FormControl><FormLabel {...labelProps}>Footer information</FormLabel><Select size="sm" value={model.footerMode} onChange={e => setValue('footerMode', e.target.value)}>{['none', 'range', 'history', 'range-history'].map(value => <option key={value} value={value}>{value}</option>)}</Select></FormControl>
+        </>
+      )}
       <Text fontSize="xs" fontWeight="bold">
         Display
       </Text>

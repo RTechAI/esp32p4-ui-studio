@@ -21,15 +21,24 @@
 #include <string.h>
 #include <math.h>
 
-static lv_obj_t * fg_comp_mscdscynj6_tap_trend = NULL;
-static lv_obj_t * fg_comp_mscdscynj6_tap_trend_chart = NULL;
-static lv_chart_series_t * fg_comp_mscdscynj6_tap_trend_series = NULL;
-static lv_obj_t * fg_comp_mscdscynj6_tap_trend_current = NULL;
-static int32_t fg_comp_mscdscynj6_tap_trend_history[64] = {0};
-static float fg_comp_mscdscynj6_tap_trend_minimum = 0.0f;
-static float fg_comp_mscdscynj6_tap_trend_maximum = 100.0f;
-static float fg_comp_mscdscynj6_tap_trend_warning = 75.0f;
-static float fg_comp_mscdscynj6_tap_trend_alarm = 90.0f;
+static lv_obj_t * fg_comp_msce8_ps3_ku0_jc_trend = NULL;
+static lv_obj_t * fg_comp_msce8_ps3_ku0_jc_trend_chart = NULL;
+static lv_chart_series_t * fg_comp_msce8_ps3_ku0_jc_trend_series = NULL;
+static lv_obj_t * fg_comp_msce8_ps3_ku0_jc_trend_current = NULL;
+static int32_t fg_comp_msce8_ps3_ku0_jc_trend_history[64] = {0};
+static float fg_comp_msce8_ps3_ku0_jc_trend_minimum = 0.0f;
+static float fg_comp_msce8_ps3_ku0_jc_trend_maximum = 100.0f;
+static float fg_comp_msce8_ps3_ku0_jc_trend_warning = 75.0f;
+static float fg_comp_msce8_ps3_ku0_jc_trend_alarm = 90.0f;
+static lv_obj_t * fg_comp_msce8_qszm592_l_trend = NULL;
+static lv_obj_t * fg_comp_msce8_qszm592_l_trend_chart = NULL;
+static lv_chart_series_t * fg_comp_msce8_qszm592_l_trend_series = NULL;
+static lv_obj_t * fg_comp_msce8_qszm592_l_trend_current = NULL;
+static int32_t fg_comp_msce8_qszm592_l_trend_history[64] = {0};
+static float fg_comp_msce8_qszm592_l_trend_minimum = 0.0f;
+static float fg_comp_msce8_qszm592_l_trend_maximum = 100.0f;
+static float fg_comp_msce8_qszm592_l_trend_warning = 75.0f;
+static float fg_comp_msce8_qszm592_l_trend_alarm = 90.0f;
 static lv_obj_t * fg_application_page = NULL;
 static lv_obj_t * fg_system_launcher_page = NULL;
 static lv_obj_t * fg_system_brightness_page = NULL;
@@ -154,35 +163,66 @@ static void fg_system_storage_finish_teardown(void);
 static void fg_system_storage_worker(void * arg);
 static void fg_system_storage_tick_cb(lv_timer_t * timer);
 
-void FG_Add_Comp_MSCDSCYNJ6_TAP_Point(float value)
+void FG_Add_Comp_MSCE8_PS3_KU0_JC_Point(float value)
 {
-    if (value < fg_comp_mscdscynj6_tap_trend_minimum) value = fg_comp_mscdscynj6_tap_trend_minimum;
-    if (value > fg_comp_mscdscynj6_tap_trend_maximum) value = fg_comp_mscdscynj6_tap_trend_maximum;
-    if (fg_comp_mscdscynj6_tap_trend_chart == NULL || fg_comp_mscdscynj6_tap_trend_series == NULL) return;
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(value * 1000.0f));
-    if (fg_comp_mscdscynj6_tap_trend_current) lv_label_set_text_fmt(fg_comp_mscdscynj6_tap_trend_current, "%.6g RPM", (double)value);
-    uint32_t rgb = value >= fg_comp_mscdscynj6_tap_trend_alarm ? 0xEF4444u : (value >= fg_comp_mscdscynj6_tap_trend_warning ? 0xF59E0Bu : 0x22C55Eu);
-    if (fg_comp_mscdscynj6_tap_trend_current) lv_obj_set_style_text_color(fg_comp_mscdscynj6_tap_trend_current, lv_color_hex(rgb), LV_PART_MAIN);
+    if (value < fg_comp_msce8_ps3_ku0_jc_trend_minimum) value = fg_comp_msce8_ps3_ku0_jc_trend_minimum;
+    if (value > fg_comp_msce8_ps3_ku0_jc_trend_maximum) value = fg_comp_msce8_ps3_ku0_jc_trend_maximum;
+    if (fg_comp_msce8_ps3_ku0_jc_trend_chart == NULL || fg_comp_msce8_ps3_ku0_jc_trend_series == NULL) return;
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(value * 1000.0f));
+    if (fg_comp_msce8_ps3_ku0_jc_trend_current) lv_label_set_text_fmt(fg_comp_msce8_ps3_ku0_jc_trend_current, "%.6g RPM", (double)value);
+    uint32_t rgb = value >= fg_comp_msce8_ps3_ku0_jc_trend_alarm ? 0xEF4444u : (value >= fg_comp_msce8_ps3_ku0_jc_trend_warning ? 0xF59E0Bu : 0x22C55Eu);
+    if (fg_comp_msce8_ps3_ku0_jc_trend_current) lv_obj_set_style_text_color(fg_comp_msce8_ps3_ku0_jc_trend_current, lv_color_hex(rgb), LV_PART_MAIN);
 }
 
-void FG_Clear_Comp_MSCDSCYNJ6_TAP(void)
+void FG_Clear_Comp_MSCE8_PS3_KU0_JC(void)
 {
-    if (fg_comp_mscdscynj6_tap_trend_chart == NULL || fg_comp_mscdscynj6_tap_trend_series == NULL) return;
-    lv_chart_set_all_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, LV_CHART_POINT_NONE);
-    lv_chart_refresh(fg_comp_mscdscynj6_tap_trend_chart);
+    if (fg_comp_msce8_ps3_ku0_jc_trend_chart == NULL || fg_comp_msce8_ps3_ku0_jc_trend_series == NULL) return;
+    lv_chart_set_all_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, LV_CHART_POINT_NONE);
+    lv_chart_refresh(fg_comp_msce8_ps3_ku0_jc_trend_chart);
 }
 
-void FG_Set_Comp_MSCDSCYNJ6_TAP_Range(float minimum, float maximum)
+void FG_Set_Comp_MSCE8_PS3_KU0_JC_Range(float minimum, float maximum)
 {
     if (!(maximum > minimum)) return;
-    fg_comp_mscdscynj6_tap_trend_minimum = minimum; fg_comp_mscdscynj6_tap_trend_maximum = maximum;
-    if (fg_comp_mscdscynj6_tap_trend_chart) lv_chart_set_range(fg_comp_mscdscynj6_tap_trend_chart, LV_CHART_AXIS_PRIMARY_Y, (int32_t)lroundf(minimum * 1000.0f), (int32_t)lroundf(maximum * 1000.0f));
+    fg_comp_msce8_ps3_ku0_jc_trend_minimum = minimum; fg_comp_msce8_ps3_ku0_jc_trend_maximum = maximum;
+    if (fg_comp_msce8_ps3_ku0_jc_trend_chart) lv_chart_set_range(fg_comp_msce8_ps3_ku0_jc_trend_chart, LV_CHART_AXIS_PRIMARY_Y, (int32_t)lroundf(minimum * 1000.0f), (int32_t)lroundf(maximum * 1000.0f));
 }
 
-void FG_Set_Comp_MSCDSCYNJ6_TAP_Thresholds(float warning, float alarm)
+void FG_Set_Comp_MSCE8_PS3_KU0_JC_Thresholds(float warning, float alarm)
 {
     if (alarm < warning) alarm = warning;
-    fg_comp_mscdscynj6_tap_trend_warning = warning; fg_comp_mscdscynj6_tap_trend_alarm = alarm;
+    fg_comp_msce8_ps3_ku0_jc_trend_warning = warning; fg_comp_msce8_ps3_ku0_jc_trend_alarm = alarm;
+}
+
+void FG_Add_Comp_MSCE8_QSZM592_L_Point(float value)
+{
+    if (value < fg_comp_msce8_qszm592_l_trend_minimum) value = fg_comp_msce8_qszm592_l_trend_minimum;
+    if (value > fg_comp_msce8_qszm592_l_trend_maximum) value = fg_comp_msce8_qszm592_l_trend_maximum;
+    if (fg_comp_msce8_qszm592_l_trend_chart == NULL || fg_comp_msce8_qszm592_l_trend_series == NULL) return;
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(value * 1000.0f));
+    if (fg_comp_msce8_qszm592_l_trend_current) lv_label_set_text_fmt(fg_comp_msce8_qszm592_l_trend_current, "%.6g RPM", (double)value);
+    uint32_t rgb = value >= fg_comp_msce8_qszm592_l_trend_alarm ? 0xEF4444u : (value >= fg_comp_msce8_qszm592_l_trend_warning ? 0xF59E0Bu : 0x22C55Eu);
+    if (fg_comp_msce8_qszm592_l_trend_current) lv_obj_set_style_text_color(fg_comp_msce8_qszm592_l_trend_current, lv_color_hex(rgb), LV_PART_MAIN);
+}
+
+void FG_Clear_Comp_MSCE8_QSZM592_L(void)
+{
+    if (fg_comp_msce8_qszm592_l_trend_chart == NULL || fg_comp_msce8_qszm592_l_trend_series == NULL) return;
+    lv_chart_set_all_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, LV_CHART_POINT_NONE);
+    lv_chart_refresh(fg_comp_msce8_qszm592_l_trend_chart);
+}
+
+void FG_Set_Comp_MSCE8_QSZM592_L_Range(float minimum, float maximum)
+{
+    if (!(maximum > minimum)) return;
+    fg_comp_msce8_qszm592_l_trend_minimum = minimum; fg_comp_msce8_qszm592_l_trend_maximum = maximum;
+    if (fg_comp_msce8_qszm592_l_trend_chart) lv_chart_set_range(fg_comp_msce8_qszm592_l_trend_chart, LV_CHART_AXIS_PRIMARY_Y, (int32_t)lroundf(minimum * 1000.0f), (int32_t)lroundf(maximum * 1000.0f));
+}
+
+void FG_Set_Comp_MSCE8_QSZM592_L_Thresholds(float warning, float alarm)
+{
+    if (alarm < warning) alarm = warning;
+    fg_comp_msce8_qszm592_l_trend_warning = warning; fg_comp_msce8_qszm592_l_trend_alarm = alarm;
 }
 
 static void fg_window_close_cb(lv_event_t * event)
@@ -1297,91 +1337,186 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_size(bg_texture_0, 1024, 600);
     lv_obj_move_background(bg_texture_0);
 
-    fg_comp_mscdscynj6_tap_trend = lv_obj_create(fg_application_page);
-    lv_obj_set_pos(fg_comp_mscdscynj6_tap_trend, 346, 81);
-    lv_obj_set_size(fg_comp_mscdscynj6_tap_trend, 420, 260);
-    lv_obj_set_style_bg_color(fg_comp_mscdscynj6_tap_trend, lv_color_hex(0x1E2328), LV_PART_MAIN);
-    lv_obj_set_style_border_width(fg_comp_mscdscynj6_tap_trend, 1, LV_PART_MAIN);
-    lv_obj_set_style_border_color(fg_comp_mscdscynj6_tap_trend, lv_color_hex(0xF2A900), LV_PART_MAIN);
-    lv_obj_set_style_radius(fg_comp_mscdscynj6_tap_trend, 12, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(fg_comp_mscdscynj6_tap_trend, 12, LV_PART_MAIN);
-    lv_obj_clear_flag(fg_comp_mscdscynj6_tap_trend, LV_OBJ_FLAG_SCROLLABLE);
-    fg_comp_mscdscynj6_tap_trend_minimum = 0.0f; fg_comp_mscdscynj6_tap_trend_maximum = 6000.0f;
-    fg_comp_mscdscynj6_tap_trend_warning = 4500.0f; fg_comp_mscdscynj6_tap_trend_alarm = 5500.0f;
-    lv_obj_t * obj1_title = lv_label_create(fg_comp_mscdscynj6_tap_trend);
+    fg_comp_msce8_ps3_ku0_jc_trend = lv_obj_create(fg_application_page);
+    lv_obj_set_pos(fg_comp_msce8_ps3_ku0_jc_trend, 486, 34);
+    lv_obj_set_size(fg_comp_msce8_ps3_ku0_jc_trend, 420, 260);
+    lv_obj_set_style_bg_color(fg_comp_msce8_ps3_ku0_jc_trend, lv_color_hex(0x1E2328), LV_PART_MAIN);
+    lv_obj_set_style_border_width(fg_comp_msce8_ps3_ku0_jc_trend, 1, LV_PART_MAIN);
+    lv_obj_set_style_border_color(fg_comp_msce8_ps3_ku0_jc_trend, lv_color_hex(0xF2A900), LV_PART_MAIN);
+    lv_obj_set_style_radius(fg_comp_msce8_ps3_ku0_jc_trend, 12, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(fg_comp_msce8_ps3_ku0_jc_trend, 12, LV_PART_MAIN);
+    lv_obj_clear_flag(fg_comp_msce8_ps3_ku0_jc_trend, LV_OBJ_FLAG_SCROLLABLE);
+    fg_comp_msce8_ps3_ku0_jc_trend_minimum = 0.0f; fg_comp_msce8_ps3_ku0_jc_trend_maximum = 6000.0f;
+    fg_comp_msce8_ps3_ku0_jc_trend_warning = 4500.0f; fg_comp_msce8_ps3_ku0_jc_trend_alarm = 5500.0f;
+    lv_obj_t * obj1_title = lv_label_create(fg_comp_msce8_ps3_ku0_jc_trend);
     lv_label_set_text(obj1_title, "Engine RPM"); lv_obj_align(obj1_title, LV_ALIGN_TOP_LEFT, 0, 0);
     lv_obj_set_style_text_color(obj1_title, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
-    fg_comp_mscdscynj6_tap_trend_current = lv_label_create(fg_comp_mscdscynj6_tap_trend);
-    lv_label_set_text_fmt(fg_comp_mscdscynj6_tap_trend_current, "%.6g RPM", (double)3162.1315763563284f);
-    lv_obj_align(fg_comp_mscdscynj6_tap_trend_current, LV_ALIGN_TOP_RIGHT, 0, 0);
-    lv_obj_set_style_text_color(fg_comp_mscdscynj6_tap_trend_current, lv_color_hex(0xF2A900), LV_PART_MAIN);
-    fg_comp_mscdscynj6_tap_trend_chart = lv_chart_create(fg_comp_mscdscynj6_tap_trend);
-    lv_obj_set_pos(fg_comp_mscdscynj6_tap_trend_chart, 0, 44);
-    lv_obj_set_size(fg_comp_mscdscynj6_tap_trend_chart, 396, 162);
-    lv_chart_set_type(fg_comp_mscdscynj6_tap_trend_chart, LV_CHART_TYPE_LINE);
-    lv_chart_set_update_mode(fg_comp_mscdscynj6_tap_trend_chart, LV_CHART_UPDATE_MODE_CIRCULAR);
-    lv_chart_set_point_count(fg_comp_mscdscynj6_tap_trend_chart, 64);
-    lv_chart_set_range(fg_comp_mscdscynj6_tap_trend_chart, LV_CHART_AXIS_PRIMARY_Y, (int32_t)lroundf(0.0f * 1000.0f), (int32_t)lroundf(6000.0f * 1000.0f));
-    lv_chart_set_div_line_count(fg_comp_mscdscynj6_tap_trend_chart, 5, 7);
-    lv_obj_set_style_border_width(fg_comp_mscdscynj6_tap_trend_chart, 1, LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(fg_comp_mscdscynj6_tap_trend_chart, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_line_width(fg_comp_mscdscynj6_tap_trend_chart, 2, LV_PART_ITEMS);
-    lv_obj_set_style_size(fg_comp_mscdscynj6_tap_trend_chart, 5, LV_PART_INDICATOR);
-    fg_comp_mscdscynj6_tap_trend_series = lv_chart_add_series(fg_comp_mscdscynj6_tap_trend_chart, lv_color_hex(0xF2A900), LV_CHART_AXIS_PRIMARY_Y);
-    for (uint32_t i = 0; i < 64u; ++i) fg_comp_mscdscynj6_tap_trend_history[i] = LV_CHART_POINT_NONE;
-    lv_chart_set_ext_y_array(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, fg_comp_mscdscynj6_tap_trend_history);
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(2520.0f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(3135.4030096240513f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(3652.357724638603f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(3989.4253250244483f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(4096.230562265025f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(3962.118795862162f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(3617.9123852904804f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(3130.462293457175f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(2590.9430509369213f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(2098.926700873536f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(1745.0049668987374f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(1594.9811419197265f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(1678.3802377389668f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(1983.275211587839f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(2458.3290895824234f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(3021.6983963262837f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(3575.250520283392f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(4021.6238292081475f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(4281.165080029444f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(4305.7998598384775f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(4087.42476699523f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(3659.362153088302f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(3090.6240010635006f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(2473.981326982515f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(1909.9121190268372f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(1489.2171274242144f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(1277.3242853751299f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(1303.0089409098193f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(1553.4894480635214f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(1976.749434957658f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(2490.681871976409f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(2997.464260064975f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(3400.6649663495464f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(3622.106007098075f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(3615.5499345096246f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(3374.8305611859687f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(2935.0130907047264f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(2366.3809304552883f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(1762.293421431543f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(1223.0241790904256f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(838.3884981905559f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(672.1788717742345f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(751.1135023616263f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(1060.2183506194144f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(1545.4451061263937f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(2123.0698358605255f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(2694.238570790157f * 1000.0f));
-    lv_chart_set_next_value(fg_comp_mscdscynj6_tap_trend_chart, fg_comp_mscdscynj6_tap_trend_series, (int32_t)lroundf(3162.1315763563284f * 1000.0f));
-    lv_obj_t * obj1_footer = lv_label_create(fg_comp_mscdscynj6_tap_trend);
+    fg_comp_msce8_ps3_ku0_jc_trend_current = lv_label_create(fg_comp_msce8_ps3_ku0_jc_trend);
+    lv_label_set_text_fmt(fg_comp_msce8_ps3_ku0_jc_trend_current, "%.6g RPM", (double)3162.1315763563284f);
+    lv_obj_align(fg_comp_msce8_ps3_ku0_jc_trend_current, LV_ALIGN_TOP_RIGHT, 0, 0);
+    lv_obj_set_style_text_color(fg_comp_msce8_ps3_ku0_jc_trend_current, lv_color_hex(0xF2A900), LV_PART_MAIN);
+    fg_comp_msce8_ps3_ku0_jc_trend_chart = lv_chart_create(fg_comp_msce8_ps3_ku0_jc_trend);
+    lv_obj_set_pos(fg_comp_msce8_ps3_ku0_jc_trend_chart, 0, 44);
+    lv_obj_set_size(fg_comp_msce8_ps3_ku0_jc_trend_chart, 396, 162);
+    lv_chart_set_type(fg_comp_msce8_ps3_ku0_jc_trend_chart, LV_CHART_TYPE_LINE);
+    lv_chart_set_update_mode(fg_comp_msce8_ps3_ku0_jc_trend_chart, LV_CHART_UPDATE_MODE_CIRCULAR);
+    lv_chart_set_point_count(fg_comp_msce8_ps3_ku0_jc_trend_chart, 64);
+    lv_chart_set_range(fg_comp_msce8_ps3_ku0_jc_trend_chart, LV_CHART_AXIS_PRIMARY_Y, (int32_t)lroundf(0.0f * 1000.0f), (int32_t)lroundf(6000.0f * 1000.0f));
+    lv_chart_set_div_line_count(fg_comp_msce8_ps3_ku0_jc_trend_chart, 5, 7);
+    lv_obj_set_style_border_width(fg_comp_msce8_ps3_ku0_jc_trend_chart, 1, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(fg_comp_msce8_ps3_ku0_jc_trend_chart, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_set_style_line_width(fg_comp_msce8_ps3_ku0_jc_trend_chart, 2, LV_PART_ITEMS);
+    lv_obj_set_style_size(fg_comp_msce8_ps3_ku0_jc_trend_chart, 5, LV_PART_INDICATOR);
+    fg_comp_msce8_ps3_ku0_jc_trend_series = lv_chart_add_series(fg_comp_msce8_ps3_ku0_jc_trend_chart, lv_color_hex(0xF2A900), LV_CHART_AXIS_PRIMARY_Y);
+    for (uint32_t i = 0; i < 64u; ++i) fg_comp_msce8_ps3_ku0_jc_trend_history[i] = LV_CHART_POINT_NONE;
+    lv_chart_set_ext_y_array(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, fg_comp_msce8_ps3_ku0_jc_trend_history);
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(2520.0f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(3135.4030096240513f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(3652.357724638603f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(3989.4253250244483f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(4096.230562265025f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(3962.118795862162f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(3617.9123852904804f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(3130.462293457175f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(2590.9430509369213f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(2098.926700873536f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(1745.0049668987374f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(1594.9811419197265f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(1678.3802377389668f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(1983.275211587839f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(2458.3290895824234f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(3021.6983963262837f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(3575.250520283392f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(4021.6238292081475f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(4281.165080029444f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(4305.7998598384775f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(4087.42476699523f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(3659.362153088302f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(3090.6240010635006f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(2473.981326982515f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(1909.9121190268372f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(1489.2171274242144f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(1277.3242853751299f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(1303.0089409098193f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(1553.4894480635214f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(1976.749434957658f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(2490.681871976409f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(2997.464260064975f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(3400.6649663495464f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(3622.106007098075f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(3615.5499345096246f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(3374.8305611859687f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(2935.0130907047264f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(2366.3809304552883f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(1762.293421431543f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(1223.0241790904256f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(838.3884981905559f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(672.1788717742345f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(751.1135023616263f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(1060.2183506194144f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(1545.4451061263937f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(2123.0698358605255f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(2694.238570790157f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_ps3_ku0_jc_trend_chart, fg_comp_msce8_ps3_ku0_jc_trend_series, (int32_t)lroundf(3162.1315763563284f * 1000.0f));
+    lv_obj_t * obj1_footer = lv_label_create(fg_comp_msce8_ps3_ku0_jc_trend);
     lv_label_set_text(obj1_footer, "0 RPM    6000 RPM"); lv_obj_align(obj1_footer, LV_ALIGN_BOTTOM_LEFT, 0, 0);
     lv_obj_set_style_text_font(obj1_footer, &lv_font_montserrat_10, LV_PART_MAIN);
     lv_obj_set_style_text_color(obj1_footer, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
+
+    fg_comp_msce8_qszm592_l_trend = lv_obj_create(fg_application_page);
+    lv_obj_set_pos(fg_comp_msce8_qszm592_l_trend, 209, 298);
+    lv_obj_set_size(fg_comp_msce8_qszm592_l_trend, 440, 280);
+    lv_obj_set_style_bg_color(fg_comp_msce8_qszm592_l_trend, lv_color_hex(0x1E2328), LV_PART_MAIN);
+    lv_obj_set_style_bg_grad_color(fg_comp_msce8_qszm592_l_trend, lv_color_hex(0x2A3138), LV_PART_MAIN);
+    lv_obj_set_style_bg_grad_dir(fg_comp_msce8_qszm592_l_trend, LV_GRAD_DIR_VER, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(fg_comp_msce8_qszm592_l_trend, LV_OPA_90, LV_PART_MAIN);
+    lv_obj_set_style_shadow_width(fg_comp_msce8_qszm592_l_trend, 18, LV_PART_MAIN);
+    lv_obj_set_style_shadow_opa(fg_comp_msce8_qszm592_l_trend, LV_OPA_30, LV_PART_MAIN);
+    lv_obj_set_style_border_width(fg_comp_msce8_qszm592_l_trend, 1, LV_PART_MAIN);
+    lv_obj_set_style_border_color(fg_comp_msce8_qszm592_l_trend, lv_color_hex(0xF2A900), LV_PART_MAIN);
+    lv_obj_set_style_radius(fg_comp_msce8_qszm592_l_trend, 12, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(fg_comp_msce8_qszm592_l_trend, 14, LV_PART_MAIN);
+    lv_obj_clear_flag(fg_comp_msce8_qszm592_l_trend, LV_OBJ_FLAG_SCROLLABLE);
+    fg_comp_msce8_qszm592_l_trend_minimum = 0.0f; fg_comp_msce8_qszm592_l_trend_maximum = 6000.0f;
+    fg_comp_msce8_qszm592_l_trend_warning = 4500.0f; fg_comp_msce8_qszm592_l_trend_alarm = 5500.0f;
+    lv_obj_t * obj2_title = lv_label_create(fg_comp_msce8_qszm592_l_trend);
+    lv_label_set_text(obj2_title, "Engine RPM"); lv_obj_align(obj2_title, LV_ALIGN_TOP_LEFT, 0, 0);
+    lv_obj_set_style_text_color(obj2_title, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
+    fg_comp_msce8_qszm592_l_trend_current = lv_label_create(fg_comp_msce8_qszm592_l_trend);
+    lv_label_set_text_fmt(fg_comp_msce8_qszm592_l_trend_current, "%.6g RPM", (double)3162.1315763563284f);
+    lv_obj_align(fg_comp_msce8_qszm592_l_trend_current, LV_ALIGN_TOP_RIGHT, 0, 0);
+    lv_obj_set_style_text_color(fg_comp_msce8_qszm592_l_trend_current, lv_color_hex(0xF2A900), LV_PART_MAIN);
+    fg_comp_msce8_qszm592_l_trend_chart = lv_chart_create(fg_comp_msce8_qszm592_l_trend);
+    lv_obj_set_pos(fg_comp_msce8_qszm592_l_trend_chart, 0, 44);
+    lv_obj_set_size(fg_comp_msce8_qszm592_l_trend_chart, 412, 178);
+    lv_chart_set_type(fg_comp_msce8_qszm592_l_trend_chart, LV_CHART_TYPE_LINE);
+    lv_chart_set_update_mode(fg_comp_msce8_qszm592_l_trend_chart, LV_CHART_UPDATE_MODE_CIRCULAR);
+    lv_chart_set_point_count(fg_comp_msce8_qszm592_l_trend_chart, 64);
+    lv_chart_set_range(fg_comp_msce8_qszm592_l_trend_chart, LV_CHART_AXIS_PRIMARY_Y, (int32_t)lroundf(0.0f * 1000.0f), (int32_t)lroundf(6000.0f * 1000.0f));
+    lv_chart_set_div_line_count(fg_comp_msce8_qszm592_l_trend_chart, 5, 7);
+    lv_obj_set_style_line_opa(fg_comp_msce8_qszm592_l_trend_chart, 56, LV_PART_MAIN);
+    lv_obj_set_style_border_width(fg_comp_msce8_qszm592_l_trend_chart, 1, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(fg_comp_msce8_qszm592_l_trend_chart, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_set_style_line_width(fg_comp_msce8_qszm592_l_trend_chart, 2, LV_PART_ITEMS);
+    lv_obj_set_style_shadow_color(fg_comp_msce8_qszm592_l_trend_chart, lv_color_hex(0xF2A900), LV_PART_ITEMS);
+    lv_obj_set_style_shadow_width(fg_comp_msce8_qszm592_l_trend_chart, 7, LV_PART_ITEMS);
+    lv_obj_set_style_shadow_opa(fg_comp_msce8_qszm592_l_trend_chart, 46, LV_PART_ITEMS);
+    lv_obj_set_style_size(fg_comp_msce8_qszm592_l_trend_chart, 5, LV_PART_INDICATOR);
+    fg_comp_msce8_qszm592_l_trend_series = lv_chart_add_series(fg_comp_msce8_qszm592_l_trend_chart, lv_color_hex(0xF2A900), LV_CHART_AXIS_PRIMARY_Y);
+    for (uint32_t i = 0; i < 64u; ++i) fg_comp_msce8_qszm592_l_trend_history[i] = LV_CHART_POINT_NONE;
+    lv_chart_set_ext_y_array(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, fg_comp_msce8_qszm592_l_trend_history);
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(2520.0f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(3135.4030096240513f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(3652.357724638603f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(3989.4253250244483f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(4096.230562265025f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(3962.118795862162f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(3617.9123852904804f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(3130.462293457175f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(2590.9430509369213f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(2098.926700873536f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(1745.0049668987374f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(1594.9811419197265f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(1678.3802377389668f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(1983.275211587839f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(2458.3290895824234f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(3021.6983963262837f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(3575.250520283392f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(4021.6238292081475f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(4281.165080029444f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(4305.7998598384775f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(4087.42476699523f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(3659.362153088302f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(3090.6240010635006f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(2473.981326982515f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(1909.9121190268372f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(1489.2171274242144f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(1277.3242853751299f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(1303.0089409098193f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(1553.4894480635214f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(1976.749434957658f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(2490.681871976409f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(2997.464260064975f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(3400.6649663495464f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(3622.106007098075f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(3615.5499345096246f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(3374.8305611859687f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(2935.0130907047264f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(2366.3809304552883f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(1762.293421431543f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(1223.0241790904256f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(838.3884981905559f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(672.1788717742345f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(751.1135023616263f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(1060.2183506194144f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(1545.4451061263937f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(2123.0698358605255f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(2694.238570790157f * 1000.0f));
+    lv_chart_set_next_value(fg_comp_msce8_qszm592_l_trend_chart, fg_comp_msce8_qszm592_l_trend_series, (int32_t)lroundf(3162.1315763563284f * 1000.0f));
+    lv_obj_t * obj2_footer = lv_label_create(fg_comp_msce8_qszm592_l_trend);
+    lv_label_set_text(obj2_footer, "0 RPM - 6000 RPM    64 samples"); lv_obj_align(obj2_footer, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+    lv_obj_set_style_text_font(obj2_footer, &lv_font_montserrat_10, LV_PART_MAIN);
+    lv_obj_set_style_text_color(obj2_footer, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
 
 
     fg_ram_probe_log("02 after application page creation");

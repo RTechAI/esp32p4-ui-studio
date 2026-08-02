@@ -448,3 +448,33 @@ void FG_On_Comp_MSCDSCYNJ6_TAP_Cleared(void)
 {
     printf("[ForgeUI User Event] Comp MSCDSCYNJ6 TAP cleared\n");
 }
+
+void FG_On_Comp_MSCE8_PS3_KU0_JC_Warning(void)
+{
+    printf("[ForgeUI User Event] FG_On_Comp_MSCE8_PS3_KU0_JC_Warning\n");
+}
+
+void FG_On_Comp_MSCE8_PS3_KU0_JC_Alarm(void)
+{
+    printf("[ForgeUI User Event] FG_On_Comp_MSCE8_PS3_KU0_JC_Alarm\n");
+}
+
+void FG_On_Comp_MSCE8_PS3_KU0_JC_Cleared(void)
+{
+    printf("[ForgeUI User Event] Comp MSCE8 PS3 KU0 JC cleared\n");
+}
+
+void FG_On_Comp_MSCE8_QSZM592_L_Warning(void)
+{
+    printf("[ForgeUI User Event] FG_On_Comp_MSCE8_QSZM592_L_Warning\n");
+}
+
+void FG_On_Comp_MSCE8_QSZM592_L_Alarm(void)
+{
+    printf("[ForgeUI User Event] FG_On_Comp_MSCE8_QSZM592_L_Alarm\n");
+}
+
+void FG_On_Comp_MSCE8_QSZM592_L_Cleared(void)
+{
+    printf("[ForgeUI User Event] Comp MSCE8 QSZM592 L cleared\n");
+}
