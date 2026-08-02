@@ -589,7 +589,6 @@ describe('ForgeUI export preflight', () => {
 
   it.each([
     'Lottie',
-    'Menu',
     'ObjxTempl',
     'Editable',
   ])('rejects quarantined legacy placeholder %s', type => {

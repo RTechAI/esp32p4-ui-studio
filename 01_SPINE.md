@@ -11,14 +11,14 @@
 
 ## Current Save Point
 
-**FORGEUI_LVGL9_CLOSURE_BATCH1__SPAN_ANIMIMAGE_IMAGEBUTTON_ESP32P4_PROVEN__DOCUMENTATION_ALIGNED__READY_FOR_WINDOW_MENU__2026-08-02**
+**FORGEUI_LVGL9_CLOSURE_BATCH3__MENU_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02**
 
 **CURRENT PRIORITY: CLOSE THE PRACTICAL OFFICIAL LVGL 9.2 CATALOGUE BEFORE FORGEUI-NATIVE WIDGETS**
 
-### 2026-08-01 end-of-sprint save point
+### 2026-08-02 Window proof promotion
 
-Physical proof now stands at **42 practical LVGL 9.2 widgets/components**: the
-previous 39 plus Span, Animation Image and Image Button. Batch D
+Physical proof now stands at **43 practical LVGL 9.2 widgets/components**: the
+previous 39 plus Span, Animation Image, Image Button and Window. Batch D
 physically proved QR Code, Icon Button, Icon and Canvas across the applicable
 Canvas, Browser Preview, Live Studio and Standalone Export paths. The QR Code
 displayed correctly on ESP32-P4 and scanned successfully with a mobile phone.
@@ -32,8 +32,9 @@ vertical insertion default without changing horizontal behavior; Text owns
 multiline wrapping parity; and Icon owns source-aware centered automatic fit.
 All 39 previously registered Standard widgets remain physically proven. Span,
 Animation Image and native Image Button have now also passed ESP32-P4 proof
-across Canvas, Browser, Live and Standalone. Window is **IMPLEMENTED — READY FOR PHYSICAL PROOF**; Menu is the only remaining practical closure widget
-remaining practical LVGL 9.2 closure widgets. Lottie remains excluded.
+across Canvas, Browser, Live and Standalone. Window is **PROVEN**; Menu is
+**IMPLEMENTED — READY FOR PHYSICAL PROOF** and is the final practical LVGL 9.2
+proof candidate. Lottie remains excluded.
 
 ### Technical-manager continuity note
 
@@ -83,8 +84,8 @@ open. Direct COM-port flashing by GPT is not the default workflow.
   Browser Preview → LVGL Export → Runtime SDK → UserEvents → ESP32-P4 →
   Standalone Export. Its setter is silent, its changed hook fires exactly once
   per effective user action, and generated names are collision-safe.
-- Dashboard is the only implemented Layout Designer template. All 42 practical
-  Standard LVGL Registry entries are physically proven; Window and Menu remain
+- Dashboard is the only implemented Layout Designer template. All 43 practical
+  Standard LVGL Registry entries are physically proven; Menu remains
   before the dedicated ForgeUI Dashboard Widget family begins.
 - The ForgeUI Runtime SDK is an architectural direction, not a separately
   shipped runtime product. It is the documented surface formed by generated
@@ -1488,7 +1489,7 @@ The Widget Tray is completely registry-driven. Future widgets are added by regis
 
 ### Registry-wide implementation and proof audit — 2026-07-31
 
-The authoritative registry contains 48 entries: 43 Standard widgets and five
+The authoritative registry contains 49 entries: 44 Standard widgets and five
 Interactive Assets. Every entry is available in the registry-driven Tray, has
 persisted defaults/insertion, a Canvas dispatch, Inspector dispatch, Browser
 Preview dispatch and an LVGL export path. Focused registry/Tray tests and
@@ -2683,6 +2684,32 @@ These remain future concepts only. Existing Radio and Checkbox runtimes are impl
 # Save Point History
 
 Save points are ordered newest to oldest. Detailed subsystem engineering is maintained in the Developer Code Maps.
+
+## FORGEUI_LVGL9_CLOSURE_BATCH3__MENU_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02
+
+- **Implementation:** Menu is Registry-backed and uses one serialized
+  page/section/item navigation tree across Inspector, Canvas, Browser and the
+  shared Live/Standalone generator.
+- **Native export:** `lv_menu_create`, native pages, sections, item containers,
+  separators, load-page events, root selection and LVGL back history.
+- **Status:** **IMPLEMENTED — READY FOR PHYSICAL PROOF**. The proven total
+  remains **43** until ESP32-P4 validation succeeds.
+- **Closure boundary:** Menu hardware proof is the only remaining practical
+  LVGL 9.2 closure step. Lottie remains intentionally excluded.
+
+## FORGEUI_LVGL9_CLOSURE_BATCH2__WINDOW_ESP32P4_PROVEN__DOCUMENTATION_ALIGNED__READY_FOR_MENU__2026-08-02
+
+- **Milestone:** Two native LVGL Windows rendered simultaneously on the
+  Waveshare ESP32-P4 1024×600 display with visible headers and independent
+  close controls. Both closed independently without crash, reboot, watchdog or
+  obvious rendering corruption.
+- **Proof boundary:** Core native Window rendering, multi-instance independence
+  and close behavior are proven. Scrolling, populated child content, action
+  callbacks and public Runtime SDK/UserEvents hooks are not claimed by this
+  hardware proof.
+- **Count:** **43 practical LVGL 9.2 widgets/components physically proven**.
+- **Next:** Menu is the only remaining practical closure widget. Lottie remains
+  intentionally excluded.
 
 ## FORGEUI_LVGL9_CLOSURE_BATCH1__SPAN_ANIMIMAGE_IMAGEBUTTON_ESP32P4_PROVEN__DOCUMENTATION_ALIGNED__READY_FOR_WINDOW_MENU__2026-08-02
 

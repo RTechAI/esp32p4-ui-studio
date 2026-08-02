@@ -3,21 +3,21 @@
 ## 2026-08-01 Standard Widget Library completion
 
 Current platform save point:
-`FORGEUI_LVGL9_CLOSURE_BATCH1__SPAN_ANIMIMAGE_IMAGEBUTTON_ESP32P4_PROVEN__DOCUMENTATION_ALIGNED__READY_FOR_WINDOW_MENU__2026-08-02`.
+`FORGEUI_LVGL9_CLOSURE_BATCH3__MENU_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02`.
 
 Widget Registry architecture cleanup is complete at the metadata boundary:
 
-- all 47 registered entries have explicit API, UserEvent, input,
+- all 49 registered entries have explicit API, UserEvent, input,
   Interactive-Asset and child-ownership capabilities;
 - metadata is aligned with generated `publicApiDeclarations` and
   `userEventHooks`;
 - every `documentationId` resolves to an existing Markdown document;
 - Spinbox and QR Code record their known LVGL configuration dependencies in
   preparation for future Registry-driven feature gating;
-- Lottie, Menu, ObjxTempl and Editable remain quarantined; Span, AnimImage and
-  ImageButton are now active registered widgets;
-- Batch 1 proof promotion changes documentation status only; runtime, preview
-  and generated API behavior remain unchanged.
+- Lottie, ObjxTempl and Editable remain quarantined; Span, AnimImage,
+  ImageButton, Window and Menu are active registered widgets;
+- Batch 2 Window proof promotion changes documentation status only; runtime,
+  preview and generated API behavior remain unchanged.
 
 - Board/profile ownership is registry-driven; the supported production profile is Waveshare ESP32-P4 WiFi6 Touch LCD 7B.
 - Persisted project features hydrate after mount and generate `00_ForgeUI_Features.h`.
@@ -80,21 +80,24 @@ Status language:
 | Span | **PROVEN** | ESP32-P4 proved ordered native `lv_spangroup`, semantic/explicit colours, font sizes, underline, ordering, alignment and Canvas/Browser/Live/Standalone parity |
 | Animation Image | **PROVEN** | Existing Asset Manager multi-select authoring, ordered native `lv_animimg` frames, animation, zero-frame placeholder and Canvas/Browser/Live/Standalone parity passed ESP32-P4 validation |
 | Image Button | **PROVEN** | Native `lv_imagebutton` released, pressed and disabled states, enabled setter, click hook, multiple instances and Canvas/Browser/Live/Standalone parity passed ESP32-P4 validation |
+| Window | **PROVEN** | Native `lv_win` creation, two simultaneous instances, headers and independent close behavior physically validated on Waveshare ESP32-P4; richer content/scroll/action behavior is not claimed by this proof |
+| Menu | **IMPLEMENTED — READY FOR PHYSICAL PROOF** | Registry-backed serialized navigation hierarchy, Canvas/Inspector/Browser support, native pages/sections/items/load-page links, back history and shared Live/Standalone export pass focused validation |
 
-The Registry currently contains no Dashboard widgets. Window is **IMPLEMENTED — READY FOR PHYSICAL PROOF**; Menu and the
+The Registry currently contains no Dashboard widgets. Window is **PROVEN**; Menu is **IMPLEMENTED — READY FOR PHYSICAL PROOF**; the
 dedicated Dashboard Widget family remain **PLANNED** and must not be
 described as Standard-library completions.
 
-Registry audit total: 48 entries, comprising 43 practical Standard LVGL
-widgets/components and five Interactive Assets. **42 practical Standard LVGL
-widgets/components are physically PROVEN on ESP32-P4**; Window is ready for proof.
+Registry audit total: 49 entries, comprising 44 practical Standard LVGL
+widgets/components and five Interactive Assets. **43 practical Standard LVGL
+widgets/components are physically PROVEN on ESP32-P4**; Menu awaits proof.
 
 The final official-catalogue audit found five practical LVGL 9.2 closure
 widgets. Batch 1 completed and physically proved Span, Animation Image and
-Image Button; Window awaits physical proof and Menu remains. Lottie is
+Image Button; Batch 2 physically proved Window. Menu is implemented and awaits
+physical proof. Lottie is
 intentionally excluded because its ThorVG/vector/C++ and framebuffer boundary
-requires a separate opt-in architecture decision. Complete and physically
-prove Window and Menu before beginning the ForgeUI Dashboard Widget
+requires a separate opt-in architecture decision. Physically prove Menu before
+beginning the ForgeUI Dashboard Widget
 family. See `docs/LVGL_9_STANDARD_WIDGET_AUDIT.md`.
 
 ## 2026-08-01 end-of-sprint proof update

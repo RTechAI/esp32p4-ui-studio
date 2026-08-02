@@ -34,7 +34,6 @@ import {
   AspectRatioProps,
   BreadcrumbItemProps,
   EditableProps,
-  MenuProps,
   NumberInputProps,
   RadioProps,
   SelectProps,
@@ -71,6 +70,7 @@ import {
 
 import iconsList from '~iconsList'
 import { DEFAULT_FORGEUI_SPANS } from '~forgeui/ForgeUIClosureWidgets'
+import { DEFAULT_FORGEUI_MENU_PAGES } from '~forgeui/ForgeUIMenu'
 
 type ForgeUICanvasProps = {
   positionMode?: string
@@ -185,7 +185,7 @@ type PreviewDefaultProps = {
   BreadcrumbItem?: PropsWithForm<BreadcrumbItemProps>
   BreadcrumbLink?: PropsWithForm<BreadcrumbLinkProps>
   Editable?: PropsWithForm<EditableProps>
-  Menu?: PropsWithForm<MenuProps>
+  Menu?: PropsWithForm<any>
   NumberInput?: PropsWithForm<NumberInputProps>
   Spinbox?: PropsWithForm<any>
   Radio?: PropsWithForm<RadioProps>
@@ -346,6 +346,14 @@ WiFi: {
     scrollbarMode: 'auto', childClipping: true, borderWidth: 1,
     borderColor: '#334155', cornerRadius: 10, visible: true, opacity: 1,
     positionMode: 'absolute', x: 40, y: 40, w: 420, h: 300,
+  },
+  Menu: {
+    pages: DEFAULT_FORGEUI_MENU_PAGES.map(page => ({ ...page, sections: page.sections.map(section => ({ ...section, items: section.items.map(item => ({ ...item })) })) })),
+    rootPageId: 'main', headerMode: 'top-fixed', rootBackButton: false,
+    background: '#0F172A', headerBackground: '#172033', selectedBackground: '#164E63',
+    textColor: '#F8FAFC', secondaryTextColor: '#94A3B8', padding: 4,
+    borderWidth: 1, borderColor: '#334155', cornerRadius: 10,
+    positionMode: 'absolute', x: 40, y: 40, w: 420, h: 420,
   },
   QRCode: {
     contentType: 'custom',

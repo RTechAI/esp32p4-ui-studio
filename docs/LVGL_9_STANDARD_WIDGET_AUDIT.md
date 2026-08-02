@@ -1,27 +1,27 @@
 # Final LVGL 9 Standard Widget Audit
 
-Audit date: 2026-08-01; Batch 1 proof aligned 2026-08-02  
-Firmware baseline: LVGL 9.2.2  
-Primary source: [official LVGL 9.2 widget index](https://docs.lvgl.io/9.2/widgets/index.html)  
+Audit date: 2026-08-01; Batch 2 Window proof aligned 2026-08-02
+Firmware baseline: LVGL 9.2.2
+Primary source: [official LVGL 9.2 widget index](https://docs.lvgl.io/9.2/widgets/index.html)
 Forward-looking source: [current LVGL widget index](https://docs.lvgl.io/master/widgets/index.html)
 
 ## Conclusion
 
 **Option B — the official LVGL phase is not yet closed.**
 
-ForgeUI now has **42 practical LVGL 9.2 widgets/components physically proven
-on ESP32-P4**. Three of the original closure classes completed Batch 1:
+ForgeUI now has **43 practical LVGL 9.2 widgets/components physically proven
+on ESP32-P4**. Three closure classes completed Batch 1 and Window completed Batch 2:
 
 - Animation Image (`lv_animimg`) — **PROVEN**
 - Image Button (`lv_imagebutton`) — **PROVEN**
 - Lottie (`lv_lottie`) — **INTENTIONALLY EXCLUDED** from the practical embedded
   baseline because it requires the ThorVG/vector/C++ path and a dedicated
   ARGB8888 render buffer
-- Menu (`lv_menu`) — **PLANNED**
+- Menu (`lv_menu`) — **IMPLEMENTED — READY FOR PHYSICAL PROOF**
 - Span (`lv_span`) — **PROVEN**
-- Window (`lv_win`) — **MISSING** and should be added to the closure plan
+- Window (`lv_win`) — **PROVEN**
 
-Window and Menu are the only practical closure implementations remaining.
+Menu is implemented and is the only practical closure proof remaining.
 Lottie remains intentionally excluded.
 
 ## Complete LVGL 9.2 matrix
@@ -47,7 +47,7 @@ Lottie remains intentionally excluded.
 | Line (`lv_line`) | ✅ PROVEN | Registered as Line. |
 | List (`lv_list`) | ✅ PROVEN | Registered as List. |
 | Lottie (`lv_lottie`) | ⚪ INTENTIONALLY EXCLUDED | Official widget, but outside the practical 9.2.2 baseline because of ThorVG/vector/C++ and framebuffer costs. Reassess only with an explicit animated-vector feature decision. |
-| Menu (`lv_menu`) | 🔵 PLANNED | Legacy type is quarantined; no native implementation. Required before LVGL closure. |
+| Menu (`lv_menu`) | 🟡 IMPLEMENTED — READY FOR PHYSICAL PROOF | Registry-backed native pages, sections, item containers, load-page links and back history pass focused software validation. |
 | Message Box (`lv_msgbox`) | ✅ PROVEN | Registered as Message Box. |
 | Roller (`lv_roller`) | ✅ PROVEN | Registered as Roller. |
 | Scale (`lv_scale`) | ✅ PROVEN | Registered as Scale. |
@@ -60,7 +60,7 @@ Lottie remains intentionally excluded.
 | Tabview (`lv_tabview`) | ✅ PROVEN | Registered as TabView. |
 | Text area (`lv_textarea`) | ✅ PROVEN | Registered as Textarea; Input is an additional one-line semantic. |
 | Tile view (`lv_tileview`) | ✅ PROVEN | Registered as TileView. |
-| Window (`lv_win`) | ❌ MISSING | No active or quarantined type. Add native header/content/button ownership before LVGL closure. |
+| Window (`lv_win`) | ✅ PROVEN | Registry-backed structured container; two native instances, headers and independent close controls physically validated on ESP32-P4. |
 
 ## Widgets added to current LVGL after the 9.2 baseline
 
@@ -77,8 +77,7 @@ These do not change closure criteria for firmware pinned to LVGL 9.2.2.
 
 | Order | Widget | Estimated effort | Reason |
 | --- | --- | --- | --- |
-| 1 | Window | Medium–high | Structured header/content ownership, title/actions, child insertion, visibility and close behavior. |
-| 2 | Menu | High | Multi-page structured ownership, navigation history, items, selection and genuine navigation events. |
+| 1 | Menu physical proof | Medium | Validate native multi-page navigation, back history, disabled items and multi-instance independence on ESP32-P4. |
 
 Lottie is not recommended for this closure sprint. Its dependency and memory
 cost should be handled as a separate opt-in media architecture decision.
@@ -86,11 +85,10 @@ cost should be handled as a separate opt-in media architecture decision.
 ## Window and Menu decision
 
 Both `lv_win` and `lv_menu` are explicitly listed by the official LVGL 9.2
-documentation. They should be completed before declaring official LVGL widget
-coverage closed. Window should precede Menu because it establishes the smaller
-structured-container boundary; Menu then exercises deeper page and navigation
-ownership.
+documentation. Window is complete and physically proven, establishing the
+smaller structured-container boundary. Menu now implements deeper page and
+navigation ownership and awaits hardware proof before practical coverage closes.
 
-After Window and Menu are implemented and physically proven—and Lottie remains
+After Menu is physically proven—and Lottie remains
 explicitly excluded—the project can close
 the practical LVGL 9.2 chapter and move fully to ForgeUI-native widgets.

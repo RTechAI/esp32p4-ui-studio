@@ -13,7 +13,7 @@
 
 ## Current save point
 
-**FORGEUI_LVGL9_CLOSURE_BATCH1__SPAN_ANIMIMAGE_IMAGEBUTTON_ESP32P4_PROVEN__DOCUMENTATION_ALIGNED__READY_FOR_WINDOW_MENU__2026-08-02**
+**FORGEUI_LVGL9_CLOSURE_BATCH3__MENU_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02**
 
 ## Current authoritative ownership summary
 
@@ -536,10 +536,10 @@ The 2026-07-30 Standard input and selection group is also physically proven acro
 - Spinbox
 
 TabView, TileView, Image, Box and Icon Button are **PROVEN**.
-The registry audit records 48 total entries, comprising 43 practical Standard
+The registry audit records 49 total entries, comprising 44 practical Standard
 LVGL widgets/components and five Interactive Assets; physical proof is
-**42/42**. Closure Batch 1 promoted Span, Animation Image and Image Button after
-successful ESP32-P4 validation. Window is registered and ready for physical proof; Menu remains outside the Registry;
+**43/43**. Closure Batch 1 promoted Span, Animation Image and Image Button after
+successful ESP32-P4 validation; Closure Batch 2 physically proved Window. Menu remains outside the Registry;
 Lottie is an intentional dependency-heavy exclusion. The authoritative comparison is
 `docs/LVGL_9_STANDARD_WIDGET_AUDIT.md`.
 
@@ -3818,6 +3818,28 @@ Panel, Monitoring, SCADA Overview and Mobile / Portrait are roadmap candidates.
 
 Save points are ordered newest to oldest.
 
+### FORGEUI_LVGL9_CLOSURE_BATCH3__MENU_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02
+
+- Menu is an active Registry-backed `structured` navigation widget, not a List.
+- `ForgeUIMenu.ts` normalizes the stable serialized page/section/item model;
+  `MenuPanel.tsx` authors it; `StandardMenuPreview.tsx` owns shared structural
+  and Browser interaction parity.
+- The shared exporter emits native LVGL 9.2 Menu pages, sections, item
+  containers and load-page links with collision-safe multi-instance names.
+- No public Menu Runtime SDK or UserEvents surface is emitted before physical
+  proof. Status is **IMPLEMENTED — READY FOR PHYSICAL PROOF**.
+
+### FORGEUI_LVGL9_CLOSURE_BATCH2__WINDOW_ESP32P4_PROVEN__DOCUMENTATION_ALIGNED__READY_FOR_MENU__2026-08-02
+
+- Registry-backed structured Window uses the existing component hierarchy and
+  shared Canvas, Inspector, Browser, Live and Standalone pipeline.
+- Two native `lv_win` instances, headers and independent close behavior passed
+  physical validation on the Waveshare ESP32-P4 1024×600 display.
+- The practical LVGL 9.2 proof total is **43**. Menu is the only remaining
+  practical widget; Lottie remains intentionally excluded.
+- No public Window Runtime SDK API or `95_UserEvents` hook exists yet; future
+  application-level contracts remain deliberately separate from core proof.
+
 ### FORGEUI_LVGL9_CLOSURE_BATCH1__SPAN_ANIMIMAGE_IMAGEBUTTON_ESP32P4_PROVEN__DOCUMENTATION_ALIGNED__READY_FOR_WINDOW_MENU__2026-08-02
 
 - Span, Animation Image and Image Button are physically proven through the
@@ -4105,7 +4127,7 @@ Do not create a new registry, persistence system, AI pipeline, uploaded-asset st
 ## 2026-08-01 documentation save-point note
 
 This dated note recorded the original **39/39** milestone. The current practical
-LVGL 9.2 proof ledger is **42**, with Window awaiting physical proof and only Menu remaining to implement. Text,
+LVGL 9.2 proof ledger is **43**, with Menu implemented and awaiting physical proof. Text,
 Clock, Wi-Fi Status, Image and
 Line are proven with native constructors and Live/Standalone ESP32-P4 parity;
 Heading, Box and Divider are also newly proven, and Button proof is recorded in

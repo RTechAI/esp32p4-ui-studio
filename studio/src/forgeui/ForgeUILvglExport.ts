@@ -44,6 +44,7 @@ import {
 import { getForgeUIStandardListModel } from './ForgeUIStandardList'
 import { normalizeForgeUISpans, normalizeFrameAssetIds } from './ForgeUIClosureWidgets'
 import { normalizeWindowActions, windowScrollbarMode } from './ForgeUIWindow'
+import { normalizeForgeUIMenuPages, resolveForgeUIMenuRootPageId } from './ForgeUIMenu'
 import {
   getForgeUIStandardSpinboxModel,
   type ForgeUIStandardSpinboxModel,
@@ -3808,6 +3809,82 @@ case 'Window': {
   if (p.scrollingEnabled === false) lines.push(`lv_obj_clear_flag(${varName}_content, LV_OBJ_FLAG_SCROLLABLE);`)
   if (p.childClipping === false) lines.push(`lv_obj_add_flag(${varName}_content, LV_OBJ_FLAG_OVERFLOW_VISIBLE);`)
   childParentVar = `${varName}_content`
+  lines.push(``)
+  break
+}
+
+case 'Menu': {
+  const p = child.props || {}
+  const pages = normalizeForgeUIMenuPages(p.pages)
+  const rootPageId = resolveForgeUIMenuRootPageId(pages, p.rootPageId)
+  const color = (value: unknown, fallback: string) =>
+    `0x${String(value || fallback).replace('#', '').slice(0, 6)}`
+  const headerMode = p.headerMode === 'top-unfixed' ? 'LV_MENU_HEADER_TOP_UNFIXED'
+    : p.headerMode === 'bottom-fixed' ? 'LV_MENU_HEADER_BOTTOM_FIXED' : 'LV_MENU_HEADER_TOP_FIXED'
+  lines.push(`lv_obj_t * ${varName} = lv_menu_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
+  lines.push(`lv_menu_set_mode_header(${varName}, ${headerMode});`)
+  lines.push(`lv_menu_set_mode_root_back_button(${varName}, ${p.rootBackButton ? 'LV_MENU_ROOT_BACK_BUTTON_ENABLED' : 'LV_MENU_ROOT_BACK_BUTTON_DISABLED'});`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${color(p.background, '#0F172A')}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${color(p.borderColor, '#334155')}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${varName}, ${Math.max(0, integerProp(p.borderWidth, 1))}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${varName}, ${Math.max(0, integerProp(p.cornerRadius, 10))}, LV_PART_MAIN);`)
+  pages.forEach((page, pageIndex) => {
+    lines.push(`lv_obj_t * ${varName}_page_${pageIndex} = lv_menu_page_create(${varName}, "${esc(page.title)}");`)
+    lines.push(`lv_obj_set_style_bg_color(${varName}_page_${pageIndex}, lv_color_hex(${color(p.background, '#0F172A')}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_pad_all(${varName}_page_${pageIndex}, ${Math.max(0, integerProp(p.padding, 4))}, LV_PART_MAIN);`)
+  })
+  pages.forEach((page, pageIndex) => {
+    page.sections.forEach((section, sectionIndex) => {
+      const sectionName = `${varName}_page_${pageIndex}_section_${sectionIndex}`
+      lines.push(`lv_obj_t * ${sectionName} = lv_menu_section_create(${varName}_page_${pageIndex});`)
+      if (section.title) {
+        lines.push(`lv_obj_t * ${sectionName}_title = lv_label_create(${sectionName});`)
+        lines.push(`lv_label_set_text(${sectionName}_title, "${esc(section.title)}");`)
+        lines.push(`lv_obj_set_style_text_color(${sectionName}_title, lv_color_hex(${color(p.secondaryTextColor, '#94A3B8')}), LV_PART_MAIN);`)
+      }
+      section.items.forEach((item, itemIndex) => {
+        const itemName = `${sectionName}_item_${itemIndex}`
+        lines.push(`lv_obj_t * ${itemName} = lv_menu_cont_create(${sectionName});`)
+        lines.push(`lv_obj_set_flex_flow(${itemName}, LV_FLEX_FLOW_ROW);`)
+        lines.push(`lv_obj_set_style_pad_all(${itemName}, 8, LV_PART_MAIN);`)
+        if (item.icon) {
+          lines.push(`lv_obj_t * ${itemName}_icon = lv_label_create(${itemName});`)
+          lines.push(`lv_label_set_text(${itemName}_icon, ${/^LV_SYMBOL_[A-Z0-9_]+$/.test(item.icon) ? item.icon : 'LV_SYMBOL_BULLET'});`)
+          lines.push(`lv_obj_set_style_text_color(${itemName}_icon, lv_color_hex(${color(p.textColor, '#F8FAFC')}), LV_PART_MAIN);`)
+        }
+        lines.push(`lv_obj_t * ${itemName}_text = lv_obj_create(${itemName});`)
+        lines.push(`lv_obj_set_size(${itemName}_text, LV_PCT(100), LV_SIZE_CONTENT);`)
+        lines.push(`lv_obj_set_flex_grow(${itemName}_text, 1);`)
+        lines.push(`lv_obj_set_flex_flow(${itemName}_text, LV_FLEX_FLOW_COLUMN);`)
+        lines.push(`lv_obj_set_style_bg_opa(${itemName}_text, LV_OPA_TRANSP, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_border_width(${itemName}_text, 0, LV_PART_MAIN);`)
+        lines.push(`lv_obj_set_style_pad_all(${itemName}_text, 0, LV_PART_MAIN);`)
+        lines.push(`lv_obj_t * ${itemName}_label = lv_label_create(${itemName}_text);`)
+        lines.push(`lv_label_set_text(${itemName}_label, "${esc(item.label)}");`)
+        lines.push(`lv_obj_set_style_text_color(${itemName}_label, lv_color_hex(${color(p.textColor, '#F8FAFC')}), LV_PART_MAIN);`)
+        if (item.subtitle) {
+          lines.push(`lv_obj_t * ${itemName}_subtitle = lv_label_create(${itemName}_text);`)
+          lines.push(`lv_label_set_text(${itemName}_subtitle, "${esc(item.subtitle)}");`)
+          lines.push(`lv_obj_set_style_text_color(${itemName}_subtitle, lv_color_hex(${color(p.secondaryTextColor, '#94A3B8')}), LV_PART_MAIN);`)
+          lines.push(`lv_obj_set_style_text_font(${itemName}_subtitle, &lv_font_montserrat_12, LV_PART_MAIN);`)
+        }
+        const targetIndex = pages.findIndex(target => target.id === item.targetPageId)
+        if (targetIndex >= 0) {
+          lines.push(`lv_obj_t * ${itemName}_arrow = lv_label_create(${itemName});`)
+          lines.push(`lv_label_set_text(${itemName}_arrow, LV_SYMBOL_RIGHT);`)
+          lines.push(`lv_menu_set_load_page_event(${varName}, ${itemName}, ${varName}_page_${targetIndex});`)
+        }
+        if (!item.enabled) lines.push(`lv_obj_add_state(${itemName}, LV_STATE_DISABLED);`)
+      })
+      if (sectionIndex < page.sections.length - 1) lines.push(`lv_menu_separator_create(${varName}_page_${pageIndex});`)
+    })
+  })
+  const rootIndex = Math.max(0, pages.findIndex(page => page.id === rootPageId))
+  lines.push(`lv_menu_set_page(${varName}, ${varName}_page_${rootIndex});`)
+  lines.push(`lv_obj_t * ${varName}_header = lv_menu_get_main_header(${varName});`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}_header, lv_color_hex(${color(p.headerBackground, '#172033')}), LV_PART_MAIN);`)
   lines.push(``)
   break
 }

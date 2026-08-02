@@ -51,6 +51,7 @@ import StandardWifiPreview from './StandardWifiPreview'
 import StandardLinePreview from './StandardLinePreview'
 import { StandardSpanPreview, StandardAnimImagePreview, StandardImageButtonPreview } from './StandardClosureWidgetPreviews'
 import { StandardWindowPreview } from './StandardWindowPreview'
+import { StandardMenuPreview } from './StandardMenuPreview'
 import ImagePreview from '~components/editor/previews/ImagePreview'
 import StandardCalendarPreview from './StandardCalendarPreview'
 import { resolveForgeSemanticPalette } from './forgeThemeMap'
@@ -797,6 +798,11 @@ case 'Window': {
     <StandardWindowPreview component={child} mode="browser">{renderForgePreview({ component: child, components })}</StandardWindowPreview>
   </Box>)
   ownsRenderedChildren = true
+  break
+}
+
+case 'Menu': {
+  output.push(<Box key={child.id} {...commonStyle}><StandardMenuPreview component={child} mode="browser" /></Box>)
   break
 }
 

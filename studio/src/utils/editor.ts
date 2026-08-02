@@ -70,6 +70,7 @@ export const COMPONENTS: (ComponentType | MetaComponentType)[] = [
   'Tabview',
   'Tileview',
   'Window',
+  'Menu',
   'Radio',
   'RadioGroup',
   'SimpleGrid',

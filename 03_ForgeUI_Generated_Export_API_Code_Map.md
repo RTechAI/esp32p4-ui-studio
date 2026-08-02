@@ -13,7 +13,7 @@
 
 ## Current proven save point
 
-**FORGEUI_LVGL9_CLOSURE_BATCH1__SPAN_ANIMIMAGE_IMAGEBUTTON_ESP32P4_PROVEN__DOCUMENTATION_ALIGNED__READY_FOR_WINDOW_MENU__2026-08-02**
+**FORGEUI_LVGL9_CLOSURE_BATCH3__MENU_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02**
 
 This document describes the generated SDK surface currently emitted by the
 shared live/Standalone generator. `90_Studio_Export.h` contains callable
@@ -666,9 +666,10 @@ repeated/no-op transitions and programmatic setters remain silent.
 Native LVGL Spinbox is a selected-digit editor. It is not a free-form numeric
 text-entry control; use NumberInput for that interaction model.
 
-The current registry records 48 entries: 43 practical Standard LVGL
-widgets/components and five Interactive Assets. All **42/42** practical
-Standard LVGL entries are physically proven on ESP32-P4. Window is implemented through native `lv_win_create` and ready for physical proof; Menu remains
+The current registry records 49 entries: 44 practical Standard LVGL
+widgets/components and five Interactive Assets. **43** practical Standard LVGL
+entries are physically proven on ESP32-P4. Window is proven through native
+`lv_win_create`; Menu is implemented through native `lv_menu_create` and is ready for physical proof
 the final structured-widget closure sprint.
 
 ### List generated boundary
@@ -2984,6 +2985,24 @@ Preserve these rules:
 137. QR generated firmware requires `CONFIG_LV_USE_QRCODE=y`.
 
 ## Save Point History
+
+### FORGEUI_LVGL9_CLOSURE_BATCH3__MENU_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02
+
+- The shared Live/Standalone generator emits `lv_menu_create`, native pages,
+  sections, item containers, separators, load-page events, initial root page
+  and LVGL-owned back history.
+- Multiple Menu instances use independent `objN_page_N` and item symbols.
+- No public Menu declaration or `95_UserEvents` hook is generated in this
+  pre-proof pass. Menu is **IMPLEMENTED — READY FOR PHYSICAL PROOF**.
+
+### FORGEUI_LVGL9_CLOSURE_BATCH2__WINDOW_ESP32P4_PROVEN__DOCUMENTATION_ALIGNED__READY_FOR_MENU__2026-08-02
+
+- Native `lv_win_create`, header/title/button and content-object generation is
+  Registry-backed and shared by Live Studio and Standalone Export.
+- Two generated Window instances and their independent close controls passed
+  physical Waveshare ESP32-P4 validation. Window is **PROVEN**.
+- Window adds no public Runtime SDK declaration or `95_UserEvents` hook at this
+  save point. Menu is the final practical LVGL 9.2 implementation target.
 
 ### FORGEUI_LVGL9_CLOSURE_BATCH1__SPAN_ANIMIMAGE_IMAGEBUTTON_ESP32P4_PROVEN__DOCUMENTATION_ALIGNED__READY_FOR_WINDOW_MENU__2026-08-02
 

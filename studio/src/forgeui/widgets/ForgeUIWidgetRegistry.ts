@@ -3,7 +3,8 @@ import { getPreviewDefaultProps } from '~utils/defaultProps'
 // This is authoritative for widgets currently supported by ForgeUI, not an
 // assertion that every official LVGL widget is registered. The final LVGL 9.2
 // comparison lives in docs/LVGL_9_STANDARD_WIDGET_AUDIT.md. Span, AnimImage and
-// ImageButton are physically proven; Window is ready for physical proof and Menu remains. Lottie is
+// ImageButton and Window are physically proven; Menu is implemented and ready
+// for physical proof. Lottie is
 // explicitly excluded pending a separate dependency/memory decision.
 
 export const FORGEUI_WIDGET_CATEGORIES = [
@@ -76,6 +77,7 @@ const displayNames: Partial<Record<ComponentType, string>> = {
   AnimImage: 'Animation Image',
   ImageButton: 'Image Button',
   Window: 'Window',
+  Menu: 'Menu',
 }
 
 const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
@@ -91,7 +93,7 @@ const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
     'Led', 'Bar', 'Arc', 'Scale', 'Chart', 'Table', 'Clock',
     'WiFi', 'QRCode', 'Progress', 'CircularProgress', 'AnimImage',
   ],
-  Navigation: ['List', 'Tabview', 'Tileview', 'ButtonMatrix', 'ImageButton', 'Window'],
+  Navigation: ['List', 'Tabview', 'Tileview', 'ButtonMatrix', 'ImageButton', 'Window', 'Menu'],
   Feedback: ['Msgbox', 'Keyboard', 'Calendar', 'Spinner'],
   Dashboard: [],
   Assets: [
@@ -159,6 +161,7 @@ const sizes: Partial<Record<ComponentType, [number, number]>> = {
   AnimImage: [160, 160],
   ImageButton: [96, 64],
   Window: [420, 300],
+  Menu: [420, 420],
 }
 
 const keywords: Partial<Record<ComponentType, string[]>> = {
@@ -185,6 +188,7 @@ const keywords: Partial<Record<ComponentType, string[]>> = {
   AnimImage: ['animation', 'frames', 'lv_animimg'],
   ImageButton: ['image action', 'pressed image', 'lv_imagebutton'],
   Window: ['panel', 'dialog', 'title bar', 'container', 'lv_win'],
+  Menu: ['navigation', 'pages', 'settings', 'hierarchy', 'lv_menu'],
 }
 
 type CapabilityDefinition = Omit<
@@ -253,6 +257,7 @@ const capabilitiesByType: Partial<
     instanceConfiguration: { runtimeApiProperty: 'generateRuntimeApi', runtimeApiDefault: true, userEventProperty: 'enableClick', userEventDefault: true },
   },
   Window: capability(false, false, false, 'structured', false, { mode: 'serialized-widget', lvglConfigDependencies: ['CONFIG_LV_USE_WIN'] }),
+  Menu: capability(false, false, true, 'structured', false, { mode: 'serialized-widget', lvglConfigDependencies: ['CONFIG_LV_USE_MENU', 'CONFIG_LV_USE_FLEX'] }),
 
   Input: capability(true, true, true),
   Textarea: capability(true, true, true),
@@ -353,6 +358,7 @@ const documentationByType: Partial<Record<ComponentType, string>> = {
   AnimImage: 'docs/FORGEUI_LVGL_CLOSURE_BATCH1.md',
   ImageButton: 'docs/FORGEUI_LVGL_CLOSURE_BATCH1.md',
   Window: 'docs/FORGEUI_WINDOW_WIDGET.md',
+  Menu: 'docs/FORGEUI_MENU_WIDGET.md',
   List: 'docs/FORGEUI_LIST_WIDGET.md',
   Tileview: 'docs/FORGEUI_TILEVIEW_WIDGET.md',
   Spinbox: 'docs/FORGEUI_SPINBOX_WIDGET.md',
@@ -380,6 +386,7 @@ const describe = (
     AnimImage: 'Asset-Manager-authored native frame animation with ordered frames and a clickable zero-frame placeholder.',
     Span: 'Inspector-authored ordered rich text with semantic styling and an actionable empty state.',
     Window: 'Native structured window with a title header and child-owned scrollable content region.',
+    Menu: 'Native multi-page navigation framework with sections, child-page links and back history.',
     InteractiveButton: 'Reusable state-sheet driven button.',
   }
   return special[type] || `${name} ${category.toLowerCase()} widget.`

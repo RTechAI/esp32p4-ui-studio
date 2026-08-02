@@ -54,6 +54,7 @@ import StandardWifiPreview from '~forgeui/preview/StandardWifiPreview'
 import StandardLineCanvasPreview from './previews/StandardLineCanvasPreview'
 import { StandardSpanPreview, StandardAnimImagePreview, StandardImageButtonPreview } from '~forgeui/preview/StandardClosureWidgetPreviews'
 import { StandardWindowPreview } from '~forgeui/preview/StandardWindowPreview'
+import { StandardMenuPreview } from '~forgeui/preview/StandardMenuPreview'
 import { useForgePreviewPalette } from '~forgeui/theme/ForgeThemeContext'
 import { resolveForgeSemanticPalette } from '~forgeui/preview/forgeThemeMap'
 import InteractiveButtonCanvasPreview, {
@@ -1090,6 +1091,11 @@ case 'Window':
     <StandardWindowPreview component={component}>
       {component.children.map(key => <ComponentPreview key={key} componentName={key} />)}
     </StandardWindowPreview>
+  </PreviewContainer>
+
+case 'Menu':
+  return <PreviewContainer component={component} enableVisualHelper {...forwardedProps}>
+    <StandardMenuPreview component={component} mode="canvas" />
   </PreviewContainer>
 
     default:

@@ -1,7 +1,9 @@
 # ForgeUI Window Widget
 
-Status: **IMPLEMENTED — READY FOR PHYSICAL PROOF** (2026-08-02). Do not mark
-Window proven until the ESP32-P4 procedure below passes.
+Status: **PROVEN** (2026-08-02).
+
+Save point:
+`FORGEUI_LVGL9_CLOSURE_BATCH2__WINDOW_ESP32P4_PROVEN__DOCUMENTATION_ALIGNED__READY_FOR_MENU__2026-08-02`.
 
 ## Architecture
 
@@ -22,13 +24,38 @@ back to the same preview/export defaults.
 
 The close button uses a generated LVGL click callback to hide its owning
 Window. No public Runtime API or `95_UserEvents` hook is emitted in this pass.
-This is deliberate: the first hardware proof should establish native focus,
-scroll and close behaviour before ForgeUI freezes an open/close/action ABI.
+The native close path is physically proven, but ForgeUI has not frozen an
+application-level open/close/action ABI.
 Action-button data and native generation are supported, with a maximum of four
 stable serialized actions; dedicated action callbacks are deferred with that
 ABI decision.
 
-## Physical proof
+## Physical proof record
+
+Hardware: Waveshare ESP32-P4 with 1024×600 display, running the native LVGL
+Window export.
+
+Test layout: two Window instances were visible simultaneously with independent
+generated objects, headers and close controls.
+
+Observed behavior:
+
+- both native Windows and both headers rendered successfully;
+- both close controls responded;
+- closing one Window did not close the other;
+- both Windows could be closed independently; and
+- firmware remained stable, with no crash, reboot, watchdog or obvious
+  rendering corruption.
+
+Result: **Window — PROVEN**.
+
+The proof establishes native Window creation, multi-instance independence and
+close behavior. It does not claim physical proof of scrolling, populated child
+content, action-button callbacks, serialization, or public Runtime SDK and
+`95_UserEvents` hooks. Those software paths have automated coverage where
+documented but are not part of this hardware claim.
+
+## Additional coverage procedure
 
 1. Create a 420×300 Window at `(40, 40)` titled `Control panel`.
 2. Leave the icon and close control enabled; set a 52 px header, 10 px content
@@ -47,8 +74,9 @@ ABI decision.
    repository's normal ESP-IDF workflow. Confirm both windows render with clean
    header/content separation, content scrolls without moving the header,
    children remain clipped, and the first close button hides only its owner.
-8. Power-cycle and repeat the scroll/close checks. Record photographs and the
-   export commit before changing the status to **PROVEN**.
+8. Power-cycle and repeat the scroll/content checks. Record photographs and the
+   export commit as additional evidence without changing the already proven
+   core status.
 
 Recommended proof layout is two side-by-side Windows on the 1024×600 canvas,
 with the left Window exercising scrolling and close behaviour and the right
@@ -58,9 +86,9 @@ Window exercising optional-control omission and independent naming.
 
 - Menu and Lottie are not part of this implementation.
 - Docking, modal/dialog policy and reusable window templates are future work.
-- Runtime open/close/title APIs and application action hooks wait for physical
-  proof; the current close button is functional locally.
+- Public Runtime open/close/title APIs and application action hooks are not yet
+  added. They may be introduced when application-level requirements are defined;
+  their absence does not make the native structured widget incomplete.
 - The title icon uses the native LVGL image symbol during export; binding the
   full ForgeUI icon/asset picker is deferred to avoid introducing a second
   asset path.
-

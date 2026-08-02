@@ -154,7 +154,7 @@ export const menuItems: MenuItems = {
   Text: {},
   Textarea: {},
   Window: {},
-  Menu: { soon: true },
+  Menu: {},
 }
 
 // Compatibility types may still occur in old serialized projects, but they
@@ -162,7 +162,6 @@ export const menuItems: MenuItems = {
 // Inspector, AI catalogue, Tray, or export capability surfaces.
 export const futureUnregisteredWidgetTypes = new Set<ComponentType>([
   'Lottie',
-  'Menu',
   'ObjxTempl',
   'Editable',
 ])

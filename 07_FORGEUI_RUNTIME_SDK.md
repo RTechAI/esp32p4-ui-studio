@@ -1,7 +1,7 @@
 # ForgeUI Runtime SDK Direction
 
 Current save point:
-`FORGEUI_LVGL9_CLOSURE_BATCH1__SPAN_ANIMIMAGE_IMAGEBUTTON_ESP32P4_PROVEN__DOCUMENTATION_ALIGNED__READY_FOR_WINDOW_MENU__2026-08-02`.
+`FORGEUI_LVGL9_CLOSURE_BATCH3__MENU_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02`.
 
 This document introduces the long-term ForgeUI Runtime SDK direction. It does
 not describe a finished, separately packaged SDK product.
@@ -51,6 +51,18 @@ Depending on the serialized widgets and selected features, export may generate:
 
 Generation is usage- and feature-gated. Presentation-only widgets may generate
 LVGL with no public SDK symbol.
+
+Window is **PROVEN** as a native structured component, including two-instance
+rendering and independent close behavior on ESP32-P4. Its close callback is
+generated privately. Window currently adds no public Runtime SDK API and no
+`95_UserEvents` hook; application-level open, close, title and action contracts
+may be added later when their requirements are defined.
+
+Menu is **IMPLEMENTED — READY FOR PHYSICAL PROOF**. Native item links and LVGL
+back history provide its navigation behavior without a public SDK surface.
+Menu currently adds no Runtime API or `95_UserEvents` hook; page-selection and
+application event contracts remain deferred until hardware proof and concrete
+application requirements justify them.
 
 ## Runtime APIs
 

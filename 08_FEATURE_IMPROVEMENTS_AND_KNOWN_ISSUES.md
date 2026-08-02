@@ -9,18 +9,42 @@ each feature and the official widget totals.
 
 | Item | Current record |
 | --- | --- |
-| Last updated | 2026-08-01 |
-| Current practical LVGL 9.2 proof total | 42 physically proven, as recorded in `04_FEATURE_STATUS.md` |
-| Remaining practical closure widgets | Window physical proof, then Menu implementation |
+| Last updated | 2026-08-02 |
+| Current practical LVGL 9.2 proof total | 43 physically proven, as recorded in `04_FEATURE_STATUS.md` |
+| Remaining practical closure widgets | Menu physical proof |
 | LVGL version | 9.2.2 |
 | ESP-IDF version | 5.5.4 |
 | Target hardware | Waveshare ESP32-P4-WiFi6-Touch-LCD-7B, 1024 × 600 |
-| Current development phase | Window implemented — ready for physical proof; then Menu |
+| Current development phase | Menu implemented — ready for physical proof |
 
 Totals are copied only as a dated summary pointer. Change them in
 `04_FEATURE_STATUS.md` after proof acceptance, then refresh this summary.
 
 ## Recently Improved
+
+### 2026-08-02 — Final practical LVGL Menu implementation
+
+Menu now traverses the authoritative Registry, Tray, Canvas, Inspector,
+Browser Preview and shared Live/Standalone generator as a native multi-page
+navigation framework. A stable serialized page/section/item tree owns labels,
+subtitles, native symbols, enabled state and target-page links. Browser Preview
+supports forward/back history; export uses native `lv_menu_create`, page,
+section, container, separator and load-page APIs. Focused validation passes.
+Menu is **IMPLEMENTED — READY FOR PHYSICAL PROOF**, not PROVEN. The physical
+proof total remains **43** until hardware acceptance; Lottie remains excluded.
+
+### 2026-08-02 — Closure Batch 2 Window ESP32-P4 proof
+
+Two native LVGL Window instances rendered simultaneously on the Waveshare
+ESP32-P4 1024×600 display. Both headers and close controls rendered, each close
+control hid only its owning Window, and both instances closed independently
+without crash, reboot, watchdog or obvious rendering corruption. The export
+used `lv_win_create`, `lv_win_get_header`, `lv_win_add_title`,
+`lv_win_add_button` and `lv_win_get_content`. Window is **PROVEN** and the
+practical LVGL 9.2 proof total is **43**. Menu is the only remaining practical
+closure widget; Lottie remains intentionally excluded. This proof does not
+claim scrolling, populated child-content behavior, action callbacks or public
+Runtime SDK/UserEvents hooks.
 
 ### 2026-08-02 — Closure Batch 1 ESP32-P4 proof
 
@@ -445,9 +469,9 @@ Failures remain visible rather than being rewritten as historical passes.
 ## Current Sprint
 
 - **Current objective:** Close the practical official LVGL 9.2 catalogue.
-- **Current proven pipeline set:** All 42 practical registered Standard LVGL
+- **Current proven pipeline set:** All 43 practical registered Standard LVGL
   widgets/components, including Closure Batch 1.
-- **Next action:** Physically prove the implemented Window, then implement Menu. Keep Lottie explicitly
+- **Next action:** Physically prove Menu. Keep Lottie explicitly
   excluded pending a separate
   ThorVG/vector/C++ and framebuffer decision. Then begin ForgeUI-native
   Dashboard widgets and designers.
