@@ -5,6 +5,7 @@ import {
   FORGEUI_BACKGROUND_ASSETS,
   FORGEUI_BACKGROUND_CATEGORIES,
   FORGEUI_BACKGROUND_COLLECTION_V2,
+  FORGEUI_BACKGROUND_V2_CATEGORIES,
 } from './ForgeUIAssetRegistry'
 import { generateForgeUILvglCode } from './ForgeUILvglExport'
 
@@ -39,7 +40,7 @@ describe('ForgeUI Background Library V2', () => {
   })
 
   it('keeps five backgrounds in every category and exposes one combined registry', () => {
-    FORGEUI_BACKGROUND_CATEGORIES.forEach(category => {
+    FORGEUI_BACKGROUND_V2_CATEGORIES.forEach(category => {
       expect(
         FORGEUI_BACKGROUND_COLLECTION_V2.filter(
           asset => asset.category === category,
