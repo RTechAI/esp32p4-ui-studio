@@ -4,7 +4,7 @@ Current architecture save point:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
 Current ForgeUI Platform milestone:
-`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_PROVEN__ESP32P4_VALIDATED__STABLE_RUNTIME_SDK__STABLE_USEREVENTS__2026-08-02`.
+`FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__RUNTIME_SDK_USEREVENTS_MASTER_CONTROL_PROVEN__READY_FOR_PWM_CONTROLLER__2026-08-02`.
 
 **ForgeUI Studio is an open-source, AI-assisted visual HMI and embedded GUI designer for ESP32-P4.** It combines a drag-and-drop Canvas, reusable Interactive Assets, AI Layout tools, Browser Preview, native LVGL 9 generation, integrated ESP-IDF Build & Flash, and standalone ESP-IDF project export.
 
@@ -40,8 +40,13 @@ engineering values, units, threshold-driven severity, trend, timestamp and
 colour APIs while remaining one serialized Canvas component. Its stable Native
 Component identity and UserEvents ownership reconciliation preserve Runtime SDK
 symbols and active developer hooks across regeneration. See
-[ForgeUI Sensor Tile](docs/FORGEUI_SENSOR_TILE.md). Relay Panel is the next
-implementation target.
+[ForgeUI Sensor Tile](docs/FORGEUI_SENSOR_TILE.md).
+
+Relay Panel is now **ForgeUI Native Component #3 — PROVEN**. It provides one semantic 1–8 channel logical output
+bank, interactive preview, shared native export, seven bounded Runtime APIs and
+genuine-user channel/master hooks without owning GPIO configuration. PWM
+Controller is next and has not started. See
+[ForgeUI Relay Panel](docs/FORGEUI_RELAY_PANEL.md).
 
 - Drag-and-drop, free-form Canvas placement and resizing
 - Registry-driven Widget Tray with search and accessible insertion

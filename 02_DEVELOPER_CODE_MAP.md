@@ -20,7 +20,7 @@ Practical LVGL 9.2 is complete: **44 registered practical widgets/components,
 intentionally excluded. The next major chapter is ForgeUI Platform development.
 
 Current ForgeUI Platform milestone:
-**FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_PROVEN__ESP32P4_VALIDATED__STABLE_RUNTIME_SDK__STABLE_USEREVENTS__2026-08-02**.
+**FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__RUNTIME_SDK_USEREVENTS_MASTER_CONTROL_PROVEN__READY_FOR_PWM_CONTROLLER__2026-08-02**.
 
 Dashboard Card is **ForgeUI Native Component #1 — PROVEN** across Registry,
 versioned semantic model, Inspector, single-object Canvas ownership, shared
@@ -30,8 +30,14 @@ Sensor Tile is **ForgeUI Native Component #2 — PROVEN** through the same
 owners. Semantic serialization, Browser Preview, shared Live/Standalone
 generation, Runtime SDK, UserEvents, stable component identity, ownership
 reconciliation and ESP32-P4 hardware behavior are validated. Runtime symbols
-and active developer hooks survive regeneration. Relay Panel is the next
-implementation target and has not begun.
+and active developer hooks survive regeneration.
+
+Relay Panel is now **ForgeUI Native Component #3 — PROVEN**. `ForgeUIRelayPanel.ts` owns its semantic channel
+model, `RelayPanelPanel.tsx` its Inspector, `ForgeUIRelayPanelPreview.tsx` its
+shared preview, and `ForgeUILvglExport.ts` its private LVGL composition and
+semantic APIs/hooks. Physical ESP32-P4 proof validated genuine-user channel and
+master interaction while Wi-Fi and SD remained operational. Hardware drivers
+remain application-owned. PWM Controller is next and has not started.
 
 ## Current authoritative ownership summary
 
@@ -41,6 +47,9 @@ implementation target and has not begun.
 | ForgeUI Native Component catalogue | The same `studio/src/forgeui/widgets/ForgeUIWidgetRegistry.ts`; `origin: forgeui-native` distinguishes platform components |
 | Dashboard Card semantic model | `studio/src/forgeui/ForgeUIDashboardCard.ts` |
 | Sensor Tile semantic model | `studio/src/forgeui/ForgeUISensorTile.ts` |
+| Relay Panel semantic model | `studio/src/forgeui/ForgeUIRelayPanel.ts` |
+| Relay Panel Inspector | `studio/src/components/inspector/panels/components/RelayPanelPanel.tsx` |
+| Relay Panel shared preview | `studio/src/forgeui/preview/ForgeUIRelayPanelPreview.tsx` |
 | Dashboard Card Preview | `studio/src/forgeui/preview/ForgeUIDashboardCardPreview.tsx` through the shared preview dispatchers |
 | Legacy catalogue compatibility | `studio/src/forgeui/ForgeUIWidgetSet.ts` projection |
 | Per-widget API/event/input/child/docs/gate metadata | `studio/src/forgeui/widgets/ForgeUIWidgetRegistry.ts` explicit capability table |

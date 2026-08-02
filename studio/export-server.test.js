@@ -24,6 +24,29 @@ const {
 } = require('./export-server')
 
 describe('generated public UI API headers', () => {
+  it('generates typed Relay Panel channel and master hooks', () => {
+    const generated = generateUserEventFiles([
+      'FG_On_Comp_RELAY_Channel_Changed',
+      'FG_On_Comp_RELAY_Master_Changed',
+    ], [
+      'void FG_Set_Comp_RELAY_Channel(uint32_t channel, bool enabled);',
+    ])
+    expect(generated.header).toContain('void FG_On_Comp_RELAY_Channel_Changed(uint32_t channel, bool enabled);')
+    expect(generated.header).toContain('void FG_On_Comp_RELAY_Master_Changed(bool enabled);')
+    expect(generated.source).toContain('channel %lu: %s')
+    expect(generated.source).toContain('master: %s')
+    const runtimeHeader = generateStudioExportHeader([
+      'void FG_Set_Comp_RELAY_Channel(uint32_t channel, bool enabled);',
+      'bool FG_Get_Comp_RELAY_Channel(uint32_t channel);',
+      'void FG_Set_Comp_RELAY_Channel_Enabled(uint32_t channel, bool enabled);',
+      'void FG_Set_Comp_RELAY_All(bool enabled);',
+      'void FG_Set_Comp_RELAY_Label(uint32_t channel, const char * label);',
+      'void FG_Set_Comp_RELAY_Status(uint32_t channel, const char * text);',
+      'void FG_Set_Comp_RELAY_Master(bool enabled);',
+    ])
+    expect(runtimeHeader).toContain('bool FG_Get_Comp_RELAY_Channel(uint32_t channel);')
+    expect(runtimeHeader.match(/FG_(?:Set|Get)_Comp_RELAY_/g)).toHaveLength(7)
+  })
   it('publishes the generated Fi runtime header only when the feature is present', () => {
     expect(generateStudioExportHeader([], true)).toContain('#include "96_FiRuntime.h"')
     expect(generateStudioExportHeader([], false)).not.toContain('96_FiRuntime.h')
@@ -811,6 +834,22 @@ describe('generated public UI API headers', () => {
       expect(preserved.header).not.toContain(stale)
       expect(preserved.removedPlaceholders).toEqual([stale])
       expect(preserved.source.match(new RegExp(`void ${active}`, 'g'))).toHaveLength(1)
+    })
+
+    it('removes obsolete generated Relay Panel placeholders with typed signatures', () => {
+      const channel = 'FG_On_Comp_STALE_Channel_Changed'
+      const master = 'FG_On_Comp_STALE_Master_Changed'
+      const generatedRelay = generateUserEventFiles([channel, master], [])
+      const preserved = preserveUserEventFiles(
+        generatedRelay.source,
+        generatedRelay.header,
+        generateUserEventFiles([], []),
+      )
+      expect(preserved.source).not.toContain(channel)
+      expect(preserved.source).not.toContain(master)
+      expect(preserved.header).not.toContain(channel)
+      expect(preserved.header).not.toContain(master)
+      expect(preserved.removedPlaceholders).toEqual(expect.arrayContaining([channel, master]))
     })
 
     it('preserves an active customised body exactly once', () => {

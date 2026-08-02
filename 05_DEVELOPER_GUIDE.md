@@ -8,7 +8,7 @@ Current save point:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
 Current ForgeUI Platform milestone:
-`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_PROVEN__ESP32P4_VALIDATED__STABLE_RUNTIME_SDK__STABLE_USEREVENTS__2026-08-02`.
+`FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__RUNTIME_SDK_USEREVENTS_MASTER_CONTROL_PROVEN__READY_FOR_PWM_CONTROLLER__2026-08-02`.
 
 Dashboard Card is **ForgeUI Native Component #1 — PROVEN**. It validates the
 application-level composite pattern while remaining one serialized and
@@ -18,8 +18,12 @@ LVGL composition. Sensor Tile is **ForgeUI Native Component #2 — PROVEN**
 through the same pattern. Its semantic serialization, Browser Preview,
 Live/Standalone output, Runtime SDK, UserEvents, stable public identity,
 ownership reconciliation and ESP32-P4 behavior are validated. Runtime symbols
-and active developer hooks survive regeneration correctly. Relay Panel is the
-next implementation target; it is not part of this documentation pass.
+and active developer hooks survive regeneration correctly.
+
+Relay Panel is now **PROVEN** through the same architecture on ESP32-P4. It uses zero-based bounded channels, silent semantic Runtime
+setters, genuine-user channel/master hooks and application-owned hardware
+drivers. PWM Controller is next and has not started. Confirmation prompts are deliberately deferred until one shared
+Browser/LVGL confirmation path exists.
 
 For application-to-hardware examples after export, use
 [05_DEVELOPER_HARDWARE_INTEGRATION.md](05_DEVELOPER_HARDWARE_INTEGRATION.md).

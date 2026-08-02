@@ -20,7 +20,7 @@ widgets/components are physically proven on ESP32-P4**. Window and Menu are
 **PROVEN**. Lottie remains intentionally excluded.
 
 Current ForgeUI Platform milestone:
-**FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_PROVEN__ESP32P4_VALIDATED__STABLE_RUNTIME_SDK__STABLE_USEREVENTS__2026-08-02**.
+**FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__RUNTIME_SDK_USEREVENTS_MASTER_CONTROL_PROVEN__READY_FOR_PWM_CONTROLLER__2026-08-02**.
 
 Dashboard Card is **ForgeUI Native Component #1 — PROVEN**. The shared
 Live/Standalone generator emits its private LVGL composition, four semantic
@@ -36,7 +36,12 @@ existing Live/Standalone generator. Physical proof confirms Browser Preview,
 Live/Standalone, Runtime SDK and UserEvents parity on ESP32-P4. Persisted Native
 Component identity keeps public Runtime symbols stable, while ownership
 reconciliation preserves the active developer hook across regeneration and
-quarantines obsolete custom hooks safely. Relay Panel is next and has not begun.
+quarantines obsolete custom hooks safely.
+
+Relay Panel is **ForgeUI Native Component #3 — PROVEN**. Stable component identity emits seven zero-based semantic
+Runtime functions and genuine-user Channel Changed/Master Changed hooks. The
+generated runtime owns bounded logical state, suppresses events during setters,
+and keeps all LVGL objects private. Live and Standalone use the same generator.
 
 This document describes the generated SDK surface currently emitted by the
 shared live/Standalone generator. `90_Studio_Export.h` contains callable

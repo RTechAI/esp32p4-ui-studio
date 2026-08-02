@@ -3,6 +3,31 @@ import { useDrag } from 'react-dnd'
 import { Text, Box, Button, Tooltip } from '@chakra-ui/react'
 import { DragHandleIcon } from '@chakra-ui/icons'
 
+export const createDragItemPayload = ({
+  type,
+  isMeta,
+  rootParentType,
+  defaultWidth,
+  defaultHeight,
+  insertionProps,
+}: Pick<
+  ComponentItemProps,
+  | 'type'
+  | 'isMeta'
+  | 'rootParentType'
+  | 'defaultWidth'
+  | 'defaultHeight'
+  | 'insertionProps'
+>) => ({
+  id: type,
+  type,
+  isMeta,
+  rootParentType,
+  defaultWidth,
+  defaultHeight,
+  insertionProps,
+})
+
 const DragItem: React.FC<ComponentItemProps> = ({
   type,
   soon,
@@ -19,15 +44,14 @@ const DragItem: React.FC<ComponentItemProps> = ({
   onEdit,
 }) => {
   const [, drag] = useDrag({
-    item: {
-      id: type,
+    item: createDragItemPayload({
       type,
       isMeta,
       rootParentType,
       defaultWidth,
       defaultHeight,
       insertionProps,
-    },
+    }),
     canDrag: !soon,
   })
 

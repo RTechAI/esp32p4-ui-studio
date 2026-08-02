@@ -17,7 +17,7 @@
 
 ## Current ForgeUI Platform milestone
 
-**FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_PROVEN__ESP32P4_VALIDATED__STABLE_RUNTIME_SDK__STABLE_USEREVENTS__2026-08-02**
+**FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__RUNTIME_SDK_USEREVENTS_MASTER_CONTROL_PROVEN__READY_FOR_PWM_CONTROLLER__2026-08-02**
 
 Dashboard Card is **ForgeUI Native Component #1 — PROVEN**. Physical validation
 confirmed Registry integration, semantic serialization, single-component Canvas
@@ -29,7 +29,28 @@ Component #2 — PROVEN**. Physical proof confirms semantic serialization,
 Browser Preview parity, Live/Standalone parity, Runtime SDK, UserEvents, stable
 Native Component identity, UserEvents ownership reconciliation and ESP32-P4
 hardware operation. Runtime symbols and developer hook ownership survive
-regeneration correctly. Relay Panel is the next implementation target.
+regeneration correctly.
+
+Relay Panel is now **ForgeUI Native Component #3 — PROVEN**. It remains one
+versioned component containing 1–8 stable-ID logical channels, shared
+Canvas/Browser rendering, shared Live/Standalone LVGL generation, seven
+zero-based Runtime SDK APIs and genuine-user channel/master hooks. ESP32-P4
+proof exercised channels 0–3 and master ON/OFF/ON. Wi-Fi remained connected at
+`192.168.0.90`, SD remained ready, and no crash, watchdog, reset or visible
+runtime failure occurred. GPIO and relay hardware remain application-owned.
+
+Concise development handover save point:
+**FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__READY_FOR_PWM_CONTROLLER__2026-08-02**.
+
+### 2026-08-02 ForgeUI Native Component #3 Relay Panel proof
+
+Relay Panel V1 physically proves one serialized Native Component, a versioned
+semantic model, 1–8 stable-ID logical channels, one selectable/resizable Canvas
+object, private LVGL composition, Browser Preview, shared Live/Standalone
+generation, bounded zero-based Runtime state, silent setters, genuine-user
+channel/master events, individual/master control, configured disabled-channel
+protection, collision-safe multi-instance generation and UserEvents
+reconciliation. PWM Controller is next and has not started.
 
 ### 2026-08-02 ForgeUI Native Component #2 Sensor Tile proof
 
@@ -45,52 +66,33 @@ separate from the completed 44/44 practical LVGL history.
 ### 2026-08-02 Practical LVGL 9.2 completion
 
 ForgeUI has **44 practical registered LVGL widgets/components and all 44 are
-physically proven on the Waveshare ESP32-P4**. Menu is **PROVEN**: two
-independent native Menu instances rendered correctly, child-page and Back
-navigation remained correct for approximately ten cycles, system pages and
-Wi-Fi remained operational, internal RAM remained stable at approximately
-42 KB, and no crash, watchdog reset or rendering corruption occurred. Window
-and Menu are both **PROVEN**. Lottie remains intentionally excluded from the
-practical LVGL program.
+physically proven on the Waveshare ESP32-P4**. Window and Menu are **PROVEN**.
+Lottie remains intentionally excluded from the practical LVGL program.
 
-The practical implementation program is complete across Browser Preview, Live
-Studio and Standalone Export. The Widget Registry, Proven Widget Pipeline,
+The practical implementation program remains complete across Browser Preview,
+Live Studio and Standalone Export. The Widget Registry, Proven Widget Pipeline,
 Runtime SDK foundation, canonical Image/Icon pipelines, Project Hardware
 Profiles, Export-Time Feature Gating, Fi Runtime and UserEvents form the proven
-foundation for the next chapter.
+foundation for the Native Component chapter.
 
 ## ForgeUI Platform roadmap
 
-LVGL parity is complete. Future work builds on this foundation in this order:
+1. Dashboard Card — **PROVEN**
+2. Sensor Tile — **PROVEN**
+3. Relay Panel — **PROVEN**
+4. PWM Controller — **NEXT**
+5. System Health
+6. Network Widget
+7. Storage Widget
+8. Gauge Cluster
+9. Energy Monitor
 
-1. ForgeUI-native Widgets — Dashboard Card PROVEN; Sensor Tile PROVEN; Relay Panel next
-2. Dashboard Widget Family
-3. Dashboard Designer
-4. Template Library
-5. Runtime SDK Expansion
-6. Background Designer
-7. Higher-level Application Components
+### Historical 2026-08-02 Window proof promotion
 
-### 2026-08-02 Window proof promotion
-
-Physical proof now stands at **43 practical LVGL 9.2 widgets/components**: the
-previous 39 plus Span, Animation Image, Image Button and Window. Batch D
-physically proved QR Code, Icon Button, Icon and Canvas across the applicable
-Canvas, Browser Preview, Live Studio and Standalone Export paths. The QR Code
-displayed correctly on ESP32-P4 and scanned successfully with a mobile phone.
-Image uses native `lv_image_create()`, uploaded assets with persistent intrinsic
-dimensions, canonical Contain sizing and source-aware LVGL scaling across Live
-and Standalone export. Line uses native `lv_line_create()` with proven geometry,
-colour, opacity and thickness across Live and Standalone export. Native TileView now
-replaces the synthetic export; Heading owns multiline/alignment parity; Box
-owns child nesting across Browser and native export; Divider has a visible
-vertical insertion default without changing horizontal behavior; Text owns
-multiline wrapping parity; and Icon owns source-aware centered automatic fit.
-All 39 previously registered Standard widgets remain physically proven. Span,
-Animation Image and native Image Button have now also passed ESP32-P4 proof
-across Canvas, Browser, Live and Standalone. Window is **PROVEN**; Menu is
-**IMPLEMENTED — READY FOR PHYSICAL PROOF** and is the final practical LVGL 9.2
-proof candidate. Lottie remains excluded.
+The earlier physical ledger stood at 43 practical widgets after Window proof,
+with Menu still **IMPLEMENTED — READY FOR PHYSICAL PROOF**. That dated state is
+retained as history; Menu subsequently completed the 44/44 practical LVGL
+program. Lottie remained intentionally excluded throughout.
 
 ### Technical-manager continuity note
 

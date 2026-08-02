@@ -3,10 +3,10 @@
 Status: **AUTHORITATIVE LIVING DEVELOPER REFERENCE** (2026-08-02).
 
 Current ForgeUI Platform milestone:
-`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_PROVEN__ESP32P4_VALIDATED__STABLE_RUNTIME_SDK__STABLE_USEREVENTS__2026-08-02`.
+`FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__RUNTIME_SDK_USEREVENTS_MASTER_CONTROL_PROVEN__READY_FOR_PWM_CONTROLLER__2026-08-02`.
 
 Dashboard Card and Sensor Tile, ForgeUI Native Components #1 and #2, are
-**PROVEN** on ESP32-P4. Relay Panel is the next implementation target.
+**PROVEN** on ESP32-P4. Relay Panel is physically proven on ESP32-P4.
 
 This guide owns the post-export developer contract for every ForgeUI Native
 Component. Add each new component here when its public Runtime SDK contract is
@@ -348,6 +348,32 @@ cannot enter the build. Inspect the generated headers for the exact names.
 
 The complete schema and proof record are in
 [`docs/FORGEUI_SENSOR_TILE.md`](docs/FORGEUI_SENSOR_TILE.md).
+
+# Native Component #3 — Relay Panel
+
+Status: **PROVEN — ESP32-P4 VALIDATED**
+
+Relay Panel owns a logical bank of 1–8 output channels. Channel indices are
+zero-based and bounds checked. The generated runtime maintains authoritative
+logical state, allowing `FG_Get_*_Channel()` while keeping all LVGL switches,
+labels and containers private.
+
+```c
+void FG_Set_<Component>_Channel(uint32_t channel, bool enabled);
+bool FG_Get_<Component>_Channel(uint32_t channel);
+void FG_Set_<Component>_Channel_Enabled(uint32_t channel, bool enabled);
+void FG_Set_<Component>_All(bool enabled);
+void FG_Set_<Component>_Label(uint32_t channel, const char * label);
+void FG_Set_<Component>_Status(uint32_t channel, const char * text);
+void FG_Set_<Component>_Master(bool enabled);
+
+void FG_On_<Component>_Channel_Changed(uint32_t channel, bool enabled);
+void FG_On_<Component>_Master_Changed(bool enabled);
+```
+
+Setters are silent. Channel and master callbacks originate only from enabled
+user controls. Relay polarity, pins and drivers remain developer-owned. See
+[`docs/FORGEUI_RELAY_PANEL.md`](docs/FORGEUI_RELAY_PANEL.md).
 
 # Adding future Native Components
 

@@ -6,7 +6,7 @@ Current milestone:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
 Current ForgeUI Platform milestone:
-`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_PROVEN__ESP32P4_VALIDATED__STABLE_RUNTIME_SDK__STABLE_USEREVENTS__2026-08-02`.
+`FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__RUNTIME_SDK_USEREVENTS_MASTER_CONTROL_PROVEN__READY_FOR_PWM_CONTROLLER__2026-08-02`.
 
 ## Decision
 
@@ -50,6 +50,16 @@ Browser Preview, shared Live/Standalone export, semantic Runtime SDK generation
 and genuine-user UserEvents. It also proves that persisted Native Component
 identity keeps public Runtime symbols stable and that UserEvents ownership
 reconciliation preserves active developer logic correctly across regeneration.
+
+Relay Panel is the third implementation of the architecture and the first
+multi-control Native Component. One schema-1 component owns 1–8 stable semantic
+channel records while its LVGL rows, labels and switches remain private. The
+shared generator owns bounded zero-based logical state, silent Runtime setters,
+and genuine-user channel/master hooks through the proven ownership reconciler.
+GPIO configuration remains outside the component. ESP32-P4 physical proof
+validated individual and master interaction, Wi-Fi/SD continuity and stable
+runtime behavior. Confirmation prompts are deferred until one implementation can serve
+both Browser Preview and generated LVGL without a parallel dialog system.
 
 ## Existing platform review
 
@@ -319,9 +329,9 @@ architecture. Subsequent components remain ordered as follows.
 2. **Sensor Tile** — **PROVEN**; typed engineering
    value/unit/status/trend/timestamp/colour updates without owning a sensor
    transport, with stable Runtime SDK and UserEvents identity across regeneration.
-3. **Relay Panel** — **NEXT IMPLEMENTATION TARGET**; proves multi-control genuine UserEvents, silent state
+3. **Relay Panel** — **PROVEN**; proves multi-control genuine UserEvents, silent state
    projection and safe initialization.
-4. **PWM Controller** — proves bounded numeric state, Slider-style interaction
+4. **PWM Controller** — **NEXT**; proves bounded numeric state, Slider-style interaction
    and atomic application updates.
 5. **System Health Widget** — proves projection from an existing platform
    service without duplicating Diagnostics ownership.

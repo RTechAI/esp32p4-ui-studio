@@ -279,11 +279,7 @@ void FG_On_Image_Button_2_Clicked(void)
     printf("[ForgeUI User Event] FG_On_Image_Button_2_Clicked\n");
 }
 
-void FG_On_Comp_MSBCEKT2_TYLLX_Clicked(void)
-{
-    printf("[ForgeUI User Event] FG_On_Comp_MSBCEKT2_TYLLX_Clicked\n");
-}
-
+#if 0 /* ForgeUI orphaned legacy Native Component hook: no active component owns FG_On_Comp_MSBCEON9_ITWY7_Clicked. */
 void FG_On_Comp_MSBCEON9_ITWY7_Clicked(void)
 {
     static uint8_t state = 0;
@@ -323,4 +319,18 @@ void FG_On_Comp_MSBCEON9_ITWY7_Clicked(void)
            (unsigned)state);
 
     state = (state + 1U) % 4U;
+}
+#endif
+
+void FG_On_Comp_MSBHEOFNU0_CVL_Channel_Changed(uint32_t channel, bool enabled)
+{
+    printf("[ForgeUI User Event] Comp MSBHEOFNU0 CVL channel %lu: %s\n",
+           (unsigned long)channel,
+           enabled ? "ON" : "OFF");
+}
+
+void FG_On_Comp_MSBHEOFNU0_CVL_Master_Changed(bool enabled)
+{
+    printf("[ForgeUI User Event] Comp MSBHEOFNU0 CVL master: %s\n",
+           enabled ? "ON" : "OFF");
 }

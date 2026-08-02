@@ -47,6 +47,7 @@ import { normalizeWindowActions, windowScrollbarMode } from './ForgeUIWindow'
 import { normalizeForgeUIMenuPages, resolveForgeUIMenuRootPageId } from './ForgeUIMenu'
 import { normalizeForgeUIDashboardCard } from './ForgeUIDashboardCard'
 import { getForgeUISensorTrendLabel, normalizeForgeUISensorTile } from './ForgeUISensorTile'
+import { normalizeForgeUIRelayPanel } from './ForgeUIRelayPanel'
 import {
   getForgeUIStandardSpinboxModel,
   type ForgeUIStandardSpinboxModel,
@@ -365,6 +366,74 @@ const createSensorTileExports = (
         warningLow: model.warningLow, warningHigh: model.warningHigh,
         criticalLow: model.criticalLow, criticalHigh: model.criticalHigh, autoColour: model.autoColour,
         runtimeEnabled: component.props.generateRuntimeApi !== false,
+      })
+    })
+  return result
+}
+
+type RelayPanelExport = {
+  stem: string
+  runtimeStem: string
+  rootName: string
+  channelCount: number
+  channelObjectsName: string
+  labelObjectsName: string
+  statusObjectsName: string
+  stateName: string
+  enabledName: string
+  programmaticName: string
+  channelHookName?: string
+  masterHookName?: string
+  channelCallbackName?: string
+  masterCallbackName?: string
+  masterObjectName: string
+  runtimeEnabled: boolean
+  setChannelApiName: string
+  getChannelApiName: string
+  setChannelEnabledApiName: string
+  setAllApiName: string
+  setLabelApiName: string
+  setStatusApiName: string
+  setMasterApiName: string
+}
+
+const createRelayPanelExports = (
+  components: IComponents, usedHookNames: Set<string>, userEventHooks: Set<string>,
+): Map<string, RelayPanelExport> => {
+  const result = new Map<string, RelayPanelExport>()
+  const usedStems = new Set<string>()
+  Object.values(components).filter(component => component.type === 'RelayPanel')
+    .sort((a, b) => a.id.localeCompare(b.id)).forEach(component => {
+      const base = toCIdentifier(component.id, 'Relay_Panel').replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let stem = base; let suffix = 2
+      while (usedStems.has(stem)) stem = `${base}_${suffix++}`
+      usedStems.add(stem)
+      const runtimeStem = stem.toLowerCase()
+      const model = normalizeForgeUIRelayPanel(component.props)
+      const uniqueHook = (baseHook: string) => {
+        let hook = baseHook
+        let collision = 2
+        while (usedHookNames.has(hook)) hook = `${baseHook}_${collision++}`
+        usedHookNames.add(hook)
+        userEventHooks.add(hook)
+        return hook
+      }
+      const channelHookName = model.enableUserEvents
+        ? uniqueHook(`FG_On_${stem}_Channel_Changed`) : undefined
+      const masterHookName = model.enableUserEvents && model.showMasterControl
+        ? uniqueHook(`FG_On_${stem}_Master_Changed`) : undefined
+      result.set(component.id, {
+        stem, runtimeStem, rootName: `fg_${runtimeStem}_relay_panel`, channelCount: model.channelCount,
+        channelObjectsName: `fg_${runtimeStem}_relay_channels`, labelObjectsName: `fg_${runtimeStem}_relay_labels`,
+        statusObjectsName: `fg_${runtimeStem}_relay_status`, stateName: `fg_${runtimeStem}_relay_state`,
+        enabledName: `fg_${runtimeStem}_relay_enabled`, programmaticName: `fg_${runtimeStem}_relay_programmatic`,
+        channelHookName, masterHookName, channelCallbackName: channelHookName ? `fg_${runtimeStem}_relay_channel_changed_cb` : undefined,
+        masterCallbackName: masterHookName ? `fg_${runtimeStem}_relay_master_changed_cb` : undefined,
+        masterObjectName: `fg_${runtimeStem}_relay_master`, runtimeEnabled: model.generateRuntimeApi,
+        setChannelApiName: `FG_Set_${stem}_Channel`, getChannelApiName: `FG_Get_${stem}_Channel`,
+        setChannelEnabledApiName: `FG_Set_${stem}_Channel_Enabled`, setAllApiName: `FG_Set_${stem}_All`,
+        setLabelApiName: `FG_Set_${stem}_Label`, setStatusApiName: `FG_Set_${stem}_Status`,
+        setMasterApiName: `FG_Set_${stem}_Master`,
       })
     })
   return result
@@ -2680,6 +2749,7 @@ const buildLvglBlock = (
   fiIconExports: Map<string, FiIconExport>,
   dashboardCardExports: Map<string, DashboardCardExport>,
   sensorTileExports: Map<string, SensorTileExport>,
+  relayPanelExports: Map<string, RelayPanelExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -4180,6 +4250,104 @@ case 'SensorTile': {
   break
 }
 
+case 'RelayPanel': {
+  const model = normalizeForgeUIRelayPanel(child.props)
+  const panel = relayPanelExports.get(child.id)
+  if (!panel) break
+  const panelWidth = Math.max(160, integerProp(w, 340))
+  const symbol = /^LV_SYMBOL_[A-Z0-9_]+$/.test(model.icon) ? model.icon : 'LV_SYMBOL_POWER'
+  const active = toLvHex(model.activeColour)
+  const inactive = toLvHex(model.inactiveColour)
+  const disabled = toLvHex(model.disabledColour)
+  lines.push(`${panel.rootName} = lv_obj_create(${parentVar});`)
+  lines.push(`lv_obj_t * ${varName} = ${panel.rootName};`)
+  lines.push(`lv_obj_set_pos(${panel.rootName}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${panel.rootName}, ${w}, ${h});`)
+  lines.push(`lv_obj_set_style_bg_color(${panel.rootName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${panel.rootName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${panel.rootName}, 1, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${panel.rootName}, 12, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_pad_all(${panel.rootName}, ${model.padding}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_clear_flag(${panel.rootName}, LV_OBJ_FLAG_SCROLLABLE);`)
+  lines.push(`lv_obj_t * ${varName}_icon = lv_label_create(${panel.rootName});`)
+  lines.push(`lv_label_set_text(${varName}_icon, ${symbol});`)
+  lines.push(`lv_obj_set_pos(${varName}_icon, ${model.padding}, ${model.padding});`)
+  lines.push(`lv_obj_set_style_text_color(${varName}_icon, lv_color_hex(${active}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_t * ${varName}_title = lv_label_create(${panel.rootName});`)
+  lines.push(`lv_label_set_text(${varName}_title, "${esc(model.title)}");`)
+  lines.push(`lv_obj_set_pos(${varName}_title, ${model.padding + 26}, ${model.padding});`)
+  lines.push(`lv_obj_set_width(${varName}_title, ${Math.max(40, panelWidth - model.padding * 2 - 100)});`)
+  lines.push(`lv_label_set_long_mode(${varName}_title, LV_LABEL_LONG_DOT);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}_title, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+  if (model.subtitle) {
+    lines.push(`lv_obj_t * ${varName}_subtitle = lv_label_create(${panel.rootName});`)
+    lines.push(`lv_label_set_text(${varName}_subtitle, "${esc(model.subtitle)}");`)
+    lines.push(`lv_obj_set_pos(${varName}_subtitle, ${model.padding + 26}, ${model.padding + 20});`)
+    lines.push(`lv_obj_set_width(${varName}_subtitle, ${Math.max(40, panelWidth - model.padding * 2 - 100)});`)
+    lines.push(`lv_label_set_long_mode(${varName}_subtitle, LV_LABEL_LONG_DOT);`)
+    lines.push(`lv_obj_set_style_text_font(${varName}_subtitle, &lv_font_montserrat_12, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_color(${varName}_subtitle, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
+  }
+  if (model.showMasterControl) {
+    lines.push(`${panel.masterObjectName} = lv_switch_create(${panel.rootName});`)
+    lines.push(`lv_obj_align(${panel.masterObjectName}, LV_ALIGN_TOP_RIGHT, -${model.padding}, ${model.padding});`)
+    if (model.masterState) lines.push(`lv_obj_add_state(${panel.masterObjectName}, LV_STATE_CHECKED);`)
+    lines.push(`lv_obj_set_style_bg_color(${panel.masterObjectName}, lv_color_hex(${inactive}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_bg_color(${panel.masterObjectName}, lv_color_hex(${active}), LV_PART_INDICATOR | LV_STATE_CHECKED);`)
+    if (panel.masterCallbackName) lines.push(`lv_obj_add_event_cb(${panel.masterObjectName}, ${panel.masterCallbackName}, LV_EVENT_VALUE_CHANGED, NULL);`)
+  }
+  const columns = model.layoutMode === 'compact' ? 2 : 1
+  const usableWidth = panelWidth - model.padding * 2
+  const rowWidth = Math.max(100, Math.floor((usableWidth - (columns - 1) * model.gap) / columns))
+  const rowHeight = model.layoutMode === 'compact' ? 48 : 52
+  model.channels.forEach((channel, index) => {
+    const column = index % columns
+    const row = Math.floor(index / columns)
+    const rowName = `${varName}_relay_row_${index}`
+    const rowX = model.padding + column * (rowWidth + model.gap)
+    const rowY = model.padding + 52 + row * (rowHeight + model.gap)
+    lines.push(`lv_obj_t * ${rowName} = lv_obj_create(${panel.rootName});`)
+    lines.push(`lv_obj_set_pos(${rowName}, ${rowX}, ${rowY});`)
+    lines.push(`lv_obj_set_size(${rowName}, ${rowWidth}, ${rowHeight});`)
+    lines.push(`lv_obj_set_style_bg_color(${rowName}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_border_width(${rowName}, 0, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_radius(${rowName}, 8, LV_PART_MAIN);`)
+    lines.push(`lv_obj_clear_flag(${rowName}, LV_OBJ_FLAG_SCROLLABLE);`)
+    lines.push(`${panel.labelObjectsName}[${index}] = lv_label_create(${rowName});`)
+    lines.push(`lv_label_set_text(${panel.labelObjectsName}[${index}], "${esc(model.showChannelNumbers ? `${index + 1}. ${channel.label}` : channel.label)}");`)
+    lines.push(`lv_obj_set_pos(${panel.labelObjectsName}[${index}], 8, 6);`)
+    lines.push(`lv_obj_set_width(${panel.labelObjectsName}[${index}], ${Math.max(20, rowWidth - 72)});`)
+    lines.push(`lv_label_set_long_mode(${panel.labelObjectsName}[${index}], LV_LABEL_LONG_DOT);`)
+    lines.push(`lv_obj_set_style_text_font(${panel.labelObjectsName}[${index}], &lv_font_montserrat_12, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_color(${panel.labelObjectsName}[${index}], lv_color_hex(${channel.enabled ? palette.textPrimary : disabled}), LV_PART_MAIN);`)
+    lines.push(`${panel.statusObjectsName}[${index}] = lv_label_create(${rowName});`)
+    lines.push(`lv_label_set_text(${panel.statusObjectsName}[${index}], "${esc(channel.statusText)}");`)
+    lines.push(`lv_obj_set_pos(${panel.statusObjectsName}[${index}], 8, 25);`)
+    lines.push(`lv_obj_set_width(${panel.statusObjectsName}[${index}], ${Math.max(20, rowWidth - 72)});`)
+    lines.push(`lv_label_set_long_mode(${panel.statusObjectsName}[${index}], LV_LABEL_LONG_DOT);`)
+    lines.push(`lv_obj_set_style_text_font(${panel.statusObjectsName}[${index}], &lv_font_montserrat_10, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_color(${panel.statusObjectsName}[${index}], lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
+    lines.push(`${panel.channelObjectsName}[${index}] = lv_switch_create(${rowName});`)
+    lines.push(`lv_obj_align(${panel.channelObjectsName}[${index}], LV_ALIGN_RIGHT_MID, -7, 0);`)
+    lines.push(`${panel.stateName}[${index}] = ${channel.state ? 'true' : 'false'};`)
+    lines.push(`${panel.enabledName}[${index}] = ${channel.enabled ? 'true' : 'false'};`)
+    if (channel.state) lines.push(`lv_obj_add_state(${panel.channelObjectsName}[${index}], LV_STATE_CHECKED);`)
+    if (!channel.enabled) lines.push(`lv_obj_add_state(${panel.channelObjectsName}[${index}], LV_STATE_DISABLED);`)
+    lines.push(`lv_obj_set_style_bg_color(${panel.channelObjectsName}[${index}], lv_color_hex(${channel.enabled ? inactive : disabled}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_bg_color(${panel.channelObjectsName}[${index}], lv_color_hex(${active}), LV_PART_INDICATOR | LV_STATE_CHECKED);`)
+    if (panel.channelCallbackName) lines.push(`lv_obj_add_event_cb(${panel.channelObjectsName}[${index}], ${panel.channelCallbackName}, LV_EVENT_VALUE_CHANGED, (void *)(uintptr_t)${index});`)
+  })
+  if (model.showFooter) {
+    lines.push(`lv_obj_t * ${varName}_footer = lv_label_create(${panel.rootName});`)
+    lines.push(`lv_label_set_text(${varName}_footer, "${esc(model.footerText)}");`)
+    lines.push(`lv_obj_align(${varName}_footer, LV_ALIGN_BOTTOM_LEFT, ${model.padding}, -${model.padding});`)
+    lines.push(`lv_obj_set_style_text_font(${varName}_footer, &lv_font_montserrat_12, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_color(${varName}_footer, lv_color_hex(${palette.disabledText}), LV_PART_MAIN);`)
+  }
+  lines.push(``)
+  break
+}
+
 case 'Spinbox': {
   const spinboxExport = spinboxExports.get(child.id)
   if (!spinboxExport) break
@@ -5270,6 +5438,7 @@ case 'Chart': {
         fiIconExports,
         dashboardCardExports,
         sensorTileExports,
+        relayPanelExports,
       )
     }
   })
@@ -5571,7 +5740,7 @@ export const generateForgeUILvglCode = (
   },
 ) => {
   const nativeIdentityDiagnostics = Object.entries(components)
-    .filter(([, component]) => component.type === 'DashboardCard' || component.type === 'SensorTile')
+    .filter(([, component]) => component.type === 'DashboardCard' || component.type === 'SensorTile' || component.type === 'RelayPanel')
     .map(([persistedId, component]) => {
       if (!component.id || component.id !== persistedId) {
         throw new Error(
@@ -5608,6 +5777,7 @@ export const generateForgeUILvglCode = (
     userEventHooks,
   )
   const sensorTileExports = createSensorTileExports(components, usedHookNames, userEventHooks)
+  const relayPanelExports = createRelayPanelExports(components, usedHookNames, userEventHooks)
   const fiIconExports = createFiIconExports(
     components,
     usedHookNames,
@@ -6338,7 +6508,7 @@ const backgroundMode =
   lines.push(`#include "freertos/semphr.h"`)
   lines.push(`#include "freertos/task.h"`)
   lines.push(`#include "esp_timer.h"`)
-  if (hasInteractiveButtons || dashboardCardExports.size > 0 || sensorTileExports.size > 0 || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
+  if (hasInteractiveButtons || dashboardCardExports.size > 0 || sensorTileExports.size > 0 || relayPanelExports.size > 0 || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
     lines.push(`#include "95_UserEvents.h"`)
   }
   if (Array.from(fiIconExports.values()).some(icon => icon.runtimeEnabled)) {
@@ -6377,6 +6547,16 @@ const backgroundMode =
     lines.push(`static lv_obj_t * ${tile.trendName} = NULL;`)
     lines.push(`static lv_obj_t * ${tile.timestampName} = NULL;`)
     lines.push(`static lv_obj_t * ${tile.progressName} = NULL;`)
+  })
+  relayPanelExports.forEach(panel => {
+    lines.push(`static lv_obj_t * ${panel.rootName} = NULL;`)
+    lines.push(`static lv_obj_t * ${panel.channelObjectsName}[${panel.channelCount}] = {0};`)
+    lines.push(`static lv_obj_t * ${panel.labelObjectsName}[${panel.channelCount}] = {0};`)
+    lines.push(`static lv_obj_t * ${panel.statusObjectsName}[${panel.channelCount}] = {0};`)
+    lines.push(`static bool ${panel.stateName}[${panel.channelCount}] = {0};`)
+    lines.push(`static bool ${panel.enabledName}[${panel.channelCount}] = {0};`)
+    lines.push(`static bool ${panel.programmaticName} = false;`)
+    lines.push(`static lv_obj_t * ${panel.masterObjectName} = NULL;`)
   })
   lines.push(`static lv_obj_t * fg_application_page = NULL;`)
   lines.push(`static lv_obj_t * fg_system_launcher_page = NULL;`)
@@ -6974,6 +7154,94 @@ const backgroundMode =
     lines.push(`void ${tile.timestampApiName}(const char * timestamp)`)
     lines.push(`{`)
     lines.push(`    if (${tile.timestampName}) lv_label_set_text(${tile.timestampName}, timestamp ? timestamp : "");`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
+  relayPanelExports.forEach(panel => {
+    if (panel.channelHookName && panel.channelCallbackName) {
+      lines.push(`static void ${panel.channelCallbackName}(lv_event_t * event)`)
+      lines.push(`{`)
+      lines.push(`    if (${panel.programmaticName}) return;`)
+      lines.push(`    uint32_t channel = (uint32_t)(uintptr_t)lv_event_get_user_data(event);`)
+      lines.push(`    if (channel >= ${panel.channelCount}u || !${panel.enabledName}[channel]) return;`)
+      lines.push(`    bool enabled = lv_obj_has_state(${panel.channelObjectsName}[channel], LV_STATE_CHECKED);`)
+      lines.push(`    if (${panel.stateName}[channel] == enabled) return;`)
+      lines.push(`    ${panel.stateName}[channel] = enabled;`)
+      lines.push(`    ${panel.channelHookName}(channel, enabled);`)
+      lines.push(`}`)
+      lines.push(``)
+    }
+    if (panel.masterHookName && panel.masterCallbackName) {
+      lines.push(`static void ${panel.masterCallbackName}(lv_event_t * event)`)
+      lines.push(`{`)
+      lines.push(`    if (${panel.programmaticName} || lv_event_get_current_target(event) != ${panel.masterObjectName}) return;`)
+      lines.push(`    bool enabled = lv_obj_has_state(${panel.masterObjectName}, LV_STATE_CHECKED);`)
+      lines.push(`    ${panel.programmaticName} = true;`)
+      lines.push(`    for (uint32_t channel = 0; channel < ${panel.channelCount}u; ++channel) {`)
+      lines.push(`        if (!${panel.enabledName}[channel] || ${panel.channelObjectsName}[channel] == NULL) continue;`)
+      lines.push(`        if (enabled) lv_obj_add_state(${panel.channelObjectsName}[channel], LV_STATE_CHECKED);`)
+      lines.push(`        else lv_obj_remove_state(${panel.channelObjectsName}[channel], LV_STATE_CHECKED);`)
+      lines.push(`        ${panel.stateName}[channel] = enabled;`)
+      lines.push(`    }`)
+      lines.push(`    ${panel.programmaticName} = false;`)
+      lines.push(`    ${panel.masterHookName}(enabled);`)
+      lines.push(`}`)
+      lines.push(``)
+    }
+    if (!panel.runtimeEnabled) return
+    lines.push(`void ${panel.setChannelApiName}(uint32_t channel, bool enabled)`)
+    lines.push(`{`)
+    lines.push(`    if (channel >= ${panel.channelCount}u || ${panel.channelObjectsName}[channel] == NULL) return;`)
+    lines.push(`    ${panel.programmaticName} = true;`)
+    lines.push(`    if (enabled) lv_obj_add_state(${panel.channelObjectsName}[channel], LV_STATE_CHECKED);`)
+    lines.push(`    else lv_obj_remove_state(${panel.channelObjectsName}[channel], LV_STATE_CHECKED);`)
+    lines.push(`    ${panel.stateName}[channel] = enabled;`)
+    lines.push(`    ${panel.programmaticName} = false;`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`bool ${panel.getChannelApiName}(uint32_t channel)`)
+    lines.push(`{`)
+    lines.push(`    return channel < ${panel.channelCount}u && ${panel.stateName}[channel];`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${panel.setChannelEnabledApiName}(uint32_t channel, bool enabled)`)
+    lines.push(`{`)
+    lines.push(`    if (channel >= ${panel.channelCount}u || ${panel.channelObjectsName}[channel] == NULL) return;`)
+    lines.push(`    ${panel.enabledName}[channel] = enabled;`)
+    lines.push(`    if (enabled) lv_obj_remove_state(${panel.channelObjectsName}[channel], LV_STATE_DISABLED);`)
+    lines.push(`    else lv_obj_add_state(${panel.channelObjectsName}[channel], LV_STATE_DISABLED);`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${panel.setAllApiName}(bool enabled)`)
+    lines.push(`{`)
+    lines.push(`    ${panel.programmaticName} = true;`)
+    lines.push(`    for (uint32_t channel = 0; channel < ${panel.channelCount}u; ++channel) {`)
+    lines.push(`        if (!${panel.enabledName}[channel] || ${panel.channelObjectsName}[channel] == NULL) continue;`)
+    lines.push(`        if (enabled) lv_obj_add_state(${panel.channelObjectsName}[channel], LV_STATE_CHECKED);`)
+    lines.push(`        else lv_obj_remove_state(${panel.channelObjectsName}[channel], LV_STATE_CHECKED);`)
+    lines.push(`        ${panel.stateName}[channel] = enabled;`)
+    lines.push(`    }`)
+    lines.push(`    if (${panel.masterObjectName}) {`)
+    lines.push(`        if (enabled) lv_obj_add_state(${panel.masterObjectName}, LV_STATE_CHECKED);`)
+    lines.push(`        else lv_obj_remove_state(${panel.masterObjectName}, LV_STATE_CHECKED);`)
+    lines.push(`    }`)
+    lines.push(`    ${panel.programmaticName} = false;`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${panel.setLabelApiName}(uint32_t channel, const char * label)`)
+    lines.push(`{`)
+    lines.push(`    if (channel < ${panel.channelCount}u && ${panel.labelObjectsName}[channel]) lv_label_set_text(${panel.labelObjectsName}[channel], label ? label : "");`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${panel.setStatusApiName}(uint32_t channel, const char * text)`)
+    lines.push(`{`)
+    lines.push(`    if (channel < ${panel.channelCount}u && ${panel.statusObjectsName}[channel]) lv_label_set_text(${panel.statusObjectsName}[channel], text ? text : "");`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${panel.setMasterApiName}(bool enabled)`)
+    lines.push(`{`)
+    lines.push(`    ${panel.setAllApiName}(enabled);`)
     lines.push(`}`)
     lines.push(``)
   })
@@ -8692,6 +8960,7 @@ lines.push(`    fg_system_root = parent;`)
         fiIconExports,
         dashboardCardExports,
         sensorTileExports,
+        relayPanelExports,
       )
   }
 
@@ -9377,6 +9646,14 @@ lines.push(`}`)
         `void ${tile.trendApiName}(int32_t trend);`,
         `void ${tile.timestampApiName}(const char * timestamp);`,
         `void ${tile.colourApiName}(uint32_t rgb);`,
+      ])).concat(Array.from(relayPanelExports.values()).filter(panel => panel.runtimeEnabled).flatMap(panel => [
+        `void ${panel.setChannelApiName}(uint32_t channel, bool enabled);`,
+        `bool ${panel.getChannelApiName}(uint32_t channel);`,
+        `void ${panel.setChannelEnabledApiName}(uint32_t channel, bool enabled);`,
+        `void ${panel.setAllApiName}(bool enabled);`,
+        `void ${panel.setLabelApiName}(uint32_t channel, const char * label);`,
+        `void ${panel.setStatusApiName}(uint32_t channel, const char * text);`,
+        `void ${panel.setMasterApiName}(bool enabled);`,
       ])).concat(Array.from(barExports.values()).map(
         barExport => `void ${barExport.apiName}(int32_t value);`,
       )).concat(Array.from(progressExports.values()).map(

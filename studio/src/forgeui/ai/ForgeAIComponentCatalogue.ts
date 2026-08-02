@@ -35,6 +35,7 @@ const SUPPORTED_TYPES = [
   'Msgbox', 'Table', 'Scale', 'Keyboard', 'Divider', 'Calendar', 'Chart', 'Box',
   'DashboardCard',
   'SensorTile',
+  'RelayPanel',
 ] as const
 
 type SupportedType = typeof SUPPORTED_TYPES[number]
@@ -43,14 +44,14 @@ const CONTROL_TYPES = new Set<SupportedType>([
   'Button', 'InteractiveButton', 'InteractiveToggleSwitch',
   'InteractiveThreePositionToggleSwitch', 'IconButton', 'Input', 'Textarea',
   'Switch', 'Checkbox', 'Radio', 'NumberInput', 'Spinbox', 'Select', 'Slider', 'Roller',
-  'ButtonMatrix', 'Keyboard',
+  'ButtonMatrix', 'Keyboard', 'RelayPanel',
 ])
 
 const MEDIA_TYPES = new Set<SupportedType>(['Image', 'Icon'])
 const NAVIGATION_TYPES = new Set<SupportedType>(['Tabview', 'Tileview'])
 const LAYOUT_TYPES = new Set<SupportedType>(['Box', 'Divider', 'Line', 'Canvas'])
 const CONTENT_TYPES = new Set<SupportedType>(['Text', 'Heading'])
-const DASHBOARD_TYPES = new Set<SupportedType>(['DashboardCard', 'SensorTile'])
+const DASHBOARD_TYPES = new Set<SupportedType>(['DashboardCard', 'SensorTile', 'RelayPanel'])
 
 const descriptions: Partial<Record<SupportedType, string>> = {
   NumberInput: 'Editable numeric field with increment and decrement controls.',
@@ -67,6 +68,7 @@ const descriptions: Partial<Record<SupportedType, string>> = {
   InteractiveThreePositionToggleSwitch: 'Project Interactive three-position switch asset instance.',
   DashboardCard: 'ForgeUI Native value, status and progress card.',
   SensorTile: 'ForgeUI Native live engineering measurement tile.',
+  RelayPanel: 'ForgeUI Native logical relay bank control panel.',
 }
 
 const aliases: Partial<Record<SupportedType, string[]>> = {
@@ -87,6 +89,7 @@ const aliases: Partial<Record<SupportedType, string[]>> = {
   InteractiveThreePositionToggleSwitch: ['interactive three position toggle'],
   DashboardCard: ['dashboard card', 'kpi card', 'metric card'],
   SensorTile: ['sensor tile', 'engineering measurement', 'telemetry tile'],
+  RelayPanel: ['relay panel', 'relay bank', 'digital outputs', 'contactors'],
 }
 
 const sizes: Partial<Record<SupportedType, { w: number; h: number }>> = {
@@ -107,6 +110,7 @@ const sizes: Partial<Record<SupportedType, { w: number; h: number }>> = {
   Divider: { w: 240, h: 2 },
   DashboardCard: { w: 300, h: 190 },
   SensorTile: { w: 260, h: 180 },
+  RelayPanel: { w: 340, h: 360 },
 }
 
 const assetRequirement = (type: SupportedType): ForgeAIAssetRequirement => {

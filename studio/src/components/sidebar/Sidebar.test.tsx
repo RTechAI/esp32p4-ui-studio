@@ -92,6 +92,33 @@ describe('ForgeUI Widget Tray', () => {
     expect(screen.queryByTestId('widget-dashboard-empty')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Insert Dashboard Card' }))
       .toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Insert Sensor Tile' }))
+      .toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Insert Relay Panel' }))
+      .toBeInTheDocument()
+  })
+
+  it('inserts RelayPanel from the production tray with valid defaults', () => {
+    const store = renderTray()
+    const insert = screen.getByRole('button', {
+      name: 'Insert Relay Panel',
+    })
+    expect(insert.closest('[data-testid="widget-tray-row"]'))
+      .toHaveAttribute('draggable', 'true')
+    fireEvent.click(insert)
+    const state = store.getState().components.present
+    const relay = state.components[state.selectedId]
+    expect(relay).toMatchObject({
+      type: 'RelayPanel',
+      parent: 'root',
+      rootParentType: 'RelayPanel',
+      props: {
+        positionMode: 'absolute',
+        w: 340,
+        h: 360,
+        channelCount: 4,
+      },
+    })
   })
 
   it('collapses categories and inserts by click or keyboard', () => {

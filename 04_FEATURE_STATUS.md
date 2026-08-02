@@ -48,26 +48,27 @@ This document records implementation and proof status only.
 ## ForgeUI Native Components
 
 Current platform milestone:
-`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_PROVEN__ESP32P4_VALIDATED__STABLE_RUNTIME_SDK__STABLE_USEREVENTS__2026-08-02`.
+`FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__RUNTIME_SDK_USEREVENTS_MASTER_CONTROL_PROVEN__READY_FOR_PWM_CONTROLLER__2026-08-02`.
 
 | Native component | Status | Evidence boundary |
 |---|---|---|
 | Dashboard Card | **PROVEN** | Origin: ForgeUI Native; ESP32-P4 validated; Browser Preview, Live Studio, Standalone Export, Runtime SDK and UserEvents verified; one versioned serialized component with private internal LVGL composition and independent multi-instance behavior |
 | Sensor Tile | **PROVEN** | ForgeUI Native Component #2; ESP32-P4 validated; semantic serialization, Browser Preview, shared Live/Standalone export, six semantic Runtime APIs and UserEvents verified; stable Native Component identity and ownership reconciliation preserve public symbols and active developer hooks across regeneration |
+| Relay Panel | **PROVEN — ESP32-P4 VALIDATED** | ForgeUI Native Component #3; versioned 1–8 channel semantic model with stable channel IDs; one Canvas component; interactive Browser Preview; shared Live/Standalone private LVGL composition; seven bounded zero-based Runtime APIs; genuine-user channel/master hooks; no GPIO ownership |
 
 Native Component totals are separate from the completed practical LVGL ledger.
 The 44/44 practical LVGL proof result remains unchanged. Dashboard Card is
 **ForgeUI Native Component #1 — PROVEN** and establishes a separate platform
 proof ledger. Sensor Tile is **ForgeUI Native Component #2 — PROVEN** and
 establishes stable Runtime SDK identity and UserEvents regeneration ownership.
-Relay Panel is the next implementation target and has not begun.
+Relay Panel is physically proven on ESP32-P4.
 
 Current Native Component roadmap:
 
 1. Dashboard Card — **PROVEN**
 2. Sensor Tile — **PROVEN**
-3. Relay Panel — **NEXT IMPLEMENTATION TARGET**
-4. PWM Controller
+3. Relay Panel — **PROVEN**
+4. PWM Controller — **NEXT**
 5. System Health
 6. Network Widget
 7. Storage Widget

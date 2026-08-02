@@ -120,6 +120,23 @@ test.each(componentsToTest)('Component Preview for %s', componentName => {
   // expect(spy).not.toHaveBeenCalled();
 })
 
+test('Canvas dispatch renders RelayPanel through the production preview path', () => {
+  // @ts-ignore Rematch's inferred plugin type is wider than this test needs.
+  const store = init(storeConfig)
+  store.dispatch.components.addComponent({
+    parentName: 'root',
+    type: 'RelayPanel',
+    rootParentType: 'RelayPanel',
+    testId: 'relay-panel',
+  })
+  renderWithRedux(
+    <ComponentPreview componentName="relay-panel" />,
+    { initialState: undefined, store },
+  )
+  expect(screen.getByTestId('forgeui-relay-panel')).toBeInTheDocument()
+  expect(screen.getByText('Main Relays')).toBeInTheDocument()
+})
+
 test('Canvas Checkbox toggles preview state without mutating serialized state or starting drag', () => {
   // @ts-ignore Rematch's inferred plugin type is wider than this test needs.
   const store = init(storeConfig)

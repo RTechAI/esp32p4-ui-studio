@@ -983,6 +983,10 @@ function normalizePublicApiDeclarations(declarations) {
             /^void FG_Set_[A-Za-z0-9_]+\(const char \* text, uint32_t rgb\);$/.test(declaration) ||
             /^void FG_Set_[A-Za-z0-9_]+\(uint32_t rgb\);$/.test(declaration) ||
             /^void FG_Set_[A-Za-z0-9_]+\(int32_t trend\);$/.test(declaration) ||
+            /^void FG_Set_[A-Za-z0-9_]+_Channel\(uint32_t channel, bool enabled\);$/.test(declaration) ||
+            /^bool FG_Get_[A-Za-z0-9_]+_Channel\(uint32_t channel\);$/.test(declaration) ||
+            /^void FG_Set_[A-Za-z0-9_]+_Channel_Enabled\(uint32_t channel, bool enabled\);$/.test(declaration) ||
+            /^void FG_Set_[A-Za-z0-9_]+_(?:Label|Status)\(uint32_t channel, const char \* (?:label|text)\);$/.test(declaration) ||
             /^void FG_Set_[A-Za-z0-9_]+_Text\(const char \* text\);$/.test(declaration) ||
             /^void FG_Add_[A-Za-z0-9_]+_Point\(int32_t value\);$/.test(declaration) ||
             /^void FG_Clear_[A-Za-z0-9_]+\(void\);$/.test(declaration) ||
@@ -1639,11 +1643,21 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
         )
     )
   )
+  const relayChannelChanged = new Set(uniqueHooks.filter(hook =>
+    /_Channel_Changed$/.test(hook)
+  ))
+  const relayMasterChanged = new Set(uniqueHooks.filter(hook =>
+    /_Master_Changed$/.test(hook)
+  ))
 
   
 
   const declarations = uniqueHooks
-    .map((hook) => integerChanged.has(hook) || integerPointAdded.has(hook)
+    .map((hook) => relayChannelChanged.has(hook)
+      ? `void ${hook}(uint32_t channel, bool enabled);`
+      : relayMasterChanged.has(hook)
+        ? `void ${hook}(bool enabled);`
+      : integerChanged.has(hook) || integerPointAdded.has(hook)
       ? `void ${hook}(int32_t value);`
       : cleared.has(hook)
         ? `void ${hook}(void);`
@@ -1677,7 +1691,20 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
     .join('\n')
 
   const definitions = uniqueHooks
-    .map((hook) => integerPointAdded.has(hook)
+    .map((hook) => relayChannelChanged.has(hook)
+      ? `void ${hook}(uint32_t channel, bool enabled)
+{
+    printf("[ForgeUI User Event] ${hook.replace(/^FG_On_|_Channel_Changed$/g, '').replace(/_/g, ' ')} channel %lu: %s\\n",
+           (unsigned long)channel,
+           enabled ? "ON" : "OFF");
+}`
+      : relayMasterChanged.has(hook)
+        ? `void ${hook}(bool enabled)
+{
+    printf("[ForgeUI User Event] ${hook.replace(/^FG_On_|_Master_Changed$/g, '').replace(/_/g, ' ')} master: %s\\n",
+           enabled ? "ON" : "OFF");
+}`
+      : integerPointAdded.has(hook)
       ? `void ${hook}(int32_t value)
 {
     printf("[ForgeUI User Event] ${hook.replace(/^FG_On_|_Point_Added$/g, '').replace(/_/g, ' ')} point added: %ld\\n",
@@ -1871,7 +1898,7 @@ ${definitions}
   }
 }
 
-const NATIVE_COMPONENT_HOOK_PATTERN = /^FG_On_Comp_[A-Za-z0-9_]+_Clicked$/
+const NATIVE_COMPONENT_HOOK_PATTERN = /^FG_On_Comp_[A-Za-z0-9_]+_(?:Clicked|Channel_Changed|Master_Changed)$/
 const ORPHANED_NATIVE_HOOK_MARKER = 'ForgeUI orphaned legacy Native Component hook'
 
 function findVoidHookDefinitions(source) {
@@ -1911,7 +1938,21 @@ function findVoidHookDefinitions(source) {
 
 function isGeneratedNativePlaceholder(definition) {
   const expected = `printf("[ForgeUI User Event] ${definition.hook}\\n");`
-  return definition.body.trim() === expected
+  const body = definition.body.trim()
+  if (body === expected) return true
+  const label = definition.hook
+    .replace(/^FG_On_|_(?:Channel|Master)_Changed$/g, '')
+    .replace(/_/g, ' ')
+  if (definition.hook.endsWith('_Channel_Changed')) {
+    return body === `printf("[ForgeUI User Event] ${label} channel %lu: %s\\n",
+           (unsigned long)channel,
+           enabled ? "ON" : "OFF");`
+  }
+  if (definition.hook.endsWith('_Master_Changed')) {
+    return body === `printf("[ForgeUI User Event] ${label} master: %s\\n",
+           enabled ? "ON" : "OFF");`
+  }
+  return false
 }
 
 function reconcileNativeComponentHooks(source, header, activeHooks) {
@@ -1955,7 +1996,7 @@ function reconcileNativeComponentHooks(source, header, activeHooks) {
   source = source.replace(/\n{3,}/g, '\n\n')
 
   header = header.replace(
-    /^\s*void\s+(FG_On_Comp_[A-Za-z0-9_]+_Clicked)\s*\([^;]*\)\s*;\s*$/gm,
+    /^\s*void\s+(FG_On_Comp_[A-Za-z0-9_]+_(?:Clicked|Channel_Changed|Master_Changed))\s*\([^;]*\)\s*;\s*$/gm,
     (declaration, hook) => active.has(hook) ? declaration : '',
   ).replace(/\n{3,}/g, '\n\n')
 

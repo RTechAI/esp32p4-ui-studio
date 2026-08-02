@@ -43,15 +43,15 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- `FG_On_Comp_MSBCEKT2_TYLLX_Clicked()`
-- `FG_On_Comp_MSBCEON9_ITWY7_Clicked()`
+- `FG_On_Comp_MSBHEOFNU0_CVL_Channel_Changed()`
+- `FG_On_Comp_MSBHEOFNU0_CVL_Master_Changed()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| Comp_MSBCEKT2_TYLLX | Click | `FG_On_Comp_MSBCEKT2_TYLLX_Clicked()` |
-| Comp_MSBCEON9_ITWY7 | Click | `FG_On_Comp_MSBCEON9_ITWY7_Clicked()` |
+| Comp_MSBHEOFNU0_CVL_Channel_Changed | Click | `FG_On_Comp_MSBHEOFNU0_CVL_Channel_Changed()` |
+| Comp_MSBHEOFNU0_CVL_Master_Changed | Click | `FG_On_Comp_MSBHEOFNU0_CVL_Master_Changed()` |
 
 ---
 

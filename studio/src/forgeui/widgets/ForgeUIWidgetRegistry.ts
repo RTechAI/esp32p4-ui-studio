@@ -88,6 +88,7 @@ const displayNames: Partial<Record<ComponentType, string>> = {
   Menu: 'Menu',
   DashboardCard: 'Dashboard Card',
   SensorTile: 'Sensor Tile',
+  RelayPanel: 'Relay Panel',
 }
 
 const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
@@ -105,7 +106,7 @@ const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
   ],
   Navigation: ['List', 'Tabview', 'Tileview', 'ButtonMatrix', 'ImageButton', 'Window', 'Menu'],
   Feedback: ['Msgbox', 'Keyboard', 'Calendar', 'Spinner'],
-  Dashboard: ['DashboardCard', 'SensorTile'],
+  Dashboard: ['DashboardCard', 'SensorTile', 'RelayPanel'],
   Assets: [
     'InteractiveButton',
     'InteractiveLight',
@@ -174,6 +175,7 @@ const sizes: Partial<Record<ComponentType, [number, number]>> = {
   Menu: [420, 420],
   DashboardCard: [300, 190],
   SensorTile: [260, 180],
+  RelayPanel: [340, 360],
 }
 
 const keywords: Partial<Record<ComponentType, string[]>> = {
@@ -203,6 +205,7 @@ const keywords: Partial<Record<ComponentType, string[]>> = {
   Menu: ['navigation', 'pages', 'settings', 'hierarchy', 'lv_menu'],
   DashboardCard: ['dashboard', 'card', 'kpi', 'metric', 'forgeui native'],
   SensorTile: ['sensor', 'measurement', 'engineering', 'telemetry', 'forgeui native'],
+  RelayPanel: ['relay', 'contactor', 'solenoid', 'pump', 'light', 'fan', 'valve', 'digital output', 'forgeui native'],
 }
 
 type CapabilityDefinition = Omit<
@@ -286,6 +289,13 @@ const capabilitiesByType: Partial<
     instanceConfiguration: {
       runtimeApiProperty: 'generateRuntimeApi', runtimeApiDefault: true,
       userEventProperty: 'enableClick', userEventDefault: true,
+    },
+  },
+  RelayPanel: {
+    ...capability(true, true, true),
+    instanceConfiguration: {
+      runtimeApiProperty: 'generateRuntimeApi', runtimeApiDefault: true,
+      userEventProperty: 'enableUserEvents', userEventDefault: true,
     },
   },
 
@@ -391,6 +401,7 @@ const documentationByType: Partial<Record<ComponentType, string>> = {
   Menu: 'docs/FORGEUI_MENU_WIDGET.md',
   DashboardCard: 'docs/FORGEUI_DASHBOARD_CARD.md',
   SensorTile: 'docs/FORGEUI_SENSOR_TILE.md',
+  RelayPanel: 'docs/FORGEUI_RELAY_PANEL.md',
   List: 'docs/FORGEUI_LIST_WIDGET.md',
   Tileview: 'docs/FORGEUI_TILEVIEW_WIDGET.md',
   Spinbox: 'docs/FORGEUI_SPINBOX_WIDGET.md',
@@ -421,6 +432,7 @@ const describe = (
     Menu: 'Native multi-page navigation framework with sections, child-page links and back history.',
     DashboardCard: 'ForgeUI Native application card for a value, status, progress and timestamp.',
     SensorTile: 'ForgeUI Native engineering measurement tile with thresholds, trend and status.',
+    RelayPanel: 'ForgeUI Native logical relay-bank control with semantic state and genuine-user events.',
     InteractiveButton: 'Reusable state-sheet driven button.',
   }
   return special[type] || `${name} ${category.toLowerCase()} widget.`
@@ -475,14 +487,16 @@ export const forgeUIWidgetDefinitions: ForgeUIWidgetDefinition[] =
       documentationId:
         documentationByType[type] || '04_FEATURE_STATUS.md',
       status: 'available',
-      origin: type === 'DashboardCard' || type === 'SensorTile' ? 'forgeui-native' : 'lvgl-standard',
-      ...(type === 'DashboardCard' || type === 'SensorTile' ? { nativeWidgetSchemaVersion: 1 } : {}),
-      ...(type === 'DashboardCard' || type === 'SensorTile' ? { platform: {
+      origin: type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' ? 'forgeui-native' : 'lvgl-standard',
+      ...(type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' ? { nativeWidgetSchemaVersion: 1 } : {}),
+      ...(type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' ? { platform: {
         kind: 'native-widget' as const,
-        family: type === 'SensorTile' ? 'sensors' : 'dashboard',
-        layoutRoles: ['status', 'metrics', 'main', 'card-grid'],
-        preferredArrangements: ['grid', 'kpi-cards', 'fit-to-region'],
-        templateTags: ['dashboard', 'monitoring', 'industrial-hmi', 'scada-overview'],
+        family: type === 'SensorTile' ? 'sensors' : type === 'RelayPanel' ? 'controls' : 'dashboard',
+        layoutRoles: type === 'RelayPanel' ? ['controls', 'main', 'control-grid'] : ['status', 'metrics', 'main', 'card-grid'],
+        preferredArrangements: type === 'RelayPanel' ? ['grid', 'control-panel', 'fit-to-region'] : ['grid', 'kpi-cards', 'fit-to-region'],
+        templateTags: type === 'RelayPanel'
+          ? ['industrial-hmi', 'home-automation', 'marine', 'plant-control', 'electrical-distribution', 'workshop-control', 'smart-building']
+          : ['dashboard', 'monitoring', 'industrial-hmi', 'scada-overview'],
       } } : {}),
     }
   })

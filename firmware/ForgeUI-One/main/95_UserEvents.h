@@ -65,8 +65,8 @@ void FG_On_Spinbox_Changed(int32_t value);
 void FG_On_List_Proof_Item_Clicked(uint32_t index, const char * text);
 void FG_On_Image_Button_Clicked(void);
 void FG_On_Image_Button_2_Clicked(void);
-void FG_On_Comp_MSBCEKT2_TYLLX_Clicked(void);
-void FG_On_Comp_MSBCEON9_ITWY7_Clicked(void);
+void FG_On_Comp_MSBHEOFNU0_CVL_Channel_Changed(uint32_t channel, bool enabled);
+void FG_On_Comp_MSBHEOFNU0_CVL_Master_Changed(bool enabled);
 
 #ifdef __cplusplus
 }

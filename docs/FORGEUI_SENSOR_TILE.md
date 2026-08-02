@@ -3,7 +3,7 @@
 Status: **PROVEN — ESP32-P4 VALIDATED** (2026-08-02).
 
 Platform milestone:
-`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_PROVEN__ESP32P4_VALIDATED__STABLE_RUNTIME_SDK__STABLE_USEREVENTS__2026-08-02`.
+`FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__RUNTIME_SDK_USEREVENTS_MASTER_CONTROL_PROVEN__READY_FOR_PWM_CONTROLLER__2026-08-02`.
 
 Sensor Tile is **ForgeUI Native Component #2**. It represents one live
 engineering measurement while its internal LVGL container, labels, status
@@ -47,6 +47,9 @@ void FG_On_Engine_RPM_Clicked(void);
 
 ## ESP32-P4 proof record
 
+Sensor Tile proof milestone:
+`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_PROVEN__ESP32P4_VALIDATED__STABLE_RUNTIME_SDK__STABLE_USEREVENTS__2026-08-02`.
+
 Physical validation on the Waveshare ESP32-P4 confirms:
 
 - schema-1 semantic serialization remains one editable Canvas component;
@@ -79,4 +82,4 @@ the accepted physical proof above.
 - History, sparkline, alarm memory and min/max retention remain future semantic
   extensions under the same component identity.
 - The icon is a native LVGL symbol; no Tile-specific asset path is introduced.
-- Relay Panel is the next implementation target and has not begun.
+- Relay Panel is physically proven on ESP32-P4.

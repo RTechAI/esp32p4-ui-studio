@@ -4,7 +4,7 @@ Current save point:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
 Current ForgeUI Platform milestone:
-`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_PROVEN__ESP32P4_VALIDATED__STABLE_RUNTIME_SDK__STABLE_USEREVENTS__2026-08-02`.
+`FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__RUNTIME_SDK_USEREVENTS_MASTER_CONTROL_PROVEN__READY_FOR_PWM_CONTROLLER__2026-08-02`.
 
 Dashboard Card is **ForgeUI Native Component #1 — PROVEN**. ESP32-P4 proof
 verified its semantic Value, Units, Status and Progress setters, optional root
@@ -19,6 +19,11 @@ the optional click UserEvent, with Browser Preview and Live/Standalone parity.
 Persisted Native Component identity keeps generated public symbols stable, and
 UserEvents ownership reconciliation preserves the active developer hook across
 regeneration without compiling obsolete hook APIs.
+
+Relay Panel is **ForgeUI Native Component #3 — PROVEN**. Its seven APIs use zero-based channel indices, reject
+out-of-range access, maintain reliable generated logical state and never emit
+UserEvents during programmatic updates. Channel and master hooks represent only
+genuine user actions; GPIO and relay drivers remain outside the Runtime SDK.
 
 This document introduces the long-term ForgeUI Runtime SDK direction. It does
 not describe a finished, separately packaged SDK product.

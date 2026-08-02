@@ -206,6 +206,7 @@ export const componentsList: ComponentType[] = ([
 'Divider',
 'DashboardCard',
 'SensorTile',
+'RelayPanel',
 'Editable',
 'Flex',
 'FormControl',

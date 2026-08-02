@@ -374,6 +374,16 @@ WiFi: {
     generateRuntimeApi: true, enableClick: true,
     positionMode: 'absolute', x: 40, y: 40, w: 260, h: 180,
   },
+  RelayPanel: {
+    nativeWidgetSchemaVersion: 1, title: 'Main Relays', subtitle: 'Digital output control',
+    icon: 'LV_SYMBOL_POWER', channelCount: 4,
+    channels: [1, 2, 3, 4].map(index => ({ id: `relay-${index}`, label: `Relay ${index}`, state: false, enabled: true, statusText: '' })),
+    showMasterControl: true, masterState: false, confirmationMode: 'disabled',
+    showChannelNumbers: true, layoutMode: 'standard', activeColour: '#22C55E',
+    inactiveColour: '#475569', disabledColour: '#64748B', showFooter: true,
+    footerText: 'Ready', padding: 14, gap: 8, generateRuntimeApi: true,
+    enableUserEvents: true, positionMode: 'absolute', x: 40, y: 40, w: 340, h: 360,
+  },
   QRCode: {
     contentType: 'custom',
     qrText: 'https://forgeui.co.nz',

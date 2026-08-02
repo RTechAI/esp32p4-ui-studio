@@ -4,7 +4,7 @@ Current milestone:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
 Current ForgeUI Platform milestone:
-`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_PROVEN__ESP32P4_VALIDATED__STABLE_RUNTIME_SDK__STABLE_USEREVENTS__2026-08-02`.
+`FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__RUNTIME_SDK_USEREVENTS_MASTER_CONTROL_PROVEN__READY_FOR_PWM_CONTROLLER__2026-08-02`.
 
 This is the living ForgeUI engineering journal. It records change, evidence and
 open engineering work. It does not replace or duplicate
@@ -22,13 +22,34 @@ each feature and the official widget totals.
 | ESP-IDF version | 5.5.4 |
 | Target hardware | Waveshare ESP32-P4-WiFi6-Touch-LCD-7B, 1024 × 600 |
 | Current development phase | ForgeUI Platform — ForgeUI-native Widgets next |
-| Current Native Component status | Dashboard Card — PROVEN; Sensor Tile — PROVEN |
-| Next Native Component | Relay Panel |
+| Current Native Component status | Dashboard Card — PROVEN; Sensor Tile — PROVEN; Relay Panel — PROVEN on ESP32-P4 |
+| Next Native Component | PWM Controller — NEXT; no Component #4 implementation yet |
 
 Totals are copied only as a dated summary pointer. Change them in
 `04_FEATURE_STATUS.md` after proof acceptance, then refresh this summary.
 
 ## Recently Improved
+
+### 2026-08-02 — ForgeUI Native Component #3 Relay Panel physical proof
+
+Relay Panel is **PROVEN** on ESP32-P4. The active component identity was
+`Comp_MSBHEOFNU0_CVL`. Physical interaction confirmed channels 0–3 ON and
+master ON, OFF and ON with zero-based indexing. Wi-Fi remained connected at
+`192.168.0.90`, SD remained ready, and no crash, watchdog, reset or visible
+runtime failure occurred. The Runtime SDK, genuine-user channel/master hooks,
+private LVGL composition and UserEvents reconciliation contract are retained.
+PWM Controller is next and has not started.
+
+### 2026-08-02 — ForgeUI Native Component #3 Relay Panel implementation
+
+Relay Panel now traverses the existing Registry, semantic serialization,
+Inspector, single-object Canvas, shared Browser Preview, shared Live/Standalone
+generator, Runtime SDK and UserEvents ownership reconciliation. Version 1 owns
+1–8 stable-ID logical channels, individual and master control, enabled state,
+labels/status, compact/standard presentation and seven zero-based semantic APIs.
+Programmatic updates are silent and hardware drivers remain application-owned.
+Confirmation prompts are deliberately deferred until a shared Browser/LVGL
+primitive exists. Status is **IMPLEMENTED — READY FOR ESP32-P4 PHYSICAL PROOF**.
 
 ### 2026-08-02 — ForgeUI Native Component #2 Sensor Tile proof
 

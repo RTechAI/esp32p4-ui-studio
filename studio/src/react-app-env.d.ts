@@ -82,6 +82,7 @@ type ComponentType =
   | 'Menu'
   | 'DashboardCard'
   | 'SensorTile'
+  | 'RelayPanel'
   | 'NumberInput'
   | 'Progress'
   | 'QRCode'
