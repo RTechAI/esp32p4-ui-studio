@@ -3,6 +3,9 @@
 Current milestone:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
+Current ForgeUI Platform milestone:
+`FORGEUI_NATIVE_COMPONENT_1__DASHBOARD_CARD_PROVEN__ESP32P4_VALIDATED__READY_FOR_SENSOR_TILE__2026-08-02`.
+
 This is the living ForgeUI engineering journal. It records change, evidence and
 open engineering work. It does not replace or duplicate
 `04_FEATURE_STATUS.md`, which remains authoritative for the current status of
@@ -19,11 +22,24 @@ each feature and the official widget totals.
 | ESP-IDF version | 5.5.4 |
 | Target hardware | Waveshare ESP32-P4-WiFi6-Touch-LCD-7B, 1024 × 600 |
 | Current development phase | ForgeUI Platform — ForgeUI-native Widgets next |
+| Current Native Component status | Dashboard Card — PROVEN on ESP32-P4 |
+| Next Native Component | Sensor Tile |
 
 Totals are copied only as a dated summary pointer. Change them in
 `04_FEATURE_STATUS.md` after proof acceptance, then refresh this summary.
 
 ## Recently Improved
+
+### 2026-08-02 — ForgeUI Native Component #1 Dashboard Card proof
+
+Dashboard Card passed physical validation on the Waveshare ESP32-P4. Browser
+Preview and hardware matched closely; Live Studio and Standalone Export behaved
+consistently; Runtime setters and UserEvents operated correctly; the Card
+remained one Canvas object; and multiple instances remained independent.
+Touch stayed responsive and RAM stable, with no crash, watchdog reset or
+rendering corruption. Dashboard Card is **PROVEN**. This is the first ForgeUI
+Native Component milestone and is separate from the completed 44/44 practical
+LVGL history. Sensor Tile is next; implementation has not begun.
 
 ### 2026-08-02 — Practical LVGL 9.2 completion
 

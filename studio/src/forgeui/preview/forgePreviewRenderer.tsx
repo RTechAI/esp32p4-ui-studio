@@ -52,6 +52,7 @@ import StandardLinePreview from './StandardLinePreview'
 import { StandardSpanPreview, StandardAnimImagePreview, StandardImageButtonPreview } from './StandardClosureWidgetPreviews'
 import { StandardWindowPreview } from './StandardWindowPreview'
 import { StandardMenuPreview } from './StandardMenuPreview'
+import { ForgeUIDashboardCardPreview } from './ForgeUIDashboardCardPreview'
 import ImagePreview from '~components/editor/previews/ImagePreview'
 import StandardCalendarPreview from './StandardCalendarPreview'
 import { resolveForgeSemanticPalette } from './forgeThemeMap'
@@ -803,6 +804,13 @@ case 'Window': {
 
 case 'Menu': {
   output.push(<Box key={child.id} {...commonStyle}><StandardMenuPreview component={child} mode="browser" /></Box>)
+  break
+}
+
+case 'DashboardCard': {
+  output.push(<Box key={child.id} {...commonStyle}>
+    <ForgeUIDashboardCardPreview component={child} palette={palette} />
+  </Box>)
   break
 }
 

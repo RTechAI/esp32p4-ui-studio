@@ -3,6 +3,14 @@
 Current save point:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
+Current ForgeUI Platform milestone:
+`FORGEUI_NATIVE_COMPONENT_1__DASHBOARD_CARD_PROVEN__ESP32P4_VALIDATED__READY_FOR_SENSOR_TILE__2026-08-02`.
+
+Dashboard Card is **ForgeUI Native Component #1 — PROVEN**. ESP32-P4 proof
+verified its semantic Value, Units, Status and Progress setters, optional root
+click UserEvent, collision-safe independent instances and Live/Standalone
+parity. No internal Label, status indicator or Bar object is public SDK state.
+
 This document introduces the long-term ForgeUI Runtime SDK direction. It does
 not describe a finished, separately packaged SDK product.
 

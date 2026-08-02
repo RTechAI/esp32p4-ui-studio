@@ -45,6 +45,32 @@ Widget Registry architecture cleanup is complete at the metadata boundary:
 
 This document records implementation and proof status only.
 
+## ForgeUI Native Components
+
+Current platform milestone:
+`FORGEUI_NATIVE_COMPONENT_1__DASHBOARD_CARD_PROVEN__ESP32P4_VALIDATED__READY_FOR_SENSOR_TILE__2026-08-02`.
+
+| Native component | Status | Evidence boundary |
+|---|---|---|
+| Dashboard Card | **PROVEN** | Origin: ForgeUI Native; ESP32-P4 validated; Browser Preview, Live Studio, Standalone Export, Runtime SDK and UserEvents verified; one versioned serialized component with private internal LVGL composition and independent multi-instance behavior |
+
+Native Component totals are separate from the completed practical LVGL ledger.
+The 44/44 practical LVGL proof result remains unchanged. Dashboard Card is
+**ForgeUI Native Component #1 — PROVEN** and establishes a separate platform
+proof ledger. Sensor Tile is the next implementation target and has not begun.
+
+Current Native Component roadmap:
+
+1. Dashboard Card — **PROVEN**
+2. Sensor Tile — next
+3. Relay Panel
+4. PWM Controller
+5. System Health
+6. Network Widget
+7. Storage Widget
+8. Gauge Cluster
+9. Energy Monitor
+
 ## Authoritative Standard Widget status matrix
 
 Status language:

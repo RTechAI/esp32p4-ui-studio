@@ -7,6 +7,15 @@ across the complete pipeline.
 Current save point:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
+Current ForgeUI Platform milestone:
+`FORGEUI_NATIVE_COMPONENT_1__DASHBOARD_CARD_PROVEN__ESP32P4_VALIDATED__READY_FOR_SENSOR_TILE__2026-08-02`.
+
+Dashboard Card is **ForgeUI Native Component #1 — PROVEN**. It validates the
+application-level composite pattern while remaining one serialized and
+Canvas-owned component. Extend this pattern through the existing Registry,
+preview, shared generator, Runtime SDK and UserEvents; do not expose private
+LVGL composition. Sensor Tile is next and is not implemented yet.
+
 For application-to-hardware examples after export, use
 [05_DEVELOPER_HARDWARE_INTEGRATION.md](05_DEVELOPER_HARDWARE_INTEGRATION.md).
 For exact generated signatures, use

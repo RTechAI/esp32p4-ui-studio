@@ -98,6 +98,8 @@ CONFIG_IDF_EXPERIMENTAL_FEATURES=y
 # Generated from ForgeUI project hardware profile.
 
 # Generated from ForgeUI project hardware profile.
+
+# Generated from ForgeUI project hardware profile.
 CONFIG_ESP_HOSTED_ENABLED=y
 CONFIG_ESP_HOSTED_IDF_SLAVE_TARGET="esp32c6"
 CONFIG_ESP_HOSTED_SDIO_HOST_INTERFACE=y

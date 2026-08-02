@@ -45,6 +45,7 @@ import { getForgeUIStandardListModel } from './ForgeUIStandardList'
 import { normalizeForgeUISpans, normalizeFrameAssetIds } from './ForgeUIClosureWidgets'
 import { normalizeWindowActions, windowScrollbarMode } from './ForgeUIWindow'
 import { normalizeForgeUIMenuPages, resolveForgeUIMenuRootPageId } from './ForgeUIMenu'
+import { normalizeForgeUIDashboardCard } from './ForgeUIDashboardCard'
 import {
   getForgeUIStandardSpinboxModel,
   type ForgeUIStandardSpinboxModel,
@@ -253,6 +254,64 @@ const createUniqueHookName = (
 type ButtonExport = {
   hookName: string
   eventCallbackName: string
+}
+
+type DashboardCardExport = {
+  stem: string
+  rootName: string
+  valueName: string
+  unitsName: string
+  statusName: string
+  statusIndicatorName: string
+  progressName: string
+  valueApiName: string
+  unitsApiName: string
+  statusApiName: string
+  progressApiName: string
+  hookName?: string
+  callbackName?: string
+}
+
+const createDashboardCardExports = (
+  components: IComponents,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+): Map<string, DashboardCardExport> => {
+  const result = new Map<string, DashboardCardExport>()
+  const usedStems = new Set<string>()
+  Object.values(components)
+    .filter(component => component.type === 'DashboardCard')
+    .sort((a, b) => a.id.localeCompare(b.id))
+    .forEach(component => {
+      const base = toCIdentifier(component.componentName || component.id, 'Dashboard_Card')
+        .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let stem = base
+      let suffix = 2
+      while (usedStems.has(stem)) stem = `${base}_${suffix++}`
+      usedStems.add(stem)
+      const model = normalizeForgeUIDashboardCard(component.props)
+      const hookName = model.enableClick
+        ? createUniqueHookName(stem, usedHookNames)
+        : undefined
+      if (hookName) userEventHooks.add(hookName)
+      const runtimeStem = stem.toLowerCase()
+      result.set(component.id, {
+        stem,
+        rootName: `fg_${runtimeStem}_dashboard_card`,
+        valueName: `fg_${runtimeStem}_dashboard_card_value`,
+        unitsName: `fg_${runtimeStem}_dashboard_card_units`,
+        statusName: `fg_${runtimeStem}_dashboard_card_status`,
+        statusIndicatorName: `fg_${runtimeStem}_dashboard_card_status_indicator`,
+        progressName: `fg_${runtimeStem}_dashboard_card_progress`,
+        valueApiName: `FG_Set_${stem}_Value`,
+        unitsApiName: `FG_Set_${stem}_Units`,
+        statusApiName: `FG_Set_${stem}_Status`,
+        progressApiName: `FG_Set_${stem}_Progress`,
+        hookName,
+        callbackName: hookName ? `fg_${runtimeStem}_dashboard_card_clicked_cb` : undefined,
+      })
+    })
+  return result
 }
 
 type FiIconExport = {
@@ -2563,6 +2622,7 @@ const buildLvglBlock = (
   qrCodeExports: Map<string, QRCodeExport>,
   buttonExports: Map<string, ButtonExport>,
   fiIconExports: Map<string, FiIconExport>,
+  dashboardCardExports: Map<string, DashboardCardExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -3889,6 +3949,100 @@ case 'Menu': {
   break
 }
 
+case 'DashboardCard': {
+  const model = normalizeForgeUIDashboardCard(child.props)
+  const card = dashboardCardExports.get(child.id)
+  if (!card) break
+  const accent = model.accentColor
+    ? `0x${model.accentColor.slice(1)}`
+    : palette.accent
+  const statusColor = model.status === 'critical' ? palette.healthCritical
+    : model.status === 'warning' ? palette.healthHigh
+      : model.status === 'offline' ? palette.disabledText : palette.healthNormal
+  const symbol = /^LV_SYMBOL_[A-Z0-9_]+$/.test(model.icon) ? model.icon : 'LV_SYMBOL_BULLET'
+  lines.push(`${card.rootName} = lv_obj_create(${parentVar});`)
+  lines.push(`lv_obj_t * ${varName} = ${card.rootName};`)
+  lines.push(`lv_obj_set_pos(${card.rootName}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${card.rootName}, ${w}, ${h});`)
+  lines.push(`lv_obj_set_style_bg_color(${card.rootName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${card.rootName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${card.rootName}, 1, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${card.rootName}, 12, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_pad_all(${card.rootName}, ${model.padding}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_clear_flag(${card.rootName}, LV_OBJ_FLAG_SCROLLABLE);`)
+  if (model.enableClick && card.callbackName) {
+    lines.push(`lv_obj_add_flag(${card.rootName}, LV_OBJ_FLAG_CLICKABLE);`)
+    lines.push(`lv_obj_add_event_cb(${card.rootName}, ${card.callbackName}, LV_EVENT_CLICKED, NULL);`)
+  } else {
+    lines.push(`lv_obj_clear_flag(${card.rootName}, LV_OBJ_FLAG_CLICKABLE);`)
+  }
+  let cursorY = model.padding
+  if (model.showHeader) {
+    lines.push(`lv_obj_t * ${varName}_icon = lv_label_create(${card.rootName});`)
+    lines.push(`lv_label_set_text(${varName}_icon, ${symbol});`)
+    lines.push(`lv_obj_set_pos(${varName}_icon, ${model.padding}, ${cursorY});`)
+    lines.push(`lv_obj_set_style_text_color(${varName}_icon, lv_color_hex(${accent}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_t * ${varName}_title = lv_label_create(${card.rootName});`)
+    lines.push(`lv_label_set_text(${varName}_title, "${esc(model.title)}");`)
+    lines.push(`lv_obj_set_pos(${varName}_title, ${model.padding + 26}, ${cursorY});`)
+    lines.push(`lv_obj_set_width(${varName}_title, ${Math.max(20, integerProp(w, 300) - model.padding * 2 - 120)});`)
+    lines.push(`lv_label_set_long_mode(${varName}_title, LV_LABEL_LONG_DOT);`)
+    lines.push(`lv_obj_set_style_text_color(${varName}_title, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+    if (model.showStatus) {
+      lines.push(`${card.statusIndicatorName} = lv_obj_create(${card.rootName});`)
+      lines.push(`lv_obj_set_size(${card.statusIndicatorName}, 8, 8);`)
+      lines.push(`lv_obj_align(${card.statusIndicatorName}, LV_ALIGN_TOP_RIGHT, -${model.padding + 72}, ${cursorY + 5});`)
+      lines.push(`lv_obj_set_style_radius(${card.statusIndicatorName}, LV_RADIUS_CIRCLE, LV_PART_MAIN);`)
+      lines.push(`lv_obj_set_style_bg_color(${card.statusIndicatorName}, lv_color_hex(${statusColor}), LV_PART_MAIN);`)
+      lines.push(`lv_obj_set_style_border_width(${card.statusIndicatorName}, 0, LV_PART_MAIN);`)
+      lines.push(`${card.statusName} = lv_label_create(${card.rootName});`)
+      lines.push(`lv_label_set_text(${card.statusName}, "${esc(model.statusText)}");`)
+      lines.push(`lv_obj_align(${card.statusName}, LV_ALIGN_TOP_RIGHT, -${model.padding}, ${cursorY});`)
+      lines.push(`lv_obj_set_style_text_color(${card.statusName}, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
+      lines.push(`lv_obj_set_style_text_font(${card.statusName}, &lv_font_montserrat_12, LV_PART_MAIN);`)
+    }
+    cursorY += 34
+  }
+  lines.push(`${card.valueName} = lv_label_create(${card.rootName});`)
+  lines.push(`lv_label_set_text(${card.valueName}, "${esc(model.value)}");`)
+  lines.push(`lv_obj_set_pos(${card.valueName}, ${model.padding}, ${cursorY});`)
+  lines.push(`lv_obj_set_style_text_font(${card.valueName}, &lv_font_montserrat_28, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_color(${card.valueName}, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+  lines.push(`${card.unitsName} = lv_label_create(${card.rootName});`)
+  lines.push(`lv_label_set_text(${card.unitsName}, "${esc(model.units)}");`)
+  lines.push(`lv_obj_align_to(${card.unitsName}, ${card.valueName}, LV_ALIGN_OUT_RIGHT_BOTTOM, 6, -2);`)
+  lines.push(`lv_obj_set_style_text_color(${card.unitsName}, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
+  cursorY += 42
+  if (model.secondaryText) {
+    lines.push(`lv_obj_t * ${varName}_secondary = lv_label_create(${card.rootName});`)
+    lines.push(`lv_label_set_text(${varName}_secondary, "${esc(model.secondaryText)}");`)
+    lines.push(`lv_obj_set_pos(${varName}_secondary, ${model.padding}, ${cursorY});`)
+    lines.push(`lv_obj_set_width(${varName}_secondary, ${Math.max(20, integerProp(w, 300) - model.padding * 2)});`)
+    lines.push(`lv_label_set_long_mode(${varName}_secondary, LV_LABEL_LONG_DOT);`)
+    lines.push(`lv_obj_set_style_text_color(${varName}_secondary, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_font(${varName}_secondary, &lv_font_montserrat_12, LV_PART_MAIN);`)
+    cursorY += 24
+  }
+  if (model.showProgress) {
+    lines.push(`${card.progressName} = lv_bar_create(${card.rootName});`)
+    lines.push(`lv_obj_set_pos(${card.progressName}, ${model.padding}, ${cursorY});`)
+    lines.push(`lv_obj_set_size(${card.progressName}, ${Math.max(20, integerProp(w, 300) - model.padding * 2)}, 8);`)
+    lines.push(`lv_bar_set_range(${card.progressName}, 0, 100);`)
+    lines.push(`lv_bar_set_value(${card.progressName}, ${Math.round(model.progress)}, LV_ANIM_OFF);`)
+    lines.push(`lv_obj_set_style_bg_color(${card.progressName}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_bg_color(${card.progressName}, lv_color_hex(${accent}), LV_PART_INDICATOR);`)
+  }
+  if (model.showFooter) {
+    lines.push(`lv_obj_t * ${varName}_timestamp = lv_label_create(${card.rootName});`)
+    lines.push(`lv_label_set_text(${varName}_timestamp, "${esc(model.timestamp)}");`)
+    lines.push(`lv_obj_align(${varName}_timestamp, LV_ALIGN_BOTTOM_LEFT, ${model.padding}, -${model.padding});`)
+    lines.push(`lv_obj_set_style_text_color(${varName}_timestamp, lv_color_hex(${palette.disabledText}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_font(${varName}_timestamp, &lv_font_montserrat_12, LV_PART_MAIN);`)
+  }
+  lines.push(``)
+  break
+}
+
 case 'Spinbox': {
   const spinboxExport = spinboxExports.get(child.id)
   if (!spinboxExport) break
@@ -4977,6 +5131,7 @@ case 'Chart': {
         qrCodeExports,
         buttonExports,
         fiIconExports,
+        dashboardCardExports,
       )
     }
   })
@@ -5282,6 +5437,11 @@ export const generateForgeUILvglCode = (
   const usedHookNames = new Set<string>()
   const userEventHooks = new Set<string>()
   const buttonExports = createButtonExports(
+    components,
+    usedHookNames,
+    userEventHooks,
+  )
+  const dashboardCardExports = createDashboardCardExports(
     components,
     usedHookNames,
     userEventHooks,
@@ -6016,7 +6176,7 @@ const backgroundMode =
   lines.push(`#include "freertos/semphr.h"`)
   lines.push(`#include "freertos/task.h"`)
   lines.push(`#include "esp_timer.h"`)
-  if (hasInteractiveButtons || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
+  if (hasInteractiveButtons || dashboardCardExports.size > 0 || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
     lines.push(`#include "95_UserEvents.h"`)
   }
   if (Array.from(fiIconExports.values()).some(icon => icon.runtimeEnabled)) {
@@ -6036,6 +6196,14 @@ const backgroundMode =
   })
   wifiStatusExports.forEach(wifi => {
     lines.push(`static lv_obj_t * ${wifi.labelName} = NULL;`)
+  })
+  dashboardCardExports.forEach(card => {
+    lines.push(`static lv_obj_t * ${card.rootName} = NULL;`)
+    lines.push(`static lv_obj_t * ${card.valueName} = NULL;`)
+    lines.push(`static lv_obj_t * ${card.unitsName} = NULL;`)
+    lines.push(`static lv_obj_t * ${card.statusName} = NULL;`)
+    lines.push(`static lv_obj_t * ${card.statusIndicatorName} = NULL;`)
+    lines.push(`static lv_obj_t * ${card.progressName} = NULL;`)
   })
   lines.push(`static lv_obj_t * fg_application_page = NULL;`)
   lines.push(`static lv_obj_t * fg_system_launcher_page = NULL;`)
@@ -6538,6 +6706,42 @@ const backgroundMode =
     lines.push(`    lv_slider_set_value(${sliderExport.objectName}, value, LV_ANIM_OFF);`)
     lines.push(`    ${sliderExport.stateName} = value;`)
     lines.push(`    ${sliderExport.programmaticUpdateName} = false;`)
+    lines.push(`}`)
+    lines.push(``)
+  })
+
+  dashboardCardExports.forEach(card => {
+    if (card.hookName && card.callbackName) {
+      lines.push(`static void ${card.callbackName}(lv_event_t * event)`)
+      lines.push(`{`)
+      lines.push(`    if (lv_event_get_current_target(event) == ${card.rootName}) ${card.hookName}();`)
+      lines.push(`}`)
+      lines.push(``)
+    }
+    lines.push(`void ${card.valueApiName}(const char * value)`)
+    lines.push(`{`)
+    lines.push(`    if (${card.valueName} == NULL) return;`)
+    lines.push(`    lv_label_set_text(${card.valueName}, value ? value : "");`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${card.unitsApiName}(const char * units)`)
+    lines.push(`{`)
+    lines.push(`    if (${card.unitsName} == NULL) return;`)
+    lines.push(`    lv_label_set_text(${card.unitsName}, units ? units : "");`)
+    lines.push(`    lv_obj_align_to(${card.unitsName}, ${card.valueName}, LV_ALIGN_OUT_RIGHT_BOTTOM, 6, -2);`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${card.statusApiName}(const char * text, uint32_t rgb)`)
+    lines.push(`{`)
+    lines.push(`    if (${card.statusName}) lv_label_set_text(${card.statusName}, text ? text : "");`)
+    lines.push(`    if (${card.statusIndicatorName}) lv_obj_set_style_bg_color(${card.statusIndicatorName}, lv_color_hex(rgb & 0xFFFFFFu), LV_PART_MAIN);`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${card.progressApiName}(int32_t value)`)
+    lines.push(`{`)
+    lines.push(`    if (value < 0) value = 0;`)
+    lines.push(`    if (value > 100) value = 100;`)
+    lines.push(`    if (${card.progressName}) lv_bar_set_value(${card.progressName}, value, LV_ANIM_OFF);`)
     lines.push(`}`)
     lines.push(``)
   })
@@ -8254,6 +8458,7 @@ lines.push(`    fg_system_root = parent;`)
         qrCodeExports,
         buttonExports,
         fiIconExports,
+        dashboardCardExports,
       )
   }
 
@@ -8927,7 +9132,12 @@ lines.push(`}`)
         `void ${lightExport.apiName}(bool enabled);`,
       ).concat(Array.from(ledExports.values()).map(
         ledExport => `void ${ledExport.apiName}(bool on);`,
-      )).concat(Array.from(barExports.values()).map(
+      )).concat(Array.from(dashboardCardExports.values()).flatMap(card => [
+        `void ${card.valueApiName}(const char * value);`,
+        `void ${card.unitsApiName}(const char * units);`,
+        `void ${card.statusApiName}(const char * text, uint32_t rgb);`,
+        `void ${card.progressApiName}(int32_t value);`,
+      ])).concat(Array.from(barExports.values()).map(
         barExport => `void ${barExport.apiName}(int32_t value);`,
       )).concat(Array.from(progressExports.values()).map(
         progressExport => `void ${progressExport.apiName}(int32_t value);`,

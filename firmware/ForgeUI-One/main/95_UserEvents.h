@@ -70,6 +70,7 @@ void FG_On_Comp_MS9Q42SGCB4EB_Clicked(void);
 void FG_On_Comp_MS9QE1N7GA5O3_Clicked(void);
 void FG_On_Image_Button_Clicked(void);
 void FG_On_Image_Button_2_Clicked(void);
+void FG_On_Comp_MSB3_GCUWGY6_DO_Clicked(void);
 
 #ifdef __cplusplus
 }

@@ -3,6 +3,9 @@
 Current architecture save point:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
+Current ForgeUI Platform milestone:
+`FORGEUI_NATIVE_COMPONENT_1__DASHBOARD_CARD_PROVEN__ESP32P4_VALIDATED__READY_FOR_SENSOR_TILE__2026-08-02`.
+
 **ForgeUI Studio is an open-source, AI-assisted visual HMI and embedded GUI designer for ESP32-P4.** It combines a drag-and-drop Canvas, reusable Interactive Assets, AI Layout tools, Browser Preview, native LVGL 9 generation, integrated ESP-IDF Build & Flash, and standalone ESP-IDF project export.
 
 ForgeUI exists to shorten the path from an interface idea to editable embedded firmware without putting a web runtime on the device. The Studio is a development tool; exported interfaces compile as native LVGL C inside ESP-IDF.
@@ -18,6 +21,19 @@ ForgeUI exists to shorten the path from an interface idea to editable embedded f
 - **Standalone ownership:** exported ESP-IDF projects remain usable without ForgeUI Studio, OpenAI or a ForgeUI runtime.
 
 ## Current capabilities
+
+ForgeUI now rests on two completed foundations:
+
+1. **Practical LVGL Library** — 44 of 44 practical LVGL widgets/components are
+   physically proven on ESP32-P4.
+2. **ForgeUI Native Platform** — Dashboard Card, ForgeUI Native Component #1,
+   is **PROVEN** across Browser Preview, Live Studio, Standalone Export, Runtime
+   SDK, UserEvents and ESP32-P4 hardware.
+
+Dashboard Card remains one semantic, serializable Canvas component with private
+multi-object LVGL composition. The next implementation target is **ForgeUI
+Native Component #2 — Sensor Tile**. See
+[ForgeUI Dashboard Card](docs/FORGEUI_DASHBOARD_CARD.md).
 
 - Drag-and-drop, free-form Canvas placement and resizing
 - Registry-driven Widget Tray with search and accessible insertion

@@ -19,11 +19,23 @@ Practical LVGL 9.2 is complete: **44 registered practical widgets/components,
 44 physically proven on ESP32-P4**. Window and Menu are **PROVEN**; Lottie is
 intentionally excluded. The next major chapter is ForgeUI Platform development.
 
+Current ForgeUI Platform milestone:
+**FORGEUI_NATIVE_COMPONENT_1__DASHBOARD_CARD_PROVEN__ESP32P4_VALIDATED__READY_FOR_SENSOR_TILE__2026-08-02**.
+
+Dashboard Card is **ForgeUI Native Component #1 — PROVEN** across Registry,
+versioned semantic model, Inspector, single-object Canvas ownership, shared
+preview/export, Runtime SDK, UserEvents, Live Studio, Standalone Export and
+ESP32-P4 hardware. Its private LVGL object composition is not project state.
+Sensor Tile is the next implementation target.
+
 ## Current authoritative ownership summary
 
 | Concern | Authoritative owner |
 |---|---|
 | Standard Widget catalogue | `studio/src/forgeui/widgets/ForgeUIWidgetRegistry.ts` |
+| ForgeUI Native Component catalogue | The same `studio/src/forgeui/widgets/ForgeUIWidgetRegistry.ts`; `origin: forgeui-native` distinguishes platform components |
+| Dashboard Card semantic model | `studio/src/forgeui/ForgeUIDashboardCard.ts` |
+| Dashboard Card Preview | `studio/src/forgeui/preview/ForgeUIDashboardCardPreview.tsx` through the shared preview dispatchers |
 | Legacy catalogue compatibility | `studio/src/forgeui/ForgeUIWidgetSet.ts` projection |
 | Per-widget API/event/input/child/docs/gate metadata | `studio/src/forgeui/widgets/ForgeUIWidgetRegistry.ts` explicit capability table |
 | Quarantined future/legacy component types | `studio/src/componentsList.ts` `futureUnregisteredWidgetTypes` |
@@ -3821,6 +3833,15 @@ Panel, Monitoring, SCADA Overview and Mobile / Portrait are roadmap candidates.
 ## Save Point History
 
 Save points are ordered newest to oldest.
+
+### FORGEUI_NATIVE_COMPONENT_1__DASHBOARD_CARD_PROVEN__ESP32P4_VALIDATED__READY_FOR_SENSOR_TILE__2026-08-02
+
+- Dashboard Card is the first **PROVEN** ForgeUI Native Component.
+- One versioned semantic component owns private composite LVGL output through
+  the existing Registry, Canvas, preview, exporter, Runtime SDK and UserEvents.
+- Browser, Live Studio, Standalone Export and ESP32-P4 behavior are verified;
+  multiple instances remain independent.
+- Sensor Tile is the next implementation target and has not begun.
 
 ### FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02
 

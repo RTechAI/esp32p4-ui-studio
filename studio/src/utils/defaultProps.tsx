@@ -355,6 +355,14 @@ WiFi: {
     borderWidth: 1, borderColor: '#334155', cornerRadius: 10,
     positionMode: 'absolute', x: 40, y: 40, w: 420, h: 420,
   },
+  DashboardCard: {
+    nativeWidgetSchemaVersion: 1,
+    title: 'System Output', icon: 'LV_SYMBOL_CHARGE', value: '72', units: '%',
+    secondaryText: 'Current operating level', status: 'normal', statusText: 'Normal',
+    progress: 72, timestamp: 'Updated now', accentColor: '', padding: 16,
+    showHeader: true, showFooter: true, showProgress: true, showStatus: true,
+    enableClick: true, positionMode: 'absolute', x: 40, y: 40, w: 300, h: 190,
+  },
   QRCode: {
     contentType: 'custom',
     qrText: 'https://forgeui.co.nz',

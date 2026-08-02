@@ -89,8 +89,9 @@ describe('ForgeUI Widget Tray', () => {
         overflow: 'hidden',
       })
     })
-    expect(screen.getByTestId('widget-dashboard-empty'))
-      .toHaveTextContent('No dashboard widgets registered yet.')
+    expect(screen.queryByTestId('widget-dashboard-empty')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Insert Dashboard Card' }))
+      .toBeInTheDocument()
   })
 
   it('collapses categories and inserts by click or keyboard', () => {

@@ -15,6 +15,18 @@
 
 **CURRENT PRIORITY: FORGEUI PLATFORM DEVELOPMENT ON THE COMPLETED PRACTICAL LVGL 9.2 FOUNDATION**
 
+## Current ForgeUI Platform milestone
+
+**FORGEUI_NATIVE_COMPONENT_1__DASHBOARD_CARD_PROVEN__ESP32P4_VALIDATED__READY_FOR_SENSOR_TILE__2026-08-02**
+
+Dashboard Card is **ForgeUI Native Component #1 — PROVEN**. Physical validation
+confirmed Registry integration, semantic serialization, single-component Canvas
+ownership, closely matched Browser Preview, shared Live/Standalone export,
+Runtime setters, UserEvents, responsive touch, independent instances and stable
+ESP32-P4 operation without crash, watchdog reset or rendering corruption.
+Internal LVGL composition remained private. The next implementation target is
+**ForgeUI Native Component #2 — Sensor Tile**.
+
 ### 2026-08-02 Practical LVGL 9.2 completion
 
 ForgeUI has **44 practical registered LVGL widgets/components and all 44 are
@@ -36,7 +48,7 @@ foundation for the next chapter.
 
 LVGL parity is complete. Future work builds on this foundation in this order:
 
-1. ForgeUI-native Widgets
+1. ForgeUI-native Widgets — Dashboard Card PROVEN; Sensor Tile next
 2. Dashboard Widget Family
 3. Dashboard Designer
 4. Template Library
@@ -2717,6 +2729,20 @@ These remain future concepts only. Existing Radio and Checkbox runtimes are impl
 # Save Point History
 
 Save points are ordered newest to oldest. Detailed subsystem engineering is maintained in the Developer Code Maps.
+
+## FORGEUI_NATIVE_COMPONENT_1__DASHBOARD_CARD_PROVEN__ESP32P4_VALIDATED__READY_FOR_SENSOR_TILE__2026-08-02
+
+- **First Native Component:** Dashboard Card is **PROVEN** as an
+  application-level ForgeUI component above the completed LVGL layer.
+- **Architecture proof:** Registry extension, semantic serialization, shared
+  preview/export, Runtime SDK, UserEvents, single-component Canvas ownership
+  and private internal LVGL composition are validated.
+- **Hardware:** Browser, Live Studio and Standalone output matched closely on
+  ESP32-P4; Runtime setters, touch and independent instances remained stable
+  without crash, watchdog reset or rendering corruption.
+- **Boundary:** This milestone is separate from the completed 44/44 practical
+  LVGL history.
+- **Next:** ForgeUI Native Component #2 — Sensor Tile.
 
 ## FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02
 

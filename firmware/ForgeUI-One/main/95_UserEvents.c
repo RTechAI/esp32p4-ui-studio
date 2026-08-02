@@ -302,3 +302,8 @@ void FG_On_Image_Button_2_Clicked(void)
 {
     printf("[ForgeUI User Event] FG_On_Image_Button_2_Clicked\n");
 }
+
+void FG_On_Comp_MSB3_GCUWGY6_DO_Clicked(void)
+{
+    printf("[ForgeUI User Event] FG_On_Comp_MSB3_GCUWGY6_DO_Clicked\n");
+}

@@ -43,13 +43,13 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- None
+- `FG_On_Comp_MSB3_GCUWGY6_DO_Clicked()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| None | - | - |
+| Comp_MSB3_GCUWGY6_DO | Click | `FG_On_Comp_MSB3_GCUWGY6_DO_Clicked()` |
 
 ---
 

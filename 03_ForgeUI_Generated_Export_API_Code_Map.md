@@ -19,6 +19,16 @@ The practical LVGL 9.2 program is complete: **44 of 44 practical registered
 widgets/components are physically proven on ESP32-P4**. Window and Menu are
 **PROVEN**. Lottie remains intentionally excluded.
 
+Current ForgeUI Platform milestone:
+**FORGEUI_NATIVE_COMPONENT_1__DASHBOARD_CARD_PROVEN__ESP32P4_VALIDATED__READY_FOR_SENSOR_TILE__2026-08-02**.
+
+Dashboard Card is **ForgeUI Native Component #1 — PROVEN**. The shared
+Live/Standalone generator emits its private LVGL composition, four semantic
+Runtime setters and optional root click UserEvent with collision-safe
+multi-instance names. Browser, Live Studio, Standalone Export and ESP32-P4
+behavior are verified. Internal labels, status objects and progress bars remain
+private and expose no application API or event surface.
+
 This document describes the generated SDK surface currently emitted by the
 shared live/Standalone generator. `90_Studio_Export.h` contains callable
 Runtime APIs. `95_UserEvents.h` contains genuine-user callback declarations.
@@ -2989,6 +2999,14 @@ Preserve these rules:
 137. QR generated firmware requires `CONFIG_LV_USE_QRCODE=y`.
 
 ## Save Point History
+
+### FORGEUI_NATIVE_COMPONENT_1__DASHBOARD_CARD_PROVEN__ESP32P4_VALIDATED__READY_FOR_SENSOR_TILE__2026-08-02
+
+- Dashboard Card's Value, Units, Status and Progress setters and optional root
+  click hook are verified on ESP32-P4.
+- Collision-safe multi-instance output passes the shared Live/Standalone path.
+- Internal composite objects remain private generated implementation details.
+- Sensor Tile is next and is not implemented in this documentation pass.
 
 ### FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02
 

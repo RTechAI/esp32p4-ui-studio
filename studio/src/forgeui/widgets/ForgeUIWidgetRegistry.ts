@@ -3,8 +3,7 @@ import { getPreviewDefaultProps } from '~utils/defaultProps'
 // This is authoritative for widgets currently supported by ForgeUI, not an
 // assertion that every official LVGL widget is registered. The final LVGL 9.2
 // comparison lives in docs/LVGL_9_STANDARD_WIDGET_AUDIT.md. Span, AnimImage and
-// ImageButton and Window are physically proven; Menu is implemented and ready
-// for physical proof. Lottie is
+// ImageButton, Window and Menu are physically proven. Lottie is
 // explicitly excluded pending a separate dependency/memory decision.
 
 export const FORGEUI_WIDGET_CATEGORIES = [
@@ -55,6 +54,15 @@ export type ForgeUIWidgetDefinition = {
   capabilities: ForgeUIWidgetCapabilities
   documentationId?: string
   status: 'available' | 'experimental' | 'disabled'
+  origin: 'lvgl-standard' | 'forgeui-native'
+  nativeWidgetSchemaVersion?: number
+  platform?: {
+    kind: 'native-widget'
+    family: string
+    layoutRoles: string[]
+    preferredArrangements: string[]
+    templateTags: string[]
+  }
 }
 
 const displayNames: Partial<Record<ComponentType, string>> = {
@@ -78,6 +86,7 @@ const displayNames: Partial<Record<ComponentType, string>> = {
   ImageButton: 'Image Button',
   Window: 'Window',
   Menu: 'Menu',
+  DashboardCard: 'Dashboard Card',
 }
 
 const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
@@ -95,7 +104,7 @@ const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
   ],
   Navigation: ['List', 'Tabview', 'Tileview', 'ButtonMatrix', 'ImageButton', 'Window', 'Menu'],
   Feedback: ['Msgbox', 'Keyboard', 'Calendar', 'Spinner'],
-  Dashboard: [],
+  Dashboard: ['DashboardCard'],
   Assets: [
     'InteractiveButton',
     'InteractiveLight',
@@ -162,6 +171,7 @@ const sizes: Partial<Record<ComponentType, [number, number]>> = {
   ImageButton: [96, 64],
   Window: [420, 300],
   Menu: [420, 420],
+  DashboardCard: [300, 190],
 }
 
 const keywords: Partial<Record<ComponentType, string[]>> = {
@@ -189,6 +199,7 @@ const keywords: Partial<Record<ComponentType, string[]>> = {
   ImageButton: ['image action', 'pressed image', 'lv_imagebutton'],
   Window: ['panel', 'dialog', 'title bar', 'container', 'lv_win'],
   Menu: ['navigation', 'pages', 'settings', 'hierarchy', 'lv_menu'],
+  DashboardCard: ['dashboard', 'card', 'kpi', 'metric', 'forgeui native'],
 }
 
 type CapabilityDefinition = Omit<
@@ -258,6 +269,13 @@ const capabilitiesByType: Partial<
   },
   Window: capability(false, false, false, 'structured', false, { mode: 'serialized-widget', lvglConfigDependencies: ['CONFIG_LV_USE_WIN'] }),
   Menu: capability(false, false, true, 'structured', false, { mode: 'serialized-widget', lvglConfigDependencies: ['CONFIG_LV_USE_MENU', 'CONFIG_LV_USE_FLEX'] }),
+  DashboardCard: {
+    ...capability(true, true, true),
+    instanceConfiguration: {
+      userEventProperty: 'enableClick',
+      userEventDefault: true,
+    },
+  },
 
   Input: capability(true, true, true),
   Textarea: capability(true, true, true),
@@ -359,6 +377,7 @@ const documentationByType: Partial<Record<ComponentType, string>> = {
   ImageButton: 'docs/FORGEUI_LVGL_CLOSURE_BATCH1.md',
   Window: 'docs/FORGEUI_WINDOW_WIDGET.md',
   Menu: 'docs/FORGEUI_MENU_WIDGET.md',
+  DashboardCard: 'docs/FORGEUI_DASHBOARD_CARD.md',
   List: 'docs/FORGEUI_LIST_WIDGET.md',
   Tileview: 'docs/FORGEUI_TILEVIEW_WIDGET.md',
   Spinbox: 'docs/FORGEUI_SPINBOX_WIDGET.md',
@@ -387,6 +406,7 @@ const describe = (
     Span: 'Inspector-authored ordered rich text with semantic styling and an actionable empty state.',
     Window: 'Native structured window with a title header and child-owned scrollable content region.',
     Menu: 'Native multi-page navigation framework with sections, child-page links and back history.',
+    DashboardCard: 'ForgeUI Native application card for a value, status, progress and timestamp.',
     InteractiveButton: 'Reusable state-sheet driven button.',
   }
   return special[type] || `${name} ${category.toLowerCase()} widget.`
@@ -441,6 +461,15 @@ export const forgeUIWidgetDefinitions: ForgeUIWidgetDefinition[] =
       documentationId:
         documentationByType[type] || '04_FEATURE_STATUS.md',
       status: 'available',
+      origin: type === 'DashboardCard' ? 'forgeui-native' : 'lvgl-standard',
+      ...(type === 'DashboardCard' ? { nativeWidgetSchemaVersion: 1 } : {}),
+      ...(type === 'DashboardCard' ? { platform: {
+        kind: 'native-widget' as const,
+        family: 'dashboard',
+        layoutRoles: ['status', 'metrics', 'main', 'card-grid'],
+        preferredArrangements: ['grid', 'kpi-cards', 'fit-to-region'],
+        templateTags: ['dashboard', 'monitoring', 'industrial-hmi'],
+      } } : {}),
     }
   })
 

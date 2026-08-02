@@ -13,7 +13,7 @@ export type ForgeAIAssetRequirement =
 
 export type ForgeAIComponentCatalogueEntry = {
   type: ComponentType
-  category: 'content' | 'control' | 'display' | 'layout' | 'media' | 'navigation'
+  category: 'content' | 'control' | 'display' | 'layout' | 'media' | 'navigation' | 'dashboard'
   description: string
   aliases: string[]
   defaultProps: Record<string, unknown>
@@ -33,6 +33,7 @@ const SUPPORTED_TYPES = [
   'Slider', 'Progress', 'CircularProgress', 'Led', 'Bar', 'Arc', 'Roller',
   'Canvas', 'Line', 'Tabview', 'Tileview', 'ButtonMatrix',
   'Msgbox', 'Table', 'Scale', 'Keyboard', 'Divider', 'Calendar', 'Chart', 'Box',
+  'DashboardCard',
 ] as const
 
 type SupportedType = typeof SUPPORTED_TYPES[number]
@@ -48,6 +49,7 @@ const MEDIA_TYPES = new Set<SupportedType>(['Image', 'Icon'])
 const NAVIGATION_TYPES = new Set<SupportedType>(['Tabview', 'Tileview'])
 const LAYOUT_TYPES = new Set<SupportedType>(['Box', 'Divider', 'Line', 'Canvas'])
 const CONTENT_TYPES = new Set<SupportedType>(['Text', 'Heading'])
+const DASHBOARD_TYPES = new Set<SupportedType>(['DashboardCard'])
 
 const descriptions: Partial<Record<SupportedType, string>> = {
   NumberInput: 'Editable numeric field with increment and decrement controls.',
@@ -62,6 +64,7 @@ const descriptions: Partial<Record<SupportedType, string>> = {
   InteractiveStatusIndicator: 'Project Interactive status asset instance.',
   InteractiveToggleSwitch: 'Project Interactive two-state switch asset instance.',
   InteractiveThreePositionToggleSwitch: 'Project Interactive three-position switch asset instance.',
+  DashboardCard: 'ForgeUI Native value, status and progress card.',
 }
 
 const aliases: Partial<Record<SupportedType, string[]>> = {
@@ -80,6 +83,7 @@ const aliases: Partial<Record<SupportedType, string[]>> = {
   InteractiveStatusIndicator: ['interactive status indicator'],
   InteractiveToggleSwitch: ['interactive toggle switch'],
   InteractiveThreePositionToggleSwitch: ['interactive three position toggle'],
+  DashboardCard: ['dashboard card', 'kpi card', 'metric card'],
 }
 
 const sizes: Partial<Record<SupportedType, { w: number; h: number }>> = {
@@ -98,6 +102,7 @@ const sizes: Partial<Record<SupportedType, { w: number; h: number }>> = {
   Progress: { w: 240, h: 24 },
   CircularProgress: { w: 120, h: 120 },
   Divider: { w: 240, h: 2 },
+  DashboardCard: { w: 300, h: 190 },
 }
 
 const assetRequirement = (type: SupportedType): ForgeAIAssetRequirement => {
@@ -121,6 +126,7 @@ const category = (
   if (NAVIGATION_TYPES.has(type)) return 'navigation'
   if (LAYOUT_TYPES.has(type)) return 'layout'
   if (CONTENT_TYPES.has(type)) return 'content'
+  if (DASHBOARD_TYPES.has(type)) return 'dashboard'
   return 'display'
 }
 

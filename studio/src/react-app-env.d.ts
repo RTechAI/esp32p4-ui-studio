@@ -80,6 +80,7 @@ type ComponentType =
   | 'Tileview'
   | 'Window'
   | 'Menu'
+  | 'DashboardCard'
   | 'NumberInput'
   | 'Progress'
   | 'QRCode'
