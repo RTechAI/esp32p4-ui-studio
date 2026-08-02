@@ -21,19 +21,36 @@ export const forgeAIPromptBuilderGroups: ForgeAIPromptBuilderGroup[] = [
   {
     label: 'Selection Controls',
     types: [
-      'Button', 'IconButton', 'Switch', 'Checkbox', 'Radio', 'Select',
-      'Slider', 'Spinbox', 'Roller', 'ButtonMatrix',
+      'Button',
+      'IconButton',
+      'Switch',
+      'Checkbox',
+      'Radio',
+      'Select',
+      'Slider',
+      'Spinbox',
+      'Roller',
+      'ButtonMatrix',
     ],
   },
   {
     label: 'Indicators',
     types: [
-      'Clock', 'WiFi', 'Progress', 'CircularProgress', 'Led', 'Bar', 'Arc',
+      'Clock',
+      'WiFi',
+      'Progress',
+      'CircularProgress',
+      'Led',
+      'Bar',
+      'Arc',
       'Scale',
     ],
   },
   { label: 'Charts', types: ['Chart'] },
-  { label: 'ForgeUI Native', types: ['DashboardCard', 'SensorTile', 'RelayPanel'] },
+  {
+    label: 'ForgeUI Native',
+    types: ['DashboardCard', 'SensorTile', 'RelayPanel', 'TrendChart'],
+  },
   { label: 'Containers', types: ['Box', 'Canvas', 'Line', 'Divider'] },
   { label: 'Navigation', types: ['Tabview', 'Tileview'] },
   { label: 'Tables', types: ['Table', 'Calendar', 'Msgbox'] },
@@ -41,8 +58,11 @@ export const forgeAIPromptBuilderGroups: ForgeAIPromptBuilderGroup[] = [
   {
     label: 'Interactive Assets',
     types: [
-      'InteractiveButton', 'InteractiveLight', 'InteractiveStatusIndicator',
-      'InteractiveToggleSwitch', 'InteractiveThreePositionToggleSwitch',
+      'InteractiveButton',
+      'InteractiveLight',
+      'InteractiveStatusIndicator',
+      'InteractiveToggleSwitch',
+      'InteractiveThreePositionToggleSwitch',
     ],
   },
 ]
@@ -63,9 +83,10 @@ export const findForgeAIPromptBuilderAsset = (
   if (entry.assetRequirement === 'none' || entry.assetRequirement === 'icon') {
     return undefined
   }
-  return assets.find(asset =>
-    asset.kind === kindForRequirement[entry.assetRequirement] &&
-    asset.exportReady
+  return assets.find(
+    asset =>
+      asset.kind === kindForRequirement[entry.assetRequirement] &&
+      asset.exportReady,
   )
 }
 
@@ -83,12 +104,16 @@ const componentInstruction = (
 ): string => {
   const asset = findForgeAIPromptBuilderAsset(entry, assets)
   const assetInstruction = asset
-    ? ` Use ${entry.assetRequirement === 'uploaded-image' ? 'uploadedAssetId' : 'interactiveAssetId'} "${asset.id}" (${asset.name}); do not substitute or invent an ID.`
+    ? ` Use ${
+        entry.assetRequirement === 'uploaded-image'
+          ? 'uploadedAssetId'
+          : 'interactiveAssetId'
+      } "${asset.id}" (${asset.name}); do not substitute or invent an ID.`
     : entry.assetRequirement === 'icon'
-      ? entry.type === 'IconButton'
-        ? ' Use a power action iconName from the exact RELEVANT VALID ICONS.'
-        : ' Use a settings status iconName from the exact RELEVANT VALID ICONS.'
-      : ''
+    ? entry.type === 'IconButton'
+      ? ' Use a power action iconName from the exact RELEVANT VALID ICONS.'
+      : ' Use a settings status iconName from the exact RELEVANT VALID ICONS.'
+    : ''
   return `- ${entry.type}: one sensible instance. ${entry.description}${assetInstruction}`
 }
 
@@ -114,19 +139,24 @@ export const buildForgeAIPromptBuilderPrompt = ({
   kitchenSink = false,
 }: BuildForgeAIPromptOptions): string => {
   const selected = new Set(selectedTypes)
-  const entries = forgeAIComponentCatalogue.filter(entry => selected.has(entry.type))
+  const entries = forgeAIComponentCatalogue.filter(entry =>
+    selected.has(entry.type),
+  )
   const unavailable = entries.filter(
     entry => !canSelectForgeAIPromptBuilderComponent(entry, assets),
   )
   if (unavailable.length > 0) {
     throw new Error(
-      `Missing export-ready project assets for: ${unavailable.map(entry => entry.type).join(', ')}`,
+      `Missing export-ready project assets for: ${unavailable
+        .map(entry => entry.type)
+        .join(', ')}`,
     )
   }
 
-  const componentSection = entries.length > 0
-    ? entries.map(entry => componentInstruction(entry, assets)).join('\n')
-    : '- No specific component types selected; choose only from the authoritative catalogue.'
+  const componentSection =
+    entries.length > 0
+      ? entries.map(entry => componentInstruction(entry, assets)).join('\n')
+      : '- No specific component types selected; choose only from the authoritative catalogue.'
 
   return `Create a modern ${dashboardType} for a 1024x600 ESP32-P4 display.
 
@@ -144,9 +174,11 @@ COMPONENT RULES:
 - Do not add unsupported component types.
 - Keep every component fully inside the screen and avoid overlap.
 - Use semantic ForgeUI theme roles through normal component properties.
-- ${kitchenSink
-    ? 'This is a component coverage test, not a usable interface. Arrange all selected components in a compact validation layout without treating it as a normal design example.'
-    : 'Arrange the selected components in a coherent dashboard layout.'}
+- ${
+    kitchenSink
+      ? 'This is a component coverage test, not a usable interface. Arrange all selected components in a compact validation layout without treating it as a normal design example.'
+      : 'Arrange the selected components in a coherent dashboard layout.'
+  }
 - Asset-backed components must use only the exact project asset IDs stated above.
 - Never fabricate asset IDs.
 

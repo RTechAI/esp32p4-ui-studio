@@ -13,7 +13,14 @@ export type ForgeAIAssetRequirement =
 
 export type ForgeAIComponentCatalogueEntry = {
   type: ComponentType
-  category: 'content' | 'control' | 'display' | 'layout' | 'media' | 'navigation' | 'dashboard'
+  category:
+    | 'content'
+    | 'control'
+    | 'display'
+    | 'layout'
+    | 'media'
+    | 'navigation'
+    | 'dashboard'
   description: string
   aliases: string[]
   defaultProps: Record<string, unknown>
@@ -26,32 +33,91 @@ export type ForgeAIComponentCatalogueEntry = {
 }
 
 const SUPPORTED_TYPES = [
-  'Text', 'Heading', 'Clock', 'WiFi', 'Button', 'InteractiveButton',
-  'InteractiveLight', 'InteractiveStatusIndicator', 'InteractiveToggleSwitch',
-  'InteractiveThreePositionToggleSwitch', 'IconButton', 'Icon', 'Input',
-  'Textarea', 'Switch', 'Checkbox', 'Radio', 'NumberInput', 'Spinbox', 'Select', 'Image',
-  'Slider', 'Progress', 'CircularProgress', 'Led', 'Bar', 'Arc', 'Roller',
-  'Canvas', 'Line', 'Tabview', 'Tileview', 'ButtonMatrix',
-  'Msgbox', 'Table', 'Scale', 'Keyboard', 'Divider', 'Calendar', 'Chart', 'Box',
+  'Text',
+  'Heading',
+  'Clock',
+  'WiFi',
+  'Button',
+  'InteractiveButton',
+  'InteractiveLight',
+  'InteractiveStatusIndicator',
+  'InteractiveToggleSwitch',
+  'InteractiveThreePositionToggleSwitch',
+  'IconButton',
+  'Icon',
+  'Input',
+  'Textarea',
+  'Switch',
+  'Checkbox',
+  'Radio',
+  'NumberInput',
+  'Spinbox',
+  'Select',
+  'Image',
+  'Slider',
+  'Progress',
+  'CircularProgress',
+  'Led',
+  'Bar',
+  'Arc',
+  'Roller',
+  'Canvas',
+  'Line',
+  'Tabview',
+  'Tileview',
+  'ButtonMatrix',
+  'Msgbox',
+  'Table',
+  'Scale',
+  'Keyboard',
+  'Divider',
+  'Calendar',
+  'Chart',
+  'Box',
   'DashboardCard',
   'SensorTile',
   'RelayPanel',
+  'TrendChart',
 ] as const
 
 type SupportedType = typeof SUPPORTED_TYPES[number]
 
 const CONTROL_TYPES = new Set<SupportedType>([
-  'Button', 'InteractiveButton', 'InteractiveToggleSwitch',
-  'InteractiveThreePositionToggleSwitch', 'IconButton', 'Input', 'Textarea',
-  'Switch', 'Checkbox', 'Radio', 'NumberInput', 'Spinbox', 'Select', 'Slider', 'Roller',
-  'ButtonMatrix', 'Keyboard', 'RelayPanel',
+  'Button',
+  'InteractiveButton',
+  'InteractiveToggleSwitch',
+  'InteractiveThreePositionToggleSwitch',
+  'IconButton',
+  'Input',
+  'Textarea',
+  'Switch',
+  'Checkbox',
+  'Radio',
+  'NumberInput',
+  'Spinbox',
+  'Select',
+  'Slider',
+  'Roller',
+  'ButtonMatrix',
+  'Keyboard',
+  'RelayPanel',
 ])
 
 const MEDIA_TYPES = new Set<SupportedType>(['Image', 'Icon'])
 const NAVIGATION_TYPES = new Set<SupportedType>(['Tabview', 'Tileview'])
-const LAYOUT_TYPES = new Set<SupportedType>(['Box', 'Divider', 'Line', 'Canvas'])
+const LAYOUT_TYPES = new Set<SupportedType>([
+  'Box',
+  'Divider',
+  'Line',
+  'Canvas',
+])
 const CONTENT_TYPES = new Set<SupportedType>(['Text', 'Heading'])
-const DASHBOARD_TYPES = new Set<SupportedType>(['DashboardCard', 'SensorTile', 'RelayPanel'])
+const DASHBOARD_TYPES = new Set<SupportedType>([
+  'DashboardCard',
+  'SensorTile',
+  'RelayPanel',
+  'TrendChart',
+])
 
 const descriptions: Partial<Record<SupportedType, string>> = {
   NumberInput: 'Editable numeric field with increment and decrement controls.',
@@ -64,11 +130,15 @@ const descriptions: Partial<Record<SupportedType, string>> = {
   InteractiveButton: 'Project Interactive button asset instance.',
   InteractiveLight: 'Project Interactive light asset instance.',
   InteractiveStatusIndicator: 'Project Interactive status asset instance.',
-  InteractiveToggleSwitch: 'Project Interactive two-state switch asset instance.',
-  InteractiveThreePositionToggleSwitch: 'Project Interactive three-position switch asset instance.',
+  InteractiveToggleSwitch:
+    'Project Interactive two-state switch asset instance.',
+  InteractiveThreePositionToggleSwitch:
+    'Project Interactive three-position switch asset instance.',
   DashboardCard: 'ForgeUI Native value, status and progress card.',
   SensorTile: 'ForgeUI Native live engineering measurement tile.',
   RelayPanel: 'ForgeUI Native logical relay bank control panel.',
+  TrendChart:
+    'ForgeUI Native live-value history chart with semantic thresholds.',
 }
 
 const aliases: Partial<Record<SupportedType, string[]>> = {
@@ -90,6 +160,12 @@ const aliases: Partial<Record<SupportedType, string[]>> = {
   DashboardCard: ['dashboard card', 'kpi card', 'metric card'],
   SensorTile: ['sensor tile', 'engineering measurement', 'telemetry tile'],
   RelayPanel: ['relay panel', 'relay bank', 'digital outputs', 'contactors'],
+  TrendChart: [
+    'trend chart',
+    'history chart',
+    'telemetry trend',
+    'time series',
+  ],
 }
 
 const sizes: Partial<Record<SupportedType, { w: number; h: number }>> = {
@@ -111,6 +187,7 @@ const sizes: Partial<Record<SupportedType, { w: number; h: number }>> = {
   DashboardCard: { w: 300, h: 190 },
   SensorTile: { w: 260, h: 180 },
   RelayPanel: { w: 340, h: 360 },
+  TrendChart: { w: 420, h: 260 },
 }
 
 const assetRequirement = (type: SupportedType): ForgeAIAssetRequirement => {
@@ -118,7 +195,8 @@ const assetRequirement = (type: SupportedType): ForgeAIAssetRequirement => {
   if (type === 'Image') return 'uploaded-image'
   if (type === 'InteractiveButton') return 'interactive-button'
   if (type === 'InteractiveLight') return 'interactive-light'
-  if (type === 'InteractiveStatusIndicator') return 'interactive-status-indicator'
+  if (type === 'InteractiveStatusIndicator')
+    return 'interactive-status-indicator'
   if (type === 'InteractiveToggleSwitch') return 'interactive-toggle'
   if (type === 'InteractiveThreePositionToggleSwitch') {
     return 'interactive-three-position-toggle'
@@ -143,8 +221,8 @@ const propsFor = (type: SupportedType): Record<string, unknown> => {
   return defaults && typeof defaults === 'object' ? defaults : {}
 }
 
-export const forgeAIComponentCatalogue: ForgeAIComponentCatalogueEntry[] =
-  SUPPORTED_TYPES.map(type => {
+export const forgeAIComponentCatalogue: ForgeAIComponentCatalogueEntry[] = SUPPORTED_TYPES.map(
+  type => {
     const defaultProps = propsFor(type)
     return {
       type: type as ComponentType,
@@ -153,16 +231,23 @@ export const forgeAIComponentCatalogue: ForgeAIComponentCatalogueEntry[] =
       aliases: aliases[type] ?? [],
       defaultProps,
       defaultSize: sizes[type] ?? { w: 120, h: 60 },
-      supportedProps: Array.from(new Set([
-        ...Object.keys(defaultProps),
-        'positionMode', 'x', 'y', 'w', 'h',
-      ])),
+      supportedProps: Array.from(
+        new Set([
+          ...Object.keys(defaultProps),
+          'positionMode',
+          'x',
+          'y',
+          'w',
+          'h',
+        ]),
+      ),
       assetRequirement: assetRequirement(type),
       canvasPreview: true,
       browserPreview: true,
       lvglExport: true,
     }
-  })
+  },
+)
 
 const exclusionReason = (type: ComponentType): string => {
   if (type === 'Lottie' || type === 'Spinner') {
@@ -191,7 +276,7 @@ const normalizeName = (value: string) =>
 
 const aliasesByName = new Map<string, ComponentType>()
 forgeAIComponentCatalogue.forEach(entry => {
-  [entry.type, ...entry.aliases].forEach(value => {
+  ;[entry.type, ...entry.aliases].forEach(value => {
     aliasesByName.set(normalizeName(value), entry.type)
   })
 })
@@ -212,21 +297,25 @@ export const validateForgeAIComponentCatalogue = (): string[] => {
   const names = new Map<string, ComponentType>()
 
   forgeAIComponentCatalogue.forEach(entry => {
-    if (!palette.has(entry.type)) errors.push(`${entry.type} is not in the Studio palette`)
+    if (!palette.has(entry.type))
+      errors.push(`${entry.type} is not in the Studio palette`)
     if (accounted.has(entry.type)) errors.push(`${entry.type} is duplicated`)
     accounted.add(entry.type)
     ;[entry.type, ...entry.aliases].forEach(name => {
       const normalized = normalizeName(name)
       const owner = names.get(normalized)
       if (owner && owner !== entry.type) {
-        errors.push(`Alias "${name}" is ambiguous between ${owner} and ${entry.type}`)
+        errors.push(
+          `Alias "${name}" is ambiguous between ${owner} and ${entry.type}`,
+        )
       }
       names.set(normalized, entry.type)
     })
   })
 
   forgeAIIntentionalExclusions.forEach(exclusion => {
-    if (!exclusion.reason) errors.push(`${exclusion.type} has no exclusion reason`)
+    if (!exclusion.reason)
+      errors.push(`${exclusion.type} has no exclusion reason`)
     accounted.add(exclusion.type)
   })
   componentsList.forEach(type => {

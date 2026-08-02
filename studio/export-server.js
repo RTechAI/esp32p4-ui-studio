@@ -1648,7 +1648,7 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
       )
         .map((hook) => String(hook || '').trim())
         .filter((hook) =>
-          /^FG_On_[A-Za-z0-9_]+_(Clicked|Toggled|Changed|Point_Added|Cleared|Shown|Hidden|Closed|Button_Pressed|Button_Selected|Item_Clicked)$/.test(hook)
+          /^FG_On_[A-Za-z0-9_]+_(Clicked|Toggled|Changed|Point_Added|Cleared|Warning|Alarm|Shown|Hidden|Closed|Button_Pressed|Button_Selected|Item_Clicked)$/.test(hook)
         )
     )
   )

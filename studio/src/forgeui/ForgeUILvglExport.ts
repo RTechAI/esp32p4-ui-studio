@@ -50,6 +50,10 @@ import { getForgeUISensorTrendLabel, normalizeForgeUISensorTile } from './ForgeU
 import { normalizeForgeUIRelayPanel } from './ForgeUIRelayPanel'
 import { normalizeForgeUIPwmController } from './ForgeUIPwmController'
 import {
+  createForgeUITrendSimulation,
+  normalizeForgeUITrendChart,
+} from './ForgeUITrendChart'
+import {
   getForgeUIStandardSpinboxModel,
   type ForgeUIStandardSpinboxModel,
 } from './ForgeUIStandardSpinbox'
@@ -491,6 +495,55 @@ const createPwmControllerExports = (
         enabledCallbackName: enabledHookName ? `fg_${runtimeStem}_pwm_enabled_changed_cb` : undefined,
         setValueApiName: `FG_Set_${stem}_Value`, getValueApiName: `FG_Get_${stem}_Value`,
         setEnabledApiName: `FG_Set_${stem}_Enabled`, getEnabledApiName: `FG_Get_${stem}_Enabled`,
+      })
+    })
+  return result
+}
+
+type TrendChartExport = {
+  stem: string; runtimeStem: string; rootName: string; chartName: string; seriesName: string
+  currentLabelName: string; bufferName: string; minimumName: string; maximumName: string
+  warningName: string; alarmName: string; historyLength: number; runtimeEnabled: boolean
+  units: string; lineColour: string; initialValue: number
+  autoScale: boolean
+  addApiName: string; clearApiName: string; rangeApiName: string; thresholdsApiName: string
+  warningHookName?: string; alarmHookName?: string; clearedHookName?: string
+}
+
+const createTrendChartExports = (
+  components: IComponents,
+  usedHookNames: Set<string>,
+  userEventHooks: Set<string>,
+): Map<string, TrendChartExport> => {
+  const result = new Map<string, TrendChartExport>()
+  const usedStems = new Set<string>()
+  Object.values(components).filter(component => component.type === 'TrendChart')
+    .sort((a, b) => a.id.localeCompare(b.id)).forEach(component => {
+      const base = toCIdentifier(component.id, 'Trend_Chart').replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let stem = base; let suffix = 2
+      while (usedStems.has(stem)) stem = `${base}_${suffix++}`
+      usedStems.add(stem)
+      const runtimeStem = stem.toLowerCase()
+      const model = normalizeForgeUITrendChart(component.props)
+      const uniqueHook = (name: string) => {
+        let hook = name; let collision = 2
+        while (usedHookNames.has(hook)) hook = `${name}_${collision++}`
+        usedHookNames.add(hook); userEventHooks.add(hook); return hook
+      }
+      result.set(component.id, {
+        stem, runtimeStem, rootName: `fg_${runtimeStem}_trend`,
+        chartName: `fg_${runtimeStem}_trend_chart`, seriesName: `fg_${runtimeStem}_trend_series`,
+        currentLabelName: `fg_${runtimeStem}_trend_current`, bufferName: `fg_${runtimeStem}_trend_history`,
+        minimumName: `fg_${runtimeStem}_trend_minimum`, maximumName: `fg_${runtimeStem}_trend_maximum`,
+        warningName: `fg_${runtimeStem}_trend_warning`, alarmName: `fg_${runtimeStem}_trend_alarm`,
+        historyLength: model.historyLength, runtimeEnabled: model.generateRuntimeApi,
+        units: model.units, lineColour: model.lineColour, initialValue: model.currentValue,
+        autoScale: model.autoScale,
+        addApiName: `FG_Add_${stem}_Point`, clearApiName: `FG_Clear_${stem}`,
+        rangeApiName: `FG_Set_${stem}_Range`, thresholdsApiName: `FG_Set_${stem}_Thresholds`,
+        warningHookName: model.enableUserEvents ? uniqueHook(`FG_On_${stem}_Warning`) : undefined,
+        alarmHookName: model.enableUserEvents ? uniqueHook(`FG_On_${stem}_Alarm`) : undefined,
+        clearedHookName: model.enableUserEvents ? uniqueHook(`FG_On_${stem}_Cleared`) : undefined,
       })
     })
   return result
@@ -2808,6 +2861,7 @@ const buildLvglBlock = (
   sensorTileExports: Map<string, SensorTileExport>,
   relayPanelExports: Map<string, RelayPanelExport>,
   pwmControllerExports: Map<string, PwmControllerExport>,
+  trendChartExports: Map<string, TrendChartExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -4464,6 +4518,68 @@ case 'PwmController': {
   break
 }
 
+case 'TrendChart': {
+  const model = normalizeForgeUITrendChart(child.props)
+  const initialHistory = model.history.length > 1
+    ? model.history
+    : createForgeUITrendSimulation(model, Math.min(model.historyLength, 48))
+  const initialLatest = initialHistory[initialHistory.length - 1] ?? model.currentValue
+  const trend = trendChartExports.get(child.id)
+  if (!trend) break
+  const lineColour = model.lineColour ? toLvHex(model.lineColour) : palette.accent
+  const chartTop = model.showCurrentValue ? 44 : 34
+  const chartBottom = model.showMinMax || model.showLegend ? 30 : 12
+  lines.push(`${trend.rootName} = lv_obj_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${trend.rootName}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${trend.rootName}, ${w}, ${h});`)
+  lines.push(`lv_obj_set_style_bg_color(${trend.rootName}, lv_color_hex(${model.backgroundColour ? toLvHex(model.backgroundColour) : palette.surface}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${trend.rootName}, ${model.border ? 1 : 0}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${trend.rootName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${trend.rootName}, ${model.rounded ? 12 : 0}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_pad_all(${trend.rootName}, ${model.padding}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_clear_flag(${trend.rootName}, LV_OBJ_FLAG_SCROLLABLE);`)
+  lines.push(`${trend.minimumName} = ${cFloatLiteral(model.minimum)}; ${trend.maximumName} = ${cFloatLiteral(model.maximum)};`)
+  lines.push(`${trend.warningName} = ${cFloatLiteral(model.warningThreshold)}; ${trend.alarmName} = ${cFloatLiteral(model.alarmThreshold)};`)
+  lines.push(`lv_obj_t * ${varName}_title = lv_label_create(${trend.rootName});`)
+  lines.push(`lv_label_set_text(${varName}_title, "${esc(model.title)}"); lv_obj_align(${varName}_title, LV_ALIGN_TOP_LEFT, 0, 0);`)
+  lines.push(`lv_obj_set_style_text_color(${varName}_title, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+  if (model.showCurrentValue) {
+    lines.push(`${trend.currentLabelName} = lv_label_create(${trend.rootName});`)
+    lines.push(`lv_label_set_text_fmt(${trend.currentLabelName}, "%.6g ${escPrintfLiteral(model.units)}", (double)${cFloatLiteral(initialLatest)});`)
+    lines.push(`lv_obj_align(${trend.currentLabelName}, LV_ALIGN_TOP_RIGHT, 0, 0);`)
+    lines.push(`lv_obj_set_style_text_color(${trend.currentLabelName}, lv_color_hex(${lineColour}), LV_PART_MAIN);`)
+  }
+  lines.push(`${trend.chartName} = lv_chart_create(${trend.rootName});`)
+  lines.push(`lv_obj_set_pos(${trend.chartName}, 0, ${chartTop});`)
+  lines.push(`lv_obj_set_size(${trend.chartName}, ${Math.max(80, Number(w) - model.padding * 2 || 300)}, ${Math.max(50, Number(h) - model.padding * 2 - chartTop - chartBottom || 140)});`)
+  lines.push(`lv_chart_set_type(${trend.chartName}, LV_CHART_TYPE_LINE);`)
+  lines.push(`lv_chart_set_update_mode(${trend.chartName}, LV_CHART_UPDATE_MODE_CIRCULAR);`)
+  lines.push(`lv_chart_set_point_count(${trend.chartName}, ${trend.historyLength});`)
+  lines.push(`lv_chart_set_range(${trend.chartName}, LV_CHART_AXIS_PRIMARY_Y, (int32_t)lroundf(${cFloatLiteral(model.minimum)} * 1000.0f), (int32_t)lroundf(${cFloatLiteral(model.maximum)} * 1000.0f));`)
+  lines.push(`lv_chart_set_div_line_count(${trend.chartName}, ${model.showGrid ? 5 : 0}, ${model.showGrid ? 7 : 0});`)
+  lines.push(`lv_obj_set_style_border_width(${trend.chartName}, ${model.showAxes ? 1 : 0}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_opa(${trend.chartName}, LV_OPA_TRANSP, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_line_width(${trend.chartName}, 2, LV_PART_ITEMS);`)
+  lines.push(`lv_obj_set_style_size(${trend.chartName}, ${model.showLatestMarker ? 5 : 0}, LV_PART_INDICATOR);`)
+  lines.push(`${trend.seriesName} = lv_chart_add_series(${trend.chartName}, lv_color_hex(${lineColour}), LV_CHART_AXIS_PRIMARY_Y);`)
+  lines.push(`for (uint32_t i = 0; i < ${trend.historyLength}u; ++i) ${trend.bufferName}[i] = LV_CHART_POINT_NONE;`)
+  lines.push(`lv_chart_set_ext_y_array(${trend.chartName}, ${trend.seriesName}, ${trend.bufferName});`)
+  initialHistory.forEach(value => {
+    lines.push(`lv_chart_set_next_value(${trend.chartName}, ${trend.seriesName}, (int32_t)lroundf(${cFloatLiteral(value)} * 1000.0f));`)
+  })
+  if (model.showMinMax || model.showLegend) {
+    lines.push(`lv_obj_t * ${varName}_footer = lv_label_create(${trend.rootName});`)
+    const footer = model.showMinMax
+      ? `${model.minimum} ${model.units}    ${model.maximum} ${model.units}`
+      : model.semanticType
+    lines.push(`lv_label_set_text(${varName}_footer, "${esc(footer)}"); lv_obj_align(${varName}_footer, LV_ALIGN_BOTTOM_LEFT, 0, 0);`)
+    lines.push(`lv_obj_set_style_text_font(${varName}_footer, &lv_font_montserrat_10, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_color(${varName}_footer, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
+  }
+  lines.push(``)
+  break
+}
+
 case 'Spinbox': {
   const spinboxExport = spinboxExports.get(child.id)
   if (!spinboxExport) break
@@ -5556,6 +5672,7 @@ case 'Chart': {
         sensorTileExports,
         relayPanelExports,
         pwmControllerExports,
+        trendChartExports,
       )
     }
   })
@@ -5857,7 +5974,7 @@ export const generateForgeUILvglCode = (
   },
 ) => {
   const nativeIdentityDiagnostics = Object.entries(components)
-    .filter(([, component]) => component.type === 'DashboardCard' || component.type === 'SensorTile' || component.type === 'RelayPanel' || component.type === 'PwmController')
+    .filter(([, component]) => component.type === 'DashboardCard' || component.type === 'SensorTile' || component.type === 'RelayPanel' || component.type === 'PwmController' || component.type === 'TrendChart')
     .map(([persistedId, component]) => {
       if (!component.id || component.id !== persistedId) {
         throw new Error(
@@ -5896,6 +6013,7 @@ export const generateForgeUILvglCode = (
   const sensorTileExports = createSensorTileExports(components, usedHookNames, userEventHooks)
   const relayPanelExports = createRelayPanelExports(components, usedHookNames, userEventHooks)
   const pwmControllerExports = createPwmControllerExports(components, usedHookNames, userEventHooks)
+  const trendChartExports = createTrendChartExports(components, usedHookNames, userEventHooks)
   const fiIconExports = createFiIconExports(
     components,
     usedHookNames,
@@ -6626,7 +6744,7 @@ const backgroundMode =
   lines.push(`#include "freertos/semphr.h"`)
   lines.push(`#include "freertos/task.h"`)
   lines.push(`#include "esp_timer.h"`)
-  if (hasInteractiveButtons || dashboardCardExports.size > 0 || sensorTileExports.size > 0 || relayPanelExports.size > 0 || pwmControllerExports.size > 0 || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
+  if (hasInteractiveButtons || dashboardCardExports.size > 0 || sensorTileExports.size > 0 || relayPanelExports.size > 0 || pwmControllerExports.size > 0 || trendChartExports.size > 0 || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
     lines.push(`#include "95_UserEvents.h"`)
   }
   if (Array.from(fiIconExports.values()).some(icon => icon.runtimeEnabled)) {
@@ -6685,6 +6803,17 @@ const backgroundMode =
     lines.push(`static float ${pwm.stateName} = ${cFloatLiteral(pwm.initialValue)};`)
     lines.push(`static bool ${pwm.enabledName} = ${pwm.initialEnabled ? 'true' : 'false'};`)
     lines.push(`static bool ${pwm.programmaticName} = false;`)
+  })
+  trendChartExports.forEach(trend => {
+    lines.push(`static lv_obj_t * ${trend.rootName} = NULL;`)
+    lines.push(`static lv_obj_t * ${trend.chartName} = NULL;`)
+    lines.push(`static lv_chart_series_t * ${trend.seriesName} = NULL;`)
+    lines.push(`static lv_obj_t * ${trend.currentLabelName} = NULL;`)
+    lines.push(`static int32_t ${trend.bufferName}[${trend.historyLength}] = {0};`)
+    lines.push(`static float ${trend.minimumName} = 0.0f;`)
+    lines.push(`static float ${trend.maximumName} = 100.0f;`)
+    lines.push(`static float ${trend.warningName} = 75.0f;`)
+    lines.push(`static float ${trend.alarmName} = 90.0f;`)
   })
   lines.push(`static lv_obj_t * fg_application_page = NULL;`)
   lines.push(`static lv_obj_t * fg_system_launcher_page = NULL;`)
@@ -7431,6 +7560,46 @@ const backgroundMode =
     lines.push(`    ${pwm.programmaticName} = false;`)
     lines.push(`}`); lines.push(``)
     lines.push(`bool ${pwm.getEnabledApiName}(void) { return ${pwm.enabledName}; }`); lines.push(``)
+  })
+
+  trendChartExports.forEach(trend => {
+    if (!trend.runtimeEnabled) return
+    lines.push(`void ${trend.addApiName}(float value)`)
+    lines.push(`{`)
+    lines.push(`    if (value < ${trend.minimumName}) value = ${trend.minimumName};`)
+    lines.push(`    if (value > ${trend.maximumName}) value = ${trend.maximumName};`)
+    lines.push(`    if (${trend.chartName} == NULL || ${trend.seriesName} == NULL) return;`)
+    lines.push(`    lv_chart_set_next_value(${trend.chartName}, ${trend.seriesName}, (int32_t)lroundf(value * 1000.0f));`)
+    if (trend.autoScale) {
+      lines.push(`    int32_t low = INT32_MAX, high = INT32_MIN;`)
+      lines.push(`    for (uint32_t i = 0; i < ${trend.historyLength}u; ++i) { int32_t point = ${trend.bufferName}[i]; if (point == LV_CHART_POINT_NONE) continue; if (point < low) low = point; if (point > high) high = point; }`)
+      lines.push(`    if (low <= high) { int32_t margin = LV_MAX(1, (high - low) / 10); lv_chart_set_range(${trend.chartName}, LV_CHART_AXIS_PRIMARY_Y, low - margin, high + margin); }`)
+    }
+    lines.push(`    if (${trend.currentLabelName}) lv_label_set_text_fmt(${trend.currentLabelName}, "%.6g ${escPrintfLiteral(trend.units)}", (double)value);`)
+    lines.push(`    uint32_t rgb = value >= ${trend.alarmName} ? 0xEF4444u : (value >= ${trend.warningName} ? 0xF59E0Bu : ${trend.lineColour ? `0x${trend.lineColour.slice(1)}` : '0x22C55Eu'});`)
+    lines.push(`    if (${trend.currentLabelName}) lv_obj_set_style_text_color(${trend.currentLabelName}, lv_color_hex(rgb), LV_PART_MAIN);`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${trend.clearApiName}(void)`)
+    lines.push(`{`)
+    lines.push(`    if (${trend.chartName} == NULL || ${trend.seriesName} == NULL) return;`)
+    lines.push(`    lv_chart_set_all_value(${trend.chartName}, ${trend.seriesName}, LV_CHART_POINT_NONE);`)
+    lines.push(`    lv_chart_refresh(${trend.chartName});`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${trend.rangeApiName}(float minimum, float maximum)`)
+    lines.push(`{`)
+    lines.push(`    if (!(maximum > minimum)) return;`)
+    lines.push(`    ${trend.minimumName} = minimum; ${trend.maximumName} = maximum;`)
+    lines.push(`    if (${trend.chartName}) lv_chart_set_range(${trend.chartName}, LV_CHART_AXIS_PRIMARY_Y, (int32_t)lroundf(minimum * 1000.0f), (int32_t)lroundf(maximum * 1000.0f));`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${trend.thresholdsApiName}(float warning, float alarm)`)
+    lines.push(`{`)
+    lines.push(`    if (alarm < warning) alarm = warning;`)
+    lines.push(`    ${trend.warningName} = warning; ${trend.alarmName} = alarm;`)
+    lines.push(`}`)
+    lines.push(``)
   })
 
   spinboxExports.forEach(spinboxExport => {
@@ -9149,6 +9318,7 @@ lines.push(`    fg_system_root = parent;`)
         sensorTileExports,
         relayPanelExports,
         pwmControllerExports,
+        trendChartExports,
       )
   }
 
@@ -9847,6 +10017,11 @@ lines.push(`}`)
         `float ${pwm.getValueApiName}(void);`,
         `void ${pwm.setEnabledApiName}(bool enabled);`,
         `bool ${pwm.getEnabledApiName}(void);`,
+      ])).concat(Array.from(trendChartExports.values()).filter(trend => trend.runtimeEnabled).flatMap(trend => [
+        `void ${trend.addApiName}(float value);`,
+        `void ${trend.clearApiName}(void);`,
+        `void ${trend.rangeApiName}(float minimum, float maximum);`,
+        `void ${trend.thresholdsApiName}(float warning, float alarm);`,
       ])).concat(Array.from(barExports.values()).map(
         barExport => `void ${barExport.apiName}(int32_t value);`,
       )).concat(Array.from(progressExports.values()).map(

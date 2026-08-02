@@ -514,3 +514,9 @@ presentation path is physically proven: color, opacity, hide/show, pre-bind
 retention, repeated silent setters, independent presentation instances,
 Standalone parity and click-disabled non-interaction were accepted. The
 setters, Icon and complete Fi Runtime are physically proven.
+# Trend Chart application integration
+
+Add live samples with the generated `FG_Add_<StableId>_Point(float)` API. Use
+the generated clear, range, and threshold APIs rather than accessing LVGL. Keep
+application warning/alarm behavior in `95_UserEvents.c`. See
+`docs/FORGEUI_TREND_CHART.md` for configuration and hardware proof guidance.

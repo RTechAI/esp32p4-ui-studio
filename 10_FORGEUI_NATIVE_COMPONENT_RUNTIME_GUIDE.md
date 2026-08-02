@@ -402,3 +402,9 @@ public Runtime SDK contract changes, update this guide in the same sprint.
 - [`05_DEVELOPER_GUIDE.md`](05_DEVELOPER_GUIDE.md)
 - [`07_FORGEUI_RUNTIME_SDK.md`](07_FORGEUI_RUNTIME_SDK.md)
 - [`docs/FORGEUI_NATIVE_WIDGET_ARCHITECTURE.md`](docs/FORGEUI_NATIVE_WIDGET_ARCHITECTURE.md)
+# Native Component #5: Trend Chart
+
+Trend Chart owns presentation and fixed circular history management for generic
+engineering values. Application code supplies points through `FG_Add_*_Point`;
+it does not access LVGL chart objects or series. See
+`docs/FORGEUI_TREND_CHART.md` for the model, Runtime SDK, and ESP32-P4 proof plan.

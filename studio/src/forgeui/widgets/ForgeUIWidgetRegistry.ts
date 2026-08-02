@@ -16,8 +16,7 @@ export const FORGEUI_WIDGET_CATEGORIES = [
   'Assets',
 ] as const
 
-export type ForgeUIWidgetCategory =
-  typeof FORGEUI_WIDGET_CATEGORIES[number]
+export type ForgeUIWidgetCategory = typeof FORGEUI_WIDGET_CATEGORIES[number]
 
 export type ForgeUIWidgetCapabilities = {
   supportsRuntimeApi: boolean
@@ -47,10 +46,7 @@ export type ForgeUIWidgetDefinition = {
   defaultWidth: number
   defaultHeight: number
   defaultProperties: Record<string, unknown>
-  insertionFactory: (
-    x: number,
-    y: number,
-  ) => Record<string, unknown>
+  insertionFactory: (x: number, y: number) => Record<string, unknown>
   capabilities: ForgeUIWidgetCapabilities
   documentationId?: string
   status: 'available' | 'experimental' | 'disabled'
@@ -90,24 +86,66 @@ const displayNames: Partial<Record<ComponentType, string>> = {
   SensorTile: 'Sensor Tile',
   RelayPanel: 'Relay Panel',
   PwmController: 'PWM Controller',
+  TrendChart: 'Trend Chart',
 }
 
 const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
   Basic: [
-    'Text', 'Heading', 'Button', 'IconButton', 'Icon', 'Box',
-    'Line', 'Divider', 'Canvas', 'Image', 'Span',
+    'Text',
+    'Heading',
+    'Button',
+    'IconButton',
+    'Icon',
+    'Box',
+    'Line',
+    'Divider',
+    'Canvas',
+    'Image',
+    'Span',
   ],
   Input: [
-    'Input', 'Textarea', 'NumberInput', 'Checkbox', 'Switch',
-    'Slider', 'Spinbox', 'Roller', 'Radio', 'Select',
+    'Input',
+    'Textarea',
+    'NumberInput',
+    'Checkbox',
+    'Switch',
+    'Slider',
+    'Spinbox',
+    'Roller',
+    'Radio',
+    'Select',
   ],
   Display: [
-    'Led', 'Bar', 'Arc', 'Scale', 'Chart', 'Table', 'Clock',
-    'WiFi', 'QRCode', 'Progress', 'CircularProgress', 'AnimImage',
+    'Led',
+    'Bar',
+    'Arc',
+    'Scale',
+    'Chart',
+    'Table',
+    'Clock',
+    'WiFi',
+    'QRCode',
+    'Progress',
+    'CircularProgress',
+    'AnimImage',
   ],
-  Navigation: ['List', 'Tabview', 'Tileview', 'ButtonMatrix', 'ImageButton', 'Window', 'Menu'],
+  Navigation: [
+    'List',
+    'Tabview',
+    'Tileview',
+    'ButtonMatrix',
+    'ImageButton',
+    'Window',
+    'Menu',
+  ],
   Feedback: ['Msgbox', 'Keyboard', 'Calendar', 'Spinner'],
-  Dashboard: ['DashboardCard', 'SensorTile', 'RelayPanel', 'PwmController'],
+  Dashboard: [
+    'DashboardCard',
+    'SensorTile',
+    'RelayPanel',
+    'PwmController',
+    'TrendChart',
+  ],
   Assets: [
     'InteractiveButton',
     'InteractiveLight',
@@ -178,6 +216,7 @@ const sizes: Partial<Record<ComponentType, [number, number]>> = {
   SensorTile: [260, 180],
   RelayPanel: [340, 360],
   PwmController: [320, 220],
+  TrendChart: [420, 260],
 }
 
 const keywords: Partial<Record<ComponentType, string[]>> = {
@@ -198,7 +237,16 @@ const keywords: Partial<Record<ComponentType, string[]>> = {
   Spinbox: ['numeric', 'digit editor', 'native spin box', 'lv_spinbox'],
   CircularProgress: ['gauge', 'progress ring', 'meter'],
   WiFi: ['network', 'wireless', 'connection'],
-  QRCode: ['qr', 'qrcode', 'scan', 'barcode', 'url', 'wifi', 'pairing', 'device'],
+  QRCode: [
+    'qr',
+    'qrcode',
+    'scan',
+    'barcode',
+    'url',
+    'wifi',
+    'pairing',
+    'device',
+  ],
   Spinner: ['loading', 'activity', 'busy', 'lv_spinner'],
   Span: ['rich text', 'formatted text', 'lv_spangroup'],
   AnimImage: ['animation', 'frames', 'lv_animimg'],
@@ -206,9 +254,40 @@ const keywords: Partial<Record<ComponentType, string[]>> = {
   Window: ['panel', 'dialog', 'title bar', 'container', 'lv_win'],
   Menu: ['navigation', 'pages', 'settings', 'hierarchy', 'lv_menu'],
   DashboardCard: ['dashboard', 'card', 'kpi', 'metric', 'forgeui native'],
-  SensorTile: ['sensor', 'measurement', 'engineering', 'telemetry', 'forgeui native'],
-  RelayPanel: ['relay', 'contactor', 'solenoid', 'pump', 'light', 'fan', 'valve', 'digital output', 'forgeui native'],
-  PwmController: ['pwm', 'duty cycle', 'fan speed', 'motor speed', 'analogue output', 'forgeui native'],
+  SensorTile: [
+    'sensor',
+    'measurement',
+    'engineering',
+    'telemetry',
+    'forgeui native',
+  ],
+  RelayPanel: [
+    'relay',
+    'contactor',
+    'solenoid',
+    'pump',
+    'light',
+    'fan',
+    'valve',
+    'digital output',
+    'forgeui native',
+  ],
+  PwmController: [
+    'pwm',
+    'duty cycle',
+    'fan speed',
+    'motor speed',
+    'analogue output',
+    'forgeui native',
+  ],
+  TrendChart: [
+    'trend',
+    'history',
+    'telemetry',
+    'scada',
+    'time series',
+    'forgeui native',
+  ],
 }
 
 type CapabilityDefinition = Omit<
@@ -237,11 +316,15 @@ const capability = (
 // This table mirrors the publicApiDeclarations and userEventHooks emitted by
 // ForgeUILvglExport.ts. Keep every registered type explicit: capability
 // metadata must never be inferred from a broad exclusion rule.
-const capabilitiesByType: Partial<
-  Record<ComponentType, CapabilityDefinition>
-> = {
+const capabilitiesByType: Partial<Record<
+  ComponentType,
+  CapabilityDefinition
+>> = {
   Text: capability(false, false, false),
-  Span: capability(false, false, false, 'none', false, { mode: 'serialized-widget', lvglConfigDependencies: ['CONFIG_LV_USE_SPAN'] }),
+  Span: capability(false, false, false, 'none', false, {
+    mode: 'serialized-widget',
+    lvglConfigDependencies: ['CONFIG_LV_USE_SPAN'],
+  }),
   Heading: capability(false, false, false),
   Button: capability(false, false, true),
   IconButton: capability(true, true, true),
@@ -255,29 +338,43 @@ const capabilitiesByType: Partial<
     },
   },
   Box: capability(true, false, false, 'container'),
-  Line: capability(
-    false, false, false, 'none', false,
-    {
-      mode: 'serialized-widget',
-      lvglConfigDependencies: ['CONFIG_LV_USE_LINE'],
-    },
-  ),
+  Line: capability(false, false, false, 'none', false, {
+    mode: 'serialized-widget',
+    lvglConfigDependencies: ['CONFIG_LV_USE_LINE'],
+  }),
   Divider: capability(false, false, false),
   Canvas: capability(false, false, false, 'container'),
-  Image: capability(
-    true, false, false, 'none', false,
-    {
-      mode: 'serialized-widget',
-      lvglConfigDependencies: ['CONFIG_LV_USE_IMAGE'],
-    },
-  ),
-  AnimImage: capability(true, false, false, 'none', false, { mode: 'serialized-widget', lvglConfigDependencies: ['CONFIG_LV_USE_ANIMIMG', 'CONFIG_LV_USE_IMAGE'] }),
+  Image: capability(true, false, false, 'none', false, {
+    mode: 'serialized-widget',
+    lvglConfigDependencies: ['CONFIG_LV_USE_IMAGE'],
+  }),
+  AnimImage: capability(true, false, false, 'none', false, {
+    mode: 'serialized-widget',
+    lvglConfigDependencies: ['CONFIG_LV_USE_ANIMIMG', 'CONFIG_LV_USE_IMAGE'],
+  }),
   ImageButton: {
-    ...capability(true, true, true, 'none', false, { mode: 'serialized-widget', lvglConfigDependencies: ['CONFIG_LV_USE_IMAGEBUTTON', 'CONFIG_LV_USE_IMAGE'] }),
-    instanceConfiguration: { runtimeApiProperty: 'generateRuntimeApi', runtimeApiDefault: true, userEventProperty: 'enableClick', userEventDefault: true },
+    ...capability(true, true, true, 'none', false, {
+      mode: 'serialized-widget',
+      lvglConfigDependencies: [
+        'CONFIG_LV_USE_IMAGEBUTTON',
+        'CONFIG_LV_USE_IMAGE',
+      ],
+    }),
+    instanceConfiguration: {
+      runtimeApiProperty: 'generateRuntimeApi',
+      runtimeApiDefault: true,
+      userEventProperty: 'enableClick',
+      userEventDefault: true,
+    },
   },
-  Window: capability(false, false, false, 'structured', false, { mode: 'serialized-widget', lvglConfigDependencies: ['CONFIG_LV_USE_WIN'] }),
-  Menu: capability(false, false, true, 'structured', false, { mode: 'serialized-widget', lvglConfigDependencies: ['CONFIG_LV_USE_MENU', 'CONFIG_LV_USE_FLEX'] }),
+  Window: capability(false, false, false, 'structured', false, {
+    mode: 'serialized-widget',
+    lvglConfigDependencies: ['CONFIG_LV_USE_WIN'],
+  }),
+  Menu: capability(false, false, true, 'structured', false, {
+    mode: 'serialized-widget',
+    lvglConfigDependencies: ['CONFIG_LV_USE_MENU', 'CONFIG_LV_USE_FLEX'],
+  }),
   DashboardCard: {
     ...capability(true, true, true),
     instanceConfiguration: {
@@ -290,22 +387,37 @@ const capabilitiesByType: Partial<
   SensorTile: {
     ...capability(true, true, true),
     instanceConfiguration: {
-      runtimeApiProperty: 'generateRuntimeApi', runtimeApiDefault: true,
-      userEventProperty: 'enableClick', userEventDefault: true,
+      runtimeApiProperty: 'generateRuntimeApi',
+      runtimeApiDefault: true,
+      userEventProperty: 'enableClick',
+      userEventDefault: true,
     },
   },
   RelayPanel: {
     ...capability(true, true, true),
     instanceConfiguration: {
-      runtimeApiProperty: 'generateRuntimeApi', runtimeApiDefault: true,
-      userEventProperty: 'enableUserEvents', userEventDefault: true,
+      runtimeApiProperty: 'generateRuntimeApi',
+      runtimeApiDefault: true,
+      userEventProperty: 'enableUserEvents',
+      userEventDefault: true,
     },
   },
   PwmController: {
     ...capability(true, true, true),
     instanceConfiguration: {
-      runtimeApiProperty: 'generateRuntimeApi', runtimeApiDefault: true,
-      userEventProperty: 'enableUserEvents', userEventDefault: true,
+      runtimeApiProperty: 'generateRuntimeApi',
+      runtimeApiDefault: true,
+      userEventProperty: 'enableUserEvents',
+      userEventDefault: true,
+    },
+  },
+  TrendChart: {
+    ...capability(true, true, false),
+    instanceConfiguration: {
+      runtimeApiProperty: 'generateRuntimeApi',
+      runtimeApiDefault: true,
+      userEventProperty: 'enableUserEvents',
+      userEventDefault: true,
     },
   },
 
@@ -315,20 +427,10 @@ const capabilitiesByType: Partial<
   Checkbox: capability(true, true, true),
   Switch: capability(true, true, true),
   Slider: capability(true, true, true),
-  Spinbox: capability(
-    true,
-    true,
-    true,
-    'none',
-    false,
-    {
-      mode: 'serialized-widget',
-      lvglConfigDependencies: [
-        'CONFIG_LV_USE_SPINBOX',
-        'CONFIG_LV_USE_TEXTAREA',
-      ],
-    },
-  ),
+  Spinbox: capability(true, true, true, 'none', false, {
+    mode: 'serialized-widget',
+    lvglConfigDependencies: ['CONFIG_LV_USE_SPINBOX', 'CONFIG_LV_USE_TEXTAREA'],
+  }),
   Roller: capability(true, true, true),
   Radio: capability(true, true, true),
   Select: capability(true, true, true),
@@ -341,39 +443,22 @@ const capabilitiesByType: Partial<
   Table: capability(false, false, true),
   Clock: capability(false, false, false),
   WiFi: capability(false, false, false),
-  QRCode: capability(
-    true,
-    false,
-    false,
-    'none',
-    false,
-    {
-      mode: 'serialized-widget',
-      lvglConfigDependencies: ['CONFIG_LV_USE_QRCODE'],
-    },
-  ),
+  QRCode: capability(true, false, false, 'none', false, {
+    mode: 'serialized-widget',
+    lvglConfigDependencies: ['CONFIG_LV_USE_QRCODE'],
+  }),
   Progress: capability(true, false, false),
   CircularProgress: capability(true, false, false),
 
-  List: capability(
-    false,
-    true,
-    true,
-    'none',
-    false,
-    {
-      mode: 'serialized-widget',
-      lvglConfigDependencies: ['CONFIG_LV_USE_LIST'],
-    },
-  ),
+  List: capability(false, true, true, 'none', false, {
+    mode: 'serialized-widget',
+    lvglConfigDependencies: ['CONFIG_LV_USE_LIST'],
+  }),
   Tabview: capability(true, true, true, 'structured'),
-  Tileview: capability(
-    true, true, true, 'structured', false,
-    {
-      mode: 'serialized-widget',
-      lvglConfigDependencies: ['CONFIG_LV_USE_TILEVIEW'],
-    },
-  ),
+  Tileview: capability(true, true, true, 'structured', false, {
+    mode: 'serialized-widget',
+    lvglConfigDependencies: ['CONFIG_LV_USE_TILEVIEW'],
+  }),
   ButtonMatrix: capability(true, true, true),
 
   Msgbox: capability(true, true, true),
@@ -381,24 +466,28 @@ const capabilitiesByType: Partial<
   Calendar: capability(true, true, true),
   Spinner: capability(false, false, false),
 
-  InteractiveButton: capability(
-    false, true, true, 'none', true,
-    { mode: 'registered-asset', lvglConfigDependencies: [] },
-  ),
-  InteractiveLight: capability(
-    true, false, false, 'none', true,
-    { mode: 'registered-asset', lvglConfigDependencies: [] },
-  ),
-  InteractiveStatusIndicator: capability(
-    true, false, false, 'none', true,
-    { mode: 'registered-asset', lvglConfigDependencies: [] },
-  ),
-  InteractiveToggleSwitch: capability(
-    true, true, true, 'none', true,
-    { mode: 'registered-asset', lvglConfigDependencies: [] },
-  ),
+  InteractiveButton: capability(false, true, true, 'none', true, {
+    mode: 'registered-asset',
+    lvglConfigDependencies: [],
+  }),
+  InteractiveLight: capability(true, false, false, 'none', true, {
+    mode: 'registered-asset',
+    lvglConfigDependencies: [],
+  }),
+  InteractiveStatusIndicator: capability(true, false, false, 'none', true, {
+    mode: 'registered-asset',
+    lvglConfigDependencies: [],
+  }),
+  InteractiveToggleSwitch: capability(true, true, true, 'none', true, {
+    mode: 'registered-asset',
+    lvglConfigDependencies: [],
+  }),
   InteractiveThreePositionToggleSwitch: capability(
-    false, true, true, 'none', true,
+    false,
+    true,
+    true,
+    'none',
+    true,
     { mode: 'registered-asset', lvglConfigDependencies: [] },
   ),
 }
@@ -413,6 +502,7 @@ const documentationByType: Partial<Record<ComponentType, string>> = {
   SensorTile: 'docs/FORGEUI_SENSOR_TILE.md',
   RelayPanel: 'docs/FORGEUI_RELAY_PANEL.md',
   PwmController: 'docs/FORGEUI_PWM_CONTROLLER.md',
+  TrendChart: 'docs/FORGEUI_TREND_CHART.md',
   List: 'docs/FORGEUI_LIST_WIDGET.md',
   Tileview: 'docs/FORGEUI_TILEVIEW_WIDGET.md',
   Spinbox: 'docs/FORGEUI_SPINBOX_WIDGET.md',
@@ -435,95 +525,141 @@ const describe = (
     Chart: 'Trend and telemetry data visualization.',
     Box: 'General-purpose visual container.',
     Canvas: 'Drawable LVGL canvas surface.',
-    IconButton: 'Canonical-icon action with enabled runtime state and click event.',
+    IconButton:
+      'Canonical-icon action with enabled runtime state and click event.',
     QRCode: 'Native QR display with typed payloads and a runtime text setter.',
-    AnimImage: 'Asset-Manager-authored native frame animation with ordered frames and a clickable zero-frame placeholder.',
-    Span: 'Inspector-authored ordered rich text with semantic styling and an actionable empty state.',
-    Window: 'Native structured window with a title header and child-owned scrollable content region.',
-    Menu: 'Native multi-page navigation framework with sections, child-page links and back history.',
-    DashboardCard: 'ForgeUI Native application card for a value, status, progress and timestamp.',
-    SensorTile: 'ForgeUI Native engineering measurement tile with thresholds, trend and status.',
-    RelayPanel: 'ForgeUI Native logical relay-bank control with semantic state and genuine-user events.',
-    PwmController: 'ForgeUI Native semantic PWM output card with value and enable control.',
+    AnimImage:
+      'Asset-Manager-authored native frame animation with ordered frames and a clickable zero-frame placeholder.',
+    Span:
+      'Inspector-authored ordered rich text with semantic styling and an actionable empty state.',
+    Window:
+      'Native structured window with a title header and child-owned scrollable content region.',
+    Menu:
+      'Native multi-page navigation framework with sections, child-page links and back history.',
+    DashboardCard:
+      'ForgeUI Native application card for a value, status, progress and timestamp.',
+    SensorTile:
+      'ForgeUI Native engineering measurement tile with thresholds, trend and status.',
+    RelayPanel:
+      'ForgeUI Native logical relay-bank control with semantic state and genuine-user events.',
+    PwmController:
+      'ForgeUI Native semantic PWM output card with value and enable control.',
+    TrendChart:
+      'ForgeUI Native semantic history chart with fixed buffering, thresholds and runtime point APIs.',
     InteractiveButton: 'Reusable state-sheet driven button.',
   }
   return special[type] || `${name} ${category.toLowerCase()} widget.`
 }
 
-export const forgeUIWidgetDefinitions: ForgeUIWidgetDefinition[] =
-  (Object.values(categories).flat() as ComponentType[]).map(type => {
-    const category = categoryByType.get(type)
-    if (!category) {
-      throw new Error(`Widget category is missing for ${type}`)
-    }
-    const displayName = displayNames[type] || type
-    const registeredCapabilities = capabilitiesByType[type]
-    if (!registeredCapabilities) {
-      throw new Error(`Widget capabilities are missing for ${type}`)
-    }
-    const [defaultWidth, defaultHeight] = sizes[type] || [240, 120]
-    const defaults = getPreviewDefaultProps(type)
-    const defaultProperties = defaults
-      ? Object.fromEntries(
-          Object.entries(defaults).filter(([key]) => key !== 'form'),
-        )
-      : {}
-    return {
-      type,
-      displayName,
-      category,
-      description: describe(type, displayName, category),
-      keywords: [
-        type,
-        displayName,
-        category,
-        ...(keywords[type] || []),
-      ],
-      defaultWidth,
-      defaultHeight,
-      defaultProperties,
-      insertionFactory: (x, y) => ({
-        positionMode: 'absolute',
-        x,
-        y,
-        w: defaultWidth,
-        h: defaultHeight,
-      }),
-      capabilities: {
-        ...registeredCapabilities,
-        supportsChildren:
-          registeredCapabilities.childOwnership !== 'none',
-        featureGate:
-          registeredCapabilities.featureGate || defaultFeatureGate,
-      },
-      documentationId:
-        documentationByType[type] || '04_FEATURE_STATUS.md',
-      status: 'available',
-      origin: type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' || type === 'PwmController' ? 'forgeui-native' : 'lvgl-standard',
-      ...(type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' || type === 'PwmController' ? { nativeWidgetSchemaVersion: 1 } : {}),
-      ...(type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' || type === 'PwmController' ? { platform: {
-        kind: 'native-widget' as const,
-        family: type === 'SensorTile' ? 'sensors' : type === 'RelayPanel' || type === 'PwmController' ? 'controls' : 'dashboard',
-        layoutRoles: type === 'RelayPanel' || type === 'PwmController' ? ['controls', 'main', 'control-grid'] : ['status', 'metrics', 'main', 'card-grid'],
-        preferredArrangements: type === 'RelayPanel' || type === 'PwmController' ? ['grid', 'control-panel', 'fit-to-region'] : ['grid', 'kpi-cards', 'fit-to-region'],
-        templateTags: type === 'RelayPanel' || type === 'PwmController'
-          ? ['industrial-hmi', 'home-automation', 'marine', 'plant-control', 'electrical-distribution', 'workshop-control', 'smart-building']
-          : ['dashboard', 'monitoring', 'industrial-hmi', 'scada-overview'],
-      } } : {}),
-    }
-  })
+export const forgeUIWidgetDefinitions: ForgeUIWidgetDefinition[] = (Object.values(
+  categories,
+).flat() as ComponentType[]).map(type => {
+  const category = categoryByType.get(type)
+  if (!category) {
+    throw new Error(`Widget category is missing for ${type}`)
+  }
+  const displayName = displayNames[type] || type
+  const registeredCapabilities = capabilitiesByType[type]
+  if (!registeredCapabilities) {
+    throw new Error(`Widget capabilities are missing for ${type}`)
+  }
+  const [defaultWidth, defaultHeight] = sizes[type] || [240, 120]
+  const defaults = getPreviewDefaultProps(type)
+  const defaultProperties = defaults
+    ? Object.fromEntries(
+        Object.entries(defaults).filter(([key]) => key !== 'form'),
+      )
+    : {}
+  return {
+    type,
+    displayName,
+    category,
+    description: describe(type, displayName, category),
+    keywords: [type, displayName, category, ...(keywords[type] || [])],
+    defaultWidth,
+    defaultHeight,
+    defaultProperties,
+    insertionFactory: (x, y) => ({
+      positionMode: 'absolute',
+      x,
+      y,
+      w: defaultWidth,
+      h: defaultHeight,
+    }),
+    capabilities: {
+      ...registeredCapabilities,
+      supportsChildren: registeredCapabilities.childOwnership !== 'none',
+      featureGate: registeredCapabilities.featureGate || defaultFeatureGate,
+    },
+    documentationId: documentationByType[type] || '04_FEATURE_STATUS.md',
+    status: 'available',
+    origin:
+      type === 'DashboardCard' ||
+      type === 'SensorTile' ||
+      type === 'RelayPanel' ||
+      type === 'PwmController' ||
+      type === 'TrendChart'
+        ? 'forgeui-native'
+        : 'lvgl-standard',
+    ...(type === 'DashboardCard' ||
+    type === 'SensorTile' ||
+    type === 'RelayPanel' ||
+    type === 'PwmController' ||
+    type === 'TrendChart'
+      ? { nativeWidgetSchemaVersion: 1 }
+      : {}),
+    ...(type === 'DashboardCard' ||
+    type === 'SensorTile' ||
+    type === 'RelayPanel' ||
+    type === 'PwmController' ||
+    type === 'TrendChart'
+      ? {
+          platform: {
+            kind: 'native-widget' as const,
+            family:
+              type === 'SensorTile'
+                ? 'sensors'
+                : type === 'RelayPanel' || type === 'PwmController'
+                ? 'controls'
+                : 'dashboard',
+            layoutRoles:
+              type === 'RelayPanel' || type === 'PwmController'
+                ? ['controls', 'main', 'control-grid']
+                : ['status', 'metrics', 'main', 'card-grid'],
+            preferredArrangements:
+              type === 'RelayPanel' || type === 'PwmController'
+                ? ['grid', 'control-panel', 'fit-to-region']
+                : ['grid', 'kpi-cards', 'fit-to-region'],
+            templateTags:
+              type === 'RelayPanel' || type === 'PwmController'
+                ? [
+                    'industrial-hmi',
+                    'home-automation',
+                    'marine',
+                    'plant-control',
+                    'electrical-distribution',
+                    'workshop-control',
+                    'smart-building',
+                  ]
+                : [
+                    'dashboard',
+                    'monitoring',
+                    'industrial-hmi',
+                    'scada-overview',
+                  ],
+          },
+        }
+      : {}),
+  }
+})
 
 const definitionsByType = new Map(
-  forgeUIWidgetDefinitions.map(definition => [
-    definition.type,
-    definition,
-  ]),
+  forgeUIWidgetDefinitions.map(definition => [definition.type, definition]),
 )
 
 export const getForgeUIWidgetDefinition = (
   type: ComponentType,
-): ForgeUIWidgetDefinition | undefined =>
-  definitionsByType.get(type)
+): ForgeUIWidgetDefinition | undefined => definitionsByType.get(type)
 
 export const getForgeUIWidgetInstanceCapabilities = (
   type: ComponentType,
@@ -534,18 +670,22 @@ export const getForgeUIWidgetInstanceCapabilities = (
   const config = capabilities.instanceConfiguration
   const enabled = (property: string | undefined, fallback: boolean) =>
     property && typeof props[property] === 'boolean'
-      ? props[property] as boolean
+      ? (props[property] as boolean)
       : fallback
   return {
     ...capabilities,
-    runtimeApiEnabled: capabilities.supportsRuntimeApi && enabled(
-      config?.runtimeApiProperty,
-      config?.runtimeApiDefault ?? capabilities.supportsRuntimeApi,
-    ),
-    userEventsEnabled: capabilities.supportsUserEvents && enabled(
-      config?.userEventProperty,
-      config?.userEventDefault ?? capabilities.supportsUserEvents,
-    ),
+    runtimeApiEnabled:
+      capabilities.supportsRuntimeApi &&
+      enabled(
+        config?.runtimeApiProperty,
+        config?.runtimeApiDefault ?? capabilities.supportsRuntimeApi,
+      ),
+    userEventsEnabled:
+      capabilities.supportsUserEvents &&
+      enabled(
+        config?.userEventProperty,
+        config?.userEventDefault ?? capabilities.supportsUserEvents,
+      ),
   }
 }
 

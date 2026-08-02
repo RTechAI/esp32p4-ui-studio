@@ -24,6 +24,21 @@ const {
 } = require('./export-server')
 
 describe('generated public UI API headers', () => {
+  it('preserves semantic Trend Chart threshold and cleared hooks', () => {
+    const generated = generateUserEventFiles([
+      'FG_On_Engine_Rpm_Warning',
+      'FG_On_Engine_Rpm_Alarm',
+      'FG_On_Engine_Rpm_Cleared',
+    ], [
+      'void FG_Add_Engine_Rpm_Point(float value);',
+      'void FG_Clear_Engine_Rpm(void);',
+    ])
+    expect(generated.header).toContain('void FG_On_Engine_Rpm_Warning(void);')
+    expect(generated.header).toContain('void FG_On_Engine_Rpm_Alarm(void);')
+    expect(generated.header).toContain('void FG_On_Engine_Rpm_Cleared(void);')
+    expect(generated.source).toContain('void FG_On_Engine_Rpm_Warning(void)')
+  })
+
   it('generates typed PWM value and enabled hooks with developer-owned hardware guidance', () => {
     const generated = generateUserEventFiles([
       'FG_On_Comp_Fan_Output_Value_Changed',

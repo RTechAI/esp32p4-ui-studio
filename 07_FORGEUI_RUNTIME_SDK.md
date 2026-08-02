@@ -333,3 +333,16 @@ each emitted exactly once per deliberate tap and never on startup. SD remained
 ready, and the run's Wi-Fi failure was unrelated. The 90 → 96 presentation path
 is also **PROVEN ON ESP32-P4**, including presentation state, independent
 instances and Standalone parity.
+# Trend Chart
+
+Native Trend Charts expose stable ID-derived semantic APIs:
+
+```c
+FG_Add_Engine_Rpm_Point(1825.0f);
+FG_Clear_Engine_Rpm();
+FG_Set_Engine_Rpm_Range(0.0f, 6000.0f);
+FG_Set_Engine_Rpm_Thresholds(4500.0f, 5500.0f);
+```
+
+History storage is fixed at 32, 64, 128, or 256 samples and uses circular
+updates. Runtime SDK calls update presentation only and never emit UserEvents.
