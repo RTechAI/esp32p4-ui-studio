@@ -5,6 +5,11 @@ Status: **PROVEN** (2026-08-02).
 Save point:
 `FORGEUI_LVGL9_CLOSURE_BATCH2__WINDOW_ESP32P4_PROVEN__DOCUMENTATION_ALIGNED__READY_FOR_MENU__2026-08-02`.
 
+That save point is retained as Window's historical proof record. The current
+project milestone is
+`FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`;
+Window and Menu are both **PROVEN**.
+
 ## Architecture
 
 Window is a registered `structured` container using the normal `IComponent`
@@ -84,7 +89,8 @@ Window exercising optional-control omission and independent naming.
 
 ## Deliberate deferrals
 
-- Menu and Lottie are not part of this implementation.
+- Menu is separately implemented and **PROVEN**. Lottie remains intentionally
+  excluded from the practical LVGL program.
 - Docking, modal/dialog policy and reusable window templates are future work.
 - Public Runtime open/close/title APIs and application action hooks are not yet
   added. They may be introduced when application-level requirements are defined;

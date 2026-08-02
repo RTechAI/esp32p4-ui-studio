@@ -1,5 +1,8 @@
 # ForgeUI Feature Improvements & Known Issues
 
+Current milestone:
+`FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
+
 This is the living ForgeUI engineering journal. It records change, evidence and
 open engineering work. It does not replace or duplicate
 `04_FEATURE_STATUS.md`, which remains authoritative for the current status of
@@ -10,17 +13,31 @@ each feature and the official widget totals.
 | Item | Current record |
 | --- | --- |
 | Last updated | 2026-08-02 |
-| Current practical LVGL 9.2 proof total | 43 physically proven, as recorded in `04_FEATURE_STATUS.md` |
-| Remaining practical closure widgets | Menu physical proof |
+| Current practical LVGL 9.2 proof total | 44 of 44 physically proven, as recorded in `04_FEATURE_STATUS.md` |
+| Remaining practical closure widgets | None; Lottie intentionally excluded |
 | LVGL version | 9.2.2 |
 | ESP-IDF version | 5.5.4 |
 | Target hardware | Waveshare ESP32-P4-WiFi6-Touch-LCD-7B, 1024 × 600 |
-| Current development phase | Menu implemented — ready for physical proof |
+| Current development phase | ForgeUI Platform — ForgeUI-native Widgets next |
 
 Totals are copied only as a dated summary pointer. Change them in
 `04_FEATURE_STATUS.md` after proof acceptance, then refresh this summary.
 
 ## Recently Improved
+
+### 2026-08-02 — Practical LVGL 9.2 completion
+
+Menu passed physical validation on the Waveshare ESP32-P4. Two independent
+instances rendered correctly; child-page and Back navigation remained correct
+through approximately ten cycles; Wi-Fi, Diagnostics, SD Card and Storage
+remained operational; Wi-Fi stayed connected; and internal RAM remained stable
+at approximately 42 KB. No crash, watchdog reset or rendering corruption was
+observed. Menu is **PROVEN**, completing **44 of 44 practical registered LVGL
+widgets/components physically proven**. Lottie remains intentionally excluded.
+
+The next chapter is **ForgeUI Platform**, ordered as ForgeUI-native Widgets,
+Dashboard Widget Family, Dashboard Designer, Template Library, Runtime SDK
+Expansion, Background Designer and Higher-level Application Components.
 
 ### 2026-08-02 — Final practical LVGL Menu implementation
 
@@ -468,13 +485,12 @@ Failures remain visible rather than being rewritten as historical passes.
 
 ## Current Sprint
 
-- **Current objective:** Close the practical official LVGL 9.2 catalogue.
-- **Current proven pipeline set:** All 43 practical registered Standard LVGL
-  widgets/components, including Closure Batch 1.
-- **Next action:** Physically prove Menu. Keep Lottie explicitly
-  excluded pending a separate
-  ThorVG/vector/C++ and framebuffer decision. Then begin ForgeUI-native
-  Dashboard widgets and designers.
+- **Current objective:** Begin ForgeUI Platform development on the completed
+  practical LVGL 9.2 foundation.
+- **Current proven pipeline set:** All 44 practical registered Standard LVGL
+  widgets/components.
+- **Next action:** Begin ForgeUI-native Widgets. Keep Lottie explicitly
+  excluded pending a separate ThorVG/vector/C++ and framebuffer decision.
 
 ## Engineering Notes
 

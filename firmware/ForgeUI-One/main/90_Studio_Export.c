@@ -1248,15 +1248,15 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_bg_color(fg_application_page, lv_color_hex(0x121417), 0);
     lv_obj_set_style_bg_opa(fg_application_page, LV_OPA_COVER, 0);
 
-    LV_IMAGE_DECLARE(fg_upload_ai_hero_1785551190283_2adfd1ae);
+    LV_IMAGE_DECLARE(fg_upload_ai_hero_1784342478518_b95a7dc0);
     lv_obj_t * bg_texture_0 = lv_image_create(fg_application_page);
-    lv_image_set_src(bg_texture_0, &fg_upload_ai_hero_1785551190283_2adfd1ae);
+    lv_image_set_src(bg_texture_0, &fg_upload_ai_hero_1784342478518_b95a7dc0);
     lv_obj_set_pos(bg_texture_0, 0, 0);
     lv_obj_set_size(bg_texture_0, 1024, 600);
     lv_obj_move_background(bg_texture_0);
 
     lv_obj_t * obj1 = lv_win_create(fg_application_page);
-    lv_obj_set_pos(obj1, 52, 136);
+    lv_obj_set_pos(obj1, 6, 43);
     lv_obj_set_size(obj1, 420, 300);
     lv_obj_set_style_opa(obj1, 255, LV_PART_MAIN);
     lv_obj_set_style_radius(obj1, 10, LV_PART_MAIN);
@@ -1284,7 +1284,7 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_scrollbar_mode(obj1_content, LV_SCROLLBAR_MODE_AUTO);
 
     lv_obj_t * obj2 = lv_win_create(fg_application_page);
-    lv_obj_set_pos(obj2, 536, 132);
+    lv_obj_set_pos(obj2, 453, 49);
     lv_obj_set_size(obj2, 420, 300);
     lv_obj_set_style_opa(obj2, 255, LV_PART_MAIN);
     lv_obj_set_style_radius(obj2, 10, LV_PART_MAIN);

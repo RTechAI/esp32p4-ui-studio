@@ -1,7 +1,7 @@
 # ForgeUI Studio
 
 Current architecture save point:
-`FORGEUI_LVGL9_CLOSURE_BATCH3__MENU_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02`.
+`FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
 **ForgeUI Studio is an open-source, AI-assisted visual HMI and embedded GUI designer for ESP32-P4.** It combines a drag-and-drop Canvas, reusable Interactive Assets, AI Layout tools, Browser Preview, native LVGL 9 generation, integrated ESP-IDF Build & Flash, and standalone ESP-IDF project export.
 
@@ -42,8 +42,8 @@ ForgeUI exists to shorten the path from an interface idea to editable embedded f
 The active Registry contains only supported widgets. Legacy placeholder types
 such as Lottie and ObjxTempl are quarantined from
 the Tray, root Canvas drop surface, active Inspector/AI catalogue and export;
-they are not advertised as implemented Standard widgets. Menu is now an active
-native structured widget awaiting physical proof.
+they are not advertised as implemented Standard widgets. Menu is an active,
+physically proven native structured widget.
 
 ## Typical workflow
 
@@ -141,8 +141,8 @@ Current Standard-widget milestone evidence:
   consumes the existing backend snapshot with no duplicate manager, setter or
   UserEvent architecture.
 
-The registry contains 44 practical Standard LVGL widgets/components: 43 are
-**PROVEN on ESP32-P4**, and Menu is implemented and ready for physical proof. The original 39-widget milestone remains the
+The registry contains 44 practical Standard LVGL widgets/components: all 44 are
+**PROVEN on ESP32-P4**, including Menu. The original 39-widget milestone remains the
 foundation; Closure Batch 1 added Span, Animation Image and Image Button.
 Batch D completed QR Code, Icon Button, Icon final re-proof and
 Canvas, including Canvas/Browser/Live/Standalone parity and a successful mobile
@@ -151,8 +151,9 @@ Divider as **PROVEN**. Image uses native uploaded-asset Contain scaling with
 persistent source dimensions; Line uses native endpoint geometry and styling.
 Icon is included in the proven total. A final official LVGL 9.2 catalogue audit
 found five practical closure widgets. Span, Animation Image and Image Button
-are registered and **PROVEN ON ESP32-P4**; Window is **PROVEN**, while Menu is **IMPLEMENTED — READY FOR PHYSICAL PROOF**.
-Lottie is intentionally excluded. See [Final LVGL 9 Standard Widget Audit](docs/LVGL_9_STANDARD_WIDGET_AUDIT.md).
+are registered and **PROVEN ON ESP32-P4**; Window and Menu are **PROVEN**.
+Lottie is intentionally excluded. Practical LVGL parity is complete; the next
+chapter is ForgeUI Platform development. See [Final LVGL 9 Standard Widget Audit](docs/LVGL_9_STANDARD_WIDGET_AUDIT.md).
 
 Batch 1 implementation and hardware steps are recorded in
 [LVGL 9.2 Practical Closure — Batch 1](docs/FORGEUI_LVGL_CLOSURE_BATCH1.md).
@@ -270,7 +271,7 @@ in `96_FiRuntime.c/.h` and optional click hooks in `95_UserEvents`. Runtime API
 generation defaults on; click defaults off. The canonical 92% icon renderer and
 used-asset gating remain shared by Canvas, Browser Preview, Live and Standalone.
 The overall feature is **PROVEN ON ESP32-P4** and contributed to the original
-39-widget milestone; the current practical LVGL 9.2 proof total is **42**.
+39-widget milestone; the current practical LVGL 9.2 proof total is **44**.
 ESP32-P4 evidence proves
 the 90 → 95 click path across three independent collision-safe callbacks, with
 exactly one callback per deliberate tap and none at startup. The 90 → 96

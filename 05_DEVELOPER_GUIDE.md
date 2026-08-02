@@ -5,7 +5,7 @@ how authoring metadata becomes native LVGL firmware and how to preserve parity
 across the complete pipeline.
 
 Current save point:
-`FORGEUI_LVGL9_CLOSURE_BATCH3__MENU_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02`.
+`FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
 For application-to-hardware examples after export, use
 [05_DEVELOPER_HARDWARE_INTEGRATION.md](05_DEVELOPER_HARDWARE_INTEGRATION.md).
@@ -388,12 +388,13 @@ substitute repeated direct COM-port troubleshooting unless the operator asks.
 
 ## 20. Current direction
 
-All 43 registered practical Standard LVGL widgets/components are
-physically proven. Closure Batch 1 proved Span, Animation Image and Image
-Button; Closure Batch 2 proved Window. Complete Menu through the Proven Widget Pipeline before
-ForgeUI-native Dashboard widgets. Lottie remains an explicit
-dependency-heavy exclusion. Future work must reuse proven generated contracts
-rather than introduce speculative duplicates.
+All 44 registered practical Standard LVGL widgets/components are physically
+proven. Closure Batch 1 proved Span, Animation Image and Image Button; Closure
+Batch 2 proved Window; the final hardware pass proved Menu. Lottie remains an
+explicit dependency-heavy exclusion. Practical LVGL parity is complete and
+the next chapter is ForgeUI Platform development, beginning with ForgeUI-native
+Widgets. Future work must reuse proven generated contracts rather than
+introduce speculative duplicates.
 
 ### Native Spinbox example
 
@@ -425,8 +426,8 @@ Native LVGL Spinbox is a digit-selection editor, not a free-form numeric text
 field. Use NumberInput when arbitrary numeric text entry is required.
 
 The authoritative registry contains 44 practical Standard LVGL
-widgets/components. **43 are physically proven on ESP32-P4**; Menu is
-implemented and ready for physical proof.
+widgets/components. **All 44 are physically proven on ESP32-P4**; Menu is
+**PROVEN**.
 
 ### Native List proof
 

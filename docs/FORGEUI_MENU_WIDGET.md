@@ -1,10 +1,12 @@
 # ForgeUI Menu Widget
 
-Status: **IMPLEMENTED — READY FOR PHYSICAL PROOF** (2026-08-02).
+Status: **PROVEN** (2026-08-02).
 
-Menu is ForgeUI's final practical LVGL 9.2 implementation candidate. It is not
-PROVEN until the ESP32-P4 checklist below passes. Lottie remains intentionally
-excluded from practical closure.
+Menu completed ForgeUI's practical LVGL 9.2 program. Lottie remains
+intentionally excluded from practical closure.
+
+Current milestone:
+`FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
 ## Architecture
 
@@ -40,10 +42,20 @@ behavior. Multiple Menu instances use independent generated page/item symbols.
 No public Runtime SDK API or `95_UserEvents` hook is emitted in this first
 implementation. Native item links and back navigation already provide the
 essential navigation framework. Public page-selection and application event
-contracts are deliberately deferred until hardware proof establishes the
-native interaction boundary and concrete application requirements exist.
+contracts are deliberately deferred until concrete application requirements
+justify freezing that additional interface.
 
-## Recommended ESP32-P4 proof layout
+## ESP32-P4 physical proof record
+
+Two independent Menu instances rendered correctly on the Waveshare ESP32-P4.
+Child-page navigation and Back navigation were verified through approximately
+ten navigation cycles. Both instances retained independent page/history state.
+Wi-Fi, Diagnostics, SD Card and Storage pages remained operational; Wi-Fi
+remained connected; and internal RAM remained stable at approximately 42 KB.
+No crash, watchdog reset, rendering corruption or responsiveness regression
+was observed. Result: **Menu — PROVEN**.
+
+## Validated ESP32-P4 proof layout
 
 Use two side-by-side Menus on the 1024×600 display:
 
@@ -52,7 +64,7 @@ Use two side-by-side Menus on the 1024×600 display:
 - right, 460×520: independent `Diagnostics` root and `System` child page,
   bottom-fixed header and root back control enabled.
 
-## Physical proof checklist
+## Physical proof checklist (completed)
 
 1. Save and reload the project; confirm both serialized page trees remain.
 2. Check Canvas and Browser Preview. In Browser, open every child page and use
@@ -74,6 +86,10 @@ Use two side-by-side Menus on the 1024×600 display:
 11. Record the export commit, build result, serial log and photographs before
    promoting Menu to PROVEN or declaring practical LVGL closure complete.
 
+The operator-completed proof covered the essential checklist boundary and
+promoted Menu to **PROVEN**. ForgeUI now records **44 of 44 practical registered
+LVGL widgets/components physically proven on ESP32-P4**.
+
 ## Deliberate limitations
 
 - Sidebar mode, arbitrary child widgets inside pages and programmatic page APIs
@@ -82,5 +98,3 @@ Use two side-by-side Menus on the 1024×600 display:
   not duplicated here.
 - Browser Preview represents native structure faithfully but does not recreate
   every LVGL transition animation.
-- Menu is not yet physically proven.
-

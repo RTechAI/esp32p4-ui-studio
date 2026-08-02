@@ -1,7 +1,7 @@
 # ForgeUI Runtime SDK Direction
 
 Current save point:
-`FORGEUI_LVGL9_CLOSURE_BATCH3__MENU_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02`.
+`FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
 This document introduces the long-term ForgeUI Runtime SDK direction. It does
 not describe a finished, separately packaged SDK product.
@@ -58,11 +58,12 @@ generated privately. Window currently adds no public Runtime SDK API and no
 `95_UserEvents` hook; application-level open, close, title and action contracts
 may be added later when their requirements are defined.
 
-Menu is **IMPLEMENTED — READY FOR PHYSICAL PROOF**. Native item links and LVGL
+Menu is **PROVEN**. Native item links and LVGL
 back history provide its navigation behavior without a public SDK surface.
 Menu currently adds no Runtime API or `95_UserEvents` hook; page-selection and
-application event contracts remain deferred until hardware proof and concrete
-application requirements justify them.
+application event contracts remain deferred until concrete application
+requirements justify them. Hardware proof covered two independent instances,
+forward/Back navigation and repeated stable operation on ESP32-P4.
 
 ## Runtime APIs
 

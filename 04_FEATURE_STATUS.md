@@ -1,9 +1,13 @@
 # 04_FEATURE_STATUS.md
 
-## 2026-08-01 Standard Widget Library completion
+## 2026-08-02 Practical LVGL 9.2 completion
 
 Current platform save point:
-`FORGEUI_LVGL9_CLOSURE_BATCH3__MENU_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02`.
+`FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
+
+The authoritative practical LVGL status is **44 registered practical
+widgets/components and 44 physically proven on ESP32-P4**. Window and Menu are
+**PROVEN**. Lottie is intentionally excluded from the practical program.
 
 Widget Registry architecture cleanup is complete at the metadata boundary:
 
@@ -81,24 +85,24 @@ Status language:
 | Animation Image | **PROVEN** | Existing Asset Manager multi-select authoring, ordered native `lv_animimg` frames, animation, zero-frame placeholder and Canvas/Browser/Live/Standalone parity passed ESP32-P4 validation |
 | Image Button | **PROVEN** | Native `lv_imagebutton` released, pressed and disabled states, enabled setter, click hook, multiple instances and Canvas/Browser/Live/Standalone parity passed ESP32-P4 validation |
 | Window | **PROVEN** | Native `lv_win` creation, two simultaneous instances, headers and independent close behavior physically validated on Waveshare ESP32-P4; richer content/scroll/action behavior is not claimed by this proof |
-| Menu | **IMPLEMENTED — READY FOR PHYSICAL PROOF** | Registry-backed serialized navigation hierarchy, Canvas/Inspector/Browser support, native pages/sections/items/load-page links, back history and shared Live/Standalone export pass focused validation |
+| Menu | **PROVEN** | Two independent native instances, child-page and Back navigation, approximately ten navigation cycles, stable system pages/Wi-Fi and approximately 42 KB internal RAM physically validated on Waveshare ESP32-P4 without crash, watchdog reset or rendering corruption |
 
-The Registry currently contains no Dashboard widgets. Window is **PROVEN**; Menu is **IMPLEMENTED — READY FOR PHYSICAL PROOF**; the
+The Registry currently contains no Dashboard widgets. Window and Menu are **PROVEN**; the
 dedicated Dashboard Widget family remain **PLANNED** and must not be
 described as Standard-library completions.
 
 Registry audit total: 49 entries, comprising 44 practical Standard LVGL
-widgets/components and five Interactive Assets. **43 practical Standard LVGL
-widgets/components are physically PROVEN on ESP32-P4**; Menu awaits proof.
+widgets/components and five Interactive Assets. **All 44 practical Standard
+LVGL widgets/components are physically PROVEN on ESP32-P4**.
 
 The final official-catalogue audit found five practical LVGL 9.2 closure
 widgets. Batch 1 completed and physically proved Span, Animation Image and
-Image Button; Batch 2 physically proved Window. Menu is implemented and awaits
-physical proof. Lottie is
+Image Button; Batch 2 physically proved Window; the final hardware pass
+physically proved Menu. Lottie is
 intentionally excluded because its ThorVG/vector/C++ and framebuffer boundary
-requires a separate opt-in architecture decision. Physically prove Menu before
-beginning the ForgeUI Dashboard Widget
-family. See `docs/LVGL_9_STANDARD_WIDGET_AUDIT.md`.
+requires a separate opt-in architecture decision. Practical LVGL parity is
+complete; ForgeUI Platform development is next. See
+`docs/LVGL_9_STANDARD_WIDGET_AUDIT.md`.
 
 ## 2026-08-01 end-of-sprint proof update
 

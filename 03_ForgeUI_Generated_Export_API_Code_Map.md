@@ -13,7 +13,11 @@
 
 ## Current proven save point
 
-**FORGEUI_LVGL9_CLOSURE_BATCH3__MENU_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02**
+**FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02**
+
+The practical LVGL 9.2 program is complete: **44 of 44 practical registered
+widgets/components are physically proven on ESP32-P4**. Window and Menu are
+**PROVEN**. Lottie remains intentionally excluded.
 
 This document describes the generated SDK surface currently emitted by the
 shared live/Standalone generator. `90_Studio_Export.h` contains callable
@@ -667,10 +671,10 @@ Native LVGL Spinbox is a selected-digit editor. It is not a free-form numeric
 text-entry control; use NumberInput for that interaction model.
 
 The current registry records 49 entries: 44 practical Standard LVGL
-widgets/components and five Interactive Assets. **43** practical Standard LVGL
-entries are physically proven on ESP32-P4. Window is proven through native
-`lv_win_create`; Menu is implemented through native `lv_menu_create` and is ready for physical proof
-the final structured-widget closure sprint.
+widgets/components and five Interactive Assets. **All 44** practical Standard
+LVGL entries are physically proven on ESP32-P4. Window is proven through native
+`lv_win_create`; Menu is proven through native `lv_menu_create`, independent
+instances and repeated forward/Back navigation.
 
 ### List generated boundary
 
@@ -2985,6 +2989,15 @@ Preserve these rules:
 137. QR generated firmware requires `CONFIG_LV_USE_QRCODE=y`.
 
 ## Save Point History
+
+### FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02
+
+- All 44 practical registered LVGL widgets/components are physically proven on
+  ESP32-P4 through their documented boundaries.
+- Menu's native navigation, Back history and multi-instance independence are
+  physically proven; it deliberately adds no public SDK surface in this pass.
+- The generated Runtime SDK foundation now carries the completed practical
+  LVGL program into ForgeUI Platform development.
 
 ### FORGEUI_LVGL9_CLOSURE_BATCH3__MENU_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02
 
