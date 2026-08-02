@@ -346,3 +346,9 @@ FG_Set_Engine_Rpm_Thresholds(4500.0f, 5500.0f);
 
 History storage is fixed at 32, 64, 128, or 256 samples and uses circular
 updates. Runtime SDK calls update presentation only and never emit UserEvents.
+# Alarm Panel
+
+Alarm Panel exports `FG_Add_<Id>_Alarm`, `FG_Acknowledge_<Id>_Alarm`,
+`FG_Clear_<Id>_Alarm` and `FG_Clear_All_<Id>_Alarms`. Generated calls update
+presentation silently. Alarm selection, acknowledgement and clear UserEvents
+receive the stable `const char * alarm_id` identifier.

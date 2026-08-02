@@ -408,3 +408,9 @@ Trend Chart owns presentation and fixed circular history management for generic
 engineering values. Application code supplies points through `FG_Add_*_Point`;
 it does not access LVGL chart objects or series. See
 `docs/FORGEUI_TREND_CHART.md` for the model, Runtime SDK, and ESP32-P4 proof plan.
+# Alarm Panel runtime ownership
+
+The application detects faults and makes safety decisions. Alarm Panel owns a
+fixed presentation buffer, ordering, filtering and acknowledgement appearance.
+Use semantic alarm IDs consistently; do not couple application code to generated
+LVGL labels or containers.

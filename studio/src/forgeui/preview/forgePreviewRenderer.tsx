@@ -61,6 +61,7 @@ import { ForgeUISensorTilePreview } from './ForgeUISensorTilePreview'
 import { ForgeUIRelayPanelPreview } from './ForgeUIRelayPanelPreview'
 import { ForgeUIPwmControllerPreview } from './ForgeUIPwmControllerPreview'
 import { ForgeUITrendChartPreview } from './ForgeUITrendChartPreview'
+import { ForgeUIAlarmPanelPreview } from './ForgeUIAlarmPanelPreview'
 import ImagePreview from '~components/editor/previews/ImagePreview'
 import StandardCalendarPreview from './StandardCalendarPreview'
 import { resolveForgeSemanticPalette } from './forgeThemeMap'
@@ -818,6 +819,10 @@ export const renderForgePreview = ({
             <ForgeUITrendChartPreview component={child} palette={palette} />
           </Box>,
         )
+        break
+      }
+      case 'AlarmPanel': {
+        output.push(<Box key={child.id} {...commonStyle}><ForgeUIAlarmPanelPreview component={child} palette={palette} /></Box>)
         break
       }
 

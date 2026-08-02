@@ -520,3 +520,9 @@ Add live samples with the generated `FG_Add_<StableId>_Point(float)` API. Use
 the generated clear, range, and threshold APIs rather than accessing LVGL. Keep
 application warning/alarm behavior in `95_UserEvents.c`. See
 `docs/FORGEUI_TREND_CHART.md` for configuration and hardware proof guidance.
+# Alarm Panel
+
+Use the Alarm Panel for active system alarms rather than a generic List. Select
+Compact, List or Banner presentation in the Inspector, choose a fixed capacity,
+then bind application alarm state through the generated semantic Runtime SDK.
+See `docs/FORGEUI_ALARM_PANEL.md` for the API and ESP32-P4 proof procedure.

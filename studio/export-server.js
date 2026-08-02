@@ -1648,7 +1648,7 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
       )
         .map((hook) => String(hook || '').trim())
         .filter((hook) =>
-          /^FG_On_[A-Za-z0-9_]+_(Clicked|Toggled|Changed|Point_Added|Cleared|Warning|Alarm|Shown|Hidden|Closed|Button_Pressed|Button_Selected|Item_Clicked)$/.test(hook)
+          /^FG_On_[A-Za-z0-9_]+_(Clicked|Toggled|Changed|Point_Added|Cleared|Warning|Alarm|Alarm_Selected|Alarm_Acknowledged|Alarm_Cleared|Shown|Hidden|Closed|Button_Pressed|Button_Selected|Item_Clicked)$/.test(hook)
         )
     )
   )
@@ -1657,6 +1657,9 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
   ))
   const relayMasterChanged = new Set(uniqueHooks.filter(hook =>
     /_Master_Changed$/.test(hook)
+  ))
+  const alarmIdHooks = new Set(uniqueHooks.filter(hook =>
+    /_Alarm_(Selected|Acknowledged|Cleared)$/.test(hook)
   ))
 
   
@@ -1670,6 +1673,8 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
         ? `void ${hook}(float value);`
       : integerChanged.has(hook) || integerPointAdded.has(hook)
       ? `void ${hook}(int32_t value);`
+      : alarmIdHooks.has(hook)
+        ? `void ${hook}(const char * alarm_id);`
       : cleared.has(hook)
         ? `void ${hook}(void);`
       : shown.has(hook) || hidden.has(hook) || closed.has(hook)
@@ -1726,6 +1731,11 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
 {
     printf("[ForgeUI User Event] ${hook.replace(/^FG_On_|_Point_Added$/g, '').replace(/_/g, ' ')} point added: %ld\\n",
            (long)value);
+}`
+      : alarmIdHooks.has(hook)
+        ? `void ${hook}(const char * alarm_id)
+{
+    printf("[ForgeUI User Event] alarm %s: %s\\n", alarm_id ? alarm_id : "", "${hook.endsWith('_Selected') ? 'selected' : hook.endsWith('_Acknowledged') ? 'acknowledged' : 'cleared'}");
 }`
       : cleared.has(hook)
         ? `void ${hook}(void)

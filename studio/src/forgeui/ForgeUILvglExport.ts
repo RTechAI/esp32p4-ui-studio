@@ -54,6 +54,7 @@ import {
   normalizeForgeUITrendChart,
 } from './ForgeUITrendChart'
 import { normalizeForgeUITrendChartPro } from './ForgeUITrendChartPro'
+import { normalizeForgeUIAlarmPanel, createForgeUIAlarmSimulation } from './ForgeUIAlarmPanel'
 import {
   getForgeUIStandardSpinboxModel,
   type ForgeUIStandardSpinboxModel,
@@ -509,6 +510,29 @@ type TrendChartExport = {
   autoScale: boolean
   addApiName: string; clearApiName: string; rangeApiName: string; thresholdsApiName: string
   warningHookName?: string; alarmHookName?: string; clearedHookName?: string
+}
+
+type AlarmPanelExport = {
+  stem: string; runtimeStem: string; rootName: string; labelName: string; recordsName: string
+  countName: string; renderName: string; capacity: number; runtimeEnabled: boolean
+  displayMode: string; showTimestamps: boolean; showDescriptions: boolean
+  addApiName: string; acknowledgeApiName: string; clearApiName: string; clearAllApiName: string
+  selectedHookName?: string; acknowledgedHookName?: string; clearedHookName?: string; clickCallbackName?: string
+}
+
+const createAlarmPanelExports = (components: IComponents, usedHookNames: Set<string>, userEventHooks: Set<string>) => {
+  const result = new Map<string, AlarmPanelExport>(); const usedStems = new Set<string>()
+  Object.values(components).filter(component => component.type === 'AlarmPanel').sort((a,b) => a.id.localeCompare(b.id)).forEach(component => {
+    const base = toCIdentifier(component.id, 'Alarm_Panel').replace(/([a-z0-9])([A-Z])/g, '$1_$2'); let stem = base; let suffix = 2
+    while (usedStems.has(stem)) stem = `${base}_${suffix++}`; usedStems.add(stem)
+    const runtimeStem = stem.toLowerCase(); const model = normalizeForgeUIAlarmPanel(component.props)
+    const hook = (name: string) => { let value = name; let collision = 2; while (usedHookNames.has(value)) value = `${name}_${collision++}`; usedHookNames.add(value); userEventHooks.add(value); return value }
+    const selectedHookName = model.enableUserEvents ? hook(`FG_On_${stem}_Alarm_Selected`) : undefined
+    const acknowledgedHookName = model.enableUserEvents ? hook(`FG_On_${stem}_Alarm_Acknowledged`) : undefined
+    const clearedHookName = model.enableUserEvents ? hook(`FG_On_${stem}_Alarm_Cleared`) : undefined
+    result.set(component.id, { stem, runtimeStem, rootName: `fg_${runtimeStem}_alarms`, labelName: `fg_${runtimeStem}_alarms_text`, recordsName: `fg_${runtimeStem}_alarm_records`, countName: `fg_${runtimeStem}_alarm_count`, renderName: `fg_${runtimeStem}_alarm_render`, capacity: model.maximumAlarms, runtimeEnabled: model.generateRuntimeApi, displayMode: model.displayMode, showTimestamps: model.showTimestamps, showDescriptions: model.showDescriptions, addApiName: `FG_Add_${stem}_Alarm`, acknowledgeApiName: `FG_Acknowledge_${stem}_Alarm`, clearApiName: `FG_Clear_${stem}_Alarm`, clearAllApiName: `FG_Clear_All_${stem}_Alarms`, selectedHookName, acknowledgedHookName, clearedHookName, clickCallbackName: selectedHookName ? `fg_${runtimeStem}_alarm_clicked_cb` : undefined })
+  })
+  return result
 }
 
 const createTrendChartExports = (
@@ -2865,6 +2889,7 @@ const buildLvglBlock = (
   relayPanelExports: Map<string, RelayPanelExport>,
   pwmControllerExports: Map<string, PwmControllerExport>,
   trendChartExports: Map<string, TrendChartExport>,
+  alarmPanelExports: Map<string, AlarmPanelExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -4606,6 +4631,34 @@ case 'TrendChartPro': {
   break
 }
 
+case 'AlarmPanel': {
+  const model = normalizeForgeUIAlarmPanel(child.props)
+  const panel = alarmPanelExports.get(child.id)
+  if (!panel) break
+  const seed = model.alarms.length ? model.alarms : createForgeUIAlarmSimulation(model.simulationMode)
+  lines.push(`${panel.rootName} = lv_obj_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${panel.rootName}, ${x}, ${y}); lv_obj_set_size(${panel.rootName}, ${w}, ${h});`)
+  lines.push(`lv_obj_set_style_bg_color(${panel.rootName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${panel.rootName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${panel.rootName}, 1, LV_PART_MAIN); lv_obj_set_style_radius(${panel.rootName}, ${model.rounded ? 12 : 0}, LV_PART_MAIN);`)
+  if (model.shadow) lines.push(`lv_obj_set_style_shadow_width(${panel.rootName}, 14, LV_PART_MAIN); lv_obj_set_style_shadow_opa(${panel.rootName}, LV_OPA_20, LV_PART_MAIN);`)
+  lines.push(`lv_obj_clear_flag(${panel.rootName}, LV_OBJ_FLAG_SCROLLABLE);`)
+  lines.push(`lv_obj_t * ${varName}_title = lv_label_create(${panel.rootName}); lv_label_set_text(${varName}_title, "${esc(model.title)}"); lv_obj_align(${varName}_title, LV_ALIGN_TOP_LEFT, 0, 0);`)
+  lines.push(`${panel.labelName} = lv_label_create(${panel.rootName}); lv_obj_set_pos(${panel.labelName}, 0, 30); lv_obj_set_size(${panel.labelName}, ${Math.max(100, Number(w) - 28 || 400)}, ${Math.max(60, Number(h) - 55 || 250)}); lv_label_set_long_mode(${panel.labelName}, LV_LABEL_LONG_WRAP);`)
+  seed.slice(0, panel.capacity).forEach((alarm, index) => {
+    const severity = `FG_ALARM_${alarm.severity.toUpperCase()}`
+    lines.push(`snprintf(${panel.recordsName}[${index}].id, sizeof(${panel.recordsName}[${index}].id), "%s", "${escPrintfLiteral(alarm.id)}");`)
+    lines.push(`snprintf(${panel.recordsName}[${index}].title, sizeof(${panel.recordsName}[${index}].title), "%s", "${escPrintfLiteral(alarm.title)}");`)
+    lines.push(`snprintf(${panel.recordsName}[${index}].description, sizeof(${panel.recordsName}[${index}].description), "%s", "${escPrintfLiteral(alarm.description)}");`)
+    lines.push(`snprintf(${panel.recordsName}[${index}].timestamp, sizeof(${panel.recordsName}[${index}].timestamp), "%s", "${escPrintfLiteral(alarm.timestamp)}");`)
+    lines.push(`${panel.recordsName}[${index}].severity = ${severity}; ${panel.recordsName}[${index}].active = ${alarm.active}; ${panel.recordsName}[${index}].acknowledged = ${alarm.acknowledged};`)
+  })
+  lines.push(`${panel.countName} = ${Math.min(seed.length, panel.capacity)}u; ${panel.renderName}();`)
+  if (panel.clickCallbackName) lines.push(`lv_obj_add_flag(${panel.rootName}, LV_OBJ_FLAG_CLICKABLE); lv_obj_add_event_cb(${panel.rootName}, ${panel.clickCallbackName}, LV_EVENT_CLICKED, NULL);`)
+  lines.push(``)
+  break
+}
+
 case 'Spinbox': {
   const spinboxExport = spinboxExports.get(child.id)
   if (!spinboxExport) break
@@ -5699,6 +5752,7 @@ case 'Chart': {
         relayPanelExports,
         pwmControllerExports,
         trendChartExports,
+        alarmPanelExports,
       )
     }
   })
@@ -6000,7 +6054,7 @@ export const generateForgeUILvglCode = (
   },
 ) => {
   const nativeIdentityDiagnostics = Object.entries(components)
-    .filter(([, component]) => component.type === 'DashboardCard' || component.type === 'SensorTile' || component.type === 'RelayPanel' || component.type === 'PwmController' || component.type === 'TrendChart' || component.type === 'TrendChartPro')
+    .filter(([, component]) => component.type === 'DashboardCard' || component.type === 'SensorTile' || component.type === 'RelayPanel' || component.type === 'PwmController' || component.type === 'TrendChart' || component.type === 'TrendChartPro' || component.type === 'AlarmPanel')
     .map(([persistedId, component]) => {
       if (!component.id || component.id !== persistedId) {
         throw new Error(
@@ -6040,6 +6094,7 @@ export const generateForgeUILvglCode = (
   const relayPanelExports = createRelayPanelExports(components, usedHookNames, userEventHooks)
   const pwmControllerExports = createPwmControllerExports(components, usedHookNames, userEventHooks)
   const trendChartExports = createTrendChartExports(components, usedHookNames, userEventHooks)
+  const alarmPanelExports = createAlarmPanelExports(components, usedHookNames, userEventHooks)
   const fiIconExports = createFiIconExports(
     components,
     usedHookNames,
@@ -6830,6 +6885,51 @@ const backgroundMode =
     lines.push(`static bool ${pwm.enabledName} = ${pwm.initialEnabled ? 'true' : 'false'};`)
     lines.push(`static bool ${pwm.programmaticName} = false;`)
   })
+  if (alarmPanelExports.size > 0) {
+    lines.push(`typedef enum { FG_ALARM_INFORMATION = 0, FG_ALARM_NOTICE, FG_ALARM_WARNING, FG_ALARM_ALARM, FG_ALARM_CRITICAL } fg_alarm_severity_t;`)
+    lines.push(`typedef struct { char id[33]; char title[65]; char description[129]; char timestamp[25]; char source[33]; char category[33]; fg_alarm_severity_t severity; bool active; bool acknowledged; } fg_alarm_record_t;`)
+  }
+  alarmPanelExports.forEach(panel => {
+    lines.push(`static lv_obj_t * ${panel.rootName} = NULL;`)
+    lines.push(`static lv_obj_t * ${panel.labelName} = NULL;`)
+    lines.push(`static fg_alarm_record_t ${panel.recordsName}[${panel.capacity}] = {0};`)
+    lines.push(`static uint32_t ${panel.countName} = 0u;`)
+  })
+  alarmPanelExports.forEach(panel => {
+    lines.push(`static void ${panel.renderName}(void)`)
+    lines.push(`{`)
+    lines.push(`    if (${panel.labelName} == NULL) return;`)
+    lines.push(`    static char text[4096]; size_t used = 0u; text[0] = '\\0'; uint32_t active = 0u, critical = 0u, warning = 0u;`)
+    lines.push(`    for (uint32_t i = 0; i < ${panel.countName}; ++i) { if (!${panel.recordsName}[i].active) continue; ++active; if (${panel.recordsName}[i].severity == FG_ALARM_CRITICAL) ++critical; if (${panel.recordsName}[i].severity == FG_ALARM_WARNING) ++warning; }`)
+    if (panel.displayMode === 'compact') {
+      lines.push(`    snprintf(text, sizeof(text), "%lu Active\\n%lu Critical\\n%lu Warning", (unsigned long)active, (unsigned long)critical, (unsigned long)warning);`)
+    } else {
+      lines.push(`    for (uint32_t i = 0; i < ${panel.countName} && used < sizeof(text) - 1u; ++i) {`)
+      lines.push(`        fg_alarm_record_t * alarm = &${panel.recordsName}[i]; if (!alarm->active) continue;`)
+      lines.push(`        int written = snprintf(text + used, sizeof(text) - used, "[%s] %s%s${panel.showTimestamps ? '  %s' : ''}\\n${panel.showDescriptions ? '%s\\n' : ''}", alarm->acknowledged ? "ACK" : "ACTIVE", alarm->title, alarm->severity == FG_ALARM_CRITICAL ? " !" : ""${panel.showTimestamps ? ', alarm->timestamp' : ''}${panel.showDescriptions ? ', alarm->description' : ''});`)
+      lines.push(`        if (written < 0) break; used += LV_MIN((size_t)written, sizeof(text) - used - 1u);`)
+      lines.push(`        ${panel.displayMode === 'banner' ? 'break;' : ''}`)
+      lines.push(`    }`)
+      lines.push(`    if (active == 0u) snprintf(text, sizeof(text), "No active alarms");`)
+    }
+    lines.push(`    lv_label_set_text(${panel.labelName}, text);`)
+    lines.push(`}`); lines.push(``)
+    if (panel.clickCallbackName) {
+      lines.push(`static void ${panel.clickCallbackName}(lv_event_t * event)`); lines.push(`{`)
+      lines.push(`    LV_UNUSED(event); for (uint32_t i = 0; i < ${panel.countName}; ++i) { if (!${panel.recordsName}[i].active) continue; ${panel.selectedHookName}(${panel.recordsName}[i].id); if (!${panel.recordsName}[i].acknowledged) { ${panel.recordsName}[i].acknowledged = true; ${panel.acknowledgedHookName}(${panel.recordsName}[i].id); ${panel.renderName}(); } break; }`)
+      lines.push(`}`); lines.push(``)
+    }
+    if (!panel.runtimeEnabled) return
+    lines.push(`void ${panel.addApiName}(const char * alarm_id, const char * title, fg_alarm_severity_t severity)`); lines.push(`{`)
+    lines.push(`    if (!alarm_id || !title) return; uint32_t index = ${panel.countName}; for (uint32_t i = 0; i < ${panel.countName}; ++i) if (strncmp(${panel.recordsName}[i].id, alarm_id, sizeof(${panel.recordsName}[i].id)) == 0) { index = i; break; }`)
+    lines.push(`    if (index == ${panel.countName}) { if (${panel.countName} < ${panel.capacity}u) ++${panel.countName}; else { memmove(&${panel.recordsName}[0], &${panel.recordsName}[1], sizeof(${panel.recordsName}[0]) * (${panel.capacity}u - 1u)); index = ${panel.capacity}u - 1u; } }`)
+    lines.push(`    fg_alarm_record_t * alarm = &${panel.recordsName}[index]; memset(alarm, 0, sizeof(*alarm)); snprintf(alarm->id, sizeof(alarm->id), "%s", alarm_id); snprintf(alarm->title, sizeof(alarm->title), "%s", title); alarm->severity = severity; alarm->active = true; ${panel.renderName}();`)
+    lines.push(`}`); lines.push(``)
+    lines.push(`void ${panel.acknowledgeApiName}(const char * alarm_id) { if (!alarm_id) return; for (uint32_t i = 0; i < ${panel.countName}; ++i) if (strcmp(${panel.recordsName}[i].id, alarm_id) == 0) { ${panel.recordsName}[i].acknowledged = true; ${panel.renderName}(); return; } }`); lines.push(``)
+    lines.push(`void ${panel.clearApiName}(const char * alarm_id) { if (!alarm_id) return; for (uint32_t i = 0; i < ${panel.countName}; ++i) if (strcmp(${panel.recordsName}[i].id, alarm_id) == 0) { ${panel.recordsName}[i].active = false; ${panel.renderName}(); return; } }`); lines.push(``)
+    lines.push(`void ${panel.clearAllApiName}(void) { for (uint32_t i = 0; i < ${panel.countName}; ++i) ${panel.recordsName}[i].active = false; ${panel.renderName}(); }`); lines.push(``)
+  })
+
   trendChartExports.forEach(trend => {
     lines.push(`static lv_obj_t * ${trend.rootName} = NULL;`)
     lines.push(`static lv_obj_t * ${trend.chartName} = NULL;`)
@@ -9345,6 +9445,7 @@ lines.push(`    fg_system_root = parent;`)
         relayPanelExports,
         pwmControllerExports,
         trendChartExports,
+        alarmPanelExports,
       )
   }
 
@@ -10048,6 +10149,11 @@ lines.push(`}`)
         `void ${trend.clearApiName}(void);`,
         `void ${trend.rangeApiName}(float minimum, float maximum);`,
         `void ${trend.thresholdsApiName}(float warning, float alarm);`,
+      ])).concat(alarmPanelExports.size ? ['typedef enum { FG_ALARM_INFORMATION = 0, FG_ALARM_NOTICE, FG_ALARM_WARNING, FG_ALARM_ALARM, FG_ALARM_CRITICAL } fg_alarm_severity_t;'] : []).concat(Array.from(alarmPanelExports.values()).filter(panel => panel.runtimeEnabled).flatMap(panel => [
+        `void ${panel.addApiName}(const char * alarm_id, const char * title, fg_alarm_severity_t severity);`,
+        `void ${panel.acknowledgeApiName}(const char * alarm_id);`,
+        `void ${panel.clearApiName}(const char * alarm_id);`,
+        `void ${panel.clearAllApiName}(void);`,
       ])).concat(Array.from(barExports.values()).map(
         barExport => `void ${barExport.apiName}(int32_t value);`,
       )).concat(Array.from(progressExports.values()).map(

@@ -1631,3 +1631,9 @@ fully **PROVEN**.
 - Fixed circular 32/64/128/256 history buffers: complete
 - Stable duplicate-instance identities and regeneration-safe hook declarations: tested
 - ESP32-P4 ten-minute hardware soak: ready for proof, not yet executed
+# ForgeUI Native Component #6 — Alarm Panel
+
+Alarm Panel is implemented through the authoritative Widget Registry, Canvas,
+Inspector, Browser Preview and shared Live/Standalone LVGL generator. Its
+semantic SDK and fixed 16/32/64-record storage are implemented and covered by
+automated tests. Status: **implemented; ESP32-P4 proof pending**.

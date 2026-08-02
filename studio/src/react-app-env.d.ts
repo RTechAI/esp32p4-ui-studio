@@ -86,6 +86,7 @@ type ComponentType =
   | 'PwmController'
   | 'TrendChart'
   | 'TrendChartPro'
+  | 'AlarmPanel'
   | 'NumberInput'
   | 'Progress'
   | 'QRCode'

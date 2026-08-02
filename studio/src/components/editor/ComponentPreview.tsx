@@ -60,6 +60,7 @@ import { ForgeUISensorTilePreview } from '~forgeui/preview/ForgeUISensorTilePrev
 import { ForgeUIRelayPanelPreview } from '~forgeui/preview/ForgeUIRelayPanelPreview'
 import { ForgeUIPwmControllerPreview } from '~forgeui/preview/ForgeUIPwmControllerPreview'
 import { ForgeUITrendChartPreview } from '~forgeui/preview/ForgeUITrendChartPreview'
+import { ForgeUIAlarmPanelPreview } from '~forgeui/preview/ForgeUIAlarmPanelPreview'
 import { useForgePreviewPalette } from '~forgeui/theme/ForgeThemeContext'
 import { resolveForgeSemanticPalette } from '~forgeui/preview/forgeThemeMap'
 import InteractiveButtonCanvasPreview, {
@@ -1222,6 +1223,9 @@ const ComponentPreview: React.FC<{
           />
         </PreviewContainer>
       )
+
+    case 'AlarmPanel':
+      return <PreviewContainer component={component} enableVisualHelper {...forwardedProps}><ForgeUIAlarmPanelPreview component={component} palette={previewPalette} /></PreviewContainer>
 
     default:
       return null

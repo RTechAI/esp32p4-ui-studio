@@ -606,6 +606,17 @@ export const DEFAULT_PROPS: PreviewDefaultProps = {
     footerMode: 'range-history', generateRuntimeApi: true, enableUserEvents: true,
     positionMode: 'absolute', x: 40, y: 40, w: 440, h: 280,
   },
+  AlarmPanel: {
+    nativeWidgetSchemaVersion: 1, title: 'Active Alarms', displayMode: 'list',
+    maximumAlarms: 16, ordering: 'newest-first', autoScroll: true,
+    showTimestamps: true, showSeverityIcons: true, showDescriptions: true,
+    showAcknowledgement: true, rounded: true, shadow: true, glassStyle: false,
+    includeInformation: true, includeNotice: true, includeWarning: true,
+    includeAlarm: true, includeCritical: true, simulationMode: 'multiple', alarms: [],
+    informationColour: '#3B82F6', noticeColour: '#06B6D4', warningColour: '#F59E0B',
+    alarmColour: '#E97316', criticalColour: '#EF4444', generateRuntimeApi: true,
+    enableUserEvents: true, positionMode: 'absolute', x: 40, y: 40, w: 440, h: 320,
+  },
   QRCode: {
     contentType: 'custom',
     qrText: 'https://forgeui.co.nz',
