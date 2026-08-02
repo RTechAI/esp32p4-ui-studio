@@ -20,14 +20,18 @@ Practical LVGL 9.2 is complete: **44 registered practical widgets/components,
 intentionally excluded. The next major chapter is ForgeUI Platform development.
 
 Current ForgeUI Platform milestone:
-**FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02**.
+**FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_PROVEN__ESP32P4_VALIDATED__STABLE_RUNTIME_SDK__STABLE_USEREVENTS__2026-08-02**.
 
 Dashboard Card is **ForgeUI Native Component #1 — PROVEN** across Registry,
 versioned semantic model, Inspector, single-object Canvas ownership, shared
 preview/export, Runtime SDK, UserEvents, Live Studio, Standalone Export and
 ESP32-P4 hardware. Its private LVGL object composition is not project state.
-Sensor Tile is implemented through the same owners and awaits ESP32-P4 proof.
-Relay Panel has not begun.
+Sensor Tile is **ForgeUI Native Component #2 — PROVEN** through the same
+owners. Semantic serialization, Browser Preview, shared Live/Standalone
+generation, Runtime SDK, UserEvents, stable component identity, ownership
+reconciliation and ESP32-P4 hardware behavior are validated. Runtime symbols
+and active developer hooks survive regeneration. Relay Panel is the next
+implementation target and has not begun.
 
 ## Current authoritative ownership summary
 

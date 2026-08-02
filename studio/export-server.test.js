@@ -167,6 +167,27 @@ describe('generated public UI API headers', () => {
     expect(preserved.source).not.toContain('FG_On_Download_Progress')
   })
 
+  it('preserves complete Native Component declarations in the generated header', () => {
+    const declarations = [
+      'void FG_Set_System_Output_Value(const char * value);',
+      'void FG_Set_System_Output_Units(const char * units);',
+      'void FG_Set_System_Output_Status(const char * text, uint32_t rgb);',
+      'void FG_Set_System_Output_Progress(int32_t value);',
+      'void FG_Set_Temperature_Value(float value);',
+      'void FG_Set_Temperature_Units(const char * units);',
+      'void FG_Set_Temperature_Status(const char * text, uint32_t rgb);',
+      'void FG_Set_Temperature_Trend(int32_t trend);',
+      'void FG_Set_Temperature_Timestamp(const char * timestamp);',
+      'void FG_Set_Temperature_Colour(uint32_t rgb);',
+    ]
+    const header = generateStudioExportHeader([...declarations, declarations[0]])
+    declarations.forEach(declaration => expect(header).toContain(declaration))
+    expect(header.match(/FG_Set_System_Output_Value/g)).toHaveLength(1)
+    expect(header).toContain('#include <stdbool.h>')
+    expect(header).toContain('#include <stdint.h>')
+    expect(header).toContain('extern "C"')
+  })
+
   it('generates and preserves NumberInput integer hooks', () => {
     const declaration =
       'void FG_Set_Target_Temperature_Number_Input_Value(int32_t value);'
@@ -772,6 +793,78 @@ describe('generated public UI API headers', () => {
     expect(preserved.source).toContain('developer_progress_action(value);')
     expect(preserved.source.match(/void FG_On_Progress_Bar_Changed/g))
       .toHaveLength(1)
+  })
+
+  describe('Native Component hook ownership reconciliation', () => {
+    const active = 'FG_On_Comp_ACTIVE_Clicked'
+    const stale = 'FG_On_Comp_STALE_Clicked'
+    const generated = () => generateUserEventFiles([active], [])
+    const placeholder = hook => `void ${hook}(void)\n{\n    printf("[ForgeUI User Event] ${hook}\\n");\n}`
+
+    it('removes obsolete untouched placeholders and their declarations', () => {
+      const preserved = preserveUserEventFiles(
+        `#include "95_UserEvents.h"\n#include <stdio.h>\n\n${placeholder(stale)}\n`,
+        `#pragma once\nvoid ${stale}(void);\n`,
+        generated(),
+      )
+      expect(preserved.source).not.toContain(stale)
+      expect(preserved.header).not.toContain(stale)
+      expect(preserved.removedPlaceholders).toEqual([stale])
+      expect(preserved.source.match(new RegExp(`void ${active}`, 'g'))).toHaveLength(1)
+    })
+
+    it('preserves an active customised body exactly once', () => {
+      const custom = `void ${active}(void)\n{\n    developer_gpio_action();\n}`
+      const preserved = preserveUserEventFiles(custom, `#pragma once\nvoid ${active}(void);\n`, generated())
+      expect(preserved.source).toContain(custom)
+      expect(preserved.source.match(new RegExp(`void ${active}`, 'g'))).toHaveLength(1)
+    })
+
+    it('quarantines obsolete customised hooks so stale APIs cannot compile', () => {
+      const custom = `void ${stale}(void)\n{\n    FG_Set_Comp_STALE_Value(42);\n}`
+      const preserved = preserveUserEventFiles(custom, `#pragma once\nvoid ${stale}(void);\n`, generated())
+      expect(preserved.source).toContain('#if 0 /* ForgeUI orphaned legacy Native Component hook:')
+      expect(preserved.source).toContain('FG_Set_Comp_STALE_Value(42);')
+      expect(preserved.header).not.toContain(stale)
+      expect(preserved.orphanedCustomHooks).toEqual([stale])
+    })
+
+    it('does not modify standard or unrelated developer hooks', () => {
+      const standard = 'void FG_On_Standard_Button_Clicked(void)\n{\n    developer_action();\n}'
+      const helper = 'void Application_Background_Task(void)\n{\n    service_watchdog();\n}'
+      const preserved = preserveUserEventFiles(`${standard}\n\n${helper}\n`, '#pragma once\n', generated())
+      expect(preserved.source).toContain(standard)
+      expect(preserved.source).toContain(helper)
+    })
+
+    it('is byte-stable across repeated regeneration', () => {
+      const first = preserveUserEventFiles(
+        `${placeholder(stale)}\n`,
+        `#pragma once\nvoid ${stale}(void);\n`,
+        generated(),
+      )
+      const second = preserveUserEventFiles(first.source, first.header, generated())
+      expect(second.source).toBe(first.source)
+      expect(second.header).toBe(first.header)
+    })
+
+    it('preserves the current Sensor Tile proof on its active hook', () => {
+      const firmwareMain = path.resolve(__dirname, '../firmware/ForgeUI-One/main')
+      const source = fs.readFileSync(path.join(firmwareMain, '95_UserEvents.c'), 'utf8')
+      const header = fs.readFileSync(path.join(firmwareMain, '95_UserEvents.h'), 'utf8')
+      const current = generateUserEventFiles([
+        'FG_On_Comp_MSBCEKT2_TYLLX_Clicked',
+        'FG_On_Comp_MSBCEON9_ITWY7_Clicked',
+      ], [])
+      const first = preserveUserEventFiles(source, header, current)
+      const second = preserveUserEventFiles(first.source, first.header, current)
+      expect(first.source.match(/\[ForgeUI Proof\] Sensor Tile state/g)).toHaveLength(1)
+      expect(first.source).toContain('void FG_On_Comp_MSBCEON9_ITWY7_Clicked(void)')
+      expect(first.source).not.toContain('FG_Set_Comp_MSBBZXHGG5_BAD_')
+      expect(first.source).not.toContain('FG_Set_Comp_MSBAPR9_V4_H3_A5_')
+      expect(second.source).toBe(first.source)
+      expect(second.header).toBe(first.header)
+    })
   })
 })
 

@@ -1,12 +1,12 @@
 # ForgeUI Native Widget Architecture
 
-Status: **AUTHORITATIVE AND PROVEN — DASHBOARD CARD V1 ESP32-P4 VALIDATED** (2026-08-02).
+Status: **AUTHORITATIVE AND PROVEN — DASHBOARD CARD AND SENSOR TILE ESP32-P4 VALIDATED** (2026-08-02).
 
 Current milestone:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
 Current ForgeUI Platform milestone:
-`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02`.
+`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_PROVEN__ESP32P4_VALIDATED__STABLE_RUNTIME_SDK__STABLE_USEREVENTS__2026-08-02`.
 
 ## Decision
 
@@ -43,6 +43,13 @@ Waveshare ESP32-P4. The following decisions are now **PROVEN**:
 This proof establishes the architecture for subsequent Native Components. It
 does not make their domain behavior automatic; each component must still pass
 the full acceptance gate.
+
+Sensor Tile subsequently validated the same architecture for typed engineering
+measurements. Its ESP32-P4 proof confirms semantic serialization, shared
+Browser Preview, shared Live/Standalone export, semantic Runtime SDK generation
+and genuine-user UserEvents. It also proves that persisted Native Component
+identity keeps public Runtime symbols stable and that UserEvents ownership
+reconciliation preserves active developer logic correctly across regeneration.
 
 ## Existing platform review
 
@@ -309,10 +316,10 @@ Dashboard Card Version 1 is the first proven implementation of this
 architecture. Subsequent components remain ordered as follows.
 
 1. **Dashboard Card** — **PROVEN**.
-2. **Sensor Tile** — implemented and ready for ESP32-P4 physical proof; proves
-   typed engineering value/unit/status/trend/timestamp/colour updates without
-   owning a sensor transport.
-3. **Relay Panel** — proves multi-control genuine UserEvents, silent state
+2. **Sensor Tile** — **PROVEN**; typed engineering
+   value/unit/status/trend/timestamp/colour updates without owning a sensor
+   transport, with stable Runtime SDK and UserEvents identity across regeneration.
+3. **Relay Panel** — **NEXT IMPLEMENTATION TARGET**; proves multi-control genuine UserEvents, silent state
    projection and safe initialization.
 4. **PWM Controller** — proves bounded numeric state, Slider-style interaction
    and atomic application updates.

@@ -4,7 +4,7 @@ Current milestone:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
 Current ForgeUI Platform milestone:
-`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02`.
+`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_PROVEN__ESP32P4_VALIDATED__STABLE_RUNTIME_SDK__STABLE_USEREVENTS__2026-08-02`.
 
 This is the living ForgeUI engineering journal. It records change, evidence and
 open engineering work. It does not replace or duplicate
@@ -22,13 +22,23 @@ each feature and the official widget totals.
 | ESP-IDF version | 5.5.4 |
 | Target hardware | Waveshare ESP32-P4-WiFi6-Touch-LCD-7B, 1024 × 600 |
 | Current development phase | ForgeUI Platform — ForgeUI-native Widgets next |
-| Current Native Component status | Dashboard Card — PROVEN; Sensor Tile — implemented, ready for ESP32-P4 proof |
-| Next Native Component | Relay Panel, only after Sensor Tile proof |
+| Current Native Component status | Dashboard Card — PROVEN; Sensor Tile — PROVEN |
+| Next Native Component | Relay Panel |
 
 Totals are copied only as a dated summary pointer. Change them in
 `04_FEATURE_STATUS.md` after proof acceptance, then refresh this summary.
 
 ## Recently Improved
+
+### 2026-08-02 — ForgeUI Native Component #2 Sensor Tile proof
+
+Sensor Tile passed physical validation on the Waveshare ESP32-P4. Semantic
+serialization, Browser Preview parity, shared Live/Standalone output, all six
+Runtime SDK setters and the genuine-user click hook are validated. Stable
+Native Component identity keeps the public Runtime SDK names unchanged across
+regeneration, while UserEvents ownership reconciliation preserves the active
+developer hook and prevents stale custom APIs from compiling. Sensor Tile is
+**PROVEN**. Relay Panel is the next implementation target and has not begun.
 
 ### 2026-08-02 — ForgeUI Native Component #2 Sensor Tile implementation
 

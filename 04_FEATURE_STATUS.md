@@ -48,24 +48,25 @@ This document records implementation and proof status only.
 ## ForgeUI Native Components
 
 Current platform milestone:
-`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02`.
+`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_PROVEN__ESP32P4_VALIDATED__STABLE_RUNTIME_SDK__STABLE_USEREVENTS__2026-08-02`.
 
 | Native component | Status | Evidence boundary |
 |---|---|---|
 | Dashboard Card | **PROVEN** | Origin: ForgeUI Native; ESP32-P4 validated; Browser Preview, Live Studio, Standalone Export, Runtime SDK and UserEvents verified; one versioned serialized component with private internal LVGL composition and independent multi-instance behavior |
-| Sensor Tile | **IMPLEMENTED — READY FOR ESP32-P4 PHYSICAL PROOF** | ForgeUI Native Component #2; versioned engineering measurement model, sensor-type defaults, thresholds/auto colour, one-object Canvas/Browser composition, shared Live/Standalone export, six semantic Runtime APIs, optional root UserEvent and collision-safe multi-instance coverage |
+| Sensor Tile | **PROVEN** | ForgeUI Native Component #2; ESP32-P4 validated; semantic serialization, Browser Preview, shared Live/Standalone export, six semantic Runtime APIs and UserEvents verified; stable Native Component identity and ownership reconciliation preserve public symbols and active developer hooks across regeneration |
 
 Native Component totals are separate from the completed practical LVGL ledger.
 The 44/44 practical LVGL proof result remains unchanged. Dashboard Card is
 **ForgeUI Native Component #1 — PROVEN** and establishes a separate platform
-proof ledger. Sensor Tile is implemented and awaits ESP32-P4 physical proof;
-Relay Panel has not begun.
+proof ledger. Sensor Tile is **ForgeUI Native Component #2 — PROVEN** and
+establishes stable Runtime SDK identity and UserEvents regeneration ownership.
+Relay Panel is the next implementation target and has not begun.
 
 Current Native Component roadmap:
 
 1. Dashboard Card — **PROVEN**
-2. Sensor Tile — **IMPLEMENTED; READY FOR ESP32-P4 PHYSICAL PROOF**
-3. Relay Panel — begins only after Sensor Tile proof
+2. Sensor Tile — **PROVEN**
+3. Relay Panel — **NEXT IMPLEMENTATION TARGET**
 4. PWM Controller
 5. System Health
 6. Network Widget

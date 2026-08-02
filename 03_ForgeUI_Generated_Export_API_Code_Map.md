@@ -20,7 +20,7 @@ widgets/components are physically proven on ESP32-P4**. Window and Menu are
 **PROVEN**. Lottie remains intentionally excluded.
 
 Current ForgeUI Platform milestone:
-**FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02**.
+**FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_PROVEN__ESP32P4_VALIDATED__STABLE_RUNTIME_SDK__STABLE_USEREVENTS__2026-08-02**.
 
 Dashboard Card is **ForgeUI Native Component #1 — PROVEN**. The shared
 Live/Standalone generator emits its private LVGL composition, four semantic
@@ -29,11 +29,14 @@ multi-instance names. Browser, Live Studio, Standalone Export and ESP32-P4
 behavior are verified. Internal labels, status objects and progress bars remain
 private and expose no application API or event surface.
 
-Sensor Tile is **ForgeUI Native Component #2 — IMPLEMENTED — READY FOR
-ESP32-P4 PHYSICAL PROOF**. It emits semantic Value, Units, Status, Trend,
-Timestamp and Colour APIs plus an optional root click hook. Its measurement,
-threshold and private composite objects share the existing Live/Standalone
-generator. Relay Panel has not begun.
+Sensor Tile is **ForgeUI Native Component #2 — PROVEN**. It emits semantic
+Value, Units, Status, Trend, Timestamp and Colour APIs plus an optional root
+click hook. Its measurement, threshold and private composite objects share the
+existing Live/Standalone generator. Physical proof confirms Browser Preview,
+Live/Standalone, Runtime SDK and UserEvents parity on ESP32-P4. Persisted Native
+Component identity keeps public Runtime symbols stable, while ownership
+reconciliation preserves the active developer hook across regeneration and
+quarantines obsolete custom hooks safely. Relay Panel is next and has not begun.
 
 This document describes the generated SDK surface currently emitted by the
 shared live/Standalone generator. `90_Studio_Export.h` contains callable

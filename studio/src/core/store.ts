@@ -9,6 +9,7 @@ import { ComponentsStateWithUndo } from './models/components'
 import { AppState } from './models/app'
 import models from './models'
 import filterUndoableActions from '~utils/undo'
+import { migratePersistedComponentState } from './componentIdentity'
 
 export type RootState = {
   app: AppState
@@ -23,12 +24,13 @@ const persistConfig = {
   whitelist: ['present'],
   version,
   throttle: 500,
+  migrate: migratePersistedComponentState,
 }
 
 const persistPlugin = {
   onStoreCreated(store: any) {
     if (process.browser) {
-      persistStore(store)
+      store.__forgeuiPersistor = persistStore(store)
     }
   },
 }

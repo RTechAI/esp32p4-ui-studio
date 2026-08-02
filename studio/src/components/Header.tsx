@@ -61,7 +61,7 @@ import {
 import { ExternalLinkIcon, SmallCloseIcon, CheckIcon } from '@chakra-ui/icons'
 import { DiGithubBadge } from 'react-icons/di'
 import useDispatch from '~hooks/useDispatch'
-import { useSelector } from 'react-redux'
+import { useSelector, useStore } from 'react-redux'
 import { getComponents } from '~core/selectors/components'
 import { getShowLayout, getShowCode } from '~core/selectors/app'
 import HeaderMenu from '~components/headerMenu/HeaderMenu'
@@ -193,6 +193,29 @@ const selectedHeroAsset =
     exportValidationDialog,
   } = useExportValidationNotification()
   const components = useSelector(getComponents)
+  const store = useStore() as any
+
+  const flushProjectPersistence = async (stage: string) => {
+    const persistor = store.__forgeuiPersistor
+    if (!persistor) {
+      throw new Error(
+        'Project persistence is unavailable; firmware clean was cancelled.',
+      )
+    }
+    const keys = Object.keys(components)
+    console.info('[ForgeUI Firmware Clean Identity]', {
+      stage: `${stage}:before-flush`,
+      keys,
+      embeddedIds: keys.map(key => components[key]?.id),
+      persisted: localStorage.getItem('persist:forgeui_studio_v1'),
+    })
+    await persistor.flush()
+    console.info('[ForgeUI Firmware Clean Identity]', {
+      stage: `${stage}:after-flush`,
+      keys: Object.keys((store.getState() as any).components.present.components),
+      persisted: localStorage.getItem('persist:forgeui_studio_v1'),
+    })
+  }
 
   const [flashLog, setFlashLog] = useState('')
   const [flashPanelOpen, setFlashPanelOpen] = useState(false)
@@ -338,6 +361,17 @@ useEffect(() => {
 }, [])
 
 const exportToForgeUIOne = async () => {
+  setFlashPanelOpen(true)
+  setFlashLog('Starting Build & Flash...\n')
+
+  if (!(await generateLiveFirmware())) return
+
+ await fetch('http://localhost:3030/flash', {
+  method: 'POST',
+})
+}
+
+const buildFirmwareExportPayload = () => {
   let result
   try {
     result = assertForgeUIExportValid(
@@ -356,38 +390,36 @@ const exportToForgeUIOne = async () => {
       ? error.message
       : String(error)
     notifyExportValidationFailure(message)
-    return
+    return null
   }
+  return {
+    code: result.code,
+    assetSources: result.assetSources,
+    userEventHooks: result.userEventHooks,
+    publicApiDeclarations: result.publicApiDeclarations,
+    fiRuntimeSource: result.fiRuntimeSource,
+    fiRuntimeHeader: result.fiRuntimeHeader,
+    projectHardware,
+  }
+}
 
-  const code = result.code
-
-  setFlashPanelOpen(true)
-  setFlashLog('Starting Build & Flash...\n')
+const generateLiveFirmware = async (): Promise<boolean> => {
+  const payload = buildFirmwareExportPayload()
+  if (!payload) return false
 
   const response = await fetch('http://localhost:3030/export', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-  code,
-  assetSources: result.assetSources,
-  userEventHooks: result.userEventHooks,
-  publicApiDeclarations: result.publicApiDeclarations,
-  fiRuntimeSource: result.fiRuntimeSource,
-  fiRuntimeHeader: result.fiRuntimeHeader,
-  projectHardware,
-}),
+    body: JSON.stringify(payload),
   })
   if (!response.ok) {
     const failure = await response.json()
     toast({ title: 'Export Validation Failed',
       description: failure.error || 'Live export validation failed',
       status: 'error', duration: 12000, isClosable: true })
-    return
+    return false
   }
-
- await fetch('http://localhost:3030/flash', {
-  method: 'POST',
-})
+  return true
 }
 
 
@@ -456,58 +488,17 @@ const exportToForgeUIOne = async () => {
 }
 
 const cleanBuildFlashForgeUIOne = async () => {
-  let result
-  try {
-    result = assertForgeUIExportValid(
-      components,
-      getAllInteractiveAssets(),
-      forgeUIGetUploadedAssets(),
-      generateForgeUILvglCode(
-        components,
-        themeId,
-        selectedHeroAsset,
-        { palette, firmwareFeatures: projectHardware.firmwareFeatures },
-      ),
-    )
-  } catch (error) {
-    const message = error instanceof ForgeUIExportValidationError
-      ? error.message
-      : String(error)
-    notifyExportValidationFailure(message)
-    return
-  }
-
-  const code = result.code
-
   setFlashPanelOpen(true)
   setFlashLog('Starting Clean Build & Flash...\n')
 
-  const response = await fetch('http://localhost:3030/export', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-  code,
-  assetSources: result.assetSources,
-  userEventHooks: result.userEventHooks,
-  publicApiDeclarations: result.publicApiDeclarations,
-  fiRuntimeSource: result.fiRuntimeSource,
-  fiRuntimeHeader: result.fiRuntimeHeader,
-  projectHardware,
-}),
-  })
-  if (!response.ok) {
-    const failure = await response.json()
-    toast({ title: 'Export Validation Failed',
-      description: failure.error || 'Clean export validation failed',
-      status: 'error', duration: 12000, isClosable: true })
-    return
-  }
+  if (!(await generateLiveFirmware())) return
 
   refreshProjectHardware()
   await fetch('http://localhost:3030/clean-flash', {
     method: 'POST',
   })
 }
+
   return (
     <DarkMode>
       <Flex
@@ -731,6 +722,7 @@ const cleanBuildFlashForgeUIOne = async () => {
   fontWeight="normal"
   onClick={async () => {
     try {
+      await flushProjectPersistence('clean-firmware')
       const response = await fetch(
         'http://localhost:3030/clean-firmware-uploads',
         {
@@ -853,6 +845,7 @@ const cleanBuildFlashForgeUIOne = async () => {
               colorScheme="orange"
               onClick={async () => {
                 try {
+                  await flushProjectPersistence('firmware-maintenance')
                   const response = await fetch(
                     'http://localhost:3030/clean-firmware-sweep',
                     {
@@ -869,7 +862,6 @@ const cleanBuildFlashForgeUIOne = async () => {
                     )
                   }
 
-                dispatch.components.reset()
 forgeUIClearUploadedAssets()
 
 localStorage.removeItem(

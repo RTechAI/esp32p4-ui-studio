@@ -208,6 +208,15 @@ const resolveMontserratSize = (value: unknown, fallback: number) => {
   supportedMontserratSizes[0])
 }
 
+const toCFloatLiteral = (value: number): string => {
+  if (!Number.isFinite(value)) return '0.0f'
+  if (Object.is(value, -0) || value === 0) return '0.0f'
+  if (Number.isInteger(value)) return `${value.toFixed(1)}f`
+
+  const fixed = value.toFixed(9).replace(/(?:\.0+|(?:(\.\d*?)0+))$/, '$1')
+  return `${fixed.includes('.') ? fixed : `${fixed}.0`}f`
+}
+
 const resolveLvTextAlign = (value: unknown) => {
   if (value === 'center') return 'LV_TEXT_ALIGN_CENTER'
   if (value === 'right' || value === 'end') return 'LV_TEXT_ALIGN_RIGHT'
@@ -271,6 +280,7 @@ type DashboardCardExport = {
   progressApiName: string
   hookName?: string
   callbackName?: string
+  runtimeEnabled: boolean
 }
 
 const createDashboardCardExports = (
@@ -284,7 +294,7 @@ const createDashboardCardExports = (
     .filter(component => component.type === 'DashboardCard')
     .sort((a, b) => a.id.localeCompare(b.id))
     .forEach(component => {
-      const base = toCIdentifier(component.componentName || component.id, 'Dashboard_Card')
+      const base = toCIdentifier(component.id, 'Dashboard_Card')
         .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
       let stem = base
       let suffix = 2
@@ -310,6 +320,7 @@ const createDashboardCardExports = (
         progressApiName: `FG_Set_${stem}_Progress`,
         hookName,
         callbackName: hookName ? `fg_${runtimeStem}_dashboard_card_clicked_cb` : undefined,
+        runtimeEnabled: component.props.generateRuntimeApi !== false,
       })
     })
   return result
@@ -324,6 +335,7 @@ type SensorTileExport = {
   hookName?: string; callbackName?: string;
   decimals: number; rangeMin: number; rangeMax: number; warningLow: number;
   warningHigh: number; criticalLow: number; criticalHigh: number; autoColour: boolean;
+  runtimeEnabled: boolean;
 }
 
 const createSensorTileExports = (
@@ -333,7 +345,7 @@ const createSensorTileExports = (
   const usedStems = new Set<string>()
   Object.values(components).filter(component => component.type === 'SensorTile')
     .sort((a, b) => a.id.localeCompare(b.id)).forEach(component => {
-      const base = toCIdentifier(component.componentName || component.id, 'Sensor_Tile').replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      const base = toCIdentifier(component.id, 'Sensor_Tile').replace(/([a-z0-9])([A-Z])/g, '$1_$2')
       let stem = base; let suffix = 2
       while (usedStems.has(stem)) stem = `${base}_${suffix++}`
       usedStems.add(stem)
@@ -352,6 +364,7 @@ const createSensorTileExports = (
         decimals: model.decimals, rangeMin: model.rangeMin, rangeMax: model.rangeMax,
         warningLow: model.warningLow, warningHigh: model.warningHigh,
         criticalLow: model.criticalLow, criticalHigh: model.criticalHigh, autoColour: model.autoColour,
+        runtimeEnabled: component.props.generateRuntimeApi !== false,
       })
     })
   return result
@@ -5557,6 +5570,29 @@ export const generateForgeUILvglCode = (
     firmwareFeatures?: Partial<ForgeUIFirmwareFeatures>
   },
 ) => {
+  const nativeIdentityDiagnostics = Object.entries(components)
+    .filter(([, component]) => component.type === 'DashboardCard' || component.type === 'SensorTile')
+    .map(([persistedId, component]) => {
+      if (!component.id || component.id !== persistedId) {
+        throw new Error(
+          `Native Component persisted identity mismatch: key=${persistedId}, id=${component.id || '<missing>'}, type=${component.type}`,
+        )
+      }
+      const symbol = toCIdentifier(component.id, component.type)
+        .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      return {
+        persistedId,
+        componentId: component.id,
+        type: component.type,
+        componentName: component.componentName || '',
+        generatedSymbolBase: symbol,
+        source: 'ForgeUILvglExport/IComponent.id',
+      }
+    })
+  if (process.env.NODE_ENV !== 'test' && nativeIdentityDiagnostics.length > 0) {
+    console.info('[ForgeUI Native Identity] export input', nativeIdentityDiagnostics)
+  }
+
    const lines: string[] = []
   const usedAssetSources = new Set<string>()
   const usedHookNames = new Set<string>()
@@ -6855,6 +6891,7 @@ const backgroundMode =
       lines.push(`}`)
       lines.push(``)
     }
+    if (!card.runtimeEnabled) return
     lines.push(`void ${card.valueApiName}(const char * value)`)
     lines.push(`{`)
     lines.push(`    if (${card.valueName} == NULL) return;`)
@@ -6891,6 +6928,7 @@ const backgroundMode =
       lines.push(`}`)
       lines.push(``)
     }
+    if (!tile.runtimeEnabled) return
     lines.push(`void ${tile.colourApiName}(uint32_t rgb)`)
     lines.push(`{`)
     lines.push(`    rgb &= 0xFFFFFFu;`)
@@ -6903,14 +6941,14 @@ const backgroundMode =
     lines.push(`void ${tile.valueApiName}(float value)`)
     lines.push(`{`)
     lines.push(`    if (${tile.valueName}) lv_label_set_text_fmt(${tile.valueName}, "%.*f", ${tile.decimals}, (double)value);`)
-    lines.push(`    int32_t progress = (int32_t)(((value - ${tile.rangeMin}f) * 100.0f) / (${tile.rangeMax}f - ${tile.rangeMin}f));`)
+    lines.push(`    int32_t progress = (int32_t)(((value - ${toCFloatLiteral(tile.rangeMin)}) * 100.0f) / (${toCFloatLiteral(tile.rangeMax)} - ${toCFloatLiteral(tile.rangeMin)}));`)
     lines.push(`    if (progress < 0) progress = 0;`)
     lines.push(`    if (progress > 100) progress = 100;`)
     lines.push(`    if (${tile.progressName}) lv_bar_set_value(${tile.progressName}, progress, LV_ANIM_OFF);`)
     if (tile.autoColour) {
       lines.push(`    uint32_t rgb = 0x22C55Eu;`)
-      lines.push(`    if (value <= ${tile.criticalLow}f || value >= ${tile.criticalHigh}f) rgb = 0xEF4444u;`)
-      lines.push(`    else if (value <= ${tile.warningLow}f || value >= ${tile.warningHigh}f) rgb = 0xF59E0Bu;`)
+      lines.push(`    if (value <= ${toCFloatLiteral(tile.criticalLow)} || value >= ${toCFloatLiteral(tile.criticalHigh)}) rgb = 0xEF4444u;`)
+      lines.push(`    else if (value <= ${toCFloatLiteral(tile.warningLow)} || value >= ${toCFloatLiteral(tile.warningHigh)}) rgb = 0xF59E0Bu;`)
       lines.push(`    ${tile.colourApiName}(rgb);`)
     }
     lines.push(`}`)
@@ -9327,12 +9365,12 @@ lines.push(`}`)
         `void ${lightExport.apiName}(bool enabled);`,
       ).concat(Array.from(ledExports.values()).map(
         ledExport => `void ${ledExport.apiName}(bool on);`,
-      )).concat(Array.from(dashboardCardExports.values()).flatMap(card => [
+      )).concat(Array.from(dashboardCardExports.values()).filter(card => card.runtimeEnabled).flatMap(card => [
         `void ${card.valueApiName}(const char * value);`,
         `void ${card.unitsApiName}(const char * units);`,
         `void ${card.statusApiName}(const char * text, uint32_t rgb);`,
         `void ${card.progressApiName}(int32_t value);`,
-      ])).concat(Array.from(sensorTileExports.values()).flatMap(tile => [
+      ])).concat(Array.from(sensorTileExports.values()).filter(tile => tile.runtimeEnabled).flatMap(tile => [
         `void ${tile.valueApiName}(float value);`,
         `void ${tile.unitsApiName}(const char * units);`,
         `void ${tile.statusApiName}(const char * text, uint32_t rgb);`,

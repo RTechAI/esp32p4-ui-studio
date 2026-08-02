@@ -12,6 +12,7 @@ import { ForgeThemeProvider } from '~forgeui/theme/ForgeThemeContext'
 import { ForgeUISystemProvider } from '~forgeui/system'
 import { AppProps } from 'next/app'
 import { forgeuiNativeSelectGlobalStyles } from '~forgeui/ForgeUIControlStyle'
+import { ForgeUIPersistenceGate } from '~core/ForgeUIPersistenceGate'
 
 const Main = ({ Component, pageProps }: AppProps) => {
   const app = (
@@ -51,10 +52,14 @@ const Main = ({ Component, pageProps }: AppProps) => {
     </ChakraProvider>
   )
 
+  const guardedApp = (
+    <ForgeUIPersistenceGate>{app}</ForgeUIPersistenceGate>
+  )
+
   return BugsnagErrorBoundary ? (
-    <BugsnagErrorBoundary>{app}</BugsnagErrorBoundary>
+    <BugsnagErrorBoundary>{guardedApp}</BugsnagErrorBoundary>
   ) : (
-    app
+    guardedApp
   )
 }
 

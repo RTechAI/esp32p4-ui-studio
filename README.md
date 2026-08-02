@@ -4,7 +4,7 @@ Current architecture save point:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
 Current ForgeUI Platform milestone:
-`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02`.
+`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_PROVEN__ESP32P4_VALIDATED__STABLE_RUNTIME_SDK__STABLE_USEREVENTS__2026-08-02`.
 
 **ForgeUI Studio is an open-source, AI-assisted visual HMI and embedded GUI designer for ESP32-P4.** It combines a drag-and-drop Canvas, reusable Interactive Assets, AI Layout tools, Browser Preview, native LVGL 9 generation, integrated ESP-IDF Build & Flash, and standalone ESP-IDF project export.
 
@@ -26,18 +26,22 @@ ForgeUI now rests on two completed foundations:
 
 1. **Practical LVGL Library** — 44 of 44 practical LVGL widgets/components are
    physically proven on ESP32-P4.
-2. **ForgeUI Native Platform** — Dashboard Card, ForgeUI Native Component #1,
-   is **PROVEN** across Browser Preview, Live Studio, Standalone Export, Runtime
-   SDK, UserEvents and ESP32-P4 hardware.
+2. **ForgeUI Native Platform** — Dashboard Card and Sensor Tile, ForgeUI Native
+   Components #1 and #2, are **PROVEN** across semantic serialization, Browser
+   Preview, Live Studio, Standalone Export, Runtime SDK, UserEvents and ESP32-P4
+   hardware.
 
 Dashboard Card remains one semantic, serializable Canvas component with private
 multi-object LVGL composition. See
 [ForgeUI Dashboard Card](docs/FORGEUI_DASHBOARD_CARD.md).
 
-Sensor Tile is now implemented as **ForgeUI Native Component #2** and is ready
-for ESP32-P4 physical proof. It adds semantic engineering values, units,
-threshold-driven severity, trend, timestamp and colour APIs while remaining one
-serialized Canvas component. See [ForgeUI Sensor Tile](docs/FORGEUI_SENSOR_TILE.md).
+Sensor Tile is **ForgeUI Native Component #2 — PROVEN**. It adds semantic
+engineering values, units, threshold-driven severity, trend, timestamp and
+colour APIs while remaining one serialized Canvas component. Its stable Native
+Component identity and UserEvents ownership reconciliation preserve Runtime SDK
+symbols and active developer hooks across regeneration. See
+[ForgeUI Sensor Tile](docs/FORGEUI_SENSOR_TILE.md). Relay Panel is the next
+implementation target.
 
 - Drag-and-drop, free-form Canvas placement and resizing
 - Registry-driven Widget Tray with search and accessible insertion

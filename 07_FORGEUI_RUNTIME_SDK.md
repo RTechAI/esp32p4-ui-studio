@@ -4,7 +4,7 @@ Current save point:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
 Current ForgeUI Platform milestone:
-`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02`.
+`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_PROVEN__ESP32P4_VALIDATED__STABLE_RUNTIME_SDK__STABLE_USEREVENTS__2026-08-02`.
 
 Dashboard Card is **ForgeUI Native Component #1 — PROVEN**. ESP32-P4 proof
 verified its semantic Value, Units, Status and Progress setters, optional root
@@ -14,7 +14,11 @@ parity. No internal Label, status indicator or Bar object is public SDK state.
 Sensor Tile adds semantic float Value, Units, Status, Trend, Timestamp and
 Colour setters plus an optional root click hook. Threshold-based automatic
 colour remains private generated behavior. No internal Label or Bar pointer is
-public. Status is **IMPLEMENTED — READY FOR ESP32-P4 PHYSICAL PROOF**.
+public. Status is **PROVEN**. ESP32-P4 validation confirms all six setters and
+the optional click UserEvent, with Browser Preview and Live/Standalone parity.
+Persisted Native Component identity keeps generated public symbols stable, and
+UserEvents ownership reconciliation preserves the active developer hook across
+regeneration without compiling obsolete hook APIs.
 
 This document introduces the long-term ForgeUI Runtime SDK direction. It does
 not describe a finished, separately packaged SDK product.
@@ -127,6 +131,14 @@ void FG_On_System_Menu_Item_Clicked(
 They must not fire because the UI was constructed, hydrated or updated through
 a setter. The developer implements application policy; generated code owns
 event detection and normalized arguments.
+
+Live regeneration ownership is signature-based. Active hook bodies are
+preserved, new active hooks receive one diagnostic stub, and untouched obsolete
+Native Component stubs are removed. Customised obsolete Native Component hooks
+are preserved in a labelled `#if 0` legacy block rather than compiled against a
+Runtime SDK they no longer own. No custom body is migrated to another component
+by type, title, position or creation order. Use `90_Studio_Export.h` for the
+current Runtime API and `95_UserEvents.h` for active generated hooks.
 
 ## Proven Spinbox contract
 

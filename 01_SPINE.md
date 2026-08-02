@@ -17,7 +17,7 @@
 
 ## Current ForgeUI Platform milestone
 
-**FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02**
+**FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_PROVEN__ESP32P4_VALIDATED__STABLE_RUNTIME_SDK__STABLE_USEREVENTS__2026-08-02**
 
 Dashboard Card is **ForgeUI Native Component #1 — PROVEN**. Physical validation
 confirmed Registry integration, semantic serialization, single-component Canvas
@@ -25,8 +25,22 @@ ownership, closely matched Browser Preview, shared Live/Standalone export,
 Runtime setters, UserEvents, responsive touch, independent instances and stable
 ESP32-P4 operation without crash, watchdog reset or rendering corruption.
 Internal LVGL composition remained private. Sensor Tile is now **ForgeUI Native
-Component #2 — IMPLEMENTED — READY FOR ESP32-P4 PHYSICAL PROOF**. Relay Panel
-must not begin until Sensor Tile completes proof.
+Component #2 — PROVEN**. Physical proof confirms semantic serialization,
+Browser Preview parity, Live/Standalone parity, Runtime SDK, UserEvents, stable
+Native Component identity, UserEvents ownership reconciliation and ESP32-P4
+hardware operation. Runtime symbols and developer hook ownership survive
+regeneration correctly. Relay Panel is the next implementation target.
+
+### 2026-08-02 ForgeUI Native Component #2 Sensor Tile proof
+
+Sensor Tile completed physical validation on the Waveshare ESP32-P4. Its
+semantic engineering model remained one serialized Canvas component; Browser
+Preview matched the generated interface; Live Studio and Standalone Export
+remained aligned; all six semantic Runtime SDK setters and the genuine-user
+click hook operated through stable component identity; and UserEvents ownership
+reconciliation preserved the active developer body across regeneration without
+reviving stale hooks. Sensor Tile is **PROVEN**. This Native Component ledger is
+separate from the completed 44/44 practical LVGL history.
 
 ### 2026-08-02 Practical LVGL 9.2 completion
 
@@ -49,7 +63,7 @@ foundation for the next chapter.
 
 LVGL parity is complete. Future work builds on this foundation in this order:
 
-1. ForgeUI-native Widgets — Dashboard Card PROVEN; Sensor Tile implemented and awaiting ESP32-P4 proof
+1. ForgeUI-native Widgets — Dashboard Card PROVEN; Sensor Tile PROVEN; Relay Panel next
 2. Dashboard Widget Family
 3. Dashboard Designer
 4. Template Library

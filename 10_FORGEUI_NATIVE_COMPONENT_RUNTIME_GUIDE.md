@@ -2,6 +2,12 @@
 
 Status: **AUTHORITATIVE LIVING DEVELOPER REFERENCE** (2026-08-02).
 
+Current ForgeUI Platform milestone:
+`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_PROVEN__ESP32P4_VALIDATED__STABLE_RUNTIME_SDK__STABLE_USEREVENTS__2026-08-02`.
+
+Dashboard Card and Sensor Tile, ForgeUI Native Components #1 and #2, are
+**PROVEN** on ESP32-P4. Relay Panel is the next implementation target.
+
 This guide owns the post-export developer contract for every ForgeUI Native
 Component. Add each new component here when its public Runtime SDK contract is
 implemented or changed. Component-specific design and proof records may remain
@@ -116,7 +122,8 @@ Board Profile/BSP locking contract.
 
 # Native Component #1 — Dashboard Card
 
-Status: **PROVEN**  
+Status: **PROVEN**
+
 Hardware: **Waveshare ESP32-P4 validated**
 
 Dashboard Card displays an application summary containing a title, primary
@@ -302,6 +309,45 @@ Inspect these files in the generated Live Studio or Standalone export:
 | `90_Studio_Export.c` | Generated implementation and private LVGL composition |
 | `95_UserEvents.h` | Exact enabled UserEvent declarations |
 | `95_UserEvents.c` | Developer customization bodies for those hooks |
+
+# Native Component #2 — Sensor Tile
+
+Status: **PROVEN**
+
+Hardware: **Waveshare ESP32-P4 validated**
+
+Sensor Tile exposes one engineering measurement as one semantically serialized
+Canvas component. Its internal container, labels, indicator and progress bar
+remain private. Browser Preview, Live Studio and Standalone Export parity are
+physically validated.
+
+For `<Component>`, export emits:
+
+```c
+void FG_Set_<Component>_Value(float value);
+void FG_Set_<Component>_Units(const char * units);
+void FG_Set_<Component>_Status(const char * text, uint32_t rgb);
+void FG_Set_<Component>_Trend(int32_t trend);
+void FG_Set_<Component>_Timestamp(const char * timestamp);
+void FG_Set_<Component>_Colour(uint32_t rgb);
+```
+
+An enabled root interaction emits:
+
+```c
+void FG_On_<Component>_Clicked(void);
+```
+
+Physical proof confirms these APIs and the UserEvent operate against the
+correct instance. Public symbol stems derive from persisted Native Component
+identity when no explicit stable name is available. Unchanged regeneration
+therefore retains Runtime SDK and callback identities. UserEvents ownership
+reconciliation preserves the active developer body, removes obsolete generated
+placeholders and quarantines unmatched custom hooks so obsolete Runtime calls
+cannot enter the build. Inspect the generated headers for the exact names.
+
+The complete schema and proof record are in
+[`docs/FORGEUI_SENSOR_TILE.md`](docs/FORGEUI_SENSOR_TILE.md).
 
 # Adding future Native Components
 

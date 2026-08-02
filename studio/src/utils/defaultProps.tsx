@@ -361,7 +361,8 @@ WiFi: {
     secondaryText: 'Current operating level', status: 'normal', statusText: 'Normal',
     progress: 72, timestamp: 'Updated now', accentColor: '', padding: 16,
     showHeader: true, showFooter: true, showProgress: true, showStatus: true,
-    enableClick: true, positionMode: 'absolute', x: 40, y: 40, w: 300, h: 190,
+    generateRuntimeApi: true, enableClick: true,
+    positionMode: 'absolute', x: 40, y: 40, w: 300, h: 190,
   },
   SensorTile: {
     nativeWidgetSchemaVersion: 1, sensorType: 'temperature', title: 'Temperature',
@@ -369,7 +370,8 @@ WiFi: {
     statusText: 'Normal', trend: 'stable', timestamp: 'Updated now', accentColor: '',
     showTrend: true, showProgress: true, showTimestamp: true, padding: 16,
     rangeMin: 0, rangeMax: 100, warningLow: 20, warningHigh: 80,
-    criticalLow: 10, criticalHigh: 90, autoColour: true, enableClick: true,
+    criticalLow: 10, criticalHigh: 90, autoColour: true,
+    generateRuntimeApi: true, enableClick: true,
     positionMode: 'absolute', x: 40, y: 40, w: 260, h: 180,
   },
   QRCode: {

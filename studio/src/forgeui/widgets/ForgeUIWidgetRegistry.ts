@@ -275,13 +275,18 @@ const capabilitiesByType: Partial<
   DashboardCard: {
     ...capability(true, true, true),
     instanceConfiguration: {
+      runtimeApiProperty: 'generateRuntimeApi',
+      runtimeApiDefault: true,
       userEventProperty: 'enableClick',
       userEventDefault: true,
     },
   },
   SensorTile: {
     ...capability(true, true, true),
-    instanceConfiguration: { userEventProperty: 'enableClick', userEventDefault: true },
+    instanceConfiguration: {
+      runtimeApiProperty: 'generateRuntimeApi', runtimeApiDefault: true,
+      userEventProperty: 'enableClick', userEventDefault: true,
+    },
   },
 
   Input: capability(true, true, true),

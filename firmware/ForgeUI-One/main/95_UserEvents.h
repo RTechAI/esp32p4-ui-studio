@@ -63,14 +63,10 @@ void FG_On_Slider_4_Changed(int32_t value);
 void FG_On_List_Item_Clicked(uint32_t index, const char * text);
 void FG_On_Spinbox_Changed(int32_t value);
 void FG_On_List_Proof_Item_Clicked(uint32_t index, const char * text);
-void FG_On_Comp_MS9_J6_Z31_J3065_Clicked(void);
-void FG_On_Comp_MS9_N9_UYTN4_TDB_Clicked(void);
-void FG_On_Comp_MS9Q2MXPEJP7D_Clicked(void);
-void FG_On_Comp_MS9Q42SGCB4EB_Clicked(void);
-void FG_On_Comp_MS9QE1N7GA5O3_Clicked(void);
 void FG_On_Image_Button_Clicked(void);
 void FG_On_Image_Button_2_Clicked(void);
-void FG_On_Comp_MSB3_GCUWGY6_DO_Clicked(void);
+void FG_On_Comp_MSBCEKT2_TYLLX_Clicked(void);
+void FG_On_Comp_MSBCEON9_ITWY7_Clicked(void);
 
 #ifdef __cplusplus
 }

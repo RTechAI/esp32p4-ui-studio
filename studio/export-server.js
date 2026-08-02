@@ -962,6 +962,11 @@ If using ChatGPT or another AI assistant:
 - Never edit 90_Studio_Export.h
 - Place all application logic inside 95_UserEvents.c
 - Preserve generated hook names.
+- Treat 90_Studio_Export.h as the current Runtime SDK source of truth.
+- Active customised hooks are preservation-merged across regeneration.
+- Untouched obsolete Native Component placeholders are removed automatically.
+- Customised obsolete Native Component hooks are retained in a labelled,
+  non-compiling legacy block until a developer deliberately resolves them.
 `
 }
 
@@ -973,6 +978,11 @@ function normalizePublicApiDeclarations(declarations) {
         .filter((declaration) =>
           (
             /^void FG_Set_[A-Za-z0-9_]+\((?:bool (?:enabled|on|checked|visible)|int32_t value)\);$/.test(declaration) ||
+            /^void FG_Set_[A-Za-z0-9_]+\(float value\);$/.test(declaration) ||
+            /^void FG_Set_[A-Za-z0-9_]+\(const char \* (?:value|units|timestamp)\);$/.test(declaration) ||
+            /^void FG_Set_[A-Za-z0-9_]+\(const char \* text, uint32_t rgb\);$/.test(declaration) ||
+            /^void FG_Set_[A-Za-z0-9_]+\(uint32_t rgb\);$/.test(declaration) ||
+            /^void FG_Set_[A-Za-z0-9_]+\(int32_t trend\);$/.test(declaration) ||
             /^void FG_Set_[A-Za-z0-9_]+_Text\(const char \* text\);$/.test(declaration) ||
             /^void FG_Add_[A-Za-z0-9_]+_Point\(int32_t value\);$/.test(declaration) ||
             /^void FG_Clear_[A-Za-z0-9_]+\(void\);$/.test(declaration) ||
@@ -1861,6 +1871,97 @@ ${definitions}
   }
 }
 
+const NATIVE_COMPONENT_HOOK_PATTERN = /^FG_On_Comp_[A-Za-z0-9_]+_Clicked$/
+const ORPHANED_NATIVE_HOOK_MARKER = 'ForgeUI orphaned legacy Native Component hook'
+
+function findVoidHookDefinitions(source) {
+  const definitions = []
+  const signature = /\bvoid\s+(FG_On_[A-Za-z0-9_]+)\s*\(([^;{}]*)\)\s*\{/g
+  let match
+  while ((match = signature.exec(source))) {
+    let depth = 1
+    let cursor = signature.lastIndex
+    let stringQuote = ''
+    let escaped = false
+    for (; cursor < source.length && depth > 0; cursor += 1) {
+      const character = source[cursor]
+      if (stringQuote) {
+        if (escaped) escaped = false
+        else if (character === '\\') escaped = true
+        else if (character === stringQuote) stringQuote = ''
+        continue
+      }
+      if (character === '"' || character === "'") stringQuote = character
+      else if (character === '{') depth += 1
+      else if (character === '}') depth -= 1
+    }
+    if (depth === 0) {
+      definitions.push({
+        hook: match[1],
+        start: match.index,
+        end: cursor,
+        text: source.slice(match.index, cursor),
+        body: source.slice(signature.lastIndex, cursor - 1),
+      })
+      signature.lastIndex = cursor
+    }
+  }
+  return definitions
+}
+
+function isGeneratedNativePlaceholder(definition) {
+  const expected = `printf("[ForgeUI User Event] ${definition.hook}\\n");`
+  return definition.body.trim() === expected
+}
+
+function reconcileNativeComponentHooks(source, header, activeHooks) {
+  const active = new Set(activeHooks.filter(hook =>
+    NATIVE_COMPONENT_HOOK_PATTERN.test(hook)
+  ))
+  const orphanBlocks = []
+  const orphanPattern = new RegExp(
+    `#if 0 /\\* ${ORPHANED_NATIVE_HOOK_MARKER}:[^*]*\\*/[\\s\\S]*?#endif`,
+    'g',
+  )
+  let orphanMatch
+  while ((orphanMatch = orphanPattern.exec(source))) {
+    orphanBlocks.push({ start: orphanMatch.index, end: orphanPattern.lastIndex })
+  }
+
+  const edits = []
+  const removedPlaceholders = []
+  const orphanedCustomHooks = []
+  findVoidHookDefinitions(source).forEach(definition => {
+    if (!NATIVE_COMPONENT_HOOK_PATTERN.test(definition.hook)) return
+    if (active.has(definition.hook)) return
+    if (orphanBlocks.some(block =>
+      definition.start >= block.start && definition.end <= block.end
+    )) return
+
+    if (isGeneratedNativePlaceholder(definition)) {
+      edits.push({ start: definition.start, end: definition.end, replacement: '' })
+      removedPlaceholders.push(definition.hook)
+      return
+    }
+
+    const replacement = `#if 0 /* ${ORPHANED_NATIVE_HOOK_MARKER}: no active component owns ${definition.hook}. */\n${definition.text}\n#endif`
+    edits.push({ start: definition.start, end: definition.end, replacement })
+    orphanedCustomHooks.push(definition.hook)
+  })
+
+  edits.sort((left, right) => right.start - left.start).forEach(edit => {
+    source = source.slice(0, edit.start) + edit.replacement + source.slice(edit.end)
+  })
+  source = source.replace(/\n{3,}/g, '\n\n')
+
+  header = header.replace(
+    /^\s*void\s+(FG_On_Comp_[A-Za-z0-9_]+_Clicked)\s*\([^;]*\)\s*;\s*$/gm,
+    (declaration, hook) => active.has(hook) ? declaration : '',
+  ).replace(/\n{3,}/g, '\n\n')
+
+  return { source, header, removedPlaceholders, orphanedCustomHooks }
+}
+
 function preserveUserEventFiles(existingSource, existingHeader, generated) {
   let source = String(existingSource || '').trim()
     ? String(existingSource).replace(/\s*$/, '\n')
@@ -1868,6 +1969,20 @@ function preserveUserEventFiles(existingSource, existingHeader, generated) {
   let header = String(existingHeader || '').trim()
     ? String(existingHeader)
     : generated.header
+
+  const reconciliation = reconcileNativeComponentHooks(
+    source,
+    header,
+    generated.hooks,
+  )
+  source = reconciliation.source
+  header = reconciliation.header
+  if (reconciliation.orphanedCustomHooks.length) {
+    console.warn(
+      'Preserved orphaned Native Component UserEvents hooks:',
+      reconciliation.orphanedCustomHooks,
+    )
+  }
 
   ;['stdbool.h', 'stdint.h'].forEach((include) => {
     const directive = `#include <${include}>`
@@ -1910,7 +2025,13 @@ function preserveUserEventFiles(existingSource, existingHeader, generated) {
     }
   })
 
-  return { ...generated, source, header }
+  return {
+    ...generated,
+    source,
+    header,
+    removedPlaceholders: reconciliation.removedPlaceholders,
+    orphanedCustomHooks: reconciliation.orphanedCustomHooks,
+  }
 }
 
 app.post('/export', (req, res) => {
@@ -2303,15 +2424,21 @@ validateHardwareArtifacts(
 )
 fs.writeFileSync(sdkconfigDefaultsTarget, generatedSdkconfigDefaults, 'utf8')
 
+const preservedStandaloneUserEvents = preserveUserEventFiles(
+  fs.existsSync(userEventsCTarget) ? fs.readFileSync(userEventsCTarget, 'utf8') : '',
+  fs.existsSync(userEventsHTarget) ? fs.readFileSync(userEventsHTarget, 'utf8') : '',
+  userEvents,
+)
+
 fs.writeFileSync(
   userEventsCTarget,
-  userEvents.source,
+  preservedStandaloneUserEvents.source,
   'utf8'
 )
 
 fs.writeFileSync(
   userEventsHTarget,
-  userEvents.header,
+  preservedStandaloneUserEvents.header,
   'utf8'
 )
 

@@ -8,14 +8,18 @@ Current save point:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
 Current ForgeUI Platform milestone:
-`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02`.
+`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_PROVEN__ESP32P4_VALIDATED__STABLE_RUNTIME_SDK__STABLE_USEREVENTS__2026-08-02`.
 
 Dashboard Card is **ForgeUI Native Component #1 — PROVEN**. It validates the
 application-level composite pattern while remaining one serialized and
 Canvas-owned component. Extend this pattern through the existing Registry,
 preview, shared generator, Runtime SDK and UserEvents; do not expose private
-LVGL composition. Sensor Tile is implemented through the same pattern and is
-ready for ESP32-P4 proof. Relay Panel must not begin before proof closes.
+LVGL composition. Sensor Tile is **ForgeUI Native Component #2 — PROVEN**
+through the same pattern. Its semantic serialization, Browser Preview,
+Live/Standalone output, Runtime SDK, UserEvents, stable public identity,
+ownership reconciliation and ESP32-P4 behavior are validated. Runtime symbols
+and active developer hooks survive regeneration correctly. Relay Panel is the
+next implementation target; it is not part of this documentation pass.
 
 For application-to-hardware examples after export, use
 [05_DEVELOPER_HARDWARE_INTEGRATION.md](05_DEVELOPER_HARDWARE_INTEGRATION.md).
@@ -231,6 +235,16 @@ hydration and startup must not call the hook.
 `95_UserEvents.h` declares the generated contract. Live Studio generation
 preservation-merges matching developer bodies in `95_UserEvents.c`.
 Standalone Export copies that layer into the developer-owned project.
+
+The current generated hook set owns Native Component callback signatures.
+Regeneration preserves an active customised body exactly, adds one placeholder
+for a newly active hook, and removes an obsolete Native Component hook only
+when its body is the untouched ForgeUI diagnostic placeholder. Obsolete
+customised Native Component hooks are retained inside a clearly marked
+non-compiling legacy block so stale Runtime SDK calls cannot break firmware.
+Standard widget hooks and unrelated developer functions are not reconciled by
+this Native Component cleanup. Treat `90_Studio_Export.h` as the source of truth
+for Runtime SDK names and `95_UserEvents.h` as the active callback contract.
 
 Keep hook bodies short. Queue application work rather than blocking the LVGL
 thread. Do not retain callback text pointers unless the widget contract

@@ -1,9 +1,9 @@
 # ForgeUI Sensor Tile
 
-Status: **IMPLEMENTED — READY FOR ESP32-P4 PHYSICAL PROOF** (2026-08-02).
+Status: **PROVEN — ESP32-P4 VALIDATED** (2026-08-02).
 
 Platform milestone:
-`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_IMPLEMENTED__READY_FOR_ESP32P4_PHYSICAL_PROOF__2026-08-02`.
+`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_PROVEN__ESP32P4_VALIDATED__STABLE_RUNTIME_SDK__STABLE_USEREVENTS__2026-08-02`.
 
 Sensor Tile is **ForgeUI Native Component #2**. It represents one live
 engineering measurement while its internal LVGL container, labels, status
@@ -45,28 +45,33 @@ Optional genuine-user hook:
 void FG_On_Engine_RPM_Clicked(void);
 ```
 
-## ESP32-P4 proof plan
+## ESP32-P4 proof record
 
-1. Place Temperature, Pressure, Voltage and RPM Tiles plus a duplicate-named
-   pair. Confirm each remains one Canvas object through select, move, resize,
-   copy/paste, duplicate, delete and undo.
-2. Exercise all Inspector properties, save/reload and verify schema-1 semantic
-   values without hidden children.
-3. Compare Canvas and Browser Preview across sensor types, trends, optional
-   sections, manual accent and Normal/Warning/Critical/Offline colours.
-4. Generate Live Studio and Standalone Export. Inspect readable private LVGL
-   composition, six APIs per instance and only enabled click hooks.
-5. Build and flash Standalone output to the Waveshare ESP32-P4.
-6. Drive values through normal, warning and critical thresholds. Verify value,
-   decimals, progress and automatic colour, then test Units, Status, Trend,
-   Timestamp and Colour APIs individually.
-7. Tap each enabled Tile and confirm exactly one matching UserEvent per tap,
-   no startup/setter events and independent duplicate-name instances.
-8. Repeat updates and taps for at least ten cycles while Wi-Fi and System pages
-   remain operational. Record RAM, responsiveness, crash, watchdog and
-   rendering stability plus Live/Standalone parity.
-9. Promote Sensor Tile to **PROVEN** only after the hardware evidence is
-   accepted.
+Physical validation on the Waveshare ESP32-P4 confirms:
+
+- schema-1 semantic serialization remains one editable Canvas component;
+- Canvas and Browser Preview parity;
+- shared Live Studio and Standalone Export parity;
+- the six semantic Runtime SDK APIs operate against the correct instance;
+- the genuine-user click callback operates through `95_UserEvents`;
+- persisted Native Component identity keeps generated Runtime SDK and callback
+  symbols stable across unchanged regeneration;
+- UserEvents ownership reconciliation preserves the active developer proof
+  body, removes stale placeholders and safely quarantines unmatched custom
+  hooks; and
+- generated firmware builds and operates correctly on ESP32-P4.
+
+Sensor Tile is **ForgeUI Native Component #2 — PROVEN**. This result belongs to
+the ForgeUI Native Component ledger and does not alter the completed 44/44
+practical LVGL count.
+
+## Implementation history
+
+Earlier on 2026-08-02, Sensor Tile reached **IMPLEMENTED — READY FOR ESP32-P4
+PHYSICAL PROOF** after Registry, Inspector, Canvas, Browser Preview,
+Live/Standalone generation, Runtime SDK and UserEvents implementation. That
+dated status is retained here as the implementation-stage record superseded by
+the accepted physical proof above.
 
 ## Version 1 boundaries
 
@@ -74,4 +79,4 @@ void FG_On_Engine_RPM_Clicked(void);
 - History, sparkline, alarm memory and min/max retention remain future semantic
   extensions under the same component identity.
 - The icon is a native LVGL symbol; no Tile-specific asset path is introduced.
-- Relay Panel has not begun.
+- Relay Panel is the next implementation target and has not begun.

@@ -46,19 +46,45 @@ describe('ForgeUI Sensor Tile', () => {
     const generated = generateForgeUILvglCode({
       root: { id: 'root', type: 'Box', parent: 'root', children: ['a', 'b'], props: {} }, a: first, b: second,
     }, 'graphite', undefined, { includeThemeTexture: false })
-    expect(generated.code).toContain('fg_engine_rpm_sensor_tile_value')
-    expect(generated.code).toContain('lv_bar_create(fg_engine_rpm_sensor_tile)')
+    expect(generated.code).toContain('fg_a_sensor_tile_value')
+    expect(generated.code).toContain('lv_bar_create(fg_a_sensor_tile)')
     expect(generated.publicApiDeclarations).toEqual(expect.arrayContaining([
-      'void FG_Set_Engine_RPM_Value(float value);',
-      'void FG_Set_Engine_RPM_Units(const char * units);',
-      'void FG_Set_Engine_RPM_Status(const char * text, uint32_t rgb);',
-      'void FG_Set_Engine_RPM_Trend(int32_t trend);',
-      'void FG_Set_Engine_RPM_Timestamp(const char * timestamp);',
-      'void FG_Set_Engine_RPM_Colour(uint32_t rgb);',
-      'void FG_Set_Engine_RPM_2_Value(float value);',
+      'void FG_Set_A_Value(float value);',
+      'void FG_Set_A_Units(const char * units);',
+      'void FG_Set_A_Status(const char * text, uint32_t rgb);',
+      'void FG_Set_A_Trend(int32_t trend);',
+      'void FG_Set_A_Timestamp(const char * timestamp);',
+      'void FG_Set_A_Colour(uint32_t rgb);',
+      'void FG_Set_B_Value(float value);',
     ]))
     expect(generated.userEventHooks).toEqual(expect.arrayContaining([
-      'FG_On_Engine_RPM_Clicked', 'FG_On_Engine_RPM_2_Clicked',
+      'FG_On_A_Clicked', 'FG_On_B_Clicked',
     ]))
+    generated.publicApiDeclarations.forEach(declaration => {
+      expect(generated.code).toContain(declaration.replace(/;$/, ''))
+    })
+  })
+
+  it('emits valid centralized C float literals for integral, decimal and negative ranges', () => {
+    const generated = generateForgeUILvglCode({
+      root: { id: 'root', type: 'Box', parent: 'root', children: ['t'], props: {} },
+      t: tile('t', 'Temperature', {
+        rangeMin: -10, rangeMax: 100, warningLow: 0.125,
+        warningHigh: 80, criticalLow: 10, criticalHigh: 90,
+      }),
+    }, 'graphite', undefined, { includeThemeTexture: false })
+    expect(generated.code).toContain('value - -10.0f')
+    expect(generated.code).toContain('100.0f - -10.0f')
+    expect(generated.code).toContain('value <= 0.125f')
+    expect(generated.code).not.toMatch(/(?<![.\d])(?:0|10|80|90|100)f\b/)
+  })
+
+  it('omits all six APIs when Runtime API generation is disabled', () => {
+    const generated = generateForgeUILvglCode({
+      root: { id: 'root', type: 'Box', parent: 'root', children: ['t'], props: {} },
+      t: tile('t', 'Private Sensor', { generateRuntimeApi: false }),
+    }, 'graphite', undefined, { includeThemeTexture: false })
+    expect(generated.publicApiDeclarations.join('\n')).not.toContain('FG_Set_T_')
+    expect(generated.code).not.toContain('void FG_Set_T_')
   })
 })

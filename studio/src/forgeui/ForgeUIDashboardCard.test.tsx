@@ -46,16 +46,29 @@ describe('ForgeUI Dashboard Card', () => {
       root: { id: 'root', type: 'Box', parent: 'root', children: [first.id, second.id], props: {} },
       [first.id]: first, [second.id]: second,
     }, 'graphite', undefined, { includeThemeTexture: false })
-    expect(generated.code).toContain('lv_obj_t * fg_power_card_dashboard_card_value')
-    expect(generated.code).toContain('lv_bar_create(fg_power_card_dashboard_card)')
+    expect(generated.code).toContain('lv_obj_t * fg_card_a_dashboard_card_value')
+    expect(generated.code).toContain('lv_bar_create(fg_card_a_dashboard_card)')
     expect(generated.publicApiDeclarations).toEqual(expect.arrayContaining([
-      'void FG_Set_Power_Card_Value(const char * value);',
-      'void FG_Set_Power_Card_Status(const char * text, uint32_t rgb);',
-      'void FG_Set_Power_Card_Progress(int32_t value);',
-      'void FG_Set_Power_Card_2_Value(const char * value);',
+      'void FG_Set_Card_A_Value(const char * value);',
+      'void FG_Set_Card_A_Units(const char * units);',
+      'void FG_Set_Card_A_Status(const char * text, uint32_t rgb);',
+      'void FG_Set_Card_A_Progress(int32_t value);',
+      'void FG_Set_Card_B_Value(const char * value);',
     ]))
+    generated.publicApiDeclarations.forEach(declaration => {
+      expect(generated.code).toContain(declaration.replace(/;$/, ''))
+    })
     expect(generated.userEventHooks).toEqual([
-      'FG_On_Power_Card_Clicked', 'FG_On_Power_Card_2_Clicked',
+      'FG_On_Card_A_Clicked', 'FG_On_Card_B_Clicked',
     ])
+  })
+
+  it('omits declarations and implementations when Runtime API generation is disabled', () => {
+    const generated = generateForgeUILvglCode({
+      root: { id: 'root', type: 'Box', parent: 'root', children: ['card'], props: {} },
+      card: card('card', 'Private Card', { generateRuntimeApi: false }),
+    }, 'graphite', undefined, { includeThemeTexture: false })
+    expect(generated.publicApiDeclarations.join('\n')).not.toContain('FG_Set_Card_')
+    expect(generated.code).not.toContain('void FG_Set_Card_')
   })
 })

@@ -43,13 +43,15 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- `FG_On_Comp_MSB3_GCUWGY6_DO_Clicked()`
+- `FG_On_Comp_MSBCEKT2_TYLLX_Clicked()`
+- `FG_On_Comp_MSBCEON9_ITWY7_Clicked()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| Comp_MSB3_GCUWGY6_DO | Click | `FG_On_Comp_MSB3_GCUWGY6_DO_Clicked()` |
+| Comp_MSBCEKT2_TYLLX | Click | `FG_On_Comp_MSBCEKT2_TYLLX_Clicked()` |
+| Comp_MSBCEON9_ITWY7 | Click | `FG_On_Comp_MSBCEON9_ITWY7_Clicked()` |
 
 ---
 
@@ -77,3 +79,8 @@ If using ChatGPT or another AI assistant:
 - Never edit 90_Studio_Export.h
 - Place all application logic inside 95_UserEvents.c
 - Preserve generated hook names.
+- Treat 90_Studio_Export.h as the current Runtime SDK source of truth.
+- Active customised hooks are preservation-merged across regeneration.
+- Untouched obsolete Native Component placeholders are removed automatically.
+- Customised obsolete Native Component hooks are retained in a labelled,
+  non-compiling legacy block until a developer deliberately resolves them.

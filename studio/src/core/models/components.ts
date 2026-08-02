@@ -5,6 +5,7 @@ import templates, { TemplateType } from '~templates'
 import { generateId } from '~utils/generateId'
 import { duplicateComponent, deleteComponent } from '~utils/recursive'
 import omit from 'lodash/omit'
+import { normalizePersistedComponentIdentities } from '../componentIdentity'
 
 export type ComponentsState = {
   components: IComponents
@@ -38,7 +39,9 @@ const components = createModel({
     reset(state: ComponentsState, components?: IComponents): ComponentsState {
       return {
         ...state,
-        components: components || INITIAL_COMPONENTS,
+        components: components
+          ? normalizePersistedComponentIdentities(components)
+          : INITIAL_COMPONENTS,
         selectedId: DEFAULT_ID,
       }
     },
@@ -177,6 +180,14 @@ const components = createModel({
     ): ComponentsState {
       return produce(state, (draftState: ComponentsState) => {
         const id = payload.testId || generateId()
+        if (process.env.NODE_ENV !== 'test') {
+          console.info('[ForgeUI Component Identity] created', {
+            id,
+            type: payload.type,
+            source: 'components/addComponent',
+            stack: new Error('Component creation source').stack,
+          })
+        }
         const { form, ...defaultProps } =
           getPreviewDefaultProps(payload.type) || {}
         draftState.selectedId = id
@@ -204,7 +215,7 @@ const components = createModel({
 
         draftState.components = {
           ...draftState.components,
-          ...payload.components,
+          ...normalizePersistedComponentIdentities(payload.components),
         }
       })
     },

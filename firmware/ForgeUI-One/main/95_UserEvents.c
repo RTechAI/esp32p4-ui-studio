@@ -15,6 +15,7 @@
  * Do not place permanent product logic in the live Studio firmware copy.
  */
 
+#include "90_Studio_Export.h"
 #include "95_UserEvents.h"
 #include <stdio.h>
 
@@ -268,31 +269,6 @@ void FG_On_List_Proof_Item_Clicked(uint32_t index, const char * text)
         text ? text : "");
 }
 
-void FG_On_Comp_MS9_J6_Z31_J3065_Clicked(void)
-{
-    printf("[ForgeUI User Event] FG_On_Comp_MS9_J6_Z31_J3065_Clicked\n");
-}
-
-void FG_On_Comp_MS9_N9_UYTN4_TDB_Clicked(void)
-{
-    printf("[ForgeUI User Event] FG_On_Comp_MS9_N9_UYTN4_TDB_Clicked\n");
-}
-
-void FG_On_Comp_MS9Q2MXPEJP7D_Clicked(void)
-{
-    printf("[ForgeUI User Event] FG_On_Comp_MS9Q2MXPEJP7D_Clicked\n");
-}
-
-void FG_On_Comp_MS9Q42SGCB4EB_Clicked(void)
-{
-    printf("[ForgeUI User Event] FG_On_Comp_MS9Q42SGCB4EB_Clicked\n");
-}
-
-void FG_On_Comp_MS9QE1N7GA5O3_Clicked(void)
-{
-    printf("[ForgeUI User Event] FG_On_Comp_MS9QE1N7GA5O3_Clicked\n");
-}
-
 void FG_On_Image_Button_Clicked(void)
 {
     printf("[ForgeUI User Event] FG_On_Image_Button_Clicked\n");
@@ -303,7 +279,48 @@ void FG_On_Image_Button_2_Clicked(void)
     printf("[ForgeUI User Event] FG_On_Image_Button_2_Clicked\n");
 }
 
-void FG_On_Comp_MSB3_GCUWGY6_DO_Clicked(void)
+void FG_On_Comp_MSBCEKT2_TYLLX_Clicked(void)
 {
-    printf("[ForgeUI User Event] FG_On_Comp_MSB3_GCUWGY6_DO_Clicked\n");
+    printf("[ForgeUI User Event] FG_On_Comp_MSBCEKT2_TYLLX_Clicked\n");
+}
+
+void FG_On_Comp_MSBCEON9_ITWY7_Clicked(void)
+{
+    static uint8_t state = 0;
+
+    switch (state) {
+        case 0:
+            FG_Set_Comp_MSBCEON9_ITWY7_Value(23.7f);
+            FG_Set_Comp_MSBCEON9_ITWY7_Units("°C");
+            FG_Set_Comp_MSBCEON9_ITWY7_Status("Normal", 0x22C55E);
+            FG_Set_Comp_MSBCEON9_ITWY7_Trend(0);
+            FG_Set_Comp_MSBCEON9_ITWY7_Timestamp("Normal range");
+            break;
+
+        case 1:
+            FG_Set_Comp_MSBCEON9_ITWY7_Value(85.0f);
+            FG_Set_Comp_MSBCEON9_ITWY7_Status("Warning", 0xF59E0B);
+            FG_Set_Comp_MSBCEON9_ITWY7_Trend(1);
+            FG_Set_Comp_MSBCEON9_ITWY7_Timestamp("Temperature rising");
+            break;
+
+        case 2:
+            FG_Set_Comp_MSBCEON9_ITWY7_Value(95.0f);
+            FG_Set_Comp_MSBCEON9_ITWY7_Status("Critical", 0xEF4444);
+            FG_Set_Comp_MSBCEON9_ITWY7_Trend(1);
+            FG_Set_Comp_MSBCEON9_ITWY7_Timestamp("Critical threshold");
+            break;
+
+        default:
+            FG_Set_Comp_MSBCEON9_ITWY7_Value(18.0f);
+            FG_Set_Comp_MSBCEON9_ITWY7_Status("Cooling", 0x22C55E);
+            FG_Set_Comp_MSBCEON9_ITWY7_Trend(-1);
+            FG_Set_Comp_MSBCEON9_ITWY7_Timestamp("Temperature falling");
+            break;
+    }
+
+    printf("[ForgeUI Proof] Sensor Tile state %u\n",
+           (unsigned)state);
+
+    state = (state + 1U) % 4U;
 }
