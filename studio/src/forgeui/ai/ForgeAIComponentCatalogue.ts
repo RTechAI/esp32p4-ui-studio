@@ -86,6 +86,7 @@ const SUPPORTED_TYPES = [
   'NetworkStatusCard',
   'DeviceSummaryCard',
   'KpiCard',
+  'PowerFlowCard',
 ] as const
 
 type SupportedType = typeof SUPPORTED_TYPES[number]
@@ -133,6 +134,7 @@ const DASHBOARD_TYPES = new Set<SupportedType>([
   'NetworkStatusCard',
   'DeviceSummaryCard',
   'KpiCard',
+  'PowerFlowCard',
 ])
 
 const descriptions: Partial<Record<SupportedType, string>> = {
@@ -164,6 +166,7 @@ const descriptions: Partial<Record<SupportedType, string>> = {
   NetworkStatusCard:'ForgeUI Native semantic network and communication health monitor.',
   DeviceSummaryCard:'ForgeUI Native semantic embedded-device system overview.',
   KpiCard:'ForgeUI Native semantic KPI metric with value, status, progress, delta, and target.',
+  PowerFlowCard:'ForgeUI Native semantic energy-flow topology for sources, storage, grid, and loads.',
 }
 
 const aliases: Partial<Record<SupportedType, string[]>> = {
@@ -182,9 +185,9 @@ const aliases: Partial<Record<SupportedType, string[]>> = {
   InteractiveStatusIndicator: ['interactive status indicator'],
   InteractiveToggleSwitch: ['interactive toggle switch'],
   InteractiveThreePositionToggleSwitch: ['interactive three position toggle'],
-  DashboardCard: ['dashboard card', 'kpi card', 'metric card'],
+  DashboardCard: ['dashboard card', 'dashboard summary', 'value summary'],
   SensorTile: ['sensor tile', 'engineering measurement', 'telemetry tile'],
-  RelayPanel: ['relay panel', 'relay bank', 'digital outputs', 'contactors'],
+  RelayPanel: ['relay panel', 'relay bank', 'relay outputs', 'contactors'],
   TrendChart: [
     'trend chart',
     'history chart',
@@ -199,6 +202,7 @@ const aliases: Partial<Record<SupportedType, string[]>> = {
   NetworkStatusCard:['network status','wifi health','ethernet status','mqtt status','cloud connectivity'],
   DeviceSummaryCard:['device summary','system overview','firmware health','device uptime','controller status'],
   KpiCard:['kpi','metric card','percentage card','target vs actual','dashboard value'],
+  PowerFlowCard:['power flow','solar flow','battery flow','grid import','energy topology'],
 }
 
 const sizes: Partial<Record<SupportedType, { w: number; h: number }>> = {
@@ -229,6 +233,7 @@ const sizes: Partial<Record<SupportedType, { w: number; h: number }>> = {
   NetworkStatusCard:{w:380,h:300},
   DeviceSummaryCard:{w:400,h:300},
   KpiCard:{w:300,h:220},
+  PowerFlowCard:{w:520,h:360},
 }
 
 const assetRequirement = (type: SupportedType): ForgeAIAssetRequirement => {

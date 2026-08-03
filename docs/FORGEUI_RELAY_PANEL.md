@@ -3,10 +3,10 @@
 Status: **PROVEN — ESP32-P4 VALIDATED** (2026-08-02).
 
 Platform milestone:
-`FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__RUNTIME_SDK_USEREVENTS_MASTER_CONTROL_PROVEN__READY_FOR_PWM_CONTROLLER__2026-08-02`.
+Historical proof checkpoint: Relay Panel proven on ESP32-P4 on 2026-08-02; current library status is in `FORGEUI_NATIVE_COMPONENTS.md`.
 
 Concise development handover save point:
-`FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__READY_FOR_PWM_CONTROLLER__2026-08-02`.
+That checkpoint is retained as evidence, not as the current roadmap.
 
 Relay Panel is **ForgeUI Native Component #3**. It represents one logical bank
 of 1–8 relays, contactors, solenoids, pumps, lights, fans, valves or general
@@ -125,4 +125,4 @@ ESP32-P4 proof above.
 8. Gauge Cluster
 9. Energy Monitor
 
-PWM Controller implementation has not started.
+PWM Controller and Components #5–#13 subsequently completed implementation through the same Native Component pipeline.

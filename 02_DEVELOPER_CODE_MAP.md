@@ -1,5 +1,25 @@
 # Developer Code Map: where features live, who owns each layer, and which files are authoritative
 
+## Current Native Component code map — 2026-08-03
+
+All components #1–#13 use one vertical slice. See [`docs/FORGEUI_NATIVE_COMPONENTS.md`](docs/FORGEUI_NATIVE_COMPONENTS.md) for the authoritative library/status index.
+
+| Layer | Actual path/pattern |
+|---|---|
+| Semantic models | `studio/src/forgeui/ForgeUI<Component>.ts` |
+| Browser Preview | `studio/src/forgeui/preview/ForgeUI<Component>Preview.tsx`; dispatch in `forgePreviewRenderer.tsx` and `ComponentPreview.tsx` |
+| Inspector | `studio/src/components/inspector/panels/components/<Component>Panel.tsx`; dispatch in `Panels.tsx` |
+| Registry, palette, search, documentation metadata | `studio/src/forgeui/widgets/ForgeUIWidgetRegistry.ts` |
+| AI catalogue | `studio/src/forgeui/ai/ForgeAIComponentCatalogue.ts` and `ForgeAIPromptBuilder.ts` |
+| Shared Live/Standalone LVGL and Runtime SDK | `studio/src/forgeui/ForgeUILvglExport.ts` |
+| Export and UserEvents reconciliation | `studio/export-server.js` |
+| Generated Runtime SDK | `firmware/ForgeUI-One/main/90_Studio_Export.c/.h` |
+| Developer UserEvents | `firmware/ForgeUI-One/main/95_UserEvents.c/.h` |
+| Focused tests | `studio/src/forgeui/ForgeUI<Component>.test.tsx` and `ForgeUILvglExport.<component>.test.ts` |
+| Documentation | `docs/FORGEUI_<COMPONENT>.md` |
+
+Dated PWM/Relay “next” sections below are historical and do not override this map.
+
 ## PWM Controller vertical slice — 2026-08-02
 
 Semantic model: `studio/src/forgeui/ForgeUIPwmController.ts`; Inspector: `PwmControllerPanel.tsx`; shared preview: `ForgeUIPwmControllerPreview.tsx`; Registry: `ForgeUIWidgetRegistry.ts`; shared Live/Standalone composition and SDK: `ForgeUILvglExport.ts`; existing UserEvents reconciliation: `studio/export-server.js`. Status: **IMPLEMENTED — READY FOR HARDWARE PROOF**. See `docs/FORGEUI_PWM_CONTROLLER.md`.
@@ -24,7 +44,7 @@ Practical LVGL 9.2 is complete: **44 registered practical widgets/components,
 intentionally excluded. The next major chapter is ForgeUI Platform development.
 
 Current ForgeUI Platform milestone:
-**FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__RUNTIME_SDK_USEREVENTS_MASTER_CONTROL_PROVEN__READY_FOR_PWM_CONTROLLER__2026-08-02**.
+**FORGEUI_NATIVE_PLATFORM__FIRST_GENERATION_COMPONENT_LIBRARY_IMPLEMENTED__PHYSICAL_PROOF_CLOSURE_NEXT__2026-08-03**.
 
 Dashboard Card is **ForgeUI Native Component #1 — PROVEN** across Registry,
 versioned semantic model, Inspector, single-object Canvas ownership, shared
@@ -41,7 +61,7 @@ model, `RelayPanelPanel.tsx` its Inspector, `ForgeUIRelayPanelPreview.tsx` its
 shared preview, and `ForgeUILvglExport.ts` its private LVGL composition and
 semantic APIs/hooks. Physical ESP32-P4 proof validated genuine-user channel and
 master interaction while Wi-Fi and SD remained operational. Hardware drivers
-remain application-owned. PWM Controller is next and has not started.
+remain application-owned. PWM and Components #5–#13 now use the same owners and shared pipeline.
 
 ## Current authoritative ownership summary
 

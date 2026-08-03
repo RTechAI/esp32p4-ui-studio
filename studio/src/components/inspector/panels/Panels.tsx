@@ -26,6 +26,7 @@ import { TankLevelCardPanel } from '~components/inspector/panels/components/Tank
 import { NetworkStatusCardPanel } from '~components/inspector/panels/components/NetworkStatusCardPanel'
 import { DeviceSummaryCardPanel } from '~components/inspector/panels/components/DeviceSummaryCardPanel'
 import { KpiCardPanel } from '~components/inspector/panels/components/KpiCardPanel'
+import { PowerFlowCardPanel } from '~components/inspector/panels/components/PowerFlowCardPanel'
 import ProgressPanel from '~components/inspector/panels/components/ProgressPanel'
 import BarPanel from '~components/inspector/panels/components/BarPanel'
 import ArcPanel from '~components/inspector/panels/components/ArcPanel'
@@ -120,6 +121,7 @@ const Panels: React.FC<{ component: IComponent; isRoot: boolean }> = ({
       {type === 'NetworkStatusCard' && <NetworkStatusCardPanel />}
       {type === 'DeviceSummaryCard' && <DeviceSummaryCardPanel />}
       {type === 'KpiCard' && <KpiCardPanel />}
+      {type === 'PowerFlowCard' && <PowerFlowCardPanel />}
       {type === 'Progress' && <ProgressPanel />}
       {type === 'Bar' && <BarPanel />}
       {type === 'Arc' && <ArcPanel />}

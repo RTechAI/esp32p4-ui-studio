@@ -95,6 +95,7 @@ const displayNames: Partial<Record<ComponentType, string>> = {
   NetworkStatusCard: 'Network Status Card',
   DeviceSummaryCard: 'Device Summary Card',
   KpiCard: 'KPI Card',
+  PowerFlowCard: 'Power Flow Card',
 }
 
 const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
@@ -157,7 +158,7 @@ const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
     'AlarmPanel',
     'IOMonitor',
     'BatteryCard',
-    'TankLevelCard', 'NetworkStatusCard', 'DeviceSummaryCard', 'KpiCard',
+    'TankLevelCard', 'NetworkStatusCard', 'DeviceSummaryCard', 'KpiCard', 'PowerFlowCard',
   ],
   Assets: [
     'InteractiveButton',
@@ -238,6 +239,7 @@ const sizes: Partial<Record<ComponentType, [number, number]>> = {
   NetworkStatusCard: [380, 300],
   DeviceSummaryCard: [400, 300],
   KpiCard: [300, 220],
+  PowerFlowCard: [520, 360],
 }
 
 const keywords: Partial<Record<ComponentType, string[]>> = {
@@ -317,6 +319,7 @@ const keywords: Partial<Record<ComponentType, string[]>> = {
   NetworkStatusCard:['network','wifi','ethernet','mqtt','cloud','internet','latency','signal','forgeui native'],
   DeviceSummaryCard:['device','summary','health','firmware','uptime','storage','alarms','power','system','forgeui native'],
   KpiCard:['kpi','metric','percentage','numeric','delta','status','progress','target','actual','forgeui native'],
+  PowerFlowCard:['power flow','energy','solar','grid','battery','generator','load','inverter','forgeui native'],
 }
 
 type CapabilityDefinition = Omit<
@@ -472,6 +475,7 @@ const capabilitiesByType: Partial<Record<
   NetworkStatusCard:{...capability(true,true,true),instanceConfiguration:{runtimeApiProperty:'generateRuntimeApi',runtimeApiDefault:true,userEventProperty:'enableUserEvents',userEventDefault:true}},
   DeviceSummaryCard:{...capability(true,true,true),instanceConfiguration:{runtimeApiProperty:'generateRuntimeApi',runtimeApiDefault:true,userEventProperty:'enableUserEvents',userEventDefault:true}},
   KpiCard:{...capability(true,true,true),instanceConfiguration:{runtimeApiProperty:'generateRuntimeApi',runtimeApiDefault:true,userEventProperty:'enableUserEvents',userEventDefault:true}},
+  PowerFlowCard:{...capability(true,true,true),instanceConfiguration:{runtimeApiProperty:'generateRuntimeApi',runtimeApiDefault:true,userEventProperty:'enableUserEvents',userEventDefault:true}},
 
   Input: capability(true, true, true),
   Textarea: capability(true, true, true),
@@ -563,6 +567,7 @@ const documentationByType: Partial<Record<ComponentType, string>> = {
   NetworkStatusCard:'docs/FORGEUI_NETWORK_STATUS_CARD.md',
   DeviceSummaryCard:'docs/FORGEUI_DEVICE_SUMMARY_CARD.md',
   KpiCard:'docs/FORGEUI_KPI_CARD.md',
+  PowerFlowCard:'docs/FORGEUI_POWER_FLOW_CARD.md',
   List: 'docs/FORGEUI_LIST_WIDGET.md',
   Tileview: 'docs/FORGEUI_TILEVIEW_WIDGET.md',
   Spinbox: 'docs/FORGEUI_SPINBOX_WIDGET.md',
@@ -617,6 +622,7 @@ const describe = (
     NetworkStatusCard:'Semantic communication-health monitor for application-owned network interfaces.',
     DeviceSummaryCard:'Semantic embedded-device identity, health, firmware and system overview.',
     KpiCard:'Semantic dashboard metric with value, progress, delta, status, and target presentation.',
+    PowerFlowCard:'Semantic fixed-topology energy-flow view for sources, storage, loads, and grid.',
     InteractiveButton: 'Reusable state-sheet driven button.',
   }
   return special[type] || `${name} ${category.toLowerCase()} widget.`
@@ -669,21 +675,21 @@ export const forgeUIWidgetDefinitions: ForgeUIWidgetDefinition[] = (Object.value
       type === 'SensorTile' ||
       type === 'RelayPanel' ||
       type === 'PwmController' ||
-      type === 'TrendChart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor' || type === 'BatteryCard' || type === 'TankLevelCard' || type === 'NetworkStatusCard' || type === 'DeviceSummaryCard' || type === 'KpiCard'
+      type === 'TrendChart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor' || type === 'BatteryCard' || type === 'TankLevelCard' || type === 'NetworkStatusCard' || type === 'DeviceSummaryCard' || type === 'KpiCard' || type === 'PowerFlowCard'
         ? 'forgeui-native'
         : 'lvgl-standard',
     ...(type === 'DashboardCard' ||
     type === 'SensorTile' ||
     type === 'RelayPanel' ||
     type === 'PwmController' ||
-    type === 'TrendChart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor' || type === 'BatteryCard' || type === 'TankLevelCard' || type === 'NetworkStatusCard' || type === 'DeviceSummaryCard' || type === 'KpiCard'
+    type === 'TrendChart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor' || type === 'BatteryCard' || type === 'TankLevelCard' || type === 'NetworkStatusCard' || type === 'DeviceSummaryCard' || type === 'KpiCard' || type === 'PowerFlowCard'
       ? { nativeWidgetSchemaVersion: 1 }
       : {}),
     ...(type === 'DashboardCard' ||
     type === 'SensorTile' ||
     type === 'RelayPanel' ||
     type === 'PwmController' ||
-    type === 'TrendChart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor' || type === 'BatteryCard' || type === 'TankLevelCard' || type === 'NetworkStatusCard' || type === 'DeviceSummaryCard' || type === 'KpiCard'
+    type === 'TrendChart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor' || type === 'BatteryCard' || type === 'TankLevelCard' || type === 'NetworkStatusCard' || type === 'DeviceSummaryCard' || type === 'KpiCard' || type === 'PowerFlowCard'
       ? {
           platform: {
             kind: 'native-widget' as const,

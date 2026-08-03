@@ -1,12 +1,19 @@
 # ForgeUI Studio
 
+ForgeUI is two aligned platforms:
+
+- **Practical LVGL Platform:** 44/44 practical LVGL 9.2 widgets/components physically proven on ESP32-P4; Lottie intentionally excluded.
+- **Semantic Native Component Platform:** Components #1–#13 are implemented through one Registry, Canvas/Inspector, Browser Preview, shared Live/Standalone generator, Runtime SDK, and UserEvents pipeline. Dashboard Card, Sensor Tile, and Relay Panel are **PROVEN**; PWM Controller is ready for final physical proof; Components #5–#13 are **PROOF PENDING**.
+
+Start with the [authoritative Native Component table](docs/FORGEUI_NATIVE_COMPONENTS.md), [Feature Status](04_FEATURE_STATUS.md), [Developer Code Map](02_DEVELOPER_CODE_MAP.md), and [Runtime SDK](07_FORGEUI_RUNTIME_SDK.md). Dated “next component” passages retained below are historical and do not override these sources.
+
 > Next architecture sprint (recorded, not implemented): **ForgeUI ESP32-S3 Simulator Platform** for simulated digital I/O, PWM, analogue, battery, tank, motor and relay behavior, Wi-Fi communication, repeatable hardware validation, a future Test Certificate Card and a public hardware-proof workflow.
 
 Current architecture save point:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
 Current ForgeUI Platform milestone:
-`FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__RUNTIME_SDK_USEREVENTS_MASTER_CONTROL_PROVEN__READY_FOR_PWM_CONTROLLER__2026-08-02`.
+`FORGEUI_NATIVE_PLATFORM__FIRST_GENERATION_COMPONENT_LIBRARY_IMPLEMENTED__PHYSICAL_PROOF_CLOSURE_NEXT__2026-08-03`.
 
 **ForgeUI Studio is an open-source, AI-assisted visual HMI and embedded GUI designer for ESP32-P4.** It combines a drag-and-drop Canvas, reusable Interactive Assets, AI Layout tools, Browser Preview, native LVGL 9 generation, integrated ESP-IDF Build & Flash, and standalone ESP-IDF project export.
 
@@ -47,7 +54,7 @@ symbols and active developer hooks across regeneration. See
 Relay Panel is now **ForgeUI Native Component #3 — PROVEN**. It provides one semantic 1–8 channel logical output
 bank, interactive preview, shared native export, seven bounded Runtime APIs and
 genuine-user channel/master hooks without owning GPIO configuration. PWM
-Controller is next and has not started. See
+Controller and Components #5–#13 are now implemented; proof status is tracked separately. See
 [ForgeUI Relay Panel](docs/FORGEUI_RELAY_PANEL.md).
 
 - Drag-and-drop, free-form Canvas placement and resizing

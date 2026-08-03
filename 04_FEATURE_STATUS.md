@@ -1,5 +1,28 @@
 # 04_FEATURE_STATUS.md
 
+## Authoritative current platform status — 2026-08-03
+
+The Practical LVGL Platform is **44/44 physically proven on ESP32-P4**; Lottie is intentionally excluded. The Native Component implementation library is complete through #13, including #5A. This table supersedes dated roadmap/status passages later in this chronological evidence document.
+
+| # | Native Component | Runtime SDK | UserEvents | Live | Standalone | Proof status |
+|---|---|---|---|---|---|---|
+| 1 | Dashboard Card | Yes | Yes | Yes | Yes | **PROVEN** |
+| 2 | Sensor Tile | Yes | Yes | Yes | Yes | **PROVEN** |
+| 3 | Relay Panel | Yes | Yes | Yes | Yes | **PROVEN** |
+| 4 | PWM Controller | Yes | Yes | Yes | Yes | **READY FOR FINAL PHYSICAL PROOF** |
+| 5 | Trend Chart | Yes | Yes | Yes | Yes | **PROOF PENDING** |
+| 5A | Trend Chart Pro | Yes | Yes | Yes | Yes | **PROOF PENDING** |
+| 6 | Alarm Panel | Yes | Yes | Yes | Yes | **PROOF PENDING** |
+| 7 | IO Monitor | Yes | Yes | Yes | Yes | **PROOF PENDING** |
+| 8 | Battery Card | Yes | Yes | Yes | Yes | **PROOF PENDING** |
+| 9 | Tank Level Card | Yes | Yes | Yes | Yes | **PROOF PENDING** |
+| 10 | Network Status Card | Yes | Yes | Yes | Yes | **PROOF PENDING** |
+| 11 | Device Summary Card | Yes | Yes | Yes | Yes | **PROOF PENDING** |
+| 12 | KPI Card | Yes | Yes | Yes | Yes | **PROOF PENDING** |
+| 13 | Power Flow Card | Yes | Yes | Yes | Yes | **PROOF PENDING** |
+
+Purpose, documentation links, ownership boundaries, and proof definitions are in [`docs/FORGEUI_NATIVE_COMPONENTS.md`](docs/FORGEUI_NATIVE_COMPONENTS.md). Current milestone: close physical proof gates without changing the completed semantic architecture. Next milestone: record strict-warning builds, physical behavior, duplicate isolation, RAM/FPS, Wi-Fi/SD coexistence, and ten-minute soak evidence for pending components.
+
 ## 2026-08-02 Practical LVGL 9.2 completion
 
 Current platform save point:
@@ -48,7 +71,7 @@ This document records implementation and proof status only.
 ## ForgeUI Native Components
 
 Current platform milestone:
-`FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__RUNTIME_SDK_USEREVENTS_MASTER_CONTROL_PROVEN__READY_FOR_PWM_CONTROLLER__2026-08-02`.
+`FORGEUI_NATIVE_PLATFORM__FIRST_GENERATION_COMPONENT_LIBRARY_IMPLEMENTED__PHYSICAL_PROOF_CLOSURE_NEXT__2026-08-03`.
 
 | Native component | Status | Evidence boundary |
 |---|---|---|
@@ -1659,3 +1682,6 @@ Implemented and ready for ESP32-P4 proof as of 2026-08-03. Semantic model, Regis
 # KPI Card (Native Component #12)
 
 Implemented and ready for ESP32-P4 proof as of 2026-08-03. Registry, Canvas, Inspector, deterministic preview, shared Live/Standalone export, fixed-memory Runtime SDK, UserEvents, duplicates, tests, and documentation are implemented. Physical proof remains pending.
+# Power Flow Card (Native Component #13)
+
+Implemented and ready for ESP32-P4 proof as of 2026-08-03. The fixed topology model, Registry, Canvas/Inspector, deterministic preview, Live/Standalone export, silent Runtime SDK, UserEvents, duplicate isolation, tests, and documentation are implemented. Physical proof remains pending.

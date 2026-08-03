@@ -217,6 +217,7 @@ export const componentsList: ComponentType[] = ([
   'NetworkStatusCard',
   'DeviceSummaryCard',
   'KpiCard',
+  'PowerFlowCard',
   'Editable',
   'Flex',
   'FormControl',

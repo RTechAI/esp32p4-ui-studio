@@ -1,5 +1,11 @@
 # Project Spine: what ForgeUI is, what is proven, current priorities, and what must not regress
 
+## Current platform alignment — 2026-08-03
+
+ForgeUI has a **44/44 physically proven Practical LVGL Platform** plus the first-generation **Native Component Platform through #13** (including #5A). Components #1–#3 are **PROVEN**; #4 PWM Controller is **READY FOR FINAL PHYSICAL PROOF**; #5/5A through #13 are implemented and **PROOF PENDING**. The authoritative table is [`docs/FORGEUI_NATIVE_COMPONENTS.md`](docs/FORGEUI_NATIVE_COMPONENTS.md). Dated “next component” sections below are historical evidence.
+
+**CURRENT PRIORITY: PHYSICAL PROOF CLOSURE FOR THE IMPLEMENTED NATIVE COMPONENT LIBRARY.** Never promote status from tests or preview alone.
+
 ## 2026-08-02 — Native Component #4 PWM Controller
 
 PWM Controller is implemented through the existing Registry, semantic persistence, shared Browser Preview, shared Live/Standalone LVGL generator, Runtime SDK and `95_UserEvents` reconciliation. Persisted `IComponent.id` owns symbols/hooks; visible label renames do not. ForgeUI owns no GPIO or LEDC configuration. Status is **READY FOR HARDWARE PROOF**, not proven. See [`docs/FORGEUI_PWM_CONTROLLER.md`](docs/FORGEUI_PWM_CONTROLLER.md).
@@ -21,7 +27,7 @@ PWM Controller is implemented through the existing Registry, semantic persistenc
 
 ## Current ForgeUI Platform milestone
 
-**FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__RUNTIME_SDK_USEREVENTS_MASTER_CONTROL_PROVEN__READY_FOR_PWM_CONTROLLER__2026-08-02**
+**FORGEUI_NATIVE_PLATFORM__FIRST_GENERATION_COMPONENT_LIBRARY_IMPLEMENTED__PHYSICAL_PROOF_CLOSURE_NEXT__2026-08-03**
 
 Dashboard Card is **ForgeUI Native Component #1 — PROVEN**. Physical validation
 confirmed Registry integration, semantic serialization, single-component Canvas
@@ -44,7 +50,7 @@ proof exercised channels 0–3 and master ON/OFF/ON. Wi-Fi remained connected at
 runtime failure occurred. GPIO and relay hardware remain application-owned.
 
 Concise development handover save point:
-**FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__READY_FOR_PWM_CONTROLLER__2026-08-02**.
+**Historical Relay Panel proof checkpoint (2026-08-02); superseded by the current platform milestone above.**
 
 ### 2026-08-02 ForgeUI Native Component #3 Relay Panel proof
 
@@ -54,7 +60,7 @@ object, private LVGL composition, Browser Preview, shared Live/Standalone
 generation, bounded zero-based Runtime state, silent setters, genuine-user
 channel/master events, individual/master control, configured disabled-channel
 protection, collision-safe multi-instance generation and UserEvents
-reconciliation. PWM Controller is next and has not started.
+reconciliation. That statement was the 2026-08-02 handoff; PWM and Components #5–#13 are now implemented with proof status tracked separately.
 
 ### 2026-08-02 ForgeUI Native Component #2 Sensor Tile proof
 

@@ -93,6 +93,7 @@ type ComponentType =
   | 'NetworkStatusCard'
   | 'DeviceSummaryCard'
   | 'KpiCard'
+  | 'PowerFlowCard'
   | 'NumberInput'
   | 'Progress'
   | 'QRCode'

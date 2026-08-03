@@ -1,10 +1,16 @@
 # ForgeUI Runtime SDK Direction
 
+## Current Native Component SDK alignment — 2026-08-03
+
+All Native Components #1–#13 expose their implemented capability through identity-scoped semantic APIs generated into `90_Studio_Export.c/.h`; no public LVGL objects are exposed. Setters are silent, bounded, duplicate-safe, and never emit UserEvents. Genuine-user callbacks are declared in `95_UserEvents.h`; live developer bodies in `95_UserEvents.c` survive reconciliation, while Standalone copies become developer-owned. Representative component families and documentation links are indexed in [`docs/FORGEUI_NATIVE_COMPONENTS.md`](docs/FORGEUI_NATIVE_COMPONENTS.md).
+
+Examples: `FG_Set_Main_Dashboard_Value(...)`, `FG_Set_Temperature_Sensor_Value(...)`, `FG_Set_Main_Relay_Channel(...)`, `FG_Set_Fan_PWM_Value(...)`, `FG_Add_Battery_Voltage_Point(...)`, `FG_Set_Main_Alarm_Counts(...)`, `FG_Set_Main_IO_State(...)`, `FG_Set_Main_Battery_State_Of_Charge(...)`, `FG_Set_Fresh_Water_Level(...)`, `FG_Set_Main_Network_State(...)`, `FG_Set_Main_Device_Health(...)`, `FG_Set_System_Output_Value(...)`, and `FG_Set_Main_Power_Flow_Solar_Watts(...)`. Exact generated declarations are authoritative.
+
 Current save point:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
 Current ForgeUI Platform milestone:
-`FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__RUNTIME_SDK_USEREVENTS_MASTER_CONTROL_PROVEN__READY_FOR_PWM_CONTROLLER__2026-08-02`.
+`FORGEUI_NATIVE_PLATFORM__FIRST_GENERATION_COMPONENT_LIBRARY_IMPLEMENTED__PHYSICAL_PROOF_CLOSURE_NEXT__2026-08-03`.
 
 Dashboard Card is **ForgeUI Native Component #1 — PROVEN**. ESP32-P4 proof
 verified its semantic Value, Units, Status and Progress setters, optional root
@@ -374,3 +380,6 @@ Device Summary instances generate stable `fg_device_health_t` and `fg_device_pow
 # KPI Card API
 
 KPI instances export identity-scoped setters for value, units, status, RGB status colour, progress, delta, target, and updated text. Setters use fixed storage and never emit UserEvents.
+# Power Flow Card API
+
+Power Flow instances export stable flow/node enums and identity-scoped setters for primary nodes, efficiency, energy, state, online/fault state, status, generic nodes, and fixed connections. All setters are silent and allocation-free.

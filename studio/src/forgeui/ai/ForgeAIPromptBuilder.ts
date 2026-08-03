@@ -49,7 +49,7 @@ export const forgeAIPromptBuilderGroups: ForgeAIPromptBuilderGroup[] = [
   { label: 'Charts', types: ['Chart'] },
   {
     label: 'ForgeUI Native',
-    types: ['DashboardCard', 'SensorTile', 'RelayPanel', 'TrendChart', 'TrendChartPro', 'AlarmPanel', 'IOMonitor', 'BatteryCard', 'TankLevelCard', 'NetworkStatusCard', 'DeviceSummaryCard', 'KpiCard'],
+    types: ['DashboardCard', 'SensorTile', 'RelayPanel', 'TrendChart', 'TrendChartPro', 'AlarmPanel', 'IOMonitor', 'BatteryCard', 'TankLevelCard', 'NetworkStatusCard', 'DeviceSummaryCard', 'KpiCard', 'PowerFlowCard'],
   },
   { label: 'Containers', types: ['Box', 'Canvas', 'Line', 'Divider'] },
   { label: 'Navigation', types: ['Tabview', 'Tileview'] },

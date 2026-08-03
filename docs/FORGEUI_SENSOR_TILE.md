@@ -3,7 +3,7 @@
 Status: **PROVEN — ESP32-P4 VALIDATED** (2026-08-02).
 
 Platform milestone:
-`FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__RUNTIME_SDK_USEREVENTS_MASTER_CONTROL_PROVEN__READY_FOR_PWM_CONTROLLER__2026-08-02`.
+Current library and proof status: [`FORGEUI_NATIVE_COMPONENTS.md`](FORGEUI_NATIVE_COMPONENTS.md). The earlier Relay Panel handoff is historical.
 
 Sensor Tile is **ForgeUI Native Component #2**. It represents one live
 engineering measurement while its internal LVGL container, labels, status

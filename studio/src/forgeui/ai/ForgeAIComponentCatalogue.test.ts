@@ -56,7 +56,6 @@ describe('ForgeUI AI component catalogue', () => {
     ]))
     expect(futureUnregisteredWidgetTypes).toEqual(new Set([
       'Lottie',
-      'Menu',
       'ObjxTempl',
       'Editable',
     ]))

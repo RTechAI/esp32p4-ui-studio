@@ -67,6 +67,7 @@ import { ForgeUITankLevelCardPreview } from '~forgeui/preview/ForgeUITankLevelCa
 import { ForgeUINetworkStatusCardPreview } from '~forgeui/preview/ForgeUINetworkStatusCardPreview'
 import { ForgeUIDeviceSummaryCardPreview } from '~forgeui/preview/ForgeUIDeviceSummaryCardPreview'
 import { ForgeUIKpiCardPreview } from '~forgeui/preview/ForgeUIKpiCardPreview'
+import { ForgeUIPowerFlowCardPreview } from '~forgeui/preview/ForgeUIPowerFlowCardPreview'
 import { useForgePreviewPalette } from '~forgeui/theme/ForgeThemeContext'
 import { resolveForgeSemanticPalette } from '~forgeui/preview/forgeThemeMap'
 import InteractiveButtonCanvasPreview, {
@@ -1239,6 +1240,7 @@ const ComponentPreview: React.FC<{
     case 'NetworkStatusCard': return <PreviewContainer component={component} enableVisualHelper {...forwardedProps}><ForgeUINetworkStatusCardPreview component={component} palette={previewPalette}/></PreviewContainer>
     case 'DeviceSummaryCard': return <PreviewContainer component={component} enableVisualHelper {...forwardedProps}><ForgeUIDeviceSummaryCardPreview component={component} palette={previewPalette}/></PreviewContainer>
     case 'KpiCard': return <PreviewContainer component={component} enableVisualHelper {...forwardedProps}><ForgeUIKpiCardPreview component={component} palette={previewPalette}/></PreviewContainer>
+    case 'PowerFlowCard': return <PreviewContainer component={component} enableVisualHelper {...forwardedProps}><ForgeUIPowerFlowCardPreview component={component} palette={previewPalette}/></PreviewContainer>
 
     default:
       return null

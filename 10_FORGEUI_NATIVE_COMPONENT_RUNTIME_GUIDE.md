@@ -3,7 +3,7 @@
 Status: **AUTHORITATIVE LIVING DEVELOPER REFERENCE** (2026-08-02).
 
 Current ForgeUI Platform milestone:
-`FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__RUNTIME_SDK_USEREVENTS_MASTER_CONTROL_PROVEN__READY_FOR_PWM_CONTROLLER__2026-08-02`.
+`FORGEUI_NATIVE_PLATFORM__FIRST_GENERATION_COMPONENT_LIBRARY_IMPLEMENTED__PHYSICAL_PROOF_CLOSURE_NEXT__2026-08-03`.
 
 Dashboard Card and Sensor Tile, ForgeUI Native Components #1 and #2, are
 **PROVEN** on ESP32-P4. Relay Panel is physically proven on ESP32-P4.
@@ -436,3 +436,9 @@ The Device Summary Card is independently driven and duplicate-safe. Compact, Det
 # Native Component #12: KPI Card
 
 The KPI Card is an independently driven semantic metric component supporting six dashboard modes with no business-logic or cross-component coupling. See `docs/FORGEUI_KPI_CARD.md`.
+# Native Component #13: Power Flow Card
+
+The Power Flow Card uses fixed 17-node and 12-connection storage through the authoritative Registry and shared Live/Standalone generator. It has no protocol, control, safety, or cross-component coupling.
+# Current library alignment — 2026-08-03
+
+This guide applies to Native Components #1–#13. The authoritative list, ownership matrix, documentation links, and proof states are in [`docs/FORGEUI_NATIVE_COMPONENTS.md`](docs/FORGEUI_NATIVE_COMPONENTS.md). Runtime setters are silent; UserEvents represent genuine user intent; live `95_UserEvents.c` is preservation-merged; Standalone copies become developer-owned; duplicate instances route through stable persisted identities. Dated Component #3 “next” language below is historical.

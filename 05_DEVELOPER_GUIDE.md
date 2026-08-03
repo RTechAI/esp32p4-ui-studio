@@ -8,7 +8,7 @@ Current save point:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
 Current ForgeUI Platform milestone:
-`FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__RUNTIME_SDK_USEREVENTS_MASTER_CONTROL_PROVEN__READY_FOR_PWM_CONTROLLER__2026-08-02`.
+`FORGEUI_NATIVE_PLATFORM__FIRST_GENERATION_COMPONENT_LIBRARY_IMPLEMENTED__PHYSICAL_PROOF_CLOSURE_NEXT__2026-08-03`.
 
 Dashboard Card is **ForgeUI Native Component #1 — PROVEN**. It validates the
 application-level composite pattern while remaining one serialized and
@@ -22,7 +22,7 @@ and active developer hooks survive regeneration correctly.
 
 Relay Panel is now **PROVEN** through the same architecture on ESP32-P4. It uses zero-based bounded channels, silent semantic Runtime
 setters, genuine-user channel/master hooks and application-owned hardware
-drivers. PWM Controller is next and has not started. Confirmation prompts are deliberately deferred until one shared
+drivers. PWM Controller and Components #5–#13 are implemented through the shared pipeline. Confirmation prompts are deliberately deferred until one shared
 Browser/LVGL confirmation path exists.
 
 For application-to-hardware examples after export, use
@@ -548,3 +548,9 @@ Supply explicit device identity, health, firmware, uptime, connectivity, storage
 # KPI Card
 
 Choose a semantic KPI mode in Studio and supply the metric from application code through generated setters. ForgeUI formats the value, units, status, progress, delta, target, and update label without owning the metric or its business meaning.
+# Power Flow Card
+
+Supply all power values, states, balance, and topology status from application code. ForgeUI presents flow and never calculates balance, communicates with equipment, or performs control/safety decisions. Battery values are negative while charging; grid values are negative while exporting. See `docs/FORGEUI_POWER_FLOW_CARD.md`.
+# Current Native Component development contract — 2026-08-03
+
+The first-generation Native Component library through #13 is implemented. Discover components through the authoritative Widget Registry, drive them only through generated semantic Runtime SDK functions, and implement genuine-user reactions in `95_UserEvents.c`. Application code owns hardware, protocols, sensing, calculations, safety, and business decisions; ForgeUI owns bounded presentation, stable identities, private LVGL composition, silent setters, and UserEvents routing. Components never read another component’s private state. See [`docs/FORGEUI_NATIVE_COMPONENTS.md`](docs/FORGEUI_NATIVE_COMPONENTS.md). Dated “next component” passages below are history.

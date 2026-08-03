@@ -3338,3 +3338,9 @@ and Live/Standalone parity.
 # KPI Card generated API
 
 `KpiCard` exports identity-scoped `FG_Set_<Identity>_*` setters for value, units, status, RGB colour, progress, delta, target, and updated text plus reconciled Selected and Details UserEvents.
+# Power Flow Card generated API
+
+`PowerFlowCard` exports shared flow-state/node enums and identity-scoped primary and generic node/connection setters. Fixed node and connection arrays remain private; selected, node-selected, details, and explicitly enabled control-request hooks reconcile into `95_UserEvents.c`.
+# Current Native Component export alignment — 2026-08-03
+
+Components #1–#13 use `ForgeUILvglExport.ts` as the single Live/Standalone composition path. Per-instance fixed storage and private LVGL objects remain generated implementation details. Public `FG_Set_*` APIs are semantic, bounded, stable-ID-derived, collision-safe, and silent. Shared enums are emitted once where required. `95_UserEvents.h` declares genuine-user hooks; live `95_UserEvents.c` is preservation-merged and Standalone copies become developer-owned. The authoritative component/API index is [`docs/FORGEUI_NATIVE_COMPONENTS.md`](docs/FORGEUI_NATIVE_COMPONENTS.md). Dated save-point appendices below are historical.

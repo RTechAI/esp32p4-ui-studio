@@ -89,3 +89,6 @@ deterministic structure and owns final geometry. Ordinary free-coordinate
 generation remains available for compatibility. Both routes produce normal
 editable ForgeUI components and use the existing Canvas, save/reload, Browser
 Preview, validation, and LVGL export paths.
+# Native Component AI catalogue alignment — 2026-08-03
+
+The authoritative AI catalogue includes Dashboard Card, Sensor Tile, Relay Panel, PWM Controller, Trend Chart, Trend Chart Pro, Alarm Panel, IO Monitor, Battery Card, Tank Level Card, Network Status Card, Device Summary Card, KPI Card, and Power Flow Card. Supported properties, default geometry, descriptions, and search phrases must remain projections of `ForgeAIComponentCatalogue.ts` and the Widget Registry; documentation must not advertise unsupported fields.
