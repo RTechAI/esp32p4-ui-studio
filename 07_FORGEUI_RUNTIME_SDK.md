@@ -368,3 +368,9 @@ Exports silent semantic level, volume, capacity, state, flow, threshold and stat
 # Network Status Card API
 
 An enabled `NetworkStatusCard` exports the stable `fg_network_state_t` enum and identity-scoped setters for state, SSID, IP, gateway, RSSI, latency, cloud, MQTT, internet, local API, and status. Storage is fixed-size and setters are silent: runtime updates never invoke UserEvents.
+# Device Summary Card API
+
+Device Summary instances generate stable `fg_device_health_t` and `fg_device_power_t` enums, share `fg_network_state_t`, and expose identity-scoped semantic setters. Strings use bounded buffers, storage uses `uint64_t`, and all setters are silent and allocation-free.
+# KPI Card API
+
+KPI instances export identity-scoped setters for value, units, status, RGB status colour, progress, delta, target, and updated text. Setters use fixed storage and never emit UserEvents.

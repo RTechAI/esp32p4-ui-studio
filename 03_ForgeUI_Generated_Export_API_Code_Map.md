@@ -3332,3 +3332,9 @@ unrelated. Batch D also physically proved the 90 → 96 path: `Visible`,
 `Opacity` and `Color` setters, retained pre-bind state, repeated-setter
 suppression, click-disabled non-interaction, independent presentation instances
 and Live/Standalone parity.
+# Device Summary Card generated API
+
+`DeviceSummaryCard` exports identity-scoped `FG_Set_<Identity>_Device_*` functions for identity, software, explicit health, uptime, network, IP, storage, alarm counts, power, battery, maintenance, and status. It also exports stable shared health, power, and network enums and reconciled Device UserEvents in `95_UserEvents.c`. See `docs/FORGEUI_DEVICE_SUMMARY_CARD.md`.
+# KPI Card generated API
+
+`KpiCard` exports identity-scoped `FG_Set_<Identity>_*` setters for value, units, status, RGB colour, progress, delta, target, and updated text plus reconciled Selected and Details UserEvents.

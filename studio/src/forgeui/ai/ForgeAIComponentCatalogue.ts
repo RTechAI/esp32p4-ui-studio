@@ -84,6 +84,8 @@ const SUPPORTED_TYPES = [
   'BatteryCard',
   'TankLevelCard',
   'NetworkStatusCard',
+  'DeviceSummaryCard',
+  'KpiCard',
 ] as const
 
 type SupportedType = typeof SUPPORTED_TYPES[number]
@@ -129,6 +131,8 @@ const DASHBOARD_TYPES = new Set<SupportedType>([
   'BatteryCard',
   'TankLevelCard',
   'NetworkStatusCard',
+  'DeviceSummaryCard',
+  'KpiCard',
 ])
 
 const descriptions: Partial<Record<SupportedType, string>> = {
@@ -158,6 +162,8 @@ const descriptions: Partial<Record<SupportedType, string>> = {
   BatteryCard:'ForgeUI Native semantic battery condition and energy monitor.',
   TankLevelCard:'ForgeUI Native semantic fluid and material level monitor.',
   NetworkStatusCard:'ForgeUI Native semantic network and communication health monitor.',
+  DeviceSummaryCard:'ForgeUI Native semantic embedded-device system overview.',
+  KpiCard:'ForgeUI Native semantic KPI metric with value, status, progress, delta, and target.',
 }
 
 const aliases: Partial<Record<SupportedType, string[]>> = {
@@ -191,6 +197,8 @@ const aliases: Partial<Record<SupportedType, string[]>> = {
   BatteryCard:['battery card','state of charge','energy storage','battery health','ups'],
   TankLevelCard:['tank level','water tank','fuel level','silo level','storage level'],
   NetworkStatusCard:['network status','wifi health','ethernet status','mqtt status','cloud connectivity'],
+  DeviceSummaryCard:['device summary','system overview','firmware health','device uptime','controller status'],
+  KpiCard:['kpi','metric card','percentage card','target vs actual','dashboard value'],
 }
 
 const sizes: Partial<Record<SupportedType, { w: number; h: number }>> = {
@@ -219,6 +227,8 @@ const sizes: Partial<Record<SupportedType, { w: number; h: number }>> = {
   BatteryCard:{w:380,h:300},
   TankLevelCard:{w:380,h:300},
   NetworkStatusCard:{w:380,h:300},
+  DeviceSummaryCard:{w:400,h:300},
+  KpiCard:{w:300,h:220},
 }
 
 const assetRequirement = (type: SupportedType): ForgeAIAssetRequirement => {

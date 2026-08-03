@@ -1653,3 +1653,9 @@ Implemented across the Native Component pipeline; ESP32-P4 proof pending.
 # Network Status Card (Native Component #10)
 
 Implemented and ready for ESP32-P4 proof as of 2026-08-03. The semantic model, registry, Canvas/Inspector, deterministic Browser Preview/Live Studio path, standalone LVGL export, fixed-storage Runtime SDK, duplicate isolation, and UserEvents generation are covered by Studio tests. Hardware soak and physical Wi-Fi/Ethernet evidence remain pending; status is not PROVEN.
+# Device Summary Card (Native Component #11)
+
+Implemented and ready for ESP32-P4 proof as of 2026-08-03. Semantic model, Registry, Canvas/Inspector, deterministic Browser Preview, shared Live/Standalone generation, fixed-memory Runtime SDK, UserEvents, identities, duplicates, tests, and documentation are implemented. Physical proof gates remain pending; status is not PROVEN.
+# KPI Card (Native Component #12)
+
+Implemented and ready for ESP32-P4 proof as of 2026-08-03. Registry, Canvas, Inspector, deterministic preview, shared Live/Standalone export, fixed-memory Runtime SDK, UserEvents, duplicates, tests, and documentation are implemented. Physical proof remains pending.

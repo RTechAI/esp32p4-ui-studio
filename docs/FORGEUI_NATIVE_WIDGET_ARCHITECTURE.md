@@ -363,3 +363,9 @@ public identity is semantic and durable; their internal LVGL composition is
 private and replaceable. This separation lets ForgeUI evolve its developer
 experience, dashboards, templates, AI tooling and Runtime SDK for years without
 forking the proven platform architecture.
+# Device Summary Card
+
+Native Component #11 follows this authoritative pipeline and adds no parallel state or export system. Its explicit health and all system measurements are application-owned; ForgeUI owns bounded semantic presentation and identity-scoped generated interfaces.
+# KPI Card
+
+Native Component #12 uses the authoritative Registry and shared Live/Standalone generator. It adds no metric service, business-state derivation, or parallel export path.

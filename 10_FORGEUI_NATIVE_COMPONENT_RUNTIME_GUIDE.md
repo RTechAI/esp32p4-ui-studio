@@ -430,3 +430,9 @@ volume, flow, control or safety calculations.
 # Native Component #10: Network Status Card
 
 The Network Status Card follows the standard Native Component identity and export pipeline. Duplicate cards generate independent fixed-size state and identity-scoped Runtime SDK/UserEvents names. It is semantic presentation only and must be driven by application-owned networking. Full usage and ESP32-P4 proof criteria are in `docs/FORGEUI_NETWORK_STATUS_CARD.md`.
+# Native Component #11: Device Summary Card
+
+The Device Summary Card is independently driven and duplicate-safe. Compact, Detailed, and System Dashboard instances use the same Registry and Live/Standalone generation path. No component-to-component runtime coupling is permitted. See `docs/FORGEUI_DEVICE_SUMMARY_CARD.md` for ownership, memory, API, and proof details.
+# Native Component #12: KPI Card
+
+The KPI Card is an independently driven semantic metric component supporting six dashboard modes with no business-logic or cross-component coupling. See `docs/FORGEUI_KPI_CARD.md`.

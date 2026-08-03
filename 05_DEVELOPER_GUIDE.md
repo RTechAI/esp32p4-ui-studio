@@ -542,3 +542,9 @@ visibility and bind calibrated values through its Runtime SDK.
 # Network Status Card
 
 Use `NetworkStatusCard` to present communication health supplied by application code. ForgeUI does not own Wi-Fi, Ethernet, MQTT, HTTP/TCP/TLS, credentials, reconnect logic, or cloud/API clients. Configure its semantic fields in Studio, then feed live values through the generated `FG_Set_<Identity>_Network_*` API. Handle genuine user actions in `95_UserEvents.c`. See `docs/FORGEUI_NETWORK_STATUS_CARD.md`.
+# Device Summary Card
+
+Supply explicit device identity, health, firmware, uptime, connectivity, storage, alarm, power, and maintenance values through generated `FG_Set_<Identity>_Device_*` APIs. ForgeUI formats presentation only and never derives operational health or reads Network, Battery, Alarm, or Diagnostics internals. Implement genuine actions in `95_UserEvents.c`.
+# KPI Card
+
+Choose a semantic KPI mode in Studio and supply the metric from application code through generated setters. ForgeUI formats the value, units, status, progress, delta, target, and update label without owning the metric or its business meaning.
