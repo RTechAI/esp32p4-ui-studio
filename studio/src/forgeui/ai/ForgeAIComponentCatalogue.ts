@@ -83,6 +83,7 @@ const SUPPORTED_TYPES = [
   'IOMonitor',
   'BatteryCard',
   'TankLevelCard',
+  'NetworkStatusCard',
 ] as const
 
 type SupportedType = typeof SUPPORTED_TYPES[number]
@@ -127,6 +128,7 @@ const DASHBOARD_TYPES = new Set<SupportedType>([
   'IOMonitor',
   'BatteryCard',
   'TankLevelCard',
+  'NetworkStatusCard',
 ])
 
 const descriptions: Partial<Record<SupportedType, string>> = {
@@ -155,6 +157,7 @@ const descriptions: Partial<Record<SupportedType, string>> = {
   IOMonitor: 'ForgeUI Native semantic embedded I/O and machine-state monitor.',
   BatteryCard:'ForgeUI Native semantic battery condition and energy monitor.',
   TankLevelCard:'ForgeUI Native semantic fluid and material level monitor.',
+  NetworkStatusCard:'ForgeUI Native semantic network and communication health monitor.',
 }
 
 const aliases: Partial<Record<SupportedType, string[]>> = {
@@ -187,6 +190,7 @@ const aliases: Partial<Record<SupportedType, string[]>> = {
   IOMonitor: ['io monitor', 'digital inputs', 'digital outputs', 'plc io', 'machine status'],
   BatteryCard:['battery card','state of charge','energy storage','battery health','ups'],
   TankLevelCard:['tank level','water tank','fuel level','silo level','storage level'],
+  NetworkStatusCard:['network status','wifi health','ethernet status','mqtt status','cloud connectivity'],
 }
 
 const sizes: Partial<Record<SupportedType, { w: number; h: number }>> = {
@@ -214,6 +218,7 @@ const sizes: Partial<Record<SupportedType, { w: number; h: number }>> = {
   IOMonitor: { w: 460, h: 340 },
   BatteryCard:{w:380,h:300},
   TankLevelCard:{w:380,h:300},
+  NetworkStatusCard:{w:380,h:300},
 }
 
 const assetRequirement = (type: SupportedType): ForgeAIAssetRequirement => {

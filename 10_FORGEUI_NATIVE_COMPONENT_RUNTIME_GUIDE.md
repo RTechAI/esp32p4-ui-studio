@@ -427,3 +427,6 @@ logic. Never treat Battery Card as a safety-rated BMS or protection controller.
 
 Supply calibrated values from application logic. ForgeUI performs no tank geometry,
 volume, flow, control or safety calculations.
+# Native Component #10: Network Status Card
+
+The Network Status Card follows the standard Native Component identity and export pipeline. Duplicate cards generate independent fixed-size state and identity-scoped Runtime SDK/UserEvents names. It is semantic presentation only and must be driven by application-owned networking. Full usage and ESP32-P4 proof criteria are in `docs/FORGEUI_NETWORK_STATUS_CARD.md`.

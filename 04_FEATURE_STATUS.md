@@ -1650,3 +1650,6 @@ firmware APIs and a stable state enum. Status: **implemented; ESP32-P4 proof pen
 # ForgeUI Native Component #9 — Tank Level Card
 
 Implemented across the Native Component pipeline; ESP32-P4 proof pending.
+# Network Status Card (Native Component #10)
+
+Implemented and ready for ESP32-P4 proof as of 2026-08-03. The semantic model, registry, Canvas/Inspector, deterministic Browser Preview/Live Studio path, standalone LVGL export, fixed-storage Runtime SDK, duplicate isolation, and UserEvents generation are covered by Studio tests. Hardware soak and physical Wi-Fi/Ethernet evidence remain pending; status is not PROVEN.

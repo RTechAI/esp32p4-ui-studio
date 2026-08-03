@@ -365,3 +365,6 @@ silent and contain no BMS or protection behavior.
 # Tank Level Card
 
 Exports silent semantic level, volume, capacity, state, flow, threshold and status setters.
+# Network Status Card API
+
+An enabled `NetworkStatusCard` exports the stable `fg_network_state_t` enum and identity-scoped setters for state, SSID, IP, gateway, RSSI, latency, cloud, MQTT, internet, local API, and status. Storage is fixed-size and setters are silent: runtime updates never invoke UserEvents.
