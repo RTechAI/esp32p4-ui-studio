@@ -1637,3 +1637,9 @@ Alarm Panel is implemented through the authoritative Widget Registry, Canvas,
 Inspector, Browser Preview and shared Live/Standalone LVGL generator. Its
 semantic SDK and fixed 16/32/64-record storage are implemented and covered by
 automated tests. Status: **implemented; ESP32-P4 proof pending**.
+# ForgeUI Native Component #7 — IO Monitor
+
+IO Monitor is implemented across the semantic, registry, Canvas, Inspector,
+Browser Preview and shared export pipeline. Automated coverage verifies fixed
+buffers, silent setters and independent instances. Status: **implemented;
+ESP32-P4 proof pending**.

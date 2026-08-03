@@ -1648,7 +1648,7 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
       )
         .map((hook) => String(hook || '').trim())
         .filter((hook) =>
-          /^FG_On_[A-Za-z0-9_]+_(Clicked|Toggled|Changed|Point_Added|Cleared|Warning|Alarm|Alarm_Selected|Alarm_Acknowledged|Alarm_Cleared|Shown|Hidden|Closed|Button_Pressed|Button_Selected|Item_Clicked)$/.test(hook)
+          /^FG_On_[A-Za-z0-9_]+_(Clicked|Toggled|Changed|Point_Added|Cleared|Warning|Alarm|Alarm_Selected|Alarm_Acknowledged|Alarm_Cleared|IO_Channel_Selected|Shown|Hidden|Closed|Button_Pressed|Button_Selected|Item_Clicked)$/.test(hook)
         )
     )
   )
@@ -1661,6 +1661,8 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
   const alarmIdHooks = new Set(uniqueHooks.filter(hook =>
     /_Alarm_(Selected|Acknowledged|Cleared)$/.test(hook)
   ))
+  const ioChannelSelected = new Set(uniqueHooks.filter(hook => /_IO_Channel_Selected$/.test(hook)))
+  const ioOutputChanged = new Set(uniqueHooks.filter(hook => /_IO_Output_Changed$/.test(hook)))
 
   
 
@@ -1673,6 +1675,10 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
         ? `void ${hook}(float value);`
       : integerChanged.has(hook) || integerPointAdded.has(hook)
       ? `void ${hook}(int32_t value);`
+      : ioChannelSelected.has(hook)
+        ? `void ${hook}(uint32_t channel);`
+      : ioOutputChanged.has(hook)
+        ? `void ${hook}(uint32_t channel, bool enabled);`
       : alarmIdHooks.has(hook)
         ? `void ${hook}(const char * alarm_id);`
       : cleared.has(hook)
@@ -1731,6 +1737,16 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
 {
     printf("[ForgeUI User Event] ${hook.replace(/^FG_On_|_Point_Added$/g, '').replace(/_/g, ' ')} point added: %ld\\n",
            (long)value);
+}`
+      : ioChannelSelected.has(hook)
+        ? `void ${hook}(uint32_t channel)
+{
+    printf("[ForgeUI User Event] IO channel selected: %lu\\n", (unsigned long)channel);
+}`
+      : ioOutputChanged.has(hook)
+        ? `void ${hook}(uint32_t channel, bool enabled)
+{
+    printf("[ForgeUI User Event] IO output %lu: %s\\n", (unsigned long)channel, enabled ? "ON" : "OFF");
 }`
       : alarmIdHooks.has(hook)
         ? `void ${hook}(const char * alarm_id)

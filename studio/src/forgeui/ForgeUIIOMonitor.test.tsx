@@ -1,0 +1,8 @@
+import React from 'react';import{ChakraProvider}from'@chakra-ui/react';import{render,screen}from'@testing-library/react'
+import{normalizeForgeUIIOMonitor,simulateForgeUIIOChannels}from'./ForgeUIIOMonitor';import{ForgeUIIOMonitorPreview}from'./preview/ForgeUIIOMonitorPreview';import{FG_PREVIEW_PALETTES}from'./preview/forgeThemeMap';import{getForgeUIWidgetDefinition}from'./widgets/ForgeUIWidgetRegistry'
+
+describe('ForgeUI IO Monitor',()=>{
+  it('normalizes fixed channel counts and semantic records',()=>{const model=normalizeForgeUIIOMonitor({channelCount:21,channels:[{id:'START',label:'Engine Start',type:'digital-output',state:'on',readOnly:false}]});expect(model.channelCount).toBe(24);expect(model.channels[0]).toMatchObject({id:'START',label:'Engine Start',type:'digital-output',state:'on',readOnly:false})})
+  it('simulates deterministically',()=>{const model=normalizeForgeUIIOMonitor({channelCount:4,simulationMode:'fault-state'});expect(simulateForgeUIIOChannels(model).map(c=>c.state)).toEqual(['off','on','fault','on'])})
+  it('registers and renders Native Component #7',()=>{expect(getForgeUIWidgetDefinition('IOMonitor')).toMatchObject({displayName:'IO Monitor',origin:'forgeui-native',defaultWidth:460,capabilities:{supportsRuntimeApi:true,supportsUserEvents:true}});render(<ChakraProvider><ForgeUIIOMonitorPreview component={{id:'main-io',type:'IOMonitor',parent:'root',children:[],props:{channelCount:4,simulationMode:'machine-running'}}} palette={FG_PREVIEW_PALETTES.graphite}/></ChakraProvider>);expect(screen.getByTestId('forgeui-io-monitor')).toBeInTheDocument();expect(screen.getByText('Channel 1')).toBeInTheDocument()})
+})

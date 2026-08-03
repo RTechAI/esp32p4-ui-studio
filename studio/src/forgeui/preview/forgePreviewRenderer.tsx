@@ -62,6 +62,7 @@ import { ForgeUIRelayPanelPreview } from './ForgeUIRelayPanelPreview'
 import { ForgeUIPwmControllerPreview } from './ForgeUIPwmControllerPreview'
 import { ForgeUITrendChartPreview } from './ForgeUITrendChartPreview'
 import { ForgeUIAlarmPanelPreview } from './ForgeUIAlarmPanelPreview'
+import { ForgeUIIOMonitorPreview } from './ForgeUIIOMonitorPreview'
 import ImagePreview from '~components/editor/previews/ImagePreview'
 import StandardCalendarPreview from './StandardCalendarPreview'
 import { resolveForgeSemanticPalette } from './forgeThemeMap'
@@ -825,6 +826,7 @@ export const renderForgePreview = ({
         output.push(<Box key={child.id} {...commonStyle}><ForgeUIAlarmPanelPreview component={child} palette={palette} /></Box>)
         break
       }
+      case 'IOMonitor': { output.push(<Box key={child.id} {...commonStyle}><ForgeUIIOMonitorPreview component={child} palette={palette}/></Box>); break }
 
       case 'Spinner': {
         output.push(

@@ -617,6 +617,13 @@ export const DEFAULT_PROPS: PreviewDefaultProps = {
     alarmColour: '#E97316', criticalColour: '#EF4444', generateRuntimeApi: true,
     enableUserEvents: true, positionMode: 'absolute', x: 40, y: 40, w: 440, h: 320,
   },
+  IOMonitor: {
+    nativeWidgetSchemaVersion:1,title:'Main I/O',displayMode:'detailed-grid',channelCount:8,channels:[],indicatorSize:12,
+    showLabels:true,showStateText:true,showValues:true,showTimestamps:false,rounded:true,shadow:true,glassStyle:false,
+    includeInputs:true,includeOutputs:true,includeFaults:true,includeDisabled:true,simulationMode:'machine-running',
+    offColour:'#64748B',onColour:'#22C55E',activeColour:'#06B6D4',inactiveColour:'#64748B',faultColour:'#EF4444',disabledColour:'#475569',unknownColour:'#A78BFA',
+    generateRuntimeApi:true,enableUserEvents:true,positionMode:'absolute',x:40,y:40,w:460,h:340,
+  },
   QRCode: {
     contentType: 'custom',
     qrText: 'https://forgeui.co.nz',

@@ -414,3 +414,8 @@ The application detects faults and makes safety decisions. Alarm Panel owns a
 fixed presentation buffer, ordering, filtering and acknowledgement appearance.
 Use semantic alarm IDs consistently; do not couple application code to generated
 LVGL labels or containers.
+# IO Monitor ownership
+
+Bind application-owned hardware state through the semantic IO Monitor SDK. Keep
+GPIO numbers, polarity, debounce and safety logic outside generated presentation
+code, and use stable channel indexes and labels at the boundary.

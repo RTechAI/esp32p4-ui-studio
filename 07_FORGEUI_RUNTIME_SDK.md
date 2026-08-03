@@ -352,3 +352,8 @@ Alarm Panel exports `FG_Add_<Id>_Alarm`, `FG_Acknowledge_<Id>_Alarm`,
 `FG_Clear_<Id>_Alarm` and `FG_Clear_All_<Id>_Alarms`. Generated calls update
 presentation silently. Alarm selection, acknowledgement and clear UserEvents
 receive the stable `const char * alarm_id` identifier.
+# IO Monitor
+
+IO Monitor exports semantic channel, state, label and set-all APIs. Channel
+selection and writable-output changes are the only generated interaction hooks;
+all Runtime SDK setters remain silent.

@@ -55,6 +55,7 @@ import {
 } from './ForgeUITrendChart'
 import { normalizeForgeUITrendChartPro } from './ForgeUITrendChartPro'
 import { normalizeForgeUIAlarmPanel, createForgeUIAlarmSimulation } from './ForgeUIAlarmPanel'
+import { normalizeForgeUIIOMonitor, simulateForgeUIIOChannels } from './ForgeUIIOMonitor'
 import {
   getForgeUIStandardSpinboxModel,
   type ForgeUIStandardSpinboxModel,
@@ -533,6 +534,19 @@ const createAlarmPanelExports = (components: IComponents, usedHookNames: Set<str
     result.set(component.id, { stem, runtimeStem, rootName: `fg_${runtimeStem}_alarms`, labelName: `fg_${runtimeStem}_alarms_text`, recordsName: `fg_${runtimeStem}_alarm_records`, countName: `fg_${runtimeStem}_alarm_count`, renderName: `fg_${runtimeStem}_alarm_render`, capacity: model.maximumAlarms, runtimeEnabled: model.generateRuntimeApi, displayMode: model.displayMode, showTimestamps: model.showTimestamps, showDescriptions: model.showDescriptions, addApiName: `FG_Add_${stem}_Alarm`, acknowledgeApiName: `FG_Acknowledge_${stem}_Alarm`, clearApiName: `FG_Clear_${stem}_Alarm`, clearAllApiName: `FG_Clear_All_${stem}_Alarms`, selectedHookName, acknowledgedHookName, clearedHookName, clickCallbackName: selectedHookName ? `fg_${runtimeStem}_alarm_clicked_cb` : undefined })
   })
   return result
+}
+
+type IOMonitorExport = { stem:string;rootName:string;labelName:string;recordsName:string;renderName:string;count:number;runtimeEnabled:boolean;setChannelApiName:string;setStateApiName:string;setLabelApiName:string;setAllApiName:string;selectedHookName?:string;outputHookName?:string;clickCallbackName?:string }
+const createIOMonitorExports = (components:IComponents,usedHookNames:Set<string>,userEventHooks:Set<string>) => {
+  const result=new Map<string,IOMonitorExport>(); const used=new Set<string>()
+  Object.values(components).filter(c=>c.type==='IOMonitor').sort((a,b)=>a.id.localeCompare(b.id)).forEach(component=>{
+    const base=toCIdentifier(component.id,'Main_IO').replace(/([a-z0-9])([A-Z])/g,'$1_$2');let stem=base;let n=2;while(used.has(stem))stem=`${base}_${n++}`;used.add(stem)
+    const runtime=stem.toLowerCase();const model=normalizeForgeUIIOMonitor(component.props)
+    const hook=(name:string)=>{let value=name;let i=2;while(usedHookNames.has(value))value=`${name}_${i++}`;usedHookNames.add(value);userEventHooks.add(value);return value}
+    const selectedHookName=model.enableUserEvents?hook(`FG_On_${stem}_IO_Channel_Selected`):undefined
+    const outputHookName=model.enableUserEvents?hook(`FG_On_${stem}_IO_Output_Changed`):undefined
+    result.set(component.id,{stem,rootName:`fg_${runtime}_io`,labelName:`fg_${runtime}_io_text`,recordsName:`fg_${runtime}_io_channels`,renderName:`fg_${runtime}_io_render`,count:model.channelCount,runtimeEnabled:model.generateRuntimeApi,setChannelApiName:`FG_Set_${stem}_IO_Channel`,setStateApiName:`FG_Set_${stem}_IO_Channel_State`,setLabelApiName:`FG_Set_${stem}_IO_Label`,setAllApiName:`FG_Set_${stem}_IO_All`,selectedHookName,outputHookName,clickCallbackName:selectedHookName?`fg_${runtime}_io_clicked_cb`:undefined})
+  });return result
 }
 
 const createTrendChartExports = (
@@ -2890,6 +2904,7 @@ const buildLvglBlock = (
   pwmControllerExports: Map<string, PwmControllerExport>,
   trendChartExports: Map<string, TrendChartExport>,
   alarmPanelExports: Map<string, AlarmPanelExport>,
+  ioMonitorExports: Map<string, IOMonitorExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -4631,6 +4646,18 @@ case 'TrendChartPro': {
   break
 }
 
+case 'IOMonitor': {
+  const model=normalizeForgeUIIOMonitor(child.props);const io=ioMonitorExports.get(child.id);if(!io)break
+  const channels=simulateForgeUIIOChannels(model)
+  lines.push(`${io.rootName}=lv_obj_create(${parentVar});lv_obj_set_pos(${io.rootName},${x},${y});lv_obj_set_size(${io.rootName},${w},${h});`)
+  lines.push(`lv_obj_set_style_bg_color(${io.rootName},lv_color_hex(${palette.surface}),LV_PART_MAIN);lv_obj_set_style_border_color(${io.rootName},lv_color_hex(${palette.surfaceBorder}),LV_PART_MAIN);lv_obj_set_style_radius(${io.rootName},${model.rounded?12:0},LV_PART_MAIN);lv_obj_clear_flag(${io.rootName},LV_OBJ_FLAG_SCROLLABLE);`)
+  lines.push(`lv_obj_t*${varName}_title=lv_label_create(${io.rootName});lv_label_set_text(${varName}_title,"${esc(model.title)}");lv_obj_align(${varName}_title,LV_ALIGN_TOP_LEFT,0,0);`)
+  lines.push(`${io.labelName}=lv_label_create(${io.rootName});lv_obj_set_pos(${io.labelName},0,30);lv_obj_set_size(${io.labelName},${Math.max(100,Number(w)-28||420)},${Math.max(60,Number(h)-55||280)});lv_label_set_long_mode(${io.labelName},LV_LABEL_LONG_WRAP);`)
+  channels.forEach((channel,index)=>{const state=`FG_IO_STATE_${channel.state.toUpperCase()}`;const output=!channel.readOnly&&['digital-output','relay','pump','valve','motor','fan','solenoid'].includes(channel.type);lines.push(`snprintf(${io.recordsName}[${index}].id,sizeof(${io.recordsName}[${index}].id),"%s","${escPrintfLiteral(channel.id)}");snprintf(${io.recordsName}[${index}].label,sizeof(${io.recordsName}[${index}].label),"%s","${escPrintfLiteral(channel.label)}");${io.recordsName}[${index}].state=${state};${io.recordsName}[${index}].visible=${channel.visible};${io.recordsName}[${index}].read_only=${channel.readOnly};${io.recordsName}[${index}].output=${output};` )})
+  lines.push(`${io.renderName}();`);if(io.clickCallbackName)lines.push(`lv_obj_add_flag(${io.rootName},LV_OBJ_FLAG_CLICKABLE);lv_obj_add_event_cb(${io.rootName},${io.clickCallbackName},LV_EVENT_CLICKED,NULL);`)
+  lines.push(``);break
+}
+
 case 'AlarmPanel': {
   const model = normalizeForgeUIAlarmPanel(child.props)
   const panel = alarmPanelExports.get(child.id)
@@ -5753,6 +5780,7 @@ case 'Chart': {
         pwmControllerExports,
         trendChartExports,
         alarmPanelExports,
+        ioMonitorExports,
       )
     }
   })
@@ -6054,7 +6082,7 @@ export const generateForgeUILvglCode = (
   },
 ) => {
   const nativeIdentityDiagnostics = Object.entries(components)
-    .filter(([, component]) => component.type === 'DashboardCard' || component.type === 'SensorTile' || component.type === 'RelayPanel' || component.type === 'PwmController' || component.type === 'TrendChart' || component.type === 'TrendChartPro' || component.type === 'AlarmPanel')
+    .filter(([, component]) => component.type === 'DashboardCard' || component.type === 'SensorTile' || component.type === 'RelayPanel' || component.type === 'PwmController' || component.type === 'TrendChart' || component.type === 'TrendChartPro' || component.type === 'AlarmPanel' || component.type === 'IOMonitor')
     .map(([persistedId, component]) => {
       if (!component.id || component.id !== persistedId) {
         throw new Error(
@@ -6095,6 +6123,7 @@ export const generateForgeUILvglCode = (
   const pwmControllerExports = createPwmControllerExports(components, usedHookNames, userEventHooks)
   const trendChartExports = createTrendChartExports(components, usedHookNames, userEventHooks)
   const alarmPanelExports = createAlarmPanelExports(components, usedHookNames, userEventHooks)
+  const ioMonitorExports = createIOMonitorExports(components, usedHookNames, userEventHooks)
   const fiIconExports = createFiIconExports(
     components,
     usedHookNames,
@@ -6884,6 +6913,22 @@ const backgroundMode =
     lines.push(`static float ${pwm.stateName} = ${cFloatLiteral(pwm.initialValue)};`)
     lines.push(`static bool ${pwm.enabledName} = ${pwm.initialEnabled ? 'true' : 'false'};`)
     lines.push(`static bool ${pwm.programmaticName} = false;`)
+  })
+  if (ioMonitorExports.size > 0) {
+    lines.push(`typedef enum { FG_IO_STATE_OFF = 0, FG_IO_STATE_ON, FG_IO_STATE_ACTIVE, FG_IO_STATE_INACTIVE, FG_IO_STATE_FAULT, FG_IO_STATE_DISABLED, FG_IO_STATE_UNKNOWN } fg_io_state_t;`)
+    lines.push(`typedef struct { char id[33]; char label[49]; char description[97]; char group[33]; char timestamp[25]; char value[25]; fg_io_state_t state; bool visible; bool read_only; bool output; } fg_io_channel_t;`)
+  }
+  ioMonitorExports.forEach(io=>{
+    lines.push(`static lv_obj_t * ${io.rootName} = NULL; static lv_obj_t * ${io.labelName} = NULL;`)
+    lines.push(`static fg_io_channel_t ${io.recordsName}[${io.count}] = {0};`)
+    lines.push(`static void ${io.renderName}(void) { if (!${io.labelName}) return; static char text[4096]; size_t used=0u; text[0]='\\0'; for(uint32_t i=0;i<${io.count}u && used<sizeof(text)-1u;++i){ fg_io_channel_t *c=&${io.recordsName}[i]; if(!c->visible)continue; const char *state=c->state==FG_IO_STATE_FAULT?"FAULT":(c->state==FG_IO_STATE_ON||c->state==FG_IO_STATE_ACTIVE?"ON":"OFF"); int n=snprintf(text+used,sizeof(text)-used,"%02lu  %-18s %s\\n",(unsigned long)i,c->label,state); if(n<0)break; used+=LV_MIN((size_t)n,sizeof(text)-used-1u);} lv_label_set_text(${io.labelName},text); }`)
+    if(io.clickCallbackName) lines.push(`static void ${io.clickCallbackName}(lv_event_t *event){LV_UNUSED(event);for(uint32_t i=0;i<${io.count}u;++i){fg_io_channel_t*c=&${io.recordsName}[i];if(!c->visible)continue;${io.selectedHookName}(i);if(c->output&&!c->read_only){bool enabled=!(c->state==FG_IO_STATE_ON||c->state==FG_IO_STATE_ACTIVE);c->state=enabled?FG_IO_STATE_ON:FG_IO_STATE_OFF;${io.outputHookName}(i,enabled);${io.renderName}();}break;}}`)
+    if(io.runtimeEnabled){
+      lines.push(`void ${io.setChannelApiName}(uint32_t channel,bool enabled){if(channel>=${io.count}u)return;${io.recordsName}[channel].state=enabled?FG_IO_STATE_ON:FG_IO_STATE_OFF;${io.renderName}();}`)
+      lines.push(`void ${io.setStateApiName}(uint32_t channel,fg_io_state_t state){if(channel>=${io.count}u)return;${io.recordsName}[channel].state=state;${io.renderName}();}`)
+      lines.push(`void ${io.setLabelApiName}(uint32_t channel,const char*label){if(channel>=${io.count}u||!label)return;snprintf(${io.recordsName}[channel].label,sizeof(${io.recordsName}[channel].label),"%s",label);${io.renderName}();}`)
+      lines.push(`void ${io.setAllApiName}(bool enabled){for(uint32_t i=0;i<${io.count}u;++i)${io.recordsName}[i].state=enabled?FG_IO_STATE_ON:FG_IO_STATE_OFF;${io.renderName}();}`)
+    }
   })
   if (alarmPanelExports.size > 0) {
     lines.push(`typedef enum { FG_ALARM_INFORMATION = 0, FG_ALARM_NOTICE, FG_ALARM_WARNING, FG_ALARM_ALARM, FG_ALARM_CRITICAL } fg_alarm_severity_t;`)
@@ -9446,6 +9491,7 @@ lines.push(`    fg_system_root = parent;`)
         pwmControllerExports,
         trendChartExports,
         alarmPanelExports,
+        ioMonitorExports,
       )
   }
 
@@ -10154,6 +10200,11 @@ lines.push(`}`)
         `void ${panel.acknowledgeApiName}(const char * alarm_id);`,
         `void ${panel.clearApiName}(const char * alarm_id);`,
         `void ${panel.clearAllApiName}(void);`,
+      ])).concat(ioMonitorExports.size ? ['typedef enum { FG_IO_STATE_OFF = 0, FG_IO_STATE_ON, FG_IO_STATE_ACTIVE, FG_IO_STATE_INACTIVE, FG_IO_STATE_FAULT, FG_IO_STATE_DISABLED, FG_IO_STATE_UNKNOWN } fg_io_state_t;'] : []).concat(Array.from(ioMonitorExports.values()).filter(io => io.runtimeEnabled).flatMap(io => [
+        `void ${io.setChannelApiName}(uint32_t channel, bool enabled);`,
+        `void ${io.setStateApiName}(uint32_t channel, fg_io_state_t state);`,
+        `void ${io.setLabelApiName}(uint32_t channel, const char * label);`,
+        `void ${io.setAllApiName}(bool enabled);`,
       ])).concat(Array.from(barExports.values()).map(
         barExport => `void ${barExport.apiName}(int32_t value);`,
       )).concat(Array.from(progressExports.values()).map(

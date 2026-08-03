@@ -526,3 +526,8 @@ Use the Alarm Panel for active system alarms rather than a generic List. Select
 Compact, List or Banner presentation in the Inspector, choose a fixed capacity,
 then bind application alarm state through the generated semantic Runtime SDK.
 See `docs/FORGEUI_ALARM_PANEL.md` for the API and ESP32-P4 proof procedure.
+# IO Monitor
+
+Use IO Monitor instead of assembling unrelated LEDs and switches for machine I/O.
+Choose a fixed channel capacity and configure semantic labels, types, visibility
+and read-only behavior in the Inspector. See `docs/FORGEUI_IO_MONITOR.md`.

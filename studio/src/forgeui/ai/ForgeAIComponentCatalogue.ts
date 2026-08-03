@@ -80,6 +80,7 @@ const SUPPORTED_TYPES = [
   'TrendChart',
   'TrendChartPro',
   'AlarmPanel',
+  'IOMonitor',
 ] as const
 
 type SupportedType = typeof SUPPORTED_TYPES[number]
@@ -121,6 +122,7 @@ const DASHBOARD_TYPES = new Set<SupportedType>([
   'TrendChart',
   'TrendChartPro',
   'AlarmPanel',
+  'IOMonitor',
 ])
 
 const descriptions: Partial<Record<SupportedType, string>> = {
@@ -146,6 +148,7 @@ const descriptions: Partial<Record<SupportedType, string>> = {
   TrendChartPro:
     'Premium ForgeUI Native history chart for higher-capability targets.',
   AlarmPanel: 'ForgeUI Native semantic active-alarm management panel.',
+  IOMonitor: 'ForgeUI Native semantic embedded I/O and machine-state monitor.',
 }
 
 const aliases: Partial<Record<SupportedType, string[]>> = {
@@ -175,6 +178,7 @@ const aliases: Partial<Record<SupportedType, string[]>> = {
   ],
   TrendChartPro: ['trend chart pro', 'premium telemetry trend', 'premium time series'],
   AlarmPanel: ['alarm panel', 'active alarms', 'fault list', 'scada alarms'],
+  IOMonitor: ['io monitor', 'digital inputs', 'digital outputs', 'plc io', 'machine status'],
 }
 
 const sizes: Partial<Record<SupportedType, { w: number; h: number }>> = {
@@ -199,6 +203,7 @@ const sizes: Partial<Record<SupportedType, { w: number; h: number }>> = {
   TrendChart: { w: 420, h: 260 },
   TrendChartPro: { w: 440, h: 280 },
   AlarmPanel: { w: 440, h: 320 },
+  IOMonitor: { w: 460, h: 340 },
 }
 
 const assetRequirement = (type: SupportedType): ForgeAIAssetRequirement => {
