@@ -88,6 +88,7 @@ type ComponentType =
   | 'TrendChartPro'
   | 'AlarmPanel'
   | 'IOMonitor'
+  | 'BatteryCard'
   | 'NumberInput'
   | 'Progress'
   | 'QRCode'

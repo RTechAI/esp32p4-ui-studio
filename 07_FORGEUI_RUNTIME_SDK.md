@@ -357,3 +357,8 @@ receive the stable `const char * alarm_id` identifier.
 IO Monitor exports semantic channel, state, label and set-all APIs. Channel
 selection and writable-output changes are the only generated interaction hooks;
 all Runtime SDK setters remain silent.
+# Battery Card
+
+Battery Card exposes semantic setters for state of charge, battery state,
+electrical measurements, energy, health, time estimates and status. Setters are
+silent and contain no BMS or protection behavior.

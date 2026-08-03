@@ -531,3 +531,7 @@ See `docs/FORGEUI_ALARM_PANEL.md` for the API and ESP32-P4 proof procedure.
 Use IO Monitor instead of assembling unrelated LEDs and switches for machine I/O.
 Choose a fixed channel capacity and configure semantic labels, types, visibility
 and read-only behavior in the Inspector. See `docs/FORGEUI_IO_MONITOR.md`.
+# Battery Card
+
+Use Battery Card for semantic battery condition and energy presentation. Select
+visible measurements in the Inspector and bind real values through its Runtime SDK.

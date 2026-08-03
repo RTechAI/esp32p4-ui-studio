@@ -419,3 +419,7 @@ LVGL labels or containers.
 Bind application-owned hardware state through the semantic IO Monitor SDK. Keep
 GPIO numbers, polarity, debounce and safety logic outside generated presentation
 code, and use stable channel indexes and labels at the boundary.
+# Battery Card ownership
+
+Supply measurements calculated by application-owned BMS, ADC, CAN or Modbus
+logic. Never treat Battery Card as a safety-rated BMS or protection controller.

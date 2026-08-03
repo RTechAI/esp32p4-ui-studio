@@ -624,6 +624,7 @@ export const DEFAULT_PROPS: PreviewDefaultProps = {
     offColour:'#64748B',onColour:'#22C55E',activeColour:'#06B6D4',inactiveColour:'#64748B',faultColour:'#EF4444',disabledColour:'#475569',unknownColour:'#A78BFA',
     generateRuntimeApi:true,enableUserEvents:true,positionMode:'absolute',x:40,y:40,w:460,h:340,
   },
+  BatteryCard:{nativeWidgetSchemaVersion:1,title:'Battery Bank',state:'discharging',stateOfCharge:72,voltage:52.4,current:-12.8,power:-671,energyRemaining:7.2,capacity:10,temperature:28.4,stateOfHealth:96,estimatedRuntime:8.5,estimatedChargeTime:0,chargeCycles:184,cellCount:16,minimumCellVoltage:3.26,maximumCellVoltage:3.31,statusText:'System healthy',showVoltage:true,showCurrent:true,showPower:true,showEnergyRemaining:true,showCapacity:false,showTemperature:true,showStateOfHealth:true,showEstimatedRuntime:true,showEstimatedChargeTime:false,showChargeCycles:false,showCellCount:false,showCellVoltages:false,showStatusText:true,showBatteryOutline:true,rounded:true,shadow:true,glassStyle:false,simulationMode:'discharging',generateRuntimeApi:true,enableUserEvents:true,positionMode:'absolute',x:40,y:40,w:380,h:300},
   QRCode: {
     contentType: 'custom',
     qrText: 'https://forgeui.co.nz',

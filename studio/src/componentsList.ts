@@ -212,6 +212,7 @@ export const componentsList: ComponentType[] = ([
   'TrendChartPro',
   'AlarmPanel',
   'IOMonitor',
+  'BatteryCard',
   'Editable',
   'Flex',
   'FormControl',

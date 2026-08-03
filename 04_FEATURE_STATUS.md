@@ -1643,3 +1643,7 @@ IO Monitor is implemented across the semantic, registry, Canvas, Inspector,
 Browser Preview and shared export pipeline. Automated coverage verifies fixed
 buffers, silent setters and independent instances. Status: **implemented;
 ESP32-P4 proof pending**.
+# ForgeUI Native Component #8 — Battery Card
+
+Battery Card is implemented across the Native Component pipeline with semantic
+firmware APIs and a stable state enum. Status: **implemented; ESP32-P4 proof pending**.

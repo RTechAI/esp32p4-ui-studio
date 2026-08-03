@@ -62,6 +62,7 @@ import { ForgeUIPwmControllerPreview } from '~forgeui/preview/ForgeUIPwmControll
 import { ForgeUITrendChartPreview } from '~forgeui/preview/ForgeUITrendChartPreview'
 import { ForgeUIAlarmPanelPreview } from '~forgeui/preview/ForgeUIAlarmPanelPreview'
 import { ForgeUIIOMonitorPreview } from '~forgeui/preview/ForgeUIIOMonitorPreview'
+import { ForgeUIBatteryCardPreview } from '~forgeui/preview/ForgeUIBatteryCardPreview'
 import { useForgePreviewPalette } from '~forgeui/theme/ForgeThemeContext'
 import { resolveForgeSemanticPalette } from '~forgeui/preview/forgeThemeMap'
 import InteractiveButtonCanvasPreview, {
@@ -1229,6 +1230,7 @@ const ComponentPreview: React.FC<{
       return <PreviewContainer component={component} enableVisualHelper {...forwardedProps}><ForgeUIAlarmPanelPreview component={component} palette={previewPalette} /></PreviewContainer>
     case 'IOMonitor':
       return <PreviewContainer component={component} enableVisualHelper {...forwardedProps}><ForgeUIIOMonitorPreview component={component} palette={previewPalette} /></PreviewContainer>
+    case 'BatteryCard': return <PreviewContainer component={component} enableVisualHelper {...forwardedProps}><ForgeUIBatteryCardPreview component={component} palette={previewPalette}/></PreviewContainer>
 
     default:
       return null

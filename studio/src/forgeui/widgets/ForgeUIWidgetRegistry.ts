@@ -90,6 +90,7 @@ const displayNames: Partial<Record<ComponentType, string>> = {
   TrendChartPro: 'Trend Chart Pro',
   AlarmPanel: 'Alarm Panel',
   IOMonitor: 'IO Monitor',
+  BatteryCard: 'Battery Card',
 }
 
 const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
@@ -151,6 +152,7 @@ const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
     'TrendChartPro',
     'AlarmPanel',
     'IOMonitor',
+    'BatteryCard',
   ],
   Assets: [
     'InteractiveButton',
@@ -226,6 +228,7 @@ const sizes: Partial<Record<ComponentType, [number, number]>> = {
   TrendChartPro: [440, 280],
   AlarmPanel: [440, 320],
   IOMonitor: [460, 340],
+  BatteryCard: [380, 300],
 }
 
 const keywords: Partial<Record<ComponentType, string[]>> = {
@@ -300,6 +303,7 @@ const keywords: Partial<Record<ComponentType, string[]>> = {
   TrendChartPro: ['premium trend', 'telemetry', 'scada', 'time series', 'glow', 'forgeui native'],
   AlarmPanel: ['alarm', 'fault', 'scada', 'acknowledge', 'critical', 'forgeui native'],
   IOMonitor: ['io monitor', 'inputs', 'outputs', 'plc', 'gpio', 'machine status', 'forgeui native'],
+  BatteryCard: ['battery','energy storage','soc','state of charge','bms','ups','solar','forgeui native'],
 }
 
 type CapabilityDefinition = Omit<
@@ -450,6 +454,7 @@ const capabilitiesByType: Partial<Record<
     ...capability(true, true, true),
     instanceConfiguration: { runtimeApiProperty:'generateRuntimeApi',runtimeApiDefault:true,userEventProperty:'enableUserEvents',userEventDefault:true },
   },
+  BatteryCard:{...capability(true,true,true),instanceConfiguration:{runtimeApiProperty:'generateRuntimeApi',runtimeApiDefault:true,userEventProperty:'enableUserEvents',userEventDefault:true}},
 
   Input: capability(true, true, true),
   Textarea: capability(true, true, true),
@@ -536,6 +541,7 @@ const documentationByType: Partial<Record<ComponentType, string>> = {
   TrendChartPro: 'docs/FORGEUI_TREND_CHART_PRO.md',
   AlarmPanel: 'docs/FORGEUI_ALARM_PANEL.md',
   IOMonitor: 'docs/FORGEUI_IO_MONITOR.md',
+  BatteryCard: 'docs/FORGEUI_BATTERY_CARD.md',
   List: 'docs/FORGEUI_LIST_WIDGET.md',
   Tileview: 'docs/FORGEUI_TILEVIEW_WIDGET.md',
   Spinbox: 'docs/FORGEUI_SPINBOX_WIDGET.md',
@@ -585,6 +591,7 @@ const describe = (
       'Semantic active-alarm management panel with acknowledgement, filtering and fixed capacity.',
     IOMonitor:
       'Semantic fixed-capacity monitor for embedded inputs, outputs and machine state.',
+    BatteryCard:'Semantic battery condition, electrical measurement, health and runtime card.',
     InteractiveButton: 'Reusable state-sheet driven button.',
   }
   return special[type] || `${name} ${category.toLowerCase()} widget.`
@@ -637,21 +644,21 @@ export const forgeUIWidgetDefinitions: ForgeUIWidgetDefinition[] = (Object.value
       type === 'SensorTile' ||
       type === 'RelayPanel' ||
       type === 'PwmController' ||
-      type === 'TrendChart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor'
+      type === 'TrendChart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor' || type === 'BatteryCard'
         ? 'forgeui-native'
         : 'lvgl-standard',
     ...(type === 'DashboardCard' ||
     type === 'SensorTile' ||
     type === 'RelayPanel' ||
     type === 'PwmController' ||
-    type === 'TrendChart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor'
+    type === 'TrendChart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor' || type === 'BatteryCard'
       ? { nativeWidgetSchemaVersion: 1 }
       : {}),
     ...(type === 'DashboardCard' ||
     type === 'SensorTile' ||
     type === 'RelayPanel' ||
     type === 'PwmController' ||
-    type === 'TrendChart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor'
+    type === 'TrendChart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor' || type === 'BatteryCard'
       ? {
           platform: {
             kind: 'native-widget' as const,
