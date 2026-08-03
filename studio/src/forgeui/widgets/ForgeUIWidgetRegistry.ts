@@ -91,6 +91,7 @@ const displayNames: Partial<Record<ComponentType, string>> = {
   AlarmPanel: 'Alarm Panel',
   IOMonitor: 'IO Monitor',
   BatteryCard: 'Battery Card',
+  TankLevelCard: 'Tank Level Card',
 }
 
 const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
@@ -153,6 +154,7 @@ const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
     'AlarmPanel',
     'IOMonitor',
     'BatteryCard',
+    'TankLevelCard',
   ],
   Assets: [
     'InteractiveButton',
@@ -229,6 +231,7 @@ const sizes: Partial<Record<ComponentType, [number, number]>> = {
   AlarmPanel: [440, 320],
   IOMonitor: [460, 340],
   BatteryCard: [380, 300],
+  TankLevelCard: [380, 300],
 }
 
 const keywords: Partial<Record<ComponentType, string[]>> = {
@@ -304,6 +307,7 @@ const keywords: Partial<Record<ComponentType, string[]>> = {
   AlarmPanel: ['alarm', 'fault', 'scada', 'acknowledge', 'critical', 'forgeui native'],
   IOMonitor: ['io monitor', 'inputs', 'outputs', 'plc', 'gpio', 'machine status', 'forgeui native'],
   BatteryCard: ['battery','energy storage','soc','state of charge','bms','ups','solar','forgeui native'],
+  TankLevelCard:['tank','level','fuel','water','diesel','silo','hopper','storage','forgeui native'],
 }
 
 type CapabilityDefinition = Omit<
@@ -455,6 +459,7 @@ const capabilitiesByType: Partial<Record<
     instanceConfiguration: { runtimeApiProperty:'generateRuntimeApi',runtimeApiDefault:true,userEventProperty:'enableUserEvents',userEventDefault:true },
   },
   BatteryCard:{...capability(true,true,true),instanceConfiguration:{runtimeApiProperty:'generateRuntimeApi',runtimeApiDefault:true,userEventProperty:'enableUserEvents',userEventDefault:true}},
+  TankLevelCard:{...capability(true,true,true),instanceConfiguration:{runtimeApiProperty:'generateRuntimeApi',runtimeApiDefault:true,userEventProperty:'enableUserEvents',userEventDefault:true}},
 
   Input: capability(true, true, true),
   Textarea: capability(true, true, true),
@@ -542,6 +547,7 @@ const documentationByType: Partial<Record<ComponentType, string>> = {
   AlarmPanel: 'docs/FORGEUI_ALARM_PANEL.md',
   IOMonitor: 'docs/FORGEUI_IO_MONITOR.md',
   BatteryCard: 'docs/FORGEUI_BATTERY_CARD.md',
+  TankLevelCard:'docs/FORGEUI_TANK_LEVEL_CARD.md',
   List: 'docs/FORGEUI_LIST_WIDGET.md',
   Tileview: 'docs/FORGEUI_TILEVIEW_WIDGET.md',
   Spinbox: 'docs/FORGEUI_SPINBOX_WIDGET.md',
@@ -592,6 +598,7 @@ const describe = (
     IOMonitor:
       'Semantic fixed-capacity monitor for embedded inputs, outputs and machine state.',
     BatteryCard:'Semantic battery condition, electrical measurement, health and runtime card.',
+    TankLevelCard:'Semantic stored-fluid and material level monitoring card.',
     InteractiveButton: 'Reusable state-sheet driven button.',
   }
   return special[type] || `${name} ${category.toLowerCase()} widget.`
@@ -644,21 +651,21 @@ export const forgeUIWidgetDefinitions: ForgeUIWidgetDefinition[] = (Object.value
       type === 'SensorTile' ||
       type === 'RelayPanel' ||
       type === 'PwmController' ||
-      type === 'TrendChart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor' || type === 'BatteryCard'
+      type === 'TrendChart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor' || type === 'BatteryCard' || type === 'TankLevelCard'
         ? 'forgeui-native'
         : 'lvgl-standard',
     ...(type === 'DashboardCard' ||
     type === 'SensorTile' ||
     type === 'RelayPanel' ||
     type === 'PwmController' ||
-    type === 'TrendChart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor' || type === 'BatteryCard'
+    type === 'TrendChart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor' || type === 'BatteryCard' || type === 'TankLevelCard'
       ? { nativeWidgetSchemaVersion: 1 }
       : {}),
     ...(type === 'DashboardCard' ||
     type === 'SensorTile' ||
     type === 'RelayPanel' ||
     type === 'PwmController' ||
-    type === 'TrendChart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor' || type === 'BatteryCard'
+    type === 'TrendChart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor' || type === 'BatteryCard' || type === 'TankLevelCard'
       ? {
           platform: {
             kind: 'native-widget' as const,

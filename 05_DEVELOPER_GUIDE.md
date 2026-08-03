@@ -535,3 +535,7 @@ and read-only behavior in the Inspector. See `docs/FORGEUI_IO_MONITOR.md`.
 
 Use Battery Card for semantic battery condition and energy presentation. Select
 visible measurements in the Inspector and bind real values through its Runtime SDK.
+# Tank Level Card
+
+Use Tank Level Card for semantic fluid or material storage presentation; configure
+visibility and bind calibrated values through its Runtime SDK.

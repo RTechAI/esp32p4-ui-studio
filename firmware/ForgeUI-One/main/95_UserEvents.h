@@ -89,6 +89,11 @@ void FG_On_Comp_MSCE8_PS3_KU0_JC_Cleared(void);
 void FG_On_Comp_MSCE8_QSZM592_L_Warning(void);
 void FG_On_Comp_MSCE8_QSZM592_L_Alarm(void);
 void FG_On_Comp_MSCE8_QSZM592_L_Cleared(void);
+void FG_On_Comp_MSCTTE29_OCSE4_Selected(void);
+void FG_On_Comp_MSCTTE29_OCSE4_Low(void);
+void FG_On_Comp_MSCTTE29_OCSE4_Critical(void);
+void FG_On_Comp_MSCTTE29_OCSE4_Full(void);
+void FG_On_Comp_MSCTTE29_OCSE4_Overflow(void);
 
 #ifdef __cplusplus
 }

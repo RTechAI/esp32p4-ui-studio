@@ -1647,3 +1647,6 @@ ESP32-P4 proof pending**.
 
 Battery Card is implemented across the Native Component pipeline with semantic
 firmware APIs and a stable state enum. Status: **implemented; ESP32-P4 proof pending**.
+# ForgeUI Native Component #9 — Tank Level Card
+
+Implemented across the Native Component pipeline; ESP32-P4 proof pending.

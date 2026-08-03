@@ -362,3 +362,6 @@ all Runtime SDK setters remain silent.
 Battery Card exposes semantic setters for state of charge, battery state,
 electrical measurements, energy, health, time estimates and status. Setters are
 silent and contain no BMS or protection behavior.
+# Tank Level Card
+
+Exports silent semantic level, volume, capacity, state, flow, threshold and status setters.

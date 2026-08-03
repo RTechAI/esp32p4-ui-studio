@@ -423,3 +423,7 @@ code, and use stable channel indexes and labels at the boundary.
 
 Supply measurements calculated by application-owned BMS, ADC, CAN or Modbus
 logic. Never treat Battery Card as a safety-rated BMS or protection controller.
+# Tank Level Card ownership
+
+Supply calibrated values from application logic. ForgeUI performs no tank geometry,
+volume, flow, control or safety calculations.

@@ -89,6 +89,7 @@ type ComponentType =
   | 'AlarmPanel'
   | 'IOMonitor'
   | 'BatteryCard'
+  | 'TankLevelCard'
   | 'NumberInput'
   | 'Progress'
   | 'QRCode'

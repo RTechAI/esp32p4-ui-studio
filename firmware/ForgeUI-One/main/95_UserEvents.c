@@ -478,3 +478,28 @@ void FG_On_Comp_MSCE8_QSZM592_L_Cleared(void)
 {
     printf("[ForgeUI User Event] Comp MSCE8 QSZM592 L cleared\n");
 }
+
+void FG_On_Comp_MSCTTE29_OCSE4_Selected(void)
+{
+    printf("[ForgeUI User Event] FG_On_Comp_MSCTTE29_OCSE4_Selected\n");
+}
+
+void FG_On_Comp_MSCTTE29_OCSE4_Low(void)
+{
+    printf("[ForgeUI User Event] FG_On_Comp_MSCTTE29_OCSE4_Low\n");
+}
+
+void FG_On_Comp_MSCTTE29_OCSE4_Critical(void)
+{
+    printf("[ForgeUI User Event] FG_On_Comp_MSCTTE29_OCSE4_Critical\n");
+}
+
+void FG_On_Comp_MSCTTE29_OCSE4_Full(void)
+{
+    printf("[ForgeUI User Event] FG_On_Comp_MSCTTE29_OCSE4_Full\n");
+}
+
+void FG_On_Comp_MSCTTE29_OCSE4_Overflow(void)
+{
+    printf("[ForgeUI User Event] FG_On_Comp_MSCTTE29_OCSE4_Overflow\n");
+}

@@ -57,6 +57,7 @@ import { normalizeForgeUITrendChartPro } from './ForgeUITrendChartPro'
 import { normalizeForgeUIAlarmPanel, createForgeUIAlarmSimulation } from './ForgeUIAlarmPanel'
 import { normalizeForgeUIIOMonitor, simulateForgeUIIOChannels } from './ForgeUIIOMonitor'
 import { normalizeForgeUIBatteryCard, simulateForgeUIBattery } from './ForgeUIBatteryCard'
+import { normalizeForgeUITankLevelCard, simulateForgeUITank } from './ForgeUITankLevelCard'
 import {
   getForgeUIStandardSpinboxModel,
   type ForgeUIStandardSpinboxModel,
@@ -551,6 +552,9 @@ const createIOMonitorExports = (components:IComponents,usedHookNames:Set<string>
 }
 type BatteryCardExport={stem:string;rootName:string;labelName:string;socName:string;stateName:string;runtimeEnabled:boolean;setSocApi:string;setStateApi:string;setElectricalApi:string;setEnergyApi:string;setHealthApi:string;setEstimatesApi:string;setStatusApi:string;selectedHook?:string;clickCallback?:string}
 const createBatteryCardExports=(components:IComponents,usedHookNames:Set<string>,userEventHooks:Set<string>)=>{const result=new Map<string,BatteryCardExport>();const used=new Set<string>();Object.values(components).filter(c=>c.type==='BatteryCard').sort((a,b)=>a.id.localeCompare(b.id)).forEach(c=>{const base=toCIdentifier(c.id,'Battery').replace(/([a-z0-9])([A-Z])/g,'$1_$2');let stem=base,n=2;while(used.has(stem))stem=`${base}_${n++}`;used.add(stem);const r=stem.toLowerCase(),m=normalizeForgeUIBatteryCard(c.props);let selectedHook: string|undefined;if(m.enableUserEvents){selectedHook=`FG_On_${stem}_Battery_Selected`;let h=selectedHook,i=2;while(usedHookNames.has(h))h=`${selectedHook}_${i++}`;selectedHook=h;usedHookNames.add(h);userEventHooks.add(h)}result.set(c.id,{stem,rootName:`fg_${r}_battery`,labelName:`fg_${r}_battery_text`,socName:`fg_${r}_battery_soc`,stateName:`fg_${r}_battery_state`,runtimeEnabled:m.generateRuntimeApi,setSocApi:`FG_Set_${stem}_Battery_State_Of_Charge`,setStateApi:`FG_Set_${stem}_Battery_State`,setElectricalApi:`FG_Set_${stem}_Battery_Electrical`,setEnergyApi:`FG_Set_${stem}_Battery_Energy`,setHealthApi:`FG_Set_${stem}_Battery_Health`,setEstimatesApi:`FG_Set_${stem}_Battery_Estimates`,setStatusApi:`FG_Set_${stem}_Battery_Status`,selectedHook,clickCallback:selectedHook?`fg_${r}_battery_clicked_cb`:undefined})});return result}
+
+type TankCardExport={stem:string;rootName:string;labelName:string;barName:string;runtimeEnabled:boolean;setLevel:string;setVolume:string;setCapacity:string;setState:string;setFlow:string;setThresholds:string;setStatus:string;selected?:string;low?:string;critical?:string;full?:string;overflow?:string;click?:string}
+const createTankCardExports=(components:IComponents,used:Set<string>,events:Set<string>)=>{const out=new Map<string,TankCardExport>();const stems=new Set<string>();Object.values(components).filter(c=>c.type==='TankLevelCard').sort((a,b)=>a.id.localeCompare(b.id)).forEach(c=>{const base=toCIdentifier(c.id,'Tank').replace(/([a-z0-9])([A-Z])/g,'$1_$2');let stem=base,n=2;while(stems.has(stem))stem=`${base}_${n++}`;stems.add(stem);const r=stem.toLowerCase(),m=normalizeForgeUITankLevelCard(c.props);const hook=(suffix:string)=>{let h=`FG_On_${stem}_${suffix}`,i=2;while(used.has(h))h=`FG_On_${stem}_${suffix}_${i++}`;used.add(h);events.add(h);return h};const selected=m.enableUserEvents?hook('Selected'):undefined;out.set(c.id,{stem,rootName:`fg_${r}_tank`,labelName:`fg_${r}_tank_text`,barName:`fg_${r}_tank_level`,runtimeEnabled:m.generateRuntimeApi,setLevel:`FG_Set_${stem}_Level`,setVolume:`FG_Set_${stem}_Volume`,setCapacity:`FG_Set_${stem}_Capacity`,setState:`FG_Set_${stem}_State`,setFlow:`FG_Set_${stem}_Flow`,setThresholds:`FG_Set_${stem}_Thresholds`,setStatus:`FG_Set_${stem}_Status`,selected,low:m.enableUserEvents?hook('Low'):undefined,critical:m.enableUserEvents?hook('Critical'):undefined,full:m.enableUserEvents?hook('Full'):undefined,overflow:m.enableUserEvents?hook('Overflow'):undefined,click:selected?`fg_${r}_tank_clicked_cb`:undefined})});return out}
 
 const createTrendChartExports = (
   components: IComponents,
@@ -2909,6 +2913,7 @@ const buildLvglBlock = (
   alarmPanelExports: Map<string, AlarmPanelExport>,
   ioMonitorExports: Map<string, IOMonitorExport>,
   batteryCardExports: Map<string, BatteryCardExport>,
+  tankCardExports: Map<string, TankCardExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -4652,6 +4657,8 @@ case 'TrendChartPro': {
 
 case 'BatteryCard':{const base=normalizeForgeUIBatteryCard(child.props),m=simulateForgeUIBattery(base),b=batteryCardExports.get(child.id);if(!b)break;const d=`${b.rootName}_data`,state=`FG_BATTERY_STATE_${m.state.toUpperCase()}`;lines.push(`${b.rootName}=lv_obj_create(${parentVar});lv_obj_set_pos(${b.rootName},${x},${y});lv_obj_set_size(${b.rootName},${w},${h});lv_obj_set_style_bg_color(${b.rootName},lv_color_hex(${palette.surface}),LV_PART_MAIN);lv_obj_set_style_border_color(${b.rootName},lv_color_hex(${palette.surfaceBorder}),LV_PART_MAIN);lv_obj_set_style_radius(${b.rootName},${m.rounded?12:0},LV_PART_MAIN);lv_obj_clear_flag(${b.rootName},LV_OBJ_FLAG_SCROLLABLE);`);lines.push(`lv_obj_t*${varName}_title=lv_label_create(${b.rootName});lv_label_set_text(${varName}_title,"${esc(m.title)}");lv_obj_align(${varName}_title,LV_ALIGN_TOP_LEFT,0,0);${b.labelName}=lv_label_create(${b.rootName});lv_obj_set_pos(${b.labelName},0,32);lv_obj_set_size(${b.labelName},${Math.max(100,Number(w)-28||340)},${Math.max(80,Number(h)-58||240)});`);lines.push(`${d}.soc=${cFloatLiteral(m.stateOfCharge)};${d}.voltage=${cFloatLiteral(m.voltage)};${d}.current=${cFloatLiteral(m.current)};${d}.power=${cFloatLiteral(m.power)};${d}.energy=${cFloatLiteral(m.energyRemaining)};${d}.capacity=${cFloatLiteral(m.capacity)};${d}.temperature=${cFloatLiteral(m.temperature)};${d}.health=${cFloatLiteral(m.stateOfHealth)};${d}.runtime=${cFloatLiteral(m.estimatedRuntime)};${d}.charge_time=${cFloatLiteral(m.estimatedChargeTime)};${d}.cycles=${m.chargeCycles}u;${d}.cells=${m.cellCount}u;${d}.min_cell=${cFloatLiteral(m.minimumCellVoltage)};${d}.max_cell=${cFloatLiteral(m.maximumCellVoltage)};${d}.state=${state};snprintf(${d}.status,sizeof(${d}.status),"%s","${escPrintfLiteral(m.statusText)}");${b.rootName}_render();`);if(b.clickCallback)lines.push(`lv_obj_add_flag(${b.rootName},LV_OBJ_FLAG_CLICKABLE);lv_obj_add_event_cb(${b.rootName},${b.clickCallback},LV_EVENT_CLICKED,NULL);`);lines.push(``);break}
 
+case 'TankLevelCard':{const m=simulateForgeUITank(normalizeForgeUITankLevelCard(child.props)),t=tankCardExports.get(child.id);if(!t)break;const d=`${t.rootName}_data`;lines.push(`${t.rootName}=lv_obj_create(${parentVar});lv_obj_set_pos(${t.rootName},${x},${y});lv_obj_set_size(${t.rootName},${w},${h});lv_obj_set_style_bg_color(${t.rootName},lv_color_hex(${palette.surface}),LV_PART_MAIN);lv_obj_set_style_border_color(${t.rootName},lv_color_hex(${palette.surfaceBorder}),LV_PART_MAIN);lv_obj_set_style_radius(${t.rootName},${m.rounded?12:0},LV_PART_MAIN);lv_obj_clear_flag(${t.rootName},LV_OBJ_FLAG_SCROLLABLE);`);lines.push(`lv_obj_t*${varName}_title=lv_label_create(${t.rootName});lv_label_set_text(${varName}_title,"${esc(m.title)}");lv_obj_align(${varName}_title,LV_ALIGN_TOP_LEFT,0,0);${t.barName}=lv_bar_create(${t.rootName});lv_obj_set_pos(${t.barName},0,32);lv_obj_set_size(${t.barName},72,${Math.max(80,Number(h)-70||220)});lv_bar_set_range(${t.barName},0,100);${t.labelName}=lv_label_create(${t.rootName});lv_obj_set_pos(${t.labelName},90,38);`);lines.push(`${d}.percentage=${cFloatLiteral(m.percentage)};${d}.volume=${cFloatLiteral(m.volume)};${d}.capacity=${cFloatLiteral(m.capacity)};${d}.flow=${cFloatLiteral(m.flowRate)};${d}.low=${cFloatLiteral(m.lowThreshold)};${d}.critical=${cFloatLiteral(m.criticalThreshold)};${d}.full=${cFloatLiteral(m.fullThreshold)};${d}.overflow=${cFloatLiteral(m.overflowThreshold)};${d}.state=FG_TANK_STATE_${m.state.toUpperCase()};snprintf(${d}.status,sizeof(${d}.status),"%s","${escPrintfLiteral(m.statusText)}");${t.rootName}_render();`);if(t.click)lines.push(`lv_obj_add_flag(${t.rootName},LV_OBJ_FLAG_CLICKABLE);lv_obj_add_event_cb(${t.rootName},${t.click},LV_EVENT_CLICKED,NULL);`);lines.push(``);break}
+
 case 'IOMonitor': {
   const model=normalizeForgeUIIOMonitor(child.props);const io=ioMonitorExports.get(child.id);if(!io)break
   const channels=simulateForgeUIIOChannels(model)
@@ -5788,6 +5795,7 @@ case 'Chart': {
         alarmPanelExports,
         ioMonitorExports,
         batteryCardExports,
+        tankCardExports,
       )
     }
   })
@@ -6089,7 +6097,7 @@ export const generateForgeUILvglCode = (
   },
 ) => {
   const nativeIdentityDiagnostics = Object.entries(components)
-    .filter(([, component]) => component.type === 'DashboardCard' || component.type === 'SensorTile' || component.type === 'RelayPanel' || component.type === 'PwmController' || component.type === 'TrendChart' || component.type === 'TrendChartPro' || component.type === 'AlarmPanel' || component.type === 'IOMonitor' || component.type === 'BatteryCard')
+    .filter(([, component]) => component.type === 'DashboardCard' || component.type === 'SensorTile' || component.type === 'RelayPanel' || component.type === 'PwmController' || component.type === 'TrendChart' || component.type === 'TrendChartPro' || component.type === 'AlarmPanel' || component.type === 'IOMonitor' || component.type === 'BatteryCard' || component.type === 'TankLevelCard')
     .map(([persistedId, component]) => {
       if (!component.id || component.id !== persistedId) {
         throw new Error(
@@ -6132,6 +6140,7 @@ export const generateForgeUILvglCode = (
   const alarmPanelExports = createAlarmPanelExports(components, usedHookNames, userEventHooks)
   const ioMonitorExports = createIOMonitorExports(components, usedHookNames, userEventHooks)
   const batteryCardExports = createBatteryCardExports(components, usedHookNames, userEventHooks)
+  const tankCardExports = createTankCardExports(components, usedHookNames, userEventHooks)
   const fiIconExports = createFiIconExports(
     components,
     usedHookNames,
@@ -6996,6 +7005,8 @@ const backgroundMode =
     lines.push(`static float ${trend.warningName} = 75.0f;`)
     lines.push(`static float ${trend.alarmName} = 90.0f;`)
   })
+  if(tankCardExports.size>0){lines.push(`typedef enum { FG_TANK_STATE_UNKNOWN=0, FG_TANK_STATE_EMPTY, FG_TANK_STATE_FILLING, FG_TANK_STATE_DRAINING, FG_TANK_STATE_STABLE, FG_TANK_STATE_FULL, FG_TANK_STATE_LOW, FG_TANK_STATE_CRITICAL, FG_TANK_STATE_OVERFLOW, FG_TANK_STATE_FAULT, FG_TANK_STATE_DISCONNECTED } fg_tank_state_t;`);lines.push(`typedef struct { float percentage,volume,capacity,flow,low,critical,full,overflow; fg_tank_state_t state; char status[65]; } fg_tank_data_t;`)}
+  tankCardExports.forEach(t=>{const d=`${t.rootName}_data`,render=`${t.rootName}_render`;lines.push(`static lv_obj_t*${t.rootName}=NULL;static lv_obj_t*${t.labelName}=NULL;static lv_obj_t*${t.barName}=NULL;static fg_tank_data_t ${d}={0};`);lines.push(`static void ${render}(void){if(${t.barName})lv_bar_set_value(${t.barName},(int32_t)${d}.percentage,LV_ANIM_OFF);if(${t.labelName})lv_label_set_text_fmt(${t.labelName},"%.0f%%\\n%.1f / %.1f L\\nFlow %.1f L/min\\n%s",(double)${d}.percentage,(double)${d}.volume,(double)${d}.capacity,(double)${d}.flow,${d}.status);}`);if(t.click)lines.push(`static void ${t.click}(lv_event_t*e){LV_UNUSED(e);${t.selected}();}`);if(t.runtimeEnabled){lines.push(`void ${t.setLevel}(float percentage){if(percentage<0)percentage=0;if(percentage>100)percentage=100;${d}.percentage=percentage;${render}();}`);lines.push(`void ${t.setVolume}(float volume){${d}.volume=volume;${render}();}`);lines.push(`void ${t.setCapacity}(float capacity){${d}.capacity=capacity;${render}();}`);lines.push(`void ${t.setState}(fg_tank_state_t state){${d}.state=state;${render}();}`);lines.push(`void ${t.setFlow}(float flow){${d}.flow=flow;${render}();}`);lines.push(`void ${t.setThresholds}(float low,float critical,float full){${d}.low=low;${d}.critical=critical;${d}.full=full;${render}();}`);lines.push(`void ${t.setStatus}(const char*status){if(!status)return;snprintf(${d}.status,sizeof(${d}.status),"%s",status);${render}();}`)}})
   lines.push(`static lv_obj_t * fg_application_page = NULL;`)
   lines.push(`static lv_obj_t * fg_system_launcher_page = NULL;`)
   lines.push(`static lv_obj_t * fg_system_brightness_page = NULL;`)
@@ -9503,6 +9514,7 @@ lines.push(`    fg_system_root = parent;`)
         alarmPanelExports,
         ioMonitorExports,
         batteryCardExports,
+        tankCardExports,
       )
   }
 
@@ -10218,7 +10230,7 @@ lines.push(`}`)
         `void ${io.setAllApiName}(bool enabled);`,
       ])).concat(batteryCardExports.size?['typedef enum { FG_BATTERY_STATE_UNKNOWN = 0, FG_BATTERY_STATE_IDLE, FG_BATTERY_STATE_CHARGING, FG_BATTERY_STATE_DISCHARGING, FG_BATTERY_STATE_FULL, FG_BATTERY_STATE_LOW, FG_BATTERY_STATE_CRITICAL, FG_BATTERY_STATE_FAULT, FG_BATTERY_STATE_DISCONNECTED } fg_battery_state_t;']:[]).concat(Array.from(batteryCardExports.values()).filter(b=>b.runtimeEnabled).flatMap(b=>[
         `void ${b.setSocApi}(float percent);`,`void ${b.setStateApi}(fg_battery_state_t state);`,`void ${b.setElectricalApi}(float voltage, float current, float power);`,`void ${b.setEnergyApi}(float remaining, float capacity);`,`void ${b.setHealthApi}(float health, float temperature, uint32_t cycles);`,`void ${b.setEstimatesApi}(float runtime_hours, float charge_hours);`,`void ${b.setStatusApi}(const char * status);`,
-      ])).concat(Array.from(barExports.values()).map(
+      ])).concat(tankCardExports.size?['typedef enum { FG_TANK_STATE_UNKNOWN=0, FG_TANK_STATE_EMPTY, FG_TANK_STATE_FILLING, FG_TANK_STATE_DRAINING, FG_TANK_STATE_STABLE, FG_TANK_STATE_FULL, FG_TANK_STATE_LOW, FG_TANK_STATE_CRITICAL, FG_TANK_STATE_OVERFLOW, FG_TANK_STATE_FAULT, FG_TANK_STATE_DISCONNECTED } fg_tank_state_t;']:[]).concat(Array.from(tankCardExports.values()).filter(t=>t.runtimeEnabled).flatMap(t=>[`void ${t.setLevel}(float percentage);`,`void ${t.setVolume}(float volume);`,`void ${t.setCapacity}(float capacity);`,`void ${t.setState}(fg_tank_state_t state);`,`void ${t.setFlow}(float flow);`,`void ${t.setThresholds}(float low, float critical, float full);`,`void ${t.setStatus}(const char * status);`])).concat(Array.from(barExports.values()).map(
         barExport => `void ${barExport.apiName}(int32_t value);`,
       )).concat(Array.from(progressExports.values()).map(
         progressExport => `void ${progressExport.apiName}(int32_t value);`,

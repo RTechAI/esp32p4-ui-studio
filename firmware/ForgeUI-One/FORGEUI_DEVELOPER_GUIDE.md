@@ -43,23 +43,21 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- `FG_On_Comp_MSCE8_PS3_KU0_JC_Warning()`
-- `FG_On_Comp_MSCE8_PS3_KU0_JC_Alarm()`
-- `FG_On_Comp_MSCE8_PS3_KU0_JC_Cleared()`
-- `FG_On_Comp_MSCE8_QSZM592_L_Warning()`
-- `FG_On_Comp_MSCE8_QSZM592_L_Alarm()`
-- `FG_On_Comp_MSCE8_QSZM592_L_Cleared()`
+- `FG_On_Comp_MSCTTE29_OCSE4_Selected()`
+- `FG_On_Comp_MSCTTE29_OCSE4_Low()`
+- `FG_On_Comp_MSCTTE29_OCSE4_Critical()`
+- `FG_On_Comp_MSCTTE29_OCSE4_Full()`
+- `FG_On_Comp_MSCTTE29_OCSE4_Overflow()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| Comp_MSCE8_PS3_KU0_JC_Warning | Click | `FG_On_Comp_MSCE8_PS3_KU0_JC_Warning()` |
-| Comp_MSCE8_PS3_KU0_JC_Alarm | Click | `FG_On_Comp_MSCE8_PS3_KU0_JC_Alarm()` |
-| Comp_MSCE8_PS3_KU0_JC_Cleared | Click | `FG_On_Comp_MSCE8_PS3_KU0_JC_Cleared()` |
-| Comp_MSCE8_QSZM592_L_Warning | Click | `FG_On_Comp_MSCE8_QSZM592_L_Warning()` |
-| Comp_MSCE8_QSZM592_L_Alarm | Click | `FG_On_Comp_MSCE8_QSZM592_L_Alarm()` |
-| Comp_MSCE8_QSZM592_L_Cleared | Click | `FG_On_Comp_MSCE8_QSZM592_L_Cleared()` |
+| Comp_MSCTTE29_OCSE4_Selected | Click | `FG_On_Comp_MSCTTE29_OCSE4_Selected()` |
+| Comp_MSCTTE29_OCSE4_Low | Click | `FG_On_Comp_MSCTTE29_OCSE4_Low()` |
+| Comp_MSCTTE29_OCSE4_Critical | Click | `FG_On_Comp_MSCTTE29_OCSE4_Critical()` |
+| Comp_MSCTTE29_OCSE4_Full | Click | `FG_On_Comp_MSCTTE29_OCSE4_Full()` |
+| Comp_MSCTTE29_OCSE4_Overflow | Click | `FG_On_Comp_MSCTTE29_OCSE4_Overflow()` |
 
 ---
 
