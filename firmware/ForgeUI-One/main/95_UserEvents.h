@@ -75,15 +75,12 @@ void FG_On_Comp_MSBOQXJA4_HF7_M_Value_Changed(float value);
 void FG_On_Comp_MSBOQXJA4_HF7_M_Enabled_Changed(bool enabled);
 void FG_On_Comp_MSBOQZ8_US8_BBT_Value_Changed(float value);
 void FG_On_Comp_MSBOQZ8_US8_BBT_Enabled_Changed(bool enabled);
-void FG_On_Comp_MSBP3_KNW1_DR6_E_Clicked(void);
-void FG_On_Comp_MSBP1_FCKFZKHP_Clicked(void);
-void FG_On_Comp_MSBP1_VT0_NVT6_A_Clicked(void);
-void FG_On_Comp_MSBP0_UC0_W25_Q1_Channel_Changed(uint32_t channel, bool enabled);
-void FG_On_Comp_MSBP0_UC0_W25_Q1_Master_Changed(bool enabled);
+
 void FG_On_Comp_MSBOX6_QTG8_Z2_W_Value_Changed(float value);
 void FG_On_Comp_MSBOX6_QTG8_Z2_W_Enabled_Changed(bool enabled);
 void FG_On_Comp_MSBOZT2_XBP996_Value_Changed(float value);
 void FG_On_Comp_MSBOZT2_XBP996_Enabled_Changed(bool enabled);
+void FG_On_Comp_MSF3_R93_JOY4_XF_Clicked(void);
 
 #ifdef __cplusplus
 }
