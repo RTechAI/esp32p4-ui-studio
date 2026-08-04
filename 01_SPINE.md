@@ -1,4 +1,4 @@
-# Project Spine: what ForgeUI is, what is proven, current priorities, and what must not regress
+# Project Spine: what ForgeUI is, what is proven, current priorities, and what must not regress..
 
 ## 2026-08-02 — Native Component #4 PWM Controller
 
