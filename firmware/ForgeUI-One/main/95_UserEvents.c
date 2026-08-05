@@ -476,12 +476,38 @@ void FG_On_Dashboard_Card_B_Clicked(void)
 }
 #endif
 
-void FG_On_Comp_MSFPBMJC403_RI_Clicked(void)
+void FG_On_Comp_MSFWF336_Q9_L7_H_Value_Changed(float value)
 {
-    printf("[ForgeUI User Event] FG_On_Comp_MSFPBMJC403_RI_Clicked\n");
+    /* Bind semantic PWM value to developer-owned hardware here. */
+    printf("[ForgeUI User Event] Comp MSFWF336 Q9 L7 H value: %.3f\n", (double)value);
 }
 
-void FG_On_Comp_MSFPBONCWECV2_Clicked(void)
+void FG_On_Comp_MSFWF336_Q9_L7_H_Enabled_Changed(bool enabled)
 {
-    printf("[ForgeUI User Event] FG_On_Comp_MSFPBONCWECV2_Clicked\n");
+    printf("[ForgeUI User Event] Comp MSFWF336 Q9 L7 H Enabled changed: %s\n",
+           enabled ? "ON" : "OFF");
+}
+
+void FG_On_Comp_MSFWF4_DMHWEBC_Value_Changed(float value)
+{
+    /* Bind semantic PWM value to developer-owned hardware here. */
+    printf("[ForgeUI User Event] Comp MSFWF4 DMHWEBC value: %.3f\n", (double)value);
+}
+
+void FG_On_Comp_MSFWF4_DMHWEBC_Enabled_Changed(bool enabled)
+{
+    printf("[ForgeUI User Event] Comp MSFWF4 DMHWEBC Enabled changed: %s\n",
+           enabled ? "ON" : "OFF");
+}
+
+void FG_On_Comp_MSFWF5_QLC2_A3_F_Value_Changed(float value)
+{
+    /* Bind semantic PWM value to developer-owned hardware here. */
+    printf("[ForgeUI User Event] Comp MSFWF5 QLC2 A3 F value: %.3f\n", (double)value);
+}
+
+void FG_On_Comp_MSFWF5_QLC2_A3_F_Enabled_Changed(bool enabled)
+{
+    printf("[ForgeUI User Event] Comp MSFWF5 QLC2 A3 F Enabled changed: %s\n",
+           enabled ? "ON" : "OFF");
 }

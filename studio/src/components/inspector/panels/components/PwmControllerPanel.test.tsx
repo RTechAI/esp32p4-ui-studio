@@ -46,7 +46,10 @@ describe('PWM Controller Inspector contrast', () => {
     render(<ChakraProvider><PwmControllerPanel /></ChakraProvider>)
     ;['Label', 'Subtitle', 'minimum', 'maximum', 'step', 'Value', 'Unit',
       'Orientation', 'Accent colour (blank = theme)', 'Status text'].forEach(name =>
-      expect(screen.getByText(name)).toHaveStyle(`color: ${INSPECTOR_PROPERTY_TEXT_COLOR}`),
+      {
+        expect(screen.getByText(name)).toHaveStyle(`color: ${INSPECTOR_PROPERTY_TEXT_COLOR}`)
+        expect(screen.getByText(name)).toHaveStyle('opacity: 1')
+      },
     )
   })
 })

@@ -110,6 +110,7 @@ const sizes: Partial<Record<SupportedType, { w: number; h: number }>> = {
   Divider: { w: 240, h: 2 },
   DashboardCard: { w: 240, h: 145 },
   SensorTile: { w: 240, h: 145 },
+  PwmController: { w: 240, h: 145 },
   RelayPanel: { w: 340, h: 360 },
 }
 

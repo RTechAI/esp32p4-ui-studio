@@ -7,6 +7,7 @@ import { INSPECTOR_PROPERTY_TEXT_COLOR } from '~components/inspector/controls/Fo
 
 const pwmCheckboxProps = {
   color: INSPECTOR_PROPERTY_TEXT_COLOR,
+  opacity: 1,
   sx: {
     '.chakra-checkbox__label': {
       color: 'inherit',
@@ -14,7 +15,7 @@ const pwmCheckboxProps = {
     },
   },
 }
-const pwmFormLabelProps = { fontSize: 'xs', color: INSPECTOR_PROPERTY_TEXT_COLOR }
+const pwmFormLabelProps = { fontSize: 'xs', color: INSPECTOR_PROPERTY_TEXT_COLOR, opacity: 1 }
 
 export const PwmControllerPanel = () => {
   const { setValue } = useForm()

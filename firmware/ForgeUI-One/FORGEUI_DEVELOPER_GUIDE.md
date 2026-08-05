@@ -43,15 +43,23 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- `FG_On_Comp_MSFPBMJC403_RI_Clicked()`
-- `FG_On_Comp_MSFPBONCWECV2_Clicked()`
+- `FG_On_Comp_MSFWF336_Q9_L7_H_Value_Changed()`
+- `FG_On_Comp_MSFWF336_Q9_L7_H_Enabled_Changed()`
+- `FG_On_Comp_MSFWF4_DMHWEBC_Value_Changed()`
+- `FG_On_Comp_MSFWF4_DMHWEBC_Enabled_Changed()`
+- `FG_On_Comp_MSFWF5_QLC2_A3_F_Value_Changed()`
+- `FG_On_Comp_MSFWF5_QLC2_A3_F_Enabled_Changed()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| Comp_MSFPBMJC403_RI | Click | `FG_On_Comp_MSFPBMJC403_RI_Clicked()` |
-| Comp_MSFPBONCWECV2 | Click | `FG_On_Comp_MSFPBONCWECV2_Clicked()` |
+| Comp_MSFWF336_Q9_L7_H_Value_Changed | Click | `FG_On_Comp_MSFWF336_Q9_L7_H_Value_Changed()` |
+| Comp_MSFWF336_Q9_L7_H_Enabled_Changed | Click | `FG_On_Comp_MSFWF336_Q9_L7_H_Enabled_Changed()` |
+| Comp_MSFWF4_DMHWEBC_Value_Changed | Click | `FG_On_Comp_MSFWF4_DMHWEBC_Value_Changed()` |
+| Comp_MSFWF4_DMHWEBC_Enabled_Changed | Click | `FG_On_Comp_MSFWF4_DMHWEBC_Enabled_Changed()` |
+| Comp_MSFWF5_QLC2_A3_F_Value_Changed | Click | `FG_On_Comp_MSFWF5_QLC2_A3_F_Value_Changed()` |
+| Comp_MSFWF5_QLC2_A3_F_Enabled_Changed | Click | `FG_On_Comp_MSFWF5_QLC2_A3_F_Enabled_Changed()` |
 
 ---
 

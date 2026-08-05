@@ -6,6 +6,7 @@ import { ForgeUIPwmControllerPreview } from './preview/ForgeUIPwmControllerPrevi
 import { FG_PREVIEW_PALETTES } from './preview/forgeThemeMap'
 import { generateForgeUILvglCode } from './ForgeUILvglExport'
 import { getForgeUIWidgetDefinition } from './widgets/ForgeUIWidgetRegistry'
+import { getPreviewDefaultProps } from '../utils/defaultProps'
 
 const pwm = (id: string, props: Record<string, unknown> = {}): IComponent => ({
   id, componentName: 'Visible name may change', type: 'PwmController', parent: 'root', children: [],
@@ -15,6 +16,15 @@ const pwm = (id: string, props: Record<string, unknown> = {}): IComponent => ({
 describe('ForgeUI PWM Controller', () => {
   beforeAll(() => {
     window.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} } as any
+  })
+  it('uses compact defaults while preserving explicitly saved legacy geometry', () => {
+    expect(getPreviewDefaultProps('PwmController')).toMatchObject({ w: 240, h: 145 })
+    expect(getForgeUIWidgetDefinition('PwmController')).toMatchObject({
+      defaultWidth: 240, defaultHeight: 145,
+    })
+    expect(pwm('legacy', { w: 320, h: 220 }).props).toMatchObject({ w: 320, h: 220 })
+    expect(3 * 240).toBeLessThanOrEqual(1024)
+    expect(2 * 145).toBeLessThanOrEqual(600)
   })
   it('repairs ranges, clamps and quantizes floating point values', () => {
     expect(normalizeForgeUIPwmController({ minimum: 10, maximum: 5, value: 999, step: -0.25 }))
@@ -33,6 +43,9 @@ describe('ForgeUI PWM Controller', () => {
     const parentDown = jest.fn()
     render(<div onMouseDown={parentDown}><ChakraProvider><ForgeUIPwmControllerPreview component={pwm('preview', { value: 25 })} palette={FG_PREVIEW_PALETTES.graphite} /></ChakraProvider></div>)
     const slider = screen.getByRole('slider')
+    expect(screen.getByTestId('forgeui-pwm-controller')).toHaveStyle({
+      borderRadius: '8px', padding: '12px', gap: '2px',
+    })
     fireEvent.mouseDown(slider)
     expect(parentDown).not.toHaveBeenCalled()
     fireEvent.click(screen.getByRole('checkbox'))
@@ -53,6 +66,34 @@ describe('ForgeUI PWM Controller', () => {
     ]))
     expect(generated.code).toContain('fg_comp_pwm_stable_pwm_programmatic')
     expect(generated.code).toContain('roundf((value - 0.0f) / 0.5f)')
+    expect(generated.code).toContain('lv_obj_set_style_radius(fg_comp_pwm_stable_pwm, 8, LV_PART_MAIN);')
+    expect(generated.code).toContain('lv_obj_set_style_pad_all(fg_comp_pwm_stable_pwm, 12, LV_PART_MAIN);')
+    expect(generated.code).toContain('lv_obj_set_size(fg_comp_pwm_stable_pwm, 320, 220);')
+    expect(generated.code).toContain('obj1_range = lv_label_create(fg_comp_pwm_stable_pwm);')
+  })
+
+  it('exports the compact default geometry without changing Runtime SDK or UserEvents', () => {
+    const compact = pwm('compact', { w: 240, h: 145 })
+    const generated = generateForgeUILvglCode({
+      root: { id: 'root', type: 'Box', parent: 'root', children: ['compact'], props: {} },
+      compact,
+    }, 'graphite', undefined, { includeThemeTexture: false })
+    expect(generated.code).toContain('lv_obj_set_size(fg_compact_pwm, 240, 145);')
+    expect(generated.code).toContain('lv_obj_set_size(fg_compact_pwm_enable, 40, 22);')
+    expect(generated.code).toContain('lv_obj_set_size(fg_compact_pwm_slider, 216, 18);')
+    expect(generated.code).toContain('lv_obj_set_style_bg_color(fg_compact_pwm_enable, lv_color_hex(0x475569), LV_PART_MAIN);')
+    expect(generated.code).toContain('lv_obj_set_style_bg_color(fg_compact_pwm_enable, lv_color_hex(0x22C55E), LV_PART_INDICATOR | LV_STATE_CHECKED);')
+    expect(generated.code).toContain('lv_obj_set_style_bg_color(fg_compact_pwm_enable, lv_color_hex(0xF5F5F5), LV_PART_KNOB);')
+    expect(generated.code).toContain('lv_obj_set_style_bg_color(fg_compact_pwm_slider, lv_color_hex(0x475569), LV_PART_MAIN);')
+    expect(generated.code).toContain('lv_obj_set_style_bg_color(fg_compact_pwm_slider, lv_color_hex(0x22C55E), LV_PART_INDICATOR);')
+    expect(generated.code).toContain('lv_obj_set_style_radius(fg_compact_pwm_slider, LV_RADIUS_CIRCLE, LV_PART_KNOB);')
+    expect(generated.publicApiDeclarations).toEqual(expect.arrayContaining([
+      'void FG_Set_Compact_Value(float value);', 'float FG_Get_Compact_Value(void);',
+      'void FG_Set_Compact_Enabled(bool enabled);', 'bool FG_Get_Compact_Enabled(void);',
+    ]))
+    expect(generated.userEventHooks).toEqual(expect.arrayContaining([
+      'FG_On_Compact_Value_Changed', 'FG_On_Compact_Enabled_Changed',
+    ]))
   })
 
   it('uses persisted IDs for independent duplicate identity despite visible renames', () => {

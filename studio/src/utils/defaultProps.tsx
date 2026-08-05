@@ -390,7 +390,7 @@ WiFi: {
     showSlider: true, showNumericValue: true, showEnableControl: true,
     orientation: 'horizontal', accentColour: '', statusText: 'Ready',
     generateRuntimeApi: true, enableUserEvents: true,
-    positionMode: 'absolute', x: 40, y: 40, w: 320, h: 220,
+    positionMode: 'absolute', x: 40, y: 40, w: 240, h: 145,
   },
   QRCode: {
     contentType: 'custom',

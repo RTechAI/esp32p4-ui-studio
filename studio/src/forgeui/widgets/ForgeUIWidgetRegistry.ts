@@ -177,7 +177,7 @@ const sizes: Partial<Record<ComponentType, [number, number]>> = {
   DashboardCard: [240, 145],
   SensorTile: [240, 145],
   RelayPanel: [340, 360],
-  PwmController: [320, 220],
+  PwmController: [240, 145],
 }
 
 const keywords: Partial<Record<ComponentType, string[]>> = {

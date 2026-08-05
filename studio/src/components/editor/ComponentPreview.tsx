@@ -1118,7 +1118,7 @@ case 'RelayPanel':
   </PreviewContainer>
 
 case 'PwmController':
-  return <PreviewContainer component={component} enableVisualHelper {...forwardedProps}>
+  return <PreviewContainer component={component} enableVisualHelper resizeMinWidth={220} resizeMinHeight={128} {...forwardedProps}>
     <ForgeUIPwmControllerPreview component={component} palette={previewPalette} />
   </PreviewContainer>
 
