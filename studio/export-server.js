@@ -983,6 +983,10 @@ function normalizePublicApiDeclarations(declarations) {
             /^void FG_Set_[A-Za-z0-9_]+\(const char \* text, uint32_t rgb\);$/.test(declaration) ||
             /^void FG_Set_[A-Za-z0-9_]+\(uint32_t rgb\);$/.test(declaration) ||
             /^void FG_Set_[A-Za-z0-9_]+\(int32_t trend\);$/.test(declaration) ||
+            /^typedef enum \{ FG_ALARM_PRIORITY_LOW = 0, FG_ALARM_PRIORITY_MEDIUM = 1, FG_ALARM_PRIORITY_HIGH = 2, FG_ALARM_PRIORITY_CRITICAL = 3 \} FG_Alarm_Priority;$/.test(declaration) ||
+            /^typedef enum \{ FG_ALARM_STATE_NORMAL = 0, FG_ALARM_STATE_WARNING = 1, FG_ALARM_STATE_ALARM = 2, FG_ALARM_STATE_ACKNOWLEDGED = 3, FG_ALARM_STATE_CLEARED = 4 \} FG_Alarm_State;$/.test(declaration) ||
+            /^bool FG_(?:Add_[A-Za-z0-9_]+_Alarm\(int32_t alarm_id, const char \* message, const char \* timestamp, FG_Alarm_Priority priority, FG_Alarm_State state\)|Acknowledge_[A-Za-z0-9_]+_Alarm\(int32_t alarm_id\)|Clear_[A-Za-z0-9_]+_Alarm\(int32_t alarm_id\)|Select_[A-Za-z0-9_]+_Alarm\(int32_t alarm_id\));$/.test(declaration) ||
+            /^void FG_Clear_All_[A-Za-z0-9_]+\(void\);$/.test(declaration) ||
             /^void FG_Set_[A-Za-z0-9_]+_Channel\(uint32_t channel, bool enabled\);$/.test(declaration) ||
             /^bool FG_Get_[A-Za-z0-9_]+_Channel\(uint32_t channel\);$/.test(declaration) ||
             /^void FG_Set_[A-Za-z0-9_]+_Channel_Enabled\(uint32_t channel, bool enabled\);$/.test(declaration) ||
@@ -1515,9 +1519,10 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = [], user
     (Array.isArray(userEventContracts) ? userEventContracts : [])
       .filter(contract => contract &&
         /^FG_On_[A-Za-z0-9_]+$/.test(String(contract.name || '')) &&
-        /^(?:void|float value)$/.test(String(contract.parameters || '')))
+        /^(?:void|float value|int32_t alarm_id|int32_t alarm_id, FG_Alarm_Priority priority)$/.test(String(contract.parameters || '')))
       .map(contract => [String(contract.name), String(contract.parameters)])
   )
+  const hasAlarmContracts = Array.from(explicitContracts.values()).some(parameters => parameters.includes('FG_Alarm_Priority'))
   const booleanChanged = new Set()
   const checkedChanged = new Set()
   const checkboxCheckedChanged = new Set()
@@ -1708,16 +1713,17 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = [], user
       : hook.endsWith('_Changed') ? `void ${hook}(fg_three_way_state_t state);` : `void ${hook}(void);`)
     .join('\n')
 
+  const explicitDefinition = (hook, parameters) => {
+    if (parameters === 'void') return `void ${hook}(void)\n{\n}`
+    const unused = parameters.split(',').map(parameter => {
+      const match = parameter.trim().match(/([A-Za-z_][A-Za-z0-9_]*)$/)
+      return match ? `    (void)${match[1]};` : ''
+    }).filter(Boolean).join('\n')
+    return `void ${hook}(${parameters})\n{\n${unused}\n}`
+  }
   const definitions = uniqueHooks
     .map((hook) => explicitContracts.has(hook)
-      ? explicitContracts.get(hook) === 'float value'
-        ? `void ${hook}(float value)
-{
-    (void)value;
-}`
-        : `void ${hook}(void)
-{
-}`
+      ? explicitDefinition(hook, explicitContracts.get(hook))
       : relayChannelChanged.has(hook)
       ? `void ${hook}(uint32_t channel, bool enabled)
 {
@@ -1881,6 +1887,7 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = [], user
 
 #include <stdbool.h>
 #include <stdint.h>
+${hasAlarmContracts ? '#include "90_Studio_Export.h"' : ''}
 
 typedef enum
 {

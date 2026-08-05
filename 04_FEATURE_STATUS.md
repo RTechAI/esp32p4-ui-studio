@@ -2,11 +2,11 @@
 
 ## Current certification — 2026-08-06
 
-**FORGEUI_NATIVE_COMPONENTS_1_TO_6__TREND_CHART_AND_PRO_PHYSICALLY_PROVEN__READY_FOR_ALARM_PANEL__2026-08-06**
+**FORGEUI_NATIVE_COMPONENT_7__ALARM_PANEL_PHYSICALLY_PROVEN__RUNTIME_SDK_USEREVENTS_CAPACITY_ISOLATION_PROVEN__2026-08-06**
 
 - Practical LVGL 9.2: **44 / 44 PROVEN on ESP32-P4**. Lottie remains intentionally excluded.
-- Native Components: **6 / 6 implemented components physically proven**.
-- Next Native Component: **Alarm Panel** (not started).
+- Native Components: **7 / 7 implemented components physically proven**.
+- Next Native Component: **not selected**; do not begin another component from this save point.
 - Deferred without change: Simulator / Proof Module, automated Runtime SDK proof harness, ESP-Hosted startup investigation, and further export infrastructure.
 
 | Native Component | Current status | Certified scope |
@@ -17,6 +17,7 @@
 | PWM Controller | **PROVEN** | Value/enable interaction, isolated instances, Runtime SDK/UserEvents, ESP32-P4 |
 | Trend Chart | **PROVEN** | Lightweight technical trend, rolling history, time axis, thresholds, runtime updates, all preview/export paths, ESP32-P4 |
 | Trend Chart Pro | **PROVEN** | Separate premium engineering trend, bounded history, header/units, trace/glow/fill/marker/grid/bands, transition UserEvents, all preview/export paths, ESP32-P4 |
+| Alarm Panel | **PROVEN** | Bounded alarms, deterministic overflow rejection, state/priority ordering, compact/standard layouts, isolated Runtime SDK/UserEvents, ESP32-P4 |
 
 Trend Chart Pro does not replace Trend Chart. Certification also removed the
 partial-history tail artifact and unwanted LVGL point dots, placed threshold
@@ -158,7 +159,10 @@ Current Native Component roadmap:
 4. PWM Controller — **PROVEN**
 5. Trend Chart — **PROVEN**
 6. Trend Chart Pro — **PROVEN**
-7. Alarm Panel — **NEXT; NOT STARTED**
+7. Alarm Panel — **PROVEN**
+
+The next Native Component is not selected. Do not begin another component from
+this certification save point.
 
 This roadmap supersedes the historical PWM proof-ready paragraph below.
 4. PWM Controller — **NEXT**

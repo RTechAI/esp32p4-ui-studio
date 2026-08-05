@@ -111,6 +111,14 @@ void FG_On_Comp_MSGFBNVPEL8_E0_Cleared(void);
 void FG_On_Comp_MSGFBNVPEL8_E0_Warning(void);
 void FG_On_Comp_MSGFBNVPEL8_E0_Alarm(void);
 void FG_On_Comp_MSGFBNVPEL8_E0_Recovered(void);
+void FG_On_Alarm_Compact_Alarm_Added(int32_t alarm_id, FG_Alarm_Priority priority);
+void FG_On_Alarm_Compact_Alarm_Acknowledged(int32_t alarm_id);
+void FG_On_Alarm_Compact_Alarm_Cleared(int32_t alarm_id);
+void FG_On_Alarm_Compact_Alarm_Selected(int32_t alarm_id);
+void FG_On_Alarm_Standard_Alarm_Added(int32_t alarm_id, FG_Alarm_Priority priority);
+void FG_On_Alarm_Standard_Alarm_Acknowledged(int32_t alarm_id);
+void FG_On_Alarm_Standard_Alarm_Cleared(int32_t alarm_id);
+void FG_On_Alarm_Standard_Alarm_Selected(int32_t alarm_id);
 
 #ifdef __cplusplus
 }

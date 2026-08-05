@@ -1,9 +1,33 @@
 # ForgeUI Runtime SDK Direction
 
 Current Native Component certification (2026-08-06): Dashboard Card, Sensor
-Tile, Relay Panel, PWM Controller, Trend Chart, and Trend Chart Pro are
+Tile, Relay Panel, PWM Controller, Trend Chart, Trend Chart Pro, and Alarm Panel are
 physically proven on ESP32-P4. The practical LVGL ledger remains 44 / 44.
-Alarm Panel is next and is not part of this document update.
+
+## Proven Alarm Panel contract
+
+Alarm Panel uses fixed-capacity per-instance storage and rejects a new ID with
+`false` when full. Exact generated names derive from persisted component IDs:
+
+```c
+bool FG_Add_<AlarmPanel>_Alarm(int32_t alarm_id, const char * message,
+    const char * timestamp, FG_Alarm_Priority priority, FG_Alarm_State state);
+bool FG_Acknowledge_<AlarmPanel>_Alarm(int32_t alarm_id);
+bool FG_Clear_<AlarmPanel>_Alarm(int32_t alarm_id);
+void FG_Clear_All_<AlarmPanel>(void);
+void FG_Set_<AlarmPanel>_Enabled(bool enabled);
+bool FG_Select_<AlarmPanel>_Alarm(int32_t alarm_id);
+
+void FG_On_<AlarmPanel>_Alarm_Added(int32_t alarm_id, FG_Alarm_Priority priority);
+void FG_On_<AlarmPanel>_Alarm_Acknowledged(int32_t alarm_id);
+void FG_On_<AlarmPanel>_Alarm_Cleared(int32_t alarm_id);
+void FG_On_<AlarmPanel>_Alarm_Selected(int32_t alarm_id);
+```
+
+Clear and acknowledge are distinct. `autoClear` determines whether Cleared
+records remain styled and visible or release their slots. Duplicate instances
+have isolated arrays, APIs, and callback symbols; private LVGL objects remain
+implementation details.
 
 ## Proven chart contracts
 

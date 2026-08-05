@@ -43,26 +43,27 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- `FG_On_<Chart>_Point_Added(float value)`
-- `FG_On_<Chart>_Cleared(void)`
-- `FG_On_<Chart>_Warning(void)`
-- `FG_On_<Chart>_Alarm(void)`
-- `FG_On_<Chart>_Recovered(void)`
-
-`<Chart>` represents the exact generated stem in `90_Studio_Export.h` and
-`95_UserEvents.h`. Persisted Native Component identity keeps Pro chart names
-stable through presentation-label changes; duplicate instances are isolated.
-Warning, Alarm, and Recovered fire only on threshold-state transitions.
+- `FG_On_Alarm_Compact_Alarm_Added()`
+- `FG_On_Alarm_Compact_Alarm_Acknowledged()`
+- `FG_On_Alarm_Compact_Alarm_Cleared()`
+- `FG_On_Alarm_Compact_Alarm_Selected()`
+- `FG_On_Alarm_Standard_Alarm_Added()`
+- `FG_On_Alarm_Standard_Alarm_Acknowledged()`
+- `FG_On_Alarm_Standard_Alarm_Cleared()`
+- `FG_On_Alarm_Standard_Alarm_Selected()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| Chart Point Added | Runtime point update | `FG_On_<Chart>_Point_Added(float value)` |
-| Chart Cleared | Runtime clear | `FG_On_<Chart>_Cleared(void)` |
-| Chart Warning | Threshold transition | `FG_On_<Chart>_Warning(void)` |
-| Chart Alarm | Threshold transition | `FG_On_<Chart>_Alarm(void)` |
-| Chart Recovered | Threshold transition | `FG_On_<Chart>_Recovered(void)` |
+| Alarm_Compact_Alarm_Added | Click | `FG_On_Alarm_Compact_Alarm_Added()` |
+| Alarm_Compact_Alarm_Acknowledged | Click | `FG_On_Alarm_Compact_Alarm_Acknowledged()` |
+| Alarm_Compact_Alarm_Cleared | Click | `FG_On_Alarm_Compact_Alarm_Cleared()` |
+| Alarm_Compact_Alarm_Selected | Click | `FG_On_Alarm_Compact_Alarm_Selected()` |
+| Alarm_Standard_Alarm_Added | Click | `FG_On_Alarm_Standard_Alarm_Added()` |
+| Alarm_Standard_Alarm_Acknowledged | Click | `FG_On_Alarm_Standard_Alarm_Acknowledged()` |
+| Alarm_Standard_Alarm_Cleared | Click | `FG_On_Alarm_Standard_Alarm_Cleared()` |
+| Alarm_Standard_Alarm_Selected | Click | `FG_On_Alarm_Standard_Alarm_Selected()` |
 
 ---
 

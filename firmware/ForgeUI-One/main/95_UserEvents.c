@@ -628,3 +628,43 @@ void FG_On_Comp_MSGFBNVPEL8_E0_Alarm(void)
 void FG_On_Comp_MSGFBNVPEL8_E0_Recovered(void)
 {
 }
+
+void FG_On_Alarm_Compact_Alarm_Added(int32_t alarm_id, FG_Alarm_Priority priority)
+{
+    printf("[ForgeUI User Event] FG_On_Alarm_Compact_Alarm_Added\n");
+}
+
+void FG_On_Alarm_Compact_Alarm_Acknowledged(int32_t alarm_id)
+{
+    printf("[ForgeUI User Event] FG_On_Alarm_Compact_Alarm_Acknowledged\n");
+}
+
+void FG_On_Alarm_Compact_Alarm_Cleared(int32_t alarm_id)
+{
+    printf("[ForgeUI User Event] FG_On_Alarm_Compact_Alarm_Cleared\n");
+}
+
+void FG_On_Alarm_Compact_Alarm_Selected(int32_t alarm_id)
+{
+    printf("[ForgeUI User Event] FG_On_Alarm_Compact_Alarm_Selected\n");
+}
+
+void FG_On_Alarm_Standard_Alarm_Added(int32_t alarm_id, FG_Alarm_Priority priority)
+{
+    printf("[ForgeUI User Event] FG_On_Alarm_Standard_Alarm_Added\n");
+}
+
+void FG_On_Alarm_Standard_Alarm_Acknowledged(int32_t alarm_id)
+{
+    printf("[ForgeUI User Event] FG_On_Alarm_Standard_Alarm_Acknowledged\n");
+}
+
+void FG_On_Alarm_Standard_Alarm_Cleared(int32_t alarm_id)
+{
+    printf("[ForgeUI User Event] FG_On_Alarm_Standard_Alarm_Cleared\n");
+}
+
+void FG_On_Alarm_Standard_Alarm_Selected(int32_t alarm_id)
+{
+    printf("[ForgeUI User Event] FG_On_Alarm_Standard_Alarm_Selected\n");
+}

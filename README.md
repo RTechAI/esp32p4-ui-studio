@@ -1,10 +1,10 @@
 # ForgeUI Studio
 
 > Current certification (2026-08-06): **44 / 44 practical LVGL 9.2
-> components physically proven on ESP32-P4**, plus six physically proven
+> components physically proven on ESP32-P4**, plus seven physically proven
 > ForgeUI Native Components: Dashboard Card, Sensor Tile, Relay Panel, PWM
-> Controller, Trend Chart, and Trend Chart Pro. Alarm Panel is next and has not
-> started.
+> Controller, Trend Chart, Trend Chart Pro, and Alarm Panel. The next Native
+> Component is not selected.
 
 > Next architecture sprint (recorded, not implemented): **ForgeUI ESP32-S3 Simulator Platform** for simulated digital I/O, PWM, analogue, battery, tank, motor and relay behavior, Wi-Fi communication, repeatable hardware validation, a future Test Certificate Card and a public hardware-proof workflow.
 

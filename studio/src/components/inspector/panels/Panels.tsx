@@ -20,6 +20,7 @@ import { RelayPanelPanel } from '~components/inspector/panels/components/RelayPa
 import { PwmControllerPanel } from '~components/inspector/panels/components/PwmControllerPanel'
 import { TrendChartPanel } from '~components/inspector/panels/components/TrendChartPanel'
 import { TrendChartProPanel } from '~components/inspector/panels/components/TrendChartProPanel'
+import { AlarmPanelPanel } from '~components/inspector/panels/components/AlarmPanelPanel'
 import ProgressPanel from '~components/inspector/panels/components/ProgressPanel'
 import BarPanel from '~components/inspector/panels/components/BarPanel'
 import ArcPanel from '~components/inspector/panels/components/ArcPanel'
@@ -107,6 +108,7 @@ const Panels: React.FC<{ component: IComponent; isRoot: boolean }> = ({
       {type === 'PwmController' && <PwmControllerPanel />}
       {type === 'Chart' && <TrendChartPanel />}
       {type === 'TrendChartPro' && <TrendChartProPanel />}
+      {type === 'AlarmPanel' && <AlarmPanelPanel />}
       {type === 'Progress' && <ProgressPanel />}
       {type === 'Bar' && <BarPanel />}
       {type === 'Arc' && <ArcPanel />}

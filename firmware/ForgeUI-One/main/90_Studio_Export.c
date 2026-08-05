@@ -21,28 +21,118 @@
 #include <string.h>
 #include <math.h>
 
+static lv_obj_t * fg_alarm_compact_alarm_panel = NULL;
+static lv_obj_t * fg_alarm_compact_alarm_rows[4] = {0}; static lv_obj_t * fg_alarm_compact_alarm_row_labels[4] = {0};
+static int32_t fg_alarm_compact_alarm_selected_rows[4] = {0};
+static int32_t fg_alarm_compact_alarm_ids[4] = {0}; static bool fg_alarm_compact_alarm_occupied[4] = {0};
+static char fg_alarm_compact_alarm_messages[4][97] = {{0}}; static char fg_alarm_compact_alarm_timestamps[4][25] = {{0}};
+static FG_Alarm_State fg_alarm_compact_alarm_states[4] = {0}; static FG_Alarm_Priority fg_alarm_compact_alarm_priorities[4] = {0};
+static uint32_t fg_alarm_compact_alarm_count = 0; static bool fg_alarm_compact_alarm_enabled = true;
+static lv_obj_t * fg_alarm_standard_alarm_panel = NULL;
+static lv_obj_t * fg_alarm_standard_alarm_rows[5] = {0}; static lv_obj_t * fg_alarm_standard_alarm_row_labels[5] = {0};
+static int32_t fg_alarm_standard_alarm_selected_rows[5] = {0};
+static int32_t fg_alarm_standard_alarm_ids[8] = {0}; static bool fg_alarm_standard_alarm_occupied[8] = {0};
+static char fg_alarm_standard_alarm_messages[8][97] = {{0}}; static char fg_alarm_standard_alarm_timestamps[8][25] = {{0}};
+static FG_Alarm_State fg_alarm_standard_alarm_states[8] = {0}; static FG_Alarm_Priority fg_alarm_standard_alarm_priorities[8] = {0};
+static uint32_t fg_alarm_standard_alarm_count = 0; static bool fg_alarm_standard_alarm_enabled = true;
+static void fg_alarm_compact_alarm_refresh(void)
+{
+    bool used[4] = {0};
+    for (uint32_t row = 0; row < 4u; ++row) {
+        int32_t selected = -1;
+        for (uint32_t i = 0; i < 4u; ++i) if (fg_alarm_compact_alarm_occupied[i] && !used[i] && (selected < 0 || fg_alarm_compact_alarm_priorities[i] > fg_alarm_compact_alarm_priorities[selected])) selected = (int32_t)i;
+        fg_alarm_compact_alarm_selected_rows[row] = selected;
+        if (selected < 0) { if (fg_alarm_compact_alarm_rows[row]) lv_obj_add_flag(fg_alarm_compact_alarm_rows[row], LV_OBJ_FLAG_HIDDEN); continue; }
+        used[selected] = true; if (fg_alarm_compact_alarm_rows[row]) lv_obj_remove_flag(fg_alarm_compact_alarm_rows[row], LV_OBJ_FLAG_HIDDEN);
+        if (fg_alarm_compact_alarm_row_labels[row]) lv_label_set_text_fmt(fg_alarm_compact_alarm_row_labels[row], "[%s] %s", fg_alarm_compact_alarm_priorities[selected] == FG_ALARM_PRIORITY_CRITICAL ? "CRITICAL" : (fg_alarm_compact_alarm_priorities[selected] == FG_ALARM_PRIORITY_HIGH ? "HIGH" : (fg_alarm_compact_alarm_priorities[selected] == FG_ALARM_PRIORITY_MEDIUM ? "MEDIUM" : "LOW")), fg_alarm_compact_alarm_messages[selected]);
+        uint32_t colour = fg_alarm_compact_alarm_states[selected] == FG_ALARM_STATE_WARNING ? 0xF2A900 : (fg_alarm_compact_alarm_states[selected] == FG_ALARM_STATE_ACKNOWLEDGED ? 0x64748B : (fg_alarm_compact_alarm_states[selected] == FG_ALARM_STATE_CLEARED ? 0x475569 : (fg_alarm_compact_alarm_states[selected] == FG_ALARM_STATE_NORMAL ? 0x22C55E : 0xE5484D)));
+        if (fg_alarm_compact_alarm_rows[row]) lv_obj_set_style_border_color(fg_alarm_compact_alarm_rows[row], lv_color_hex(colour), 0);
+        if (fg_alarm_compact_alarm_rows[row]) lv_obj_set_style_border_width(fg_alarm_compact_alarm_rows[row], 3, 0);
+    }
+}
+
+static void fg_alarm_compact_alarm_selected_cb(lv_event_t * event)
+{
+    if (!fg_alarm_compact_alarm_enabled) return;
+    uint32_t row = (uint32_t)(uintptr_t)lv_event_get_user_data(event);
+    if (row >= 4u) return;
+    int32_t slot = fg_alarm_compact_alarm_selected_rows[row];
+    if (slot < 0) return;
+    int32_t alarm_id = fg_alarm_compact_alarm_ids[slot]; FG_On_Alarm_Compact_Alarm_Selected(alarm_id);
+    if (fg_alarm_compact_alarm_states[slot] != FG_ALARM_STATE_ACKNOWLEDGED && fg_alarm_compact_alarm_states[slot] != FG_ALARM_STATE_CLEARED) { fg_alarm_compact_alarm_states[slot] = FG_ALARM_STATE_ACKNOWLEDGED; fg_alarm_compact_alarm_refresh(); FG_On_Alarm_Compact_Alarm_Acknowledged(alarm_id); }
+}
+
+bool FG_Add_Alarm_Compact_Alarm(int32_t alarm_id, const char * message, const char * timestamp, FG_Alarm_Priority priority, FG_Alarm_State state)
+{
+    if (!fg_alarm_compact_alarm_enabled || !message) return false;
+    int32_t slot = -1;
+    for (uint32_t i = 0; i < 4u; ++i) {
+        if (fg_alarm_compact_alarm_occupied[i] && fg_alarm_compact_alarm_ids[i] == alarm_id) { slot = (int32_t)i; break; }
+        if (slot < 0 && !fg_alarm_compact_alarm_occupied[i]) slot = (int32_t)i;
+    }
+    if (slot < 0) return false;
+    bool added = !fg_alarm_compact_alarm_occupied[slot]; fg_alarm_compact_alarm_occupied[slot] = true; fg_alarm_compact_alarm_ids[slot] = alarm_id; fg_alarm_compact_alarm_priorities[slot] = priority; fg_alarm_compact_alarm_states[slot] = state; snprintf(fg_alarm_compact_alarm_messages[slot], sizeof(fg_alarm_compact_alarm_messages[slot]), "%s", message); snprintf(fg_alarm_compact_alarm_timestamps[slot], sizeof(fg_alarm_compact_alarm_timestamps[slot]), "%s", timestamp ? timestamp : ""); if (added) fg_alarm_compact_alarm_count++; fg_alarm_compact_alarm_refresh();
+    if (added) FG_On_Alarm_Compact_Alarm_Added(alarm_id, priority);
+    return true;
+}
+
+bool FG_Acknowledge_Alarm_Compact_Alarm(int32_t alarm_id) { for (uint32_t i = 0; i < 4u; ++i) if (fg_alarm_compact_alarm_occupied[i] && fg_alarm_compact_alarm_ids[i] == alarm_id && fg_alarm_compact_alarm_states[i] != FG_ALARM_STATE_CLEARED) { if (fg_alarm_compact_alarm_states[i] == FG_ALARM_STATE_ACKNOWLEDGED) return true; fg_alarm_compact_alarm_states[i] = FG_ALARM_STATE_ACKNOWLEDGED; fg_alarm_compact_alarm_refresh(); FG_On_Alarm_Compact_Alarm_Acknowledged(alarm_id); return true; } return false; }
+bool FG_Clear_Alarm_Compact_Alarm(int32_t alarm_id) { for (uint32_t i = 0; i < 4u; ++i) if (fg_alarm_compact_alarm_occupied[i] && fg_alarm_compact_alarm_ids[i] == alarm_id) { fg_alarm_compact_alarm_states[i] = FG_ALARM_STATE_CLEARED; fg_alarm_compact_alarm_refresh(); FG_On_Alarm_Compact_Alarm_Cleared(alarm_id); return true; } return false; }
+void FG_Clear_All_Alarm_Compact(void) { for (uint32_t i = 0; i < 4u; ++i) { fg_alarm_compact_alarm_occupied[i] = false; fg_alarm_compact_alarm_states[i] = FG_ALARM_STATE_CLEARED; } fg_alarm_compact_alarm_count = 0; fg_alarm_compact_alarm_refresh(); }
+void FG_Set_Alarm_Compact_Enabled(bool enabled) { fg_alarm_compact_alarm_enabled = enabled; if (fg_alarm_compact_alarm_panel) { if (enabled) lv_obj_remove_state(fg_alarm_compact_alarm_panel, LV_STATE_DISABLED); else lv_obj_add_state(fg_alarm_compact_alarm_panel, LV_STATE_DISABLED); } }
+bool FG_Select_Alarm_Compact_Alarm(int32_t alarm_id) { for (uint32_t i = 0; i < 4u; ++i) if (fg_alarm_compact_alarm_occupied[i] && fg_alarm_compact_alarm_ids[i] == alarm_id) { FG_On_Alarm_Compact_Alarm_Selected(alarm_id); return true; } return false; }
+
+static void fg_alarm_standard_alarm_refresh(void)
+{
+    bool used[8] = {0};
+    for (uint32_t row = 0; row < 5u; ++row) {
+        int32_t selected = -1;
+        for (uint32_t i = 0; i < 8u; ++i) if (fg_alarm_standard_alarm_occupied[i] && !used[i] && (selected < 0 || fg_alarm_standard_alarm_priorities[i] > fg_alarm_standard_alarm_priorities[selected])) selected = (int32_t)i;
+        fg_alarm_standard_alarm_selected_rows[row] = selected;
+        if (selected < 0) { if (fg_alarm_standard_alarm_rows[row]) lv_obj_add_flag(fg_alarm_standard_alarm_rows[row], LV_OBJ_FLAG_HIDDEN); continue; }
+        used[selected] = true; if (fg_alarm_standard_alarm_rows[row]) lv_obj_remove_flag(fg_alarm_standard_alarm_rows[row], LV_OBJ_FLAG_HIDDEN);
+        if (fg_alarm_standard_alarm_row_labels[row]) lv_label_set_text_fmt(fg_alarm_standard_alarm_row_labels[row], "[%s] %s  %s", fg_alarm_standard_alarm_priorities[selected] == FG_ALARM_PRIORITY_CRITICAL ? "CRITICAL" : (fg_alarm_standard_alarm_priorities[selected] == FG_ALARM_PRIORITY_HIGH ? "HIGH" : (fg_alarm_standard_alarm_priorities[selected] == FG_ALARM_PRIORITY_MEDIUM ? "MEDIUM" : "LOW")), fg_alarm_standard_alarm_messages[selected], fg_alarm_standard_alarm_timestamps[selected]);
+        uint32_t colour = fg_alarm_standard_alarm_states[selected] == FG_ALARM_STATE_WARNING ? 0xF2A900 : (fg_alarm_standard_alarm_states[selected] == FG_ALARM_STATE_ACKNOWLEDGED ? 0x64748B : (fg_alarm_standard_alarm_states[selected] == FG_ALARM_STATE_CLEARED ? 0x475569 : (fg_alarm_standard_alarm_states[selected] == FG_ALARM_STATE_NORMAL ? 0x22C55E : 0xE5484D)));
+        if (fg_alarm_standard_alarm_rows[row]) lv_obj_set_style_border_color(fg_alarm_standard_alarm_rows[row], lv_color_hex(colour), 0);
+        if (fg_alarm_standard_alarm_rows[row]) lv_obj_set_style_border_width(fg_alarm_standard_alarm_rows[row], 3, 0);
+    }
+}
+
+static void fg_alarm_standard_alarm_selected_cb(lv_event_t * event)
+{
+    if (!fg_alarm_standard_alarm_enabled) return;
+    uint32_t row = (uint32_t)(uintptr_t)lv_event_get_user_data(event);
+    if (row >= 5u) return;
+    int32_t slot = fg_alarm_standard_alarm_selected_rows[row];
+    if (slot < 0) return;
+    int32_t alarm_id = fg_alarm_standard_alarm_ids[slot]; FG_On_Alarm_Standard_Alarm_Selected(alarm_id);
+    if (fg_alarm_standard_alarm_states[slot] != FG_ALARM_STATE_ACKNOWLEDGED && fg_alarm_standard_alarm_states[slot] != FG_ALARM_STATE_CLEARED) { fg_alarm_standard_alarm_states[slot] = FG_ALARM_STATE_ACKNOWLEDGED; fg_alarm_standard_alarm_refresh(); FG_On_Alarm_Standard_Alarm_Acknowledged(alarm_id); }
+}
+
+bool FG_Add_Alarm_Standard_Alarm(int32_t alarm_id, const char * message, const char * timestamp, FG_Alarm_Priority priority, FG_Alarm_State state)
+{
+    if (!fg_alarm_standard_alarm_enabled || !message) return false;
+    int32_t slot = -1;
+    for (uint32_t i = 0; i < 8u; ++i) {
+        if (fg_alarm_standard_alarm_occupied[i] && fg_alarm_standard_alarm_ids[i] == alarm_id) { slot = (int32_t)i; break; }
+        if (slot < 0 && !fg_alarm_standard_alarm_occupied[i]) slot = (int32_t)i;
+    }
+    if (slot < 0) return false;
+    bool added = !fg_alarm_standard_alarm_occupied[slot]; fg_alarm_standard_alarm_occupied[slot] = true; fg_alarm_standard_alarm_ids[slot] = alarm_id; fg_alarm_standard_alarm_priorities[slot] = priority; fg_alarm_standard_alarm_states[slot] = state; snprintf(fg_alarm_standard_alarm_messages[slot], sizeof(fg_alarm_standard_alarm_messages[slot]), "%s", message); snprintf(fg_alarm_standard_alarm_timestamps[slot], sizeof(fg_alarm_standard_alarm_timestamps[slot]), "%s", timestamp ? timestamp : ""); if (added) fg_alarm_standard_alarm_count++; fg_alarm_standard_alarm_refresh();
+    if (added) FG_On_Alarm_Standard_Alarm_Added(alarm_id, priority);
+    return true;
+}
+
+bool FG_Acknowledge_Alarm_Standard_Alarm(int32_t alarm_id) { for (uint32_t i = 0; i < 8u; ++i) if (fg_alarm_standard_alarm_occupied[i] && fg_alarm_standard_alarm_ids[i] == alarm_id && fg_alarm_standard_alarm_states[i] != FG_ALARM_STATE_CLEARED) { if (fg_alarm_standard_alarm_states[i] == FG_ALARM_STATE_ACKNOWLEDGED) return true; fg_alarm_standard_alarm_states[i] = FG_ALARM_STATE_ACKNOWLEDGED; fg_alarm_standard_alarm_refresh(); FG_On_Alarm_Standard_Alarm_Acknowledged(alarm_id); return true; } return false; }
+bool FG_Clear_Alarm_Standard_Alarm(int32_t alarm_id) { for (uint32_t i = 0; i < 8u; ++i) if (fg_alarm_standard_alarm_occupied[i] && fg_alarm_standard_alarm_ids[i] == alarm_id) { fg_alarm_standard_alarm_states[i] = FG_ALARM_STATE_CLEARED; fg_alarm_standard_alarm_refresh(); FG_On_Alarm_Standard_Alarm_Cleared(alarm_id); return true; } return false; }
+void FG_Clear_All_Alarm_Standard(void) { for (uint32_t i = 0; i < 8u; ++i) { fg_alarm_standard_alarm_occupied[i] = false; fg_alarm_standard_alarm_states[i] = FG_ALARM_STATE_CLEARED; } fg_alarm_standard_alarm_count = 0; fg_alarm_standard_alarm_refresh(); }
+void FG_Set_Alarm_Standard_Enabled(bool enabled) { fg_alarm_standard_alarm_enabled = enabled; if (fg_alarm_standard_alarm_panel) { if (enabled) lv_obj_remove_state(fg_alarm_standard_alarm_panel, LV_STATE_DISABLED); else lv_obj_add_state(fg_alarm_standard_alarm_panel, LV_STATE_DISABLED); } }
+bool FG_Select_Alarm_Standard_Alarm(int32_t alarm_id) { for (uint32_t i = 0; i < 8u; ++i) if (fg_alarm_standard_alarm_occupied[i] && fg_alarm_standard_alarm_ids[i] == alarm_id) { FG_On_Alarm_Standard_Alarm_Selected(alarm_id); return true; } return false; }
+
 static lv_obj_t * fg_application_page = NULL;
 static lv_obj_t * fg_system_launcher_page = NULL;
 static lv_obj_t * fg_system_brightness_page = NULL;
 static lv_obj_t * fg_system_brightness_label = NULL;
-static lv_obj_t * fg_data_chart_chart = NULL;
-static lv_chart_series_t * fg_data_chart_chart_series = NULL;
-static lv_chart_series_t * fg_data_chart_chart_warning_series = NULL;
-static lv_chart_series_t * fg_data_chart_chart_alarm_series = NULL;
-static const int32_t fg_data_chart_chart_y_minimum = 0;
-static const int32_t fg_data_chart_chart_y_maximum = 100;
-static lv_obj_t * fg_comp_msgfbnvpel8_e0_chart = NULL;
-static lv_chart_series_t * fg_comp_msgfbnvpel8_e0_chart_series = NULL;
-static lv_chart_series_t * fg_comp_msgfbnvpel8_e0_chart_warning_series = NULL;
-static lv_chart_series_t * fg_comp_msgfbnvpel8_e0_chart_alarm_series = NULL;
-static const int32_t fg_comp_msgfbnvpel8_e0_chart_y_minimum = 3266;
-static const int32_t fg_comp_msgfbnvpel8_e0_chart_y_maximum = 4854;
-static lv_obj_t * fg_comp_msgfbnvpel8_e0_chart_units = NULL;
-static lv_obj_t * fg_comp_msgfbnvpel8_e0_chart_value = NULL;
-static lv_obj_t * fg_comp_msgfbnvpel8_e0_chart_marker = NULL;
-static int8_t fg_comp_msgfbnvpel8_e0_chart_threshold_state = 0;
-static float fg_comp_msgfbnvpel8_e0_chart_warning = 4200.0f;
-static float fg_comp_msgfbnvpel8_e0_chart_alarm = 4700.0f;
 static lv_obj_t * fg_system_wifi_page = NULL;
 static lv_obj_t * fg_system_wifi_state_label = NULL;
 static lv_obj_t * fg_system_wifi_ssid_label = NULL;
@@ -162,97 +252,6 @@ static void fg_system_storage_request_teardown(void);
 static void fg_system_storage_finish_teardown(void);
 static void fg_system_storage_worker(void * arg);
 static void fg_system_storage_tick_cb(lv_timer_t * timer);
-
-void FG_Add_Data_Chart_Point(float value)
-{
-    if (fg_data_chart_chart == NULL || fg_data_chart_chart_series == NULL) return;
-    if (value < fg_data_chart_chart_y_minimum) value = fg_data_chart_chart_y_minimum;
-    if (value > fg_data_chart_chart_y_maximum) value = fg_data_chart_chart_y_maximum;
-    lv_chart_set_next_value(fg_data_chart_chart, fg_data_chart_chart_series, (int32_t)value);
-    lv_chart_refresh(fg_data_chart_chart);
-    FG_On_Data_Chart_Point_Added(value);
-}
-
-void FG_Set_Data_Chart_WarningThreshold(float value)
-{
-    if (fg_data_chart_chart == NULL || fg_data_chart_chart_warning_series == NULL) return;
-    if (value < fg_data_chart_chart_y_minimum) value = fg_data_chart_chart_y_minimum;
-    if (value > fg_data_chart_chart_y_maximum) value = fg_data_chart_chart_y_maximum;
-    lv_chart_set_all_value(fg_data_chart_chart, fg_data_chart_chart_warning_series, (int32_t)value);
-    lv_chart_refresh(fg_data_chart_chart);
-}
-
-void FG_Set_Data_Chart_AlarmThreshold(float value)
-{
-    if (fg_data_chart_chart == NULL || fg_data_chart_chart_alarm_series == NULL) return;
-    if (value < fg_data_chart_chart_y_minimum) value = fg_data_chart_chart_y_minimum;
-    if (value > fg_data_chart_chart_y_maximum) value = fg_data_chart_chart_y_maximum;
-    lv_chart_set_all_value(fg_data_chart_chart, fg_data_chart_chart_alarm_series, (int32_t)value);
-    lv_chart_refresh(fg_data_chart_chart);
-}
-
-void FG_Clear_Data_Chart(void)
-{
-    if (fg_data_chart_chart == NULL || fg_data_chart_chart_series == NULL) return;
-    lv_chart_set_all_value(fg_data_chart_chart, fg_data_chart_chart_series, LV_CHART_POINT_NONE);
-    FG_On_Data_Chart_Cleared();
-}
-
-void FG_Add_Comp_MSGFBNVPEL8_E0_Point(float value)
-{
-    if (fg_comp_msgfbnvpel8_e0_chart == NULL || fg_comp_msgfbnvpel8_e0_chart_series == NULL) return;
-    if (value < fg_comp_msgfbnvpel8_e0_chart_y_minimum) value = fg_comp_msgfbnvpel8_e0_chart_y_minimum;
-    if (value > fg_comp_msgfbnvpel8_e0_chart_y_maximum) value = fg_comp_msgfbnvpel8_e0_chart_y_maximum;
-    lv_chart_set_next_value(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, (int32_t)value);
-    lv_chart_refresh(fg_comp_msgfbnvpel8_e0_chart);
-    char value_text[32];
-    snprintf(value_text, sizeof(value_text), "%.*f", 0, (double)value);
-    if (fg_comp_msgfbnvpel8_e0_chart_value) lv_label_set_text(fg_comp_msgfbnvpel8_e0_chart_value, value_text);
-    if (fg_comp_msgfbnvpel8_e0_chart_marker) {
-        int32_t marker_y = lv_obj_get_content_height(fg_comp_msgfbnvpel8_e0_chart) - (int32_t)((value - fg_comp_msgfbnvpel8_e0_chart_y_minimum) * lv_obj_get_content_height(fg_comp_msgfbnvpel8_e0_chart) / (fg_comp_msgfbnvpel8_e0_chart_y_maximum - fg_comp_msgfbnvpel8_e0_chart_y_minimum));
-        lv_obj_set_pos(fg_comp_msgfbnvpel8_e0_chart_marker, lv_obj_get_content_width(fg_comp_msgfbnvpel8_e0_chart) - 8, marker_y - 4);
-    }
-    int8_t next_state = value >= fg_comp_msgfbnvpel8_e0_chart_alarm ? 2 : (value >= fg_comp_msgfbnvpel8_e0_chart_warning ? 1 : 0);
-    if (next_state != fg_comp_msgfbnvpel8_e0_chart_threshold_state) {
-        if (next_state == 1) FG_On_Comp_MSGFBNVPEL8_E0_Warning();
-        else if (next_state == 2) FG_On_Comp_MSGFBNVPEL8_E0_Alarm();
-        else FG_On_Comp_MSGFBNVPEL8_E0_Recovered();
-    }
-    fg_comp_msgfbnvpel8_e0_chart_threshold_state = next_state;
-    FG_On_Comp_MSGFBNVPEL8_E0_Point_Added(value);
-}
-
-void FG_Set_Comp_MSGFBNVPEL8_E0_Units(const char * units)
-{
-    if (fg_comp_msgfbnvpel8_e0_chart_units) lv_label_set_text(fg_comp_msgfbnvpel8_e0_chart_units, units ? units : "");
-}
-
-void FG_Set_Comp_MSGFBNVPEL8_E0_Warning(float value)
-{
-    if (fg_comp_msgfbnvpel8_e0_chart == NULL || fg_comp_msgfbnvpel8_e0_chart_warning_series == NULL) return;
-    if (value < fg_comp_msgfbnvpel8_e0_chart_y_minimum) value = fg_comp_msgfbnvpel8_e0_chart_y_minimum;
-    if (value > fg_comp_msgfbnvpel8_e0_chart_y_maximum) value = fg_comp_msgfbnvpel8_e0_chart_y_maximum;
-    lv_chart_set_all_value(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_warning_series, (int32_t)value);
-    fg_comp_msgfbnvpel8_e0_chart_warning = value;
-    lv_chart_refresh(fg_comp_msgfbnvpel8_e0_chart);
-}
-
-void FG_Set_Comp_MSGFBNVPEL8_E0_Alarm(float value)
-{
-    if (fg_comp_msgfbnvpel8_e0_chart == NULL || fg_comp_msgfbnvpel8_e0_chart_alarm_series == NULL) return;
-    if (value < fg_comp_msgfbnvpel8_e0_chart_y_minimum) value = fg_comp_msgfbnvpel8_e0_chart_y_minimum;
-    if (value > fg_comp_msgfbnvpel8_e0_chart_y_maximum) value = fg_comp_msgfbnvpel8_e0_chart_y_maximum;
-    lv_chart_set_all_value(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_alarm_series, (int32_t)value);
-    fg_comp_msgfbnvpel8_e0_chart_alarm = value;
-    lv_chart_refresh(fg_comp_msgfbnvpel8_e0_chart);
-}
-
-void FG_Clear_Comp_MSGFBNVPEL8_E0(void)
-{
-    if (fg_comp_msgfbnvpel8_e0_chart == NULL || fg_comp_msgfbnvpel8_e0_chart_series == NULL) return;
-    lv_chart_set_all_value(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, LV_CHART_POINT_NONE);
-    FG_On_Comp_MSGFBNVPEL8_E0_Cleared();
-}
 
 static void fg_window_close_cb(lv_event_t * event)
 {
@@ -1359,220 +1358,89 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_bg_color(fg_application_page, lv_color_hex(0x121417), 0);
     lv_obj_set_style_bg_opa(fg_application_page, LV_OPA_COVER, 0);
 
-    LV_IMAGE_DECLARE(fg_upload_ai_hero_1784342478518_b95a7dc0);
-    lv_obj_t * bg_texture_0 = lv_image_create(fg_application_page);
-    lv_image_set_src(bg_texture_0, &fg_upload_ai_hero_1784342478518_b95a7dc0);
-    lv_obj_set_pos(bg_texture_0, 0, 0);
-    lv_obj_set_size(bg_texture_0, 1024, 600);
-    lv_obj_move_background(bg_texture_0);
+    fg_alarm_standard_alarm_panel = lv_obj_create(fg_application_page);
+    lv_obj_set_pos(fg_alarm_standard_alarm_panel, 20, 70); lv_obj_set_size(fg_alarm_standard_alarm_panel, 480, 500);
+    lv_obj_set_style_bg_color(fg_alarm_standard_alarm_panel, lv_color_hex(0x1E2328), 0);
+    lv_obj_set_style_border_color(fg_alarm_standard_alarm_panel, lv_color_hex(0xF2A900), 0); lv_obj_set_style_border_width(fg_alarm_standard_alarm_panel, 1, 0); lv_obj_set_style_radius(fg_alarm_standard_alarm_panel, 10, 0); lv_obj_set_style_pad_all(fg_alarm_standard_alarm_panel, 0, 0);
+    lv_obj_clear_flag(fg_alarm_standard_alarm_panel, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_t * obj1_title = lv_label_create(fg_alarm_standard_alarm_panel); lv_label_set_text(obj1_title, "Active Alarms"); lv_obj_set_pos(obj1_title, 12, 11);
+    lv_obj_set_style_text_color(obj1_title, lv_color_hex(0xF5F5F5), 0);
+    fg_alarm_standard_alarm_rows[0] = lv_button_create(fg_alarm_standard_alarm_panel);
+    lv_obj_set_pos(fg_alarm_standard_alarm_rows[0], 8, 42); lv_obj_set_size(fg_alarm_standard_alarm_rows[0], 464, 83);
+    lv_obj_set_style_bg_color(fg_alarm_standard_alarm_rows[0], lv_color_hex(0x2A3138), 0); lv_obj_set_style_border_width(fg_alarm_standard_alarm_rows[0], 0, 0); lv_obj_set_style_radius(fg_alarm_standard_alarm_rows[0], 5, 0);
+    fg_alarm_standard_alarm_row_labels[0] = lv_label_create(fg_alarm_standard_alarm_rows[0]); lv_obj_set_width(fg_alarm_standard_alarm_row_labels[0], 446); lv_label_set_long_mode(fg_alarm_standard_alarm_row_labels[0], LV_LABEL_LONG_DOT); lv_obj_align(fg_alarm_standard_alarm_row_labels[0], LV_ALIGN_LEFT_MID, 2, 0);
+    lv_obj_set_style_text_font(fg_alarm_standard_alarm_row_labels[0], &lv_font_montserrat_12, 0);
+    lv_obj_add_event_cb(fg_alarm_standard_alarm_rows[0], fg_alarm_standard_alarm_selected_cb, LV_EVENT_CLICKED, (void *)(uintptr_t)0);
+    fg_alarm_standard_alarm_rows[1] = lv_button_create(fg_alarm_standard_alarm_panel);
+    lv_obj_set_pos(fg_alarm_standard_alarm_rows[1], 8, 129); lv_obj_set_size(fg_alarm_standard_alarm_rows[1], 464, 83);
+    lv_obj_set_style_bg_color(fg_alarm_standard_alarm_rows[1], lv_color_hex(0x2A3138), 0); lv_obj_set_style_border_width(fg_alarm_standard_alarm_rows[1], 0, 0); lv_obj_set_style_radius(fg_alarm_standard_alarm_rows[1], 5, 0);
+    fg_alarm_standard_alarm_row_labels[1] = lv_label_create(fg_alarm_standard_alarm_rows[1]); lv_obj_set_width(fg_alarm_standard_alarm_row_labels[1], 446); lv_label_set_long_mode(fg_alarm_standard_alarm_row_labels[1], LV_LABEL_LONG_DOT); lv_obj_align(fg_alarm_standard_alarm_row_labels[1], LV_ALIGN_LEFT_MID, 2, 0);
+    lv_obj_set_style_text_font(fg_alarm_standard_alarm_row_labels[1], &lv_font_montserrat_12, 0);
+    lv_obj_add_event_cb(fg_alarm_standard_alarm_rows[1], fg_alarm_standard_alarm_selected_cb, LV_EVENT_CLICKED, (void *)(uintptr_t)1);
+    fg_alarm_standard_alarm_rows[2] = lv_button_create(fg_alarm_standard_alarm_panel);
+    lv_obj_set_pos(fg_alarm_standard_alarm_rows[2], 8, 216); lv_obj_set_size(fg_alarm_standard_alarm_rows[2], 464, 83);
+    lv_obj_set_style_bg_color(fg_alarm_standard_alarm_rows[2], lv_color_hex(0x2A3138), 0); lv_obj_set_style_border_width(fg_alarm_standard_alarm_rows[2], 0, 0); lv_obj_set_style_radius(fg_alarm_standard_alarm_rows[2], 5, 0);
+    fg_alarm_standard_alarm_row_labels[2] = lv_label_create(fg_alarm_standard_alarm_rows[2]); lv_obj_set_width(fg_alarm_standard_alarm_row_labels[2], 446); lv_label_set_long_mode(fg_alarm_standard_alarm_row_labels[2], LV_LABEL_LONG_DOT); lv_obj_align(fg_alarm_standard_alarm_row_labels[2], LV_ALIGN_LEFT_MID, 2, 0);
+    lv_obj_set_style_text_font(fg_alarm_standard_alarm_row_labels[2], &lv_font_montserrat_12, 0);
+    lv_obj_add_event_cb(fg_alarm_standard_alarm_rows[2], fg_alarm_standard_alarm_selected_cb, LV_EVENT_CLICKED, (void *)(uintptr_t)2);
+    fg_alarm_standard_alarm_rows[3] = lv_button_create(fg_alarm_standard_alarm_panel);
+    lv_obj_set_pos(fg_alarm_standard_alarm_rows[3], 8, 303); lv_obj_set_size(fg_alarm_standard_alarm_rows[3], 464, 83);
+    lv_obj_set_style_bg_color(fg_alarm_standard_alarm_rows[3], lv_color_hex(0x2A3138), 0); lv_obj_set_style_border_width(fg_alarm_standard_alarm_rows[3], 0, 0); lv_obj_set_style_radius(fg_alarm_standard_alarm_rows[3], 5, 0);
+    fg_alarm_standard_alarm_row_labels[3] = lv_label_create(fg_alarm_standard_alarm_rows[3]); lv_obj_set_width(fg_alarm_standard_alarm_row_labels[3], 446); lv_label_set_long_mode(fg_alarm_standard_alarm_row_labels[3], LV_LABEL_LONG_DOT); lv_obj_align(fg_alarm_standard_alarm_row_labels[3], LV_ALIGN_LEFT_MID, 2, 0);
+    lv_obj_set_style_text_font(fg_alarm_standard_alarm_row_labels[3], &lv_font_montserrat_12, 0);
+    lv_obj_add_event_cb(fg_alarm_standard_alarm_rows[3], fg_alarm_standard_alarm_selected_cb, LV_EVENT_CLICKED, (void *)(uintptr_t)3);
+    fg_alarm_standard_alarm_rows[4] = lv_button_create(fg_alarm_standard_alarm_panel);
+    lv_obj_set_pos(fg_alarm_standard_alarm_rows[4], 8, 390); lv_obj_set_size(fg_alarm_standard_alarm_rows[4], 464, 83);
+    lv_obj_set_style_bg_color(fg_alarm_standard_alarm_rows[4], lv_color_hex(0x2A3138), 0); lv_obj_set_style_border_width(fg_alarm_standard_alarm_rows[4], 0, 0); lv_obj_set_style_radius(fg_alarm_standard_alarm_rows[4], 5, 0);
+    fg_alarm_standard_alarm_row_labels[4] = lv_label_create(fg_alarm_standard_alarm_rows[4]); lv_obj_set_width(fg_alarm_standard_alarm_row_labels[4], 446); lv_label_set_long_mode(fg_alarm_standard_alarm_row_labels[4], LV_LABEL_LONG_DOT); lv_obj_align(fg_alarm_standard_alarm_row_labels[4], LV_ALIGN_LEFT_MID, 2, 0);
+    lv_obj_set_style_text_font(fg_alarm_standard_alarm_row_labels[4], &lv_font_montserrat_12, 0);
+    lv_obj_add_event_cb(fg_alarm_standard_alarm_rows[4], fg_alarm_standard_alarm_selected_cb, LV_EVENT_CLICKED, (void *)(uintptr_t)4);
+    lv_obj_t * obj1_footer = lv_label_create(fg_alarm_standard_alarm_panel); lv_label_set_text(obj1_footer, "Select an alarm to acknowledge"); lv_obj_align(obj1_footer, LV_ALIGN_BOTTOM_LEFT, 12, -5); lv_obj_set_style_text_font(obj1_footer, &lv_font_montserrat_10, 0); lv_obj_set_style_text_color(obj1_footer, lv_color_hex(0xB5B6B8), 0);
+    fg_alarm_standard_alarm_occupied[0] = true; fg_alarm_standard_alarm_ids[0] = 1; fg_alarm_standard_alarm_states[0] = FG_ALARM_STATE_ALARM; fg_alarm_standard_alarm_priorities[0] = FG_ALARM_PRIORITY_CRITICAL;
+    snprintf(fg_alarm_standard_alarm_messages[0], sizeof(fg_alarm_standard_alarm_messages[0]), "%s", "High discharge pressure"); snprintf(fg_alarm_standard_alarm_timestamps[0], sizeof(fg_alarm_standard_alarm_timestamps[0]), "%s", "14:22:18");
+    fg_alarm_standard_alarm_occupied[1] = true; fg_alarm_standard_alarm_ids[1] = 2; fg_alarm_standard_alarm_states[1] = FG_ALARM_STATE_WARNING; fg_alarm_standard_alarm_priorities[1] = FG_ALARM_PRIORITY_HIGH;
+    snprintf(fg_alarm_standard_alarm_messages[1], sizeof(fg_alarm_standard_alarm_messages[1]), "%s", "Motor temperature elevated"); snprintf(fg_alarm_standard_alarm_timestamps[1], sizeof(fg_alarm_standard_alarm_timestamps[1]), "%s", "14:20:04");
+    fg_alarm_standard_alarm_occupied[2] = true; fg_alarm_standard_alarm_ids[2] = 3; fg_alarm_standard_alarm_states[2] = FG_ALARM_STATE_ACKNOWLEDGED; fg_alarm_standard_alarm_priorities[2] = FG_ALARM_PRIORITY_MEDIUM;
+    snprintf(fg_alarm_standard_alarm_messages[2], sizeof(fg_alarm_standard_alarm_messages[2]), "%s", "Filter service due"); snprintf(fg_alarm_standard_alarm_timestamps[2], sizeof(fg_alarm_standard_alarm_timestamps[2]), "%s", "13:48:31");
+    fg_alarm_standard_alarm_count = 3; fg_alarm_standard_alarm_refresh();
 
-    fg_data_chart_chart = lv_chart_create(fg_application_page);
-    lv_obj_set_pos(fg_data_chart_chart, 129, 78.20000076293945);
-    lv_obj_set_size(fg_data_chart_chart, 360, 220);
-    lv_obj_set_style_bg_color(fg_data_chart_chart, lv_color_hex(0x1E2328), LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(fg_data_chart_chart, LV_OPA_COVER, LV_PART_MAIN);
-    lv_obj_set_style_border_color(fg_data_chart_chart, lv_color_hex(0xF2A900), LV_PART_MAIN);
-    lv_obj_set_style_border_width(fg_data_chart_chart, 2, LV_PART_MAIN);
-    lv_obj_set_style_radius(fg_data_chart_chart, 12, LV_PART_MAIN);
-    lv_obj_set_style_line_color(fg_data_chart_chart, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_pad_left(fg_data_chart_chart, 42, LV_PART_MAIN);
-    lv_obj_set_style_pad_right(fg_data_chart_chart, 8, LV_PART_MAIN);
-    lv_obj_set_style_pad_top(fg_data_chart_chart, 26, LV_PART_MAIN);
-    lv_obj_set_style_pad_bottom(fg_data_chart_chart, 24, LV_PART_MAIN);
-    lv_chart_set_type(fg_data_chart_chart, LV_CHART_TYPE_LINE);
-    lv_obj_set_style_size(fg_data_chart_chart, 0, 0, LV_PART_INDICATOR);
-    lv_chart_set_point_count(fg_data_chart_chart, 24);
-    lv_chart_set_range(fg_data_chart_chart, LV_CHART_AXIS_PRIMARY_Y, 0, 100);
-    lv_chart_set_div_line_count(fg_data_chart_chart, 3, 5);
-    lv_chart_set_update_mode(fg_data_chart_chart, LV_CHART_UPDATE_MODE_SHIFT);
-    fg_data_chart_chart_warning_series = lv_chart_add_series(fg_data_chart_chart, lv_color_hex(0xF2A900), LV_CHART_AXIS_PRIMARY_Y);
-    fg_data_chart_chart_alarm_series = lv_chart_add_series(fg_data_chart_chart, lv_color_hex(0xE5484D), LV_CHART_AXIS_PRIMARY_Y);
-    lv_chart_set_all_value(fg_data_chart_chart, fg_data_chart_chart_warning_series, 70);
-    lv_chart_set_all_value(fg_data_chart_chart, fg_data_chart_chart_alarm_series, 85);
-    fg_data_chart_chart_series = lv_chart_add_series(fg_data_chart_chart, lv_color_hex(0xF2A900), LV_CHART_AXIS_PRIMARY_Y);
-    lv_chart_set_all_value(fg_data_chart_chart, fg_data_chart_chart_series, LV_CHART_POINT_NONE);
-    lv_chart_set_value_by_id(fg_data_chart_chart, fg_data_chart_chart_series, 12, 42);
-    lv_chart_set_value_by_id(fg_data_chart_chart, fg_data_chart_chart_series, 13, 45);
-    lv_chart_set_value_by_id(fg_data_chart_chart, fg_data_chart_chart_series, 14, 44);
-    lv_chart_set_value_by_id(fg_data_chart_chart, fg_data_chart_chart_series, 15, 48);
-    lv_chart_set_value_by_id(fg_data_chart_chart, fg_data_chart_chart_series, 16, 52);
-    lv_chart_set_value_by_id(fg_data_chart_chart, fg_data_chart_chart_series, 17, 55);
-    lv_chart_set_value_by_id(fg_data_chart_chart, fg_data_chart_chart_series, 18, 53);
-    lv_chart_set_value_by_id(fg_data_chart_chart, fg_data_chart_chart_series, 19, 58);
-    lv_chart_set_value_by_id(fg_data_chart_chart, fg_data_chart_chart_series, 20, 61);
-    lv_chart_set_value_by_id(fg_data_chart_chart, fg_data_chart_chart_series, 21, 59);
-    lv_chart_set_value_by_id(fg_data_chart_chart, fg_data_chart_chart_series, 22, 63);
-    lv_chart_set_value_by_id(fg_data_chart_chart, fg_data_chart_chart_series, 23, 66);
-    lv_chart_refresh(fg_data_chart_chart);
-    lv_obj_t * obj1_title = lv_label_create(fg_application_page);
-    lv_label_set_text(obj1_title, "Process Trend");
-    lv_obj_set_pos(obj1_title, 129 + 44, 78.20000076293945 + 4);
-    lv_obj_set_style_text_color(obj1_title, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
-    lv_obj_clear_flag(obj1_title, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj1_y_axis_title = lv_label_create(fg_application_page);
-    lv_label_set_text(obj1_y_axis_title, "Value");
-    lv_obj_set_pos(obj1_y_axis_title, 129 + 3, 78.20000076293945 + 104);
-    lv_obj_set_style_text_color(obj1_y_axis_title, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_clear_flag(obj1_y_axis_title, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj1_y_label_0 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj1_y_label_0, "100");
-    lv_obj_set_pos(obj1_y_label_0, 129 + 2, 78.20000076293945 + 21);
-    lv_obj_set_size(obj1_y_label_0, 38, 14);
-    lv_obj_set_style_text_color(obj1_y_label_0, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj1_y_label_0, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj1_y_label_0, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);
-    lv_obj_clear_flag(obj1_y_label_0, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj1_y_label_1 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj1_y_label_1, "75");
-    lv_obj_set_pos(obj1_y_label_1, 129 + 2, 78.20000076293945 + 63);
-    lv_obj_set_size(obj1_y_label_1, 38, 14);
-    lv_obj_set_style_text_color(obj1_y_label_1, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj1_y_label_1, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj1_y_label_1, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);
-    lv_obj_clear_flag(obj1_y_label_1, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj1_y_label_2 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj1_y_label_2, "50");
-    lv_obj_set_pos(obj1_y_label_2, 129 + 2, 78.20000076293945 + 104);
-    lv_obj_set_size(obj1_y_label_2, 38, 14);
-    lv_obj_set_style_text_color(obj1_y_label_2, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj1_y_label_2, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj1_y_label_2, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);
-    lv_obj_clear_flag(obj1_y_label_2, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj1_y_label_3 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj1_y_label_3, "25");
-    lv_obj_set_pos(obj1_y_label_3, 129 + 2, 78.20000076293945 + 146);
-    lv_obj_set_size(obj1_y_label_3, 38, 14);
-    lv_obj_set_style_text_color(obj1_y_label_3, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj1_y_label_3, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj1_y_label_3, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);
-    lv_obj_clear_flag(obj1_y_label_3, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj1_y_label_4 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj1_y_label_4, "0");
-    lv_obj_set_pos(obj1_y_label_4, 129 + 2, 78.20000076293945 + 187);
-    lv_obj_set_size(obj1_y_label_4, 38, 14);
-    lv_obj_set_style_text_color(obj1_y_label_4, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj1_y_label_4, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj1_y_label_4, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);
-    lv_obj_clear_flag(obj1_y_label_4, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj1_x_label_0 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj1_x_label_0, "-60s");
-    lv_obj_set_pos(obj1_x_label_0, 129 + 27, 78.20000076293945 + 197);
-    lv_obj_set_size(obj1_x_label_0, 35, 14);
-    lv_obj_set_style_text_color(obj1_x_label_0, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj1_x_label_0, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj1_x_label_0, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_clear_flag(obj1_x_label_0, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj1_x_label_1 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj1_x_label_1, "-45s");
-    lv_obj_set_pos(obj1_x_label_1, 129 + 103, 78.20000076293945 + 197);
-    lv_obj_set_size(obj1_x_label_1, 35, 14);
-    lv_obj_set_style_text_color(obj1_x_label_1, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj1_x_label_1, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj1_x_label_1, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_clear_flag(obj1_x_label_1, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj1_x_label_2 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj1_x_label_2, "-30s");
-    lv_obj_set_pos(obj1_x_label_2, 129 + 180, 78.20000076293945 + 197);
-    lv_obj_set_size(obj1_x_label_2, 35, 14);
-    lv_obj_set_style_text_color(obj1_x_label_2, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj1_x_label_2, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj1_x_label_2, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_clear_flag(obj1_x_label_2, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj1_x_label_3 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj1_x_label_3, "-15s");
-    lv_obj_set_pos(obj1_x_label_3, 129 + 256, 78.20000076293945 + 197);
-    lv_obj_set_size(obj1_x_label_3, 35, 14);
-    lv_obj_set_style_text_color(obj1_x_label_3, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj1_x_label_3, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj1_x_label_3, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_clear_flag(obj1_x_label_3, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_t * obj1_x_label_4 = lv_label_create(fg_application_page);
-    lv_label_set_text(obj1_x_label_4, "Now");
-    lv_obj_set_pos(obj1_x_label_4, 129 + 336, 78.20000076293945 + 197);
-    lv_obj_set_size(obj1_x_label_4, 28, 14);
-    lv_obj_set_style_text_color(obj1_x_label_4, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(obj1_x_label_4, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_align(obj1_x_label_4, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_clear_flag(obj1_x_label_4, LV_OBJ_FLAG_CLICKABLE);
-
-    lv_obj_t * obj2 = lv_obj_create(fg_application_page);
-    lv_obj_set_pos(obj2, 532, 94.20000076293945);
-    lv_obj_set_size(obj2, 360, 220);
-    lv_obj_set_style_bg_color(obj2, lv_color_hex(0x1E2328), LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(obj2, LV_OPA_COVER, LV_PART_MAIN);
-    lv_obj_set_style_border_color(obj2, lv_color_hex(0xF2A900), LV_PART_MAIN);
-    lv_obj_set_style_border_width(obj2, 1, LV_PART_MAIN);
-    lv_obj_set_style_radius(obj2, 10, LV_PART_MAIN);
-    lv_obj_clear_flag(obj2, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_t * obj2_title = lv_label_create(obj2);
-    lv_label_set_text(obj2_title, "Engine RPM");
-    lv_obj_set_pos(obj2_title, 12, 10);
-    lv_obj_set_style_text_color(obj2_title, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    fg_comp_msgfbnvpel8_e0_chart_value = lv_label_create(obj2);
-    lv_label_set_text(fg_comp_msgfbnvpel8_e0_chart_value, "3962");
-    lv_obj_align(fg_comp_msgfbnvpel8_e0_chart_value, LV_ALIGN_TOP_RIGHT, -52, 8);
-    lv_obj_set_style_text_color(fg_comp_msgfbnvpel8_e0_chart_value, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
-    lv_obj_set_style_text_font(fg_comp_msgfbnvpel8_e0_chart_value, &lv_font_montserrat_28, LV_PART_MAIN);
-    fg_comp_msgfbnvpel8_e0_chart_units = lv_label_create(obj2);
-    lv_label_set_text(fg_comp_msgfbnvpel8_e0_chart_units, "RPM");
-    lv_obj_align(fg_comp_msgfbnvpel8_e0_chart_units, LV_ALIGN_TOP_RIGHT, -10, 16);
-    lv_obj_set_style_text_color(fg_comp_msgfbnvpel8_e0_chart_units, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    fg_comp_msgfbnvpel8_e0_chart = lv_chart_create(obj2);
-    lv_obj_set_pos(fg_comp_msgfbnvpel8_e0_chart, 12, 58);
-    lv_obj_set_size(fg_comp_msgfbnvpel8_e0_chart, 336, 150);
-    lv_obj_set_style_bg_opa(fg_comp_msgfbnvpel8_e0_chart, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_border_width(fg_comp_msgfbnvpel8_e0_chart, 0, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(fg_comp_msgfbnvpel8_e0_chart, 0, LV_PART_MAIN);
-    lv_obj_set_style_line_color(fg_comp_msgfbnvpel8_e0_chart, lv_color_hex(0xF2A900), LV_PART_MAIN);
-    lv_obj_set_style_line_opa(fg_comp_msgfbnvpel8_e0_chart, LV_OPA_60, LV_PART_MAIN);
-    lv_obj_set_style_line_width(fg_comp_msgfbnvpel8_e0_chart, 3, LV_PART_ITEMS);
-    lv_chart_set_type(fg_comp_msgfbnvpel8_e0_chart, LV_CHART_TYPE_LINE);
-    lv_obj_set_style_size(fg_comp_msgfbnvpel8_e0_chart, 0, 0, LV_PART_INDICATOR);
-    lv_chart_set_point_count(fg_comp_msgfbnvpel8_e0_chart, 30);
-    lv_chart_set_range(fg_comp_msgfbnvpel8_e0_chart, LV_CHART_AXIS_PRIMARY_Y, 3266, 4854);
-    lv_chart_set_div_line_count(fg_comp_msgfbnvpel8_e0_chart, 3, 3);
-    fg_comp_msgfbnvpel8_e0_chart_warning_series = lv_chart_add_series(fg_comp_msgfbnvpel8_e0_chart, lv_color_hex(0xF2A900), LV_CHART_AXIS_PRIMARY_Y);
-    fg_comp_msgfbnvpel8_e0_chart_alarm_series = lv_chart_add_series(fg_comp_msgfbnvpel8_e0_chart, lv_color_hex(0xE5484D), LV_CHART_AXIS_PRIMARY_Y);
-    lv_chart_set_all_value(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_warning_series, 4200);
-    lv_chart_set_all_value(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_alarm_series, 4700);
-    fg_comp_msgfbnvpel8_e0_chart_series = lv_chart_add_series(fg_comp_msgfbnvpel8_e0_chart, lv_color_hex(0xF2A900), LV_CHART_AXIS_PRIMARY_Y);
-    lv_chart_set_all_value(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, LV_CHART_POINT_NONE);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 0, 3420);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 1, 3448);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 2, 3476);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 3, 3504);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 4, 3503);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 5, 3493);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 6, 3484);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 7, 3504);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 8, 3548);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 9, 3591);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 10, 3629);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 11, 3657);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 12, 3685);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 13, 3709);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 14, 3703);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 15, 3697);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 16, 3691);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 17, 3726);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 18, 3766);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 19, 3807);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 20, 3832);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 21, 3851);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 22, 3870);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 23, 3876);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 24, 3867);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 25, 3857);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 26, 3858);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 27, 3892);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 28, 3927);
-    lv_chart_set_value_by_id(fg_comp_msgfbnvpel8_e0_chart, fg_comp_msgfbnvpel8_e0_chart_series, 29, 3962);
-    fg_comp_msgfbnvpel8_e0_chart_marker = lv_obj_create(fg_comp_msgfbnvpel8_e0_chart);
-    lv_obj_set_size(fg_comp_msgfbnvpel8_e0_chart_marker, 8, 8);
-    lv_obj_set_pos(fg_comp_msgfbnvpel8_e0_chart_marker, 328, 80);
-    lv_obj_set_style_radius(fg_comp_msgfbnvpel8_e0_chart_marker, LV_RADIUS_CIRCLE, LV_PART_MAIN);
-    lv_obj_set_style_bg_color(fg_comp_msgfbnvpel8_e0_chart_marker, lv_color_hex(0xF2A900), LV_PART_MAIN);
-    lv_chart_refresh(fg_comp_msgfbnvpel8_e0_chart);
+    fg_alarm_compact_alarm_panel = lv_obj_create(fg_application_page);
+    lv_obj_set_pos(fg_alarm_compact_alarm_panel, 520, 70); lv_obj_set_size(fg_alarm_compact_alarm_panel, 480, 360);
+    lv_obj_set_style_bg_color(fg_alarm_compact_alarm_panel, lv_color_hex(0x1E2328), 0);
+    lv_obj_set_style_border_color(fg_alarm_compact_alarm_panel, lv_color_hex(0xF2A900), 0); lv_obj_set_style_border_width(fg_alarm_compact_alarm_panel, 1, 0); lv_obj_set_style_radius(fg_alarm_compact_alarm_panel, 10, 0); lv_obj_set_style_pad_all(fg_alarm_compact_alarm_panel, 0, 0);
+    lv_obj_clear_flag(fg_alarm_compact_alarm_panel, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_t * obj2_title = lv_label_create(fg_alarm_compact_alarm_panel); lv_label_set_text(obj2_title, "Active Alarms"); lv_obj_set_pos(obj2_title, 12, 7);
+    lv_obj_set_style_text_color(obj2_title, lv_color_hex(0xF5F5F5), 0);
+    fg_alarm_compact_alarm_rows[0] = lv_button_create(fg_alarm_compact_alarm_panel);
+    lv_obj_set_pos(fg_alarm_compact_alarm_rows[0], 8, 32); lv_obj_set_size(fg_alarm_compact_alarm_rows[0], 464, 73);
+    lv_obj_set_style_bg_color(fg_alarm_compact_alarm_rows[0], lv_color_hex(0x2A3138), 0); lv_obj_set_style_border_width(fg_alarm_compact_alarm_rows[0], 0, 0); lv_obj_set_style_radius(fg_alarm_compact_alarm_rows[0], 5, 0);
+    fg_alarm_compact_alarm_row_labels[0] = lv_label_create(fg_alarm_compact_alarm_rows[0]); lv_obj_set_width(fg_alarm_compact_alarm_row_labels[0], 446); lv_label_set_long_mode(fg_alarm_compact_alarm_row_labels[0], LV_LABEL_LONG_DOT); lv_obj_align(fg_alarm_compact_alarm_row_labels[0], LV_ALIGN_LEFT_MID, 2, 0);
+    lv_obj_set_style_text_font(fg_alarm_compact_alarm_row_labels[0], &lv_font_montserrat_10, 0);
+    lv_obj_add_event_cb(fg_alarm_compact_alarm_rows[0], fg_alarm_compact_alarm_selected_cb, LV_EVENT_CLICKED, (void *)(uintptr_t)0);
+    fg_alarm_compact_alarm_rows[1] = lv_button_create(fg_alarm_compact_alarm_panel);
+    lv_obj_set_pos(fg_alarm_compact_alarm_rows[1], 8, 109); lv_obj_set_size(fg_alarm_compact_alarm_rows[1], 464, 73);
+    lv_obj_set_style_bg_color(fg_alarm_compact_alarm_rows[1], lv_color_hex(0x2A3138), 0); lv_obj_set_style_border_width(fg_alarm_compact_alarm_rows[1], 0, 0); lv_obj_set_style_radius(fg_alarm_compact_alarm_rows[1], 5, 0);
+    fg_alarm_compact_alarm_row_labels[1] = lv_label_create(fg_alarm_compact_alarm_rows[1]); lv_obj_set_width(fg_alarm_compact_alarm_row_labels[1], 446); lv_label_set_long_mode(fg_alarm_compact_alarm_row_labels[1], LV_LABEL_LONG_DOT); lv_obj_align(fg_alarm_compact_alarm_row_labels[1], LV_ALIGN_LEFT_MID, 2, 0);
+    lv_obj_set_style_text_font(fg_alarm_compact_alarm_row_labels[1], &lv_font_montserrat_10, 0);
+    lv_obj_add_event_cb(fg_alarm_compact_alarm_rows[1], fg_alarm_compact_alarm_selected_cb, LV_EVENT_CLICKED, (void *)(uintptr_t)1);
+    fg_alarm_compact_alarm_rows[2] = lv_button_create(fg_alarm_compact_alarm_panel);
+    lv_obj_set_pos(fg_alarm_compact_alarm_rows[2], 8, 186); lv_obj_set_size(fg_alarm_compact_alarm_rows[2], 464, 73);
+    lv_obj_set_style_bg_color(fg_alarm_compact_alarm_rows[2], lv_color_hex(0x2A3138), 0); lv_obj_set_style_border_width(fg_alarm_compact_alarm_rows[2], 0, 0); lv_obj_set_style_radius(fg_alarm_compact_alarm_rows[2], 5, 0);
+    fg_alarm_compact_alarm_row_labels[2] = lv_label_create(fg_alarm_compact_alarm_rows[2]); lv_obj_set_width(fg_alarm_compact_alarm_row_labels[2], 446); lv_label_set_long_mode(fg_alarm_compact_alarm_row_labels[2], LV_LABEL_LONG_DOT); lv_obj_align(fg_alarm_compact_alarm_row_labels[2], LV_ALIGN_LEFT_MID, 2, 0);
+    lv_obj_set_style_text_font(fg_alarm_compact_alarm_row_labels[2], &lv_font_montserrat_10, 0);
+    lv_obj_add_event_cb(fg_alarm_compact_alarm_rows[2], fg_alarm_compact_alarm_selected_cb, LV_EVENT_CLICKED, (void *)(uintptr_t)2);
+    fg_alarm_compact_alarm_rows[3] = lv_button_create(fg_alarm_compact_alarm_panel);
+    lv_obj_set_pos(fg_alarm_compact_alarm_rows[3], 8, 263); lv_obj_set_size(fg_alarm_compact_alarm_rows[3], 464, 73);
+    lv_obj_set_style_bg_color(fg_alarm_compact_alarm_rows[3], lv_color_hex(0x2A3138), 0); lv_obj_set_style_border_width(fg_alarm_compact_alarm_rows[3], 0, 0); lv_obj_set_style_radius(fg_alarm_compact_alarm_rows[3], 5, 0);
+    fg_alarm_compact_alarm_row_labels[3] = lv_label_create(fg_alarm_compact_alarm_rows[3]); lv_obj_set_width(fg_alarm_compact_alarm_row_labels[3], 446); lv_label_set_long_mode(fg_alarm_compact_alarm_row_labels[3], LV_LABEL_LONG_DOT); lv_obj_align(fg_alarm_compact_alarm_row_labels[3], LV_ALIGN_LEFT_MID, 2, 0);
+    lv_obj_set_style_text_font(fg_alarm_compact_alarm_row_labels[3], &lv_font_montserrat_10, 0);
+    lv_obj_add_event_cb(fg_alarm_compact_alarm_rows[3], fg_alarm_compact_alarm_selected_cb, LV_EVENT_CLICKED, (void *)(uintptr_t)3);
+    lv_obj_t * obj2_footer = lv_label_create(fg_alarm_compact_alarm_panel); lv_label_set_text(obj2_footer, "Select an alarm to acknowledge"); lv_obj_align(obj2_footer, LV_ALIGN_BOTTOM_LEFT, 12, -5); lv_obj_set_style_text_font(obj2_footer, &lv_font_montserrat_10, 0); lv_obj_set_style_text_color(obj2_footer, lv_color_hex(0xB5B6B8), 0);
+    fg_alarm_compact_alarm_occupied[0] = true; fg_alarm_compact_alarm_ids[0] = 1; fg_alarm_compact_alarm_states[0] = FG_ALARM_STATE_ALARM; fg_alarm_compact_alarm_priorities[0] = FG_ALARM_PRIORITY_CRITICAL;
+    snprintf(fg_alarm_compact_alarm_messages[0], sizeof(fg_alarm_compact_alarm_messages[0]), "%s", "Network link unavailable"); snprintf(fg_alarm_compact_alarm_timestamps[0], sizeof(fg_alarm_compact_alarm_timestamps[0]), "%s", "14:23:02");
+    fg_alarm_compact_alarm_occupied[1] = true; fg_alarm_compact_alarm_ids[1] = 2; fg_alarm_compact_alarm_states[1] = FG_ALARM_STATE_WARNING; fg_alarm_compact_alarm_priorities[1] = FG_ALARM_PRIORITY_MEDIUM;
+    snprintf(fg_alarm_compact_alarm_messages[1], sizeof(fg_alarm_compact_alarm_messages[1]), "%s", "Flow below target"); snprintf(fg_alarm_compact_alarm_timestamps[1], sizeof(fg_alarm_compact_alarm_timestamps[1]), "%s", "14:21:16");
+    fg_alarm_compact_alarm_count = 2; fg_alarm_compact_alarm_refresh();
 
 
     fg_ram_probe_log("02 after application page creation");
@@ -1612,8 +1480,11 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_add_event_cb(display_card, fg_system_open_brightness_cb, LV_EVENT_CLICKED, NULL);
     lv_obj_t * wifi_card = fg_system_create_button(fg_system_launcher_page, LV_SYMBOL_WIFI "\nWi-Fi", 282, 102, 220, 180);
     lv_obj_add_event_cb(wifi_card, fg_system_open_wifi_cb, LV_EVENT_CLICKED, NULL);
+    fg_system_create_disabled_card(fg_system_launcher_page, LV_SYMBOL_BLUETOOTH "\nBluetooth\nComing Later", 522, 102);
+    fg_system_create_disabled_card(fg_system_launcher_page, LV_SYMBOL_VOLUME_MAX "\nSound\nComing Later", 762, 102);
     lv_obj_t * storage_card = fg_system_create_button(fg_system_launcher_page, LV_SYMBOL_SD_CARD "\nStorage", 42, 302, 220, 180);
     lv_obj_add_event_cb(storage_card, fg_system_open_storage_cb, LV_EVENT_CLICKED, NULL);
+    fg_system_create_disabled_card(fg_system_launcher_page, LV_SYMBOL_HOME "\nDevice\nComing Later", 282, 302);
     lv_obj_t * diagnostics_card = fg_system_create_button(fg_system_launcher_page, LV_SYMBOL_WARNING "\nDiagnostics", 522, 302, 220, 180);
     lv_obj_add_event_cb(diagnostics_card, fg_system_open_diagnostics_cb, LV_EVENT_CLICKED, NULL);
     lv_obj_add_flag(fg_system_launcher_page, LV_OBJ_FLAG_HIDDEN);

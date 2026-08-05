@@ -105,6 +105,7 @@ type PreviewDefaultProps = {
   Arc?: PropsWithForm<ProgressProps>
   Chart?: PropsWithForm<BoxProps> & Record<string, any>
   TrendChartPro?: PropsWithForm<BoxProps> & Record<string, any>
+  AlarmPanel?: PropsWithForm<BoxProps> & Record<string, any>
   AvatarBadge?: PropsWithForm<AvatarBadgeProps>
   AvatarGroup?: PropsWithForm<Omit<AvatarGroupProps, 'children'>>
   Avatar?: PropsWithForm<AvatarProps>
@@ -404,6 +405,21 @@ WiFi: {
     showGlow: true, showCurrentMarker: true, showThresholdBands: true,
     compactMode: false, generateRuntimeApi: true, enableUserEvents: true,
     positionMode: 'absolute', x: 40, y: 40, w: 360, h: 220,
+  },
+  AlarmPanel: {
+    nativeWidgetSchemaVersion: 1, title: 'Active Alarms', maximumVisibleAlarms: 5,
+    showTimestamp: true, showAcknowledgement: true, showPriority: true,
+    showHeader: true, showFooter: true, footerText: 'Select an alarm to acknowledge',
+    compactMode: false, alarmCapacity: 16, sortOrder: 'newest', autoScroll: true,
+    autoClear: false, flashActiveAlarms: false, animateTransitions: false, rowSpacing: 4,
+    normalColour: '#22C55E', warningColour: '#F2A900', alarmColour: '#E5484D',
+    acknowledgedColour: '#64748B', clearedColour: '#475569',
+    alarms: [
+      { id: 'alarm-1', message: 'High discharge pressure', timestamp: '14:22:18', state: 'alarm', priority: 'critical' },
+      { id: 'alarm-2', message: 'Motor temperature elevated', timestamp: '14:20:04', state: 'warning', priority: 'high' },
+      { id: 'alarm-3', message: 'Filter service due', timestamp: '13:48:31', state: 'acknowledged', priority: 'medium' },
+    ], generateRuntimeApi: true, enableUserEvents: true,
+    positionMode: 'absolute', x: 40, y: 40, w: 420, h: 300,
   },
   QRCode: {
     contentType: 'custom',

@@ -85,6 +85,7 @@ type ComponentType =
   | 'RelayPanel'
   | 'PwmController'
   | 'TrendChartPro'
+  | 'AlarmPanel'
   | 'NumberInput'
   | 'Progress'
   | 'QRCode'

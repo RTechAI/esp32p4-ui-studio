@@ -605,6 +605,27 @@ describe('generated public UI API headers', () => {
     expect(preserved.header).toContain('void FG_On_Comp_MSFYEVIQ1_XV42_Point_Added(float value);')
   })
 
+  it('uses authoritative Alarm Panel contracts and preserves developer bodies', () => {
+    const hooks = ['FG_On_Comp_Alarm_Alarm_Added', 'FG_On_Comp_Alarm_Alarm_Acknowledged',
+      'FG_On_Comp_Alarm_Alarm_Cleared', 'FG_On_Comp_Alarm_Alarm_Selected']
+    const contracts = [
+      { name: hooks[0], parameters: 'int32_t alarm_id, FG_Alarm_Priority priority' },
+      ...hooks.slice(1).map(name => ({ name, parameters: 'int32_t alarm_id' })),
+    ]
+    const generated = generateUserEventFiles(hooks, [
+      'typedef enum { FG_ALARM_PRIORITY_LOW = 0, FG_ALARM_PRIORITY_CRITICAL = 3 } FG_Alarm_Priority;',
+    ], contracts)
+    expect(generated.header).toContain('void FG_On_Comp_Alarm_Alarm_Added(int32_t alarm_id, FG_Alarm_Priority priority);')
+    expect(generated.source).toContain('(void)alarm_id;')
+    expect(generated.source).toContain('(void)priority;')
+    const preserved = preserveUserEventFiles(
+      '#include "95_UserEvents.h"\nvoid FG_On_Comp_Alarm_Alarm_Acknowledged(int32_t alarm_id)\n{\n    application_ack(alarm_id);\n}\n',
+      '#pragma once\nvoid FG_On_Comp_Alarm_Alarm_Acknowledged(int32_t alarm_id);\n', generated,
+    )
+    expect(preserved.source).toContain('application_ack(alarm_id);')
+    expect(preserved.source.match(/void FG_On_Comp_Alarm_Alarm_Acknowledged/g)).toHaveLength(1)
+  })
+
   it('generates and preserves Keyboard visibility hooks', () => {
     const generated = generateUserEventFiles(
       ['FG_On_Keyboard_Shown', 'FG_On_Keyboard_Hidden'],

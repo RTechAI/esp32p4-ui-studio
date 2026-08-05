@@ -51,6 +51,7 @@ import { getForgeUISensorTrendLabel, normalizeForgeUISensorTile } from './ForgeU
 import { normalizeForgeUIRelayPanel } from './ForgeUIRelayPanel'
 import { normalizeForgeUIPwmController } from './ForgeUIPwmController'
 import { normalizeForgeUITrendChartPro } from './ForgeUITrendChartPro'
+import { normalizeForgeUIAlarmPanel } from './ForgeUIAlarmPanel'
 import {
   getForgeUIStandardSpinboxModel,
   type ForgeUIStandardSpinboxModel,
@@ -507,6 +508,61 @@ const createPwmControllerExports = (
         enabledCallbackName: enabledHookName ? `fg_${runtimeStem}_pwm_enabled_changed_cb` : undefined,
         setValueApiName: `FG_Set_${stem}_Value`, getValueApiName: `FG_Get_${stem}_Value`,
         setEnabledApiName: `FG_Set_${stem}_Enabled`, getEnabledApiName: `FG_Get_${stem}_Enabled`,
+      })
+    })
+  return result
+}
+
+type AlarmPanelExport = {
+  model: ReturnType<typeof normalizeForgeUIAlarmPanel>
+  stem: string; runtimeStem: string; rootName: string; capacity: number; visibleRows: number
+  runtimeEnabled: boolean; eventsEnabled: boolean; enabledName: string; countName: string
+  idsName: string; occupiedName: string; messagesName: string; timestampsName: string
+  statesName: string; prioritiesName: string; rowNames: string; rowLabelNames: string
+  refreshName: string; selectedRowName: string; selectCallbackName?: string
+  addApiName: string; acknowledgeApiName: string; clearApiName: string
+  clearAllApiName: string; setEnabledApiName: string; selectApiName: string
+  addedHookName?: string; acknowledgedHookName?: string; clearedHookName?: string; selectedHookName?: string
+}
+
+const createAlarmPanelExports = (
+  components: IComponents, usedHookNames: Set<string>, userEventHooks: Set<string>,
+): Map<string, AlarmPanelExport> => {
+  const result = new Map<string, AlarmPanelExport>()
+  const usedStems = new Set<string>()
+  Object.values(components).filter(component => component.type === 'AlarmPanel')
+    .sort((a, b) => a.id.localeCompare(b.id)).forEach(component => {
+      const base = toCIdentifier(component.id, 'Alarm_Panel').replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let stem = base; let suffix = 2
+      while (usedStems.has(stem)) stem = `${base}_${suffix++}`
+      usedStems.add(stem)
+      const runtimeStem = stem.toLowerCase()
+      const model = normalizeForgeUIAlarmPanel(component.props)
+      const uniqueHook = (suffixName: string) => {
+        const baseHook = `FG_On_${stem}_${suffixName}`
+        let hook = baseHook; let collision = 2
+        while (usedHookNames.has(hook)) hook = `${baseHook}_${collision++}`
+        usedHookNames.add(hook); userEventHooks.add(hook); return hook
+      }
+      const events = model.enableUserEvents
+      result.set(component.id, {
+        model, stem, runtimeStem, capacity: model.alarmCapacity, visibleRows: model.maximumVisible,
+        runtimeEnabled: model.generateRuntimeApi, eventsEnabled: events,
+        rootName: `fg_${runtimeStem}_alarm_panel`, enabledName: `fg_${runtimeStem}_alarm_enabled`,
+        countName: `fg_${runtimeStem}_alarm_count`, idsName: `fg_${runtimeStem}_alarm_ids`,
+        occupiedName: `fg_${runtimeStem}_alarm_occupied`, messagesName: `fg_${runtimeStem}_alarm_messages`,
+        timestampsName: `fg_${runtimeStem}_alarm_timestamps`, statesName: `fg_${runtimeStem}_alarm_states`,
+        prioritiesName: `fg_${runtimeStem}_alarm_priorities`, rowNames: `fg_${runtimeStem}_alarm_rows`,
+        rowLabelNames: `fg_${runtimeStem}_alarm_row_labels`, refreshName: `fg_${runtimeStem}_alarm_refresh`,
+        selectedRowName: `fg_${runtimeStem}_alarm_selected_rows`,
+        selectCallbackName: events ? `fg_${runtimeStem}_alarm_selected_cb` : undefined,
+        addApiName: `FG_Add_${stem}_Alarm`, acknowledgeApiName: `FG_Acknowledge_${stem}_Alarm`,
+        clearApiName: `FG_Clear_${stem}_Alarm`, clearAllApiName: `FG_Clear_All_${stem}`,
+        setEnabledApiName: `FG_Set_${stem}_Enabled`, selectApiName: `FG_Select_${stem}_Alarm`,
+        addedHookName: events ? uniqueHook('Alarm_Added') : undefined,
+        acknowledgedHookName: events ? uniqueHook('Alarm_Acknowledged') : undefined,
+        clearedHookName: events ? uniqueHook('Alarm_Cleared') : undefined,
+        selectedHookName: events ? uniqueHook('Alarm_Selected') : undefined,
       })
     })
   return result
@@ -2888,6 +2944,7 @@ const buildLvglBlock = (
   sensorTileExports: Map<string, SensorTileExport>,
   relayPanelExports: Map<string, RelayPanelExport>,
   pwmControllerExports: Map<string, PwmControllerExport>,
+  alarmPanelExports: Map<string, AlarmPanelExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -4592,6 +4649,40 @@ case 'PwmController': {
   break
 }
 
+case 'AlarmPanel': {
+  const model = normalizeForgeUIAlarmPanel(child.props)
+  const alarm = alarmPanelExports.get(child.id)
+  if (!alarm) break
+  const headerHeight = model.showHeader ? (model.compactMode ? 32 : 42) : 4
+  const footerHeight = model.showFooter ? 24 : 4
+  const rowHeight = Math.max(24, Math.floor((Number(h) - headerHeight - footerHeight - model.rowSpacing * Math.max(0, alarm.visibleRows - 1)) / alarm.visibleRows))
+  lines.push(`${alarm.rootName} = lv_obj_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${alarm.rootName}, ${x}, ${y}); lv_obj_set_size(${alarm.rootName}, ${w}, ${h});`)
+  lines.push(`lv_obj_set_style_bg_color(${alarm.rootName}, lv_color_hex(${palette.surface}), 0);`)
+  lines.push(`lv_obj_set_style_border_color(${alarm.rootName}, lv_color_hex(${palette.surfaceBorder}), 0); lv_obj_set_style_border_width(${alarm.rootName}, 1, 0); lv_obj_set_style_radius(${alarm.rootName}, 10, 0); lv_obj_set_style_pad_all(${alarm.rootName}, 0, 0);`)
+  lines.push(`lv_obj_clear_flag(${alarm.rootName}, LV_OBJ_FLAG_SCROLLABLE);`)
+  if (model.showHeader) {
+    lines.push(`lv_obj_t * ${varName}_title = lv_label_create(${alarm.rootName}); lv_label_set_text(${varName}_title, "${esc(model.title)}"); lv_obj_set_pos(${varName}_title, 12, ${model.compactMode ? 7 : 11});`)
+    lines.push(`lv_obj_set_style_text_color(${varName}_title, lv_color_hex(${palette.textPrimary}), 0);`)
+  }
+  for (let index = 0; index < alarm.visibleRows; index++) {
+    lines.push(`${alarm.rowNames}[${index}] = lv_button_create(${alarm.rootName});`)
+    lines.push(`lv_obj_set_pos(${alarm.rowNames}[${index}], 8, ${headerHeight + index * (rowHeight + model.rowSpacing)}); lv_obj_set_size(${alarm.rowNames}[${index}], ${Math.max(20, Number(w) - 16)}, ${rowHeight});`)
+    lines.push(`lv_obj_set_style_bg_color(${alarm.rowNames}[${index}], lv_color_hex(${palette.surfaceSecondary}), 0); lv_obj_set_style_border_width(${alarm.rowNames}[${index}], 0, 0); lv_obj_set_style_radius(${alarm.rowNames}[${index}], 5, 0);`)
+    lines.push(`${alarm.rowLabelNames}[${index}] = lv_label_create(${alarm.rowNames}[${index}]); lv_obj_set_width(${alarm.rowLabelNames}[${index}], ${Math.max(20, Number(w) - 34)}); lv_label_set_long_mode(${alarm.rowLabelNames}[${index}], LV_LABEL_LONG_DOT); lv_obj_align(${alarm.rowLabelNames}[${index}], LV_ALIGN_LEFT_MID, 2, 0);`)
+    lines.push(`lv_obj_set_style_text_font(${alarm.rowLabelNames}[${index}], &lv_font_montserrat_${model.compactMode ? 10 : 12}, 0);`)
+    if (alarm.selectCallbackName) lines.push(`lv_obj_add_event_cb(${alarm.rowNames}[${index}], ${alarm.selectCallbackName}, LV_EVENT_CLICKED, (void *)(uintptr_t)${index});`)
+  }
+  if (model.showFooter) lines.push(`lv_obj_t * ${varName}_footer = lv_label_create(${alarm.rootName}); lv_label_set_text(${varName}_footer, "${esc(model.footerText)}"); lv_obj_align(${varName}_footer, LV_ALIGN_BOTTOM_LEFT, 12, -5); lv_obj_set_style_text_font(${varName}_footer, &lv_font_montserrat_10, 0); lv_obj_set_style_text_color(${varName}_footer, lv_color_hex(${palette.textSecondary}), 0);`)
+  model.alarms.forEach((entry, index) => {
+    lines.push(`${alarm.occupiedName}[${index}] = true; ${alarm.idsName}[${index}] = ${index + 1}; ${alarm.statesName}[${index}] = FG_ALARM_STATE_${entry.state.toUpperCase()}; ${alarm.prioritiesName}[${index}] = FG_ALARM_PRIORITY_${entry.priority.toUpperCase()};`)
+    lines.push(`snprintf(${alarm.messagesName}[${index}], sizeof(${alarm.messagesName}[${index}]), "%s", "${escPrintfLiteral(entry.message)}"); snprintf(${alarm.timestampsName}[${index}], sizeof(${alarm.timestampsName}[${index}]), "%s", "${escPrintfLiteral(entry.timestamp)}");`)
+  })
+  lines.push(`${alarm.countName} = ${model.alarms.length}; ${alarm.refreshName}();`)
+  lines.push(``)
+  break
+}
+
 case 'Spinbox': {
   const spinboxExport = spinboxExports.get(child.id)
   if (!spinboxExport) break
@@ -5800,6 +5891,7 @@ case 'TrendChartPro': {
         sensorTileExports,
         relayPanelExports,
         pwmControllerExports,
+        alarmPanelExports,
       )
     }
   })
@@ -6101,7 +6193,7 @@ export const generateForgeUILvglCode = (
   },
 ) => {
   const nativeIdentityDiagnostics = Object.entries(components)
-    .filter(([, component]) => component.type === 'DashboardCard' || component.type === 'SensorTile' || component.type === 'RelayPanel' || component.type === 'PwmController')
+    .filter(([, component]) => component.type === 'DashboardCard' || component.type === 'SensorTile' || component.type === 'RelayPanel' || component.type === 'PwmController' || component.type === 'AlarmPanel')
     .map(([persistedId, component]) => {
       if (!component.id || component.id !== persistedId) {
         throw new Error(
@@ -6140,6 +6232,7 @@ export const generateForgeUILvglCode = (
   const sensorTileExports = createSensorTileExports(components, usedHookNames, userEventHooks)
   const relayPanelExports = createRelayPanelExports(components, usedHookNames, userEventHooks)
   const pwmControllerExports = createPwmControllerExports(components, usedHookNames, userEventHooks)
+  const alarmPanelExports = createAlarmPanelExports(components, usedHookNames, userEventHooks)
   const fiIconExports = createFiIconExports(
     components,
     usedHookNames,
@@ -6870,7 +6963,7 @@ const backgroundMode =
   lines.push(`#include "freertos/semphr.h"`)
   lines.push(`#include "freertos/task.h"`)
   lines.push(`#include "esp_timer.h"`)
-  if (hasInteractiveButtons || dashboardCardExports.size > 0 || sensorTileExports.size > 0 || relayPanelExports.size > 0 || pwmControllerExports.size > 0 || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
+  if (hasInteractiveButtons || dashboardCardExports.size > 0 || sensorTileExports.size > 0 || relayPanelExports.size > 0 || pwmControllerExports.size > 0 || alarmPanelExports.size > 0 || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
     lines.push(`#include "95_UserEvents.h"`)
   }
   if (Array.from(fiIconExports.values()).some(icon => icon.runtimeEnabled)) {
@@ -6924,6 +7017,74 @@ const backgroundMode =
     lines.push(`static bool ${panel.programmaticName} = false;`)
     lines.push(`static lv_obj_t * ${panel.masterObjectName} = NULL;`)
   })
+  alarmPanelExports.forEach(alarm => {
+    lines.push(`static lv_obj_t * ${alarm.rootName} = NULL;`)
+    lines.push(`static lv_obj_t * ${alarm.rowNames}[${alarm.visibleRows}] = {0}; static lv_obj_t * ${alarm.rowLabelNames}[${alarm.visibleRows}] = {0};`)
+    lines.push(`static int32_t ${alarm.selectedRowName}[${alarm.visibleRows}] = {0};`)
+    lines.push(`static int32_t ${alarm.idsName}[${alarm.capacity}] = {0}; static bool ${alarm.occupiedName}[${alarm.capacity}] = {0};`)
+    lines.push(`static char ${alarm.messagesName}[${alarm.capacity}][97] = {{0}}; static char ${alarm.timestampsName}[${alarm.capacity}][25] = {{0}};`)
+    lines.push(`static FG_Alarm_State ${alarm.statesName}[${alarm.capacity}] = {0}; static FG_Alarm_Priority ${alarm.prioritiesName}[${alarm.capacity}] = {0};`)
+    lines.push(`static uint32_t ${alarm.countName} = 0; static bool ${alarm.enabledName} = true;`)
+  })
+  alarmPanelExports.forEach(alarm => {
+    const model = alarm.model
+    const stateColour = (state: string) => toLvHex(state === 'warning' ? model.warningColour : state === 'acknowledged' ? model.acknowledgedColour : state === 'cleared' ? model.clearedColour : state === 'normal' ? model.normalColour : model.alarmColour)
+    lines.push(`static void ${alarm.refreshName}(void)`)
+    lines.push(`{`)
+    lines.push(`    bool used[${alarm.capacity}] = {0};`)
+    lines.push(`    for (uint32_t row = 0; row < ${alarm.visibleRows}u; ++row) {`)
+    lines.push(`        int32_t selected = -1;`)
+    if (model.sortOrder === 'priority') {
+      lines.push(`        for (uint32_t i = 0; i < ${alarm.capacity}u; ++i) if (${alarm.occupiedName}[i] && !used[i] && (selected < 0 || ${alarm.prioritiesName}[i] > ${alarm.prioritiesName}[selected])) selected = (int32_t)i;`)
+    } else if (model.sortOrder === 'oldest') {
+      lines.push(`        for (uint32_t i = 0; i < ${alarm.capacity}u; ++i) if (${alarm.occupiedName}[i] && !used[i]) { selected = (int32_t)i; break; }`)
+    } else {
+      lines.push(`        for (int32_t i = ${alarm.capacity - 1}; i >= 0; --i) if (${alarm.occupiedName}[i] && !used[i]) { selected = i; break; }`)
+    }
+    lines.push(`        ${alarm.selectedRowName}[row] = selected;`)
+    lines.push(`        if (selected < 0) { if (${alarm.rowNames}[row]) lv_obj_add_flag(${alarm.rowNames}[row], LV_OBJ_FLAG_HIDDEN); continue; }`)
+    lines.push(`        used[selected] = true; if (${alarm.rowNames}[row]) lv_obj_remove_flag(${alarm.rowNames}[row], LV_OBJ_FLAG_HIDDEN);`)
+    const format = `${model.showPriority ? '[%s] ' : ''}%s${model.showTimestamp ? '  %s' : ''}`
+    const args = `${model.showPriority ? `, ${alarm.prioritiesName}[selected] == FG_ALARM_PRIORITY_CRITICAL ? "CRITICAL" : (${alarm.prioritiesName}[selected] == FG_ALARM_PRIORITY_HIGH ? "HIGH" : (${alarm.prioritiesName}[selected] == FG_ALARM_PRIORITY_MEDIUM ? "MEDIUM" : "LOW"))` : ''}, ${alarm.messagesName}[selected]${model.showTimestamp ? `, ${alarm.timestampsName}[selected]` : ''}`
+    lines.push(`        if (${alarm.rowLabelNames}[row]) lv_label_set_text_fmt(${alarm.rowLabelNames}[row], "${format}"${args});`)
+    lines.push(`        uint32_t colour = ${alarm.statesName}[selected] == FG_ALARM_STATE_WARNING ? 0x${stateColour('warning').slice(2)} : (${alarm.statesName}[selected] == FG_ALARM_STATE_ACKNOWLEDGED ? 0x${stateColour('acknowledged').slice(2)} : (${alarm.statesName}[selected] == FG_ALARM_STATE_CLEARED ? 0x${stateColour('cleared').slice(2)} : (${alarm.statesName}[selected] == FG_ALARM_STATE_NORMAL ? 0x${stateColour('normal').slice(2)} : 0x${stateColour('alarm').slice(2)})));`)
+    lines.push(`        if (${alarm.rowNames}[row]) lv_obj_set_style_border_color(${alarm.rowNames}[row], lv_color_hex(colour), 0);`)
+    lines.push(`        if (${alarm.rowNames}[row]) lv_obj_set_style_border_width(${alarm.rowNames}[row], 3, 0);`)
+    lines.push(`    }`)
+    lines.push(`}`); lines.push(``)
+    if (alarm.selectCallbackName && alarm.selectedHookName) {
+      lines.push(`static void ${alarm.selectCallbackName}(lv_event_t * event)`)
+      lines.push(`{`)
+      lines.push(`    if (!${alarm.enabledName}) return;`)
+      lines.push(`    uint32_t row = (uint32_t)(uintptr_t)lv_event_get_user_data(event);`)
+      lines.push(`    if (row >= ${alarm.visibleRows}u) return;`)
+      lines.push(`    int32_t slot = ${alarm.selectedRowName}[row];`)
+      lines.push(`    if (slot < 0) return;`)
+      lines.push(`    int32_t alarm_id = ${alarm.idsName}[slot]; ${alarm.selectedHookName}(alarm_id);`)
+      if (model.showAcknowledgement && alarm.acknowledgedHookName) lines.push(`    if (${alarm.statesName}[slot] != FG_ALARM_STATE_ACKNOWLEDGED && ${alarm.statesName}[slot] != FG_ALARM_STATE_CLEARED) { ${alarm.statesName}[slot] = FG_ALARM_STATE_ACKNOWLEDGED; ${alarm.refreshName}(); ${alarm.acknowledgedHookName}(alarm_id); }`)
+      lines.push(`}`); lines.push(``)
+    }
+    if (!alarm.runtimeEnabled) return
+    lines.push(`bool ${alarm.addApiName}(int32_t alarm_id, const char * message, const char * timestamp, FG_Alarm_Priority priority, FG_Alarm_State state)`)
+    lines.push(`{`)
+    lines.push(`    if (!${alarm.enabledName} || !message) return false;`)
+    lines.push(`    int32_t slot = -1;`)
+    lines.push(`    for (uint32_t i = 0; i < ${alarm.capacity}u; ++i) {`)
+    lines.push(`        if (${alarm.occupiedName}[i] && ${alarm.idsName}[i] == alarm_id) { slot = (int32_t)i; break; }`)
+    lines.push(`        if (slot < 0 && !${alarm.occupiedName}[i]) slot = (int32_t)i;`)
+    lines.push(`    }`)
+    lines.push(`    if (slot < 0) return false;`)
+    lines.push(`    bool added = !${alarm.occupiedName}[slot]; ${alarm.occupiedName}[slot] = true; ${alarm.idsName}[slot] = alarm_id; ${alarm.prioritiesName}[slot] = priority; ${alarm.statesName}[slot] = state; snprintf(${alarm.messagesName}[slot], sizeof(${alarm.messagesName}[slot]), "%s", message); snprintf(${alarm.timestampsName}[slot], sizeof(${alarm.timestampsName}[slot]), "%s", timestamp ? timestamp : ""); if (added) ${alarm.countName}++; ${alarm.refreshName}();`)
+    if (alarm.addedHookName) lines.push(`    if (added) ${alarm.addedHookName}(alarm_id, priority);`)
+    lines.push(`    return true;`); lines.push(`}`); lines.push(``)
+    lines.push(`bool ${alarm.acknowledgeApiName}(int32_t alarm_id) { for (uint32_t i = 0; i < ${alarm.capacity}u; ++i) if (${alarm.occupiedName}[i] && ${alarm.idsName}[i] == alarm_id && ${alarm.statesName}[i] != FG_ALARM_STATE_CLEARED) { if (${alarm.statesName}[i] == FG_ALARM_STATE_ACKNOWLEDGED) return true; ${alarm.statesName}[i] = FG_ALARM_STATE_ACKNOWLEDGED; ${alarm.refreshName}();${alarm.acknowledgedHookName ? ` ${alarm.acknowledgedHookName}(alarm_id);` : ''} return true; } return false; }`)
+    lines.push(`bool ${alarm.clearApiName}(int32_t alarm_id) { for (uint32_t i = 0; i < ${alarm.capacity}u; ++i) if (${alarm.occupiedName}[i] && ${alarm.idsName}[i] == alarm_id) { ${alarm.statesName}[i] = FG_ALARM_STATE_CLEARED;${model.autoClear ? ` ${alarm.occupiedName}[i] = false; ${alarm.countName}--;` : ''} ${alarm.refreshName}();${alarm.clearedHookName ? ` ${alarm.clearedHookName}(alarm_id);` : ''} return true; } return false; }`)
+    lines.push(`void ${alarm.clearAllApiName}(void) { for (uint32_t i = 0; i < ${alarm.capacity}u; ++i) { ${alarm.occupiedName}[i] = false; ${alarm.statesName}[i] = FG_ALARM_STATE_CLEARED; } ${alarm.countName} = 0; ${alarm.refreshName}(); }`)
+    lines.push(`void ${alarm.setEnabledApiName}(bool enabled) { ${alarm.enabledName} = enabled; if (${alarm.rootName}) { if (enabled) lv_obj_remove_state(${alarm.rootName}, LV_STATE_DISABLED); else lv_obj_add_state(${alarm.rootName}, LV_STATE_DISABLED); } }`)
+    lines.push(`bool ${alarm.selectApiName}(int32_t alarm_id) { for (uint32_t i = 0; i < ${alarm.capacity}u; ++i) if (${alarm.occupiedName}[i] && ${alarm.idsName}[i] == alarm_id) {${alarm.selectedHookName ? ` ${alarm.selectedHookName}(alarm_id);` : ''} return true; } return false; }`)
+    lines.push(``)
+  })
+
   pwmControllerExports.forEach(pwm => {
     lines.push(`static lv_obj_t * ${pwm.rootName} = NULL;`)
     lines.push(`static lv_obj_t * ${pwm.sliderName} = NULL;`)
@@ -9477,6 +9638,7 @@ lines.push(`    fg_system_root = parent;`)
         sensorTileExports,
         relayPanelExports,
         pwmControllerExports,
+        alarmPanelExports,
       )
   }
 
@@ -10152,7 +10314,12 @@ lines.push(`}`)
         { name: chartExport.alarmHookName!, parameters: 'void' },
         { name: chartExport.recoveredHookName!, parameters: 'void' },
       ] : []),
-    ]),
+    ]).concat(Array.from(alarmPanelExports.values()).filter(alarm => alarm.eventsEnabled).flatMap(alarm => [
+      { name: alarm.addedHookName!, parameters: 'int32_t alarm_id, FG_Alarm_Priority priority' },
+      { name: alarm.acknowledgedHookName!, parameters: 'int32_t alarm_id' },
+      { name: alarm.clearedHookName!, parameters: 'int32_t alarm_id' },
+      { name: alarm.selectedHookName!, parameters: 'int32_t alarm_id' },
+    ])),
     publicApiDeclarations: Array.from(binaryOutputExports.values())
       .filter(lightExport => lightExport.ready)
       .map(lightExport =>
@@ -10188,6 +10355,16 @@ lines.push(`}`)
         `float ${pwm.getValueApiName}(void);`,
         `void ${pwm.setEnabledApiName}(bool enabled);`,
         `bool ${pwm.getEnabledApiName}(void);`,
+      ])).concat(alarmPanelExports.size > 0 ? [
+        'typedef enum { FG_ALARM_PRIORITY_LOW = 0, FG_ALARM_PRIORITY_MEDIUM = 1, FG_ALARM_PRIORITY_HIGH = 2, FG_ALARM_PRIORITY_CRITICAL = 3 } FG_Alarm_Priority;',
+        'typedef enum { FG_ALARM_STATE_NORMAL = 0, FG_ALARM_STATE_WARNING = 1, FG_ALARM_STATE_ALARM = 2, FG_ALARM_STATE_ACKNOWLEDGED = 3, FG_ALARM_STATE_CLEARED = 4 } FG_Alarm_State;',
+      ] : []).concat(Array.from(alarmPanelExports.values()).filter(alarm => alarm.runtimeEnabled).flatMap(alarm => [
+        `bool ${alarm.addApiName}(int32_t alarm_id, const char * message, const char * timestamp, FG_Alarm_Priority priority, FG_Alarm_State state);`,
+        `bool ${alarm.acknowledgeApiName}(int32_t alarm_id);`,
+        `bool ${alarm.clearApiName}(int32_t alarm_id);`,
+        `void ${alarm.clearAllApiName}(void);`,
+        `void ${alarm.setEnabledApiName}(bool enabled);`,
+        `bool ${alarm.selectApiName}(int32_t alarm_id);`,
       ])).concat(Array.from(barExports.values()).map(
         barExport => `void ${barExport.apiName}(int32_t value);`,
       )).concat(Array.from(progressExports.values()).map(
