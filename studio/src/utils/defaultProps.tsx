@@ -367,12 +367,12 @@ WiFi: {
   SensorTile: {
     nativeWidgetSchemaVersion: 1, sensorType: 'temperature', title: 'Temperature',
     icon: 'LV_SYMBOL_CHARGE', value: 23.7, decimals: 1, units: '°C', status: 'normal',
-    statusText: 'Normal', trend: 'stable', timestamp: 'Updated now', accentColor: '',
-    showTrend: true, showProgress: true, showTimestamp: true, padding: 16,
+    statusText: 'Normal', trend: 'stable', timestamp: 'Now', accentColor: '',
+    showTrend: true, showProgress: true, showTimestamp: true, padding: 12,
     rangeMin: 0, rangeMax: 100, warningLow: 20, warningHigh: 80,
     criticalLow: 10, criticalHigh: 90, autoColour: true,
     generateRuntimeApi: true, enableClick: true,
-    positionMode: 'absolute', x: 40, y: 40, w: 260, h: 180,
+    positionMode: 'absolute', x: 40, y: 40, w: 240, h: 145,
   },
   RelayPanel: {
     nativeWidgetSchemaVersion: 1, title: 'Main Relays', subtitle: 'Digital output control',

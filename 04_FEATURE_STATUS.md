@@ -53,14 +53,15 @@ Current platform milestone:
 | Native component | Status | Evidence boundary |
 |---|---|---|
 | Dashboard Card | **PROVEN** | Origin: ForgeUI Native; ESP32-P4 validated; Browser Preview, Live Studio, Standalone Export, Runtime SDK and UserEvents verified; one versioned serialized component with private internal LVGL composition and independent multi-instance behavior |
-| Sensor Tile | **PROVEN** | ForgeUI Native Component #2; ESP32-P4 validated; semantic serialization, Browser Preview, shared Live/Standalone export, six semantic Runtime APIs and UserEvents verified; stable Native Component identity and ownership reconciliation preserve public symbols and active developer hooks across regeneration |
+| Sensor Tile | **RENDERING AND USEREVENTS PROVEN; SETTER PROOF DEFERRED** | Compact `240 x 145` layout, multiple-instance rendering, readable fields, four unique callbacks, repeated touch and duplicate touch isolation physically passed on ESP32-P4; Runtime SDK generation and focused tests passed; automated multi-instance setter proof deferred to a simulator/proof module |
 | Relay Panel | **PROVEN — ESP32-P4 VALIDATED** | ForgeUI Native Component #3; versioned 1–8 channel semantic model with stable channel IDs; one Canvas component; interactive Browser Preview; shared Live/Standalone private LVGL composition; seven bounded zero-based Runtime APIs; genuine-user channel/master hooks; no GPIO ownership |
 
 Native Component totals are separate from the completed practical LVGL ledger.
 The 44/44 practical LVGL proof result remains unchanged. Dashboard Card is
 **ForgeUI Native Component #1 — PROVEN** and establishes a separate platform
-proof ledger. Sensor Tile is **ForgeUI Native Component #2 — PROVEN** and
-establishes stable Runtime SDK identity and UserEvents regeneration ownership.
+proof ledger. Sensor Tile is **ForgeUI Native Component #2**. Its physical
+rendering and UserEvents evidence is proven; its automated multi-instance
+setter proof is explicitly deferred.
 Relay Panel is physically proven on ESP32-P4.
 
 ### Dashboard Card physical recertification — 2026-08-05
@@ -77,6 +78,32 @@ watchdog reset, LVGL assertion or heap warning was observed.
 
 Dashboard Card-specific proof is complete. Accepted save point:
 `FORGEUI_NATIVE_COMPONENT_1__DASHBOARD_CARD_RECERTIFIED__ESP32P4_PHYSICALLY_PROVEN__2026-08-05`.
+
+### Sensor Tile compact physical record — 2026-08-05
+
+ESP32-P4 physically confirmed the compact `240 x 145` layout, correct rendering
+of multiple Sensor Tile instances, readable value, units, status, trend,
+progress, and timestamp, four unique UserEvents callbacks, repeated touch
+operation, duplicate-instance touch isolation, a stable application loop, and
+SD remaining `READY`. No Guru Meditation, watchdog reset, LVGL assertion, or
+callback flood was observed.
+
+The full six-setter multi-instance Runtime SDK physical isolation sequence was
+not conclusively completed because the temporary proof firmware workflow became
+ambiguous. Do not claim that specific setter-isolation test passed.
+
+- **Physical rendering and UserEvents: PASSED**
+- **Runtime SDK generation and focused tests: PASSED**
+- **Automated multi-instance setter proof: DEFERRED TO SIMULATOR/PROOF MODULE**
+
+Truthful save point:
+`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_COMPACT__ESP32P4_RENDER_AND_USEREVENTS_PROVEN__SDK_SIMULATOR_PROOF_DEFERRED__2026-08-05`.
+
+A future removable Native Component Simulator / Proof Module should exercise
+all generated setters, select instances, compare expected and actual values,
+run duplicate isolation, emit unambiguous serial markers, avoid edits to
+`95_UserEvents.c` and ambiguous binaries, and support Browser, Live Studio, and
+ESP32-P4 proof modes. It is not implemented in this save point.
 
 Current Native Component roadmap:
 

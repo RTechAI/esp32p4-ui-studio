@@ -4252,8 +4252,11 @@ case 'SensorTile': {
   const statusColor = model.status === 'critical' ? palette.healthCritical : model.status === 'warning'
     ? palette.healthHigh : model.status === 'offline' ? palette.disabledText : palette.healthNormal
   const accent = model.accentColor ? `0x${model.accentColor.slice(1)}` : model.autoColour ? statusColor : palette.accent
-  const symbol = /^LV_SYMBOL_[A-Z0-9_]+$/.test(model.icon) ? model.icon : 'LV_SYMBOL_BULLET'
-  const tileWidth = integerProp(w, 260)
+  const symbol = /^LV_SYMBOL_[A-Z0-9_]+$/.test(model.icon) ? model.icon : ''
+  const tileWidth = integerProp(w, 240)
+  const headerY = model.padding
+  const valueY = headerY + 22
+  let contentY = valueY + 34
   lines.push(`${tile.rootName} = lv_obj_create(${parentVar});`)
   lines.push(`lv_obj_t * ${varName} = ${tile.rootName};`)
   lines.push(`lv_obj_set_pos(${tile.rootName}, ${x}, ${y});`)
@@ -4261,64 +4264,71 @@ case 'SensorTile': {
   lines.push(`lv_obj_set_style_bg_color(${tile.rootName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_border_color(${tile.rootName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_border_width(${tile.rootName}, 1, LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_radius(${tile.rootName}, 12, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${tile.rootName}, 8, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_pad_all(${tile.rootName}, ${model.padding}, LV_PART_MAIN);`)
   lines.push(`lv_obj_clear_flag(${tile.rootName}, LV_OBJ_FLAG_SCROLLABLE);`)
   if (model.enableClick && tile.callbackName) {
     lines.push(`lv_obj_add_flag(${tile.rootName}, LV_OBJ_FLAG_CLICKABLE);`)
     lines.push(`lv_obj_add_event_cb(${tile.rootName}, ${tile.callbackName}, LV_EVENT_CLICKED, NULL);`)
   } else lines.push(`lv_obj_clear_flag(${tile.rootName}, LV_OBJ_FLAG_CLICKABLE);`)
-  lines.push(`${tile.iconName} = lv_label_create(${tile.rootName});`)
-  lines.push(`lv_label_set_text(${tile.iconName}, ${symbol});`)
-  lines.push(`lv_obj_set_pos(${tile.iconName}, ${model.padding}, ${model.padding});`)
-  lines.push(`lv_obj_set_style_text_color(${tile.iconName}, lv_color_hex(${accent}), LV_PART_MAIN);`)
+  if (symbol) {
+    lines.push(`${tile.iconName} = lv_label_create(${tile.rootName});`)
+    lines.push(`lv_label_set_text(${tile.iconName}, ${symbol});`)
+    lines.push(`lv_obj_set_pos(${tile.iconName}, ${model.padding}, ${headerY});`)
+    lines.push(`lv_obj_set_style_text_font(${tile.iconName}, &lv_font_montserrat_12, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_color(${tile.iconName}, lv_color_hex(${accent}), LV_PART_MAIN);`)
+  }
   lines.push(`lv_obj_t * ${varName}_title = lv_label_create(${tile.rootName});`)
   lines.push(`lv_label_set_text(${varName}_title, "${esc(model.title)}");`)
-  lines.push(`lv_obj_set_pos(${varName}_title, ${model.padding + 26}, ${model.padding});`)
-  lines.push(`lv_obj_set_width(${varName}_title, ${Math.max(20, tileWidth - model.padding * 2 - 105)});`)
+  lines.push(`lv_obj_set_pos(${varName}_title, ${model.padding + (symbol ? 18 : 0)}, ${headerY});`)
+  lines.push(`lv_obj_set_width(${varName}_title, ${Math.max(20, tileWidth - model.padding * 2 - (symbol ? 18 : 0) - 78)});`)
   lines.push(`lv_label_set_long_mode(${varName}_title, LV_LABEL_LONG_DOT);`)
+  lines.push(`lv_obj_set_style_text_font(${varName}_title, &lv_font_montserrat_12, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_text_color(${varName}_title, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
   lines.push(`${tile.statusIndicatorName} = lv_obj_create(${tile.rootName});`)
-  lines.push(`lv_obj_set_size(${tile.statusIndicatorName}, 8, 8);`)
-  lines.push(`lv_obj_align(${tile.statusIndicatorName}, LV_ALIGN_TOP_RIGHT, -${model.padding + 64}, ${model.padding + 5});`)
+  lines.push(`lv_obj_set_size(${tile.statusIndicatorName}, 6, 6);`)
+  lines.push(`lv_obj_align(${tile.statusIndicatorName}, LV_ALIGN_TOP_RIGHT, -${model.padding + 62}, ${headerY + 4});`)
   lines.push(`lv_obj_set_style_radius(${tile.statusIndicatorName}, LV_RADIUS_CIRCLE, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_bg_color(${tile.statusIndicatorName}, lv_color_hex(${statusColor}), LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_border_width(${tile.statusIndicatorName}, 0, LV_PART_MAIN);`)
   lines.push(`${tile.statusName} = lv_label_create(${tile.rootName});`)
   lines.push(`lv_label_set_text(${tile.statusName}, "${esc(model.statusText)}");`)
-  lines.push(`lv_obj_align(${tile.statusName}, LV_ALIGN_TOP_RIGHT, -${model.padding}, ${model.padding});`)
-  lines.push(`lv_obj_set_style_text_font(${tile.statusName}, &lv_font_montserrat_12, LV_PART_MAIN);`)
+  lines.push(`lv_obj_align(${tile.statusName}, LV_ALIGN_TOP_RIGHT, -${model.padding}, ${headerY});`)
+  lines.push(`lv_obj_set_style_text_font(${tile.statusName}, &lv_font_montserrat_10, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_text_color(${tile.statusName}, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
   lines.push(`${tile.valueName} = lv_label_create(${tile.rootName});`)
   lines.push(`lv_label_set_text_fmt(${tile.valueName}, "%.*f", ${model.decimals}, (double)${model.value});`)
-  lines.push(`lv_obj_set_pos(${tile.valueName}, ${model.padding}, ${model.padding + 38});`)
+  lines.push(`lv_obj_set_pos(${tile.valueName}, ${model.padding}, ${valueY});`)
   lines.push(`lv_obj_set_style_text_font(${tile.valueName}, &lv_font_montserrat_28, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_text_color(${tile.valueName}, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
   lines.push(`${tile.unitsName} = lv_label_create(${tile.rootName});`)
   lines.push(`lv_label_set_text(${tile.unitsName}, "${esc(model.units)}");`)
-  lines.push(`lv_obj_align_to(${tile.unitsName}, ${tile.valueName}, LV_ALIGN_OUT_RIGHT_BOTTOM, 6, -2);`)
+  lines.push(`lv_obj_align_to(${tile.unitsName}, ${tile.valueName}, LV_ALIGN_OUT_RIGHT_BOTTOM, 5, -2);`)
+  lines.push(`lv_obj_set_style_text_font(${tile.unitsName}, &lv_font_montserrat_14, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_text_color(${tile.unitsName}, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
   if (model.showTrend) {
     lines.push(`${tile.trendName} = lv_label_create(${tile.rootName});`)
     lines.push(`lv_label_set_text(${tile.trendName}, "${esc(getForgeUISensorTrendLabel(model.trend))}");`)
-    lines.push(`lv_obj_set_pos(${tile.trendName}, ${model.padding}, ${model.padding + 78});`)
+    lines.push(`lv_obj_set_pos(${tile.trendName}, ${model.padding}, ${contentY});`)
     lines.push(`lv_obj_set_style_text_font(${tile.trendName}, &lv_font_montserrat_12, LV_PART_MAIN);`)
     lines.push(`lv_obj_set_style_text_color(${tile.trendName}, lv_color_hex(${accent}), LV_PART_MAIN);`)
+    contentY += 20
   }
   if (model.showProgress) {
     lines.push(`${tile.progressName} = lv_bar_create(${tile.rootName});`)
-    lines.push(`lv_obj_set_pos(${tile.progressName}, ${model.padding}, ${model.padding + 104});`)
-    lines.push(`lv_obj_set_size(${tile.progressName}, ${Math.max(20, tileWidth - model.padding * 2)}, 8);`)
+    lines.push(`lv_obj_set_pos(${tile.progressName}, ${model.padding}, ${contentY});`)
+    lines.push(`lv_obj_set_size(${tile.progressName}, ${Math.max(20, tileWidth - model.padding * 2)}, 6);`)
     lines.push(`lv_bar_set_range(${tile.progressName}, 0, 100);`)
     lines.push(`lv_bar_set_value(${tile.progressName}, ${Math.round(model.progress)}, LV_ANIM_OFF);`)
     lines.push(`lv_obj_set_style_bg_color(${tile.progressName}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
     lines.push(`lv_obj_set_style_bg_color(${tile.progressName}, lv_color_hex(${accent}), LV_PART_INDICATOR);`)
+    contentY += 12
   }
   if (model.showTimestamp) {
     lines.push(`${tile.timestampName} = lv_label_create(${tile.rootName});`)
     lines.push(`lv_label_set_text(${tile.timestampName}, "${esc(model.timestamp)}");`)
-    lines.push(`lv_obj_align(${tile.timestampName}, LV_ALIGN_BOTTOM_LEFT, ${model.padding}, -${model.padding});`)
-    lines.push(`lv_obj_set_style_text_font(${tile.timestampName}, &lv_font_montserrat_12, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_pos(${tile.timestampName}, ${model.padding}, ${contentY});`)
+    lines.push(`lv_obj_set_style_text_font(${tile.timestampName}, &lv_font_montserrat_10, LV_PART_MAIN);`)
     lines.push(`lv_obj_set_style_text_color(${tile.timestampName}, lv_color_hex(${palette.disabledText}), LV_PART_MAIN);`)
   }
   lines.push(``)

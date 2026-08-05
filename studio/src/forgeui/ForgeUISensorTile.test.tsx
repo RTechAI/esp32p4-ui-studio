@@ -6,6 +6,7 @@ import { ForgeUISensorTilePreview } from './preview/ForgeUISensorTilePreview'
 import { FG_PREVIEW_PALETTES } from './preview/forgeThemeMap'
 import { getForgeUIWidgetDefinition } from './widgets/ForgeUIWidgetRegistry'
 import { generateForgeUILvglCode } from './ForgeUILvglExport'
+import { getPreviewDefaultProps } from '../utils/defaultProps'
 
 const tile = (id: string, name: string, props: Record<string, unknown> = {}): IComponent => ({
   id, componentName: name, type: 'SensorTile', parent: 'root', children: [],
@@ -13,6 +14,14 @@ const tile = (id: string, name: string, props: Record<string, unknown> = {}): IC
 })
 
 describe('ForgeUI Sensor Tile', () => {
+  it('uses compact defaults without changing explicitly saved legacy geometry', () => {
+    expect(getPreviewDefaultProps('SensorTile')).toMatchObject({
+      w: 240, h: 145, padding: 12, title: 'Temperature', value: 23.7,
+      units: '°C', statusText: 'Normal', trend: 'stable', timestamp: 'Now',
+    })
+    expect(tile('legacy', 'Legacy', { w: 260, h: 180 }).props).toMatchObject({ w: 260, h: 180 })
+  })
+
   it('normalizes sensor defaults, engineering ranges and automatic severity', () => {
     expect(normalizeForgeUISensorTile({ sensorType: 'rpm' })).toMatchObject({ title: 'Speed', units: 'RPM', decimals: 0 })
     expect(normalizeForgeUISensorTile({ value: 95, criticalHigh: 90, autoColour: true }).status).toBe('critical')
@@ -38,6 +47,17 @@ describe('ForgeUI Sensor Tile', () => {
     expect(preview).toHaveTextContent('1.42')
     expect(preview).toHaveTextContent('bar')
     expect(preview).toHaveTextContent('Rising')
+    expect(preview).toHaveStyle({ borderRadius: '8px', padding: '12px' })
+  })
+
+  it('collapses hidden sections and gives an empty icon no text or spacing node', () => {
+    render(<ChakraProvider><ForgeUISensorTilePreview component={tile('t', 'Compact', {
+      icon: '', showTrend: false, showProgress: false, showTimestamp: false,
+    })} palette={FG_PREVIEW_PALETTES.graphite} /></ChakraProvider>)
+    expect(screen.queryByLabelText('Sensor tile icon')).not.toBeInTheDocument()
+    expect(screen.queryByText('Stable')).not.toBeInTheDocument()
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
+    expect(screen.queryByText('Now')).not.toBeInTheDocument()
   })
 
   it('exports composite LVGL, semantic APIs and independent collision-safe instances', () => {
@@ -63,6 +83,26 @@ describe('ForgeUI Sensor Tile', () => {
     generated.publicApiDeclarations.forEach(declaration => {
       expect(generated.code).toContain(declaration.replace(/;$/, ''))
     })
+    expect(generated.code).toContain('lv_obj_set_size(fg_a_sensor_tile, 260, 180);')
+  })
+
+  it('exports compact geometry and collapses optional rows without icon placeholders', () => {
+    const generated = generateForgeUILvglCode({
+      root: { id: 'root', type: 'Box', parent: 'root', children: ['t'], props: {} },
+      t: tile('t', 'Compact Sensor', {
+        w: 240, h: 145, padding: 12, icon: '', showTrend: false,
+        showProgress: true, showTimestamp: true,
+      }),
+    }, 'graphite', undefined, { includeThemeTexture: false })
+    expect(generated.code).toContain('lv_obj_set_size(fg_t_sensor_tile, 240, 145);')
+    expect(generated.code).toContain('lv_obj_set_style_radius(fg_t_sensor_tile, 8, LV_PART_MAIN);')
+    expect(generated.code).toContain('lv_obj_set_style_pad_all(fg_t_sensor_tile, 12, LV_PART_MAIN);')
+    expect(generated.code).toContain('lv_obj_set_size(fg_t_sensor_tile_status_indicator, 6, 6);')
+    expect(generated.code).toContain('lv_obj_set_size(fg_t_sensor_tile_progress, 216, 6);')
+    expect(generated.code).not.toContain('fg_t_sensor_tile_icon = lv_label_create')
+    expect(generated.code).not.toContain('fg_t_sensor_tile_trend = lv_label_create')
+    expect(generated.publicApiDeclarations).toHaveLength(6)
+    expect(generated.userEventHooks).toContain('FG_On_T_Clicked')
   })
 
   it('emits valid centralized C float literals for integral, decimal and negative ranges', () => {

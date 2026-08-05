@@ -21,33 +21,24 @@
 #include <string.h>
 #include <math.h>
 
-static lv_obj_t * fg_comp_msflvb1_ee9_uri_dashboard_card = NULL;
-static lv_obj_t * fg_comp_msflvb1_ee9_uri_dashboard_card_title = NULL;
-static lv_obj_t * fg_comp_msflvb1_ee9_uri_dashboard_card_value = NULL;
-static lv_obj_t * fg_comp_msflvb1_ee9_uri_dashboard_card_units = NULL;
-static lv_obj_t * fg_comp_msflvb1_ee9_uri_dashboard_card_description = NULL;
-static lv_obj_t * fg_comp_msflvb1_ee9_uri_dashboard_card_status = NULL;
-static lv_obj_t * fg_comp_msflvb1_ee9_uri_dashboard_card_status_indicator = NULL;
-static lv_obj_t * fg_comp_msflvb1_ee9_uri_dashboard_card_progress = NULL;
-static lv_obj_t * fg_comp_msflvb1_ee9_uri_dashboard_card_footer = NULL;
-static lv_obj_t * fg_comp_msflvcqvvk0_ld_dashboard_card = NULL;
-static lv_obj_t * fg_comp_msflvcqvvk0_ld_dashboard_card_title = NULL;
-static lv_obj_t * fg_comp_msflvcqvvk0_ld_dashboard_card_value = NULL;
-static lv_obj_t * fg_comp_msflvcqvvk0_ld_dashboard_card_units = NULL;
-static lv_obj_t * fg_comp_msflvcqvvk0_ld_dashboard_card_description = NULL;
-static lv_obj_t * fg_comp_msflvcqvvk0_ld_dashboard_card_status = NULL;
-static lv_obj_t * fg_comp_msflvcqvvk0_ld_dashboard_card_status_indicator = NULL;
-static lv_obj_t * fg_comp_msflvcqvvk0_ld_dashboard_card_progress = NULL;
-static lv_obj_t * fg_comp_msflvcqvvk0_ld_dashboard_card_footer = NULL;
-static lv_obj_t * fg_comp_msfmnmryj9751_dashboard_card = NULL;
-static lv_obj_t * fg_comp_msfmnmryj9751_dashboard_card_title = NULL;
-static lv_obj_t * fg_comp_msfmnmryj9751_dashboard_card_value = NULL;
-static lv_obj_t * fg_comp_msfmnmryj9751_dashboard_card_units = NULL;
-static lv_obj_t * fg_comp_msfmnmryj9751_dashboard_card_description = NULL;
-static lv_obj_t * fg_comp_msfmnmryj9751_dashboard_card_status = NULL;
-static lv_obj_t * fg_comp_msfmnmryj9751_dashboard_card_status_indicator = NULL;
-static lv_obj_t * fg_comp_msfmnmryj9751_dashboard_card_progress = NULL;
-static lv_obj_t * fg_comp_msfmnmryj9751_dashboard_card_footer = NULL;
+static lv_obj_t * fg_comp_msfpbmjc403_ri_sensor_tile = NULL;
+static lv_obj_t * fg_comp_msfpbmjc403_ri_sensor_tile_icon = NULL;
+static lv_obj_t * fg_comp_msfpbmjc403_ri_sensor_tile_value = NULL;
+static lv_obj_t * fg_comp_msfpbmjc403_ri_sensor_tile_units = NULL;
+static lv_obj_t * fg_comp_msfpbmjc403_ri_sensor_tile_status = NULL;
+static lv_obj_t * fg_comp_msfpbmjc403_ri_sensor_tile_status_indicator = NULL;
+static lv_obj_t * fg_comp_msfpbmjc403_ri_sensor_tile_trend = NULL;
+static lv_obj_t * fg_comp_msfpbmjc403_ri_sensor_tile_timestamp = NULL;
+static lv_obj_t * fg_comp_msfpbmjc403_ri_sensor_tile_progress = NULL;
+static lv_obj_t * fg_comp_msfpboncwecv2_sensor_tile = NULL;
+static lv_obj_t * fg_comp_msfpboncwecv2_sensor_tile_icon = NULL;
+static lv_obj_t * fg_comp_msfpboncwecv2_sensor_tile_value = NULL;
+static lv_obj_t * fg_comp_msfpboncwecv2_sensor_tile_units = NULL;
+static lv_obj_t * fg_comp_msfpboncwecv2_sensor_tile_status = NULL;
+static lv_obj_t * fg_comp_msfpboncwecv2_sensor_tile_status_indicator = NULL;
+static lv_obj_t * fg_comp_msfpboncwecv2_sensor_tile_trend = NULL;
+static lv_obj_t * fg_comp_msfpboncwecv2_sensor_tile_timestamp = NULL;
+static lv_obj_t * fg_comp_msfpboncwecv2_sensor_tile_progress = NULL;
 static lv_obj_t * fg_application_page = NULL;
 static lv_obj_t * fg_system_launcher_page = NULL;
 static lv_obj_t * fg_system_brightness_page = NULL;
@@ -172,160 +163,104 @@ static void fg_system_storage_finish_teardown(void);
 static void fg_system_storage_worker(void * arg);
 static void fg_system_storage_tick_cb(lv_timer_t * timer);
 
-static void fg_comp_msflvb1_ee9_uri_dashboard_card_clicked_cb(lv_event_t * event)
+static void fg_comp_msfpbmjc403_ri_sensor_tile_clicked_cb(lv_event_t * event)
 {
-    if (lv_event_get_current_target(event) == fg_comp_msflvb1_ee9_uri_dashboard_card) FG_On_Comp_MSFLVB1_EE9_URI_Clicked();
+    if (lv_event_get_current_target(event) == fg_comp_msfpbmjc403_ri_sensor_tile) FG_On_Comp_MSFPBMJC403_RI_Clicked();
 }
 
-void FG_Set_Comp_MSFLVB1_EE9_URI_Title(const char * title)
-{
-    if (fg_comp_msflvb1_ee9_uri_dashboard_card_title) lv_label_set_text(fg_comp_msflvb1_ee9_uri_dashboard_card_title, title ? title : "");
-}
-
-void FG_Set_Comp_MSFLVB1_EE9_URI_Value(const char * value)
-{
-    if (fg_comp_msflvb1_ee9_uri_dashboard_card_value == NULL) return;
-    lv_label_set_text(fg_comp_msflvb1_ee9_uri_dashboard_card_value, value ? value : "");
-}
-
-void FG_Set_Comp_MSFLVB1_EE9_URI_Description(const char * description)
-{
-    if (fg_comp_msflvb1_ee9_uri_dashboard_card_description) lv_label_set_text(fg_comp_msflvb1_ee9_uri_dashboard_card_description, description ? description : "");
-}
-
-void FG_Set_Comp_MSFLVB1_EE9_URI_Units(const char * units)
-{
-    if (fg_comp_msflvb1_ee9_uri_dashboard_card_units == NULL) return;
-    lv_label_set_text(fg_comp_msflvb1_ee9_uri_dashboard_card_units, units ? units : "");
-    lv_obj_align_to(fg_comp_msflvb1_ee9_uri_dashboard_card_units, fg_comp_msflvb1_ee9_uri_dashboard_card_value, LV_ALIGN_OUT_RIGHT_BOTTOM, 6, -2);
-}
-
-void FG_Set_Comp_MSFLVB1_EE9_URI_Status(const char * text, uint32_t rgb)
-{
-    if (fg_comp_msflvb1_ee9_uri_dashboard_card_status) lv_label_set_text(fg_comp_msflvb1_ee9_uri_dashboard_card_status, text ? text : "");
-    if (fg_comp_msflvb1_ee9_uri_dashboard_card_status_indicator) lv_obj_set_style_bg_color(fg_comp_msflvb1_ee9_uri_dashboard_card_status_indicator, lv_color_hex(rgb & 0xFFFFFFu), LV_PART_MAIN);
-}
-
-void FG_Set_Comp_MSFLVB1_EE9_URI_Progress(int32_t value)
-{
-    if (value < 0) value = 0;
-    if (value > 100) value = 100;
-    if (fg_comp_msflvb1_ee9_uri_dashboard_card_progress) lv_bar_set_value(fg_comp_msflvb1_ee9_uri_dashboard_card_progress, value, LV_ANIM_OFF);
-}
-
-void FG_Set_Comp_MSFLVB1_EE9_URI_Footer(const char * footer)
-{
-    if (fg_comp_msflvb1_ee9_uri_dashboard_card_footer) lv_label_set_text(fg_comp_msflvb1_ee9_uri_dashboard_card_footer, footer ? footer : "");
-}
-
-void FG_Set_Comp_MSFLVB1_EE9_URI_Colour(uint32_t rgb)
+void FG_Set_Comp_MSFPBMJC403_RI_Colour(uint32_t rgb)
 {
     rgb &= 0xFFFFFFu;
-    if (fg_comp_msflvb1_ee9_uri_dashboard_card_progress) lv_obj_set_style_bg_color(fg_comp_msflvb1_ee9_uri_dashboard_card_progress, lv_color_hex(rgb), LV_PART_INDICATOR);
+    if (fg_comp_msfpbmjc403_ri_sensor_tile_icon) lv_obj_set_style_text_color(fg_comp_msfpbmjc403_ri_sensor_tile_icon, lv_color_hex(rgb), LV_PART_MAIN);
+    if (fg_comp_msfpbmjc403_ri_sensor_tile_trend) lv_obj_set_style_text_color(fg_comp_msfpbmjc403_ri_sensor_tile_trend, lv_color_hex(rgb), LV_PART_MAIN);
+    if (fg_comp_msfpbmjc403_ri_sensor_tile_progress) lv_obj_set_style_bg_color(fg_comp_msfpbmjc403_ri_sensor_tile_progress, lv_color_hex(rgb), LV_PART_INDICATOR);
+    if (fg_comp_msfpbmjc403_ri_sensor_tile_status_indicator) lv_obj_set_style_bg_color(fg_comp_msfpbmjc403_ri_sensor_tile_status_indicator, lv_color_hex(rgb), LV_PART_MAIN);
 }
 
-static void fg_comp_msflvcqvvk0_ld_dashboard_card_clicked_cb(lv_event_t * event)
+void FG_Set_Comp_MSFPBMJC403_RI_Value(float value)
 {
-    if (lv_event_get_current_target(event) == fg_comp_msflvcqvvk0_ld_dashboard_card) FG_On_Comp_MSFLVCQVVK0_LD_Clicked();
+    if (fg_comp_msfpbmjc403_ri_sensor_tile_value) lv_label_set_text_fmt(fg_comp_msfpbmjc403_ri_sensor_tile_value, "%.*f", 1, (double)value);
+    int32_t progress = (int32_t)(((value - 0.0f) * 100.0f) / (100.0f - 0.0f));
+    if (progress < 0) progress = 0;
+    if (progress > 100) progress = 100;
+    if (fg_comp_msfpbmjc403_ri_sensor_tile_progress) lv_bar_set_value(fg_comp_msfpbmjc403_ri_sensor_tile_progress, progress, LV_ANIM_OFF);
+    uint32_t rgb = 0x22C55Eu;
+    if (value <= 10.0f || value >= 90.0f) rgb = 0xEF4444u;
+    else if (value <= 20.0f || value >= 80.0f) rgb = 0xF59E0Bu;
+    FG_Set_Comp_MSFPBMJC403_RI_Colour(rgb);
 }
 
-void FG_Set_Comp_MSFLVCQVVK0_LD_Title(const char * title)
+void FG_Set_Comp_MSFPBMJC403_RI_Units(const char * units)
 {
-    if (fg_comp_msflvcqvvk0_ld_dashboard_card_title) lv_label_set_text(fg_comp_msflvcqvvk0_ld_dashboard_card_title, title ? title : "");
+    if (fg_comp_msfpbmjc403_ri_sensor_tile_units) lv_label_set_text(fg_comp_msfpbmjc403_ri_sensor_tile_units, units ? units : "");
+    if (fg_comp_msfpbmjc403_ri_sensor_tile_units && fg_comp_msfpbmjc403_ri_sensor_tile_value) lv_obj_align_to(fg_comp_msfpbmjc403_ri_sensor_tile_units, fg_comp_msfpbmjc403_ri_sensor_tile_value, LV_ALIGN_OUT_RIGHT_BOTTOM, 6, -2);
 }
 
-void FG_Set_Comp_MSFLVCQVVK0_LD_Value(const char * value)
+void FG_Set_Comp_MSFPBMJC403_RI_Status(const char * text, uint32_t rgb)
 {
-    if (fg_comp_msflvcqvvk0_ld_dashboard_card_value == NULL) return;
-    lv_label_set_text(fg_comp_msflvcqvvk0_ld_dashboard_card_value, value ? value : "");
+    if (fg_comp_msfpbmjc403_ri_sensor_tile_status) lv_label_set_text(fg_comp_msfpbmjc403_ri_sensor_tile_status, text ? text : "");
+    if (fg_comp_msfpbmjc403_ri_sensor_tile_status_indicator) lv_obj_set_style_bg_color(fg_comp_msfpbmjc403_ri_sensor_tile_status_indicator, lv_color_hex(rgb & 0xFFFFFFu), LV_PART_MAIN);
 }
 
-void FG_Set_Comp_MSFLVCQVVK0_LD_Description(const char * description)
+void FG_Set_Comp_MSFPBMJC403_RI_Trend(int32_t trend)
 {
-    if (fg_comp_msflvcqvvk0_ld_dashboard_card_description) lv_label_set_text(fg_comp_msflvcqvvk0_ld_dashboard_card_description, description ? description : "");
+    if (fg_comp_msfpbmjc403_ri_sensor_tile_trend == NULL) return;
+    lv_label_set_text(fg_comp_msfpbmjc403_ri_sensor_tile_trend, trend > 0 ? "^ Rising" : trend < 0 ? "v Falling" : "- Stable");
 }
 
-void FG_Set_Comp_MSFLVCQVVK0_LD_Units(const char * units)
+void FG_Set_Comp_MSFPBMJC403_RI_Timestamp(const char * timestamp)
 {
-    if (fg_comp_msflvcqvvk0_ld_dashboard_card_units == NULL) return;
-    lv_label_set_text(fg_comp_msflvcqvvk0_ld_dashboard_card_units, units ? units : "");
-    lv_obj_align_to(fg_comp_msflvcqvvk0_ld_dashboard_card_units, fg_comp_msflvcqvvk0_ld_dashboard_card_value, LV_ALIGN_OUT_RIGHT_BOTTOM, 6, -2);
+    if (fg_comp_msfpbmjc403_ri_sensor_tile_timestamp) lv_label_set_text(fg_comp_msfpbmjc403_ri_sensor_tile_timestamp, timestamp ? timestamp : "");
 }
 
-void FG_Set_Comp_MSFLVCQVVK0_LD_Status(const char * text, uint32_t rgb)
+static void fg_comp_msfpboncwecv2_sensor_tile_clicked_cb(lv_event_t * event)
 {
-    if (fg_comp_msflvcqvvk0_ld_dashboard_card_status) lv_label_set_text(fg_comp_msflvcqvvk0_ld_dashboard_card_status, text ? text : "");
-    if (fg_comp_msflvcqvvk0_ld_dashboard_card_status_indicator) lv_obj_set_style_bg_color(fg_comp_msflvcqvvk0_ld_dashboard_card_status_indicator, lv_color_hex(rgb & 0xFFFFFFu), LV_PART_MAIN);
+    if (lv_event_get_current_target(event) == fg_comp_msfpboncwecv2_sensor_tile) FG_On_Comp_MSFPBONCWECV2_Clicked();
 }
 
-void FG_Set_Comp_MSFLVCQVVK0_LD_Progress(int32_t value)
-{
-    if (value < 0) value = 0;
-    if (value > 100) value = 100;
-    if (fg_comp_msflvcqvvk0_ld_dashboard_card_progress) lv_bar_set_value(fg_comp_msflvcqvvk0_ld_dashboard_card_progress, value, LV_ANIM_OFF);
-}
-
-void FG_Set_Comp_MSFLVCQVVK0_LD_Footer(const char * footer)
-{
-    if (fg_comp_msflvcqvvk0_ld_dashboard_card_footer) lv_label_set_text(fg_comp_msflvcqvvk0_ld_dashboard_card_footer, footer ? footer : "");
-}
-
-void FG_Set_Comp_MSFLVCQVVK0_LD_Colour(uint32_t rgb)
+void FG_Set_Comp_MSFPBONCWECV2_Colour(uint32_t rgb)
 {
     rgb &= 0xFFFFFFu;
-    if (fg_comp_msflvcqvvk0_ld_dashboard_card_progress) lv_obj_set_style_bg_color(fg_comp_msflvcqvvk0_ld_dashboard_card_progress, lv_color_hex(rgb), LV_PART_INDICATOR);
+    if (fg_comp_msfpboncwecv2_sensor_tile_icon) lv_obj_set_style_text_color(fg_comp_msfpboncwecv2_sensor_tile_icon, lv_color_hex(rgb), LV_PART_MAIN);
+    if (fg_comp_msfpboncwecv2_sensor_tile_trend) lv_obj_set_style_text_color(fg_comp_msfpboncwecv2_sensor_tile_trend, lv_color_hex(rgb), LV_PART_MAIN);
+    if (fg_comp_msfpboncwecv2_sensor_tile_progress) lv_obj_set_style_bg_color(fg_comp_msfpboncwecv2_sensor_tile_progress, lv_color_hex(rgb), LV_PART_INDICATOR);
+    if (fg_comp_msfpboncwecv2_sensor_tile_status_indicator) lv_obj_set_style_bg_color(fg_comp_msfpboncwecv2_sensor_tile_status_indicator, lv_color_hex(rgb), LV_PART_MAIN);
 }
 
-static void fg_comp_msfmnmryj9751_dashboard_card_clicked_cb(lv_event_t * event)
+void FG_Set_Comp_MSFPBONCWECV2_Value(float value)
 {
-    if (lv_event_get_current_target(event) == fg_comp_msfmnmryj9751_dashboard_card) FG_On_Comp_MSFMNMRYJ9751_Clicked();
+    if (fg_comp_msfpboncwecv2_sensor_tile_value) lv_label_set_text_fmt(fg_comp_msfpboncwecv2_sensor_tile_value, "%.*f", 1, (double)value);
+    int32_t progress = (int32_t)(((value - 0.0f) * 100.0f) / (100.0f - 0.0f));
+    if (progress < 0) progress = 0;
+    if (progress > 100) progress = 100;
+    if (fg_comp_msfpboncwecv2_sensor_tile_progress) lv_bar_set_value(fg_comp_msfpboncwecv2_sensor_tile_progress, progress, LV_ANIM_OFF);
+    uint32_t rgb = 0x22C55Eu;
+    if (value <= 10.0f || value >= 90.0f) rgb = 0xEF4444u;
+    else if (value <= 20.0f || value >= 80.0f) rgb = 0xF59E0Bu;
+    FG_Set_Comp_MSFPBONCWECV2_Colour(rgb);
 }
 
-void FG_Set_Comp_MSFMNMRYJ9751_Title(const char * title)
+void FG_Set_Comp_MSFPBONCWECV2_Units(const char * units)
 {
-    if (fg_comp_msfmnmryj9751_dashboard_card_title) lv_label_set_text(fg_comp_msfmnmryj9751_dashboard_card_title, title ? title : "");
+    if (fg_comp_msfpboncwecv2_sensor_tile_units) lv_label_set_text(fg_comp_msfpboncwecv2_sensor_tile_units, units ? units : "");
+    if (fg_comp_msfpboncwecv2_sensor_tile_units && fg_comp_msfpboncwecv2_sensor_tile_value) lv_obj_align_to(fg_comp_msfpboncwecv2_sensor_tile_units, fg_comp_msfpboncwecv2_sensor_tile_value, LV_ALIGN_OUT_RIGHT_BOTTOM, 6, -2);
 }
 
-void FG_Set_Comp_MSFMNMRYJ9751_Value(const char * value)
+void FG_Set_Comp_MSFPBONCWECV2_Status(const char * text, uint32_t rgb)
 {
-    if (fg_comp_msfmnmryj9751_dashboard_card_value == NULL) return;
-    lv_label_set_text(fg_comp_msfmnmryj9751_dashboard_card_value, value ? value : "");
+    if (fg_comp_msfpboncwecv2_sensor_tile_status) lv_label_set_text(fg_comp_msfpboncwecv2_sensor_tile_status, text ? text : "");
+    if (fg_comp_msfpboncwecv2_sensor_tile_status_indicator) lv_obj_set_style_bg_color(fg_comp_msfpboncwecv2_sensor_tile_status_indicator, lv_color_hex(rgb & 0xFFFFFFu), LV_PART_MAIN);
 }
 
-void FG_Set_Comp_MSFMNMRYJ9751_Description(const char * description)
+void FG_Set_Comp_MSFPBONCWECV2_Trend(int32_t trend)
 {
-    if (fg_comp_msfmnmryj9751_dashboard_card_description) lv_label_set_text(fg_comp_msfmnmryj9751_dashboard_card_description, description ? description : "");
+    if (fg_comp_msfpboncwecv2_sensor_tile_trend == NULL) return;
+    lv_label_set_text(fg_comp_msfpboncwecv2_sensor_tile_trend, trend > 0 ? "^ Rising" : trend < 0 ? "v Falling" : "- Stable");
 }
 
-void FG_Set_Comp_MSFMNMRYJ9751_Units(const char * units)
+void FG_Set_Comp_MSFPBONCWECV2_Timestamp(const char * timestamp)
 {
-    if (fg_comp_msfmnmryj9751_dashboard_card_units == NULL) return;
-    lv_label_set_text(fg_comp_msfmnmryj9751_dashboard_card_units, units ? units : "");
-    lv_obj_align_to(fg_comp_msfmnmryj9751_dashboard_card_units, fg_comp_msfmnmryj9751_dashboard_card_value, LV_ALIGN_OUT_RIGHT_BOTTOM, 6, -2);
-}
-
-void FG_Set_Comp_MSFMNMRYJ9751_Status(const char * text, uint32_t rgb)
-{
-    if (fg_comp_msfmnmryj9751_dashboard_card_status) lv_label_set_text(fg_comp_msfmnmryj9751_dashboard_card_status, text ? text : "");
-    if (fg_comp_msfmnmryj9751_dashboard_card_status_indicator) lv_obj_set_style_bg_color(fg_comp_msfmnmryj9751_dashboard_card_status_indicator, lv_color_hex(rgb & 0xFFFFFFu), LV_PART_MAIN);
-}
-
-void FG_Set_Comp_MSFMNMRYJ9751_Progress(int32_t value)
-{
-    if (value < 0) value = 0;
-    if (value > 100) value = 100;
-    if (fg_comp_msfmnmryj9751_dashboard_card_progress) lv_bar_set_value(fg_comp_msfmnmryj9751_dashboard_card_progress, value, LV_ANIM_OFF);
-}
-
-void FG_Set_Comp_MSFMNMRYJ9751_Footer(const char * footer)
-{
-    if (fg_comp_msfmnmryj9751_dashboard_card_footer) lv_label_set_text(fg_comp_msfmnmryj9751_dashboard_card_footer, footer ? footer : "");
-}
-
-void FG_Set_Comp_MSFMNMRYJ9751_Colour(uint32_t rgb)
-{
-    rgb &= 0xFFFFFFu;
-    if (fg_comp_msfmnmryj9751_dashboard_card_progress) lv_obj_set_style_bg_color(fg_comp_msfmnmryj9751_dashboard_card_progress, lv_color_hex(rgb), LV_PART_INDICATOR);
+    if (fg_comp_msfpboncwecv2_sensor_tile_timestamp) lv_label_set_text(fg_comp_msfpboncwecv2_sensor_tile_timestamp, timestamp ? timestamp : "");
 }
 
 static void fg_window_close_cb(lv_event_t * event)
@@ -1440,179 +1375,125 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_size(bg_texture_0, 1024, 600);
     lv_obj_move_background(bg_texture_0);
 
-    fg_comp_msflvb1_ee9_uri_dashboard_card = lv_obj_create(fg_application_page);
-    lv_obj_set_pos(fg_comp_msflvb1_ee9_uri_dashboard_card, 30, 14.700000762939453);
-    lv_obj_set_size(fg_comp_msflvb1_ee9_uri_dashboard_card, 240, 145);
-    lv_obj_set_style_bg_color(fg_comp_msflvb1_ee9_uri_dashboard_card, lv_color_hex(0x1E2328), LV_PART_MAIN);
-    lv_obj_set_style_border_color(fg_comp_msflvb1_ee9_uri_dashboard_card, lv_color_hex(0x2A3138), LV_PART_MAIN);
-    lv_obj_set_style_border_width(fg_comp_msflvb1_ee9_uri_dashboard_card, 1, LV_PART_MAIN);
-    lv_obj_set_style_radius(fg_comp_msflvb1_ee9_uri_dashboard_card, 8, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(fg_comp_msflvb1_ee9_uri_dashboard_card, 12, LV_PART_MAIN);
-    lv_obj_clear_flag(fg_comp_msflvb1_ee9_uri_dashboard_card, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_add_flag(fg_comp_msflvb1_ee9_uri_dashboard_card, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_add_event_cb(fg_comp_msflvb1_ee9_uri_dashboard_card, fg_comp_msflvb1_ee9_uri_dashboard_card_clicked_cb, LV_EVENT_CLICKED, NULL);
-    fg_comp_msflvb1_ee9_uri_dashboard_card_title = lv_label_create(fg_comp_msflvb1_ee9_uri_dashboard_card);
-    lv_label_set_text(fg_comp_msflvb1_ee9_uri_dashboard_card_title, "System Output1");
-    lv_obj_set_pos(fg_comp_msflvb1_ee9_uri_dashboard_card_title, 12, 12);
-    lv_obj_set_width(fg_comp_msflvb1_ee9_uri_dashboard_card_title, 138);
-    lv_label_set_long_mode(fg_comp_msflvb1_ee9_uri_dashboard_card_title, LV_LABEL_LONG_DOT);
-    lv_obj_set_style_text_color(fg_comp_msflvb1_ee9_uri_dashboard_card_title, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
-    lv_obj_set_style_text_font(fg_comp_msflvb1_ee9_uri_dashboard_card_title, &lv_font_montserrat_12, LV_PART_MAIN);
-    fg_comp_msflvb1_ee9_uri_dashboard_card_status_indicator = lv_obj_create(fg_comp_msflvb1_ee9_uri_dashboard_card);
-    lv_obj_set_size(fg_comp_msflvb1_ee9_uri_dashboard_card_status_indicator, 6, 6);
-    lv_obj_align(fg_comp_msflvb1_ee9_uri_dashboard_card_status_indicator, LV_ALIGN_TOP_RIGHT, -80, 17);
-    lv_obj_set_style_radius(fg_comp_msflvb1_ee9_uri_dashboard_card_status_indicator, LV_RADIUS_CIRCLE, LV_PART_MAIN);
-    lv_obj_set_style_bg_color(fg_comp_msflvb1_ee9_uri_dashboard_card_status_indicator, lv_color_hex(0x22C55E), LV_PART_MAIN);
-    lv_obj_set_style_border_width(fg_comp_msflvb1_ee9_uri_dashboard_card_status_indicator, 0, LV_PART_MAIN);
-    fg_comp_msflvb1_ee9_uri_dashboard_card_status = lv_label_create(fg_comp_msflvb1_ee9_uri_dashboard_card);
-    lv_label_set_text(fg_comp_msflvb1_ee9_uri_dashboard_card_status, "Normal");
-    lv_obj_align(fg_comp_msflvb1_ee9_uri_dashboard_card_status, LV_ALIGN_TOP_RIGHT, -12, 12);
-    lv_obj_set_style_text_color(fg_comp_msflvb1_ee9_uri_dashboard_card_status, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(fg_comp_msflvb1_ee9_uri_dashboard_card_status, &lv_font_montserrat_12, LV_PART_MAIN);
-    fg_comp_msflvb1_ee9_uri_dashboard_card_value = lv_label_create(fg_comp_msflvb1_ee9_uri_dashboard_card);
-    lv_label_set_text(fg_comp_msflvb1_ee9_uri_dashboard_card_value, "25");
-    lv_obj_set_pos(fg_comp_msflvb1_ee9_uri_dashboard_card_value, 12, 38);
-    lv_obj_set_style_text_font(fg_comp_msflvb1_ee9_uri_dashboard_card_value, &lv_font_montserrat_28, LV_PART_MAIN);
-    lv_obj_set_style_text_color(fg_comp_msflvb1_ee9_uri_dashboard_card_value, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
-    fg_comp_msflvb1_ee9_uri_dashboard_card_units = lv_label_create(fg_comp_msflvb1_ee9_uri_dashboard_card);
-    lv_label_set_text(fg_comp_msflvb1_ee9_uri_dashboard_card_units, "%");
-    lv_obj_align_to(fg_comp_msflvb1_ee9_uri_dashboard_card_units, fg_comp_msflvb1_ee9_uri_dashboard_card_value, LV_ALIGN_OUT_RIGHT_BOTTOM, 6, -2);
-    lv_obj_set_style_text_color(fg_comp_msflvb1_ee9_uri_dashboard_card_units, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    fg_comp_msflvb1_ee9_uri_dashboard_card_description = lv_label_create(fg_comp_msflvb1_ee9_uri_dashboard_card);
-    lv_label_set_text(fg_comp_msflvb1_ee9_uri_dashboard_card_description, "Operating level1");
-    lv_obj_set_pos(fg_comp_msflvb1_ee9_uri_dashboard_card_description, 12, 76);
-    lv_obj_set_width(fg_comp_msflvb1_ee9_uri_dashboard_card_description, 216);
-    lv_label_set_long_mode(fg_comp_msflvb1_ee9_uri_dashboard_card_description, LV_LABEL_LONG_DOT);
-    lv_obj_set_style_text_color(fg_comp_msflvb1_ee9_uri_dashboard_card_description, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(fg_comp_msflvb1_ee9_uri_dashboard_card_description, &lv_font_montserrat_12, LV_PART_MAIN);
-    fg_comp_msflvb1_ee9_uri_dashboard_card_progress = lv_bar_create(fg_comp_msflvb1_ee9_uri_dashboard_card);
-    lv_obj_set_pos(fg_comp_msflvb1_ee9_uri_dashboard_card_progress, 12, 97);
-    lv_obj_set_size(fg_comp_msflvb1_ee9_uri_dashboard_card_progress, 216, 6);
-    lv_bar_set_range(fg_comp_msflvb1_ee9_uri_dashboard_card_progress, 0, 100);
-    lv_bar_set_value(fg_comp_msflvb1_ee9_uri_dashboard_card_progress, 72, LV_ANIM_OFF);
-    lv_obj_set_style_bg_color(fg_comp_msflvb1_ee9_uri_dashboard_card_progress, lv_color_hex(0x2A3138), LV_PART_MAIN);
-    lv_obj_set_style_bg_color(fg_comp_msflvb1_ee9_uri_dashboard_card_progress, lv_color_hex(0xb8143d), LV_PART_INDICATOR);
-    fg_comp_msflvb1_ee9_uri_dashboard_card_footer = lv_label_create(fg_comp_msflvb1_ee9_uri_dashboard_card);
-    lv_label_set_text(fg_comp_msflvb1_ee9_uri_dashboard_card_footer, "Now");
-    lv_obj_align(fg_comp_msflvb1_ee9_uri_dashboard_card_footer, LV_ALIGN_BOTTOM_LEFT, 12, -12);
-    lv_obj_set_style_text_color(fg_comp_msflvb1_ee9_uri_dashboard_card_footer, lv_color_hex(0x7F8284), LV_PART_MAIN);
-    lv_obj_set_style_text_font(fg_comp_msflvb1_ee9_uri_dashboard_card_footer, &lv_font_montserrat_12, LV_PART_MAIN);
+    fg_comp_msfpbmjc403_ri_sensor_tile = lv_obj_create(fg_application_page);
+    lv_obj_t * obj1 = fg_comp_msfpbmjc403_ri_sensor_tile;
+    lv_obj_set_pos(fg_comp_msfpbmjc403_ri_sensor_tile, 711, 56);
+    lv_obj_set_size(fg_comp_msfpbmjc403_ri_sensor_tile, 260, 180);
+    lv_obj_set_style_bg_color(fg_comp_msfpbmjc403_ri_sensor_tile, lv_color_hex(0x1E2328), LV_PART_MAIN);
+    lv_obj_set_style_border_color(fg_comp_msfpbmjc403_ri_sensor_tile, lv_color_hex(0xF2A900), LV_PART_MAIN);
+    lv_obj_set_style_border_width(fg_comp_msfpbmjc403_ri_sensor_tile, 1, LV_PART_MAIN);
+    lv_obj_set_style_radius(fg_comp_msfpbmjc403_ri_sensor_tile, 12, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(fg_comp_msfpbmjc403_ri_sensor_tile, 16, LV_PART_MAIN);
+    lv_obj_clear_flag(fg_comp_msfpbmjc403_ri_sensor_tile, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_flag(fg_comp_msfpbmjc403_ri_sensor_tile, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_event_cb(fg_comp_msfpbmjc403_ri_sensor_tile, fg_comp_msfpbmjc403_ri_sensor_tile_clicked_cb, LV_EVENT_CLICKED, NULL);
+    fg_comp_msfpbmjc403_ri_sensor_tile_icon = lv_label_create(fg_comp_msfpbmjc403_ri_sensor_tile);
+    lv_label_set_text(fg_comp_msfpbmjc403_ri_sensor_tile_icon, LV_SYMBOL_CHARGE);
+    lv_obj_set_pos(fg_comp_msfpbmjc403_ri_sensor_tile_icon, 16, 16);
+    lv_obj_set_style_text_color(fg_comp_msfpbmjc403_ri_sensor_tile_icon, lv_color_hex(0x1435b8), LV_PART_MAIN);
+    lv_obj_t * obj1_title = lv_label_create(fg_comp_msfpbmjc403_ri_sensor_tile);
+    lv_label_set_text(obj1_title, "Pressure 1");
+    lv_obj_set_pos(obj1_title, 42, 16);
+    lv_obj_set_width(obj1_title, 123);
+    lv_label_set_long_mode(obj1_title, LV_LABEL_LONG_DOT);
+    lv_obj_set_style_text_color(obj1_title, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
+    fg_comp_msfpbmjc403_ri_sensor_tile_status_indicator = lv_obj_create(fg_comp_msfpbmjc403_ri_sensor_tile);
+    lv_obj_set_size(fg_comp_msfpbmjc403_ri_sensor_tile_status_indicator, 8, 8);
+    lv_obj_align(fg_comp_msfpbmjc403_ri_sensor_tile_status_indicator, LV_ALIGN_TOP_RIGHT, -80, 21);
+    lv_obj_set_style_radius(fg_comp_msfpbmjc403_ri_sensor_tile_status_indicator, LV_RADIUS_CIRCLE, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(fg_comp_msfpbmjc403_ri_sensor_tile_status_indicator, lv_color_hex(0x22C55E), LV_PART_MAIN);
+    lv_obj_set_style_border_width(fg_comp_msfpbmjc403_ri_sensor_tile_status_indicator, 0, LV_PART_MAIN);
+    fg_comp_msfpbmjc403_ri_sensor_tile_status = lv_label_create(fg_comp_msfpbmjc403_ri_sensor_tile);
+    lv_label_set_text(fg_comp_msfpbmjc403_ri_sensor_tile_status, "Normal");
+    lv_obj_align(fg_comp_msfpbmjc403_ri_sensor_tile_status, LV_ALIGN_TOP_RIGHT, -16, 16);
+    lv_obj_set_style_text_font(fg_comp_msfpbmjc403_ri_sensor_tile_status, &lv_font_montserrat_12, LV_PART_MAIN);
+    lv_obj_set_style_text_color(fg_comp_msfpbmjc403_ri_sensor_tile_status, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
+    fg_comp_msfpbmjc403_ri_sensor_tile_value = lv_label_create(fg_comp_msfpbmjc403_ri_sensor_tile);
+    lv_label_set_text_fmt(fg_comp_msfpbmjc403_ri_sensor_tile_value, "%.*f", 1, (double)23.7);
+    lv_obj_set_pos(fg_comp_msfpbmjc403_ri_sensor_tile_value, 16, 54);
+    lv_obj_set_style_text_font(fg_comp_msfpbmjc403_ri_sensor_tile_value, &lv_font_montserrat_28, LV_PART_MAIN);
+    lv_obj_set_style_text_color(fg_comp_msfpbmjc403_ri_sensor_tile_value, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
+    fg_comp_msfpbmjc403_ri_sensor_tile_units = lv_label_create(fg_comp_msfpbmjc403_ri_sensor_tile);
+    lv_label_set_text(fg_comp_msfpbmjc403_ri_sensor_tile_units, "°C");
+    lv_obj_align_to(fg_comp_msfpbmjc403_ri_sensor_tile_units, fg_comp_msfpbmjc403_ri_sensor_tile_value, LV_ALIGN_OUT_RIGHT_BOTTOM, 6, -2);
+    lv_obj_set_style_text_color(fg_comp_msfpbmjc403_ri_sensor_tile_units, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
+    fg_comp_msfpbmjc403_ri_sensor_tile_trend = lv_label_create(fg_comp_msfpbmjc403_ri_sensor_tile);
+    lv_label_set_text(fg_comp_msfpbmjc403_ri_sensor_tile_trend, "▲ Rising");
+    lv_obj_set_pos(fg_comp_msfpbmjc403_ri_sensor_tile_trend, 16, 94);
+    lv_obj_set_style_text_font(fg_comp_msfpbmjc403_ri_sensor_tile_trend, &lv_font_montserrat_12, LV_PART_MAIN);
+    lv_obj_set_style_text_color(fg_comp_msfpbmjc403_ri_sensor_tile_trend, lv_color_hex(0x1435b8), LV_PART_MAIN);
+    fg_comp_msfpbmjc403_ri_sensor_tile_progress = lv_bar_create(fg_comp_msfpbmjc403_ri_sensor_tile);
+    lv_obj_set_pos(fg_comp_msfpbmjc403_ri_sensor_tile_progress, 16, 120);
+    lv_obj_set_size(fg_comp_msfpbmjc403_ri_sensor_tile_progress, 228, 8);
+    lv_bar_set_range(fg_comp_msfpbmjc403_ri_sensor_tile_progress, 0, 100);
+    lv_bar_set_value(fg_comp_msfpbmjc403_ri_sensor_tile_progress, 24, LV_ANIM_OFF);
+    lv_obj_set_style_bg_color(fg_comp_msfpbmjc403_ri_sensor_tile_progress, lv_color_hex(0x2A3138), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(fg_comp_msfpbmjc403_ri_sensor_tile_progress, lv_color_hex(0x1435b8), LV_PART_INDICATOR);
+    fg_comp_msfpbmjc403_ri_sensor_tile_timestamp = lv_label_create(fg_comp_msfpbmjc403_ri_sensor_tile);
+    lv_label_set_text(fg_comp_msfpbmjc403_ri_sensor_tile_timestamp, "Updated now");
+    lv_obj_align(fg_comp_msfpbmjc403_ri_sensor_tile_timestamp, LV_ALIGN_BOTTOM_LEFT, 16, -16);
+    lv_obj_set_style_text_font(fg_comp_msfpbmjc403_ri_sensor_tile_timestamp, &lv_font_montserrat_12, LV_PART_MAIN);
+    lv_obj_set_style_text_color(fg_comp_msfpbmjc403_ri_sensor_tile_timestamp, lv_color_hex(0x7F8284), LV_PART_MAIN);
 
-    fg_comp_msflvcqvvk0_ld_dashboard_card = lv_obj_create(fg_application_page);
-    lv_obj_set_pos(fg_comp_msflvcqvvk0_ld_dashboard_card, 311, 15.700000762939453);
-    lv_obj_set_size(fg_comp_msflvcqvvk0_ld_dashboard_card, 240, 145);
-    lv_obj_set_style_bg_color(fg_comp_msflvcqvvk0_ld_dashboard_card, lv_color_hex(0x1E2328), LV_PART_MAIN);
-    lv_obj_set_style_border_color(fg_comp_msflvcqvvk0_ld_dashboard_card, lv_color_hex(0x2A3138), LV_PART_MAIN);
-    lv_obj_set_style_border_width(fg_comp_msflvcqvvk0_ld_dashboard_card, 1, LV_PART_MAIN);
-    lv_obj_set_style_radius(fg_comp_msflvcqvvk0_ld_dashboard_card, 8, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(fg_comp_msflvcqvvk0_ld_dashboard_card, 12, LV_PART_MAIN);
-    lv_obj_clear_flag(fg_comp_msflvcqvvk0_ld_dashboard_card, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_add_flag(fg_comp_msflvcqvvk0_ld_dashboard_card, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_add_event_cb(fg_comp_msflvcqvvk0_ld_dashboard_card, fg_comp_msflvcqvvk0_ld_dashboard_card_clicked_cb, LV_EVENT_CLICKED, NULL);
-    fg_comp_msflvcqvvk0_ld_dashboard_card_title = lv_label_create(fg_comp_msflvcqvvk0_ld_dashboard_card);
-    lv_label_set_text(fg_comp_msflvcqvvk0_ld_dashboard_card_title, "System Output2");
-    lv_obj_set_pos(fg_comp_msflvcqvvk0_ld_dashboard_card_title, 12, 12);
-    lv_obj_set_width(fg_comp_msflvcqvvk0_ld_dashboard_card_title, 138);
-    lv_label_set_long_mode(fg_comp_msflvcqvvk0_ld_dashboard_card_title, LV_LABEL_LONG_DOT);
-    lv_obj_set_style_text_color(fg_comp_msflvcqvvk0_ld_dashboard_card_title, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
-    lv_obj_set_style_text_font(fg_comp_msflvcqvvk0_ld_dashboard_card_title, &lv_font_montserrat_12, LV_PART_MAIN);
-    fg_comp_msflvcqvvk0_ld_dashboard_card_status_indicator = lv_obj_create(fg_comp_msflvcqvvk0_ld_dashboard_card);
-    lv_obj_set_size(fg_comp_msflvcqvvk0_ld_dashboard_card_status_indicator, 6, 6);
-    lv_obj_align(fg_comp_msflvcqvvk0_ld_dashboard_card_status_indicator, LV_ALIGN_TOP_RIGHT, -80, 17);
-    lv_obj_set_style_radius(fg_comp_msflvcqvvk0_ld_dashboard_card_status_indicator, LV_RADIUS_CIRCLE, LV_PART_MAIN);
-    lv_obj_set_style_bg_color(fg_comp_msflvcqvvk0_ld_dashboard_card_status_indicator, lv_color_hex(0x22C55E), LV_PART_MAIN);
-    lv_obj_set_style_border_width(fg_comp_msflvcqvvk0_ld_dashboard_card_status_indicator, 0, LV_PART_MAIN);
-    fg_comp_msflvcqvvk0_ld_dashboard_card_status = lv_label_create(fg_comp_msflvcqvvk0_ld_dashboard_card);
-    lv_label_set_text(fg_comp_msflvcqvvk0_ld_dashboard_card_status, "Normal");
-    lv_obj_align(fg_comp_msflvcqvvk0_ld_dashboard_card_status, LV_ALIGN_TOP_RIGHT, -12, 12);
-    lv_obj_set_style_text_color(fg_comp_msflvcqvvk0_ld_dashboard_card_status, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(fg_comp_msflvcqvvk0_ld_dashboard_card_status, &lv_font_montserrat_12, LV_PART_MAIN);
-    fg_comp_msflvcqvvk0_ld_dashboard_card_value = lv_label_create(fg_comp_msflvcqvvk0_ld_dashboard_card);
-    lv_label_set_text(fg_comp_msflvcqvvk0_ld_dashboard_card_value, "53");
-    lv_obj_set_pos(fg_comp_msflvcqvvk0_ld_dashboard_card_value, 12, 38);
-    lv_obj_set_style_text_font(fg_comp_msflvcqvvk0_ld_dashboard_card_value, &lv_font_montserrat_28, LV_PART_MAIN);
-    lv_obj_set_style_text_color(fg_comp_msflvcqvvk0_ld_dashboard_card_value, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
-    fg_comp_msflvcqvvk0_ld_dashboard_card_units = lv_label_create(fg_comp_msflvcqvvk0_ld_dashboard_card);
-    lv_label_set_text(fg_comp_msflvcqvvk0_ld_dashboard_card_units, "%");
-    lv_obj_align_to(fg_comp_msflvcqvvk0_ld_dashboard_card_units, fg_comp_msflvcqvvk0_ld_dashboard_card_value, LV_ALIGN_OUT_RIGHT_BOTTOM, 6, -2);
-    lv_obj_set_style_text_color(fg_comp_msflvcqvvk0_ld_dashboard_card_units, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    fg_comp_msflvcqvvk0_ld_dashboard_card_description = lv_label_create(fg_comp_msflvcqvvk0_ld_dashboard_card);
-    lv_label_set_text(fg_comp_msflvcqvvk0_ld_dashboard_card_description, "Operating level2");
-    lv_obj_set_pos(fg_comp_msflvcqvvk0_ld_dashboard_card_description, 12, 76);
-    lv_obj_set_width(fg_comp_msflvcqvvk0_ld_dashboard_card_description, 216);
-    lv_label_set_long_mode(fg_comp_msflvcqvvk0_ld_dashboard_card_description, LV_LABEL_LONG_DOT);
-    lv_obj_set_style_text_color(fg_comp_msflvcqvvk0_ld_dashboard_card_description, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(fg_comp_msflvcqvvk0_ld_dashboard_card_description, &lv_font_montserrat_12, LV_PART_MAIN);
-    fg_comp_msflvcqvvk0_ld_dashboard_card_progress = lv_bar_create(fg_comp_msflvcqvvk0_ld_dashboard_card);
-    lv_obj_set_pos(fg_comp_msflvcqvvk0_ld_dashboard_card_progress, 12, 97);
-    lv_obj_set_size(fg_comp_msflvcqvvk0_ld_dashboard_card_progress, 216, 6);
-    lv_bar_set_range(fg_comp_msflvcqvvk0_ld_dashboard_card_progress, 0, 100);
-    lv_bar_set_value(fg_comp_msflvcqvvk0_ld_dashboard_card_progress, 72, LV_ANIM_OFF);
-    lv_obj_set_style_bg_color(fg_comp_msflvcqvvk0_ld_dashboard_card_progress, lv_color_hex(0x2A3138), LV_PART_MAIN);
-    lv_obj_set_style_bg_color(fg_comp_msflvcqvvk0_ld_dashboard_card_progress, lv_color_hex(0xF2A900), LV_PART_INDICATOR);
-    fg_comp_msflvcqvvk0_ld_dashboard_card_footer = lv_label_create(fg_comp_msflvcqvvk0_ld_dashboard_card);
-    lv_label_set_text(fg_comp_msflvcqvvk0_ld_dashboard_card_footer, "Now");
-    lv_obj_align(fg_comp_msflvcqvvk0_ld_dashboard_card_footer, LV_ALIGN_BOTTOM_LEFT, 12, -12);
-    lv_obj_set_style_text_color(fg_comp_msflvcqvvk0_ld_dashboard_card_footer, lv_color_hex(0x7F8284), LV_PART_MAIN);
-    lv_obj_set_style_text_font(fg_comp_msflvcqvvk0_ld_dashboard_card_footer, &lv_font_montserrat_12, LV_PART_MAIN);
-
-    fg_comp_msfmnmryj9751_dashboard_card = lv_obj_create(fg_application_page);
-    lv_obj_set_pos(fg_comp_msfmnmryj9751_dashboard_card, 602.9999847412109, 13.49997329711914);
-    lv_obj_set_size(fg_comp_msfmnmryj9751_dashboard_card, 235, 198);
-    lv_obj_set_style_bg_color(fg_comp_msfmnmryj9751_dashboard_card, lv_color_hex(0x1E2328), LV_PART_MAIN);
-    lv_obj_set_style_border_color(fg_comp_msfmnmryj9751_dashboard_card, lv_color_hex(0x2A3138), LV_PART_MAIN);
-    lv_obj_set_style_border_width(fg_comp_msfmnmryj9751_dashboard_card, 1, LV_PART_MAIN);
-    lv_obj_set_style_radius(fg_comp_msfmnmryj9751_dashboard_card, 8, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(fg_comp_msfmnmryj9751_dashboard_card, 12, LV_PART_MAIN);
-    lv_obj_clear_flag(fg_comp_msfmnmryj9751_dashboard_card, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_add_flag(fg_comp_msfmnmryj9751_dashboard_card, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_add_event_cb(fg_comp_msfmnmryj9751_dashboard_card, fg_comp_msfmnmryj9751_dashboard_card_clicked_cb, LV_EVENT_CLICKED, NULL);
-    fg_comp_msfmnmryj9751_dashboard_card_title = lv_label_create(fg_comp_msfmnmryj9751_dashboard_card);
-    lv_label_set_text(fg_comp_msfmnmryj9751_dashboard_card_title, "System Output3");
-    lv_obj_set_pos(fg_comp_msfmnmryj9751_dashboard_card_title, 12, 12);
-    lv_obj_set_width(fg_comp_msfmnmryj9751_dashboard_card_title, 133);
-    lv_label_set_long_mode(fg_comp_msfmnmryj9751_dashboard_card_title, LV_LABEL_LONG_DOT);
-    lv_obj_set_style_text_color(fg_comp_msfmnmryj9751_dashboard_card_title, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
-    lv_obj_set_style_text_font(fg_comp_msfmnmryj9751_dashboard_card_title, &lv_font_montserrat_12, LV_PART_MAIN);
-    fg_comp_msfmnmryj9751_dashboard_card_status_indicator = lv_obj_create(fg_comp_msfmnmryj9751_dashboard_card);
-    lv_obj_set_size(fg_comp_msfmnmryj9751_dashboard_card_status_indicator, 6, 6);
-    lv_obj_align(fg_comp_msfmnmryj9751_dashboard_card_status_indicator, LV_ALIGN_TOP_RIGHT, -80, 17);
-    lv_obj_set_style_radius(fg_comp_msfmnmryj9751_dashboard_card_status_indicator, LV_RADIUS_CIRCLE, LV_PART_MAIN);
-    lv_obj_set_style_bg_color(fg_comp_msfmnmryj9751_dashboard_card_status_indicator, lv_color_hex(0x22C55E), LV_PART_MAIN);
-    lv_obj_set_style_border_width(fg_comp_msfmnmryj9751_dashboard_card_status_indicator, 0, LV_PART_MAIN);
-    fg_comp_msfmnmryj9751_dashboard_card_status = lv_label_create(fg_comp_msfmnmryj9751_dashboard_card);
-    lv_label_set_text(fg_comp_msfmnmryj9751_dashboard_card_status, "Normal");
-    lv_obj_align(fg_comp_msfmnmryj9751_dashboard_card_status, LV_ALIGN_TOP_RIGHT, -12, 12);
-    lv_obj_set_style_text_color(fg_comp_msfmnmryj9751_dashboard_card_status, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(fg_comp_msfmnmryj9751_dashboard_card_status, &lv_font_montserrat_12, LV_PART_MAIN);
-    fg_comp_msfmnmryj9751_dashboard_card_value = lv_label_create(fg_comp_msfmnmryj9751_dashboard_card);
-    lv_label_set_text(fg_comp_msfmnmryj9751_dashboard_card_value, "98");
-    lv_obj_set_pos(fg_comp_msfmnmryj9751_dashboard_card_value, 12, 38);
-    lv_obj_set_style_text_font(fg_comp_msfmnmryj9751_dashboard_card_value, &lv_font_montserrat_28, LV_PART_MAIN);
-    lv_obj_set_style_text_color(fg_comp_msfmnmryj9751_dashboard_card_value, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
-    fg_comp_msfmnmryj9751_dashboard_card_units = lv_label_create(fg_comp_msfmnmryj9751_dashboard_card);
-    lv_label_set_text(fg_comp_msfmnmryj9751_dashboard_card_units, "%");
-    lv_obj_align_to(fg_comp_msfmnmryj9751_dashboard_card_units, fg_comp_msfmnmryj9751_dashboard_card_value, LV_ALIGN_OUT_RIGHT_BOTTOM, 6, -2);
-    lv_obj_set_style_text_color(fg_comp_msfmnmryj9751_dashboard_card_units, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    fg_comp_msfmnmryj9751_dashboard_card_description = lv_label_create(fg_comp_msfmnmryj9751_dashboard_card);
-    lv_label_set_text(fg_comp_msfmnmryj9751_dashboard_card_description, "Operating level3");
-    lv_obj_set_pos(fg_comp_msfmnmryj9751_dashboard_card_description, 12, 76);
-    lv_obj_set_width(fg_comp_msfmnmryj9751_dashboard_card_description, 211);
-    lv_label_set_long_mode(fg_comp_msfmnmryj9751_dashboard_card_description, LV_LABEL_LONG_DOT);
-    lv_obj_set_style_text_color(fg_comp_msfmnmryj9751_dashboard_card_description, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    lv_obj_set_style_text_font(fg_comp_msfmnmryj9751_dashboard_card_description, &lv_font_montserrat_12, LV_PART_MAIN);
-    fg_comp_msfmnmryj9751_dashboard_card_progress = lv_bar_create(fg_comp_msfmnmryj9751_dashboard_card);
-    lv_obj_set_pos(fg_comp_msfmnmryj9751_dashboard_card_progress, 12, 97);
-    lv_obj_set_size(fg_comp_msfmnmryj9751_dashboard_card_progress, 211, 6);
-    lv_bar_set_range(fg_comp_msfmnmryj9751_dashboard_card_progress, 0, 100);
-    lv_bar_set_value(fg_comp_msfmnmryj9751_dashboard_card_progress, 88, LV_ANIM_OFF);
-    lv_obj_set_style_bg_color(fg_comp_msfmnmryj9751_dashboard_card_progress, lv_color_hex(0x2A3138), LV_PART_MAIN);
-    lv_obj_set_style_bg_color(fg_comp_msfmnmryj9751_dashboard_card_progress, lv_color_hex(0x45212a), LV_PART_INDICATOR);
-    fg_comp_msfmnmryj9751_dashboard_card_footer = lv_label_create(fg_comp_msfmnmryj9751_dashboard_card);
-    lv_label_set_text(fg_comp_msfmnmryj9751_dashboard_card_footer, "Now");
-    lv_obj_align(fg_comp_msfmnmryj9751_dashboard_card_footer, LV_ALIGN_BOTTOM_LEFT, 12, -12);
-    lv_obj_set_style_text_color(fg_comp_msfmnmryj9751_dashboard_card_footer, lv_color_hex(0x7F8284), LV_PART_MAIN);
-    lv_obj_set_style_text_font(fg_comp_msfmnmryj9751_dashboard_card_footer, &lv_font_montserrat_12, LV_PART_MAIN);
+    fg_comp_msfpboncwecv2_sensor_tile = lv_obj_create(fg_application_page);
+    lv_obj_t * obj2 = fg_comp_msfpboncwecv2_sensor_tile;
+    lv_obj_set_pos(fg_comp_msfpboncwecv2_sensor_tile, 744, 254);
+    lv_obj_set_size(fg_comp_msfpboncwecv2_sensor_tile, 260, 180);
+    lv_obj_set_style_bg_color(fg_comp_msfpboncwecv2_sensor_tile, lv_color_hex(0x1E2328), LV_PART_MAIN);
+    lv_obj_set_style_border_color(fg_comp_msfpboncwecv2_sensor_tile, lv_color_hex(0xF2A900), LV_PART_MAIN);
+    lv_obj_set_style_border_width(fg_comp_msfpboncwecv2_sensor_tile, 1, LV_PART_MAIN);
+    lv_obj_set_style_radius(fg_comp_msfpboncwecv2_sensor_tile, 12, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(fg_comp_msfpboncwecv2_sensor_tile, 16, LV_PART_MAIN);
+    lv_obj_clear_flag(fg_comp_msfpboncwecv2_sensor_tile, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_flag(fg_comp_msfpboncwecv2_sensor_tile, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_add_event_cb(fg_comp_msfpboncwecv2_sensor_tile, fg_comp_msfpboncwecv2_sensor_tile_clicked_cb, LV_EVENT_CLICKED, NULL);
+    fg_comp_msfpboncwecv2_sensor_tile_icon = lv_label_create(fg_comp_msfpboncwecv2_sensor_tile);
+    lv_label_set_text(fg_comp_msfpboncwecv2_sensor_tile_icon, LV_SYMBOL_CHARGE);
+    lv_obj_set_pos(fg_comp_msfpboncwecv2_sensor_tile_icon, 16, 16);
+    lv_obj_set_style_text_color(fg_comp_msfpboncwecv2_sensor_tile_icon, lv_color_hex(0x22C55E), LV_PART_MAIN);
+    lv_obj_t * obj2_title = lv_label_create(fg_comp_msfpboncwecv2_sensor_tile);
+    lv_label_set_text(obj2_title, "Temperature1");
+    lv_obj_set_pos(obj2_title, 42, 16);
+    lv_obj_set_width(obj2_title, 123);
+    lv_label_set_long_mode(obj2_title, LV_LABEL_LONG_DOT);
+    lv_obj_set_style_text_color(obj2_title, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
+    fg_comp_msfpboncwecv2_sensor_tile_status_indicator = lv_obj_create(fg_comp_msfpboncwecv2_sensor_tile);
+    lv_obj_set_size(fg_comp_msfpboncwecv2_sensor_tile_status_indicator, 8, 8);
+    lv_obj_align(fg_comp_msfpboncwecv2_sensor_tile_status_indicator, LV_ALIGN_TOP_RIGHT, -80, 21);
+    lv_obj_set_style_radius(fg_comp_msfpboncwecv2_sensor_tile_status_indicator, LV_RADIUS_CIRCLE, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(fg_comp_msfpboncwecv2_sensor_tile_status_indicator, lv_color_hex(0x22C55E), LV_PART_MAIN);
+    lv_obj_set_style_border_width(fg_comp_msfpboncwecv2_sensor_tile_status_indicator, 0, LV_PART_MAIN);
+    fg_comp_msfpboncwecv2_sensor_tile_status = lv_label_create(fg_comp_msfpboncwecv2_sensor_tile);
+    lv_label_set_text(fg_comp_msfpboncwecv2_sensor_tile_status, "Normal");
+    lv_obj_align(fg_comp_msfpboncwecv2_sensor_tile_status, LV_ALIGN_TOP_RIGHT, -16, 16);
+    lv_obj_set_style_text_font(fg_comp_msfpboncwecv2_sensor_tile_status, &lv_font_montserrat_12, LV_PART_MAIN);
+    lv_obj_set_style_text_color(fg_comp_msfpboncwecv2_sensor_tile_status, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
+    fg_comp_msfpboncwecv2_sensor_tile_value = lv_label_create(fg_comp_msfpboncwecv2_sensor_tile);
+    lv_label_set_text_fmt(fg_comp_msfpboncwecv2_sensor_tile_value, "%.*f", 1, (double)23.7);
+    lv_obj_set_pos(fg_comp_msfpboncwecv2_sensor_tile_value, 16, 54);
+    lv_obj_set_style_text_font(fg_comp_msfpboncwecv2_sensor_tile_value, &lv_font_montserrat_28, LV_PART_MAIN);
+    lv_obj_set_style_text_color(fg_comp_msfpboncwecv2_sensor_tile_value, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
+    fg_comp_msfpboncwecv2_sensor_tile_units = lv_label_create(fg_comp_msfpboncwecv2_sensor_tile);
+    lv_label_set_text(fg_comp_msfpboncwecv2_sensor_tile_units, "°C");
+    lv_obj_align_to(fg_comp_msfpboncwecv2_sensor_tile_units, fg_comp_msfpboncwecv2_sensor_tile_value, LV_ALIGN_OUT_RIGHT_BOTTOM, 6, -2);
+    lv_obj_set_style_text_color(fg_comp_msfpboncwecv2_sensor_tile_units, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
+    fg_comp_msfpboncwecv2_sensor_tile_trend = lv_label_create(fg_comp_msfpboncwecv2_sensor_tile);
+    lv_label_set_text(fg_comp_msfpboncwecv2_sensor_tile_trend, "▬ Stable");
+    lv_obj_set_pos(fg_comp_msfpboncwecv2_sensor_tile_trend, 16, 94);
+    lv_obj_set_style_text_font(fg_comp_msfpboncwecv2_sensor_tile_trend, &lv_font_montserrat_12, LV_PART_MAIN);
+    lv_obj_set_style_text_color(fg_comp_msfpboncwecv2_sensor_tile_trend, lv_color_hex(0x22C55E), LV_PART_MAIN);
+    fg_comp_msfpboncwecv2_sensor_tile_progress = lv_bar_create(fg_comp_msfpboncwecv2_sensor_tile);
+    lv_obj_set_pos(fg_comp_msfpboncwecv2_sensor_tile_progress, 16, 120);
+    lv_obj_set_size(fg_comp_msfpboncwecv2_sensor_tile_progress, 228, 8);
+    lv_bar_set_range(fg_comp_msfpboncwecv2_sensor_tile_progress, 0, 100);
+    lv_bar_set_value(fg_comp_msfpboncwecv2_sensor_tile_progress, 24, LV_ANIM_OFF);
+    lv_obj_set_style_bg_color(fg_comp_msfpboncwecv2_sensor_tile_progress, lv_color_hex(0x2A3138), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(fg_comp_msfpboncwecv2_sensor_tile_progress, lv_color_hex(0x22C55E), LV_PART_INDICATOR);
+    fg_comp_msfpboncwecv2_sensor_tile_timestamp = lv_label_create(fg_comp_msfpboncwecv2_sensor_tile);
+    lv_label_set_text(fg_comp_msfpboncwecv2_sensor_tile_timestamp, "Updated now");
+    lv_obj_align(fg_comp_msfpboncwecv2_sensor_tile_timestamp, LV_ALIGN_BOTTOM_LEFT, 16, -16);
+    lv_obj_set_style_text_font(fg_comp_msfpboncwecv2_sensor_tile_timestamp, &lv_font_montserrat_12, LV_PART_MAIN);
+    lv_obj_set_style_text_color(fg_comp_msfpboncwecv2_sensor_tile_timestamp, lv_color_hex(0x7F8284), LV_PART_MAIN);
 
 
     fg_ram_probe_log("02 after application page creation");

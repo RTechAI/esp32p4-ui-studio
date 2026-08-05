@@ -1,6 +1,6 @@
 # ForgeUI Sensor Tile
 
-Status: **PROVEN — ESP32-P4 VALIDATED** (2026-08-02).
+Status: **PHYSICAL RENDERING AND USEREVENTS PASSED; RUNTIME SDK SIMULATOR PROOF DEFERRED** (2026-08-05).
 
 Platform milestone:
 `FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__RUNTIME_SDK_USEREVENTS_MASTER_CONTROL_PROVEN__READY_FOR_PWM_CONTROLLER__2026-08-02`.
@@ -47,34 +47,48 @@ void FG_On_Engine_RPM_Clicked(void);
 
 ## ESP32-P4 proof record
 
-Sensor Tile proof milestone:
-`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_PROVEN__ESP32P4_VALIDATED__STABLE_RUNTIME_SDK__STABLE_USEREVENTS__2026-08-02`.
+Truthful save point:
+`FORGEUI_NATIVE_COMPONENT_2__SENSOR_TILE_COMPACT__ESP32P4_RENDER_AND_USEREVENTS_PROVEN__SDK_SIMULATOR_PROOF_DEFERRED__2026-08-05`.
 
-Physical validation on the Waveshare ESP32-P4 confirms:
+The following was physically confirmed on ESP32-P4:
 
-- schema-1 semantic serialization remains one editable Canvas component;
-- Canvas and Browser Preview parity;
-- shared Live Studio and Standalone Export parity;
-- the six semantic Runtime SDK APIs operate against the correct instance;
-- the genuine-user click callback operates through `95_UserEvents`;
-- persisted Native Component identity keeps generated Runtime SDK and callback
-  symbols stable across unchanged regeneration;
-- UserEvents ownership reconciliation preserves the active developer proof
-  body, removes stale placeholders and safely quarantines unmatched custom
-  hooks; and
-- generated firmware builds and operates correctly on ESP32-P4.
+- compact `240 x 145` Sensor Tile layout;
+- multiple Sensor Tile instances rendering correctly;
+- readable value, units, status, trend, progress, and timestamp;
+- four unique UserEvents callbacks;
+- repeated touch operation;
+- duplicate-instance touch isolation;
+- stable application loop;
+- SD remained `READY`; and
+- no observed Guru Meditation, watchdog reset, LVGL assertion, or callback flood.
 
-Sensor Tile is **ForgeUI Native Component #2 — PROVEN**. This result belongs to
-the ForgeUI Native Component ledger and does not alter the completed 44/44
-practical LVGL count.
+The full six-setter multi-instance Runtime SDK physical isolation sequence was
+not conclusively completed because the temporary proof firmware workflow became
+ambiguous. That specific setter-isolation test is not claimed as passed.
+
+- **Physical rendering and UserEvents: PASSED**
+- **Runtime SDK generation and focused tests: PASSED**
+- **Automated multi-instance setter proof: DEFERRED TO SIMULATOR/PROOF MODULE**
+
+This result belongs to the ForgeUI Native Component ledger and does not alter
+the completed 44/44 practical LVGL count.
+
+## Future design note: Native Component Simulator / Proof Module
+
+Purpose: exercise all generated Runtime SDK setters automatically; select
+individual component instances; run duplicate-isolation tests; show expected
+and actual values; emit clear serial proof markers; avoid hand-editing
+`95_UserEvents.c`; avoid ambiguous export binaries; support Browser, Live
+Studio, and ESP32-P4 proof modes; and remain removable from production exports.
+
+This module is a future design only and is not implemented here.
 
 ## Implementation history
 
-Earlier on 2026-08-02, Sensor Tile reached **IMPLEMENTED — READY FOR ESP32-P4
-PHYSICAL PROOF** after Registry, Inspector, Canvas, Browser Preview,
-Live/Standalone generation, Runtime SDK and UserEvents implementation. That
-dated status is retained here as the implementation-stage record superseded by
-the accepted physical proof above.
+Earlier records overstated completion of the six-setter physical isolation
+sequence. The 2026-08-05 save point above supersedes that claim while retaining
+the confirmed implementation, generated Runtime SDK, focused-test, rendering,
+touch, and UserEvents evidence.
 
 ## Version 1 boundaries
 

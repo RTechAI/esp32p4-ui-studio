@@ -1108,7 +1108,7 @@ case 'DashboardCard':
   </PreviewContainer>
 
 case 'SensorTile':
-  return <PreviewContainer component={component} enableVisualHelper {...forwardedProps}>
+  return <PreviewContainer component={component} enableVisualHelper resizeMinWidth={220} resizeMinHeight={128} {...forwardedProps}>
     <ForgeUISensorTilePreview component={component} palette={previewPalette} />
   </PreviewContainer>
 

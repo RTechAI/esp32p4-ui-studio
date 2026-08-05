@@ -476,17 +476,12 @@ void FG_On_Dashboard_Card_B_Clicked(void)
 }
 #endif
 
-void FG_On_Comp_MSFLVB1_EE9_URI_Clicked(void)
+void FG_On_Comp_MSFPBMJC403_RI_Clicked(void)
 {
-    printf("[ForgeUI User Event] FG_On_Comp_MSFLVB1_EE9_URI_Clicked\n");
+    printf("[ForgeUI User Event] FG_On_Comp_MSFPBMJC403_RI_Clicked\n");
 }
 
-void FG_On_Comp_MSFLVCQVVK0_LD_Clicked(void)
+void FG_On_Comp_MSFPBONCWECV2_Clicked(void)
 {
-    printf("[ForgeUI User Event] FG_On_Comp_MSFLVCQVVK0_LD_Clicked\n");
-}
-
-void FG_On_Comp_MSFMNMRYJ9751_Clicked(void)
-{
-    printf("[ForgeUI User Event] FG_On_Comp_MSFMNMRYJ9751_Clicked\n");
+    printf("[ForgeUI User Event] FG_On_Comp_MSFPBONCWECV2_Clicked\n");
 }

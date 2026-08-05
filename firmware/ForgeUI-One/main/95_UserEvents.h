@@ -80,9 +80,8 @@ void FG_On_Comp_MSBOX6_QTG8_Z2_W_Value_Changed(float value);
 void FG_On_Comp_MSBOX6_QTG8_Z2_W_Enabled_Changed(bool enabled);
 void FG_On_Comp_MSBOZT2_XBP996_Value_Changed(float value);
 void FG_On_Comp_MSBOZT2_XBP996_Enabled_Changed(bool enabled);
-void FG_On_Comp_MSFLVB1_EE9_URI_Clicked(void);
-void FG_On_Comp_MSFLVCQVVK0_LD_Clicked(void);
-void FG_On_Comp_MSFMNMRYJ9751_Clicked(void);
+void FG_On_Comp_MSFPBMJC403_RI_Clicked(void);
+void FG_On_Comp_MSFPBONCWECV2_Clicked(void);
 
 #ifdef __cplusplus
 }
