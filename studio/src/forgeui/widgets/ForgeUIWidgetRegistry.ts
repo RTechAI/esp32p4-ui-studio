@@ -413,6 +413,8 @@ const documentationByType: Partial<Record<ComponentType, string>> = {
   SensorTile: 'docs/FORGEUI_SENSOR_TILE.md',
   RelayPanel: 'docs/FORGEUI_RELAY_PANEL.md',
   PwmController: 'docs/FORGEUI_PWM_CONTROLLER.md',
+  Chart: 'docs/FORGEUI_TREND_CHART.md',
+  TrendChartPro: 'docs/FORGEUI_TREND_CHART_PRO.md',
   List: 'docs/FORGEUI_LIST_WIDGET.md',
   Tileview: 'docs/FORGEUI_TILEVIEW_WIDGET.md',
   Spinbox: 'docs/FORGEUI_SPINBOX_WIDGET.md',

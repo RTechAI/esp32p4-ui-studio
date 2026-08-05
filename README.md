@@ -1,5 +1,11 @@
 # ForgeUI Studio
 
+> Current certification (2026-08-06): **44 / 44 practical LVGL 9.2
+> components physically proven on ESP32-P4**, plus six physically proven
+> ForgeUI Native Components: Dashboard Card, Sensor Tile, Relay Panel, PWM
+> Controller, Trend Chart, and Trend Chart Pro. Alarm Panel is next and has not
+> started.
+
 > Next architecture sprint (recorded, not implemented): **ForgeUI ESP32-S3 Simulator Platform** for simulated digital I/O, PWM, analogue, battery, tank, motor and relay behavior, Wi-Fi communication, repeatable hardware validation, a future Test Certificate Card and a public hardware-proof workflow.
 
 Current architecture save point:
@@ -28,10 +34,9 @@ ForgeUI now rests on two completed foundations:
 
 1. **Practical LVGL Library** — 44 of 44 practical LVGL widgets/components are
    physically proven on ESP32-P4.
-2. **ForgeUI Native Platform** — Dashboard Card and Sensor Tile, ForgeUI Native
-   Components #1 and #2, are **PROVEN** across semantic serialization, Browser
-   Preview, Live Studio, Standalone Export, Runtime SDK, UserEvents and ESP32-P4
-   hardware.
+2. **ForgeUI Native Platform** — six Native Components are **PROVEN** across
+   semantic serialization, Browser Preview, Live Studio, Standalone Export,
+   Runtime SDK, UserEvents and ESP32-P4 hardware.
 
 Dashboard Card remains one semantic, serializable Canvas component with private
 multi-object LVGL composition. See
@@ -47,8 +52,16 @@ symbols and active developer hooks across regeneration. See
 Relay Panel is now **ForgeUI Native Component #3 — PROVEN**. It provides one semantic 1–8 channel logical output
 bank, interactive preview, shared native export, seven bounded Runtime APIs and
 genuine-user channel/master hooks without owning GPIO configuration. PWM
-Controller is next and has not started. See
+Controller is also physically proven. See
 [ForgeUI Relay Panel](docs/FORGEUI_RELAY_PANEL.md).
+
+Trend Chart is the lightweight technical industrial trend, with rolling
+history, relative time presentation, thresholds and runtime point updates.
+Trend Chart Pro is a separate premium dashboard-oriented engineering trend
+with an engineering-value header, units, glow/fill, latest marker, major grid
+and threshold bands. Both are physically proven; Pro does not replace the
+standard chart. See [Trend Chart](docs/FORGEUI_TREND_CHART.md) and
+[Trend Chart Pro](docs/FORGEUI_TREND_CHART_PRO.md).
 
 - Drag-and-drop, free-form Canvas placement and resizing
 - Registry-driven Widget Tray with search and accessible insertion

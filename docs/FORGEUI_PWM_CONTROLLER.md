@@ -1,6 +1,12 @@
 # ForgeUI PWM Controller
 
-Status: **IMPLEMENTED — READY FOR HARDWARE PROOF**. Physical ESP32-P4 proof has not yet been claimed.
+Status: **NATIVE COMPONENT #4 — PHYSICALLY PROVEN ON ESP32-P4** (2026-08-06).
+
+Browser Preview, Live Studio, Standalone Export, semantic Runtime SDK,
+UserEvents, persisted-ID stability, duplicate isolation, and physical ESP32-P4
+operation are certified. The proof procedure and initial gated evidence below
+are retained as historical certification records; their promotion gates are no
+longer current.
 
 PWM Controller is ForgeUI Native Component #4. One persisted Studio widget owns semantic label, subtitle, value, range, step, unit, enabled/presentation settings, orientation, accent and status. Its labels, slider, switch and card containers are private LVGL objects and are never persisted child widgets.
 
@@ -31,13 +37,16 @@ Setters clamp and step-quantize, update semantic state and LVGL, and suppress Us
 8. Build/flash Standalone Export and repeat steps 2–6.
 9. Exercise for ten minutes; confirm Wi-Fi connected, SD mounted, no crash, watchdog or state coupling.
 
-Only then promote to **PROVEN**.
+Historical procedure outcome: **PROVEN**.
 
 ## Hardware evidence received — 2026-08-02
 
 The initial ESP32-P4 pass physically confirms that multiple PWM Controllers render and change independently. `Comp MSBOZT2 XBP996` and `Comp MSBOX6 QTG8 Z2 W` emitted separate value callbacks with correct identity routing and no observed cross-component routing. Value sweeps behaved correctly through 100. SD remained `READY`; no crash or watchdog reset occurred; and reported RAM remained within the established operational range.
 
-Promotion remains explicitly gated on four results: independent enable-switch behavior, silent Runtime SDK setter behavior, connected-Wi-Fi stability, and the final five-to-ten-minute soak.
+At this dated intermediate record, promotion remained gated on four results:
+independent enable-switch behavior, silent Runtime SDK setter behavior,
+connected-Wi-Fi stability, and the final five-to-ten-minute soak. Those gates
+were subsequently completed by the current certification above.
 
 ## Temporary Runtime SDK proof procedure
 

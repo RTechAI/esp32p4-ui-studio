@@ -1,5 +1,50 @@
 # Generated Export API Code Map: what generated firmware exposes, how callbacks and runtime APIs fit together, and what developers are allowed to extend.
 
+## Current chart Runtime SDK contract — 2026-08-06
+
+Trend Chart and Trend Chart Pro are physically proven Native Components. Both
+use stable persisted component identity, collision-safe duplicate-instance
+names, the shared Live/Standalone generator, and canonical `95_UserEvents`
+contracts. Display-name changes do not change their generated SDK identity.
+
+Representative semantic APIs (inspect each generated
+`90_Studio_Export.h` for its exact `<Component>` stem):
+
+```c
+void FG_Add_<TrendChart>_Point(float value);
+void FG_Clear_<TrendChart>(void);
+void FG_Set_<TrendChart>_WarningThreshold(float value);
+void FG_Set_<TrendChart>_AlarmThreshold(float value);
+
+void FG_Add_<TrendChartPro>_Point(float value);
+void FG_Clear_<TrendChartPro>(void);
+void FG_Set_<TrendChartPro>_Units(const char * units);
+void FG_Set_<TrendChartPro>_Warning(float value);
+void FG_Set_<TrendChartPro>_Alarm(float value);
+```
+
+Where enabled, the generated canonical callback family is:
+
+```c
+void FG_On_<Chart>_Point_Added(float value);
+void FG_On_<Chart>_Warning(void);
+void FG_On_<Chart>_Alarm(void);
+void FG_On_<Chart>_Recovered(void);
+```
+
+Warning, Alarm, and Recovered fire only on state transitions. Duplicate
+instances receive isolated callback identities. Callback declarations and
+generated calls share one contract, and regeneration preserves matching
+developer-owned bodies in `95_UserEvents.c`.
+
+The exporter clears unused history to `LV_CHART_POINT_NONE`, writes valid
+samples by explicit point ID, suppresses unwanted LVGL point dots, draws
+threshold helpers behind the data trace, and refreshes runtime updates. These
+are private generated details, not application integration points.
+
+The older PWM proof-ready entry below is retained as a superseded historical
+record.
+
 ## PWM Controller generated API — 2026-08-02
 
 Generated 90 owns `FG_Set/Get_<PersistedId>_Value(float)` and `FG_Set/Get_<PersistedId>_Enabled(bool)`. Silent setters clamp/quantize and update private LVGL state under a programmatic guard. Genuine interaction calls `FG_On_<PersistedId>_Value_Changed(float)` and `FG_On_<PersistedId>_Enabled_Changed(bool)` through preservation-merged 95. Live and Standalone use the same generator. Status: **READY FOR HARDWARE PROOF**.
@@ -408,7 +453,8 @@ Runtime hot theme switching on the ESP32-P4 was not added.
 | Led | `FG_Set_<Name>(bool on)` | `FG_On_<Name>_Changed(bool enabled)` |
 | Bar | `FG_Set_<Name>(int32_t value)` | `FG_On_<Name>_Changed(int32_t value)` |
 | Arc | `FG_Set_<Name>(int32_t value)` | `FG_On_<Name>_Changed(int32_t value)` |
-| Chart | `FG_Add_<Name>_Point(int32_t value)`, `FG_Clear_<Name>(void)` | `FG_On_<Name>_Point_Added(int32_t value)`, `FG_On_<Name>_Cleared(void)` |
+| Trend Chart | `FG_Add_<Name>_Point(float value)`, `FG_Clear_<Name>(void)`, warning/alarm threshold setters | `FG_On_<Name>_Point_Added(float value)` plus transition-only Warning, Alarm and Recovered hooks when enabled |
+| Trend Chart Pro | `FG_Add_<PersistedId>_Point(float value)`, Clear, Units, Warning and Alarm setters | Persisted-ID Point Added plus transition-only Warning, Alarm and Recovered hooks when enabled |
 | Keyboard | `FG_Show_<Name>(void)`, `FG_Hide_<Name>(void)` | `FG_On_<Name>_Shown(void)`, `FG_On_<Name>_Hidden(void)` |
 | Calendar | `FG_Set_<Name>_Date(uint16_t year, uint8_t month, uint8_t day)` | `FG_On_<Name>_Date_Changed(uint16_t year, uint8_t month, uint8_t day)` |
 | Roller | `FG_Set_<Name>_Selected(uint32_t index)` | `FG_On_<Name>_Changed(uint32_t index, const char * text)` |

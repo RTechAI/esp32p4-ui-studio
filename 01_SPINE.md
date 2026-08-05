@@ -1,5 +1,29 @@
 # Project Spine: what ForgeUI is, what is proven, current priorities, and what must not regress..
 
+## Current Save Point — 2026-08-06
+
+**FORGEUI_NATIVE_COMPONENTS_1_TO_6__TREND_CHART_AND_PRO_PHYSICALLY_PROVEN__READY_FOR_ALARM_PANEL__2026-08-06**
+
+The practical LVGL 9.2 foundation remains **44 / 44 physically proven on
+ESP32-P4**; Lottie remains intentionally excluded. The Native Component ledger
+now contains six physically proven components: Dashboard Card, Sensor Tile,
+Relay Panel, PWM Controller, Trend Chart, and Trend Chart Pro.
+
+Trend Chart is the lightweight technical industrial trend. Trend Chart Pro is
+the separate premium dashboard-oriented engineering trend; it does not replace
+Trend Chart. Both have Browser Preview, Live Studio, Standalone Export,
+semantic Runtime SDK, isolated duplicate-instance identity, and physical
+ESP32-P4 proof. Persisted component identity owns their generated contracts,
+so display-name changes do not rename chart APIs or callbacks.
+
+The next Native Component is **Alarm Panel**. Do not begin it from this
+documentation milestone. The Simulator / Proof Module, automated Runtime SDK
+proof harness, ESP-Hosted startup investigation, and further export
+infrastructure remain deferred.
+
+Earlier dated save points below are historical records and are superseded only
+where they describe the then-current Native Component count or next component.
+
 ## 2026-08-02 — Native Component #4 PWM Controller
 
 PWM Controller is implemented through the existing Registry, semantic persistence, shared Browser Preview, shared Live/Standalone LVGL generator, Runtime SDK and `95_UserEvents` reconciliation. Persisted `IComponent.id` owns symbols/hooks; visible label renames do not. ForgeUI owns no GPIO or LEDC configuration. Status is **READY FOR HARDWARE PROOF**, not proven. See [`docs/FORGEUI_PWM_CONTROLLER.md`](docs/FORGEUI_PWM_CONTROLLER.md).

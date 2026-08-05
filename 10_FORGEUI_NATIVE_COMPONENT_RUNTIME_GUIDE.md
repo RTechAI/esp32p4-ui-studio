@@ -1,5 +1,50 @@
 # ForgeUI Native Component Runtime Guide
 
+Current certification (2026-08-06): **six Native Components physically proven
+on ESP32-P4** — Dashboard Card, Sensor Tile, Relay Panel, PWM Controller, Trend
+Chart, and Trend Chart Pro. Practical LVGL remains **44 / 44 proven**. Alarm
+Panel is next and has not started.
+
+## Chart Runtime SDK quick reference
+
+Trend Chart is the lightweight technical industrial trend. Trend Chart Pro is
+the separate premium dashboard-oriented engineering trend and does not replace
+it. Both support bounded/rolling history, runtime point and threshold updates,
+stable persisted identity, isolated duplicates, Browser Preview, Live Studio,
+Standalone Export, and physical ESP32-P4 output.
+
+Use the actual generated stem from `90_Studio_Export.h`:
+
+```c
+void FG_Add_<TrendChart>_Point(float value);
+void FG_Clear_<TrendChart>(void);
+void FG_Set_<TrendChart>_WarningThreshold(float value);
+void FG_Set_<TrendChart>_AlarmThreshold(float value);
+
+void FG_Add_<TrendChartPro>_Point(float value);
+void FG_Clear_<TrendChartPro>(void);
+void FG_Set_<TrendChartPro>_Units(const char * units);
+void FG_Set_<TrendChartPro>_Warning(float value);
+void FG_Set_<TrendChartPro>_Alarm(float value);
+```
+
+The callback family, where enabled, is:
+
+```c
+void FG_On_<Chart>_Point_Added(float value);
+void FG_On_<Chart>_Warning(void);
+void FG_On_<Chart>_Alarm(void);
+void FG_On_<Chart>_Recovered(void);
+```
+
+Warning, Alarm, and Recovered fire on state transitions only. Callback calls
+and declarations share one canonical contract. Duplicate instances receive
+isolated identities; presentation-label renames do not alter persisted-ID chart
+contracts. Developer callback bodies are preserved during regeneration.
+
+Permanent product logic belongs in application-owned services called from
+`95_UserEvents`, never in private generated `fg_*` chart code.
+
 Status: **AUTHORITATIVE LIVING DEVELOPER REFERENCE** (2026-08-02).
 
 Current ForgeUI Platform milestone:

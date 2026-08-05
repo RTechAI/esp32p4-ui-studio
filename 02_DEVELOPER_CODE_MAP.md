@@ -1,5 +1,34 @@
 # Developer Code Map: where features live, who owns each layer, and which files are authoritative
 
+## Native Components 1–6 certified — 2026-08-06
+
+Current save point:
+`FORGEUI_NATIVE_COMPONENTS_1_TO_6__TREND_CHART_AND_PRO_PHYSICALLY_PROVEN__READY_FOR_ALARM_PANEL__2026-08-06`.
+
+Practical LVGL remains **44 / 44 physically proven**. Dashboard Card, Sensor
+Tile, Relay Panel, PWM Controller, Trend Chart, and Trend Chart Pro are the six
+physically proven Native Components. Alarm Panel is next; deferred proof and
+export infrastructure remains out of scope.
+
+| Concern | Authoritative owner |
+|---|---|
+| Trend Chart semantic model and layout | `studio/src/forgeui/ForgeUIStandardChart.ts` |
+| Trend Chart Browser Preview | `studio/src/forgeui/preview/StandardChartPreview.tsx` |
+| Trend Chart Pro semantic model | `studio/src/forgeui/ForgeUITrendChartPro.ts` |
+| Trend Chart Pro Browser Preview | `studio/src/forgeui/preview/ForgeUITrendChartProPreview.tsx` |
+| Chart Inspectors | `TrendChartPanel.tsx` and `TrendChartProPanel.tsx` |
+| Shared Live/Standalone LVGL, Runtime APIs and callback calls | `studio/src/forgeui/ForgeUILvglExport.ts` |
+| Canonical UserEvents preservation and ownership | `studio/export-server.js` |
+| Native Component registration and documentation routes | `studio/src/forgeui/widgets/ForgeUIWidgetRegistry.ts` |
+
+Certification corrected partial-history initialization, callback contracts,
+LVGL point-marker styling, threshold/data draw order, and runtime refresh in
+the shared exporter. These are generator concerns; application code must use
+the semantic APIs and `95_UserEvents`, never private `fg_*` chart objects.
+
+The older PWM-ready status immediately below is a superseded historical save
+point.
+
 ## PWM Controller vertical slice — 2026-08-02
 
 Semantic model: `studio/src/forgeui/ForgeUIPwmController.ts`; Inspector: `PwmControllerPanel.tsx`; shared preview: `ForgeUIPwmControllerPreview.tsx`; Registry: `ForgeUIWidgetRegistry.ts`; shared Live/Standalone composition and SDK: `ForgeUILvglExport.ts`; existing UserEvents reconciliation: `studio/export-server.js`. Status: **IMPLEMENTED — READY FOR HARDWARE PROOF**. See `docs/FORGEUI_PWM_CONTROLLER.md`.

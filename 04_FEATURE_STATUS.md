@@ -1,5 +1,34 @@
 # 04_FEATURE_STATUS.md
 
+## Current certification — 2026-08-06
+
+**FORGEUI_NATIVE_COMPONENTS_1_TO_6__TREND_CHART_AND_PRO_PHYSICALLY_PROVEN__READY_FOR_ALARM_PANEL__2026-08-06**
+
+- Practical LVGL 9.2: **44 / 44 PROVEN on ESP32-P4**. Lottie remains intentionally excluded.
+- Native Components: **6 / 6 implemented components physically proven**.
+- Next Native Component: **Alarm Panel** (not started).
+- Deferred without change: Simulator / Proof Module, automated Runtime SDK proof harness, ESP-Hosted startup investigation, and further export infrastructure.
+
+| Native Component | Current status | Certified scope |
+|---|---|---|
+| Dashboard Card | **PROVEN** | Browser Preview, Live Studio, Standalone Export, Runtime SDK, UserEvents, ESP32-P4 |
+| Sensor Tile | **PROVEN** | Semantic engineering display, isolated instances, Runtime SDK/UserEvents, ESP32-P4 |
+| Relay Panel | **PROVEN** | Channel/master interaction, isolated instances, Runtime SDK/UserEvents, ESP32-P4 |
+| PWM Controller | **PROVEN** | Value/enable interaction, isolated instances, Runtime SDK/UserEvents, ESP32-P4 |
+| Trend Chart | **PROVEN** | Lightweight technical trend, rolling history, time axis, thresholds, runtime updates, all preview/export paths, ESP32-P4 |
+| Trend Chart Pro | **PROVEN** | Separate premium engineering trend, bounded history, header/units, trace/glow/fill/marker/grid/bands, transition UserEvents, all preview/export paths, ESP32-P4 |
+
+Trend Chart Pro does not replace Trend Chart. Certification also removed the
+partial-history tail artifact and unwanted LVGL point dots, placed threshold
+helpers behind the live trace, and confirmed canonical callback contracts,
+runtime refresh, persisted-ID stability, rename stability, and duplicate
+isolation. Earlier status sections below are dated historical records where
+they conflict with this current table.
+
+## 2026-08-05 Trend Chart Pro
+
+Trend Chart Pro is available as a separate ForgeUI Native Component. It provides a premium engineering-value header, anti-aliased Studio/browser trace, optional glow and fill, current marker, major grid, threshold presentation, auto/fixed scale, semantic Runtime SDK, and warning/alarm/recovered UserEvents. The existing Trend Chart remains unchanged. See `docs/FORGEUI_TREND_CHART_PRO.md`.
+
 ## 2026-08-02 Practical LVGL 9.2 completion
 
 Current platform save point:
@@ -126,6 +155,12 @@ Current Native Component roadmap:
 1. Dashboard Card — **PROVEN**
 2. Sensor Tile — **PROVEN**
 3. Relay Panel — **PROVEN**
+4. PWM Controller — **PROVEN**
+5. Trend Chart — **PROVEN**
+6. Trend Chart Pro — **PROVEN**
+7. Alarm Panel — **NEXT; NOT STARTED**
+
+This roadmap supersedes the historical PWM proof-ready paragraph below.
 4. PWM Controller — **NEXT**
 5. System Health
 6. Network Widget

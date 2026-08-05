@@ -1,6 +1,20 @@
 # ForgeUI Native Widget Architecture
 
-Status: **AUTHORITATIVE AND PROVEN — DASHBOARD CARD AND SENSOR TILE ESP32-P4 VALIDATED** (2026-08-02).
+Status: **AUTHORITATIVE AND PROVEN — NATIVE COMPONENTS 1–6 ESP32-P4 VALIDATED** (2026-08-06).
+
+Current platform save point:
+`FORGEUI_NATIVE_COMPONENTS_1_TO_6__TREND_CHART_AND_PRO_PHYSICALLY_PROVEN__READY_FOR_ALARM_PANEL__2026-08-06`.
+
+The six physically proven Native Components are Dashboard Card, Sensor Tile,
+Relay Panel, PWM Controller, Trend Chart, and Trend Chart Pro. Trend Chart is
+the lightweight technical industrial trend; Trend Chart Pro is the separate
+premium dashboard-oriented engineering trend. Both validate stable persisted
+identity, duplicate isolation, semantic Runtime APIs, canonical UserEvents,
+shared Browser/Live/Standalone generation, and ESP32-P4 parity.
+
+Alarm Panel is next and is not implemented by this documentation pass. The
+Simulator / Proof Module, automated Runtime SDK proof harness, ESP-Hosted
+startup investigation, and further export infrastructure remain deferred.
 
 Current milestone:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.

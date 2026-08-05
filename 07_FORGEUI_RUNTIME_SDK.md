@@ -1,5 +1,48 @@
 # ForgeUI Runtime SDK Direction
 
+Current Native Component certification (2026-08-06): Dashboard Card, Sensor
+Tile, Relay Panel, PWM Controller, Trend Chart, and Trend Chart Pro are
+physically proven on ESP32-P4. The practical LVGL ledger remains 44 / 44.
+Alarm Panel is next and is not part of this document update.
+
+## Proven chart contracts
+
+Use the exact generated stem from `90_Studio_Export.h`; `<TrendChart>` and
+`<TrendChartPro>` below are semantic placeholders, not literal C identifiers.
+
+```c
+FG_Add_<TrendChart>_Point(value);
+FG_Clear_<TrendChart>();
+FG_Set_<TrendChart>_WarningThreshold(value);
+FG_Set_<TrendChart>_AlarmThreshold(value);
+
+FG_Add_<TrendChartPro>_Point(value);
+FG_Clear_<TrendChartPro>();
+FG_Set_<TrendChartPro>_Units(units);
+FG_Set_<TrendChartPro>_Warning(value);
+FG_Set_<TrendChartPro>_Alarm(value);
+```
+
+Chart point and threshold values use `float`; units use `const char *`.
+Persisted identity keeps the Pro contract stable through presentation-label
+renames, and duplicate instances remain isolated.
+
+Generated callback declarations and calls use one canonical contract:
+
+```c
+void FG_On_<Chart>_Point_Added(float value);
+void FG_On_<Chart>_Warning(void);
+void FG_On_<Chart>_Alarm(void);
+void FG_On_<Chart>_Recovered(void);
+```
+
+Threshold callbacks fire only on state transitions. Regeneration preserves
+matching developer-owned bodies in `95_UserEvents.c`; generated code must not
+overwrite application logic. Developers must not integrate through private
+generated LVGL chart symbols.
+
+The older Relay/PWM milestone immediately below is retained as historical.
+
 Current save point:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
@@ -99,7 +142,7 @@ Runtime APIs project application state into the generated interface:
 void FG_Set_Level_Slider_Value(int32_t value);
 void FG_Set_Decimal_Spinbox_Value(int32_t value);
 void FG_Set_Status_LED(bool on);
-void FG_Add_Temperature_Chart_Point(int32_t value);
+void FG_Add_Temperature_Chart_Point(float value);
 void FG_Clear_Temperature_Chart(void);
 void FG_Set_QR_Code_Text(const char * text);
 ```

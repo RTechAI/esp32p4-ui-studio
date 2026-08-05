@@ -43,23 +43,26 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- `FG_On_Comp_MSFWF336_Q9_L7_H_Value_Changed()`
-- `FG_On_Comp_MSFWF336_Q9_L7_H_Enabled_Changed()`
-- `FG_On_Comp_MSFWF4_DMHWEBC_Value_Changed()`
-- `FG_On_Comp_MSFWF4_DMHWEBC_Enabled_Changed()`
-- `FG_On_Comp_MSFWF5_QLC2_A3_F_Value_Changed()`
-- `FG_On_Comp_MSFWF5_QLC2_A3_F_Enabled_Changed()`
+- `FG_On_<Chart>_Point_Added(float value)`
+- `FG_On_<Chart>_Cleared(void)`
+- `FG_On_<Chart>_Warning(void)`
+- `FG_On_<Chart>_Alarm(void)`
+- `FG_On_<Chart>_Recovered(void)`
+
+`<Chart>` represents the exact generated stem in `90_Studio_Export.h` and
+`95_UserEvents.h`. Persisted Native Component identity keeps Pro chart names
+stable through presentation-label changes; duplicate instances are isolated.
+Warning, Alarm, and Recovered fire only on threshold-state transitions.
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| Comp_MSFWF336_Q9_L7_H_Value_Changed | Click | `FG_On_Comp_MSFWF336_Q9_L7_H_Value_Changed()` |
-| Comp_MSFWF336_Q9_L7_H_Enabled_Changed | Click | `FG_On_Comp_MSFWF336_Q9_L7_H_Enabled_Changed()` |
-| Comp_MSFWF4_DMHWEBC_Value_Changed | Click | `FG_On_Comp_MSFWF4_DMHWEBC_Value_Changed()` |
-| Comp_MSFWF4_DMHWEBC_Enabled_Changed | Click | `FG_On_Comp_MSFWF4_DMHWEBC_Enabled_Changed()` |
-| Comp_MSFWF5_QLC2_A3_F_Value_Changed | Click | `FG_On_Comp_MSFWF5_QLC2_A3_F_Value_Changed()` |
-| Comp_MSFWF5_QLC2_A3_F_Enabled_Changed | Click | `FG_On_Comp_MSFWF5_QLC2_A3_F_Enabled_Changed()` |
+| Chart Point Added | Runtime point update | `FG_On_<Chart>_Point_Added(float value)` |
+| Chart Cleared | Runtime clear | `FG_On_<Chart>_Cleared(void)` |
+| Chart Warning | Threshold transition | `FG_On_<Chart>_Warning(void)` |
+| Chart Alarm | Threshold transition | `FG_On_<Chart>_Alarm(void)` |
+| Chart Recovered | Threshold transition | `FG_On_<Chart>_Recovered(void)` |
 
 ---
 
