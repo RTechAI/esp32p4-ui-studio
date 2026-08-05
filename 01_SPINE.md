@@ -2,12 +2,13 @@
 
 ## Current Save Point — 2026-08-06
 
-**FORGEUI_NATIVE_COMPONENT_7__ALARM_PANEL_PHYSICALLY_PROVEN__RUNTIME_SDK_USEREVENTS_CAPACITY_ISOLATION_PROVEN__2026-08-06**
+**FORGEUI_NATIVE_COMPONENT_7__ALARM_PANEL_STUDIO_INSERTION_AND_LVGL_PARITY_REPAIRED__PENDING_USER_ESP32P4_REVALIDATION__2026-08-06**
 
 The practical LVGL 9.2 foundation remains **44 / 44 physically proven on
 ESP32-P4**; Lottie remains intentionally excluded. The Native Component ledger
-now contains seven physically proven components: Dashboard Card, Sensor Tile,
-Relay Panel, PWM Controller, Trend Chart, Trend Chart Pro, and Alarm Panel.
+contains seven implemented components. Six are physically proven: Dashboard
+Card, Sensor Tile, Relay Panel, PWM Controller, Trend Chart, and Trend Chart
+Pro. Alarm Panel is implemented but **NOT PROVEN**.
 
 Trend Chart is the lightweight technical industrial trend. Trend Chart Pro is
 the separate premium dashboard-oriented engineering trend; it does not replace
@@ -16,9 +17,10 @@ semantic Runtime SDK, isolated duplicate-instance identity, and physical
 ESP32-P4 proof. Persisted component identity owns their generated contracts,
 so display-name changes do not rename chart APIs or callbacks.
 
-Alarm Panel is physically proven with bounded storage, deterministic overflow
-rejection, canonical UserEvents, duplicate isolation, and Runtime SDK-driven
-physical transitions. The next Native Component is **not selected**; do not
+Alarm Panel's missing Canvas renderer, missing per-alarm Inspector editor, and
+generated LVGL row overlap have been repaired with focused tests. A fresh
+user-run regenerate/build/flash and Canvas/Browser/P4 comparison is required
+before certification. The next Native Component is **not selected**; do not
 begin another from this save point. The Simulator / Proof Module, automated Runtime SDK
 proof harness, ESP-Hosted startup investigation, and further export
 infrastructure remain deferred.

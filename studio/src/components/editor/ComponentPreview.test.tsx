@@ -1044,3 +1044,22 @@ test('unrelated Interactive Assets do not get the Status Indicator action', () =
   expect(screen.queryByText('Open Status Indicator Creator'))
     .not.toBeInTheDocument()
 })
+
+test('Alarm Panel renders immediately inside selectable resize bounds', () => {
+  // @ts-ignore Rematch's inferred plugin type is wider than this test needs.
+  const store = init(storeConfig)
+  store.dispatch.components.addComponent({
+    parentName: 'root', type: 'AlarmPanel', rootParentType: 'AlarmPanel',
+    testId: 'alarm-canvas',
+  })
+  renderWithRedux(<ComponentPreview componentName="alarm-canvas" />, {
+    store, initialState: undefined,
+  })
+  expect(screen.getByText('Active Alarms')).toBeInTheDocument()
+  expect(screen.getByText(/High discharge pressure/)).toBeInTheDocument()
+  const bounds = screen.getByText('Active Alarms').closest('.react-draggable') as HTMLElement
+  expect(bounds).toHaveStyle({ width: '420px', height: '300px' })
+  fireEvent.mouseDown(screen.getByText('Active Alarms'))
+  // @ts-ignore Store state is wrapped by redux-undo.
+  expect(store.getState().components.present.selectedId).toBe('alarm-canvas')
+})

@@ -2,10 +2,10 @@
 
 ## Current certification — 2026-08-06
 
-**FORGEUI_NATIVE_COMPONENT_7__ALARM_PANEL_PHYSICALLY_PROVEN__RUNTIME_SDK_USEREVENTS_CAPACITY_ISOLATION_PROVEN__2026-08-06**
+**FORGEUI_NATIVE_COMPONENT_7__ALARM_PANEL_STUDIO_INSERTION_AND_LVGL_PARITY_REPAIRED__PENDING_USER_ESP32P4_REVALIDATION__2026-08-06**
 
 - Practical LVGL 9.2: **44 / 44 PROVEN on ESP32-P4**. Lottie remains intentionally excluded.
-- Native Components: **7 / 7 implemented components physically proven**.
+- Native Components: **7 implemented; 6 physically proven; Alarm Panel NOT PROVEN**.
 - Next Native Component: **not selected**; do not begin another component from this save point.
 - Deferred without change: Simulator / Proof Module, automated Runtime SDK proof harness, ESP-Hosted startup investigation, and further export infrastructure.
 
@@ -17,7 +17,7 @@
 | PWM Controller | **PROVEN** | Value/enable interaction, isolated instances, Runtime SDK/UserEvents, ESP32-P4 |
 | Trend Chart | **PROVEN** | Lightweight technical trend, rolling history, time axis, thresholds, runtime updates, all preview/export paths, ESP32-P4 |
 | Trend Chart Pro | **PROVEN** | Separate premium engineering trend, bounded history, header/units, trace/glow/fill/marker/grid/bands, transition UserEvents, all preview/export paths, ESP32-P4 |
-| Alarm Panel | **PROVEN** | Bounded alarms, deterministic overflow rejection, state/priority ordering, compact/standard layouts, isolated Runtime SDK/UserEvents, ESP32-P4 |
+| Alarm Panel | **NOT PROVEN — REVALIDATION REQUIRED** | Studio insertion and editable alarm collection repaired; LVGL row parity repaired; fresh user ESP32-P4 confirmation pending |
 
 Trend Chart Pro does not replace Trend Chart. Certification also removed the
 partial-history tail artifact and unwanted LVGL point dots, placed threshold
@@ -159,7 +159,7 @@ Current Native Component roadmap:
 4. PWM Controller — **PROVEN**
 5. Trend Chart — **PROVEN**
 6. Trend Chart Pro — **PROVEN**
-7. Alarm Panel — **PROVEN**
+7. Alarm Panel — **IMPLEMENTED; NOT PROVEN; USER HARDWARE REVALIDATION PENDING**
 
 The next Native Component is not selected. Do not begin another component from
 this certification save point.

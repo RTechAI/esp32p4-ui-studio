@@ -32,6 +32,13 @@ describe('Alarm Panel LVGL export', () => {
     ]))
     expect(output.code).toContain('static int32_t fg_comp_alarm_a_alarm_ids[4] = {0};')
     expect(output.code).toContain('if (slot < 0) return false;')
+    expect(output.code).toContain('fg_comp_alarm_a_alarm_count_label')
+    expect(output.code).toContain('fg_comp_alarm_a_alarm_row_state_labels')
+    expect(output.code).toContain('fg_comp_alarm_a_alarm_row_priority_labels')
+    expect(output.code).toContain('fg_comp_alarm_a_alarm_row_ack_labels')
+    expect(output.code).toContain('LV_BORDER_SIDE_LEFT')
+    expect(output.code).toContain('lv_obj_set_style_pad_all(fg_comp_alarm_a_alarm_rows[0], 0, 0)')
+    expect(output.code).toContain('lv_obj_set_style_text_align(fg_comp_alarm_a_alarm_row_priority_labels[0], LV_TEXT_ALIGN_RIGHT, 0)')
   })
 
   it('isolates duplicate instances and remains rename-stable', () => {

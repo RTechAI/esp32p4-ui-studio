@@ -1,10 +1,12 @@
 # ForgeUI Runtime SDK Direction
 
 Current Native Component certification (2026-08-06): Dashboard Card, Sensor
-Tile, Relay Panel, PWM Controller, Trend Chart, Trend Chart Pro, and Alarm Panel are
-physically proven on ESP32-P4. The practical LVGL ledger remains 44 / 44.
+Tile, Relay Panel, PWM Controller, Trend Chart, and Trend Chart Pro are
+physically proven on ESP32-P4. Alarm Panel's SDK is implemented and automated
+tests pass, but it is **NOT PROVEN** pending fresh user hardware revalidation.
+The practical LVGL ledger remains 44 / 44.
 
-## Proven Alarm Panel contract
+## Implemented Alarm Panel contract — not yet proven
 
 Alarm Panel uses fixed-capacity per-instance storage and rejects a new ID with
 `false` when full. Exact generated names derive from persisted component IDs:

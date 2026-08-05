@@ -60,6 +60,7 @@ import { ForgeUISensorTilePreview } from '~forgeui/preview/ForgeUISensorTilePrev
 import { ForgeUIRelayPanelPreview } from '~forgeui/preview/ForgeUIRelayPanelPreview'
 import { ForgeUIPwmControllerPreview } from '~forgeui/preview/ForgeUIPwmControllerPreview'
 import { ForgeUITrendChartProPreview } from '~forgeui/preview/ForgeUITrendChartProPreview'
+import { ForgeUIAlarmPanelPreview } from '~forgeui/preview/ForgeUIAlarmPanelPreview'
 import { useForgePreviewPalette } from '~forgeui/theme/ForgeThemeContext'
 import { resolveForgeSemanticPalette } from '~forgeui/preview/forgeThemeMap'
 import InteractiveButtonCanvasPreview, {
@@ -1126,6 +1127,11 @@ case 'PwmController':
 case 'TrendChartPro':
   return <PreviewContainer component={component} enableVisualHelper resizeMinWidth={220} resizeMinHeight={140} {...forwardedProps}>
     <ForgeUITrendChartProPreview component={component} palette={previewPalette} />
+  </PreviewContainer>
+
+case 'AlarmPanel':
+  return <PreviewContainer component={component} enableVisualHelper resizeMinWidth={240} resizeMinHeight={220} {...forwardedProps}>
+    <ForgeUIAlarmPanelPreview component={component} palette={previewPalette} />
   </PreviewContainer>
 
     default:

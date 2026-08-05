@@ -1,10 +1,11 @@
 # ForgeUI Native Component Runtime Guide
 
-Current certification (2026-08-06): **seven Native Components physically proven
+Current certification (2026-08-06): **six Native Components physically proven
 on ESP32-P4** — Dashboard Card, Sensor Tile, Relay Panel, PWM Controller, Trend
-Chart, Trend Chart Pro, and Alarm Panel. Practical LVGL remains **44 / 44 proven**.
+Chart, and Trend Chart Pro. Alarm Panel is implemented but **NOT PROVEN** pending
+fresh user ESP32-P4 revalidation. Practical LVGL remains **44 / 44 proven**.
 
-## Alarm Panel Runtime SDK quick reference
+## Alarm Panel Runtime SDK quick reference — implemented, not proven
 
 Alarm Panel owns bounded fixed-capacity records and exposes semantic add,
 acknowledge, clear, clear-all, enable, and select APIs. A new record at capacity

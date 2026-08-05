@@ -1,13 +1,14 @@
 # Developer Code Map: where features live, who owns each layer, and which files are authoritative
 
-## Native Components 1–7 certified — 2026-08-06
+## Native Components 1–7 implementation map — 2026-08-06
 
 Current save point:
-`FORGEUI_NATIVE_COMPONENT_7__ALARM_PANEL_PHYSICALLY_PROVEN__RUNTIME_SDK_USEREVENTS_CAPACITY_ISOLATION_PROVEN__2026-08-06`.
+`FORGEUI_NATIVE_COMPONENT_7__ALARM_PANEL_STUDIO_INSERTION_AND_LVGL_PARITY_REPAIRED__PENDING_USER_ESP32P4_REVALIDATION__2026-08-06`.
 
 Practical LVGL remains **44 / 44 physically proven**. Dashboard Card, Sensor
-Tile, Relay Panel, PWM Controller, Trend Chart, Trend Chart Pro, and Alarm Panel
-are the seven physically proven Native Components. The next is not selected; deferred proof and
+Tile, Relay Panel, PWM Controller, Trend Chart, and Trend Chart Pro are the six
+physically proven Native Components. Alarm Panel is implemented but NOT PROVEN
+pending user hardware revalidation. The next is not selected; deferred proof and
 export infrastructure remains out of scope.
 
 | Concern | Authoritative owner |

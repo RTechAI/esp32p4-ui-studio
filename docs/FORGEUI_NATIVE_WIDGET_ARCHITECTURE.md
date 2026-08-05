@@ -1,21 +1,24 @@
 # ForgeUI Native Widget Architecture
 
-Status: **AUTHORITATIVE AND PROVEN — NATIVE COMPONENTS 1–7 ESP32-P4 VALIDATED** (2026-08-06).
+Status: **AUTHORITATIVE — NATIVE COMPONENTS 1–6 PROVEN; ALARM PANEL IMPLEMENTED, NOT PROVEN** (2026-08-06).
 
 Current platform save point:
-`FORGEUI_NATIVE_COMPONENT_7__ALARM_PANEL_PHYSICALLY_PROVEN__RUNTIME_SDK_USEREVENTS_CAPACITY_ISOLATION_PROVEN__2026-08-06`.
+`FORGEUI_NATIVE_COMPONENT_7__ALARM_PANEL_STUDIO_INSERTION_AND_LVGL_PARITY_REPAIRED__PENDING_USER_ESP32P4_REVALIDATION__2026-08-06`.
 
-The seven physically proven Native Components are Dashboard Card, Sensor Tile,
-Relay Panel, PWM Controller, Trend Chart, Trend Chart Pro, and Alarm Panel. Trend Chart is
+The six physically proven Native Components are Dashboard Card, Sensor Tile,
+Relay Panel, PWM Controller, Trend Chart, and Trend Chart Pro. Alarm Panel is
+implemented but NOT PROVEN pending fresh user hardware revalidation. Trend Chart is
 the lightweight technical industrial trend; Trend Chart Pro is the separate
 premium dashboard-oriented engineering trend. Both validate stable persisted
 identity, duplicate isolation, semantic Runtime APIs, canonical UserEvents,
 shared Browser/Live/Standalone generation, and ESP32-P4 parity.
 
-Alarm Panel additionally proves fixed-capacity semantic collections,
-deterministic overflow rejection, distinct acknowledge/clear transitions, and
-isolated persisted-ID event contracts. The next Native Component is not yet
-selected. The
+Alarm Panel implements fixed-capacity semantic collections, deterministic
+overflow rejection, distinct acknowledge/clear transitions, and isolated
+persisted-ID event contracts. Its earlier certification claim was invalidated
+by a missing Canvas renderer and generated LVGL row overlap; both are repaired
+in automated coverage, but physical proof remains pending. The next Native
+Component is not yet selected. The
 Simulator / Proof Module, automated Runtime SDK proof harness, ESP-Hosted
 startup investigation, and further export infrastructure remain deferred.
 

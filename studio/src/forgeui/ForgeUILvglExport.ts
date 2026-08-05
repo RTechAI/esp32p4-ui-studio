@@ -519,6 +519,7 @@ type AlarmPanelExport = {
   runtimeEnabled: boolean; eventsEnabled: boolean; enabledName: string; countName: string
   idsName: string; occupiedName: string; messagesName: string; timestampsName: string
   statesName: string; prioritiesName: string; rowNames: string; rowLabelNames: string
+  rowStateLabelNames: string; rowPriorityLabelNames: string; rowAckLabelNames: string; countLabelName: string
   refreshName: string; selectedRowName: string; selectCallbackName?: string
   addApiName: string; acknowledgeApiName: string; clearApiName: string
   clearAllApiName: string; setEnabledApiName: string; selectApiName: string
@@ -553,7 +554,9 @@ const createAlarmPanelExports = (
         occupiedName: `fg_${runtimeStem}_alarm_occupied`, messagesName: `fg_${runtimeStem}_alarm_messages`,
         timestampsName: `fg_${runtimeStem}_alarm_timestamps`, statesName: `fg_${runtimeStem}_alarm_states`,
         prioritiesName: `fg_${runtimeStem}_alarm_priorities`, rowNames: `fg_${runtimeStem}_alarm_rows`,
-        rowLabelNames: `fg_${runtimeStem}_alarm_row_labels`, refreshName: `fg_${runtimeStem}_alarm_refresh`,
+        rowLabelNames: `fg_${runtimeStem}_alarm_row_labels`, rowStateLabelNames: `fg_${runtimeStem}_alarm_row_state_labels`,
+        rowPriorityLabelNames: `fg_${runtimeStem}_alarm_row_priority_labels`, rowAckLabelNames: `fg_${runtimeStem}_alarm_row_ack_labels`,
+        countLabelName: `fg_${runtimeStem}_alarm_count_label`, refreshName: `fg_${runtimeStem}_alarm_refresh`,
         selectedRowName: `fg_${runtimeStem}_alarm_selected_rows`,
         selectCallbackName: events ? `fg_${runtimeStem}_alarm_selected_cb` : undefined,
         addApiName: `FG_Add_${stem}_Alarm`, acknowledgeApiName: `FG_Acknowledge_${stem}_Alarm`,
@@ -4655,7 +4658,10 @@ case 'AlarmPanel': {
   if (!alarm) break
   const headerHeight = model.showHeader ? (model.compactMode ? 32 : 42) : 4
   const footerHeight = model.showFooter ? 24 : 4
-  const rowHeight = Math.max(24, Math.floor((Number(h) - headerHeight - footerHeight - model.rowSpacing * Math.max(0, alarm.visibleRows - 1)) / alarm.visibleRows))
+  const availableRowHeight = Math.floor((Number(h) - headerHeight - footerHeight - model.rowSpacing * Math.max(0, alarm.visibleRows - 1)) / alarm.visibleRows)
+  const rowHeight = Math.max(model.compactMode ? 28 : 36, Math.min(model.compactMode ? 32 : 43, availableRowHeight))
+  const rowWidth = Math.max(20, Number(w) - 16)
+  const messageWidth = Math.max(40, rowWidth - (model.showAcknowledgement ? 152 : 110))
   lines.push(`${alarm.rootName} = lv_obj_create(${parentVar});`)
   lines.push(`lv_obj_set_pos(${alarm.rootName}, ${x}, ${y}); lv_obj_set_size(${alarm.rootName}, ${w}, ${h});`)
   lines.push(`lv_obj_set_style_bg_color(${alarm.rootName}, lv_color_hex(${palette.surface}), 0);`)
@@ -4664,13 +4670,17 @@ case 'AlarmPanel': {
   if (model.showHeader) {
     lines.push(`lv_obj_t * ${varName}_title = lv_label_create(${alarm.rootName}); lv_label_set_text(${varName}_title, "${esc(model.title)}"); lv_obj_set_pos(${varName}_title, 12, ${model.compactMode ? 7 : 11});`)
     lines.push(`lv_obj_set_style_text_color(${varName}_title, lv_color_hex(${palette.textPrimary}), 0);`)
+    lines.push(`${alarm.countLabelName} = lv_label_create(${alarm.rootName}); lv_obj_align(${alarm.countLabelName}, LV_ALIGN_TOP_RIGHT, -12, ${model.compactMode ? 5 : 8}); lv_obj_set_style_text_color(${alarm.countLabelName}, lv_color_hex(0xE5484D), 0); lv_obj_set_style_bg_color(${alarm.countLabelName}, lv_color_hex(0xFDE2E2), 0); lv_obj_set_style_bg_opa(${alarm.countLabelName}, LV_OPA_COVER, 0); lv_obj_set_style_pad_hor(${alarm.countLabelName}, 5, 0); lv_obj_set_style_pad_ver(${alarm.countLabelName}, 2, 0); lv_obj_set_style_radius(${alarm.countLabelName}, 3, 0);`)
   }
   for (let index = 0; index < alarm.visibleRows; index++) {
     lines.push(`${alarm.rowNames}[${index}] = lv_button_create(${alarm.rootName});`)
-    lines.push(`lv_obj_set_pos(${alarm.rowNames}[${index}], 8, ${headerHeight + index * (rowHeight + model.rowSpacing)}); lv_obj_set_size(${alarm.rowNames}[${index}], ${Math.max(20, Number(w) - 16)}, ${rowHeight});`)
-    lines.push(`lv_obj_set_style_bg_color(${alarm.rowNames}[${index}], lv_color_hex(${palette.surfaceSecondary}), 0); lv_obj_set_style_border_width(${alarm.rowNames}[${index}], 0, 0); lv_obj_set_style_radius(${alarm.rowNames}[${index}], 5, 0);`)
-    lines.push(`${alarm.rowLabelNames}[${index}] = lv_label_create(${alarm.rowNames}[${index}]); lv_obj_set_width(${alarm.rowLabelNames}[${index}], ${Math.max(20, Number(w) - 34)}); lv_label_set_long_mode(${alarm.rowLabelNames}[${index}], LV_LABEL_LONG_DOT); lv_obj_align(${alarm.rowLabelNames}[${index}], LV_ALIGN_LEFT_MID, 2, 0);`)
+    lines.push(`lv_obj_set_pos(${alarm.rowNames}[${index}], 8, ${headerHeight + index * (rowHeight + model.rowSpacing)}); lv_obj_set_size(${alarm.rowNames}[${index}], ${rowWidth}, ${rowHeight});`)
+    lines.push(`lv_obj_set_style_bg_color(${alarm.rowNames}[${index}], lv_color_hex(${palette.surfaceSecondary}), 0); lv_obj_set_style_border_width(${alarm.rowNames}[${index}], 0, 0); lv_obj_set_style_radius(${alarm.rowNames}[${index}], 5, 0); lv_obj_set_style_pad_all(${alarm.rowNames}[${index}], 0, 0); lv_obj_clear_flag(${alarm.rowNames}[${index}], LV_OBJ_FLAG_SCROLLABLE);`)
+    lines.push(`${alarm.rowLabelNames}[${index}] = lv_label_create(${alarm.rowNames}[${index}]); lv_obj_set_pos(${alarm.rowLabelNames}[${index}], 10, ${model.compactMode ? 3 : 4}); lv_obj_set_width(${alarm.rowLabelNames}[${index}], ${messageWidth}); lv_label_set_long_mode(${alarm.rowLabelNames}[${index}], LV_LABEL_LONG_DOT);`)
     lines.push(`lv_obj_set_style_text_font(${alarm.rowLabelNames}[${index}], &lv_font_montserrat_${model.compactMode ? 10 : 12}, 0);`)
+    lines.push(`${alarm.rowStateLabelNames}[${index}] = lv_label_create(${alarm.rowNames}[${index}]); lv_obj_set_pos(${alarm.rowStateLabelNames}[${index}], 10, ${model.compactMode ? 16 : rowHeight - 16}); lv_obj_set_width(${alarm.rowStateLabelNames}[${index}], ${messageWidth}); lv_label_set_long_mode(${alarm.rowStateLabelNames}[${index}], LV_LABEL_LONG_DOT); lv_obj_set_style_text_font(${alarm.rowStateLabelNames}[${index}], &lv_font_montserrat_10, 0); lv_obj_set_style_text_color(${alarm.rowStateLabelNames}[${index}], lv_color_hex(${palette.textSecondary}), 0);`)
+    lines.push(`${alarm.rowPriorityLabelNames}[${index}] = lv_label_create(${alarm.rowNames}[${index}]); lv_obj_set_pos(${alarm.rowPriorityLabelNames}[${index}], ${rowWidth - (model.showAcknowledgement ? 112 : 72)}, ${Math.max(2, Math.floor((rowHeight - 12) / 2))}); lv_obj_set_width(${alarm.rowPriorityLabelNames}[${index}], ${model.showAcknowledgement ? 66 : 62}); lv_obj_set_style_text_align(${alarm.rowPriorityLabelNames}[${index}], LV_TEXT_ALIGN_RIGHT, 0); lv_obj_set_style_text_font(${alarm.rowPriorityLabelNames}[${index}], &lv_font_montserrat_10, 0);`)
+    lines.push(`${alarm.rowAckLabelNames}[${index}] = lv_label_create(${alarm.rowNames}[${index}]); lv_label_set_text(${alarm.rowAckLabelNames}[${index}], "ACK"); lv_obj_set_pos(${alarm.rowAckLabelNames}[${index}], ${rowWidth - 40}, ${Math.max(1, Math.floor((rowHeight - 18) / 2))}); lv_obj_set_style_text_font(${alarm.rowAckLabelNames}[${index}], &lv_font_montserrat_10, 0); lv_obj_set_style_border_width(${alarm.rowAckLabelNames}[${index}], 1, 0); lv_obj_set_style_border_color(${alarm.rowAckLabelNames}[${index}], lv_color_hex(0xF2A900), 0); lv_obj_set_style_radius(${alarm.rowAckLabelNames}[${index}], 4, 0); lv_obj_set_style_pad_hor(${alarm.rowAckLabelNames}[${index}], 4, 0); lv_obj_set_style_pad_ver(${alarm.rowAckLabelNames}[${index}], 1, 0);`)
     if (alarm.selectCallbackName) lines.push(`lv_obj_add_event_cb(${alarm.rowNames}[${index}], ${alarm.selectCallbackName}, LV_EVENT_CLICKED, (void *)(uintptr_t)${index});`)
   }
   if (model.showFooter) lines.push(`lv_obj_t * ${varName}_footer = lv_label_create(${alarm.rootName}); lv_label_set_text(${varName}_footer, "${esc(model.footerText)}"); lv_obj_align(${varName}_footer, LV_ALIGN_BOTTOM_LEFT, 12, -5); lv_obj_set_style_text_font(${varName}_footer, &lv_font_montserrat_10, 0); lv_obj_set_style_text_color(${varName}_footer, lv_color_hex(${palette.textSecondary}), 0);`)
@@ -7020,6 +7030,8 @@ const backgroundMode =
   alarmPanelExports.forEach(alarm => {
     lines.push(`static lv_obj_t * ${alarm.rootName} = NULL;`)
     lines.push(`static lv_obj_t * ${alarm.rowNames}[${alarm.visibleRows}] = {0}; static lv_obj_t * ${alarm.rowLabelNames}[${alarm.visibleRows}] = {0};`)
+    lines.push(`static lv_obj_t * ${alarm.rowStateLabelNames}[${alarm.visibleRows}] = {0}; static lv_obj_t * ${alarm.rowPriorityLabelNames}[${alarm.visibleRows}] = {0}; static lv_obj_t * ${alarm.rowAckLabelNames}[${alarm.visibleRows}] = {0};`)
+    lines.push(`static lv_obj_t * ${alarm.countLabelName} = NULL;`)
     lines.push(`static int32_t ${alarm.selectedRowName}[${alarm.visibleRows}] = {0};`)
     lines.push(`static int32_t ${alarm.idsName}[${alarm.capacity}] = {0}; static bool ${alarm.occupiedName}[${alarm.capacity}] = {0};`)
     lines.push(`static char ${alarm.messagesName}[${alarm.capacity}][97] = {{0}}; static char ${alarm.timestampsName}[${alarm.capacity}][25] = {{0}};`)
@@ -7031,6 +7043,7 @@ const backgroundMode =
     const stateColour = (state: string) => toLvHex(state === 'warning' ? model.warningColour : state === 'acknowledged' ? model.acknowledgedColour : state === 'cleared' ? model.clearedColour : state === 'normal' ? model.normalColour : model.alarmColour)
     lines.push(`static void ${alarm.refreshName}(void)`)
     lines.push(`{`)
+    lines.push(`    if (${alarm.countLabelName}) lv_label_set_text_fmt(${alarm.countLabelName}, "%lu", (unsigned long)${alarm.countName});`)
     lines.push(`    bool used[${alarm.capacity}] = {0};`)
     lines.push(`    for (uint32_t row = 0; row < ${alarm.visibleRows}u; ++row) {`)
     lines.push(`        int32_t selected = -1;`)
@@ -7044,12 +7057,14 @@ const backgroundMode =
     lines.push(`        ${alarm.selectedRowName}[row] = selected;`)
     lines.push(`        if (selected < 0) { if (${alarm.rowNames}[row]) lv_obj_add_flag(${alarm.rowNames}[row], LV_OBJ_FLAG_HIDDEN); continue; }`)
     lines.push(`        used[selected] = true; if (${alarm.rowNames}[row]) lv_obj_remove_flag(${alarm.rowNames}[row], LV_OBJ_FLAG_HIDDEN);`)
-    const format = `${model.showPriority ? '[%s] ' : ''}%s${model.showTimestamp ? '  %s' : ''}`
-    const args = `${model.showPriority ? `, ${alarm.prioritiesName}[selected] == FG_ALARM_PRIORITY_CRITICAL ? "CRITICAL" : (${alarm.prioritiesName}[selected] == FG_ALARM_PRIORITY_HIGH ? "HIGH" : (${alarm.prioritiesName}[selected] == FG_ALARM_PRIORITY_MEDIUM ? "MEDIUM" : "LOW"))` : ''}, ${alarm.messagesName}[selected]${model.showTimestamp ? `, ${alarm.timestampsName}[selected]` : ''}`
-    lines.push(`        if (${alarm.rowLabelNames}[row]) lv_label_set_text_fmt(${alarm.rowLabelNames}[row], "${format}"${args});`)
+    lines.push(`        if (${alarm.rowLabelNames}[row]) lv_label_set_text(${alarm.rowLabelNames}[row], ${alarm.messagesName}[selected]);`)
+    lines.push(`        if (${alarm.rowStateLabelNames}[row]) lv_label_set_text_fmt(${alarm.rowStateLabelNames}[row], "${model.showTimestamp ? '%s  %s' : '%s'}", ${alarm.statesName}[selected] == FG_ALARM_STATE_ACKNOWLEDGED ? "ACKNOWLEDGED" : (${alarm.statesName}[selected] == FG_ALARM_STATE_CLEARED ? "CLEARED" : (${alarm.statesName}[selected] == FG_ALARM_STATE_WARNING ? "WARNING" : (${alarm.statesName}[selected] == FG_ALARM_STATE_NORMAL ? "NORMAL" : "ALARM")))${model.showTimestamp ? `, ${alarm.timestampsName}[selected]` : ''});`)
+    lines.push(`        if (${alarm.rowPriorityLabelNames}[row]) { lv_label_set_text(${alarm.rowPriorityLabelNames}[row], ${model.showPriority ? `${alarm.prioritiesName}[selected] == FG_ALARM_PRIORITY_CRITICAL ? "CRITICAL" : (${alarm.prioritiesName}[selected] == FG_ALARM_PRIORITY_HIGH ? "HIGH" : (${alarm.prioritiesName}[selected] == FG_ALARM_PRIORITY_MEDIUM ? "MEDIUM" : "LOW"))` : '""'}); ${model.showPriority ? `lv_obj_remove_flag(${alarm.rowPriorityLabelNames}[row], LV_OBJ_FLAG_HIDDEN);` : `lv_obj_add_flag(${alarm.rowPriorityLabelNames}[row], LV_OBJ_FLAG_HIDDEN);`} }`)
+    lines.push(`        if (${alarm.rowAckLabelNames}[row]) { if (${model.showAcknowledgement ? 'true' : 'false'} && ${alarm.statesName}[selected] != FG_ALARM_STATE_ACKNOWLEDGED && ${alarm.statesName}[selected] != FG_ALARM_STATE_CLEARED) lv_obj_remove_flag(${alarm.rowAckLabelNames}[row], LV_OBJ_FLAG_HIDDEN); else lv_obj_add_flag(${alarm.rowAckLabelNames}[row], LV_OBJ_FLAG_HIDDEN); }`)
     lines.push(`        uint32_t colour = ${alarm.statesName}[selected] == FG_ALARM_STATE_WARNING ? 0x${stateColour('warning').slice(2)} : (${alarm.statesName}[selected] == FG_ALARM_STATE_ACKNOWLEDGED ? 0x${stateColour('acknowledged').slice(2)} : (${alarm.statesName}[selected] == FG_ALARM_STATE_CLEARED ? 0x${stateColour('cleared').slice(2)} : (${alarm.statesName}[selected] == FG_ALARM_STATE_NORMAL ? 0x${stateColour('normal').slice(2)} : 0x${stateColour('alarm').slice(2)})));`)
     lines.push(`        if (${alarm.rowNames}[row]) lv_obj_set_style_border_color(${alarm.rowNames}[row], lv_color_hex(colour), 0);`)
     lines.push(`        if (${alarm.rowNames}[row]) lv_obj_set_style_border_width(${alarm.rowNames}[row], 3, 0);`)
+    lines.push(`        if (${alarm.rowNames}[row]) lv_obj_set_style_border_side(${alarm.rowNames}[row], LV_BORDER_SIDE_LEFT, 0);`)
     lines.push(`    }`)
     lines.push(`}`); lines.push(``)
     if (alarm.selectCallbackName && alarm.selectedHookName) {

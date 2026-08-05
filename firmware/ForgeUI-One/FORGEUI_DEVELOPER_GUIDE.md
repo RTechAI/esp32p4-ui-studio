@@ -43,27 +43,19 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- `FG_On_Alarm_Compact_Alarm_Added()`
-- `FG_On_Alarm_Compact_Alarm_Acknowledged()`
-- `FG_On_Alarm_Compact_Alarm_Cleared()`
-- `FG_On_Alarm_Compact_Alarm_Selected()`
-- `FG_On_Alarm_Standard_Alarm_Added()`
-- `FG_On_Alarm_Standard_Alarm_Acknowledged()`
-- `FG_On_Alarm_Standard_Alarm_Cleared()`
-- `FG_On_Alarm_Standard_Alarm_Selected()`
+- `FG_On_Comp_MSGIZG2_O1_U0_K5_Alarm_Added()`
+- `FG_On_Comp_MSGIZG2_O1_U0_K5_Alarm_Acknowledged()`
+- `FG_On_Comp_MSGIZG2_O1_U0_K5_Alarm_Cleared()`
+- `FG_On_Comp_MSGIZG2_O1_U0_K5_Alarm_Selected()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| Alarm_Compact_Alarm_Added | Click | `FG_On_Alarm_Compact_Alarm_Added()` |
-| Alarm_Compact_Alarm_Acknowledged | Click | `FG_On_Alarm_Compact_Alarm_Acknowledged()` |
-| Alarm_Compact_Alarm_Cleared | Click | `FG_On_Alarm_Compact_Alarm_Cleared()` |
-| Alarm_Compact_Alarm_Selected | Click | `FG_On_Alarm_Compact_Alarm_Selected()` |
-| Alarm_Standard_Alarm_Added | Click | `FG_On_Alarm_Standard_Alarm_Added()` |
-| Alarm_Standard_Alarm_Acknowledged | Click | `FG_On_Alarm_Standard_Alarm_Acknowledged()` |
-| Alarm_Standard_Alarm_Cleared | Click | `FG_On_Alarm_Standard_Alarm_Cleared()` |
-| Alarm_Standard_Alarm_Selected | Click | `FG_On_Alarm_Standard_Alarm_Selected()` |
+| Comp_MSGIZG2_O1_U0_K5_Alarm_Added | Click | `FG_On_Comp_MSGIZG2_O1_U0_K5_Alarm_Added()` |
+| Comp_MSGIZG2_O1_U0_K5_Alarm_Acknowledged | Click | `FG_On_Comp_MSGIZG2_O1_U0_K5_Alarm_Acknowledged()` |
+| Comp_MSGIZG2_O1_U0_K5_Alarm_Cleared | Click | `FG_On_Comp_MSGIZG2_O1_U0_K5_Alarm_Cleared()` |
+| Comp_MSGIZG2_O1_U0_K5_Alarm_Selected | Click | `FG_On_Comp_MSGIZG2_O1_U0_K5_Alarm_Selected()` |
 
 ---
 

@@ -119,6 +119,18 @@ void FG_On_Alarm_Standard_Alarm_Added(int32_t alarm_id, FG_Alarm_Priority priori
 void FG_On_Alarm_Standard_Alarm_Acknowledged(int32_t alarm_id);
 void FG_On_Alarm_Standard_Alarm_Cleared(int32_t alarm_id);
 void FG_On_Alarm_Standard_Alarm_Selected(int32_t alarm_id);
+void FG_On_Comp_MSGI6_QDMUZXND_Alarm_Added(int32_t alarm_id, FG_Alarm_Priority priority);
+void FG_On_Comp_MSGI6_QDMUZXND_Alarm_Acknowledged(int32_t alarm_id);
+void FG_On_Comp_MSGI6_QDMUZXND_Alarm_Cleared(int32_t alarm_id);
+void FG_On_Comp_MSGI6_QDMUZXND_Alarm_Selected(int32_t alarm_id);
+void FG_On_Comp_MSGII1_A5_S1_CPW_Alarm_Added(int32_t alarm_id, FG_Alarm_Priority priority);
+void FG_On_Comp_MSGII1_A5_S1_CPW_Alarm_Acknowledged(int32_t alarm_id);
+void FG_On_Comp_MSGII1_A5_S1_CPW_Alarm_Cleared(int32_t alarm_id);
+void FG_On_Comp_MSGII1_A5_S1_CPW_Alarm_Selected(int32_t alarm_id);
+void FG_On_Comp_MSGIZG2_O1_U0_K5_Alarm_Added(int32_t alarm_id, FG_Alarm_Priority priority);
+void FG_On_Comp_MSGIZG2_O1_U0_K5_Alarm_Acknowledged(int32_t alarm_id);
+void FG_On_Comp_MSGIZG2_O1_U0_K5_Alarm_Cleared(int32_t alarm_id);
+void FG_On_Comp_MSGIZG2_O1_U0_K5_Alarm_Selected(int32_t alarm_id);
 
 #ifdef __cplusplus
 }
