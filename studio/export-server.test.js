@@ -575,6 +575,36 @@ describe('generated public UI API headers', () => {
       .toHaveLength(1)
   })
 
+  it('uses the authoritative Trend Chart Pro callback contracts and repairs stale signatures', () => {
+    const hooks = [
+      'FG_On_Comp_MSFYEVIQ1_XV42_Point_Added',
+      'FG_On_Comp_MSFYEVIQ1_XV42_Warning',
+      'FG_On_Comp_MSFYEVIQ1_XV42_Alarm',
+      'FG_On_Comp_MSFYEVIQ1_XV42_Recovered',
+    ]
+    const contracts = hooks.map(name => ({
+      name,
+      parameters: name.endsWith('_Point_Added') ? 'float value' : 'void',
+    }))
+    const generated = generateUserEventFiles(hooks, [], contracts)
+
+    expect(generated.header).toContain('void FG_On_Comp_MSFYEVIQ1_XV42_Point_Added(float value);')
+    expect(generated.source).toContain('void FG_On_Comp_MSFYEVIQ1_XV42_Point_Added(float value)\n{\n    (void)value;\n}')
+    ;['Warning', 'Alarm', 'Recovered'].forEach(event => {
+      expect(generated.header).toContain(`void FG_On_Comp_MSFYEVIQ1_XV42_${event}(void);`)
+      expect(generated.source).toContain(`void FG_On_Comp_MSFYEVIQ1_XV42_${event}(void)\n{\n}`)
+    })
+
+    const preserved = preserveUserEventFiles(
+      '#include "95_UserEvents.h"\n\nvoid FG_On_Comp_MSFYEVIQ1_XV42_Point_Added(void)\n{\n    developer_chart_sample();\n}\n',
+      '#pragma once\nvoid FG_On_Comp_MSFYEVIQ1_XV42_Point_Added(void);\n',
+      generated,
+    )
+    expect(preserved.source).toContain('void FG_On_Comp_MSFYEVIQ1_XV42_Point_Added(float value)')
+    expect(preserved.source).toContain('developer_chart_sample();')
+    expect(preserved.header).toContain('void FG_On_Comp_MSFYEVIQ1_XV42_Point_Added(float value);')
+  })
+
   it('generates and preserves Keyboard visibility hooks', () => {
     const generated = generateUserEventFiles(
       ['FG_On_Keyboard_Shown', 'FG_On_Keyboard_Hidden'],

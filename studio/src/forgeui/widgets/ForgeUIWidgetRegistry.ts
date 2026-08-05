@@ -90,6 +90,8 @@ const displayNames: Partial<Record<ComponentType, string>> = {
   SensorTile: 'Sensor Tile',
   RelayPanel: 'Relay Panel',
   PwmController: 'PWM Controller',
+  Chart: 'Trend Chart',
+  TrendChartPro: 'Trend Chart Pro',
 }
 
 const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
@@ -102,12 +104,12 @@ const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
     'Slider', 'Spinbox', 'Roller', 'Radio', 'Select',
   ],
   Display: [
-    'Led', 'Bar', 'Arc', 'Scale', 'Chart', 'Table', 'Clock',
+    'Led', 'Bar', 'Arc', 'Scale', 'Table', 'Clock',
     'WiFi', 'QRCode', 'Progress', 'CircularProgress', 'AnimImage',
   ],
   Navigation: ['List', 'Tabview', 'Tileview', 'ButtonMatrix', 'ImageButton', 'Window', 'Menu'],
   Feedback: ['Msgbox', 'Keyboard', 'Calendar', 'Spinner'],
-  Dashboard: ['DashboardCard', 'SensorTile', 'RelayPanel', 'PwmController'],
+  Dashboard: ['DashboardCard', 'SensorTile', 'RelayPanel', 'PwmController', 'Chart', 'TrendChartPro'],
   Assets: [
     'InteractiveButton',
     'InteractiveLight',
@@ -178,6 +180,7 @@ const sizes: Partial<Record<ComponentType, [number, number]>> = {
   SensorTile: [240, 145],
   RelayPanel: [340, 360],
   PwmController: [240, 145],
+  TrendChartPro: [360, 220],
 }
 
 const keywords: Partial<Record<ComponentType, string[]>> = {
@@ -209,6 +212,7 @@ const keywords: Partial<Record<ComponentType, string[]>> = {
   SensorTile: ['sensor', 'measurement', 'engineering', 'telemetry', 'forgeui native'],
   RelayPanel: ['relay', 'contactor', 'solenoid', 'pump', 'light', 'fan', 'valve', 'digital output', 'forgeui native'],
   PwmController: ['pwm', 'duty cycle', 'fan speed', 'motor speed', 'analogue output', 'forgeui native'],
+  TrendChartPro: ['premium trend', 'scada chart', 'hmi history', 'engineering graph', 'forgeui native'],
 }
 
 type CapabilityDefinition = Omit<
@@ -308,6 +312,13 @@ const capabilitiesByType: Partial<
       userEventProperty: 'enableUserEvents', userEventDefault: true,
     },
   },
+  TrendChartPro: {
+    ...capability(true, true, false),
+    instanceConfiguration: {
+      runtimeApiProperty: 'generateRuntimeApi', runtimeApiDefault: true,
+      userEventProperty: 'enableUserEvents', userEventDefault: true,
+    },
+  },
 
   Input: capability(true, true, true),
   Textarea: capability(true, true, true),
@@ -337,7 +348,12 @@ const capabilitiesByType: Partial<
   Bar: capability(true, true, false),
   Arc: capability(true, true, true),
   Scale: capability(false, false, false),
-  Chart: capability(true, true, false),
+  Chart: {
+    ...capability(true, false, false),
+    instanceConfiguration: {
+      runtimeApiProperty: 'generateRuntimeApi', runtimeApiDefault: true,
+    },
+  },
   Table: capability(false, false, true),
   Clock: capability(false, false, false),
   WiFi: capability(false, false, false),
@@ -434,7 +450,7 @@ const describe = (
   const special: Partial<Record<ComponentType, string>> = {
     Arc: 'Circular gauge or rotary value display.',
     Scale: 'Tick-mark scale for gauges and measured values.',
-    Chart: 'Trend and telemetry data visualization.',
+    Chart: 'ForgeUI Native industrial trend with semantic thresholds and runtime updates.',
     Box: 'General-purpose visual container.',
     Canvas: 'Drawable LVGL canvas surface.',
     IconButton: 'Canonical-icon action with enabled runtime state and click event.',
@@ -447,6 +463,7 @@ const describe = (
     SensorTile: 'ForgeUI Native engineering measurement tile with thresholds, trend and status.',
     RelayPanel: 'ForgeUI Native logical relay-bank control with semantic state and genuine-user events.',
     PwmController: 'ForgeUI Native semantic PWM output card with value and enable control.',
+    TrendChartPro: 'ForgeUI Native premium engineering trend card with semantic thresholds.',
     InteractiveButton: 'Reusable state-sheet driven button.',
   }
   return special[type] || `${name} ${category.toLowerCase()} widget.`
@@ -501,11 +518,11 @@ export const forgeUIWidgetDefinitions: ForgeUIWidgetDefinition[] =
       documentationId:
         documentationByType[type] || '04_FEATURE_STATUS.md',
       status: 'available',
-      origin: type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' || type === 'PwmController' ? 'forgeui-native' : 'lvgl-standard',
-      ...(type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' || type === 'PwmController' ? { nativeWidgetSchemaVersion: 1 } : {}),
-      ...(type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' || type === 'PwmController' ? { platform: {
+      origin: type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' || type === 'PwmController' || type === 'Chart' || type === 'TrendChartPro' ? 'forgeui-native' : 'lvgl-standard',
+      ...(type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' || type === 'PwmController' || type === 'Chart' || type === 'TrendChartPro' ? { nativeWidgetSchemaVersion: 1 } : {}),
+      ...(type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' || type === 'PwmController' || type === 'Chart' || type === 'TrendChartPro' ? { platform: {
         kind: 'native-widget' as const,
-        family: type === 'SensorTile' ? 'sensors' : type === 'RelayPanel' || type === 'PwmController' ? 'controls' : 'dashboard',
+        family: type === 'SensorTile' ? 'sensors' : type === 'RelayPanel' || type === 'PwmController' ? 'controls' : type === 'Chart' || type === 'TrendChartPro' ? 'trends' : 'dashboard',
         layoutRoles: type === 'RelayPanel' || type === 'PwmController' ? ['controls', 'main', 'control-grid'] : ['status', 'metrics', 'main', 'card-grid'],
         preferredArrangements: type === 'RelayPanel' || type === 'PwmController' ? ['grid', 'control-panel', 'fit-to-region'] : ['grid', 'kpi-cards', 'fit-to-region'],
         templateTags: type === 'RelayPanel' || type === 'PwmController'

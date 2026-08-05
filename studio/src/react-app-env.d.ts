@@ -84,6 +84,7 @@ type ComponentType =
   | 'SensorTile'
   | 'RelayPanel'
   | 'PwmController'
+  | 'TrendChartPro'
   | 'NumberInput'
   | 'Progress'
   | 'QRCode'

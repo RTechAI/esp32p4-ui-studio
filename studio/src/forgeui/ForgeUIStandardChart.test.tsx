@@ -31,6 +31,33 @@ const BrowserChart = ({ component }: { component: IComponent }) => {
 }
 
 describe('Standard Chart preview parity', () => {
+  it('is registered as the ForgeUI Native Trend Chart with production defaults', () => {
+    const definition = require('./widgets/ForgeUIWidgetRegistry')
+      .getForgeUIWidgetDefinition('Chart')
+    expect(definition).toMatchObject({
+      displayName: 'Trend Chart', category: 'Dashboard',
+      origin: 'forgeui-native', nativeWidgetSchemaVersion: 1,
+      defaultWidth: 360, defaultHeight: 220,
+    })
+    expect(definition.defaultProperties).toMatchObject({
+      title: 'Process Trend', pointCount: 24, showGrid: true,
+      xAxisMode: 'relative-time', xAxisLabel: '', historyWindowSeconds: 60,
+      warningThreshold: 70, alarmThreshold: 85,
+      updateRateMs: 1000, generateRuntimeApi: true,
+    })
+  })
+
+  it('normalizes semantic labels, thresholds, and simulation settings', () => {
+    expect(getForgeUIStandardChartModel({
+      title: 'Temperature', xAxisLabel: 'Time', yAxisLabel: '°C',
+      yMin: -20, yMax: 80, warningThreshold: 65, alarmThreshold: 75,
+      updateRateMs: 20, simulateValues: true,
+    })).toMatchObject({
+      title: 'Temperature', xAxisLabel: 'Time', yAxisLabel: '°C',
+      warningThreshold: 65, alarmThreshold: 75,
+      updateRateMs: 100, simulateValues: true,
+    })
+  })
   it('normalizes the exporter-compatible default model', () => {
     const model = getForgeUIStandardChartModel({})
     expect(model).toMatchObject({
@@ -40,13 +67,30 @@ describe('Standard Chart preview parity', () => {
       data: FORGEUI_STANDARD_CHART_DEFAULT_DATA,
       seriesColor: '#2196f3',
       horizontalDivisions: 3,
-      verticalDivisions: 11,
+      verticalDivisions: 5,
     })
     expect(model.points.map(point => point.y)).toEqual([
       0.9, 0.7, 0.8, 0.5, 0.6, 0.30000000000000004, 0.4,
       0.25, 0.31999999999999995, 0.42000000000000004,
       0.5,
     ])
+  })
+
+  it('never exposes buffer indexes unless engineering samples are explicit', () => {
+    expect(getForgeUIStandardChartLayout({ pointCount: 24 })
+      .xAxisLabels.map(label => label.value))
+      .toEqual(['-60s', '-45s', '-30s', '-15s', 'Now'])
+    expect(getForgeUIStandardChartModel({ xAxisLabel: 'Samples' }).xAxisLabel)
+      .toBe('')
+    expect(getForgeUIStandardChartLayout({
+      xAxisMode: 'clock-time', historyEndTime: '14:22',
+      historyWindowSeconds: 120,
+    }).xAxisLabels.map(label => label.value))
+      .toEqual(['14:20', '14:21', '14:22'])
+    expect(getForgeUIStandardChartLayout({ xAxisMode: 'hidden' }).xAxisLabels)
+      .toEqual([])
+    expect(getForgeUIStandardChartModel({ xAxisMode: 'samples' }).xAxisLabel)
+      .toBe('Samples')
   })
 
   it('supports negative/reversed/equal ranges and preserves duplicates', () => {
@@ -84,13 +128,11 @@ describe('Standard Chart preview parity', () => {
     expect(defaults.yAxisLabels.map(label => label.y))
       .toEqual([12, 33, 54, 75, 96])
     expect(defaults.xAxisLabels.map(label => label.value))
-      .toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+      .toEqual(['-60s', '-45s', '-30s', '-15s', 'Now'])
     expect(defaults.xAxisLabels.map(label => label.x)).toEqual([
-      44, 77, 110, 144, 177, 211, 244, 277, 311, 344, 378,
+      44, 127, 211, 294, 378,
     ])
     expect(defaults.xAxisLabels.every(label => label.visible)).toBe(true)
-    expect(defaults.xPointPositions)
-      .toEqual(defaults.xAxisLabels.map(label => label.x))
     expect(defaults.xPointPositions).toEqual(
       getForgeUIStandardChartModel({}).points.map((_, index) =>
         defaults.plotLeft + getForgeUIStandardChartPointOffsetX(
@@ -128,12 +170,13 @@ describe('Standard Chart preview parity', () => {
       w: 120,
       h: 60,
       pointCount: 20,
+      xAxisMode: 'samples',
     })
     const visible = dense.xAxisLabels
       .filter(label => label.visible)
       .map(label => label.value)
-    expect(visible[0]).toBe(0)
-    expect(visible[visible.length - 1]).toBe(19)
+    expect(visible[0]).toBe('0')
+    expect(visible[visible.length - 1]).toBe('19')
     expect(visible.length).toBeLessThan(20)
     dense.xAxisLabels.forEach((label, index) => {
       expect(label.x).toBe(
@@ -169,20 +212,14 @@ describe('Standard Chart preview parity', () => {
     expect(preview).toHaveAttribute('data-chart-surface', 'opaque-lvgl')
     expect(preview).toHaveAttribute('data-chart-points', '-50,0,50')
     expect(preview).toHaveAttribute('data-horizontal-divisions', '2')
-    expect(preview).toHaveAttribute('data-vertical-divisions', '3')
+    expect(preview).toHaveAttribute('data-vertical-divisions', '5')
     const grid = screen.getByTestId('standard-chart-grid')
-    expect(grid.querySelectorAll('line')).toHaveLength(5)
+    expect(grid.querySelectorAll('line')).toHaveLength(7)
     const verticalGrid = Array.from(grid.querySelectorAll('line'))
       .slice(2)
       .map(line => line.getAttribute('x1'))
     const labels = screen.getAllByTestId('standard-chart-x-label')
     expect(verticalGrid).toEqual(labels.map(label => label.getAttribute('x')))
-    const seriesX = screen.getByTestId('standard-chart-series')
-      .getAttribute('points')!
-      .trim()
-      .split(/\s+/)
-      .map(point => point.split(',')[0])
-    expect(verticalGrid).toEqual(seriesX)
     expect(grid).toHaveAttribute('stroke', '#B5B6B8')
     expect(screen.getByTestId('standard-chart-y-labels'))
       .toHaveAttribute('fill', '#B5B6B8')
@@ -191,7 +228,7 @@ describe('Standard Chart preview parity', () => {
       .toEqual(['50', '17', '-17', '-50'])
     expect(screen.getAllByTestId('standard-chart-x-label')
       .map(label => label.textContent))
-      .toEqual(['0', '1', '2'])
+      .toEqual(['-60s', '-45s', '-30s', '-15s', 'Now'])
     expect(screen.getByTestId('standard-chart-series'))
       .toHaveAttribute('stroke', '#12AB34')
   })
@@ -204,8 +241,7 @@ describe('Standard Chart preview parity', () => {
       </ChakraProvider>,
     )
 
-    const expectedLabels = Array.from({ length: 11 }, (_, index) =>
-      String(index))
+    const expectedLabels = ['-60s', '-45s', '-30s', '-15s', 'Now']
     const canvasSeries = screen.getByTestId('standard-chart-series')
       .getAttribute('points')!
       .trim()

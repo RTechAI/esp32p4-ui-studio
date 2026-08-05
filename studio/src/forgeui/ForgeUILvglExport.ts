@@ -24,6 +24,7 @@ import {
   FORGEUI_STANDARD_CHART_DEFAULT_DATA,
   FORGEUI_STANDARD_CHART_DEFAULT_POINT_COUNT,
   getForgeUIStandardChartLayout,
+  getForgeUIStandardChartModel,
 } from './ForgeUIStandardChart'
 import {
   FORGEUI_TAB_TILE_BORDER_WIDTH,
@@ -49,6 +50,7 @@ import { normalizeForgeUIDashboardCard } from './ForgeUIDashboardCard'
 import { getForgeUISensorTrendLabel, normalizeForgeUISensorTile } from './ForgeUISensorTile'
 import { normalizeForgeUIRelayPanel } from './ForgeUIRelayPanel'
 import { normalizeForgeUIPwmController } from './ForgeUIPwmController'
+import { normalizeForgeUITrendChartPro } from './ForgeUITrendChartPro'
 import {
   getForgeUIStandardSpinboxModel,
   type ForgeUIStandardSpinboxModel,
@@ -902,20 +904,41 @@ type ArcExport = {
 type ChartExport = {
   addApiName: string
   clearApiName: string
+  warningApiName: string
+  alarmApiName: string
   pointAddedHookName: string
   clearedHookName: string
   objectName: string
   seriesName: string
+  warningSeriesName: string
+  alarmSeriesName: string
   minimumName: string
   maximumName: string
   minimum: number
   maximum: number
+  warningThreshold: number
+  alarmThreshold: number
+  warningColor: string
+  alarmColor: string
   pointCount: number
   initialData: number[]
   seriesColor: string
   horizontalDivisions?: number
   verticalDivisions?: number
   updateMode?: 'LV_CHART_UPDATE_MODE_SHIFT' | 'LV_CHART_UPDATE_MODE_CIRCULAR'
+  isPro?: boolean
+  unitsApiName?: string
+  unitsLabelName?: string
+  valueLabelName?: string
+  decimalPlaces?: number
+  markerName?: string
+  warningHookName?: string
+  alarmHookName?: string
+  recoveredHookName?: string
+  thresholdStateName?: string
+  warningStateName?: string
+  alarmStateName?: string
+  enableUserEvents?: boolean
 }
 
 type KeyboardExport = {
@@ -1861,28 +1884,37 @@ const createChartExports = (
   const usedApiNames = new Set(existingApiNames)
 
   Object.values(components)
-    .filter(component => component.type === 'Chart')
+    .filter(component => (component.type === 'Chart' || component.type === 'TrendChartPro') && component.props.generateRuntimeApi !== false)
     .sort((left, right) => left.id.localeCompare(right.id))
     .forEach(component => {
+      const pro = component.type === 'TrendChartPro'
+      const proModel = pro ? normalizeForgeUITrendChartPro(component.props) : undefined
       const baseName = toCIdentifier(
-        component.componentName ||
-        component.props.name ||
-        component.props.label ||
-        'Data_Chart',
-        'Data_Chart',
+        pro ? component.id : component.componentName ||
+        component.props.name || component.props.label || 'Data_Chart',
+        pro ? 'Trend_Chart_Pro' : 'Data_Chart',
       ).replace(/([a-z0-9])([A-Z])/g, '$1_$2')
       let allocatedBase = baseName
       let suffix = 2
       while (
         usedApiNames.has(`FG_Add_${allocatedBase}_Point`) ||
-        usedApiNames.has(`FG_Clear_${allocatedBase}`)
+        usedApiNames.has(`FG_Clear_${allocatedBase}`) ||
+        usedApiNames.has(`FG_Set_${allocatedBase}_${pro ? 'Warning' : 'WarningThreshold'}`) ||
+        usedApiNames.has(`FG_Set_${allocatedBase}_${pro ? 'Alarm' : 'AlarmThreshold'}`) ||
+        (pro && usedApiNames.has(`FG_Set_${allocatedBase}_Units`))
       ) {
         allocatedBase = `${baseName}_${suffix++}`
       }
       const addApiName = `FG_Add_${allocatedBase}_Point`
       const clearApiName = `FG_Clear_${allocatedBase}`
+      const warningApiName = `FG_Set_${allocatedBase}_${pro ? 'Warning' : 'WarningThreshold'}`
+      const alarmApiName = `FG_Set_${allocatedBase}_${pro ? 'Alarm' : 'AlarmThreshold'}`
       usedApiNames.add(addApiName)
       usedApiNames.add(clearApiName)
+      usedApiNames.add(warningApiName)
+      usedApiNames.add(alarmApiName)
+      const unitsApiName = pro ? `FG_Set_${allocatedBase}_Units` : undefined
+      if (unitsApiName) usedApiNames.add(unitsApiName)
 
       let pointAddedHookName = `FG_On_${allocatedBase}_Point_Added`
       suffix = 2
@@ -1899,6 +1931,15 @@ const createChartExports = (
       }
       usedHookNames.add(clearedHookName)
       userEventHooks.add(clearedHookName)
+      const thresholdHook = (suffixName: string) => `FG_On_${allocatedBase}_${suffixName}`
+      const warningHookName = pro ? thresholdHook('Warning') : undefined
+      const alarmHookName = pro ? thresholdHook('Alarm') : undefined
+      const recoveredHookName = pro ? thresholdHook('Recovered') : undefined
+      if (proModel?.enableUserEvents) {
+        ;[warningHookName, alarmHookName, recoveredHookName].forEach(name => {
+          if (name) { usedHookNames.add(name); userEventHooks.add(name) }
+        })
+      }
 
       const firstRangeValue = integerProp(
         component.props.yMin ?? component.props.min,
@@ -1908,18 +1949,18 @@ const createChartExports = (
         component.props.yMax ?? component.props.max,
         100,
       )
-      const minimum = Math.min(firstRangeValue, secondRangeValue)
-      const maximum = Math.max(firstRangeValue, secondRangeValue)
-      const pointCount = Math.max(
+      const minimum = proModel ? Math.floor(proModel.minimum) : Math.min(firstRangeValue, secondRangeValue)
+      const maximum = proModel ? Math.ceil(proModel.maximum) : Math.max(firstRangeValue, secondRangeValue)
+      const pointCount = proModel?.historyLength ?? Math.max(
         1,
         integerProp(
           component.props.pointCount,
           FORGEUI_STANDARD_CHART_DEFAULT_POINT_COUNT,
         ),
       )
-      const configuredData = Array.isArray(component.props.initialData)
+      const configuredData = proModel?.data ?? (Array.isArray(component.props.initialData)
         ? component.props.initialData
-        : FORGEUI_STANDARD_CHART_DEFAULT_DATA
+        : FORGEUI_STANDARD_CHART_DEFAULT_DATA)
       const initialData = configuredData
         .slice(0, pointCount)
         .map((value: unknown) =>
@@ -1931,7 +1972,7 @@ const createChartExports = (
       const runtimeStem = allocatedBase.toLowerCase()
       const rawUpdateMode = String(component.props.updateMode ?? '')
         .toLowerCase()
-      const rawSeriesColor = component.props.seriesColor
+      const rawSeriesColor = proModel?.traceColour || component.props.seriesColor
       const normalizedSeriesColor =
         typeof rawSeriesColor === 'string'
           ? rawSeriesColor.replace(/^#/, '')
@@ -1943,18 +1984,43 @@ const createChartExports = (
             Number.isFinite(rawSeriesColor)
             ? `lv_color_hex(0x${Math.max(0, Math.min(0xFFFFFF, Math.trunc(rawSeriesColor))).toString(16).toUpperCase().padStart(6, '0')})`
             : ''
+      const thresholdColor = (value: unknown, fallback: string) => {
+        const normalized = typeof value === 'string' ? value.replace(/^#/, '') : ''
+        return /^[0-9a-fA-F]{6}$/.test(normalized)
+          ? `lv_color_hex(0x${normalized.toUpperCase()})`
+          : `lv_color_hex(0x${fallback})`
+      }
 
       exportsByComponent.set(component.id, {
         addApiName,
         clearApiName,
+        warningApiName,
+        alarmApiName,
+        isPro: pro,
+        unitsApiName,
+        unitsLabelName: pro ? `fg_${runtimeStem}_chart_units` : undefined,
+        valueLabelName: pro ? `fg_${runtimeStem}_chart_value` : undefined,
+        decimalPlaces: proModel?.decimalPlaces,
+        markerName: pro ? `fg_${runtimeStem}_chart_marker` : undefined,
+        warningHookName, alarmHookName, recoveredHookName,
+        thresholdStateName: pro ? `fg_${runtimeStem}_chart_threshold_state` : undefined,
+        warningStateName: pro ? `fg_${runtimeStem}_chart_warning` : undefined,
+        alarmStateName: pro ? `fg_${runtimeStem}_chart_alarm` : undefined,
+        enableUserEvents: proModel?.enableUserEvents,
         pointAddedHookName,
         clearedHookName,
         objectName: `fg_${runtimeStem}_chart`,
         seriesName: `fg_${runtimeStem}_chart_series`,
+        warningSeriesName: `fg_${runtimeStem}_chart_warning_series`,
+        alarmSeriesName: `fg_${runtimeStem}_chart_alarm_series`,
         minimumName: `fg_${runtimeStem}_chart_y_minimum`,
         maximumName: `fg_${runtimeStem}_chart_y_maximum`,
         minimum,
         maximum,
+        warningThreshold: Math.max(minimum, Math.min(maximum, integerProp(proModel?.warning ?? component.props.warningThreshold, 70))),
+        alarmThreshold: Math.max(minimum, Math.min(maximum, integerProp(proModel?.alarm ?? component.props.alarmThreshold, 85))),
+        warningColor: thresholdColor(proModel?.warningColour ?? component.props.warningColor, 'F2A900'),
+        alarmColor: thresholdColor(proModel?.alarmColour ?? component.props.alarmColor, 'E5484D'),
         pointCount,
         initialData,
         seriesColor,
@@ -5462,6 +5528,7 @@ case 'Chart': {
   const chartObject = chartExport?.objectName || varName
   const chartSeries = chartExport?.seriesName || `${varName}_ser`
   const chartLayout = getForgeUIStandardChartLayout(child.props)
+  const chartModel = getForgeUIStandardChartModel(child.props)
   const pointCount = chartExport?.pointCount ??
     FORGEUI_STANDARD_CHART_DEFAULT_POINT_COUNT
   const initialData = chartExport?.initialData ??
@@ -5480,6 +5547,10 @@ case 'Chart': {
   lines.push(`lv_obj_set_style_pad_top(${chartObject}, ${chartLayout.topPadding}, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_pad_bottom(${chartObject}, ${chartLayout.bottomLabelGutter}, LV_PART_MAIN);`)
   lines.push(`lv_chart_set_type(${chartObject}, LV_CHART_TYPE_LINE);`)
+  // LVGL enables a point marker for every series by default.  That turns the
+  // warning/alarm helpers into rows of dots on-device, while the Studio
+  // preview deliberately renders clean traces.
+  lines.push(`lv_obj_set_style_size(${chartObject}, 0, 0, LV_PART_INDICATOR);`)
   lines.push(`lv_chart_set_point_count(${chartObject}, ${pointCount});`)
   if (chartExport) {
     lines.push(`lv_chart_set_range(${chartObject}, LV_CHART_AXIS_PRIMARY_Y, ${chartExport.minimum}, ${chartExport.maximum});`)
@@ -5487,20 +5558,51 @@ case 'Chart': {
       chartExport.horizontalDivisions !== undefined &&
       chartExport.verticalDivisions !== undefined
     ) {
-      lines.push(`lv_chart_set_div_line_count(${chartObject}, ${chartExport.horizontalDivisions}, ${chartExport.verticalDivisions});`)
+      lines.push(`lv_chart_set_div_line_count(${chartObject}, ${chartModel.showGrid ? chartExport.horizontalDivisions : 0}, ${chartModel.showGrid ? chartModel.verticalDivisions : 0});`)
     }
     if (chartExport.updateMode) {
       lines.push(`lv_chart_set_update_mode(${chartObject}, ${chartExport.updateMode});`)
     }
   }
+  // Threshold helpers belong behind the data trace.  LVGL paints series in
+  // creation order, so create these before the foreground data series.
+  if (chartExport) {
+    lines.push(`${chartExport.warningSeriesName} = lv_chart_add_series(${chartObject}, ${chartExport.warningColor}, LV_CHART_AXIS_PRIMARY_Y);`)
+    lines.push(`${chartExport.alarmSeriesName} = lv_chart_add_series(${chartObject}, ${chartExport.alarmColor}, LV_CHART_AXIS_PRIMARY_Y);`)
+    lines.push(`lv_chart_set_all_value(${chartObject}, ${chartExport.warningSeriesName}, ${chartExport.warningThreshold});`)
+    lines.push(`lv_chart_set_all_value(${chartObject}, ${chartExport.alarmSeriesName}, ${chartExport.alarmThreshold});`)
+  }
   lines.push(
     `${chartSeries} = lv_chart_add_series(${chartObject}, ${chartExport?.seriesColor || `lv_color_hex(${palette.accent})`}, LV_CHART_AXIS_PRIMARY_Y);`
   )
-  initialData.forEach(value => {
-    lines.push(`lv_chart_set_next_value(${chartObject}, ${chartSeries}, ${value});`)
+  lines.push(`lv_chart_set_all_value(${chartObject}, ${chartSeries}, LV_CHART_POINT_NONE);`)
+  const initialPointOffset = Math.max(0, pointCount - initialData.length)
+  initialData.forEach((value, index) => {
+    lines.push(`lv_chart_set_value_by_id(${chartObject}, ${chartSeries}, ${initialPointOffset + index}, ${value});`)
   })
   lines.push(`lv_chart_refresh(${chartObject});`)
-  chartLayout.yAxisLabels.forEach((label, index) => {
+  if (chartModel.title) {
+    lines.push(`lv_obj_t * ${varName}_title = lv_label_create(${parentVar});`)
+    lines.push(`lv_label_set_text(${varName}_title, "${esc(chartModel.title)}");`)
+    lines.push(`lv_obj_set_pos(${varName}_title, ${x} + ${chartLayout.plotLeft}, ${y} + 4);`)
+    lines.push(`lv_obj_set_style_text_color(${varName}_title, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_clear_flag(${varName}_title, LV_OBJ_FLAG_CLICKABLE);`)
+  }
+  if (chartModel.xAxisLabel) {
+    lines.push(`lv_obj_t * ${varName}_x_axis_title = lv_label_create(${parentVar});`)
+    lines.push(`lv_label_set_text(${varName}_x_axis_title, "${esc(chartModel.xAxisLabel)}");`)
+    lines.push(`lv_obj_set_pos(${varName}_x_axis_title, ${x} + ${Math.round((chartLayout.plotLeft + chartLayout.plotRight) / 2) - 20}, ${y} + ${chartLayout.height - 14});`)
+    lines.push(`lv_obj_set_style_text_color(${varName}_x_axis_title, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_clear_flag(${varName}_x_axis_title, LV_OBJ_FLAG_CLICKABLE);`)
+  }
+  if (chartModel.yAxisLabel) {
+    lines.push(`lv_obj_t * ${varName}_y_axis_title = lv_label_create(${parentVar});`)
+    lines.push(`lv_label_set_text(${varName}_y_axis_title, "${esc(chartModel.yAxisLabel)}");`)
+    lines.push(`lv_obj_set_pos(${varName}_y_axis_title, ${x} + 3, ${y} + ${Math.round((chartLayout.plotTop + chartLayout.plotBottom) / 2) - 7});`)
+    lines.push(`lv_obj_set_style_text_color(${varName}_y_axis_title, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_clear_flag(${varName}_y_axis_title, LV_OBJ_FLAG_CLICKABLE);`)
+  }
+  ;(chartModel.showAxisLabels ? chartLayout.yAxisLabels : []).forEach((label, index) => {
     const labelObject = `${varName}_y_label_${index}`
     lines.push(`lv_obj_t * ${labelObject} = lv_label_create(${parentVar});`)
     lines.push(`lv_label_set_text(${labelObject}, "${label.value}");`)
@@ -5511,16 +5613,16 @@ case 'Chart': {
     lines.push(`lv_obj_set_style_text_align(${labelObject}, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);`)
     lines.push(`lv_obj_clear_flag(${labelObject}, LV_OBJ_FLAG_CLICKABLE);`)
   })
-  chartLayout.xAxisLabels
+  ;(chartModel.showAxisLabels ? chartLayout.xAxisLabels : [])
     .filter(label => label.visible)
-    .forEach(label => {
-      const labelObject = `${varName}_x_label_${label.value}`
+    .forEach((label, index) => {
+      const labelObject = `${varName}_x_label_${index}`
       const labelWidth = Math.max(
         16,
         Math.min(36, (String(label.value).length + 1) * 7),
       )
       lines.push(`lv_obj_t * ${labelObject} = lv_label_create(${parentVar});`)
-      lines.push(`lv_label_set_text(${labelObject}, "${label.value}");`)
+      lines.push(`lv_label_set_text(${labelObject}, "${esc(label.value)}");`)
       lines.push(`lv_obj_set_pos(${labelObject}, ${x} + ${Math.round(label.x - labelWidth / 2)}, ${y} + ${Math.round(chartLayout.plotBottom + 3)});`)
       lines.push(`lv_obj_set_size(${labelObject}, ${labelWidth}, 14);`)
       lines.push(`lv_obj_set_style_text_color(${labelObject}, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
@@ -5528,6 +5630,86 @@ case 'Chart': {
       lines.push(`lv_obj_set_style_text_align(${labelObject}, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);`)
       lines.push(`lv_obj_clear_flag(${labelObject}, LV_OBJ_FLAG_CLICKABLE);`)
     })
+  lines.push(``)
+  break
+}
+
+case 'TrendChartPro': {
+  const model = normalizeForgeUITrendChartPro(child.props)
+  const pro = chartExports.get(child.id)
+  const chartObject = pro?.objectName || `${varName}_chart`
+  const series = pro?.seriesName || `${varName}_series`
+  const headerHeight = model.compactMode ? 42 : 58
+  lines.push(`lv_obj_t * ${varName} = lv_obj_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
+  lines.push(`lv_obj_set_style_bg_color(${varName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_bg_opa(${varName}, LV_OPA_COVER, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${varName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${varName}, 1, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${varName}, 10, LV_PART_MAIN);`)
+  lines.push(`lv_obj_clear_flag(${varName}, LV_OBJ_FLAG_SCROLLABLE);`)
+  lines.push(`lv_obj_t * ${varName}_title = lv_label_create(${varName});`)
+  lines.push(`lv_label_set_text(${varName}_title, "${esc(model.title)}");`)
+  lines.push(`lv_obj_set_pos(${varName}_title, 12, ${model.compactMode ? 7 : 10});`)
+  lines.push(`lv_obj_set_style_text_color(${varName}_title, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
+  const valueObject = pro?.valueLabelName || `${varName}_value`
+  lines.push(`${pro ? '' : 'lv_obj_t * '}${valueObject} = lv_label_create(${varName});`)
+  lines.push(`lv_label_set_text(${valueObject}, "${esc(model.formattedValue)}");`)
+  lines.push(`lv_obj_align(${valueObject}, LV_ALIGN_TOP_RIGHT, -${model.units ? 52 : 12}, ${model.compactMode ? 5 : 8});`)
+  lines.push(`lv_obj_set_style_text_color(${valueObject}, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_text_font(${valueObject}, &lv_font_montserrat_${model.compactMode ? 20 : 28}, LV_PART_MAIN);`)
+  const unitsObject = pro?.unitsLabelName || `${varName}_units`
+  lines.push(`${pro ? '' : 'lv_obj_t * '}${unitsObject} = lv_label_create(${varName});`)
+  lines.push(`lv_label_set_text(${unitsObject}, "${esc(model.units)}");`)
+  lines.push(`lv_obj_align(${unitsObject}, LV_ALIGN_TOP_RIGHT, -10, ${model.compactMode ? 10 : 16});`)
+  lines.push(`lv_obj_set_style_text_color(${unitsObject}, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
+  lines.push(`${chartObject} = lv_chart_create(${varName});`)
+  lines.push(`lv_obj_set_pos(${chartObject}, 12, ${headerHeight});`)
+  lines.push(`lv_obj_set_size(${chartObject}, ${Math.max(1, w - 24)}, ${Math.max(1, h - headerHeight - 12)});`)
+  lines.push(`lv_obj_set_style_bg_opa(${chartObject}, LV_OPA_TRANSP, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_width(${chartObject}, 0, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_pad_all(${chartObject}, 0, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_line_color(${chartObject}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_line_opa(${chartObject}, ${model.showGrid ? 'LV_OPA_60' : 'LV_OPA_TRANSP'}, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_line_width(${chartObject}, ${model.showGlow ? 3 : 2}, LV_PART_ITEMS);`)
+  lines.push(`lv_chart_set_type(${chartObject}, LV_CHART_TYPE_LINE);`)
+  lines.push(`lv_obj_set_style_size(${chartObject}, 0, 0, LV_PART_INDICATOR);`)
+  lines.push(`lv_chart_set_point_count(${chartObject}, ${model.historyLength});`)
+  lines.push(`lv_chart_set_range(${chartObject}, LV_CHART_AXIS_PRIMARY_Y, ${Math.floor(model.minimum)}, ${Math.ceil(model.maximum)});`)
+  lines.push(`lv_chart_set_div_line_count(${chartObject}, ${model.showGrid ? 3 : 0}, ${model.showGrid ? 3 : 0});`)
+  if (pro) {
+    lines.push(`${pro.warningSeriesName} = lv_chart_add_series(${chartObject}, ${model.showThresholdBands ? pro.warningColor : `lv_color_hex(${palette.surface})`}, LV_CHART_AXIS_PRIMARY_Y);`)
+    lines.push(`${pro.alarmSeriesName} = lv_chart_add_series(${chartObject}, ${model.showThresholdBands ? pro.alarmColor : `lv_color_hex(${palette.surface})`}, LV_CHART_AXIS_PRIMARY_Y);`)
+    lines.push(`lv_chart_set_all_value(${chartObject}, ${pro.warningSeriesName}, ${pro.warningThreshold});`)
+    lines.push(`lv_chart_set_all_value(${chartObject}, ${pro.alarmSeriesName}, ${pro.alarmThreshold});`)
+  }
+  lines.push(`${series} = lv_chart_add_series(${chartObject}, ${pro?.seriesColor || `lv_color_hex(${palette.accent})`}, LV_CHART_AXIS_PRIMARY_Y);`)
+  lines.push(`lv_chart_set_all_value(${chartObject}, ${series}, LV_CHART_POINT_NONE);`)
+  // Studio lays the configured startup samples across the complete plot. Keep
+  // the configured runtime history length, but interpolate its initial buffer
+  // so the first hardware frame has the same X positions and trace shape.
+  const initialProData = Array.from({ length: model.historyLength }, (_, index) => {
+    if (model.data.length <= 1) return model.data[0] ?? model.value
+    const sourcePosition = index * (model.data.length - 1) /
+      Math.max(1, model.historyLength - 1)
+    const leftIndex = Math.floor(sourcePosition)
+    const rightIndex = Math.min(model.data.length - 1, leftIndex + 1)
+    const fraction = sourcePosition - leftIndex
+    return model.data[leftIndex] +
+      (model.data[rightIndex] - model.data[leftIndex]) * fraction
+  })
+  initialProData.forEach((value, index) => lines.push(`lv_chart_set_value_by_id(${chartObject}, ${series}, ${index}, ${Math.round(value)});`))
+  if (model.showCurrentMarker) {
+    const markerY = Math.round((1 - (model.value - model.minimum) / Math.max(1, model.maximum - model.minimum)) * Math.max(1, h - headerHeight - 12))
+    const markerObject = pro?.markerName || `${varName}_marker`
+    lines.push(`${pro ? '' : 'lv_obj_t * '}${markerObject} = lv_obj_create(${chartObject});`)
+    lines.push(`lv_obj_set_size(${markerObject}, 8, 8);`)
+    lines.push(`lv_obj_set_pos(${markerObject}, ${Math.max(0, w - 32)}, ${markerY - 4});`)
+    lines.push(`lv_obj_set_style_radius(${markerObject}, LV_RADIUS_CIRCLE, LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_bg_color(${markerObject}, ${pro?.seriesColor || `lv_color_hex(${palette.accent})`}, LV_PART_MAIN);`)
+  }
+  lines.push(`lv_chart_refresh(${chartObject});`)
   lines.push(``)
   break
 }
@@ -6836,8 +7018,18 @@ const backgroundMode =
   chartExports.forEach(chartExport => {
     lines.push(`static lv_obj_t * ${chartExport.objectName} = NULL;`)
     lines.push(`static lv_chart_series_t * ${chartExport.seriesName} = NULL;`)
+    lines.push(`static lv_chart_series_t * ${chartExport.warningSeriesName} = NULL;`)
+    lines.push(`static lv_chart_series_t * ${chartExport.alarmSeriesName} = NULL;`)
     lines.push(`static const int32_t ${chartExport.minimumName} = ${chartExport.minimum};`)
     lines.push(`static const int32_t ${chartExport.maximumName} = ${chartExport.maximum};`)
+    if (chartExport.isPro && chartExport.unitsLabelName && chartExport.thresholdStateName) {
+      lines.push(`static lv_obj_t * ${chartExport.unitsLabelName} = NULL;`)
+      lines.push(`static lv_obj_t * ${chartExport.valueLabelName} = NULL;`)
+      lines.push(`static lv_obj_t * ${chartExport.markerName} = NULL;`)
+      lines.push(`static int8_t ${chartExport.thresholdStateName} = 0;`)
+      lines.push(`static float ${chartExport.warningStateName} = ${chartExport.warningThreshold}.0f;`)
+      lines.push(`static float ${chartExport.alarmStateName} = ${chartExport.alarmThreshold}.0f;`)
+    }
   })
   keyboardExports.forEach(keyboardExport => {
     lines.push(`static lv_obj_t * ${keyboardExport.objectName} = NULL;`)
@@ -7686,13 +7878,63 @@ const backgroundMode =
   })
 
   chartExports.forEach(chartExport => {
-    lines.push(`void ${chartExport.addApiName}(int32_t value)`)
+    lines.push(`void ${chartExport.addApiName}(float value)`)
     lines.push(`{`)
     lines.push(`    if (${chartExport.objectName} == NULL || ${chartExport.seriesName} == NULL) return;`)
     lines.push(`    if (value < ${chartExport.minimumName}) value = ${chartExport.minimumName};`)
     lines.push(`    if (value > ${chartExport.maximumName}) value = ${chartExport.maximumName};`)
-    lines.push(`    lv_chart_set_next_value(${chartExport.objectName}, ${chartExport.seriesName}, value);`)
+    lines.push(`    lv_chart_set_next_value(${chartExport.objectName}, ${chartExport.seriesName}, (int32_t)value);`)
+    lines.push(`    lv_chart_refresh(${chartExport.objectName});`)
+    if (chartExport.isPro && chartExport.valueLabelName) {
+      lines.push(`    char value_text[32];`)
+      lines.push(`    snprintf(value_text, sizeof(value_text), "%.*f", ${chartExport.decimalPlaces ?? 0}, (double)value);`)
+      lines.push(`    if (${chartExport.valueLabelName}) lv_label_set_text(${chartExport.valueLabelName}, value_text);`)
+      if (chartExport.markerName) {
+        lines.push(`    if (${chartExport.markerName}) {`)
+        lines.push(`        int32_t marker_y = lv_obj_get_content_height(${chartExport.objectName}) - (int32_t)((value - ${chartExport.minimumName}) * lv_obj_get_content_height(${chartExport.objectName}) / (${chartExport.maximumName} - ${chartExport.minimumName}));`)
+        lines.push(`        lv_obj_set_pos(${chartExport.markerName}, lv_obj_get_content_width(${chartExport.objectName}) - 8, marker_y - 4);`)
+        lines.push(`    }`)
+      }
+    }
+    if (chartExport.isPro && chartExport.thresholdStateName) {
+      lines.push(`    int8_t next_state = value >= ${chartExport.alarmStateName} ? 2 : (value >= ${chartExport.warningStateName} ? 1 : 0);`)
+      if (chartExport.enableUserEvents) {
+        lines.push(`    if (next_state != ${chartExport.thresholdStateName}) {`)
+        if (chartExport.warningHookName) lines.push(`        if (next_state == 1) ${chartExport.warningHookName}();`)
+        if (chartExport.alarmHookName) lines.push(`        else if (next_state == 2) ${chartExport.alarmHookName}();`)
+        if (chartExport.recoveredHookName) lines.push(`        else ${chartExport.recoveredHookName}();`)
+        lines.push(`    }`)
+      }
+      lines.push(`    ${chartExport.thresholdStateName} = next_state;`)
+    }
     lines.push(`    ${chartExport.pointAddedHookName}(value);`)
+    lines.push(`}`)
+    lines.push(``)
+    if (chartExport.isPro && chartExport.unitsApiName && chartExport.unitsLabelName) {
+      lines.push(`void ${chartExport.unitsApiName}(const char * units)`)
+      lines.push(`{`)
+      lines.push(`    if (${chartExport.unitsLabelName}) lv_label_set_text(${chartExport.unitsLabelName}, units ? units : "");`)
+      lines.push(`}`)
+      lines.push(``)
+    }
+    lines.push(`void ${chartExport.warningApiName}(float value)`)
+    lines.push(`{`)
+    lines.push(`    if (${chartExport.objectName} == NULL || ${chartExport.warningSeriesName} == NULL) return;`)
+    lines.push(`    if (value < ${chartExport.minimumName}) value = ${chartExport.minimumName};`)
+    lines.push(`    if (value > ${chartExport.maximumName}) value = ${chartExport.maximumName};`)
+    lines.push(`    lv_chart_set_all_value(${chartExport.objectName}, ${chartExport.warningSeriesName}, (int32_t)value);`)
+    if (chartExport.warningStateName) lines.push(`    ${chartExport.warningStateName} = value;`)
+    lines.push(`    lv_chart_refresh(${chartExport.objectName});`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${chartExport.alarmApiName}(float value)`)
+    lines.push(`{`)
+    lines.push(`    if (${chartExport.objectName} == NULL || ${chartExport.alarmSeriesName} == NULL) return;`)
+    lines.push(`    if (value < ${chartExport.minimumName}) value = ${chartExport.minimumName};`)
+    lines.push(`    if (value > ${chartExport.maximumName}) value = ${chartExport.maximumName};`)
+    lines.push(`    lv_chart_set_all_value(${chartExport.objectName}, ${chartExport.alarmSeriesName}, (int32_t)value);`)
+    if (chartExport.alarmStateName) lines.push(`    ${chartExport.alarmStateName} = value;`)
+    lines.push(`    lv_chart_refresh(${chartExport.objectName});`)
     lines.push(`}`)
     lines.push(``)
     lines.push(`void ${chartExport.clearApiName}(void)`)
@@ -9902,6 +10144,15 @@ lines.push(`}`)
     fiRuntimeSource: fiRuntime.source,
     assetSources: Array.from(normalizedAssetSources.values()),
     userEventHooks: Array.from(userEventHooks),
+    userEventContracts: Array.from(chartExports.values()).flatMap(chartExport => [
+      { name: chartExport.pointAddedHookName, parameters: 'float value' },
+      { name: chartExport.clearedHookName, parameters: 'void' },
+      ...(chartExport.enableUserEvents ? [
+        { name: chartExport.warningHookName!, parameters: 'void' },
+        { name: chartExport.alarmHookName!, parameters: 'void' },
+        { name: chartExport.recoveredHookName!, parameters: 'void' },
+      ] : []),
+    ]),
     publicApiDeclarations: Array.from(binaryOutputExports.values())
       .filter(lightExport => lightExport.ready)
       .map(lightExport =>
@@ -9962,8 +10213,11 @@ lines.push(`}`)
         spinboxExport => `void ${spinboxExport.apiName}(int32_t value);`,
       )).concat(Array.from(chartExports.values()).flatMap(
         chartExport => [
-          `void ${chartExport.addApiName}(int32_t value);`,
+          `void ${chartExport.addApiName}(float value);`,
           `void ${chartExport.clearApiName}(void);`,
+          `void ${chartExport.warningApiName}(float value);`,
+          `void ${chartExport.alarmApiName}(float value);`,
+          ...(chartExport.unitsApiName ? [`void ${chartExport.unitsApiName}(const char * units);`] : []),
         ],
       )).concat(Array.from(keyboardExports.values()).flatMap(
         keyboardExport => [

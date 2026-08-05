@@ -11,6 +11,12 @@ export interface ForgeUIStandardChartPoint {
 }
 
 export interface ForgeUIStandardChartModel {
+  title: string
+  xAxisMode: 'relative-time' | 'clock-time' | 'hidden' | 'samples'
+  xAxisLabel: string
+  historyWindowSeconds: number
+  historyEndTime: string
+  yAxisLabel: string
   minimum: number
   maximum: number
   pointCount: number
@@ -19,6 +25,17 @@ export interface ForgeUIStandardChartModel {
   seriesColor: string
   horizontalDivisions: number
   verticalDivisions: number
+  showGrid: boolean
+  showAxisLabels: boolean
+  showThresholds: boolean
+  warningThreshold: number
+  alarmThreshold: number
+  warningColor: string
+  alarmColor: string
+  updateRateMs: number
+  simulateValues: boolean
+  simulatedMinimum: number
+  simulatedMaximum: number
 }
 
 export interface ForgeUIStandardChartAxisLabel {
@@ -27,7 +44,7 @@ export interface ForgeUIStandardChartAxisLabel {
 }
 
 export interface ForgeUIStandardChartXAxisLabel {
-  value: number
+  value: string
   x: number
   visible: boolean
 }
@@ -66,6 +83,25 @@ const seriesColor = (value: unknown) => {
       .toString(16).padStart(6, '0')}`
   }
   return '#2196f3'
+}
+
+const text = (value: unknown, fallback: string) =>
+  typeof value === 'string' ? value.slice(0, 80) : fallback
+const flag = (value: unknown, fallback: boolean) =>
+  typeof value === 'boolean' ? value : fallback
+
+const xAxisMode = (value: unknown): ForgeUIStandardChartModel['xAxisMode'] =>
+  value === 'clock-time' || value === 'hidden' || value === 'samples'
+    ? value
+    : 'relative-time'
+
+const clockLabel = (endTime: string, secondsBeforeEnd: number) => {
+  const match = /^(\d{1,2}):(\d{2})$/.exec(endTime)
+  if (!match) return endTime
+  const totalMinutes = Number(match[1]) * 60 + Number(match[2]) -
+    Math.round(secondsBeforeEnd / 60)
+  const normalized = ((totalMinutes % 1440) + 1440) % 1440
+  return `${String(Math.floor(normalized / 60)).padStart(2, '0')}:${String(normalized % 60).padStart(2, '0')}`
 }
 
 export const getForgeUIStandardChartNormalizedX = (
@@ -110,6 +146,9 @@ export const getForgeUIStandardChartModel = (
     ...normalizedData,
   ]
   const range = maximum - minimum
+  const clamp = (value: unknown, fallback: number) => Math.max(
+    minimum, Math.min(maximum, integer(value, fallback)),
+  )
   const points = data.map((value, index) => ({
     index,
     value,
@@ -120,8 +159,22 @@ export const getForgeUIStandardChartModel = (
         ? 1
         : 1 - (value - minimum) / range,
   }))
+  const resolvedXAxisMode = xAxisMode(props.xAxisMode)
+  const configuredXAxisLabel = text(props.xAxisLabel, '')
+  const resolvedXAxisLabel = resolvedXAxisMode === 'samples'
+    ? configuredXAxisLabel || 'Samples'
+    : configuredXAxisLabel.trim().toLowerCase() === 'samples'
+      ? ''
+      : configuredXAxisLabel
 
   return {
+    title: text(props.title, ''),
+    xAxisMode: resolvedXAxisMode,
+    xAxisLabel: resolvedXAxisLabel,
+    historyWindowSeconds: Math.max(1, Math.min(86400,
+      integer(props.historyWindowSeconds, 60))),
+    historyEndTime: text(props.historyEndTime, '14:22'),
+    yAxisLabel: text(props.yAxisLabel, ''),
     minimum,
     maximum,
     pointCount,
@@ -132,7 +185,19 @@ export const getForgeUIStandardChartModel = (
       0,
       integer(props.horizontalDivisions ?? props.hdiv, 3),
     ),
-    verticalDivisions: pointCount,
+    verticalDivisions: resolvedXAxisMode === 'clock-time' ? 3 :
+      resolvedXAxisMode === 'samples' ? pointCount : 5,
+    showGrid: flag(props.showGrid, true),
+    showAxisLabels: flag(props.showAxisLabels, true),
+    showThresholds: flag(props.showThresholds, true),
+    warningThreshold: clamp(props.warningThreshold, 70),
+    alarmThreshold: clamp(props.alarmThreshold, 85),
+    warningColor: seriesColor(props.warningColor ?? '#F2A900'),
+    alarmColor: seriesColor(props.alarmColor ?? '#E5484D'),
+    updateRateMs: Math.max(100, Math.min(60000, integer(props.updateRateMs, 1000))),
+    simulateValues: flag(props.simulateValues, false),
+    simulatedMinimum: clamp(props.simulatedMinimum, minimum),
+    simulatedMaximum: clamp(props.simulatedMaximum, maximum),
   }
 }
 
@@ -152,11 +217,11 @@ export const getForgeUIStandardChartLayout = (
     Math.max(0, width - mainBorderWidth * 2 - labelGutter - 1),
   )
   const topPadding = Math.min(
-    10,
+    chart.title ? 26 : 10,
     Math.max(0, Math.floor((height - mainBorderWidth * 2 - 1) / 2)),
   )
   const bottomLabelGutter = Math.min(
-    24,
+    chart.xAxisLabel ? 34 : 24,
     Math.max(
       16,
       Math.round(height * 0.18),
@@ -211,17 +276,29 @@ export const getForgeUIStandardChartLayout = (
       plotWidth,
     ),
   )
-  const xAxisLabels = Array.from(
-    { length: chart.pointCount },
-    (_, index) => ({
-      value: index,
-      x: xPointPositions[index],
-      visible:
-        index === 0 ||
-        index === chart.pointCount - 1 ||
-        index % labelStride === 0,
-    }),
-  )
+  const operatorLabelCount = chart.xAxisMode === 'clock-time' ? 3 : 5
+  const xAxisLabels: ForgeUIStandardChartXAxisLabel[] = chart.xAxisMode === 'hidden'
+    ? []
+    : chart.xAxisMode === 'samples'
+      ? Array.from({ length: chart.pointCount }, (_, index) => ({
+          value: String(index),
+          x: xPointPositions[index],
+          visible: index === 0 || index === chart.pointCount - 1 ||
+            index % labelStride === 0,
+        }))
+      : Array.from({ length: operatorLabelCount }, (_, index) => {
+          const fraction = index / (operatorLabelCount - 1)
+          const secondsBeforeEnd = chart.historyWindowSeconds * (1 - fraction)
+          return {
+            value: chart.xAxisMode === 'clock-time'
+              ? clockLabel(chart.historyEndTime, secondsBeforeEnd)
+              : index === operatorLabelCount - 1
+                ? 'Now'
+                : `-${Math.round(secondsBeforeEnd)}s`,
+            x: plotLeft + Math.trunc(plotWidth * fraction),
+            visible: true,
+          }
+        })
 
   return {
     width,

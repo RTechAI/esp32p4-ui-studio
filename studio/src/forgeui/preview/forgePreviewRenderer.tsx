@@ -56,6 +56,7 @@ import { ForgeUIDashboardCardPreview } from './ForgeUIDashboardCardPreview'
 import { ForgeUISensorTilePreview } from './ForgeUISensorTilePreview'
 import { ForgeUIRelayPanelPreview } from './ForgeUIRelayPanelPreview'
 import { ForgeUIPwmControllerPreview } from './ForgeUIPwmControllerPreview'
+import { ForgeUITrendChartProPreview } from './ForgeUITrendChartProPreview'
 import ImagePreview from '~components/editor/previews/ImagePreview'
 import StandardCalendarPreview from './StandardCalendarPreview'
 import { resolveForgeSemanticPalette } from './forgeThemeMap'
@@ -829,6 +830,11 @@ case 'RelayPanel': {
 
 case 'PwmController': {
   output.push(<Box key={child.id} {...commonStyle}><ForgeUIPwmControllerPreview component={child} palette={palette} /></Box>)
+  break
+}
+
+case 'TrendChartPro': {
+  output.push(<Box key={child.id} {...commonStyle}><ForgeUITrendChartProPreview component={child} palette={palette} /></Box>)
   break
 }
 

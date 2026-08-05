@@ -1510,7 +1510,14 @@ ${declarations.join('\n')}
 `
 }
 
-function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
+function generateUserEventFiles(userEventHooks, publicApiDeclarations = [], userEventContracts = []) {
+  const explicitContracts = new Map(
+    (Array.isArray(userEventContracts) ? userEventContracts : [])
+      .filter(contract => contract &&
+        /^FG_On_[A-Za-z0-9_]+$/.test(String(contract.name || '')) &&
+        /^(?:void|float value)$/.test(String(contract.parameters || '')))
+      .map(contract => [String(contract.name), String(contract.parameters)])
+  )
   const booleanChanged = new Set()
   const checkedChanged = new Set()
   const checkboxCheckedChanged = new Set()
@@ -1647,9 +1654,7 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
         : []
       )
         .map((hook) => String(hook || '').trim())
-        .filter((hook) =>
-          /^FG_On_[A-Za-z0-9_]+_(Clicked|Toggled|Changed|Point_Added|Cleared|Shown|Hidden|Closed|Button_Pressed|Button_Selected|Item_Clicked)$/.test(hook)
-        )
+        .filter((hook) => /^FG_On_[A-Za-z0-9_]+$/.test(hook))
     )
   )
   const relayChannelChanged = new Set(uniqueHooks.filter(hook =>
@@ -1662,7 +1667,9 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
   
 
   const declarations = uniqueHooks
-    .map((hook) => relayChannelChanged.has(hook)
+    .map((hook) => explicitContracts.has(hook)
+      ? `void ${hook}(${explicitContracts.get(hook)});`
+      : relayChannelChanged.has(hook)
       ? `void ${hook}(uint32_t channel, bool enabled);`
       : relayMasterChanged.has(hook)
         ? `void ${hook}(bool enabled);`
@@ -1702,7 +1709,16 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = []) {
     .join('\n')
 
   const definitions = uniqueHooks
-    .map((hook) => relayChannelChanged.has(hook)
+    .map((hook) => explicitContracts.has(hook)
+      ? explicitContracts.get(hook) === 'float value'
+        ? `void ${hook}(float value)
+{
+    (void)value;
+}`
+        : `void ${hook}(void)
+{
+}`
+      : relayChannelChanged.has(hook)
       ? `void ${hook}(uint32_t channel, bool enabled)
 {
     printf("[ForgeUI User Event] ${hook.replace(/^FG_On_|_Channel_Changed$/g, '').replace(/_/g, ' ')} channel %lu: %s\\n",
@@ -1912,6 +1928,7 @@ ${definitions}
     header,
     source,
     hooks: uniqueHooks,
+    contracts: explicitContracts,
   }
 }
 
@@ -2055,6 +2072,18 @@ function preserveUserEventFiles(existingSource, existingHeader, generated) {
     }
   })
 
+  generated.contracts.forEach((parameters, hook) => {
+    const escapedHook = hook.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    source = source.replace(
+      new RegExp(`(\\bvoid\\s+${escapedHook}\\s*\\()[^;{}]*(\\)\\s*\\{)`),
+      `$1${parameters}$2`,
+    )
+    header = header.replace(
+      new RegExp(`(\\bvoid\\s+${escapedHook}\\s*\\()[^;{}]*(\\)\\s*;)`),
+      `$1${parameters}$2`,
+    )
+  })
+
   generated.hooks.forEach((hook) => {
     const definitionPattern = new RegExp(
       `\\bvoid\\s+${hook}\\s*\\([^;]*\\)\\s*\\{`
@@ -2103,6 +2132,7 @@ const assetSources = validated.assetSources.filter(source =>
 )
 const userEventHooks =
   req.body.userEventHooks || []
+const userEventContracts = req.body.userEventContracts || []
 const publicApiDeclarations = normalizePublicApiDeclarations(
   req.body.publicApiDeclarations
 )
@@ -2111,7 +2141,7 @@ const fiRuntimeHeader = typeof req.body.fiRuntimeHeader === 'string' ? req.body.
 const hasFiRuntime = fiRuntimeSource.trim().length > 0 && fiRuntimeHeader.trim().length > 0
 
 const userEvents =
-  generateUserEventFiles(userEventHooks, publicApiDeclarations)
+  generateUserEventFiles(userEventHooks, publicApiDeclarations, userEventContracts)
 
   const developerGuide =
   generateDeveloperGuide(userEvents.hooks)
@@ -2283,6 +2313,7 @@ const assetSources = validated.assetSources.filter(source =>
 
 const userEventHooks =
   req.body.userEventHooks || []
+const userEventContracts = req.body.userEventContracts || []
 const publicApiDeclarations = normalizePublicApiDeclarations(
   req.body.publicApiDeclarations
 )
@@ -2291,7 +2322,7 @@ const fiRuntimeHeader = typeof req.body.fiRuntimeHeader === 'string' ? req.body.
 const hasFiRuntime = fiRuntimeSource.trim().length > 0 && fiRuntimeHeader.trim().length > 0
 
 const userEvents =
-  generateUserEventFiles(userEventHooks, publicApiDeclarations)
+  generateUserEventFiles(userEventHooks, publicApiDeclarations, userEventContracts)
 
 const developerGuide =
   generateDeveloperGuide(userEvents.hooks)

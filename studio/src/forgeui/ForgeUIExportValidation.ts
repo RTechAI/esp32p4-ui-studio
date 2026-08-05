@@ -34,6 +34,7 @@ type GeneratedExport = {
   code: string
   assetSources: string[]
   userEventHooks: string[]
+  userEventContracts?: Array<{ name: string; parameters: string }>
   publicApiDeclarations: string[]
   fiRuntimeSource?: string
   fiRuntimeHeader?: string

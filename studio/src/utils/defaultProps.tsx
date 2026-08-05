@@ -103,6 +103,8 @@ type PreviewDefaultProps = {
   Progress?: PropsWithForm<ProgressProps>
   Bar?: PropsWithForm<ProgressProps>
   Arc?: PropsWithForm<ProgressProps>
+  Chart?: PropsWithForm<BoxProps> & Record<string, any>
+  TrendChartPro?: PropsWithForm<BoxProps> & Record<string, any>
   AvatarBadge?: PropsWithForm<AvatarBadgeProps>
   AvatarGroup?: PropsWithForm<Omit<AvatarGroupProps, 'children'>>
   Avatar?: PropsWithForm<AvatarProps>
@@ -392,6 +394,17 @@ WiFi: {
     generateRuntimeApi: true, enableUserEvents: true,
     positionMode: 'absolute', x: 40, y: 40, w: 240, h: 145,
   },
+  TrendChartPro: {
+    nativeWidgetSchemaVersion: 1, title: 'Engine RPM', value: 3962,
+    units: 'RPM', customUnits: '', decimalPlaces: 0,
+    historyLength: 30, initialData: [3420, 3510, 3480, 3620, 3710, 3690, 3820, 3880, 3850, 3962],
+    updateRateMs: 1000, autoScale: true, fixedMin: 0, fixedMax: 5000,
+    warning: 4200, alarm: 4700, traceColour: '', warningColour: '#F2A900',
+    alarmColour: '#E5484D', showGrid: true, showAreaFill: true,
+    showGlow: true, showCurrentMarker: true, showThresholdBands: true,
+    compactMode: false, generateRuntimeApi: true, enableUserEvents: true,
+    positionMode: 'absolute', x: 40, y: 40, w: 360, h: 220,
+  },
   QRCode: {
     contentType: 'custom',
     qrText: 'https://forgeui.co.nz',
@@ -492,6 +505,35 @@ WiFi: {
     min: 0,
     max: 100,
     value: 65,
+  },
+  Chart: {
+    w: 360,
+    h: 220,
+    title: 'Process Trend',
+    xAxisMode: 'relative-time',
+    xAxisLabel: '',
+    historyWindowSeconds: 60,
+    historyEndTime: '14:22',
+    yAxisLabel: 'Value',
+    yMin: 0,
+    yMax: 100,
+    pointCount: 24,
+    initialData: [42, 45, 44, 48, 52, 55, 53, 58, 61, 59, 63, 66],
+    seriesColor: '',
+    warningColor: '#F2A900',
+    alarmColor: '#E5484D',
+    showGrid: true,
+    showAxisLabels: true,
+    showThresholds: true,
+    warningThreshold: 70,
+    alarmThreshold: 85,
+    horizontalDivisions: 3,
+    updateRateMs: 1000,
+    simulateValues: false,
+    simulatedMinimum: 35,
+    simulatedMaximum: 75,
+    updateMode: 'shift',
+    generateRuntimeApi: true,
   },
   Radio: { children: '' },
   Select: {

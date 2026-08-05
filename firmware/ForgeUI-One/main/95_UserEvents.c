@@ -37,7 +37,7 @@ void FG_On_Value_Arc_Changed(int32_t value)
            (long)value);
 }
 
-void FG_On_Data_Chart_Point_Added(int32_t value)
+void FG_On_Data_Chart_Point_Added(float value)
 {
     printf("[ForgeUI User Event] Data Chart point added: %ld\n",
            (long)value);
@@ -476,38 +476,155 @@ void FG_On_Dashboard_Card_B_Clicked(void)
 }
 #endif
 
+#if 0 /* ForgeUI orphaned legacy Native Component hook: no active component owns FG_On_Comp_MSFWF336_Q9_L7_H_Value_Changed. */
 void FG_On_Comp_MSFWF336_Q9_L7_H_Value_Changed(float value)
 {
     /* Bind semantic PWM value to developer-owned hardware here. */
     printf("[ForgeUI User Event] Comp MSFWF336 Q9 L7 H value: %.3f\n", (double)value);
 }
+#endif
 
+#if 0 /* ForgeUI orphaned legacy Native Component hook: no active component owns FG_On_Comp_MSFWF336_Q9_L7_H_Enabled_Changed. */
 void FG_On_Comp_MSFWF336_Q9_L7_H_Enabled_Changed(bool enabled)
 {
     printf("[ForgeUI User Event] Comp MSFWF336 Q9 L7 H Enabled changed: %s\n",
            enabled ? "ON" : "OFF");
 }
+#endif
 
+#if 0 /* ForgeUI orphaned legacy Native Component hook: no active component owns FG_On_Comp_MSFWF4_DMHWEBC_Value_Changed. */
 void FG_On_Comp_MSFWF4_DMHWEBC_Value_Changed(float value)
 {
     /* Bind semantic PWM value to developer-owned hardware here. */
     printf("[ForgeUI User Event] Comp MSFWF4 DMHWEBC value: %.3f\n", (double)value);
 }
+#endif
 
+#if 0 /* ForgeUI orphaned legacy Native Component hook: no active component owns FG_On_Comp_MSFWF4_DMHWEBC_Enabled_Changed. */
 void FG_On_Comp_MSFWF4_DMHWEBC_Enabled_Changed(bool enabled)
 {
     printf("[ForgeUI User Event] Comp MSFWF4 DMHWEBC Enabled changed: %s\n",
            enabled ? "ON" : "OFF");
 }
+#endif
 
+#if 0 /* ForgeUI orphaned legacy Native Component hook: no active component owns FG_On_Comp_MSFWF5_QLC2_A3_F_Value_Changed. */
 void FG_On_Comp_MSFWF5_QLC2_A3_F_Value_Changed(float value)
 {
     /* Bind semantic PWM value to developer-owned hardware here. */
     printf("[ForgeUI User Event] Comp MSFWF5 QLC2 A3 F value: %.3f\n", (double)value);
 }
+#endif
 
+#if 0 /* ForgeUI orphaned legacy Native Component hook: no active component owns FG_On_Comp_MSFWF5_QLC2_A3_F_Enabled_Changed. */
 void FG_On_Comp_MSFWF5_QLC2_A3_F_Enabled_Changed(bool enabled)
 {
     printf("[ForgeUI User Event] Comp MSFWF5 QLC2 A3 F Enabled changed: %s\n",
            enabled ? "ON" : "OFF");
+}
+#endif
+
+void FG_On_Comp_MSFYEVIQ1_XV42_Point_Added(float value)
+{
+    (void)value;
+}
+
+void FG_On_Comp_MSFYEVIQ1_XV42_Cleared(void)
+{
+}
+
+void FG_On_Comp_MSFYEVIQ1_XV42_Warning(void)
+{
+}
+
+void FG_On_Comp_MSFYEVIQ1_XV42_Alarm(void)
+{
+}
+
+void FG_On_Comp_MSFYEVIQ1_XV42_Recovered(void)
+{
+}
+
+void FG_On_Comp_MSGE6_ZGESI3_G5_Point_Added(float value)
+{
+    (void)value;
+}
+
+void FG_On_Comp_MSGE6_ZGESI3_G5_Cleared(void)
+{
+}
+
+void FG_On_Comp_MSGE6_ZGESI3_G5_Warning(void)
+{
+}
+
+void FG_On_Comp_MSGE6_ZGESI3_G5_Alarm(void)
+{
+}
+
+void FG_On_Comp_MSGE6_ZGESI3_G5_Recovered(void)
+{
+}
+
+void FG_On_Comp_MSGEQL8_ADYSJW_Point_Added(float value)
+{
+    (void)value;
+}
+
+void FG_On_Comp_MSGEQL8_ADYSJW_Cleared(void)
+{
+}
+
+void FG_On_Comp_MSGEQL8_ADYSJW_Warning(void)
+{
+}
+
+void FG_On_Comp_MSGEQL8_ADYSJW_Alarm(void)
+{
+}
+
+void FG_On_Comp_MSGEQL8_ADYSJW_Recovered(void)
+{
+}
+
+void FG_On_Comp_MSGF5_BRKJS12_Q_Point_Added(float value)
+{
+    (void)value;
+}
+
+void FG_On_Comp_MSGF5_BRKJS12_Q_Cleared(void)
+{
+}
+
+void FG_On_Comp_MSGF5_BRKJS12_Q_Warning(void)
+{
+}
+
+void FG_On_Comp_MSGF5_BRKJS12_Q_Alarm(void)
+{
+}
+
+void FG_On_Comp_MSGF5_BRKJS12_Q_Recovered(void)
+{
+}
+
+void FG_On_Comp_MSGFBNVPEL8_E0_Point_Added(float value)
+{
+    (void)value;
+}
+
+void FG_On_Comp_MSGFBNVPEL8_E0_Cleared(void)
+{
+}
+
+void FG_On_Comp_MSGFBNVPEL8_E0_Warning(void)
+{
+}
+
+void FG_On_Comp_MSGFBNVPEL8_E0_Alarm(void)
+{
+}
+
+void FG_On_Comp_MSGFBNVPEL8_E0_Recovered(void)
+{
 }

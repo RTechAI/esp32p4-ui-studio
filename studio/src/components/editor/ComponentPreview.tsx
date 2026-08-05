@@ -59,6 +59,7 @@ import { ForgeUIDashboardCardPreview } from '~forgeui/preview/ForgeUIDashboardCa
 import { ForgeUISensorTilePreview } from '~forgeui/preview/ForgeUISensorTilePreview'
 import { ForgeUIRelayPanelPreview } from '~forgeui/preview/ForgeUIRelayPanelPreview'
 import { ForgeUIPwmControllerPreview } from '~forgeui/preview/ForgeUIPwmControllerPreview'
+import { ForgeUITrendChartProPreview } from '~forgeui/preview/ForgeUITrendChartProPreview'
 import { useForgePreviewPalette } from '~forgeui/theme/ForgeThemeContext'
 import { resolveForgeSemanticPalette } from '~forgeui/preview/forgeThemeMap'
 import InteractiveButtonCanvasPreview, {
@@ -1120,6 +1121,11 @@ case 'RelayPanel':
 case 'PwmController':
   return <PreviewContainer component={component} enableVisualHelper resizeMinWidth={220} resizeMinHeight={128} {...forwardedProps}>
     <ForgeUIPwmControllerPreview component={component} palette={previewPalette} />
+  </PreviewContainer>
+
+case 'TrendChartPro':
+  return <PreviewContainer component={component} enableVisualHelper resizeMinWidth={220} resizeMinHeight={140} {...forwardedProps}>
+    <ForgeUITrendChartProPreview component={component} palette={previewPalette} />
   </PreviewContainer>
 
     default:
