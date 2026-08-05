@@ -1,6 +1,9 @@
 # ForgeUI Relay Panel
 
-Status: **PROVEN — ESP32-P4 VALIDATED** (2026-08-02).
+Status: **RECERTIFIED — ESP32-P4 PHYSICALLY PROVEN** (2026-08-05).
+
+Current save point:
+`FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_RECERTIFIED__ESP32P4_PHYSICALLY_PROVEN__2026-08-05`.
 
 Platform milestone:
 `FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__RUNTIME_SDK_USEREVENTS_MASTER_CONTROL_PROVEN__READY_FOR_PWM_CONTROLLER__2026-08-02`.
@@ -72,6 +75,36 @@ LVGL. A browser-only prompt would violate parity. No incomplete dialog framework
 was introduced.
 
 ## ESP32-P4 proof record
+
+### Physical recertification — 2026-08-05
+
+Scott physically confirmed that the Relay Panel displayed correctly on the
+ESP32-P4. The master control and individual relay channels operated, UserEvents
+fired correctly, multiple interactions completed successfully, and the runtime
+remained operational during testing. Browser, Studio, and generated LVGL
+behaviour were functionally aligned.
+
+Observed UserEvents included:
+
+- Master ON;
+- Master OFF;
+- Channel `0` ON;
+- Channel `1` ON;
+- Channel `2` ON; and
+- Channel `3` ON.
+
+This evidence is sufficient to demonstrate Relay Panel functionality and close
+the current recertification.
+
+During testing, an unrelated ESP-Hosted startup assertion was observed on one
+boot. Relay Panel functionality was verified independently. The transport issue
+is external to Relay Panel recertification and its investigation is deferred;
+this record does not claim that ESP-Hosted or Wi-Fi transport was fixed.
+
+Accepted save point:
+`FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_RECERTIFIED__ESP32P4_PHYSICALLY_PROVEN__2026-08-05`.
+
+### Earlier physical proof — 2026-08-02
 
 The active proof component was `Comp_MSBHEOFNU0_CVL`. Generated hooks were:
 

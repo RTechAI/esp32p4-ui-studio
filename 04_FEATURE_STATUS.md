@@ -54,7 +54,7 @@ Current platform milestone:
 |---|---|---|
 | Dashboard Card | **PROVEN** | Origin: ForgeUI Native; ESP32-P4 validated; Browser Preview, Live Studio, Standalone Export, Runtime SDK and UserEvents verified; one versioned serialized component with private internal LVGL composition and independent multi-instance behavior |
 | Sensor Tile | **RENDERING AND USEREVENTS PROVEN; SETTER PROOF DEFERRED** | Compact `240 x 145` layout, multiple-instance rendering, readable fields, four unique callbacks, repeated touch and duplicate touch isolation physically passed on ESP32-P4; Runtime SDK generation and focused tests passed; automated multi-instance setter proof deferred to a simulator/proof module |
-| Relay Panel | **PROVEN — ESP32-P4 VALIDATED** | ForgeUI Native Component #3; versioned 1–8 channel semantic model with stable channel IDs; one Canvas component; interactive Browser Preview; shared Live/Standalone private LVGL composition; seven bounded zero-based Runtime APIs; genuine-user channel/master hooks; no GPIO ownership |
+| Relay Panel | **RECERTIFIED — ESP32-P4 PHYSICALLY PROVEN** | Correct physical rendering; master ON/OFF; channels 0–3 operated; correct UserEvents; repeated interaction; operational runtime; Browser, Studio, and generated LVGL functionally aligned; unrelated ESP-Hosted startup assertion deferred as infrastructure work |
 
 Native Component totals are separate from the completed practical LVGL ledger.
 The 44/44 practical LVGL proof result remains unchanged. Dashboard Card is
@@ -63,6 +63,22 @@ proof ledger. Sensor Tile is **ForgeUI Native Component #2**. Its physical
 rendering and UserEvents evidence is proven; its automated multi-instance
 setter proof is explicitly deferred.
 Relay Panel is physically proven on ESP32-P4.
+
+### Relay Panel physical recertification — 2026-08-05
+
+Scott confirmed correct Relay Panel rendering on ESP32-P4, working master and
+individual-channel controls, correct UserEvents, multiple successful
+interactions, and an operational runtime. Browser, Studio, and generated LVGL
+behaviour were functionally aligned. Observed UserEvents included Master ON,
+Master OFF, and channels `0`, `1`, `2`, and `3` ON.
+
+During testing, an unrelated ESP-Hosted startup assertion was observed on one
+boot. Relay Panel functionality was verified independently. The issue is
+external to Relay Panel recertification and investigation is deferred. This
+status does not claim that ESP-Hosted or Wi-Fi transport was solved.
+
+Accepted save point:
+`FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_RECERTIFIED__ESP32P4_PHYSICALLY_PROVEN__2026-08-05`.
 
 ### Dashboard Card physical recertification — 2026-08-05
 
