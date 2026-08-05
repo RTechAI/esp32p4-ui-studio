@@ -357,12 +357,12 @@ WiFi: {
   },
   DashboardCard: {
     nativeWidgetSchemaVersion: 1,
-    title: 'System Output', icon: 'LV_SYMBOL_CHARGE', value: '72', units: '%',
-    secondaryText: 'Current operating level', status: 'normal', statusText: 'Normal',
-    progress: 72, timestamp: 'Updated now', accentColor: '', padding: 16,
+      title: 'System Output', icon: '', value: '72', units: '%',
+      secondaryText: 'Operating level', status: 'normal', statusText: 'Normal',
+      progress: 72, timestamp: 'Now', accentColor: '', padding: 12,
     showHeader: true, showFooter: true, showProgress: true, showStatus: true,
     generateRuntimeApi: true, enableClick: true,
-    positionMode: 'absolute', x: 40, y: 40, w: 300, h: 190,
+      positionMode: 'absolute', x: 40, y: 40, w: 240, h: 145,
   },
   SensorTile: {
     nativeWidgetSchemaVersion: 1, sensorType: 'temperature', title: 'Temperature',

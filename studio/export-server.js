@@ -979,7 +979,7 @@ function normalizePublicApiDeclarations(declarations) {
           (
             /^void FG_Set_[A-Za-z0-9_]+\((?:bool (?:enabled|on|checked|visible)|int32_t value)\);$/.test(declaration) ||
             /^void FG_Set_[A-Za-z0-9_]+\(float value\);$/.test(declaration) ||
-            /^void FG_Set_[A-Za-z0-9_]+\(const char \* (?:value|units|timestamp)\);$/.test(declaration) ||
+            /^void FG_Set_[A-Za-z0-9_]+\(const char \* (?:title|value|units|description|timestamp|footer)\);$/.test(declaration) ||
             /^void FG_Set_[A-Za-z0-9_]+\(const char \* text, uint32_t rgb\);$/.test(declaration) ||
             /^void FG_Set_[A-Za-z0-9_]+\(uint32_t rgb\);$/.test(declaration) ||
             /^void FG_Set_[A-Za-z0-9_]+\(int32_t trend\);$/.test(declaration) ||
@@ -1915,7 +1915,7 @@ ${definitions}
   }
 }
 
-const NATIVE_COMPONENT_HOOK_PATTERN = /^FG_On_Comp_[A-Za-z0-9_]+_(?:Clicked|Channel_Changed|Master_Changed|Value_Changed|Enabled_Changed)$/
+const NATIVE_COMPONENT_HOOK_PATTERN = /^FG_On_(?:Comp_[A-Za-z0-9_]+_(?:Clicked|Channel_Changed|Master_Changed|Value_Changed|Enabled_Changed)|Dashboard_Card_[A-Za-z0-9_]+_Clicked)$/
 const ORPHANED_NATIVE_HOOK_MARKER = 'ForgeUI orphaned legacy Native Component hook'
 
 function findVoidHookDefinitions(source) {
@@ -2013,7 +2013,7 @@ function reconcileNativeComponentHooks(source, header, activeHooks) {
   source = source.replace(/\n{3,}/g, '\n\n')
 
   header = header.replace(
-    /^\s*void\s+(FG_On_Comp_[A-Za-z0-9_]+_(?:Clicked|Channel_Changed|Master_Changed))\s*\([^;]*\)\s*;\s*$/gm,
+    /^\s*void\s+(FG_On_(?:Comp_[A-Za-z0-9_]+_(?:Clicked|Channel_Changed|Master_Changed)|Dashboard_Card_[A-Za-z0-9_]+_Clicked))\s*\([^;]*\)\s*;\s*$/gm,
     (declaration, hook) => active.has(hook) ? declaration : '',
   ).replace(/\n{3,}/g, '\n\n')
 

@@ -174,7 +174,7 @@ const sizes: Partial<Record<ComponentType, [number, number]>> = {
   ImageButton: [96, 64],
   Window: [420, 300],
   Menu: [420, 420],
-  DashboardCard: [300, 190],
+  DashboardCard: [240, 145],
   SensorTile: [260, 180],
   RelayPanel: [340, 360],
   PwmController: [320, 220],

@@ -881,6 +881,21 @@ describe('generated public UI API headers', () => {
       expect(preserved.orphanedCustomHooks).toEqual([stale])
     })
 
+    it('quarantines stale Dashboard Card proof hooks with descriptive identities', () => {
+      const staleCard = 'FG_On_Dashboard_Card_A_Clicked'
+      const currentCard = 'FG_On_Comp_CURRENT_Clicked'
+      const custom = `void ${staleCard}(void)\n{\n    FG_Set_Dashboard_Card_A_Title("stale");\n}`
+      const preserved = preserveUserEventFiles(
+        custom,
+        `#pragma once\nvoid ${staleCard}(void);\n`,
+        generateUserEventFiles([currentCard], []),
+      )
+      expect(preserved.source).toContain('#if 0 /* ForgeUI orphaned legacy Native Component hook:')
+      expect(preserved.source).toContain('FG_Set_Dashboard_Card_A_Title("stale");')
+      expect(preserved.header).not.toContain(staleCard)
+      expect(preserved.orphanedCustomHooks).toEqual([staleCard])
+    })
+
     it('does not modify standard or unrelated developer hooks', () => {
       const standard = 'void FG_On_Standard_Button_Clicked(void)\n{\n    developer_action();\n}'
       const helper = 'void Application_Background_Task(void)\n{\n    service_watchdog();\n}'

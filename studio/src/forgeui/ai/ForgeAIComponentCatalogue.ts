@@ -108,7 +108,7 @@ const sizes: Partial<Record<SupportedType, { w: number; h: number }>> = {
   Progress: { w: 240, h: 24 },
   CircularProgress: { w: 120, h: 120 },
   Divider: { w: 240, h: 2 },
-  DashboardCard: { w: 300, h: 190 },
+  DashboardCard: { w: 240, h: 145 },
   SensorTile: { w: 260, h: 180 },
   RelayPanel: { w: 340, h: 360 },
 }

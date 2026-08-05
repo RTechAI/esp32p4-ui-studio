@@ -281,15 +281,22 @@ type ButtonExport = {
 type DashboardCardExport = {
   stem: string
   rootName: string
+  titleName: string
   valueName: string
   unitsName: string
+  descriptionName: string
   statusName: string
   statusIndicatorName: string
   progressName: string
+  footerName: string
+  titleApiName: string
   valueApiName: string
   unitsApiName: string
+  descriptionApiName: string
   statusApiName: string
   progressApiName: string
+  footerApiName: string
+  colourApiName: string
   hookName?: string
   callbackName?: string
   runtimeEnabled: boolean
@@ -321,15 +328,22 @@ const createDashboardCardExports = (
       result.set(component.id, {
         stem,
         rootName: `fg_${runtimeStem}_dashboard_card`,
+        titleName: `fg_${runtimeStem}_dashboard_card_title`,
         valueName: `fg_${runtimeStem}_dashboard_card_value`,
         unitsName: `fg_${runtimeStem}_dashboard_card_units`,
+        descriptionName: `fg_${runtimeStem}_dashboard_card_description`,
         statusName: `fg_${runtimeStem}_dashboard_card_status`,
         statusIndicatorName: `fg_${runtimeStem}_dashboard_card_status_indicator`,
         progressName: `fg_${runtimeStem}_dashboard_card_progress`,
+        footerName: `fg_${runtimeStem}_dashboard_card_footer`,
+        titleApiName: `FG_Set_${stem}_Title`,
         valueApiName: `FG_Set_${stem}_Value`,
         unitsApiName: `FG_Set_${stem}_Units`,
+        descriptionApiName: `FG_Set_${stem}_Description`,
         statusApiName: `FG_Set_${stem}_Status`,
         progressApiName: `FG_Set_${stem}_Progress`,
+        footerApiName: `FG_Set_${stem}_Footer`,
+        colourApiName: `FG_Set_${stem}_Colour`,
         hookName,
         callbackName: hookName ? `fg_${runtimeStem}_dashboard_card_clicked_cb` : undefined,
         runtimeEnabled: component.props.generateRuntimeApi !== false,
@@ -4144,15 +4158,15 @@ case 'DashboardCard': {
   const statusColor = model.status === 'critical' ? palette.healthCritical
     : model.status === 'warning' ? palette.healthHigh
       : model.status === 'offline' ? palette.disabledText : palette.healthNormal
-  const symbol = /^LV_SYMBOL_[A-Z0-9_]+$/.test(model.icon) ? model.icon : 'LV_SYMBOL_BULLET'
+  const symbol = /^LV_SYMBOL_[A-Z0-9_]+$/.test(model.icon) ? model.icon : ''
+  const cardWidth = integerProp(w, 240)
   lines.push(`${card.rootName} = lv_obj_create(${parentVar});`)
-  lines.push(`lv_obj_t * ${varName} = ${card.rootName};`)
   lines.push(`lv_obj_set_pos(${card.rootName}, ${x}, ${y});`)
   lines.push(`lv_obj_set_size(${card.rootName}, ${w}, ${h});`)
   lines.push(`lv_obj_set_style_bg_color(${card.rootName}, lv_color_hex(${palette.surface}), LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_border_color(${card.rootName}, lv_color_hex(${palette.surfaceBorder}), LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_border_color(${card.rootName}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_border_width(${card.rootName}, 1, LV_PART_MAIN);`)
-  lines.push(`lv_obj_set_style_radius(${card.rootName}, 12, LV_PART_MAIN);`)
+  lines.push(`lv_obj_set_style_radius(${card.rootName}, 8, LV_PART_MAIN);`)
   lines.push(`lv_obj_set_style_pad_all(${card.rootName}, ${model.padding}, LV_PART_MAIN);`)
   lines.push(`lv_obj_clear_flag(${card.rootName}, LV_OBJ_FLAG_SCROLLABLE);`)
   if (model.enableClick && card.callbackName) {
@@ -4163,20 +4177,23 @@ case 'DashboardCard': {
   }
   let cursorY = model.padding
   if (model.showHeader) {
-    lines.push(`lv_obj_t * ${varName}_icon = lv_label_create(${card.rootName});`)
-    lines.push(`lv_label_set_text(${varName}_icon, ${symbol});`)
-    lines.push(`lv_obj_set_pos(${varName}_icon, ${model.padding}, ${cursorY});`)
-    lines.push(`lv_obj_set_style_text_color(${varName}_icon, lv_color_hex(${accent}), LV_PART_MAIN);`)
-    lines.push(`lv_obj_t * ${varName}_title = lv_label_create(${card.rootName});`)
-    lines.push(`lv_label_set_text(${varName}_title, "${esc(model.title)}");`)
-    lines.push(`lv_obj_set_pos(${varName}_title, ${model.padding + 26}, ${cursorY});`)
-    lines.push(`lv_obj_set_width(${varName}_title, ${Math.max(20, integerProp(w, 300) - model.padding * 2 - 120)});`)
-    lines.push(`lv_label_set_long_mode(${varName}_title, LV_LABEL_LONG_DOT);`)
-    lines.push(`lv_obj_set_style_text_color(${varName}_title, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+    if (symbol) {
+      lines.push(`lv_obj_t * ${varName}_icon = lv_label_create(${card.rootName});`)
+      lines.push(`lv_label_set_text(${varName}_icon, ${symbol});`)
+      lines.push(`lv_obj_set_pos(${varName}_icon, ${model.padding}, ${cursorY});`)
+      lines.push(`lv_obj_set_style_text_color(${varName}_icon, lv_color_hex(${accent}), LV_PART_MAIN);`)
+    }
+    lines.push(`${card.titleName} = lv_label_create(${card.rootName});`)
+    lines.push(`lv_label_set_text(${card.titleName}, "${esc(model.title)}");`)
+    lines.push(`lv_obj_set_pos(${card.titleName}, ${model.padding + (symbol ? 20 : 0)}, ${cursorY});`)
+    lines.push(`lv_obj_set_width(${card.titleName}, ${Math.max(20, cardWidth - model.padding * 2 - (symbol ? 20 : 0) - (model.showStatus ? 78 : 0))});`)
+    lines.push(`lv_label_set_long_mode(${card.titleName}, LV_LABEL_LONG_DOT);`)
+    lines.push(`lv_obj_set_style_text_color(${card.titleName}, lv_color_hex(${palette.textPrimary}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_font(${card.titleName}, &lv_font_montserrat_12, LV_PART_MAIN);`)
     if (model.showStatus) {
       lines.push(`${card.statusIndicatorName} = lv_obj_create(${card.rootName});`)
-      lines.push(`lv_obj_set_size(${card.statusIndicatorName}, 8, 8);`)
-      lines.push(`lv_obj_align(${card.statusIndicatorName}, LV_ALIGN_TOP_RIGHT, -${model.padding + 72}, ${cursorY + 5});`)
+      lines.push(`lv_obj_set_size(${card.statusIndicatorName}, 6, 6);`)
+      lines.push(`lv_obj_align(${card.statusIndicatorName}, LV_ALIGN_TOP_RIGHT, -${model.padding + 68}, ${cursorY + 5});`)
       lines.push(`lv_obj_set_style_radius(${card.statusIndicatorName}, LV_RADIUS_CIRCLE, LV_PART_MAIN);`)
       lines.push(`lv_obj_set_style_bg_color(${card.statusIndicatorName}, lv_color_hex(${statusColor}), LV_PART_MAIN);`)
       lines.push(`lv_obj_set_style_border_width(${card.statusIndicatorName}, 0, LV_PART_MAIN);`)
@@ -4186,7 +4203,7 @@ case 'DashboardCard': {
       lines.push(`lv_obj_set_style_text_color(${card.statusName}, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
       lines.push(`lv_obj_set_style_text_font(${card.statusName}, &lv_font_montserrat_12, LV_PART_MAIN);`)
     }
-    cursorY += 34
+    cursorY += 26
   }
   lines.push(`${card.valueName} = lv_label_create(${card.rootName});`)
   lines.push(`lv_label_set_text(${card.valueName}, "${esc(model.value)}");`)
@@ -4197,32 +4214,32 @@ case 'DashboardCard': {
   lines.push(`lv_label_set_text(${card.unitsName}, "${esc(model.units)}");`)
   lines.push(`lv_obj_align_to(${card.unitsName}, ${card.valueName}, LV_ALIGN_OUT_RIGHT_BOTTOM, 6, -2);`)
   lines.push(`lv_obj_set_style_text_color(${card.unitsName}, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
-  cursorY += 42
+  cursorY += 38
   if (model.secondaryText) {
-    lines.push(`lv_obj_t * ${varName}_secondary = lv_label_create(${card.rootName});`)
-    lines.push(`lv_label_set_text(${varName}_secondary, "${esc(model.secondaryText)}");`)
-    lines.push(`lv_obj_set_pos(${varName}_secondary, ${model.padding}, ${cursorY});`)
-    lines.push(`lv_obj_set_width(${varName}_secondary, ${Math.max(20, integerProp(w, 300) - model.padding * 2)});`)
-    lines.push(`lv_label_set_long_mode(${varName}_secondary, LV_LABEL_LONG_DOT);`)
-    lines.push(`lv_obj_set_style_text_color(${varName}_secondary, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
-    lines.push(`lv_obj_set_style_text_font(${varName}_secondary, &lv_font_montserrat_12, LV_PART_MAIN);`)
-    cursorY += 24
+    lines.push(`${card.descriptionName} = lv_label_create(${card.rootName});`)
+    lines.push(`lv_label_set_text(${card.descriptionName}, "${esc(model.secondaryText)}");`)
+    lines.push(`lv_obj_set_pos(${card.descriptionName}, ${model.padding}, ${cursorY});`)
+    lines.push(`lv_obj_set_width(${card.descriptionName}, ${Math.max(20, cardWidth - model.padding * 2)});`)
+    lines.push(`lv_label_set_long_mode(${card.descriptionName}, LV_LABEL_LONG_DOT);`)
+    lines.push(`lv_obj_set_style_text_color(${card.descriptionName}, lv_color_hex(${palette.textSecondary}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_font(${card.descriptionName}, &lv_font_montserrat_12, LV_PART_MAIN);`)
+    cursorY += 21
   }
   if (model.showProgress) {
     lines.push(`${card.progressName} = lv_bar_create(${card.rootName});`)
     lines.push(`lv_obj_set_pos(${card.progressName}, ${model.padding}, ${cursorY});`)
-    lines.push(`lv_obj_set_size(${card.progressName}, ${Math.max(20, integerProp(w, 300) - model.padding * 2)}, 8);`)
+    lines.push(`lv_obj_set_size(${card.progressName}, ${Math.max(20, cardWidth - model.padding * 2)}, 6);`)
     lines.push(`lv_bar_set_range(${card.progressName}, 0, 100);`)
     lines.push(`lv_bar_set_value(${card.progressName}, ${Math.round(model.progress)}, LV_ANIM_OFF);`)
     lines.push(`lv_obj_set_style_bg_color(${card.progressName}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN);`)
     lines.push(`lv_obj_set_style_bg_color(${card.progressName}, lv_color_hex(${accent}), LV_PART_INDICATOR);`)
   }
   if (model.showFooter) {
-    lines.push(`lv_obj_t * ${varName}_timestamp = lv_label_create(${card.rootName});`)
-    lines.push(`lv_label_set_text(${varName}_timestamp, "${esc(model.timestamp)}");`)
-    lines.push(`lv_obj_align(${varName}_timestamp, LV_ALIGN_BOTTOM_LEFT, ${model.padding}, -${model.padding});`)
-    lines.push(`lv_obj_set_style_text_color(${varName}_timestamp, lv_color_hex(${palette.disabledText}), LV_PART_MAIN);`)
-    lines.push(`lv_obj_set_style_text_font(${varName}_timestamp, &lv_font_montserrat_12, LV_PART_MAIN);`)
+    lines.push(`${card.footerName} = lv_label_create(${card.rootName});`)
+    lines.push(`lv_label_set_text(${card.footerName}, "${esc(model.timestamp)}");`)
+    lines.push(`lv_obj_align(${card.footerName}, LV_ALIGN_BOTTOM_LEFT, ${model.padding}, -${model.padding});`)
+    lines.push(`lv_obj_set_style_text_color(${card.footerName}, lv_color_hex(${palette.disabledText}), LV_PART_MAIN);`)
+    lines.push(`lv_obj_set_style_text_font(${card.footerName}, &lv_font_montserrat_12, LV_PART_MAIN);`)
   }
   lines.push(``)
   break
@@ -6650,11 +6667,14 @@ const backgroundMode =
   })
   dashboardCardExports.forEach(card => {
     lines.push(`static lv_obj_t * ${card.rootName} = NULL;`)
+    lines.push(`static lv_obj_t * ${card.titleName} = NULL;`)
     lines.push(`static lv_obj_t * ${card.valueName} = NULL;`)
     lines.push(`static lv_obj_t * ${card.unitsName} = NULL;`)
+    lines.push(`static lv_obj_t * ${card.descriptionName} = NULL;`)
     lines.push(`static lv_obj_t * ${card.statusName} = NULL;`)
     lines.push(`static lv_obj_t * ${card.statusIndicatorName} = NULL;`)
     lines.push(`static lv_obj_t * ${card.progressName} = NULL;`)
+    lines.push(`static lv_obj_t * ${card.footerName} = NULL;`)
   })
   sensorTileExports.forEach(tile => {
     lines.push(`static lv_obj_t * ${tile.rootName} = NULL;`)
@@ -7200,10 +7220,20 @@ const backgroundMode =
       lines.push(``)
     }
     if (!card.runtimeEnabled) return
+    lines.push(`void ${card.titleApiName}(const char * title)`)
+    lines.push(`{`)
+    lines.push(`    if (${card.titleName}) lv_label_set_text(${card.titleName}, title ? title : "");`)
+    lines.push(`}`)
+    lines.push(``)
     lines.push(`void ${card.valueApiName}(const char * value)`)
     lines.push(`{`)
     lines.push(`    if (${card.valueName} == NULL) return;`)
     lines.push(`    lv_label_set_text(${card.valueName}, value ? value : "");`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${card.descriptionApiName}(const char * description)`)
+    lines.push(`{`)
+    lines.push(`    if (${card.descriptionName}) lv_label_set_text(${card.descriptionName}, description ? description : "");`)
     lines.push(`}`)
     lines.push(``)
     lines.push(`void ${card.unitsApiName}(const char * units)`)
@@ -7224,6 +7254,17 @@ const backgroundMode =
     lines.push(`    if (value < 0) value = 0;`)
     lines.push(`    if (value > 100) value = 100;`)
     lines.push(`    if (${card.progressName}) lv_bar_set_value(${card.progressName}, value, LV_ANIM_OFF);`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${card.footerApiName}(const char * footer)`)
+    lines.push(`{`)
+    lines.push(`    if (${card.footerName}) lv_label_set_text(${card.footerName}, footer ? footer : "");`)
+    lines.push(`}`)
+    lines.push(``)
+    lines.push(`void ${card.colourApiName}(uint32_t rgb)`)
+    lines.push(`{`)
+    lines.push(`    rgb &= 0xFFFFFFu;`)
+    lines.push(`    if (${card.progressName}) lv_obj_set_style_bg_color(${card.progressName}, lv_color_hex(rgb), LV_PART_INDICATOR);`)
     lines.push(`}`)
     lines.push(``)
   })
@@ -9823,10 +9864,14 @@ lines.push(`}`)
       ).concat(Array.from(ledExports.values()).map(
         ledExport => `void ${ledExport.apiName}(bool on);`,
       )).concat(Array.from(dashboardCardExports.values()).filter(card => card.runtimeEnabled).flatMap(card => [
+        `void ${card.titleApiName}(const char * title);`,
         `void ${card.valueApiName}(const char * value);`,
         `void ${card.unitsApiName}(const char * units);`,
+        `void ${card.descriptionApiName}(const char * description);`,
         `void ${card.statusApiName}(const char * text, uint32_t rgb);`,
         `void ${card.progressApiName}(int32_t value);`,
+        `void ${card.footerApiName}(const char * footer);`,
+        `void ${card.colourApiName}(uint32_t rgb);`,
       ])).concat(Array.from(sensorTileExports.values()).filter(tile => tile.runtimeEnabled).flatMap(tile => [
         `void ${tile.valueApiName}(float value);`,
         `void ${tile.unitsApiName}(const char * units);`,

@@ -23,27 +23,28 @@ export const ForgeUIDashboardCardPreview = ({
     height="100%"
     overflow="hidden"
     border="1px solid"
-    borderColor={theme.surfaceBorder}
-    borderRadius="12px"
+    borderColor={theme.surfaceSecondary}
+    borderRadius="8px"
     background={theme.surface}
     color={theme.textPrimary}
     padding={`${model.padding}px`}
-    gap="8px"
   >
-    {model.showHeader && <Flex align="center" gap="8px" minHeight="22px">
-      {model.icon && <Text aria-label="Dashboard card icon" color={accent}>{model.icon.replace(/^LV_SYMBOL_/, '')}</Text>}
-      <Text fontSize="sm" fontWeight="600" noOfLines={1} flex="1">{model.title}</Text>
-      {model.showStatus && <Flex align="center" gap="5px">
-        <Box width="8px" height="8px" borderRadius="full" background={statusColor} />
-        <Text fontSize="xs" color={theme.textSecondary}>{model.statusText}</Text>
+    {model.showHeader && <Flex align="center" minHeight="20px" marginBottom="6px">
+      <Flex align="center" gap="6px" minWidth="0" flex="1">
+        {model.icon && <Text aria-label="Dashboard card icon" fontSize="13px" lineHeight="1" color={accent}>{model.icon}</Text>}
+        <Text fontSize="13px" fontWeight="600" lineHeight="1.2" noOfLines={1}>{model.title}</Text>
+      </Flex>
+      {model.showStatus && <Flex align="center" gap="4px" flexShrink={0} marginLeft="6px">
+        <Box width="6px" height="6px" borderRadius="full" background={statusColor} />
+        <Text fontSize="11px" lineHeight="1.2" color={theme.textSecondary}>{model.statusText}</Text>
       </Flex>}
     </Flex>}
-    <Flex align="baseline" gap="6px" flex="1" minHeight="42px">
-      <Text fontSize="3xl" fontWeight="700" lineHeight="1.1" noOfLines={1}>{model.value}</Text>
-      {model.units && <Text fontSize="md" color={theme.textSecondary}>{model.units}</Text>}
+    <Flex align="baseline" gap="5px" minHeight="34px" marginBottom={model.secondaryText ? '4px' : model.showProgress ? '6px' : 0}>
+      <Text fontSize="28px" fontWeight="700" lineHeight="1.05" noOfLines={1}>{model.value}</Text>
+      {model.units && <Text fontSize="14px" fontWeight="500" color={theme.textSecondary}>{model.units}</Text>}
     </Flex>
-    {model.secondaryText && <Text fontSize="xs" color={theme.textSecondary} noOfLines={1}>{model.secondaryText}</Text>}
-    {model.showProgress && <Progress value={model.progress} size="sm" borderRadius="full" colorScheme="teal" background={theme.surfaceSecondary} sx={{ '& > div': { background: accent } }} />}
-    {model.showFooter && <Text fontSize="xs" color={theme.disabledText} noOfLines={1}>{model.timestamp}</Text>}
+    {model.secondaryText && <Text fontSize="11px" lineHeight="1.25" marginBottom={model.showProgress ? '6px' : 0} color={theme.textSecondary} noOfLines={1}>{model.secondaryText}</Text>}
+    {model.showProgress && <Progress value={model.progress} height="6px" marginBottom={model.showFooter ? '6px' : 0} borderRadius="full" colorScheme="teal" background={theme.surfaceSecondary} sx={{ '& > div': { background: accent } }} />}
+    {model.showFooter && <Text fontSize="11px" lineHeight="1.2" color={theme.disabledText} noOfLines={1}>{model.timestamp}</Text>}
   </Flex>
 }

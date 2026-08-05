@@ -2,6 +2,11 @@
 
 Status: **PROVEN** (2026-08-02).
 
+Recertification status: **PHYSICALLY PROVEN** (2026-08-05).
+
+Recertification save point:
+`FORGEUI_NATIVE_COMPONENT_1__DASHBOARD_CARD_RECERTIFIED__ESP32P4_PHYSICALLY_PROVEN__2026-08-05`.
+
 Platform milestone:
 `FORGEUI_NATIVE_COMPONENT_1__DASHBOARD_CARD_PROVEN__ESP32P4_VALIDATED__READY_FOR_SENSOR_TILE__2026-08-02`.
 
@@ -82,6 +87,31 @@ Multiple instances remained independent. RAM remained stable, with no crash,
 watchdog reset or rendering corruption.
 
 Result: **ForgeUI Native Component #1 — Dashboard Card — PROVEN**.
+
+### 2026-08-05 physical recertification
+
+Dashboard Card was physically revalidated on the ESP32-P4 using two- and
+three-instance layouts. The compact `240 x 145` presentation rendered
+correctly, including readable typography, progress bars, footer, spacing and
+stackability.
+
+Each instance emitted only its own generated click callback during repeated
+touch interaction. Observed callbacks included
+`FG_On_Comp_MSFLVB1_EE9_URI_Clicked`,
+`FG_On_Comp_MSFLVCQVVK0_LD_Clicked` and
+`FG_On_Comp_MSFMNMRYJ9751_Clicked`. No cross-triggering or unexpected callback
+flood occurred, confirming independent runtime identity and duplicate-instance
+isolation.
+
+The application remained stable while connected and disconnected. Connected
+telemetry repeatedly reported `WiFi: CONNECTED | IP: 192.168.1.194 | SD:
+READY`, with approximately 38 KB internal RAM free. No Guru Meditation,
+watchdog reset, LVGL assertion, heap warning or other runtime failure was
+observed during repeated interaction.
+
+This evidence satisfies the Dashboard Card-specific physical proof criteria.
+No Dashboard Card proof item remains incomplete. The component is physically
+proven and accepted at the recertification save point above.
 
 ## ESP32-P4 proof procedure (completed)
 

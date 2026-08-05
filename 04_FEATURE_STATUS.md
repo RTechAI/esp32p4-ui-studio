@@ -63,6 +63,21 @@ proof ledger. Sensor Tile is **ForgeUI Native Component #2 — PROVEN** and
 establishes stable Runtime SDK identity and UserEvents regeneration ownership.
 Relay Panel is physically proven on ESP32-P4.
 
+### Dashboard Card physical recertification — 2026-08-05
+
+Dashboard Card remains **PROVEN** following focused ESP32-P4 physical
+recertification. Two- and three-card layouts verified the compact `240 x 145`
+design, readable typography, progress bars, footer, spacing and stackability.
+Repeated touches emitted only the callback belonging to the touched instance;
+three independent generated callbacks were observed with no cross-triggering
+or callback flood. Operation remained stable both connected and disconnected.
+While connected, telemetry repeatedly showed Wi-Fi at `192.168.1.194`, SD
+`READY` and approximately 38 KB internal RAM free. No Guru Meditation,
+watchdog reset, LVGL assertion or heap warning was observed.
+
+Dashboard Card-specific proof is complete. Accepted save point:
+`FORGEUI_NATIVE_COMPONENT_1__DASHBOARD_CARD_RECERTIFIED__ESP32P4_PHYSICALLY_PROVEN__2026-08-05`.
+
 Current Native Component roadmap:
 
 1. Dashboard Card — **PROVEN**

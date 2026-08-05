@@ -434,7 +434,59 @@ void FG_On_Comp_MSBOZT2_XBP996_Enabled_Changed(bool enabled)
 }
 #endif
 
-void FG_On_Comp_MSF3_R93_JOY4_XF_Clicked(void)
+#if 0 /* ForgeUI orphaned legacy Native Component hook: no active component owns FG_On_Dashboard_Card_A_Clicked. */
+void FG_On_Dashboard_Card_A_Clicked(void)
 {
-    printf("[ForgeUI User Event] FG_On_Comp_MSF3_R93_JOY4_XF_Clicked\n");
+    static uint32_t count = 0;
+    ++count;
+    char value[16];
+    char footer[40];
+    snprintf(value, sizeof(value), "%u", (unsigned)(72u + count));
+    snprintf(footer, sizeof(footer), "A callback #%u", (unsigned)count);
+    FG_Set_Dashboard_Card_A_Title("Dashboard Card A");
+    FG_Set_Dashboard_Card_A_Value(value);
+    FG_Set_Dashboard_Card_A_Units("A");
+    FG_Set_Dashboard_Card_A_Description("Card A isolated SDK update");
+    FG_Set_Dashboard_Card_A_Status((count & 1u) ? "Touched" : "Normal", (count & 1u) ? 0x14B8A6u : 0x22C55Eu);
+    FG_Set_Dashboard_Card_A_Progress((int32_t)((count * 13u) % 101u));
+    FG_Set_Dashboard_Card_A_Footer(footer);
+    FG_Set_Dashboard_Card_A_Colour((count & 1u) ? 0x14B8A6u : 0x38BDF8u);
+    printf("[Dashboard Card Proof] A callback=%u hook=FG_On_Dashboard_Card_A_Clicked\n", (unsigned)count);
+}
+#endif
+
+#if 0 /* ForgeUI orphaned legacy Native Component hook: no active component owns FG_On_Dashboard_Card_B_Clicked. */
+void FG_On_Dashboard_Card_B_Clicked(void)
+{
+    static uint32_t count = 0;
+    ++count;
+    char value[16];
+    char footer[40];
+    snprintf(value, sizeof(value), "%u", (unsigned)(48u + count));
+    snprintf(footer, sizeof(footer), "B callback #%u", (unsigned)count);
+    FG_Set_Dashboard_Card_B_Title("Dashboard Card B");
+    FG_Set_Dashboard_Card_B_Value(value);
+    FG_Set_Dashboard_Card_B_Units("B");
+    FG_Set_Dashboard_Card_B_Description("Card B isolated SDK update");
+    FG_Set_Dashboard_Card_B_Status((count & 1u) ? "Touched" : "Normal", (count & 1u) ? 0xF2A900u : 0x22C55Eu);
+    FG_Set_Dashboard_Card_B_Progress((int32_t)((count * 17u) % 101u));
+    FG_Set_Dashboard_Card_B_Footer(footer);
+    FG_Set_Dashboard_Card_B_Colour((count & 1u) ? 0xF2A900u : 0xFB7185u);
+    printf("[Dashboard Card Proof] B callback=%u hook=FG_On_Dashboard_Card_B_Clicked\n", (unsigned)count);
+}
+#endif
+
+void FG_On_Comp_MSFLVB1_EE9_URI_Clicked(void)
+{
+    printf("[ForgeUI User Event] FG_On_Comp_MSFLVB1_EE9_URI_Clicked\n");
+}
+
+void FG_On_Comp_MSFLVCQVVK0_LD_Clicked(void)
+{
+    printf("[ForgeUI User Event] FG_On_Comp_MSFLVCQVVK0_LD_Clicked\n");
+}
+
+void FG_On_Comp_MSFMNMRYJ9751_Clicked(void)
+{
+    printf("[ForgeUI User Event] FG_On_Comp_MSFMNMRYJ9751_Clicked\n");
 }

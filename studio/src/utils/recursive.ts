@@ -1,5 +1,6 @@
 import omit from 'lodash/omit'
 import filter from 'lodash/filter'
+import cloneDeep from 'lodash/cloneDeep'
 import { generateId } from './generateId'
 
 export const duplicateComponent = (
@@ -42,7 +43,10 @@ export const duplicateComponent = (
     clonedComponents[newid] = {
       ...component,
       id: newid,
-      props: { ...component.props },
+      // Identity fields are allocated above. User-authored properties are
+      // content, not identifiers: preserve their values verbatim while giving
+      // the duplicate an independent property graph.
+      props: cloneDeep(component.props),
       children,
       componentName: newComponentName,
     }

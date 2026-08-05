@@ -43,13 +43,17 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- `FG_On_Comp_MSF3_R93_JOY4_XF_Clicked()`
+- `FG_On_Comp_MSFLVB1_EE9_URI_Clicked()`
+- `FG_On_Comp_MSFLVCQVVK0_LD_Clicked()`
+- `FG_On_Comp_MSFMNMRYJ9751_Clicked()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| Comp_MSF3_R93_JOY4_XF | Click | `FG_On_Comp_MSF3_R93_JOY4_XF_Clicked()` |
+| Comp_MSFLVB1_EE9_URI | Click | `FG_On_Comp_MSFLVB1_EE9_URI_Clicked()` |
+| Comp_MSFLVCQVVK0_LD | Click | `FG_On_Comp_MSFLVCQVVK0_LD_Clicked()` |
+| Comp_MSFMNMRYJ9751 | Click | `FG_On_Comp_MSFMNMRYJ9751_Clicked()` |
 
 ---
 
