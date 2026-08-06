@@ -1,4 +1,6 @@
 export const FORGEUI_NETWORK_STATUS_CARD_SCHEMA_VERSION = 1
+export const FORGEUI_NETWORK_STATUS_CARD_DEFAULT_SIZE = { width: 240, height: 145 } as const
+export const FORGEUI_NETWORK_STATUS_CARD_MIN_SIZE = { width: 220, height: 128 } as const
 export type ForgeUINetworkType = 'wifi' | 'ethernet' | 'cellular' | 'other'
 
 const flag = (value: unknown, fallback: boolean) => typeof value === 'boolean' ? value : fallback

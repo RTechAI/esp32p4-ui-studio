@@ -1,4 +1,5 @@
 import { getPreviewDefaultProps } from '~utils/defaultProps'
+import { FORGEUI_NETWORK_STATUS_CARD_DEFAULT_SIZE } from '../ForgeUINetworkStatusCard'
 
 // This is authoritative for widgets currently supported by ForgeUI, not an
 // assertion that every official LVGL widget is registered. The final LVGL 9.2
@@ -190,7 +191,7 @@ const sizes: Partial<Record<ComponentType, [number, number]>> = {
   IOMonitor: [420, 300],
   BatteryCard: [300, 220],
   TankLevelCard: [320, 230],
-  NetworkStatusCard: [300, 190],
+  NetworkStatusCard: [FORGEUI_NETWORK_STATUS_CARD_DEFAULT_SIZE.width, FORGEUI_NETWORK_STATUS_CARD_DEFAULT_SIZE.height],
 }
 
 const keywords: Partial<Record<ComponentType, string[]>> = {

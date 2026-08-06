@@ -43,13 +43,13 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- None
+- `FG_On_Comp_MSI2_ZKURWHVGM_Clicked()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| None | - | - |
+| Comp_MSI2_ZKURWHVGM | Click | `FG_On_Comp_MSI2_ZKURWHVGM_Clicked()` |
 
 ---
 

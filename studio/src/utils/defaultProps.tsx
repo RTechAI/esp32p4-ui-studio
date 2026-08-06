@@ -1,5 +1,6 @@
 import React from 'react'
 import * as Chakra from '@chakra-ui/react'
+import { FORGEUI_NETWORK_STATUS_CARD_DEFAULT_SIZE } from '~forgeui/ForgeUINetworkStatusCard'
 
 import {
   BadgeProps,
@@ -458,7 +459,9 @@ WiFi: {
     networkName: 'ForgeUI-Lab', ipAddress: '192.168.1.42', signalStrength: 78,
     hostname: 'forgeui-p4', statusText: 'Online', accentColour: '#22C55E',
     disconnectedColour: '#E5484D', compactMode: false, generateRuntimeApi: true,
-    positionMode: 'absolute', x: 40, y: 40, w: 300, h: 190,
+    positionMode: 'absolute', x: 40, y: 40,
+    w: FORGEUI_NETWORK_STATUS_CARD_DEFAULT_SIZE.width,
+    h: FORGEUI_NETWORK_STATUS_CARD_DEFAULT_SIZE.height,
   },
   QRCode: {
     contentType: 'custom',

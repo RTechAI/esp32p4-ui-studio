@@ -1,11 +1,21 @@
 import { generateForgeUILvglCode } from './ForgeUILvglExport'
-const card=(id:string,props:Record<string,unknown>={}):IComponent=>({id,parent:'root',type:'NetworkStatusCard',children:[],props:{x:20,y:30,w:300,h:190,connected:true,networkName:'ForgeUI-Lab',ipAddress:'192.168.1.42',signalStrength:78,statusText:'Online',generateRuntimeApi:true,...props}})
+const card=(id:string,props:Record<string,unknown>={}):IComponent=>({id,parent:'root',type:'NetworkStatusCard',children:[],props:{x:20,y:30,w:240,h:145,connected:true,networkName:'ForgeUI-Lab',ipAddress:'192.168.1.42',signalStrength:78,statusText:'Online',generateRuntimeApi:true,...props}})
 const multiCardExport=()=>{
-  const components:any={root:{id:'root',parent:'',type:'Box',children:['network-left-proof','network-right-proof'],props:{w:1024,h:600}},'network-left-proof':card('network-left-proof',{x:40,y:100,w:440,h:240,title:'Current Wi-Fi',connected:false,networkName:'--',ipAddress:'--',signalStrength:0,statusText:'Offline'}),'network-right-proof':card('network-right-proof',{x:544,y:100,w:440,h:240,title:'Backup Network',networkType:'ethernet',connected:false,networkName:'Service LAN',ipAddress:'--',signalStrength:0,statusText:'Cable disconnected'})}
+  const components:any={root:{id:'root',parent:'',type:'Box',children:['network-left-proof','network-right-proof'],props:{w:1024,h:600}},'network-left-proof':card('network-left-proof',{x:40,y:100,title:'Current Wi-Fi',connected:false,networkName:'--',ipAddress:'--',signalStrength:0,statusText:'Offline'}),'network-right-proof':card('network-right-proof',{x:300,y:100,title:'Backup Network',networkType:'ethernet',connected:false,networkName:'Service LAN',ipAddress:'--',signalStrength:0,statusText:'Cable disconnected'})}
   const out=generateForgeUILvglCode(components,'graphite',undefined,{includeThemeTexture:false})
   return out
 }
 describe('Network Status Card LVGL export',()=>{
+  it('exports the stackable default and minimum sizes without clipping the status bar',()=>{
+    const defaultCode=multiCardExport().code
+    expect(defaultCode).toContain('lv_obj_set_size(fg_network_left_proof_network, 240, 145);')
+    expect(defaultCode).toMatch(/lv_obj_set_size\(fg_network_left_proof_network_bar,\s*220,\s*5\);/)
+    const minimumCode=generateForgeUILvglCode({root:{id:'root',parent:'',type:'Box',children:['network-minimum'],props:{w:1024,h:600}},'network-minimum':card('network-minimum',{w:220,h:128})} as any,'graphite',undefined,{includeThemeTexture:false}).code
+    expect(minimumCode).toContain('lv_obj_set_size(fg_network_minimum_network, 220, 128);')
+    expect(minimumCode).toMatch(/lv_obj_set_size\(fg_network_minimum_network_bar,\s*200,\s*5\);/)
+    expect(minimumCode).toMatch(/lv_label_set_long_mode\(fg_network_minimum_network_name_label,\s*LV_LABEL_LONG_DOT\);/)
+    expect(minimumCode).toMatch(/lv_label_set_long_mode\(fg_network_minimum_network_ip_label,\s*LV_LABEL_LONG_DOT\);/)
+  })
   it('generates isolated persisted-ID APIs, clamping, disconnected output, and zero UserEvents',()=>{
     const components:any={root:{id:'root',parent:'',type:'Box',children:['network-left-uuid','network-right-uuid'],props:{w:1024,h:600}},'network-left-uuid':card('network-left-uuid'),'network-right-uuid':card('network-right-uuid',{connected:false,networkName:'Backup'})}
     const out=generateForgeUILvglCode(components,'graphite',undefined,{includeThemeTexture:false})

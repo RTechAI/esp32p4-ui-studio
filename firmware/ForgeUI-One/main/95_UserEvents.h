@@ -26,7 +26,7 @@ typedef enum
 extern "C" {
 #endif
 
-
+void FG_On_Comp_MSI2_ZKURWHVGM_Clicked(void);
 
 #ifdef __cplusplus
 }

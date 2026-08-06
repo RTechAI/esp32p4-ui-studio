@@ -18,3 +18,8 @@
 #include "95_UserEvents.h"
 #include "90_Studio_Export.h"
 #include <stdio.h>
+
+void FG_On_Comp_MSI2_ZKURWHVGM_Clicked(void)
+{
+    printf("[ForgeUI User Event] FG_On_Comp_MSI2_ZKURWHVGM_Clicked\n");
+}

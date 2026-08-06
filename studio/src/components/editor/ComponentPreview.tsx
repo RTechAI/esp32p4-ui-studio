@@ -65,6 +65,7 @@ import { ForgeUIIOMonitorPreview } from '~forgeui/preview/ForgeUIIOMonitorPrevie
 import { ForgeUIBatteryCardPreview } from '~forgeui/preview/ForgeUIBatteryCardPreview'
 import { ForgeUITankLevelCardPreview } from '~forgeui/preview/ForgeUITankLevelCardPreview'
 import { ForgeUINetworkStatusCardPreview } from '~forgeui/preview/ForgeUINetworkStatusCardPreview'
+import { FORGEUI_NETWORK_STATUS_CARD_MIN_SIZE } from '~forgeui/ForgeUINetworkStatusCard'
 import { useForgePreviewPalette } from '~forgeui/theme/ForgeThemeContext'
 import { resolveForgeSemanticPalette } from '~forgeui/preview/forgeThemeMap'
 import InteractiveButtonCanvasPreview, {
@@ -1154,7 +1155,7 @@ case 'TankLevelCard':
   </PreviewContainer>
 
 case 'NetworkStatusCard':
-  return <PreviewContainer component={component} enableVisualHelper resizeMinWidth={230} resizeMinHeight={150} {...forwardedProps}>
+  return <PreviewContainer component={component} enableVisualHelper resizeMinWidth={FORGEUI_NETWORK_STATUS_CARD_MIN_SIZE.width} resizeMinHeight={FORGEUI_NETWORK_STATUS_CARD_MIN_SIZE.height} {...forwardedProps}>
     <ForgeUINetworkStatusCardPreview component={component} palette={previewPalette} />
   </PreviewContainer>
 
