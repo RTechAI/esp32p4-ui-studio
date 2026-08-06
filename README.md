@@ -3,8 +3,9 @@
 > Current certification (2026-08-06): **44 / 44 practical LVGL 9.2
 > components physically proven on ESP32-P4**, plus seven implemented ForgeUI
 > Native Components. Dashboard Card, Sensor Tile, Relay Panel, PWM Controller,
-> Trend Chart, and Trend Chart Pro are physically proven. Alarm Panel is
-> implemented but **NOT PROVEN** pending fresh user ESP32-P4 revalidation.
+> Trend Chart, and Trend Chart Pro are fully proven. Alarm Panel is
+> **HARDWARE VALIDATED**: exported, built, flashed, and physically rendered on
+> ESP32-P4; extended runtime interaction and callback proof is deferred.
 
 > Next architecture sprint (recorded, not implemented): **ForgeUI ESP32-S3 Simulator Platform** for simulated digital I/O, PWM, analogue, battery, tank, motor and relay behavior, Wi-Fi communication, repeatable hardware validation, a future Test Certificate Card and a public hardware-proof workflow.
 
@@ -36,7 +37,8 @@ ForgeUI now rests on two completed foundations:
    physically proven on ESP32-P4.
 2. **ForgeUI Native Platform** — six Native Components are **PROVEN** across
    semantic serialization, Browser Preview, Live Studio, Standalone Export,
-   Runtime SDK, UserEvents and ESP32-P4 hardware.
+   Runtime SDK, UserEvents and ESP32-P4 hardware. Alarm Panel is recorded
+   separately as **HARDWARE VALIDATED**, pending extended runtime lifecycle proof.
 
 Dashboard Card remains one semantic, serializable Canvas component with private
 multi-object LVGL composition. See

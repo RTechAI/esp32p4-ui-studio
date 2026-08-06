@@ -1,9 +1,8 @@
 # ForgeUI Native Alarm Panel
 
-Status: **NATIVE COMPONENT #7 — IMPLEMENTED, NOT PROVEN; PHYSICAL REVALIDATION REQUIRED** (2026-08-06).
+Status: **NATIVE COMPONENT #7 — ESP32-P4 EXPORTED AND FLASHED; INITIAL PHYSICAL VALIDATION COMPLETE** (2026-08-06).
 
-Current implementation save point:
-`FORGEUI_NATIVE_COMPONENT_7__ALARM_PANEL_STUDIO_INSERTION_AND_LVGL_PARITY_REPAIRED__PENDING_USER_ESP32P4_REVALIDATION__2026-08-06`.
+Certification class: **HARDWARE VALIDATED — EXTENDED RUNTIME PROOF DEFERRED**.
 
 Alarm Panel is Native Component #7. It is a bounded semantic alarm-management
 component for industrial HMI, PLC, SCADA, and embedded monitoring interfaces.
@@ -14,8 +13,11 @@ private.
 Studio insertion, Canvas rendering, Browser Preview, Inspector alarm editing,
 serialization, duplication/deletion, generated LVGL structure, Runtime SDK,
 canonical UserEvents, and duplicate isolation have focused automated coverage.
-Alarm Panel is not certified until the user regenerates, flashes, and confirms
-the repaired LVGL layout and behavior on ESP32-P4.
+A fresh standalone export was generated, built successfully with ESP-IDF,
+flashed successfully, and confirmed to render correctly on the physical
+ESP32-P4 display. This is initial physical validation, not full runtime
+certification: the complete transition, callback, acknowledgement, and clear
+lifecycle has not been independently exercised.
 
 ## Bounded model and ordering
 
@@ -100,7 +102,41 @@ priority. Generated LVGL uses explicit row-child coordinates, bounded row
 heights, separate message and state/timestamp lines, right-aligned priority,
 conditional ACK presentation, a count badge, and state-coloured left borders.
 
-Focused Studio/export tests pass **74 / 74** across six suites. This is
-automated evidence only. Required next step: regenerate from Studio, build and
-flash a fresh binary, compare Canvas/Browser/P4 geometry, exercise alarm
-editing and acknowledgement, and accept the result personally.
+Focused Studio/export tests pass **74 / 74** across six suites. The user has
+also confirmed Studio insertion; add, remove, reorder, edit, and persistence of
+alarm records; working Browser Preview; repaired LVGL layout parity; fresh
+standalone export; successful ESP-IDF build and flash; and correct rendering on
+the physical ESP32-P4 display. Extended automated runtime interaction and
+callback verification is deferred until the future Proof Module / hardware
+simulation infrastructure exists.
+
+## Validation ledger
+
+Completed:
+
+- Native Component registration and Studio Canvas insertion;
+- persisted serialization and per-alarm ID, message, timestamp, state, and
+  priority editing;
+- add, remove, and reorder controls with edited-record persistence;
+- bounded capacity behavior, Browser Preview, and generated LVGL layout parity
+  repairs;
+- Runtime SDK and canonical UserEvents generation;
+- focused automated tests, including duplicate-instance software coverage;
+- fresh standalone export, successful ESP-IDF build and ESP32-P4 flash, and
+  correct physical display rendering.
+
+Deferred:
+
+- exhaustive alarm-state transition proof;
+- complete acknowledgement and clear callback proof;
+- automated runtime stress testing and long-running runtime behavior;
+- full hardware interaction harness and duplicate-instance hardware isolation;
+- Proof Module / hardware simulator validation.
+
+These deferred items describe missing proof-infrastructure depth, not a build,
+flash, or display failure. ForgeUI currently relies on manual export, flash, and
+visual verification for some Native Component runtime behaviors. A future
+removable Proof Module / hardware simulation unit is planned to exercise Runtime
+SDK calls, UserEvents callbacks, alarm transitions, acknowledgement and clear
+actions, duplicate-instance isolation, and long-running behavior repeatably.
+That architecture work remains deferred.

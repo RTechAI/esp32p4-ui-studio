@@ -2,11 +2,13 @@
 
 Current Native Component certification (2026-08-06): Dashboard Card, Sensor
 Tile, Relay Panel, PWM Controller, Trend Chart, and Trend Chart Pro are
-physically proven on ESP32-P4. Alarm Panel's SDK is implemented and automated
-tests pass, but it is **NOT PROVEN** pending fresh user hardware revalidation.
+fully proven on ESP32-P4. Alarm Panel's SDK is implemented and automated tests
+pass; the component is **HARDWARE VALIDATED** after fresh export, build, flash,
+and correct physical rendering. Exhaustive runtime transition and callback
+verification remains deferred to future Proof Module / hardware simulation work.
 The practical LVGL ledger remains 44 / 44.
 
-## Implemented Alarm Panel contract — not yet proven
+## Alarm Panel contract — hardware validated; extended runtime proof deferred
 
 Alarm Panel uses fixed-capacity per-instance storage and rejects a new ID with
 `false` when full. Exact generated names derive from persisted component IDs:

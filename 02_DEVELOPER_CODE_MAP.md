@@ -2,14 +2,16 @@
 
 ## Native Components 1–7 implementation map — 2026-08-06
 
-Current save point:
-`FORGEUI_NATIVE_COMPONENT_7__ALARM_PANEL_STUDIO_INSERTION_AND_LVGL_PARITY_REPAIRED__PENDING_USER_ESP32P4_REVALIDATION__2026-08-06`.
+Current documentation status: **ALARM PANEL — HARDWARE VALIDATED; EXTENDED
+RUNTIME PROOF DEFERRED** (2026-08-06).
 
 Practical LVGL remains **44 / 44 physically proven**. Dashboard Card, Sensor
 Tile, Relay Panel, PWM Controller, Trend Chart, and Trend Chart Pro are the six
-physically proven Native Components. Alarm Panel is implemented but NOT PROVEN
-pending user hardware revalidation. The next is not selected; deferred proof and
-export infrastructure remains out of scope.
+fully proven Native Components. Alarm Panel is exported, built, flashed, and
+physically rendered on ESP32-P4, and is recorded separately as **HARDWARE
+VALIDATED**. Extended runtime interaction and callback proof is deferred to the
+future Proof Module / hardware simulation work. The next planned Native Component
+is **IO Monitor**; no implementation begins in this documentation pass.
 
 | Concern | Authoritative owner |
 |---|---|

@@ -2,11 +2,11 @@
 
 ## Current certification — 2026-08-06
 
-**FORGEUI_NATIVE_COMPONENT_7__ALARM_PANEL_STUDIO_INSERTION_AND_LVGL_PARITY_REPAIRED__PENDING_USER_ESP32P4_REVALIDATION__2026-08-06**
+**ESP32-P4 EXPORTED AND FLASHED — INITIAL PHYSICAL VALIDATION COMPLETE**
 
 - Practical LVGL 9.2: **44 / 44 PROVEN on ESP32-P4**. Lottie remains intentionally excluded.
-- Native Components: **7 implemented; 6 physically proven; Alarm Panel NOT PROVEN**.
-- Next Native Component: **not selected**; do not begin another component from this save point.
+- Native Components: **7 implemented; 6 fully proven; Alarm Panel HARDWARE VALIDATED**.
+- Next planned Native Component: **IO Monitor**; not implemented in this documentation pass.
 - Deferred without change: Simulator / Proof Module, automated Runtime SDK proof harness, ESP-Hosted startup investigation, and further export infrastructure.
 
 | Native Component | Current status | Certified scope |
@@ -17,7 +17,7 @@
 | PWM Controller | **PROVEN** | Value/enable interaction, isolated instances, Runtime SDK/UserEvents, ESP32-P4 |
 | Trend Chart | **PROVEN** | Lightweight technical trend, rolling history, time axis, thresholds, runtime updates, all preview/export paths, ESP32-P4 |
 | Trend Chart Pro | **PROVEN** | Separate premium engineering trend, bounded history, header/units, trace/glow/fill/marker/grid/bands, transition UserEvents, all preview/export paths, ESP32-P4 |
-| Alarm Panel | **NOT PROVEN — REVALIDATION REQUIRED** | Studio insertion and editable alarm collection repaired; LVGL row parity repaired; fresh user ESP32-P4 confirmation pending |
+| Alarm Panel | **HARDWARE VALIDATED** | Studio insertion, per-alarm editing/persistence, Browser Preview, repaired LVGL layout, fresh standalone export, ESP-IDF build, flash, and correct physical rendering confirmed; extended runtime transition/callback proof deferred |
 
 Trend Chart Pro does not replace Trend Chart. Certification also removed the
 partial-history tail artifact and unwanted LVGL point dots, placed threshold
@@ -159,10 +159,10 @@ Current Native Component roadmap:
 4. PWM Controller — **PROVEN**
 5. Trend Chart — **PROVEN**
 6. Trend Chart Pro — **PROVEN**
-7. Alarm Panel — **IMPLEMENTED; NOT PROVEN; USER HARDWARE REVALIDATION PENDING**
+7. Alarm Panel — **HARDWARE VALIDATED — EXPORTED, FLASHED, AND PHYSICALLY RENDERED ON ESP32-P4; EXTENDED RUNTIME INTERACTION PROOF DEFERRED TO THE FUTURE PROOF MODULE / HARDWARE SIMULATION WORK**
 
-The next Native Component is not selected. Do not begin another component from
-this certification save point.
+The next planned Native Component is **IO Monitor**. It remains a separate future
+implementation; do not begin it from this documentation save point.
 
 This roadmap supersedes the historical PWM proof-ready paragraph below.
 4. PWM Controller — **NEXT**

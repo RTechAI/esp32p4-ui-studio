@@ -1,13 +1,14 @@
 # ForgeUI Native Widget Architecture
 
-Status: **AUTHORITATIVE — NATIVE COMPONENTS 1–6 PROVEN; ALARM PANEL IMPLEMENTED, NOT PROVEN** (2026-08-06).
+Status: **AUTHORITATIVE — NATIVE COMPONENTS 1–6 PROVEN; ALARM PANEL HARDWARE VALIDATED** (2026-08-06).
 
-Current platform save point:
-`FORGEUI_NATIVE_COMPONENT_7__ALARM_PANEL_STUDIO_INSERTION_AND_LVGL_PARITY_REPAIRED__PENDING_USER_ESP32P4_REVALIDATION__2026-08-06`.
+Alarm Panel status: **PHYSICALLY RENDERED ON ESP32-P4 — EXTENDED RUNTIME PROOF
+DEFERRED**.
 
 The six physically proven Native Components are Dashboard Card, Sensor Tile,
 Relay Panel, PWM Controller, Trend Chart, and Trend Chart Pro. Alarm Panel is
-implemented but NOT PROVEN pending fresh user hardware revalidation. Trend Chart is
+recorded separately as **HARDWARE VALIDATED** after fresh export, build, flash,
+and correct physical rendering on ESP32-P4. Trend Chart is
 the lightweight technical industrial trend; Trend Chart Pro is the separate
 premium dashboard-oriented engineering trend. Both validate stable persisted
 identity, duplicate isolation, semantic Runtime APIs, canonical UserEvents,
@@ -16,9 +17,11 @@ shared Browser/Live/Standalone generation, and ESP32-P4 parity.
 Alarm Panel implements fixed-capacity semantic collections, deterministic
 overflow rejection, distinct acknowledge/clear transitions, and isolated
 persisted-ID event contracts. Its earlier certification claim was invalidated
-by a missing Canvas renderer and generated LVGL row overlap; both are repaired
-in automated coverage, but physical proof remains pending. The next Native
-Component is not yet selected. The
+by a missing Canvas renderer and generated LVGL row overlap; both are repaired.
+Studio insertion, editing/persistence, Browser Preview, standalone export, build,
+flash, and physical rendering are confirmed. Exhaustive transition, callback,
+acknowledgement, and clear lifecycle proof awaits the future Proof Module. The
+next planned Native Component is **IO Monitor**; it remains unimplemented. The
 Simulator / Proof Module, automated Runtime SDK proof harness, ESP-Hosted
 startup investigation, and further export infrastructure remain deferred.
 
@@ -340,10 +343,11 @@ Legacy projects without Native Widgets require no migration. Unknown or
 unsupported Native Widget versions must fail validation clearly rather than
 exporting a partial substitute.
 
-## 10. Suggested first implementation order
+## 10. Native Component ledger and next planned component
 
-Dashboard Card Version 1 is the first proven implementation of this
-architecture. Subsequent components remain ordered as follows.
+The current ledger preserves the six fully proven components, records Alarm
+Panel in its intermediate hardware-validation state, and keeps future work
+separate:
 
 1. **Dashboard Card** — **PROVEN**.
 2. **Sensor Tile** — **PROVEN**; typed engineering
@@ -351,16 +355,17 @@ architecture. Subsequent components remain ordered as follows.
    transport, with stable Runtime SDK and UserEvents identity across regeneration.
 3. **Relay Panel** — **PROVEN**; proves multi-control genuine UserEvents, silent state
    projection and safe initialization.
-4. **PWM Controller** — **NEXT**; proves bounded numeric state, Slider-style interaction
-   and atomic application updates.
-5. **System Health Widget** — proves projection from an existing platform
-   service without duplicating Diagnostics ownership.
-6. **Network Widget** — proves integration with the existing Wi-Fi backend and
-   feature/capability gating without owning connectivity policy.
-7. **Storage Widget** — proves SD capability gating and projection from the
-   existing Storage backend without owning filesystem operations.
-8. **Gauge Cluster / Energy Monitor** — proves denser composition, multiple
-   values and chart/history commands after the simpler contracts are stable.
+4. **PWM Controller** — **PROVEN**.
+5. **Trend Chart** — **PROVEN**.
+6. **Trend Chart Pro** — **PROVEN**.
+7. **Alarm Panel** — **HARDWARE VALIDATED**; exported, flashed, and physically
+   rendered on ESP32-P4, with extended runtime interaction proof deferred.
+8. **IO Monitor** — **NEXT PLANNED**; live digital and analogue I/O visibility,
+   not implemented in this documentation pass.
+
+Possible later specialized cards include Battery Card, Tank Level Card, Network
+Status Card, Device Summary Card, KPI Card, and Power Flow Card. Their ordering
+is not certified by this ledger.
 
 Weather, Camera, MQTT, CAN, Industrial, Marine and other domain families should
 follow only after common binding and service boundaries are proven. Their
