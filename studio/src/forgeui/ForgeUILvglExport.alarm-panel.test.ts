@@ -1,6 +1,9 @@
 import { generateForgeUILvglCode } from './ForgeUILvglExport'
 import fs from 'fs'
 
+const enumCount = (text: string, name: string) =>
+  (text.match(new RegExp(`\\btypedef enum \\{[^}]+\\} ${name};`, 'g')) || []).length
+
 const alarmPanel = (id: string, props: Record<string, unknown> = {}): IComponent => ({
   id, parent: 'root', type: 'AlarmPanel', children: [], props: {
     x: 20, y: 20, w: 420, h: 300, alarmCapacity: 4, maximumVisibleAlarms: 3,
@@ -49,6 +52,68 @@ describe('Alarm Panel LVGL export', () => {
     expect(output.code).not.toContain('FG_Add_Renamed_Display_Alarm')
     expect(output.code).toContain('fg_persisted_a_alarm_messages[4][97]')
     expect(output.code).toContain('fg_persisted_b_alarm_messages[4][97]')
+  })
+
+  it('emits shared Alarm Panel enum contracts exactly once for one panel', () => {
+    const output = generate(alarmPanel('alarm-one'))
+    const declarations = output.publicApiDeclarations.join('\n')
+    expect(enumCount(declarations, 'FG_Alarm_Priority')).toBe(1)
+    expect(enumCount(declarations, 'FG_Alarm_State')).toBe(1)
+    expect(declarations).toContain(
+      'typedef enum { FG_ALARM_PRIORITY_LOW = 0, FG_ALARM_PRIORITY_MEDIUM = 1, FG_ALARM_PRIORITY_HIGH = 2, FG_ALARM_PRIORITY_CRITICAL = 3 } FG_Alarm_Priority;',
+    )
+    expect(output.code).not.toContain('typedef enum { FG_ALARM_PRIORITY')
+  })
+
+  it('keeps shared Alarm Panel enum contracts single for two panels', () => {
+    const output = generate(alarmPanel('alarm-left'), alarmPanel('alarm-right'))
+    const declarations = output.publicApiDeclarations.join('\n')
+    expect(enumCount(declarations, 'FG_Alarm_Priority')).toBe(1)
+    expect(enumCount(declarations, 'FG_Alarm_State')).toBe(1)
+    expect(output.publicApiDeclarations).toEqual(expect.arrayContaining([
+      'bool FG_Add_Alarm_Left_Alarm(int32_t alarm_id, const char * message, const char * timestamp, FG_Alarm_Priority priority, FG_Alarm_State state);',
+      'bool FG_Add_Alarm_Right_Alarm(int32_t alarm_id, const char * message, const char * timestamp, FG_Alarm_Priority priority, FG_Alarm_State state);',
+    ]))
+    expect(output.userEventContracts).toEqual(expect.arrayContaining([
+      { name: 'FG_On_Alarm_Left_Alarm_Added', parameters: 'int32_t alarm_id, FG_Alarm_Priority priority' },
+      { name: 'FG_On_Alarm_Right_Alarm_Added', parameters: 'int32_t alarm_id, FG_Alarm_Priority priority' },
+    ]))
+  })
+
+  it('keeps multiple renamed Alarm Panels signature-compatible', () => {
+    const first = alarmPanel('plant alarms')
+    first.componentName = 'Renamed Critical List'
+    const second = alarmPanel('remote-alarm-bank')
+    second.componentName = 'Another Display Name'
+    const output = generate(first, second)
+    const declarations = output.publicApiDeclarations.join('\n')
+    expect(enumCount(declarations, 'FG_Alarm_Priority')).toBe(1)
+    expect(output.publicApiDeclarations).toEqual(expect.arrayContaining([
+      'bool FG_Add_Plant_Alarms_Alarm(int32_t alarm_id, const char * message, const char * timestamp, FG_Alarm_Priority priority, FG_Alarm_State state);',
+      'bool FG_Add_Remote_Alarm_Bank_Alarm(int32_t alarm_id, const char * message, const char * timestamp, FG_Alarm_Priority priority, FG_Alarm_State state);',
+    ]))
+    expect(output.code).not.toContain('FG_Add_Renamed_Critical_List_Alarm')
+    expect(output.code).not.toContain('FG_Add_Another_Display_Name_Alarm')
+  })
+
+  it('keeps Alarm Panel contracts with other Native Components without duplicate typedefs', () => {
+    const sensorTile = {
+      id: 'temperature-tile', parent: 'root', type: 'SensorTile', children: [], props: {
+        x: 460, y: 20, w: 220, h: 140, generateRuntimeApi: true,
+        enableUserEvents: true, title: 'Temperature', value: 23.5, units: 'C',
+      },
+    } as unknown as IComponent
+    const output = generate(alarmPanel('mixed-alarm'), sensorTile)
+    const declarations = output.publicApiDeclarations.join('\n')
+    expect(enumCount(declarations, 'FG_Alarm_Priority')).toBe(1)
+    expect(declarations).toContain(
+      'bool FG_Add_Mixed_Alarm_Alarm(int32_t alarm_id, const char * message, const char * timestamp, FG_Alarm_Priority priority, FG_Alarm_State state);',
+    )
+    expect(output.code).toContain('FG_Set_Temperature_Tile_Value')
+    expect(output.userEventContracts).toContainEqual({
+      name: 'FG_On_Mixed_Alarm_Alarm_Added',
+      parameters: 'int32_t alarm_id, FG_Alarm_Priority priority',
+    })
   })
 
   it('gates optional presentation and supports auto-clear without heap allocation', () => {

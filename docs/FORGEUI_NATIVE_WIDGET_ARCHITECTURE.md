@@ -1,6 +1,6 @@
 # ForgeUI Native Widget Architecture
 
-Status: **AUTHORITATIVE — NATIVE COMPONENTS 1–6 PROVEN; ALARM PANEL HARDWARE VALIDATED** (2026-08-06).
+Status: **AUTHORITATIVE — NATIVE COMPONENTS 1–6 PROVEN; ALARM PANEL AND IO MONITOR HARDWARE VALIDATED** (2026-08-06).
 
 Alarm Panel status: **PHYSICALLY RENDERED ON ESP32-P4 — EXTENDED RUNTIME PROOF
 DEFERRED**.
@@ -21,7 +21,9 @@ by a missing Canvas renderer and generated LVGL row overlap; both are repaired.
 Studio insertion, editing/persistence, Browser Preview, standalone export, build,
 flash, and physical rendering are confirmed. Exhaustive transition, callback,
 acknowledgement, and clear lifecycle proof awaits the future Proof Module. The
-next planned Native Component is **IO Monitor**; it remains unimplemented. The
+IO Monitor is **HARDWARE VALIDATED** after export, build, flash, and correct
+physical rendering on ESP32-P4. It is intentionally read-only and generates no
+touch callbacks. The next planned Native Component is **Battery Card**. The
 Simulator / Proof Module, automated Runtime SDK proof harness, ESP-Hosted
 startup investigation, and further export infrastructure remain deferred.
 
@@ -360,10 +362,11 @@ separate:
 6. **Trend Chart Pro** — **PROVEN**.
 7. **Alarm Panel** — **HARDWARE VALIDATED**; exported, flashed, and physically
    rendered on ESP32-P4, with extended runtime interaction proof deferred.
-8. **IO Monitor** — **NEXT PLANNED**; live digital and analogue I/O visibility,
-   not implemented in this documentation pass.
+8. **IO Monitor** — **HARDWARE VALIDATED**; read-only live digital and analogue
+   I/O visibility, semantic silent setters, and physical ESP32-P4 rendering.
 
-Possible later specialized cards include Battery Card, Tank Level Card, Network
+The next planned Native Component is **Battery Card**. Possible later specialized
+cards include Tank Level Card, Network
 Status Card, Device Summary Card, KPI Card, and Power Flow Card. Their ordering
 is not certified by this ledger.
 

@@ -93,6 +93,7 @@ const displayNames: Partial<Record<ComponentType, string>> = {
   Chart: 'Trend Chart',
   TrendChartPro: 'Trend Chart Pro',
   AlarmPanel: 'Alarm Panel',
+  IOMonitor: 'IO Monitor',
 }
 
 const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
@@ -110,7 +111,7 @@ const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
   ],
   Navigation: ['List', 'Tabview', 'Tileview', 'ButtonMatrix', 'ImageButton', 'Window', 'Menu'],
   Feedback: ['Msgbox', 'Keyboard', 'Calendar', 'Spinner'],
-  Dashboard: ['DashboardCard', 'SensorTile', 'RelayPanel', 'PwmController', 'Chart', 'TrendChartPro', 'AlarmPanel'],
+  Dashboard: ['DashboardCard', 'SensorTile', 'RelayPanel', 'PwmController', 'Chart', 'TrendChartPro', 'AlarmPanel', 'IOMonitor'],
   Assets: [
     'InteractiveButton',
     'InteractiveLight',
@@ -183,6 +184,7 @@ const sizes: Partial<Record<ComponentType, [number, number]>> = {
   PwmController: [240, 145],
   TrendChartPro: [360, 220],
   AlarmPanel: [420, 300],
+  IOMonitor: [420, 300],
 }
 
 const keywords: Partial<Record<ComponentType, string[]>> = {
@@ -216,6 +218,7 @@ const keywords: Partial<Record<ComponentType, string[]>> = {
   PwmController: ['pwm', 'duty cycle', 'fan speed', 'motor speed', 'analogue output', 'forgeui native'],
   TrendChartPro: ['premium trend', 'scada chart', 'hmi history', 'engineering graph', 'forgeui native'],
   AlarmPanel: ['alarm', 'warning', 'acknowledge', 'priority', 'scada', 'hmi', 'forgeui native'],
+  IOMonitor: ['io', 'digital input', 'digital output', 'analog input', 'analog output', 'diagnostics', 'plc', 'scada', 'forgeui native'],
 }
 
 type CapabilityDefinition = Omit<
@@ -323,6 +326,13 @@ const capabilitiesByType: Partial<
     },
   },
   AlarmPanel: {
+    ...capability(true, true, true),
+    instanceConfiguration: {
+      runtimeApiProperty: 'generateRuntimeApi', runtimeApiDefault: true,
+      userEventProperty: 'enableUserEvents', userEventDefault: true,
+    },
+  },
+  IOMonitor: {
     ...capability(true, true, true),
     instanceConfiguration: {
       runtimeApiProperty: 'generateRuntimeApi', runtimeApiDefault: true,
@@ -442,6 +452,7 @@ const documentationByType: Partial<Record<ComponentType, string>> = {
   Chart: 'docs/FORGEUI_TREND_CHART.md',
   TrendChartPro: 'docs/FORGEUI_TREND_CHART_PRO.md',
   AlarmPanel: 'docs/FORGEUI_ALARM_PANEL.md',
+  IOMonitor: 'docs/FORGEUI_IO_MONITOR.md',
   List: 'docs/FORGEUI_LIST_WIDGET.md',
   Tileview: 'docs/FORGEUI_TILEVIEW_WIDGET.md',
   Spinbox: 'docs/FORGEUI_SPINBOX_WIDGET.md',
@@ -476,6 +487,7 @@ const describe = (
     PwmController: 'ForgeUI Native semantic PWM output card with value and enable control.',
     TrendChartPro: 'ForgeUI Native premium engineering trend card with semantic thresholds.',
     AlarmPanel: 'ForgeUI Native semantic alarm list with priority and acknowledgement.',
+    IOMonitor: 'ForgeUI Native live digital and analogue I/O diagnostics panel.',
     InteractiveButton: 'Reusable state-sheet driven button.',
   }
   return special[type] || `${name} ${category.toLowerCase()} widget.`
@@ -530,9 +542,9 @@ export const forgeUIWidgetDefinitions: ForgeUIWidgetDefinition[] =
       documentationId:
         documentationByType[type] || '04_FEATURE_STATUS.md',
       status: 'available',
-      origin: type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' || type === 'PwmController' || type === 'Chart' || type === 'TrendChartPro' || type === 'AlarmPanel' ? 'forgeui-native' : 'lvgl-standard',
-      ...(type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' || type === 'PwmController' || type === 'Chart' || type === 'TrendChartPro' || type === 'AlarmPanel' ? { nativeWidgetSchemaVersion: 1 } : {}),
-      ...(type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' || type === 'PwmController' || type === 'Chart' || type === 'TrendChartPro' || type === 'AlarmPanel' ? { platform: {
+      origin: type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' || type === 'PwmController' || type === 'Chart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor' ? 'forgeui-native' : 'lvgl-standard',
+      ...(type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' || type === 'PwmController' || type === 'Chart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor' ? { nativeWidgetSchemaVersion: 1 } : {}),
+      ...(type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' || type === 'PwmController' || type === 'Chart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor' ? { platform: {
         kind: 'native-widget' as const,
         family: type === 'SensorTile' ? 'sensors' : type === 'RelayPanel' || type === 'PwmController' ? 'controls' : type === 'Chart' || type === 'TrendChartPro' ? 'trends' : 'dashboard',
         layoutRoles: type === 'RelayPanel' || type === 'PwmController' ? ['controls', 'main', 'control-grid'] : ['status', 'metrics', 'main', 'card-grid'],

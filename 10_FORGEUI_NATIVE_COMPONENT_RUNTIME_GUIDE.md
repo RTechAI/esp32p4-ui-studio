@@ -7,6 +7,27 @@ export, build, flash, and correct physical rendering on ESP32-P4; exhaustive
 runtime interaction and callback proof is deferred. Practical LVGL remains
 **44 / 44 proven**.
 
+IO Monitor is **HARDWARE VALIDATED** after standalone export, ESP-IDF 5.5.4
+build, ESP32-P4 flash, and physical rendering. It is intentionally read-only.
+
+## IO Monitor Runtime SDK quick reference — hardware validated
+
+Use the exact generated stem from `90_Studio_Export.h`:
+
+```c
+bool FG_Set_<IOMonitor>_DigitalInput(const char * channel, bool state);
+bool FG_Set_<IOMonitor>_DigitalOutput(const char * channel, bool state);
+bool FG_Set_<IOMonitor>_AnalogInput(const char * channel, float value);
+bool FG_Set_<IOMonitor>_AnalogOutput(const char * channel, float value);
+```
+
+The stem is derived from persisted component identity and remains stable across
+display-name changes. Duplicate instances are isolated; row storage is bounded;
+and setters return `false` for a null, unknown, or wrong-type channel. Setters
+refresh the display silently and do not emit UserEvents. IO Monitor rows have no
+touch callback in the current release. See
+[`docs/FORGEUI_IO_MONITOR.md`](docs/FORGEUI_IO_MONITOR.md).
+
 ## Alarm Panel Runtime SDK quick reference — hardware validated; extended proof deferred
 
 Alarm Panel owns bounded fixed-capacity records and exposes semantic add,

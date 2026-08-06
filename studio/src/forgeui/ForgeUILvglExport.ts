@@ -52,6 +52,7 @@ import { normalizeForgeUIRelayPanel } from './ForgeUIRelayPanel'
 import { normalizeForgeUIPwmController } from './ForgeUIPwmController'
 import { normalizeForgeUITrendChartPro } from './ForgeUITrendChartPro'
 import { normalizeForgeUIAlarmPanel } from './ForgeUIAlarmPanel'
+import { normalizeForgeUIIOMonitor } from './ForgeUIIOMonitor'
 import {
   getForgeUIStandardSpinboxModel,
   type ForgeUIStandardSpinboxModel,
@@ -566,6 +567,54 @@ const createAlarmPanelExports = (
         acknowledgedHookName: events ? uniqueHook('Alarm_Acknowledged') : undefined,
         clearedHookName: events ? uniqueHook('Alarm_Cleared') : undefined,
         selectedHookName: events ? uniqueHook('Alarm_Selected') : undefined,
+      })
+    })
+  return result
+}
+
+type IOMonitorExport = {
+  model: ReturnType<typeof normalizeForgeUIIOMonitor>
+  stem: string; runtimeStem: string; rootName: string; rowCount: number
+  rowNames: string; channelLabels: string; nameLabels: string; valueLabels: string; stateLabels: string
+  channelsName: string; typesName: string; valuesName: string; statesName: string
+  refreshName: string; selectCallbackName?: string; selectedHookName?: string
+  runtimeEnabled: boolean; eventsEnabled: boolean
+  setDigitalInputApiName: string; setDigitalOutputApiName: string
+  setAnalogInputApiName: string; setAnalogOutputApiName: string
+}
+
+const createIOMonitorExports = (
+  components: IComponents, usedHookNames: Set<string>, userEventHooks: Set<string>,
+): Map<string, IOMonitorExport> => {
+  const result = new Map<string, IOMonitorExport>()
+  const usedStems = new Set<string>()
+  Object.values(components).filter(component => component.type === 'IOMonitor')
+    .sort((a, b) => a.id.localeCompare(b.id)).forEach(component => {
+      const base = toCIdentifier(component.id, 'IO_Monitor').replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let stem = base; let suffix = 2
+      while (usedStems.has(stem)) stem = `${base}_${suffix++}`
+      usedStems.add(stem)
+      const runtimeStem = stem.toLowerCase()
+      const model = normalizeForgeUIIOMonitor(component.props)
+      let selectedHookName: string | undefined
+      if (model.enableUserEvents) {
+        const baseHook = `FG_On_${stem}_Row_Selected`
+        selectedHookName = baseHook; let collision = 2
+        while (usedHookNames.has(selectedHookName)) selectedHookName = `${baseHook}_${collision++}`
+        usedHookNames.add(selectedHookName); userEventHooks.add(selectedHookName)
+      }
+      result.set(component.id, {
+        model, stem, runtimeStem, rowCount: Math.max(1, model.rows.length),
+        rootName: `fg_${runtimeStem}_io_monitor`, rowNames: `fg_${runtimeStem}_io_rows`,
+        channelLabels: `fg_${runtimeStem}_io_channel_labels`, nameLabels: `fg_${runtimeStem}_io_name_labels`,
+        valueLabels: `fg_${runtimeStem}_io_value_labels`, stateLabels: `fg_${runtimeStem}_io_state_labels`,
+        channelsName: `fg_${runtimeStem}_io_channels`, typesName: `fg_${runtimeStem}_io_types`,
+        valuesName: `fg_${runtimeStem}_io_values`, statesName: `fg_${runtimeStem}_io_states`,
+        refreshName: `fg_${runtimeStem}_io_refresh`,
+        selectCallbackName: selectedHookName ? `fg_${runtimeStem}_io_selected_cb` : undefined,
+        selectedHookName, runtimeEnabled: model.generateRuntimeApi, eventsEnabled: model.enableUserEvents,
+        setDigitalInputApiName: `FG_Set_${stem}_DigitalInput`, setDigitalOutputApiName: `FG_Set_${stem}_DigitalOutput`,
+        setAnalogInputApiName: `FG_Set_${stem}_AnalogInput`, setAnalogOutputApiName: `FG_Set_${stem}_AnalogOutput`,
       })
     })
   return result
@@ -2948,6 +2997,7 @@ const buildLvglBlock = (
   relayPanelExports: Map<string, RelayPanelExport>,
   pwmControllerExports: Map<string, PwmControllerExport>,
   alarmPanelExports: Map<string, AlarmPanelExport>,
+  ioMonitorExports: Map<string, IOMonitorExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -4693,6 +4743,34 @@ case 'AlarmPanel': {
   break
 }
 
+case 'IOMonitor': {
+  const io = ioMonitorExports.get(child.id)
+  if (!io) break
+  const model = io.model
+  const visibleRows = Math.max(1, model.rows.filter(row => row.visible).length)
+  const headerHeight = model.compactMode ? 32 : 42
+  const rowHeight = Math.max(model.compactMode ? 25 : 30, Math.min(model.compactMode ? 30 : 38, Math.floor((Number(h) - headerHeight - 10) / visibleRows)))
+  const rowWidth = Math.max(80, Number(w) - 16)
+  lines.push(`${io.rootName} = lv_obj_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${io.rootName}, ${x}, ${y}); lv_obj_set_size(${io.rootName}, ${w}, ${h});`)
+  lines.push(`lv_obj_set_style_bg_color(${io.rootName}, lv_color_hex(${palette.surface}), 0); lv_obj_set_style_border_color(${io.rootName}, lv_color_hex(${palette.surfaceBorder}), 0); lv_obj_set_style_border_width(${io.rootName}, 1, 0); lv_obj_set_style_radius(${io.rootName}, 10, 0); lv_obj_set_style_pad_all(${io.rootName}, 0, 0); lv_obj_clear_flag(${io.rootName}, LV_OBJ_FLAG_SCROLLABLE);`)
+  lines.push(`lv_obj_t * ${varName}_title = lv_label_create(${io.rootName}); lv_label_set_text(${varName}_title, "${esc(model.title)}"); lv_obj_set_pos(${varName}_title, 12, ${model.compactMode ? 7 : 11}); lv_obj_set_style_text_color(${varName}_title, lv_color_hex(${palette.textPrimary}), 0);`)
+  model.rows.forEach((row, index) => {
+    const rowY = headerHeight + model.rows.slice(0, index).filter(entry => entry.visible).length * (rowHeight + (model.compactMode ? 3 : 5))
+    lines.push(`${io.rowNames}[${index}] = lv_button_create(${io.rootName}); lv_obj_set_pos(${io.rowNames}[${index}], 8, ${rowY}); lv_obj_set_size(${io.rowNames}[${index}], ${rowWidth}, ${rowHeight});`)
+    lines.push(`lv_obj_set_style_bg_color(${io.rowNames}[${index}], lv_color_hex(${palette.surfaceSecondary}), 0); lv_obj_set_style_border_color(${io.rowNames}[${index}], lv_color_hex(0x${toLvHex(row.colour).slice(2)}), 0); lv_obj_set_style_border_width(${io.rowNames}[${index}], 3, 0); lv_obj_set_style_border_side(${io.rowNames}[${index}], LV_BORDER_SIDE_LEFT, 0); lv_obj_set_style_radius(${io.rowNames}[${index}], 5, 0); lv_obj_set_style_pad_all(${io.rowNames}[${index}], 0, 0);`)
+    lines.push(`${io.channelLabels}[${index}] = lv_label_create(${io.rowNames}[${index}]); lv_obj_set_pos(${io.channelLabels}[${index}], 8, ${Math.max(2, Math.floor((rowHeight - 14) / 2))}); lv_obj_set_width(${io.channelLabels}[${index}], 48); lv_label_set_long_mode(${io.channelLabels}[${index}], LV_LABEL_LONG_DOT);`)
+    lines.push(`${io.nameLabels}[${index}] = lv_label_create(${io.rowNames}[${index}]); lv_obj_set_pos(${io.nameLabels}[${index}], 62, ${Math.max(2, Math.floor((rowHeight - 14) / 2))}); lv_obj_set_width(${io.nameLabels}[${index}], ${Math.max(40, rowWidth - 200)}); lv_label_set_long_mode(${io.nameLabels}[${index}], LV_LABEL_LONG_DOT);`)
+    lines.push(`${io.valueLabels}[${index}] = lv_label_create(${io.rowNames}[${index}]); lv_obj_set_pos(${io.valueLabels}[${index}], ${Math.max(110, rowWidth - 128)}, ${Math.max(2, Math.floor((rowHeight - 14) / 2))}); lv_obj_set_width(${io.valueLabels}[${index}], 76); lv_obj_set_style_text_align(${io.valueLabels}[${index}], LV_TEXT_ALIGN_RIGHT, 0);`)
+    lines.push(`${io.stateLabels}[${index}] = lv_label_create(${io.rowNames}[${index}]); lv_obj_set_pos(${io.stateLabels}[${index}], ${Math.max(190, rowWidth - 44)}, ${Math.max(2, Math.floor((rowHeight - 14) / 2))}); lv_obj_set_width(${io.stateLabels}[${index}], 36); lv_obj_set_style_text_align(${io.stateLabels}[${index}], LV_TEXT_ALIGN_RIGHT, 0);`)
+    if (!row.visible) lines.push(`lv_obj_add_flag(${io.rowNames}[${index}], LV_OBJ_FLAG_HIDDEN);`)
+    if (io.selectCallbackName) lines.push(`lv_obj_add_event_cb(${io.rowNames}[${index}], ${io.selectCallbackName}, LV_EVENT_CLICKED, (void *)(uintptr_t)${index});`)
+  })
+  lines.push(`${io.refreshName}();`)
+  lines.push(``)
+  break
+}
+
 case 'Spinbox': {
   const spinboxExport = spinboxExports.get(child.id)
   if (!spinboxExport) break
@@ -5902,6 +5980,7 @@ case 'TrendChartPro': {
         relayPanelExports,
         pwmControllerExports,
         alarmPanelExports,
+        ioMonitorExports,
       )
     }
   })
@@ -6203,7 +6282,7 @@ export const generateForgeUILvglCode = (
   },
 ) => {
   const nativeIdentityDiagnostics = Object.entries(components)
-    .filter(([, component]) => component.type === 'DashboardCard' || component.type === 'SensorTile' || component.type === 'RelayPanel' || component.type === 'PwmController' || component.type === 'AlarmPanel')
+    .filter(([, component]) => component.type === 'DashboardCard' || component.type === 'SensorTile' || component.type === 'RelayPanel' || component.type === 'PwmController' || component.type === 'AlarmPanel' || component.type === 'IOMonitor')
     .map(([persistedId, component]) => {
       if (!component.id || component.id !== persistedId) {
         throw new Error(
@@ -6243,6 +6322,7 @@ export const generateForgeUILvglCode = (
   const relayPanelExports = createRelayPanelExports(components, usedHookNames, userEventHooks)
   const pwmControllerExports = createPwmControllerExports(components, usedHookNames, userEventHooks)
   const alarmPanelExports = createAlarmPanelExports(components, usedHookNames, userEventHooks)
+  const ioMonitorExports = createIOMonitorExports(components, usedHookNames, userEventHooks)
   const fiIconExports = createFiIconExports(
     components,
     usedHookNames,
@@ -6973,7 +7053,7 @@ const backgroundMode =
   lines.push(`#include "freertos/semphr.h"`)
   lines.push(`#include "freertos/task.h"`)
   lines.push(`#include "esp_timer.h"`)
-  if (hasInteractiveButtons || dashboardCardExports.size > 0 || sensorTileExports.size > 0 || relayPanelExports.size > 0 || pwmControllerExports.size > 0 || alarmPanelExports.size > 0 || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
+  if (hasInteractiveButtons || dashboardCardExports.size > 0 || sensorTileExports.size > 0 || relayPanelExports.size > 0 || pwmControllerExports.size > 0 || alarmPanelExports.size > 0 || ioMonitorExports.size > 0 || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
     lines.push(`#include "95_UserEvents.h"`)
   }
   if (Array.from(fiIconExports.values()).some(icon => icon.runtimeEnabled)) {
@@ -7037,6 +7117,45 @@ const backgroundMode =
     lines.push(`static char ${alarm.messagesName}[${alarm.capacity}][97] = {{0}}; static char ${alarm.timestampsName}[${alarm.capacity}][25] = {{0}};`)
     lines.push(`static FG_Alarm_State ${alarm.statesName}[${alarm.capacity}] = {0}; static FG_Alarm_Priority ${alarm.prioritiesName}[${alarm.capacity}] = {0};`)
     lines.push(`static uint32_t ${alarm.countName} = 0; static bool ${alarm.enabledName} = true;`)
+  })
+  ioMonitorExports.forEach(io => {
+    const typeValue = (type: string) => `FG_IO_${type.replace('-', '_').toUpperCase()}`
+    lines.push(`static lv_obj_t * ${io.rootName} = NULL;`)
+    lines.push(`static lv_obj_t * ${io.rowNames}[${io.rowCount}] = {0}; static lv_obj_t * ${io.channelLabels}[${io.rowCount}] = {0}; static lv_obj_t * ${io.nameLabels}[${io.rowCount}] = {0};`)
+    lines.push(`static lv_obj_t * ${io.valueLabels}[${io.rowCount}] = {0}; static lv_obj_t * ${io.stateLabels}[${io.rowCount}] = {0};`)
+    lines.push(`static const char * ${io.channelsName}[${io.rowCount}] = {${io.model.rows.length ? io.model.rows.map(row => `"${esc(row.channel)}"`).join(', ') : 'NULL'}};`)
+    lines.push(`static FG_IO_Type ${io.typesName}[${io.rowCount}] = {${io.model.rows.length ? io.model.rows.map(row => typeValue(row.ioType)).join(', ') : 'FG_IO_DIGITAL_INPUT'}};`)
+    lines.push(`static float ${io.valuesName}[${io.rowCount}] = {${io.model.rows.length ? io.model.rows.map(row => cFloatLiteral(row.value)).join(', ') : '0.0f'}};`)
+    lines.push(`static bool ${io.statesName}[${io.rowCount}] = {${io.model.rows.length ? io.model.rows.map(row => row.state ? 'true' : 'false').join(', ') : 'false'}};`)
+  })
+  ioMonitorExports.forEach(io => {
+    lines.push(`static void ${io.refreshName}(void)`)
+    lines.push(`{`)
+    io.model.rows.forEach((row, index) => {
+      lines.push(`    if (${io.channelLabels}[${index}]) lv_label_set_text(${io.channelLabels}[${index}], ${io.channelsName}[${index}]);`)
+      lines.push(`    if (${io.nameLabels}[${index}]) lv_label_set_text(${io.nameLabels}[${index}], "${esc(row.displayName)}");`)
+      if (row.showValue) lines.push(`    if (${io.valueLabels}[${index}]) { lv_label_set_text_fmt(${io.valueLabels}[${index}], "%.3g%s%s", (double)${io.valuesName}[${index}], "${row.units ? ' ' : ''}", "${escPrintfLiteral(row.units)}"); lv_obj_remove_flag(${io.valueLabels}[${index}], LV_OBJ_FLAG_HIDDEN); }`)
+      else lines.push(`    if (${io.valueLabels}[${index}]) lv_obj_add_flag(${io.valueLabels}[${index}], LV_OBJ_FLAG_HIDDEN);`)
+      if (row.showState) lines.push(`    if (${io.stateLabels}[${index}]) { lv_label_set_text(${io.stateLabels}[${index}], ${io.statesName}[${index}] ? "ON" : "OFF"); lv_obj_set_style_text_color(${io.stateLabels}[${index}], lv_color_hex(${io.statesName}[${index}] ? 0x${toLvHex(row.colour).slice(2)} : ${palette.textSecondary}), 0); lv_obj_remove_flag(${io.stateLabels}[${index}], LV_OBJ_FLAG_HIDDEN); }`)
+      else lines.push(`    if (${io.stateLabels}[${index}]) lv_obj_add_flag(${io.stateLabels}[${index}], LV_OBJ_FLAG_HIDDEN);`)
+    })
+    lines.push(`}`); lines.push(``)
+    if (io.selectCallbackName && io.selectedHookName) {
+      lines.push(`static void ${io.selectCallbackName}(lv_event_t * event) { uint32_t row = (uint32_t)(uintptr_t)lv_event_get_user_data(event); if (row < ${io.model.rows.length}u) ${io.selectedHookName}(${io.channelsName}[row], ${io.typesName}[row]); }`)
+      lines.push(``)
+    }
+    if (io.runtimeEnabled) {
+      const setter = (name: string, type: string, analog: boolean) => {
+        const valueArg = analog ? 'float value' : 'bool state'
+        const assign = analog ? `${io.valuesName}[i] = value;` : `${io.statesName}[i] = state; ${io.valuesName}[i] = state ? 1.0f : 0.0f;`
+        lines.push(`bool ${name}(const char * channel, ${valueArg}) { if (!channel) return false; for (uint32_t i = 0; i < ${io.model.rows.length}u; ++i) if (${io.typesName}[i] == ${type} && strcmp(${io.channelsName}[i], channel) == 0) { ${assign} ${io.refreshName}(); return true; } return false; }`)
+      }
+      setter(io.setDigitalInputApiName, 'FG_IO_DIGITAL_INPUT', false)
+      setter(io.setDigitalOutputApiName, 'FG_IO_DIGITAL_OUTPUT', false)
+      setter(io.setAnalogInputApiName, 'FG_IO_ANALOG_INPUT', true)
+      setter(io.setAnalogOutputApiName, 'FG_IO_ANALOG_OUTPUT', true)
+      lines.push(``)
+    }
   })
   alarmPanelExports.forEach(alarm => {
     const model = alarm.model
@@ -9654,6 +9773,7 @@ lines.push(`    fg_system_root = parent;`)
         relayPanelExports,
         pwmControllerExports,
         alarmPanelExports,
+        ioMonitorExports,
       )
   }
 
@@ -10334,7 +10454,9 @@ lines.push(`}`)
       { name: alarm.acknowledgedHookName!, parameters: 'int32_t alarm_id' },
       { name: alarm.clearedHookName!, parameters: 'int32_t alarm_id' },
       { name: alarm.selectedHookName!, parameters: 'int32_t alarm_id' },
-    ])),
+    ])).concat(Array.from(ioMonitorExports.values()).filter(io => io.eventsEnabled).map(io => ({
+      name: io.selectedHookName!, parameters: 'const char * channel, FG_IO_Type io_type',
+    }))),
     publicApiDeclarations: Array.from(binaryOutputExports.values())
       .filter(lightExport => lightExport.ready)
       .map(lightExport =>
@@ -10380,6 +10502,13 @@ lines.push(`}`)
         `void ${alarm.clearAllApiName}(void);`,
         `void ${alarm.setEnabledApiName}(bool enabled);`,
         `bool ${alarm.selectApiName}(int32_t alarm_id);`,
+      ])).concat(ioMonitorExports.size > 0 ? [
+        'typedef enum { FG_IO_DIGITAL_INPUT = 0, FG_IO_DIGITAL_OUTPUT = 1, FG_IO_ANALOG_INPUT = 2, FG_IO_ANALOG_OUTPUT = 3 } FG_IO_Type;',
+      ] : []).concat(Array.from(ioMonitorExports.values()).filter(io => io.runtimeEnabled).flatMap(io => [
+        `bool ${io.setDigitalInputApiName}(const char * channel, bool state);`,
+        `bool ${io.setDigitalOutputApiName}(const char * channel, bool state);`,
+        `bool ${io.setAnalogInputApiName}(const char * channel, float value);`,
+        `bool ${io.setAnalogOutputApiName}(const char * channel, float value);`,
       ])).concat(Array.from(barExports.values()).map(
         barExport => `void ${barExport.apiName}(int32_t value);`,
       )).concat(Array.from(progressExports.values()).map(

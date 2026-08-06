@@ -184,7 +184,7 @@ describe('generated public UI API headers', () => {
       .toHaveLength(1)
   })
 
-  it('exports Progress setters without generating or disturbing user hooks', () => {
+  it('exports Progress setters and removes callbacks absent from the canonical project', () => {
     const declaration =
       'void FG_Set_Download_Progress_Value(int32_t value);'
     const header = generateStudioExportHeader([declaration])
@@ -199,7 +199,8 @@ describe('generated public UI API headers', () => {
     expect(header).toContain(declaration)
     expect(generated.hooks).toEqual([])
     expect(generated.source).not.toContain('FG_On_Download_Progress')
-    expect(preserved.source).toContain('developer_action();')
+    expect(preserved.source).not.toContain('developer_action();')
+    expect(preserved.source).not.toContain('FG_On_Existing_Clicked')
     expect(preserved.source).not.toContain('FG_On_Download_Progress')
   })
 
@@ -615,6 +616,7 @@ describe('generated public UI API headers', () => {
     const generated = generateUserEventFiles(hooks, [
       'typedef enum { FG_ALARM_PRIORITY_LOW = 0, FG_ALARM_PRIORITY_CRITICAL = 3 } FG_Alarm_Priority;',
     ], contracts)
+    expect(generated.header).toContain('#include "90_Studio_Export.h"')
     expect(generated.header).toContain('void FG_On_Comp_Alarm_Alarm_Added(int32_t alarm_id, FG_Alarm_Priority priority);')
     expect(generated.source).toContain('(void)alarm_id;')
     expect(generated.source).toContain('(void)priority;')
@@ -622,8 +624,105 @@ describe('generated public UI API headers', () => {
       '#include "95_UserEvents.h"\nvoid FG_On_Comp_Alarm_Alarm_Acknowledged(int32_t alarm_id)\n{\n    application_ack(alarm_id);\n}\n',
       '#pragma once\nvoid FG_On_Comp_Alarm_Alarm_Acknowledged(int32_t alarm_id);\n', generated,
     )
+    expect(preserved.header).toContain('#include "90_Studio_Export.h"')
+    expect(preserved.header.match(/#include "90_Studio_Export\.h"/g)).toHaveLength(1)
+    expect(preserved.header).toContain('void FG_On_Comp_Alarm_Alarm_Added(int32_t alarm_id, FG_Alarm_Priority priority);')
     expect(preserved.source).toContain('application_ack(alarm_id);')
     expect(preserved.source.match(/void FG_On_Comp_Alarm_Alarm_Acknowledged/g)).toHaveLength(1)
+  })
+
+  it('keeps preserved Alarm Panel callbacks compatible with the generated runtime header', () => {
+    const hooks = ['FG_On_Alarm_Compact_Alarm_Added']
+    const publicApiDeclarations = [
+      'typedef enum { FG_ALARM_PRIORITY_LOW = 0, FG_ALARM_PRIORITY_MEDIUM = 1, FG_ALARM_PRIORITY_HIGH = 2, FG_ALARM_PRIORITY_CRITICAL = 3 } FG_Alarm_Priority;',
+      'typedef enum { FG_ALARM_STATE_NORMAL = 0, FG_ALARM_STATE_WARNING = 1, FG_ALARM_STATE_ALARM = 2, FG_ALARM_STATE_ACKNOWLEDGED = 3, FG_ALARM_STATE_CLEARED = 4 } FG_Alarm_State;',
+      'bool FG_Add_Alarm_Compact_Alarm(int32_t alarm_id, const char * message, const char * timestamp, FG_Alarm_Priority priority, FG_Alarm_State state);',
+    ]
+    const generated = generateUserEventFiles(hooks, publicApiDeclarations, [
+      { name: hooks[0], parameters: 'int32_t alarm_id, FG_Alarm_Priority priority' },
+    ])
+    const runtimeHeader = generateStudioExportHeader(publicApiDeclarations)
+    const preserved = preserveUserEventFiles(
+      '#include "95_UserEvents.h"\n\nvoid FG_On_Alarm_Compact_Alarm_Added(int32_t alarm_id, FG_Alarm_Priority priority)\n{\n    application_alarm_added(alarm_id, priority);\n}\n',
+      '#pragma once\n#include <stdbool.h>\n#include <stdint.h>\nvoid FG_On_Alarm_Compact_Alarm_Added(int32_t alarm_id, FG_Alarm_Priority priority);\n',
+      generated,
+    )
+
+    const generatedSet = [runtimeHeader, preserved.header, preserved.source].join('\n')
+    expect(runtimeHeader.match(/typedef enum \{[^}]+FG_ALARM_PRIORITY_CRITICAL = 3[^}]+\} FG_Alarm_Priority;/g)).toHaveLength(1)
+    expect(runtimeHeader).toContain(
+      'bool FG_Add_Alarm_Compact_Alarm(int32_t alarm_id, const char * message, const char * timestamp, FG_Alarm_Priority priority, FG_Alarm_State state);',
+    )
+    expect(preserved.header).toContain('#include "90_Studio_Export.h"')
+    expect(preserved.header.indexOf('#include "90_Studio_Export.h"'))
+      .toBeLessThan(preserved.header.indexOf('void FG_On_Alarm_Compact_Alarm_Added'))
+    expect(generatedSet.match(/FG_On_Alarm_Compact_Alarm_Added\(int32_t alarm_id, FG_Alarm_Priority priority\)/g)).toHaveLength(2)
+    expect(preserved.header).not.toContain('typedef enum { FG_ALARM_PRIORITY')
+    expect(preserved.source).not.toContain('typedef enum { FG_ALARM_PRIORITY')
+  })
+
+  it('repairs a preserved multi-Alarm header exactly once without payload-specific detection', () => {
+    const hooks = [
+      'FG_On_Alarm_Left_Alarm_Added',
+      'FG_On_Alarm_Right_Alarm_Added',
+    ]
+    const publicApiDeclarations = [
+      'typedef enum { FG_ALARM_PRIORITY_LOW = 0, FG_ALARM_PRIORITY_MEDIUM = 1, FG_ALARM_PRIORITY_HIGH = 2, FG_ALARM_PRIORITY_CRITICAL = 3 } FG_Alarm_Priority;',
+      'typedef enum { FG_ALARM_STATE_NORMAL = 0, FG_ALARM_STATE_WARNING = 1, FG_ALARM_STATE_ALARM = 2, FG_ALARM_STATE_ACKNOWLEDGED = 3, FG_ALARM_STATE_CLEARED = 4 } FG_Alarm_State;',
+      'bool FG_Add_Alarm_Left_Alarm(int32_t alarm_id, const char * message, const char * timestamp, FG_Alarm_Priority priority, FG_Alarm_State state);',
+      'bool FG_Add_Alarm_Right_Alarm(int32_t alarm_id, const char * message, const char * timestamp, FG_Alarm_Priority priority, FG_Alarm_State state);',
+    ]
+    const contracts = hooks.map(name => ({
+      name,
+      parameters: 'int32_t alarm_id, FG_Alarm_Priority priority',
+    }))
+    const generated = generateUserEventFiles(hooks, publicApiDeclarations, contracts)
+    const preserved = preserveUserEventFiles(
+      '#include "90_Studio_Export.h"\n#include "95_UserEvents.h"\n',
+      '#pragma once\n#include <stdbool.h>\n#include <stdint.h>\nvoid Existing_Application_Hook(void);\n',
+      generated,
+    )
+    const regenerated = preserveUserEventFiles(
+      preserved.source,
+      `${preserved.header}\n#include "90_Studio_Export.h"\n`,
+      generated,
+    )
+
+    expect(regenerated.header.match(/#include "90_Studio_Export\.h"/g)).toHaveLength(1)
+    expect(regenerated.header.indexOf('#include "90_Studio_Export.h"'))
+      .toBeLessThan(regenerated.header.indexOf('FG_On_Alarm_Left_Alarm_Added'))
+    expect(regenerated.header).toContain('FG_On_Alarm_Right_Alarm_Added')
+    expect(regenerated.source.indexOf('#include "95_UserEvents.h"'))
+      .toBeLessThan(regenerated.source.indexOf('#include "90_Studio_Export.h"'))
+  })
+
+  it('uses authoritative IO Monitor selection contracts and public IO types', () => {
+    const hook = 'FG_On_Io_Monitor_Row_Selected'
+    const generated = generateUserEventFiles([hook], [
+      'typedef enum { FG_IO_DIGITAL_INPUT = 0, FG_IO_DIGITAL_OUTPUT = 1, FG_IO_ANALOG_INPUT = 2, FG_IO_ANALOG_OUTPUT = 3 } FG_IO_Type;',
+    ], [{ name: hook, parameters: 'const char * channel, FG_IO_Type io_type' }])
+    expect(generated.header).toContain('#include "90_Studio_Export.h"')
+    expect(generated.header).toContain(`void ${hook}(const char * channel, FG_IO_Type io_type);`)
+    expect(generated.source).toContain('(void)channel;')
+    expect(generated.source).toContain('(void)io_type;')
+  })
+
+  it('removes stale generated IO Monitor hooks from Alarm-only UserEvents', () => {
+    const alarmHook = 'FG_On_Alarm_Compact_Alarm_Added'
+    const generated = generateUserEventFiles([alarmHook], [
+      'typedef enum { FG_ALARM_PRIORITY_LOW = 0, FG_ALARM_PRIORITY_MEDIUM = 1, FG_ALARM_PRIORITY_HIGH = 2, FG_ALARM_PRIORITY_CRITICAL = 3 } FG_Alarm_Priority;',
+      'typedef enum { FG_ALARM_STATE_NORMAL = 0, FG_ALARM_STATE_WARNING = 1, FG_ALARM_STATE_ALARM = 2, FG_ALARM_STATE_ACKNOWLEDGED = 3, FG_ALARM_STATE_CLEARED = 4 } FG_Alarm_State;',
+    ], [{ name: alarmHook, parameters: 'int32_t alarm_id, FG_Alarm_Priority priority' }])
+    const preserved = preserveUserEventFiles(
+      '#include "95_UserEvents.h"\n\nvoid FG_On_Io_Monitor_Left_Row_Selected(const char * channel, FG_IO_Type io_type)\n{\n    printf("[ForgeUI User Event] FG_On_Io_Monitor_Left_Row_Selected\\n");\n}\n\nvoid FG_On_Comp_MSH4_KJAFU0_RZB_Row_Selected(const char * channel, FG_IO_Type io_type)\n{\n    (void)channel;\n    (void)io_type;\n}\n',
+      '#pragma once\n#include <stdint.h>\nvoid FG_On_Io_Monitor_Left_Row_Selected(const char * channel, FG_IO_Type io_type);\nvoid FG_On_Comp_MSH4_KJAFU0_RZB_Row_Selected(const char * channel, FG_IO_Type io_type);\n',
+      generated,
+    )
+
+    expect(preserved.header).toContain('#include "90_Studio_Export.h"')
+    expect(preserved.header).not.toContain('FG_IO_Type')
+    expect(preserved.source).not.toContain('FG_IO_Type')
+    expect(preserved.source).toContain('void FG_On_Alarm_Compact_Alarm_Added(int32_t alarm_id, FG_Alarm_Priority priority)')
   })
 
   it('generates and preserves Keyboard visibility hooks', () => {
@@ -923,16 +1022,16 @@ describe('generated public UI API headers', () => {
       expect(preserved.source.match(new RegExp(`void ${active}`, 'g'))).toHaveLength(1)
     })
 
-    it('quarantines obsolete customised hooks so stale APIs cannot compile', () => {
+    it('removes obsolete customised hooks so stale APIs cannot compile', () => {
       const custom = `void ${stale}(void)\n{\n    FG_Set_Comp_STALE_Value(42);\n}`
       const preserved = preserveUserEventFiles(custom, `#pragma once\nvoid ${stale}(void);\n`, generated())
-      expect(preserved.source).toContain('#if 0 /* ForgeUI orphaned legacy Native Component hook:')
-      expect(preserved.source).toContain('FG_Set_Comp_STALE_Value(42);')
+      expect(preserved.source).not.toContain(stale)
+      expect(preserved.source).not.toContain('FG_Set_Comp_STALE_Value(42);')
       expect(preserved.header).not.toContain(stale)
-      expect(preserved.orphanedCustomHooks).toEqual([stale])
+      expect(preserved.removedCustomHooks).toEqual([stale])
     })
 
-    it('quarantines stale Dashboard Card proof hooks with descriptive identities', () => {
+    it('removes stale Dashboard Card proof hooks with descriptive identities', () => {
       const staleCard = 'FG_On_Dashboard_Card_A_Clicked'
       const currentCard = 'FG_On_Comp_CURRENT_Clicked'
       const custom = `void ${staleCard}(void)\n{\n    FG_Set_Dashboard_Card_A_Title("stale");\n}`
@@ -941,17 +1040,17 @@ describe('generated public UI API headers', () => {
         `#pragma once\nvoid ${staleCard}(void);\n`,
         generateUserEventFiles([currentCard], []),
       )
-      expect(preserved.source).toContain('#if 0 /* ForgeUI orphaned legacy Native Component hook:')
-      expect(preserved.source).toContain('FG_Set_Dashboard_Card_A_Title("stale");')
+      expect(preserved.source).not.toContain(staleCard)
+      expect(preserved.source).not.toContain('FG_Set_Dashboard_Card_A_Title("stale");')
       expect(preserved.header).not.toContain(staleCard)
-      expect(preserved.orphanedCustomHooks).toEqual([staleCard])
+      expect(preserved.removedCustomHooks).toEqual([staleCard])
     })
 
-    it('does not modify standard or unrelated developer hooks', () => {
+    it('removes noncanonical standard hooks but retains unrelated helpers', () => {
       const standard = 'void FG_On_Standard_Button_Clicked(void)\n{\n    developer_action();\n}'
       const helper = 'void Application_Background_Task(void)\n{\n    service_watchdog();\n}'
       const preserved = preserveUserEventFiles(`${standard}\n\n${helper}\n`, '#pragma once\n', generated())
-      expect(preserved.source).toContain(standard)
+      expect(preserved.source).not.toContain('FG_On_Standard_Button_Clicked')
       expect(preserved.source).toContain(helper)
     })
 
@@ -967,9 +1066,8 @@ describe('generated public UI API headers', () => {
     })
 
     it('preserves the current Sensor Tile proof on its active hook', () => {
-      const firmwareMain = path.resolve(__dirname, '../firmware/ForgeUI-One/main')
-      const source = fs.readFileSync(path.join(firmwareMain, '95_UserEvents.c'), 'utf8')
-      const header = fs.readFileSync(path.join(firmwareMain, '95_UserEvents.h'), 'utf8')
+      const source = '#include "95_UserEvents.h"\n\nvoid FG_On_Comp_MSBCEON9_ITWY7_Clicked(void)\n{\n    printf("[ForgeUI Proof] Sensor Tile state\\n");\n}\n\nvoid FG_On_Comp_MSBBZXHGG5_BAD_Clicked(void)\n{\n    FG_Set_Comp_MSBBZXHGG5_BAD_Value(1);\n}\n'
+      const header = '#pragma once\nvoid FG_On_Comp_MSBCEON9_ITWY7_Clicked(void);\nvoid FG_On_Comp_MSBBZXHGG5_BAD_Clicked(void);\n'
       const current = generateUserEventFiles([
         'FG_On_Comp_MSBCEKT2_TYLLX_Clicked',
         'FG_On_Comp_MSBCEON9_ITWY7_Clicked',
@@ -983,6 +1081,148 @@ describe('generated public UI API headers', () => {
       expect(second.source).toBe(first.source)
       expect(second.header).toBe(first.header)
     })
+
+    it('reconciles sequential numbered projects by persisted component identity', () => {
+      const alarmA = 'FG_On_Comp_ALARM_A_Alarm_Added'
+      const alarmB = 'FG_On_Comp_ALARM_B_Alarm_Added'
+      const survivor = 'FG_On_Comp_SURVIVOR_Clicked'
+      const alarmContracts = (hooks) => generateUserEventFiles(hooks, [
+        'typedef enum { FG_ALARM_PRIORITY_LOW = 0, FG_ALARM_PRIORITY_MEDIUM = 1, FG_ALARM_PRIORITY_HIGH = 2, FG_ALARM_PRIORITY_CRITICAL = 3 } FG_Alarm_Priority;',
+      ], hooks.filter(hook => hook.includes('_Alarm_Added')).map(name => ({
+        name, parameters: 'int32_t alarm_id, FG_Alarm_Priority priority',
+      })))
+
+      const withTwoAlarms = preserveUserEventFiles(
+        `#include "95_UserEvents.h"\n\nvoid ${alarmA}(int32_t alarm_id, FG_Alarm_Priority priority)\n{\n    developer_alarm_a(alarm_id, priority);\n}\n\nvoid ${alarmB}(int32_t alarm_id, FG_Alarm_Priority priority)\n{\n    developer_alarm_b(alarm_id, priority);\n}\n\nvoid ${survivor}(void)\n{\n    developer_survivor();\n}\n`,
+        '#pragma once\n',
+        alarmContracts([alarmA, alarmB, survivor]),
+      )
+
+      const withoutAlarms = preserveUserEventFiles(
+        withTwoAlarms.source, withTwoAlarms.header,
+        generateUserEventFiles([survivor], []),
+      )
+      expect(withoutAlarms.source).not.toContain('FG_Alarm_Priority')
+      expect(withoutAlarms.header).not.toContain('FG_Alarm_Priority')
+      expect(withoutAlarms.source).not.toContain(alarmA)
+      expect(withoutAlarms.source).not.toContain(alarmB)
+      expect(withoutAlarms.source).toContain('developer_survivor();')
+
+      const removeOnlyB = preserveUserEventFiles(
+        withTwoAlarms.source, withTwoAlarms.header,
+        alarmContracts([alarmA, survivor]),
+      )
+      expect(removeOnlyB.source).toContain('developer_alarm_a(alarm_id, priority);')
+      expect(removeOnlyB.source).not.toContain(alarmB)
+
+      // A visible rename retains the persisted ID and therefore the hook/body.
+      const renamed = preserveUserEventFiles(
+        removeOnlyB.source, removeOnlyB.header,
+        alarmContracts([alarmA, survivor]),
+      )
+      expect(renamed.source).toContain('developer_alarm_a(alarm_id, priority);')
+
+      // Delete/recreate allocates a new persisted ID; the old API cannot leak.
+      const recreated = 'FG_On_Comp_ALARM_C_Alarm_Added'
+      const recreatedResult = preserveUserEventFiles(
+        renamed.source, renamed.header,
+        alarmContracts([recreated, survivor]),
+      )
+      expect(recreatedResult.source).not.toContain(alarmA)
+      expect(recreatedResult.header).not.toContain(alarmA)
+      expect(recreatedResult.source).toContain(recreated)
+    })
+
+    it('aligns changed signatures while preserving only safely compatible bodies', () => {
+      const hook = 'FG_On_Comp_SIGNATURE_Point_Added'
+      const generated = generateUserEventFiles([hook], [], [
+        { name: hook, parameters: 'float value' },
+      ])
+      const compatible = preserveUserEventFiles(
+        `void ${hook}(void)\n{\n    developer_sample();\n}\n`,
+        `#pragma once\nvoid ${hook}(void);\n`, generated,
+      )
+      expect(compatible.header).toContain(`void ${hook}(float value);`)
+      expect(compatible.source).toContain(`void ${hook}(float value)`)
+      expect(compatible.source).toContain('developer_sample();')
+
+      const unsafe = preserveUserEventFiles(
+        `void ${hook}(int32_t old_value)\n{\n    developer_sample(old_value);\n}\n`,
+        `#pragma once\nvoid ${hook}(int32_t old_value);\n`, generated,
+      )
+      expect(unsafe.source).toContain(`void ${hook}(float value)`)
+      expect(unsafe.source).not.toContain('old_value')
+    })
+  })
+})
+
+describe('canonical UserEvents project reconciliation', () => {
+  const alarmContracts = names => names.flatMap(name => [
+    { name: `${name}_Alarm_Added`, parameters: 'int32_t alarm_id, FG_Alarm_Priority priority' },
+    { name: `${name}_Alarm_Acknowledged`, parameters: 'int32_t alarm_id' },
+    { name: `${name}_Alarm_Cleared`, parameters: 'int32_t alarm_id' },
+    { name: `${name}_Alarm_Selected`, parameters: 'int32_t alarm_id' },
+  ])
+  const fromContracts = contracts => generateUserEventFiles(
+    contracts.map(contract => contract.name), [], contracts,
+  )
+
+  it('removes every Alarm Panel contract when the next project has no Alarm Panel', () => {
+    const alarms = fromContracts(alarmContracts([
+      'FG_On_Comp_Alarm_A', 'FG_On_Comp_Alarm_B',
+    ]))
+    const survivor = 'FG_On_Comp_Relay_Channel_Changed'
+    const first = preserveUserEventFiles(
+      `${alarms.source}\nvoid ${survivor}(uint32_t channel, bool enabled)\n{\n    developer_relay(channel, enabled);\n}\n`,
+      alarms.header,
+      generateUserEventFiles([survivor], []),
+    )
+    expect(first.source).not.toContain('_Alarm_')
+    expect(first.header).not.toContain('_Alarm_')
+    expect(first.source).not.toContain('FG_Alarm_Priority')
+    expect(first.header).not.toContain('FG_Alarm_Priority')
+    expect(first.source).toContain('developer_relay(channel, enabled);')
+  })
+
+  it('removes only the deleted Alarm Panel persisted-ID contracts', () => {
+    const bothContracts = alarmContracts(['FG_On_Comp_PERSIST_A', 'FG_On_Comp_PERSIST_B'])
+    const both = fromContracts(bothContracts)
+    const onlyA = fromContracts(alarmContracts(['FG_On_Comp_PERSIST_A']))
+    const reconciled = preserveUserEventFiles(both.source, both.header, onlyA)
+    expect(reconciled.source).toContain('FG_On_Comp_PERSIST_A_Alarm_Added')
+    expect(reconciled.source).not.toContain('FG_On_Comp_PERSIST_B_')
+    expect(reconciled.header).not.toContain('FG_On_Comp_PERSIST_B_')
+  })
+
+  it('keeps renamed-component bodies by persisted callback identity', () => {
+    const hook = 'FG_On_Comp_PERSISTED_Clicked'
+    const existing = `void ${hook}(void)\n{\n    developer_named_action();\n}`
+    const reconciled = preserveUserEventFiles(existing, '#pragma once\n', generateUserEventFiles([hook], []))
+    expect(reconciled.source).toContain('developer_named_action();')
+  })
+
+  it('drops deleted IDs when a replacement component receives a new persisted ID', () => {
+    const oldHook = 'FG_On_Comp_DELETED_Clicked'
+    const newHook = 'FG_On_Comp_RECREATED_Clicked'
+    const reconciled = preserveUserEventFiles(
+      `void ${oldHook}(void)\n{\n    developer_old_action();\n}`,
+      `#pragma once\nvoid ${oldHook}(void);\n`,
+      generateUserEventFiles([newHook], []),
+    )
+    expect(reconciled.source).not.toContain(oldHook)
+    expect(reconciled.source).toContain(newHook)
+  })
+
+  it('aligns changed signatures in header and implementation while retaining a compatible body', () => {
+    const hook = 'FG_On_Comp_SIGNATURE_Point_Added'
+    const generated = fromContracts([{ name: hook, parameters: 'float value' }])
+    const reconciled = preserveUserEventFiles(
+      `void ${hook}(int32_t value)\n{\n    developer_sample(value);\n}`,
+      `#pragma once\nvoid ${hook}(int32_t value);\n`, generated,
+    )
+    expect(reconciled.header).toContain(`void ${hook}(float value);`)
+    expect(reconciled.source).toContain(`void ${hook}(float value)`)
+    expect(reconciled.source).toContain('developer_sample(value);')
   })
 })
 

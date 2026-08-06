@@ -106,6 +106,7 @@ type PreviewDefaultProps = {
   Chart?: PropsWithForm<BoxProps> & Record<string, any>
   TrendChartPro?: PropsWithForm<BoxProps> & Record<string, any>
   AlarmPanel?: PropsWithForm<BoxProps> & Record<string, any>
+  IOMonitor?: PropsWithForm<BoxProps> & Record<string, any>
   AvatarBadge?: PropsWithForm<AvatarBadgeProps>
   AvatarGroup?: PropsWithForm<Omit<AvatarGroupProps, 'children'>>
   Avatar?: PropsWithForm<AvatarProps>
@@ -418,6 +419,16 @@ WiFi: {
       { id: 'alarm-1', message: 'High discharge pressure', timestamp: '14:22:18', state: 'alarm', priority: 'critical' },
       { id: 'alarm-2', message: 'Motor temperature elevated', timestamp: '14:20:04', state: 'warning', priority: 'high' },
       { id: 'alarm-3', message: 'Filter service due', timestamp: '13:48:31', state: 'acknowledged', priority: 'medium' },
+    ], generateRuntimeApi: true, enableUserEvents: true,
+    positionMode: 'absolute', x: 40, y: 40, w: 420, h: 300,
+  },
+  IOMonitor: {
+    nativeWidgetSchemaVersion: 1, title: 'IO Monitor', maximumRows: 8, compactMode: false,
+    rows: [
+      { id: 'io-1', ioType: 'digital-input', channel: 'DI1', displayName: 'Emergency Stop', value: 0, state: false, units: '', colour: '#22C55E', showValue: false, showState: true, visible: true },
+      { id: 'io-2', ioType: 'digital-output', channel: 'DO1', displayName: 'Pump', value: 1, state: true, units: '', colour: '#38BDF8', showValue: false, showState: true, visible: true },
+      { id: 'io-3', ioType: 'analog-input', channel: 'AI1', displayName: 'Pressure', value: 4.62, state: true, units: 'bar', colour: '#F2A900', showValue: true, showState: true, visible: true },
+      { id: 'io-4', ioType: 'analog-output', channel: 'AO1', displayName: 'Valve Demand', value: 68, state: true, units: '%', colour: '#A78BFA', showValue: true, showState: true, visible: true },
     ], generateRuntimeApi: true, enableUserEvents: true,
     positionMode: 'absolute', x: 40, y: 40, w: 420, h: 300,
   },

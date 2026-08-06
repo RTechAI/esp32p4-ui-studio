@@ -58,6 +58,7 @@ import { ForgeUIRelayPanelPreview } from './ForgeUIRelayPanelPreview'
 import { ForgeUIPwmControllerPreview } from './ForgeUIPwmControllerPreview'
 import { ForgeUITrendChartProPreview } from './ForgeUITrendChartProPreview'
 import { ForgeUIAlarmPanelPreview } from './ForgeUIAlarmPanelPreview'
+import { ForgeUIIOMonitorPreview } from './ForgeUIIOMonitorPreview'
 import ImagePreview from '~components/editor/previews/ImagePreview'
 import StandardCalendarPreview from './StandardCalendarPreview'
 import { resolveForgeSemanticPalette } from './forgeThemeMap'
@@ -840,6 +841,10 @@ case 'TrendChartPro': {
 }
 case 'AlarmPanel': {
   output.push(<Box key={child.id} {...commonStyle}><ForgeUIAlarmPanelPreview component={child} palette={palette} /></Box>)
+  break
+}
+case 'IOMonitor': {
+  output.push(<Box key={child.id} {...commonStyle}><ForgeUIIOMonitorPreview component={child} palette={palette} /></Box>)
   break
 }
 

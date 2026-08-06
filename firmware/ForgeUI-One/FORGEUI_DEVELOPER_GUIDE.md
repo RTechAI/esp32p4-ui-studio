@@ -43,19 +43,13 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- `FG_On_Comp_MSGIZG2_O1_U0_K5_Alarm_Added()`
-- `FG_On_Comp_MSGIZG2_O1_U0_K5_Alarm_Acknowledged()`
-- `FG_On_Comp_MSGIZG2_O1_U0_K5_Alarm_Cleared()`
-- `FG_On_Comp_MSGIZG2_O1_U0_K5_Alarm_Selected()`
+- `FG_On_Comp_MSH8868_TNTWC1_Row_Selected()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| Comp_MSGIZG2_O1_U0_K5_Alarm_Added | Click | `FG_On_Comp_MSGIZG2_O1_U0_K5_Alarm_Added()` |
-| Comp_MSGIZG2_O1_U0_K5_Alarm_Acknowledged | Click | `FG_On_Comp_MSGIZG2_O1_U0_K5_Alarm_Acknowledged()` |
-| Comp_MSGIZG2_O1_U0_K5_Alarm_Cleared | Click | `FG_On_Comp_MSGIZG2_O1_U0_K5_Alarm_Cleared()` |
-| Comp_MSGIZG2_O1_U0_K5_Alarm_Selected | Click | `FG_On_Comp_MSGIZG2_O1_U0_K5_Alarm_Selected()` |
+| Comp_MSH8868_TNTWC1_Row_Selected | Click | `FG_On_Comp_MSH8868_TNTWC1_Row_Selected()` |
 
 ---
 

@@ -210,6 +210,7 @@ export const componentsList: ComponentType[] = ([
 'PwmController',
 'TrendChartPro',
 'AlarmPanel',
+'IOMonitor',
 'Editable',
 'Flex',
 'FormControl',

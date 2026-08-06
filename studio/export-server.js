@@ -985,6 +985,9 @@ function normalizePublicApiDeclarations(declarations) {
             /^void FG_Set_[A-Za-z0-9_]+\(int32_t trend\);$/.test(declaration) ||
             /^typedef enum \{ FG_ALARM_PRIORITY_LOW = 0, FG_ALARM_PRIORITY_MEDIUM = 1, FG_ALARM_PRIORITY_HIGH = 2, FG_ALARM_PRIORITY_CRITICAL = 3 \} FG_Alarm_Priority;$/.test(declaration) ||
             /^typedef enum \{ FG_ALARM_STATE_NORMAL = 0, FG_ALARM_STATE_WARNING = 1, FG_ALARM_STATE_ALARM = 2, FG_ALARM_STATE_ACKNOWLEDGED = 3, FG_ALARM_STATE_CLEARED = 4 \} FG_Alarm_State;$/.test(declaration) ||
+            /^typedef enum \{ FG_IO_DIGITAL_INPUT = 0, FG_IO_DIGITAL_OUTPUT = 1, FG_IO_ANALOG_INPUT = 2, FG_IO_ANALOG_OUTPUT = 3 \} FG_IO_Type;$/.test(declaration) ||
+            /^bool FG_Set_[A-Za-z0-9_]+_(?:DigitalInput|DigitalOutput)\(const char \* channel, bool state\);$/.test(declaration) ||
+            /^bool FG_Set_[A-Za-z0-9_]+_(?:AnalogInput|AnalogOutput)\(const char \* channel, float value\);$/.test(declaration) ||
             /^bool FG_(?:Add_[A-Za-z0-9_]+_Alarm\(int32_t alarm_id, const char \* message, const char \* timestamp, FG_Alarm_Priority priority, FG_Alarm_State state\)|Acknowledge_[A-Za-z0-9_]+_Alarm\(int32_t alarm_id\)|Clear_[A-Za-z0-9_]+_Alarm\(int32_t alarm_id\)|Select_[A-Za-z0-9_]+_Alarm\(int32_t alarm_id\));$/.test(declaration) ||
             /^void FG_Clear_All_[A-Za-z0-9_]+\(void\);$/.test(declaration) ||
             /^void FG_Set_[A-Za-z0-9_]+_Channel\(uint32_t channel, bool enabled\);$/.test(declaration) ||
@@ -1519,10 +1522,9 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = [], user
     (Array.isArray(userEventContracts) ? userEventContracts : [])
       .filter(contract => contract &&
         /^FG_On_[A-Za-z0-9_]+$/.test(String(contract.name || '')) &&
-        /^(?:void|float value|int32_t alarm_id|int32_t alarm_id, FG_Alarm_Priority priority)$/.test(String(contract.parameters || '')))
+        /^(?:void|float value|int32_t alarm_id|int32_t alarm_id, FG_Alarm_Priority priority|const char \* channel, FG_IO_Type io_type)$/.test(String(contract.parameters || '')))
       .map(contract => [String(contract.name), String(contract.parameters)])
   )
-  const hasAlarmContracts = Array.from(explicitContracts.values()).some(parameters => parameters.includes('FG_Alarm_Priority'))
   const booleanChanged = new Set()
   const checkedChanged = new Set()
   const checkboxCheckedChanged = new Set()
@@ -1885,9 +1887,9 @@ function generateUserEventFiles(userEventHooks, publicApiDeclarations = [], user
 
 #pragma once
 
+#include "90_Studio_Export.h"
 #include <stdbool.h>
 #include <stdint.h>
-${hasAlarmContracts ? '#include "90_Studio_Export.h"' : ''}
 
 typedef enum
 {
@@ -1939,7 +1941,6 @@ ${definitions}
   }
 }
 
-const NATIVE_COMPONENT_HOOK_PATTERN = /^FG_On_(?:Comp_[A-Za-z0-9_]+_(?:Clicked|Channel_Changed|Master_Changed|Value_Changed|Enabled_Changed)|Dashboard_Card_[A-Za-z0-9_]+_Clicked)$/
 const ORPHANED_NATIVE_HOOK_MARKER = 'ForgeUI orphaned legacy Native Component hook'
 
 function findVoidHookDefinitions(source) {
@@ -1966,6 +1967,7 @@ function findVoidHookDefinitions(source) {
     if (depth === 0) {
       definitions.push({
         hook: match[1],
+        parameters: match[2],
         start: match.index,
         end: cursor,
         text: source.slice(match.index, cursor),
@@ -1981,6 +1983,15 @@ function isGeneratedNativePlaceholder(definition) {
   const expected = `printf("[ForgeUI User Event] ${definition.hook}\\n");`
   const body = definition.body.trim()
   if (body === expected) return true
+  const unusedParameters = String(definition.parameters || '')
+    .split(',')
+    .map(parameter => {
+      const match = parameter.trim().match(/([A-Za-z_][A-Za-z0-9_]*)$/)
+      return match ? `    (void)${match[1]};` : ''
+    })
+    .filter(Boolean)
+    .join('\n')
+  if (unusedParameters && body === unusedParameters.trim()) return true
   const label = definition.hook
     .replace(/^FG_On_|_(?:Channel|Master)_Changed$/g, '')
     .replace(/_/g, ' ')
@@ -1996,39 +2007,49 @@ function isGeneratedNativePlaceholder(definition) {
   return false
 }
 
-function reconcileNativeComponentHooks(source, header, activeHooks) {
-  const active = new Set(activeHooks.filter(hook =>
-    NATIVE_COMPONENT_HOOK_PATTERN.test(hook)
-  ))
-  const orphanBlocks = []
+function reconcileNativeComponentHooks(source, header, generated) {
+  const active = new Set(generated.hooks)
+  const canonicalDefinitions = new Map(
+    findVoidHookDefinitions(generated.source).map(definition => [definition.hook, definition]),
+  )
+  // Older reconciliation put removed developer callbacks behind #if 0. They
+  // are still stale component APIs in a compilable UserEvents file, so discard
+  // those historical recovery blocks before applying the canonical contract.
   const orphanPattern = new RegExp(
     `#if 0 /\\* ${ORPHANED_NATIVE_HOOK_MARKER}:[^*]*\\*/[\\s\\S]*?#endif`,
     'g',
   )
-  let orphanMatch
-  while ((orphanMatch = orphanPattern.exec(source))) {
-    orphanBlocks.push({ start: orphanMatch.index, end: orphanPattern.lastIndex })
-  }
+  source = source.replace(orphanPattern, '')
 
   const edits = []
   const removedPlaceholders = []
-  const orphanedCustomHooks = []
+  const removedCustomHooks = []
   findVoidHookDefinitions(source).forEach(definition => {
-    if (!NATIVE_COMPONENT_HOOK_PATTERN.test(definition.hook)) return
-    if (active.has(definition.hook)) return
-    if (orphanBlocks.some(block =>
-      definition.start >= block.start && definition.end <= block.end
-    )) return
-
-    if (isGeneratedNativePlaceholder(definition)) {
+    if (!active.has(definition.hook)) {
       edits.push({ start: definition.start, end: definition.end, replacement: '' })
-      removedPlaceholders.push(definition.hook)
+      ;(isGeneratedNativePlaceholder(definition)
+        ? removedPlaceholders
+        : removedCustomHooks).push(definition.hook)
       return
     }
 
-    const replacement = `#if 0 /* ${ORPHANED_NATIVE_HOOK_MARKER}: no active component owns ${definition.hook}. */\n${definition.text}\n#endif`
+    const canonical = canonicalDefinitions.get(definition.hook)
+    if (!canonical) return
+    const oldNames = String(definition.parameters || '') === 'void' ? [] :
+      String(definition.parameters || '').split(',').map(parameter =>
+        (parameter.trim().match(/([A-Za-z_][A-Za-z0-9_]*)$/) || [])[1]
+      ).filter(Boolean)
+    const newNames = new Set(String(canonical.parameters || '') === 'void' ? [] :
+      String(canonical.parameters || '').split(',').map(parameter =>
+        (parameter.trim().match(/([A-Za-z_][A-Za-z0-9_]*)$/) || [])[1]
+      ).filter(Boolean))
+    const bodyIsCompatible = oldNames.every(name =>
+      newNames.has(name) || !new RegExp(`\\b${name}\\b`).test(definition.body)
+    )
+    const replacement = bodyIsCompatible
+      ? `void ${definition.hook}(${canonical.parameters})\n{${definition.body}}`
+      : canonical.text
     edits.push({ start: definition.start, end: definition.end, replacement })
-    orphanedCustomHooks.push(definition.hook)
   })
 
   edits.sort((left, right) => right.start - left.start).forEach(edit => {
@@ -2036,12 +2057,17 @@ function reconcileNativeComponentHooks(source, header, activeHooks) {
   })
   source = source.replace(/\n{3,}/g, '\n\n')
 
-  header = header.replace(
-    /^\s*void\s+(FG_On_(?:Comp_[A-Za-z0-9_]+_(?:Clicked|Channel_Changed|Master_Changed)|Dashboard_Card_[A-Za-z0-9_]+_Clicked))\s*\([^;]*\)\s*;\s*$/gm,
-    (declaration, hook) => active.has(hook) ? declaration : '',
-  ).replace(/\n{3,}/g, '\n\n')
+  // The header is wholly generator-owned: it is the canonical contract for
+  // this project, never a preservation merge of historical declarations.
+  header = generated.header
 
-  return { source, header, removedPlaceholders, orphanedCustomHooks }
+  return {
+    source,
+    header,
+    removedPlaceholders,
+    removedCustomHooks,
+    orphanedCustomHooks: [],
+  }
 }
 
 function preserveUserEventFiles(existingSource, existingHeader, generated) {
@@ -2055,29 +2081,41 @@ function preserveUserEventFiles(existingSource, existingHeader, generated) {
   const reconciliation = reconcileNativeComponentHooks(
     source,
     header,
-    generated.hooks,
+    generated,
   )
   source = reconciliation.source
   header = reconciliation.header
-  if (reconciliation.orphanedCustomHooks.length) {
-    console.warn(
-      'Preserved orphaned Native Component UserEvents hooks:',
-      reconciliation.orphanedCustomHooks,
-    )
+  if (reconciliation.removedCustomHooks.length) console.warn(
+    'Removed obsolete UserEvents callbacks with no current canonical owner:',
+    reconciliation.removedCustomHooks,
+  )
+
+  const ensureHeaderInclude = (directive) => {
+    if (!generated.header.includes(directive)) return
+    let retained = false
+    header = header.split(/\r?\n/).filter(line => {
+      if (line.trim() !== directive) return true
+      if (retained) return false
+      retained = true
+      return true
+    }).join('\n')
+    if (retained) return
+    const pragmaEnd = header.indexOf('\n', header.indexOf('#pragma once'))
+    header = pragmaEnd >= 0
+      ? `${header.slice(0, pragmaEnd + 1)}\n${directive}\n${header.slice(pragmaEnd + 1)}`
+      : `${directive}\n${header}`
   }
 
-  ;['stdbool.h', 'stdint.h'].forEach((include) => {
-    const directive = `#include <${include}>`
-    if (
-      generated.header.includes(directive) &&
-      !header.includes(directive)
-    ) {
-      const pragmaEnd = header.indexOf('\n', header.indexOf('#pragma once'))
-      header = pragmaEnd >= 0
-        ? `${header.slice(0, pragmaEnd + 1)}\n${directive}${header.slice(pragmaEnd + 1)}`
-        : `${directive}\n${header}`
-    }
-  })
+  ;['#include "90_Studio_Export.h"', '#include <stdbool.h>', '#include <stdint.h>']
+    .forEach(ensureHeaderInclude)
+
+  const userHeaderDirective = '#include "95_UserEvents.h"'
+  const userHeaderPattern = /^[ \t]*#include[ \t]+"95_UserEvents\.h"[ \t]*(?:\r?\n)?/gm
+  source = source.replace(userHeaderPattern, '')
+  const firstInclude = source.search(/^[ \t]*#include\b/m)
+  source = firstInclude >= 0
+    ? `${source.slice(0, firstInclude)}${userHeaderDirective}\n${source.slice(firstInclude)}`
+    : `${userHeaderDirective}\n${source}`
 
   generated.contracts.forEach((parameters, hook) => {
     const escapedHook = hook.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -2119,11 +2157,20 @@ function preserveUserEventFiles(existingSource, existingHeader, generated) {
     }
   })
 
+  let runtimeHeaderSeen = false
+  header = header.split(/\r?\n/).filter(line => {
+    if (!/^[ \t]*#include[ \t]+"90_Studio_Export\.h"[ \t]*$/.test(line)) return true
+    if (runtimeHeaderSeen) return false
+    runtimeHeaderSeen = true
+    return true
+  }).join('\n')
+
   return {
     ...generated,
     source,
     header,
     removedPlaceholders: reconciliation.removedPlaceholders,
+    removedCustomHooks: reconciliation.removedCustomHooks,
     orphanedCustomHooks: reconciliation.orphanedCustomHooks,
   }
 }
@@ -2699,12 +2746,14 @@ app.post('/shutdown', (req, res) => {
 })
 
 if (require.main === module) {
-  app.listen(3030, () => {
-    console.log('ForgeUI export server alive on :3030')
+  const port = Number(process.env.FORGEUI_EXPORT_PORT || 3030)
+  app.listen(port, () => {
+    console.log(`ForgeUI export server alive on :${port}`)
   })
 }
 
 module.exports = {
+  app,
   generateStudioExportHeader,
   generateUserEventFiles,
   preserveUserEventFiles,

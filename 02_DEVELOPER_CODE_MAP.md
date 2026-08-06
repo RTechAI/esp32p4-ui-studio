@@ -1,6 +1,6 @@
 # Developer Code Map: where features live, who owns each layer, and which files are authoritative
 
-## Native Components 1–7 implementation map — 2026-08-06
+## Native Components 1–8 implementation map — 2026-08-06
 
 Current documentation status: **ALARM PANEL — HARDWARE VALIDATED; EXTENDED
 RUNTIME PROOF DEFERRED** (2026-08-06).
@@ -10,8 +10,9 @@ Tile, Relay Panel, PWM Controller, Trend Chart, and Trend Chart Pro are the six
 fully proven Native Components. Alarm Panel is exported, built, flashed, and
 physically rendered on ESP32-P4, and is recorded separately as **HARDWARE
 VALIDATED**. Extended runtime interaction and callback proof is deferred to the
-future Proof Module / hardware simulation work. The next planned Native Component
-is **IO Monitor**; no implementation begins in this documentation pass.
+future Proof Module / hardware simulation work. IO Monitor is **HARDWARE
+VALIDATED** as a read-only component after export, ESP-IDF 5.5.4 build, flash,
+and physical rendering. The next planned Native Component is **Battery Card**.
 
 | Concern | Authoritative owner |
 |---|---|
@@ -23,6 +24,9 @@ is **IO Monitor**; no implementation begins in this documentation pass.
 | Alarm Panel semantic model | `studio/src/forgeui/ForgeUIAlarmPanel.ts` |
 | Alarm Panel Browser Preview | `studio/src/forgeui/preview/ForgeUIAlarmPanelPreview.tsx` |
 | Alarm Panel Inspector | `studio/src/components/inspector/panels/components/AlarmPanelPanel.tsx` |
+| IO Monitor semantic model | `studio/src/forgeui/ForgeUIIOMonitor.ts` |
+| IO Monitor Browser Preview | `studio/src/forgeui/preview/ForgeUIIOMonitorPreview.tsx` |
+| IO Monitor Inspector | `studio/src/components/inspector/panels/components/IOMonitorPanel.tsx` |
 | Shared Live/Standalone LVGL, Runtime APIs and callback calls | `studio/src/forgeui/ForgeUILvglExport.ts` |
 | Canonical UserEvents preservation and ownership | `studio/export-server.js` |
 | Native Component registration and documentation routes | `studio/src/forgeui/widgets/ForgeUIWidgetRegistry.ts` |

@@ -1,11 +1,13 @@
 # ForgeUI Studio
 
 > Current certification (2026-08-06): **44 / 44 practical LVGL 9.2
-> components physically proven on ESP32-P4**, plus seven implemented ForgeUI
+> components physically proven on ESP32-P4**, plus eight implemented ForgeUI
 > Native Components. Dashboard Card, Sensor Tile, Relay Panel, PWM Controller,
 > Trend Chart, and Trend Chart Pro are fully proven. Alarm Panel is
 > **HARDWARE VALIDATED**: exported, built, flashed, and physically rendered on
-> ESP32-P4; extended runtime interaction and callback proof is deferred.
+> ESP32-P4; extended runtime interaction and callback proof is deferred. IO
+> Monitor is also **HARDWARE VALIDATED** after export, ESP-IDF 5.5.4 build,
+> flash, and physical rendering; it is intentionally read-only with no touch callbacks.
 
 > Next architecture sprint (recorded, not implemented): **ForgeUI ESP32-S3 Simulator Platform** for simulated digital I/O, PWM, analogue, battery, tank, motor and relay behavior, Wi-Fi communication, repeatable hardware validation, a future Test Certificate Card and a public hardware-proof workflow.
 
@@ -39,6 +41,7 @@ ForgeUI now rests on two completed foundations:
    semantic serialization, Browser Preview, Live Studio, Standalone Export,
    Runtime SDK, UserEvents and ESP32-P4 hardware. Alarm Panel is recorded
    separately as **HARDWARE VALIDATED**, pending extended runtime lifecycle proof.
+   IO Monitor is **HARDWARE VALIDATED** as a read-only monitoring component.
 
 Dashboard Card remains one semantic, serializable Canvas component with private
 multi-object LVGL composition. See
@@ -284,6 +287,7 @@ The [ForgeUI Developer Portal](https://forgeui.co.nz/developers) is the public o
 | [07 — Runtime SDK Direction](07_FORGEUI_RUNTIME_SDK.md) | Long-term generated SDK concept and evolution rules |
 | [09 — Fi Runtime Guide](09_FORGEUI_FI_RUNTIME_GUIDE.md) | Canonical Fi pipeline, 90/95/96 ownership, generated presentation APIs and optional click hooks |
 | [10 — Native Component Runtime Guide](10_FORGEUI_NATIVE_COMPONENT_RUNTIME_GUIDE.md) | Living post-export reference for Native Component semantic APIs, UserEvents, ownership, task safety and hardware adapters |
+| [IO Monitor](docs/FORGEUI_IO_MONITOR.md) | Read-only IO Monitor configuration, Runtime SDK, interaction contract, and ESP32-P4 validation |
 | [Layout Designer Guide](docs/FORGEUI_LAYOUT_DESIGNER.md) | Preset, Smart Region, Auto Arrange and AI Fill workflow |
 | [QR Code Guide](docs/FORGEUI_QR_CODE.md) | QR authoring, preview, export and validation |
 | [Spinbox Guide](docs/FORGEUI_SPINBOX_WIDGET.md) | Proven native digit editor, integer-backed decimals, APIs and physical evidence |

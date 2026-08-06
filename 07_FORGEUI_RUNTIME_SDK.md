@@ -178,6 +178,21 @@ void FG_Set_QR_Code_Text(const char * text);
 The exact current catalogue is authoritative in
 [03_ForgeUI_Generated_Export_API_Code_Map.md](03_ForgeUI_Generated_Export_API_Code_Map.md).
 
+IO Monitor is a read-only Native Component. For an exported stem
+`Io_Monitor_Main`, its implemented semantic API is:
+
+```c
+bool FG_Set_Io_Monitor_Main_DigitalInput(const char * channel, bool state);
+bool FG_Set_Io_Monitor_Main_DigitalOutput(const char * channel, bool state);
+bool FG_Set_Io_Monitor_Main_AnalogInput(const char * channel, float value);
+bool FG_Set_Io_Monitor_Main_AnalogOutput(const char * channel, float value);
+```
+
+These persisted-ID, rename-stable setters update isolated bounded row storage
+and return whether a matching typed channel was found. Updates are silent and
+require no raw LVGL manipulation. IO Monitor has no touch-related UserEvents;
+runtime projection through these setters is not user interaction.
+
 SDK rules:
 
 - generate APIs only for meaningful widget state or commands;

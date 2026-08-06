@@ -11,8 +11,9 @@
 
 #pragma once
 
-#include <stdint.h>
+#include "90_Studio_Export.h"
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef enum
 {
@@ -24,113 +25,8 @@ typedef enum
 #ifdef __cplusplus
 extern "C" {
 #endif
-void FG_On_Status_LED_Changed(bool enabled);
-void FG_On_Progress_Bar_Changed(int32_t value);
-void FG_On_Value_Arc_Changed(int32_t value);
-void FG_On_Data_Chart_Point_Added(float value);
-void FG_On_Data_Chart_Cleared(void);
-void FG_On_Keyboard_Shown(void);
-void FG_On_Keyboard_Hidden(void);
-void FG_On_Calendar_Date_Changed(uint16_t year, uint8_t month, uint8_t day);
-void FG_On_Option_Roller_Changed(uint32_t index, const char * text);
-void FG_On_Option_Roller_2_Changed(uint32_t index, const char * text);
-void FG_On_Message_Shown(void);
-void FG_On_Message_Closed(void);
-void FG_On_Message_Button_Pressed(uint32_t index, const char * text);
-void FG_On_Menu_Matrix_Button_Selected(uint32_t index, const char * text);
-void FG_On_Tab_View_Changed(uint32_t tab_index);
-void FG_On_Tileview_Changed(uint32_t column, uint32_t row);
-void FG_On_Tab_View_2_Changed(uint32_t tab_index);
-void FG_On_Tileview_2_Changed(uint32_t column, uint32_t row);
-void FG_On_Data_Chart_2_Point_Added(int32_t value);
-void FG_On_Data_Chart_2_Cleared(void);
-void FG_On_Input_Changed(const char * text);
-void FG_On_Textarea_Changed(const char * text);
-void FG_On_Checkbox_Changed(bool checked);
-void FG_On_Switch_Changed(bool checked);
-void FG_On_Switch_2_Changed(bool checked);
-void FG_On_Switch_3_Changed(bool checked);
-void FG_On_Radio_Changed(bool selected);
-void FG_On_Number_Input_Changed(int32_t value);
-void FG_On_Number_Input_2_Changed(int32_t value);
-void FG_On_Select_Changed(uint32_t index, const char * text);
-void FG_On_Select_2_Changed(uint32_t index, const char * text);
-void FG_On_Icon_Button_Clicked(void);
-void FG_On_Slider_Changed(int32_t value);
-void FG_On_Slider_2_Changed(int32_t value);
-void FG_On_Slider_3_Changed(int32_t value);
-void FG_On_Slider_4_Changed(int32_t value);
-void FG_On_List_Item_Clicked(uint32_t index, const char * text);
-void FG_On_Spinbox_Changed(int32_t value);
-void FG_On_List_Proof_Item_Clicked(uint32_t index, const char * text);
-void FG_On_Image_Button_Clicked(void);
-void FG_On_Image_Button_2_Clicked(void);
-void FG_On_Comp_MSBNY8_YAG2_OA3_Value_Changed(float value);
-void FG_On_Comp_MSBNY8_YAG2_OA3_Enabled_Changed(bool enabled);
-void FG_On_Comp_MSBNYL9_ACWFHC_Value_Changed(float value);
-void FG_On_Comp_MSBNYL9_ACWFHC_Enabled_Changed(bool enabled);
-void FG_On_Comp_MSBOQVOZWLLEK_Value_Changed(float value);
-void FG_On_Comp_MSBOQVOZWLLEK_Enabled_Changed(bool enabled);
-void FG_On_Comp_MSBOQXJA4_HF7_M_Value_Changed(float value);
-void FG_On_Comp_MSBOQXJA4_HF7_M_Enabled_Changed(bool enabled);
-void FG_On_Comp_MSBOQZ8_US8_BBT_Value_Changed(float value);
-void FG_On_Comp_MSBOQZ8_US8_BBT_Enabled_Changed(bool enabled);
 
-void FG_On_Comp_MSBOX6_QTG8_Z2_W_Value_Changed(float value);
-void FG_On_Comp_MSBOX6_QTG8_Z2_W_Enabled_Changed(bool enabled);
-void FG_On_Comp_MSBOZT2_XBP996_Value_Changed(float value);
-void FG_On_Comp_MSBOZT2_XBP996_Enabled_Changed(bool enabled);
-void FG_On_Comp_MSFWF336_Q9_L7_H_Value_Changed(float value);
-void FG_On_Comp_MSFWF336_Q9_L7_H_Enabled_Changed(bool enabled);
-void FG_On_Comp_MSFWF4_DMHWEBC_Value_Changed(float value);
-void FG_On_Comp_MSFWF4_DMHWEBC_Enabled_Changed(bool enabled);
-void FG_On_Comp_MSFWF5_QLC2_A3_F_Value_Changed(float value);
-void FG_On_Comp_MSFWF5_QLC2_A3_F_Enabled_Changed(bool enabled);
-void FG_On_Comp_MSFYEVIQ1_XV42_Point_Added(float value);
-void FG_On_Comp_MSFYEVIQ1_XV42_Cleared(void);
-void FG_On_Comp_MSFYEVIQ1_XV42_Warning(void);
-void FG_On_Comp_MSFYEVIQ1_XV42_Alarm(void);
-void FG_On_Comp_MSFYEVIQ1_XV42_Recovered(void);
-void FG_On_Comp_MSGE6_ZGESI3_G5_Point_Added(float value);
-void FG_On_Comp_MSGE6_ZGESI3_G5_Cleared(void);
-void FG_On_Comp_MSGE6_ZGESI3_G5_Warning(void);
-void FG_On_Comp_MSGE6_ZGESI3_G5_Alarm(void);
-void FG_On_Comp_MSGE6_ZGESI3_G5_Recovered(void);
-void FG_On_Comp_MSGEQL8_ADYSJW_Point_Added(float value);
-void FG_On_Comp_MSGEQL8_ADYSJW_Cleared(void);
-void FG_On_Comp_MSGEQL8_ADYSJW_Warning(void);
-void FG_On_Comp_MSGEQL8_ADYSJW_Alarm(void);
-void FG_On_Comp_MSGEQL8_ADYSJW_Recovered(void);
-void FG_On_Comp_MSGF5_BRKJS12_Q_Point_Added(float value);
-void FG_On_Comp_MSGF5_BRKJS12_Q_Cleared(void);
-void FG_On_Comp_MSGF5_BRKJS12_Q_Warning(void);
-void FG_On_Comp_MSGF5_BRKJS12_Q_Alarm(void);
-void FG_On_Comp_MSGF5_BRKJS12_Q_Recovered(void);
-void FG_On_Comp_MSGFBNVPEL8_E0_Point_Added(float value);
-void FG_On_Comp_MSGFBNVPEL8_E0_Cleared(void);
-void FG_On_Comp_MSGFBNVPEL8_E0_Warning(void);
-void FG_On_Comp_MSGFBNVPEL8_E0_Alarm(void);
-void FG_On_Comp_MSGFBNVPEL8_E0_Recovered(void);
-void FG_On_Alarm_Compact_Alarm_Added(int32_t alarm_id, FG_Alarm_Priority priority);
-void FG_On_Alarm_Compact_Alarm_Acknowledged(int32_t alarm_id);
-void FG_On_Alarm_Compact_Alarm_Cleared(int32_t alarm_id);
-void FG_On_Alarm_Compact_Alarm_Selected(int32_t alarm_id);
-void FG_On_Alarm_Standard_Alarm_Added(int32_t alarm_id, FG_Alarm_Priority priority);
-void FG_On_Alarm_Standard_Alarm_Acknowledged(int32_t alarm_id);
-void FG_On_Alarm_Standard_Alarm_Cleared(int32_t alarm_id);
-void FG_On_Alarm_Standard_Alarm_Selected(int32_t alarm_id);
-void FG_On_Comp_MSGI6_QDMUZXND_Alarm_Added(int32_t alarm_id, FG_Alarm_Priority priority);
-void FG_On_Comp_MSGI6_QDMUZXND_Alarm_Acknowledged(int32_t alarm_id);
-void FG_On_Comp_MSGI6_QDMUZXND_Alarm_Cleared(int32_t alarm_id);
-void FG_On_Comp_MSGI6_QDMUZXND_Alarm_Selected(int32_t alarm_id);
-void FG_On_Comp_MSGII1_A5_S1_CPW_Alarm_Added(int32_t alarm_id, FG_Alarm_Priority priority);
-void FG_On_Comp_MSGII1_A5_S1_CPW_Alarm_Acknowledged(int32_t alarm_id);
-void FG_On_Comp_MSGII1_A5_S1_CPW_Alarm_Cleared(int32_t alarm_id);
-void FG_On_Comp_MSGII1_A5_S1_CPW_Alarm_Selected(int32_t alarm_id);
-void FG_On_Comp_MSGIZG2_O1_U0_K5_Alarm_Added(int32_t alarm_id, FG_Alarm_Priority priority);
-void FG_On_Comp_MSGIZG2_O1_U0_K5_Alarm_Acknowledged(int32_t alarm_id);
-void FG_On_Comp_MSGIZG2_O1_U0_K5_Alarm_Cleared(int32_t alarm_id);
-void FG_On_Comp_MSGIZG2_O1_U0_K5_Alarm_Selected(int32_t alarm_id);
+void FG_On_Comp_MSH8868_TNTWC1_Row_Selected(const char * channel, FG_IO_Type io_type);
 
 #ifdef __cplusplus
 }

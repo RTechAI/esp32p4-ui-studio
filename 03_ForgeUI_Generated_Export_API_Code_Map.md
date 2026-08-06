@@ -3378,3 +3378,21 @@ unrelated. Batch D also physically proved the 90 → 96 path: `Visible`,
 `Opacity` and `Color` setters, retained pre-bind state, repeated-setter
 suppression, click-disabled non-interaction, independent presentation instances
 and Live/Standalone parity.
+## IO Monitor generated contract — 2026-08-06
+
+IO Monitor is **HARDWARE VALIDATED** and read-only. The shared exporter emits
+four semantic, `bool`-returning setter families using the persisted-ID stem:
+
+```c
+bool FG_Set_<IOMonitor>_DigitalInput(const char * channel, bool state);
+bool FG_Set_<IOMonitor>_DigitalOutput(const char * channel, bool state);
+bool FG_Set_<IOMonitor>_AnalogInput(const char * channel, float value);
+bool FG_Set_<IOMonitor>_AnalogOutput(const char * channel, float value);
+```
+
+The APIs are rename-stable, duplicate-instance isolated, backed by bounded row
+storage, and silent. They are the supported application boundary; direct access
+to private `fg_*` LVGL objects is unnecessary. IO Monitor emits no touch-related
+`FG_On_*` contract. In particular, row-selected/state-changed callbacks are not
+part of the current documented API, and setter-driven state projection is not a
+UserEvent. See [`docs/FORGEUI_IO_MONITOR.md`](docs/FORGEUI_IO_MONITOR.md).

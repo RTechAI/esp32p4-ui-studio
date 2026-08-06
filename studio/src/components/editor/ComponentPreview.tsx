@@ -61,6 +61,7 @@ import { ForgeUIRelayPanelPreview } from '~forgeui/preview/ForgeUIRelayPanelPrev
 import { ForgeUIPwmControllerPreview } from '~forgeui/preview/ForgeUIPwmControllerPreview'
 import { ForgeUITrendChartProPreview } from '~forgeui/preview/ForgeUITrendChartProPreview'
 import { ForgeUIAlarmPanelPreview } from '~forgeui/preview/ForgeUIAlarmPanelPreview'
+import { ForgeUIIOMonitorPreview } from '~forgeui/preview/ForgeUIIOMonitorPreview'
 import { useForgePreviewPalette } from '~forgeui/theme/ForgeThemeContext'
 import { resolveForgeSemanticPalette } from '~forgeui/preview/forgeThemeMap'
 import InteractiveButtonCanvasPreview, {
@@ -1132,6 +1133,11 @@ case 'TrendChartPro':
 case 'AlarmPanel':
   return <PreviewContainer component={component} enableVisualHelper resizeMinWidth={240} resizeMinHeight={220} {...forwardedProps}>
     <ForgeUIAlarmPanelPreview component={component} palette={previewPalette} />
+  </PreviewContainer>
+
+case 'IOMonitor':
+  return <PreviewContainer component={component} enableVisualHelper resizeMinWidth={240} resizeMinHeight={180} {...forwardedProps}>
+    <ForgeUIIOMonitorPreview component={component} palette={previewPalette} />
   </PreviewContainer>
 
     default:

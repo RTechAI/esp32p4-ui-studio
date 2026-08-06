@@ -6,11 +6,13 @@
 
 The practical LVGL 9.2 foundation remains **44 / 44 physically proven on
 ESP32-P4**; Lottie remains intentionally excluded. The Native Component ledger
-contains seven implemented components. Six are physically proven: Dashboard
+contains eight implemented components. Six are physically proven: Dashboard
 Card, Sensor Tile, Relay Panel, PWM Controller, Trend Chart, and Trend Chart
 Pro. Alarm Panel is **HARDWARE VALIDATED**: its fresh standalone export built,
 flashed, and rendered correctly on ESP32-P4, while extended runtime interaction
-and callback lifecycle proof remains deferred.
+and callback lifecycle proof remains deferred. IO Monitor is **HARDWARE
+VALIDATED** after export, ESP-IDF 5.5.4 build, flash, and correct physical
+rendering. It is a read-only display component and generates no touch UserEvents.
 
 Trend Chart is the lightweight technical industrial trend. Trend Chart Pro is
 the separate premium dashboard-oriented engineering trend; it does not replace
@@ -24,11 +26,14 @@ generated LVGL row overlap have been repaired with focused tests. Studio
 insertion, per-alarm editing and persistence, Browser Preview, fresh standalone
 export, ESP-IDF build, flash, and correct physical rendering are confirmed.
 Complete alarm transition, acknowledgement, clear, and callback verification is
-deferred to the future Proof Module / hardware simulation work. The next planned
-Native Component is **IO Monitor**; it remains unimplemented in this documentation
-pass. The Simulator / Proof Module, automated Runtime SDK
+deferred to the future Proof Module / hardware simulation work. The Simulator /
+Proof Module, automated Runtime SDK
 proof harness, ESP-Hosted startup investigation, and further export
 infrastructure remain deferred.
+
+The next planned Native Component is **Battery Card**. IO Monitor's semantic
+setters use persisted-ID, rename-stable identities and isolated bounded storage;
+applications do not need raw LVGL manipulation.
 
 Earlier dated save points below are historical records and are superseded only
 where they describe the then-current Native Component count or next component.
