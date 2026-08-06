@@ -19,7 +19,7 @@
 > SDK, ESP-IDF build, ESP32-P4 flash, physical rendering, parity, and duplicate
 > isolation. It is display-only and intentionally generates no UserEvents.
 
-> Network Status Card certification is complete. Device Summary Card is **IMPLEMENTED / READY FOR HARDWARE VALIDATION** as a compact monitoring-only, zero-UserEvents device overview with isolated persisted-ID APIs. The Proof Module, Hardware Simulator, automated Runtime SDK proof harness,
+> Network Status Card certification is complete. Device Summary Card and KPI Card are **IMPLEMENTED / READY FOR HARDWARE VALIDATION** as compact monitoring-only, zero-UserEvents cards with isolated persisted-ID APIs. The Proof Module, Hardware Simulator, automated Runtime SDK proof harness,
 > ESP-Hosted startup investigation, and export infrastructure improvements
 > remain deferred.
 
@@ -49,12 +49,12 @@ ForgeUI now rests on two completed foundations:
 
 1. **Practical LVGL Library** — 44 of 44 practical LVGL widgets/components are
    physically proven on ESP32-P4.
-2. **ForgeUI Native Platform** — twelve Native Components are current. Six are **PROVEN** across
+2. **ForgeUI Native Platform** — thirteen Native Components are current. Six are **PROVEN** across
    semantic serialization, Browser Preview, Live Studio, Standalone Export,
    Runtime SDK, UserEvents and ESP32-P4 hardware. Alarm Panel is recorded
    separately as **HARDWARE VALIDATED**, pending extended runtime lifecycle proof.
    IO Monitor, Battery Card, Tank Level Card, and Network Status Card are **HARDWARE VALIDATED**;
-   Device Summary Card is **IMPLEMENTED / READY FOR HARDWARE VALIDATION**
+   Device Summary Card and KPI Card are **IMPLEMENTED / READY FOR HARDWARE VALIDATION**
    read-only monitoring components and generate no UserEvents.
 
 Dashboard Card remains one semantic, serializable Canvas component with private
@@ -306,6 +306,7 @@ The [ForgeUI Developer Portal](https://forgeui.co.nz/developers) is the public o
 | [Tank Level Card](docs/FORGEUI_TANK_LEVEL_CARD.md) | Read-only tank telemetry, six semantic setters, duplicate isolation, and ESP32-P4 validation |
 | [Network Status Card](docs/FORGEUI_NETWORK_STATUS_CARD.md) | Hardware-validated read-only network telemetry, six silent semantic setters, duplicate isolation, and live ESP32-P4 Wi-Fi projection |
 | [Device Summary Card](docs/FORGEUI_DEVICE_SUMMARY_CARD.md) | Hardware-ready compact device overview, six silent persisted-ID setters, duplicate isolation, and zero UserEvents |
+| [KPI Card](docs/FORGEUI_KPI_CARD.md) | Hardware-ready generic KPI monitor, seven silent persisted-ID setters, stackable geometry, duplicate isolation, and zero UserEvents |
 | [Layout Designer Guide](docs/FORGEUI_LAYOUT_DESIGNER.md) | Preset, Smart Region, Auto Arrange and AI Fill workflow |
 | [QR Code Guide](docs/FORGEUI_QR_CODE.md) | QR authoring, preview, export and validation |
 | [Spinbox Guide](docs/FORGEUI_SPINBOX_WIDGET.md) | Proven native digit editor, integer-backed decimals, APIs and physical evidence |

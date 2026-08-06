@@ -393,14 +393,19 @@ separate:
     UserEvents, 240 x 145 default and 220 x 128 minimum geometry, and
     Studio/Browser/Live/LVGL parity.
 
+13. **KPI Card** — **IMPLEMENTED / READY FOR HARDWARE VALIDATION**; generic
+    monitoring-only value/status card with stackable geometry, seven silent
+    persisted-ID setters, duplicate isolation, Browser/Live/LVGL parity, and no
+    UserEvents.
+
 Native monitoring projections execute independently of optional System UI page
 visibility. Generated runtimes order this work as backend pump, snapshot,
 Native Component projection, optional System UI page gate, then System UI
 projection. Monitoring cards therefore cannot accidentally depend on an
 optional manager page being open.
 
-Possible later specialized cards include KPI Card and Power Flow Card. Their ordering
-is not certified by this ledger.
+Possible later specialized cards include Power Flow Card. Its ordering is not
+certified by this ledger.
 
 Weather, Camera, MQTT, CAN, Industrial, Marine and other domain families should
 follow only after common binding and service boundaries are proven. Their

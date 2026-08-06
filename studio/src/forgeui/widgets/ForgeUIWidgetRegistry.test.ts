@@ -80,6 +80,12 @@ describe('ForgeUI Widget registry', () => {
     expect(searchForgeUIWidgets('quantum flux capacitor')).toEqual([])
   })
 
+  it('registers KPI Card as a stackable monitoring-only Native Component', () => {
+    const kpi = forgeUIWidgetDefinitions.find(item => item.type === 'KpiCard')
+    expect(kpi).toMatchObject({ displayName: 'KPI Card', category: 'Dashboard', defaultWidth: 240, defaultHeight: 145, origin: 'forgeui-native', documentationId: 'docs/FORGEUI_KPI_CARD.md' })
+    expect(getForgeUIWidgetInstanceCapabilities('KpiCard', {})).toMatchObject({ runtimeApiEnabled: true, userEventsEnabled: false, acceptsUserInput: false })
+  })
+
   it('registers QR Code with its insertion and persistence defaults', () => {
     const qr = forgeUIWidgetDefinitions.find(item => item.type === 'QRCode')
     expect(qr).toMatchObject({

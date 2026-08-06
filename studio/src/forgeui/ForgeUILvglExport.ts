@@ -57,6 +57,7 @@ import { normalizeForgeUIBatteryCard } from './ForgeUIBatteryCard'
 import { normalizeForgeUITankLevelCard } from './ForgeUITankLevelCard'
 import { normalizeForgeUINetworkStatusCard } from './ForgeUINetworkStatusCard'
 import { normalizeForgeUIDeviceSummaryCard } from './ForgeUIDeviceSummaryCard'
+import { normalizeForgeUIKpiCard } from './ForgeUIKpiCard'
 import {
   getForgeUIStandardSpinboxModel,
   type ForgeUIStandardSpinboxModel,
@@ -689,6 +690,21 @@ const createDeviceSummaryCardExports = (components: IComponents): Map<string, De
     const base=toCIdentifier(c.id,'Device_Summary_Card').replace(/([a-z0-9])([A-Z])/g,'$1_$2'); let stem=base; let suffix=2
     while(used.has(stem)) stem=`${base}_${suffix++}`; used.add(stem); const p=`fg_${stem.toLowerCase()}_device_summary`; const model=normalizeForgeUIDeviceSummaryCard(c.props)
     result.set(c.id,{model,stem,rootName:p,stateLabel:`${p}_state_label`,deviceLabel:`${p}_device_label`,uptimeLabel:`${p}_uptime_label`,firmwareLabel:`${p}_firmware_label`,networkLabel:`${p}_network_label`,storageLabel:`${p}_storage_label`,statusName:`${p}_status`,deviceName:`${p}_device`,uptimeName:`${p}_uptime`,firmwareName:`${p}_firmware`,networkName:`${p}_network`,storageName:`${p}_storage`,refreshName:`${p}_refresh`,runtimeEnabled:model.generateRuntimeApi})
+  }); return result
+}
+
+type KpiCardExport = {
+  model: ReturnType<typeof normalizeForgeUIKpiCard>; stem: string; rootName: string
+  stateLabel: string; valueLabel: string; unitLabel: string; secondaryLabel: string; trendLabel: string; targetLabel: string; accentName: string
+  valueName: string; unitName: string; secondaryName: string; trendTextName: string; trendStateName: string; statusName: string; targetName: string
+  refreshName: string; runtimeEnabled: boolean
+}
+const createKpiCardExports = (components: IComponents): Map<string, KpiCardExport> => {
+  const result=new Map<string,KpiCardExport>(); const used=new Set<string>()
+  Object.values(components).filter(c=>c.type==='KpiCard').sort((a,b)=>a.id.localeCompare(b.id)).forEach(c=>{
+    const base=toCIdentifier(c.id,'Kpi_Card').replace(/([a-z0-9])([A-Z])/g,'$1_$2'); let stem=base; let suffix=2
+    while(used.has(stem)) stem=`${base}_${suffix++}`; used.add(stem); const p=`fg_${stem.toLowerCase()}_kpi`; const model=normalizeForgeUIKpiCard(c.props)
+    result.set(c.id,{model,stem,rootName:p,stateLabel:`${p}_state_label`,valueLabel:`${p}_value_label`,unitLabel:`${p}_unit_label`,secondaryLabel:`${p}_secondary_label`,trendLabel:`${p}_trend_label`,targetLabel:`${p}_target_label`,accentName:`${p}_accent`,valueName:`${p}_value`,unitName:`${p}_unit`,secondaryName:`${p}_secondary`,trendTextName:`${p}_trend_text`,trendStateName:`${p}_trend_state`,statusName:`${p}_status`,targetName:`${p}_target`,refreshName:`${p}_refresh`,runtimeEnabled:model.generateRuntimeApi})
   }); return result
 }
 
@@ -3074,6 +3090,7 @@ const buildLvglBlock = (
   tankLevelCardExports: Map<string, TankLevelCardExport>,
   networkStatusCardExports: Map<string, NetworkStatusCardExport>,
   deviceSummaryCardExports: Map<string, DeviceSummaryCardExport>,
+  kpiCardExports: Map<string, KpiCardExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -4933,6 +4950,20 @@ case 'DeviceSummaryCard': {
   lines.push(`${card.refreshName}();`); lines.push(``); break
 }
 
+case 'KpiCard': {
+  const card=kpiCardExports.get(child.id); if(!card) break; const m=card.model; const pad=10; const cw=Math.max(1,Number(w)); const ch=Math.max(1,Number(h)); const statusIndex={neutral:0,good:1,warning:2,critical:3}[m.status]; const colours=[m.neutralColour,m.goodColour,m.warningColour,m.criticalColour]; const accent=colours[statusIndex]
+  lines.push(`${card.rootName}=lv_obj_create(${parentVar}); lv_obj_set_pos(${card.rootName},${x},${y}); lv_obj_set_size(${card.rootName},${w},${h}); lv_obj_clear_flag(${card.rootName},LV_OBJ_FLAG_SCROLLABLE); lv_obj_set_style_pad_all(${card.rootName},0,0); lv_obj_set_style_radius(${card.rootName},8,0); lv_obj_set_style_bg_color(${card.rootName},lv_color_hex(${palette.surface}),0); lv_obj_set_style_border_color(${card.rootName},lv_color_hex(${palette.surfaceBorder}),0); lv_obj_set_style_border_width(${card.rootName},1,0);`)
+  lines.push(`lv_obj_t * ${varName}_title=lv_label_create(${card.rootName}); lv_label_set_text(${varName}_title,"${esc(m.title)}"); lv_obj_set_pos(${varName}_title,${pad},${pad}); lv_obj_set_width(${varName}_title,${Math.max(44,cw-116)}); lv_label_set_long_mode(${varName}_title,LV_LABEL_LONG_DOT); lv_obj_set_style_text_font(${varName}_title,&lv_font_montserrat_12,0); lv_obj_set_style_text_color(${varName}_title,lv_color_hex(${palette.textPrimary}),0);`)
+  lines.push(`${card.stateLabel}=lv_label_create(${card.rootName}); lv_obj_set_pos(${card.stateLabel},${Math.max(pad,cw-100)},${pad+1}); lv_obj_set_width(${card.stateLabel},90); lv_obj_set_style_text_align(${card.stateLabel},LV_TEXT_ALIGN_RIGHT,0); lv_obj_set_style_text_font(${card.stateLabel},&lv_font_montserrat_10,0); lv_obj_set_style_text_color(${card.stateLabel},lv_color_hex(0x${accent.slice(1)}),0);`)
+  lines.push(`${card.valueLabel}=lv_label_create(${card.rootName}); lv_obj_set_pos(${card.valueLabel},${pad},31); lv_obj_set_width(${card.valueLabel},${Math.max(80,cw-76)}); lv_label_set_long_mode(${card.valueLabel},LV_LABEL_LONG_DOT); lv_obj_set_style_text_font(${card.valueLabel},&lv_font_montserrat_24,0); lv_obj_set_style_text_color(${card.valueLabel},lv_color_hex(0x${accent.slice(1)}),0);`)
+  lines.push(`${card.unitLabel}=lv_label_create(${card.rootName}); lv_obj_set_pos(${card.unitLabel},${Math.max(pad,cw-64)},42); lv_obj_set_width(${card.unitLabel},54); lv_label_set_long_mode(${card.unitLabel},LV_LABEL_LONG_DOT); lv_obj_set_style_text_align(${card.unitLabel},LV_TEXT_ALIGN_RIGHT,0); lv_obj_set_style_text_font(${card.unitLabel},&lv_font_montserrat_12,0); lv_obj_set_style_text_color(${card.unitLabel},lv_color_hex(${palette.textSecondary}),0);`)
+  lines.push(`${card.secondaryLabel}=lv_label_create(${card.rootName}); lv_obj_set_pos(${card.secondaryLabel},${pad},66); lv_obj_set_width(${card.secondaryLabel},${cw-pad*2}); lv_label_set_long_mode(${card.secondaryLabel},LV_LABEL_LONG_DOT); lv_obj_set_style_text_font(${card.secondaryLabel},&lv_font_montserrat_10,0); lv_obj_set_style_text_color(${card.secondaryLabel},lv_color_hex(${palette.textSecondary}),0);${m.showSecondary?'':' lv_obj_add_flag('+card.secondaryLabel+',LV_OBJ_FLAG_HIDDEN);'}`)
+  lines.push(`${card.trendLabel}=lv_label_create(${card.rootName}); lv_obj_set_pos(${card.trendLabel},${pad},${Math.max(88,ch-35)}); lv_obj_set_width(${card.trendLabel},${Math.max(60,Math.floor((cw-pad*2)/2))}); lv_label_set_long_mode(${card.trendLabel},LV_LABEL_LONG_DOT); lv_obj_set_style_text_font(${card.trendLabel},&lv_font_montserrat_10,0);${m.showTrend?'':' lv_obj_add_flag('+card.trendLabel+',LV_OBJ_FLAG_HIDDEN);'}`)
+  lines.push(`${card.targetLabel}=lv_label_create(${card.rootName}); lv_obj_set_pos(${card.targetLabel},${Math.floor(cw/2)},${Math.max(88,ch-35)}); lv_obj_set_width(${card.targetLabel},${Math.max(60,Math.floor(cw/2)-pad)}); lv_label_set_long_mode(${card.targetLabel},LV_LABEL_LONG_DOT); lv_obj_set_style_text_align(${card.targetLabel},LV_TEXT_ALIGN_RIGHT,0); lv_obj_set_style_text_font(${card.targetLabel},&lv_font_montserrat_10,0); lv_obj_set_style_text_color(${card.targetLabel},lv_color_hex(${palette.textSecondary}),0);${m.showTarget?'':' lv_obj_add_flag('+card.targetLabel+',LV_OBJ_FLAG_HIDDEN);'}`)
+  lines.push(`${card.accentName}=lv_obj_create(${card.rootName}); lv_obj_set_pos(${card.accentName},${pad},${ch-8}); lv_obj_set_size(${card.accentName},${Math.max(80,cw-pad*2)},4); lv_obj_set_style_border_width(${card.accentName},0,0); lv_obj_set_style_radius(${card.accentName},2,0); lv_obj_clear_flag(${card.accentName},LV_OBJ_FLAG_SCROLLABLE);`)
+  lines.push(`${card.refreshName}();`); lines.push(``); break
+}
+
 case 'Spinbox': {
   const spinboxExport = spinboxExports.get(child.id)
   if (!spinboxExport) break
@@ -6147,6 +6178,7 @@ case 'TrendChartPro': {
         tankLevelCardExports,
         networkStatusCardExports,
         deviceSummaryCardExports,
+        kpiCardExports,
       )
     }
   })
@@ -6493,6 +6525,7 @@ export const generateForgeUILvglCode = (
   const tankLevelCardExports = createTankLevelCardExports(components)
   const networkStatusCardExports = createNetworkStatusCardExports(components)
   const deviceSummaryCardExports = createDeviceSummaryCardExports(components)
+  const kpiCardExports = createKpiCardExports(components)
   const fiIconExports = createFiIconExports(
     components,
     usedHookNames,
@@ -7223,7 +7256,7 @@ const backgroundMode =
   lines.push(`#include "freertos/semphr.h"`)
   lines.push(`#include "freertos/task.h"`)
   lines.push(`#include "esp_timer.h"`)
-  if (hasInteractiveButtons || dashboardCardExports.size > 0 || sensorTileExports.size > 0 || relayPanelExports.size > 0 || pwmControllerExports.size > 0 || alarmPanelExports.size > 0 || ioMonitorExports.size > 0 || batteryCardExports.size > 0 || tankLevelCardExports.size > 0 || networkStatusCardExports.size > 0 || deviceSummaryCardExports.size > 0 || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
+  if (hasInteractiveButtons || dashboardCardExports.size > 0 || sensorTileExports.size > 0 || relayPanelExports.size > 0 || pwmControllerExports.size > 0 || alarmPanelExports.size > 0 || ioMonitorExports.size > 0 || batteryCardExports.size > 0 || tankLevelCardExports.size > 0 || networkStatusCardExports.size > 0 || deviceSummaryCardExports.size > 0 || kpiCardExports.size > 0 || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
     lines.push(`#include "95_UserEvents.h"`)
   }
   if (Array.from(fiIconExports.values()).some(icon => icon.runtimeEnabled)) {
@@ -7380,6 +7413,21 @@ const backgroundMode =
       lines.push(`void FG_Set_${d.stem}_Firmware_Version(const char * value) { if(!value) value=""; snprintf(${d.firmwareName},sizeof(${d.firmwareName}),"%s",value); ${d.refreshName}(); }`)
       lines.push(`void FG_Set_${d.stem}_Network_Status(const char * value) { if(!value) value=""; snprintf(${d.networkName},sizeof(${d.networkName}),"%s",value); ${d.refreshName}(); }`)
       lines.push(`void FG_Set_${d.stem}_Storage_Status(const char * value) { if(!value) value=""; snprintf(${d.storageName},sizeof(${d.storageName}),"%s",value); ${d.refreshName}(); }`)
+    }
+  })
+  kpiCardExports.forEach(k => {
+    const statusIndex={neutral:0,good:1,warning:2,critical:3}[k.model.status]; const trendIndex={flat:0,up:1,down:2}[k.model.trendState]
+    lines.push(`static lv_obj_t * ${k.rootName}=NULL; static lv_obj_t * ${k.stateLabel}=NULL; static lv_obj_t * ${k.valueLabel}=NULL; static lv_obj_t * ${k.unitLabel}=NULL; static lv_obj_t * ${k.secondaryLabel}=NULL; static lv_obj_t * ${k.trendLabel}=NULL; static lv_obj_t * ${k.targetLabel}=NULL; static lv_obj_t * ${k.accentName}=NULL;`)
+    lines.push(`static int32_t ${k.statusName}=${statusIndex}; static int32_t ${k.trendStateName}=${trendIndex}; static char ${k.valueName}[49]="${esc(k.model.value)}"; static char ${k.unitName}[25]="${esc(k.model.unit)}"; static char ${k.secondaryName}[65]="${esc(k.model.secondaryText)}"; static char ${k.trendTextName}[49]="${esc(k.model.trendText)}"; static char ${k.targetName}[65]="${esc(k.model.targetText)}";`)
+    lines.push(`static void ${k.refreshName}(void) { static const char * states[]={"NEUTRAL","GOOD","WARNING","CRITICAL"}; static const char * trends[]={"FLAT","UP","DOWN"}; static const uint32_t colours[]={0x${k.model.neutralColour.slice(1)},0x${k.model.goodColour.slice(1)},0x${k.model.warningColour.slice(1)},0x${k.model.criticalColour.slice(1)}}; uint32_t colour=colours[${k.statusName}]; if(${k.stateLabel}) { lv_label_set_text(${k.stateLabel},states[${k.statusName}]); lv_obj_set_style_text_color(${k.stateLabel},lv_color_hex(colour),0); } if(${k.valueLabel}) { lv_label_set_text(${k.valueLabel},${k.valueName}); lv_obj_set_style_text_color(${k.valueLabel},lv_color_hex(colour),0); } if(${k.unitLabel}) lv_label_set_text(${k.unitLabel},${k.unitName}); if(${k.secondaryLabel}) lv_label_set_text(${k.secondaryLabel},${k.secondaryName}); if(${k.trendLabel}) { lv_label_set_text_fmt(${k.trendLabel},"%s  %s",trends[${k.trendStateName}],${k.trendTextName}); lv_obj_set_style_text_color(${k.trendLabel},lv_color_hex(colour),0); } if(${k.targetLabel}) lv_label_set_text(${k.targetLabel},${k.targetName}); if(${k.accentName}) lv_obj_set_style_bg_color(${k.accentName},lv_color_hex(colour),0); }`)
+    if(k.runtimeEnabled) {
+      lines.push(`void FG_Set_${k.stem}_Value(const char * value) { if(!value) value=""; snprintf(${k.valueName},sizeof(${k.valueName}),"%s",value); ${k.refreshName}(); }`)
+      lines.push(`void FG_Set_${k.stem}_Unit(const char * value) { if(!value) value=""; snprintf(${k.unitName},sizeof(${k.unitName}),"%s",value); ${k.refreshName}(); }`)
+      lines.push(`void FG_Set_${k.stem}_Secondary_Text(const char * value) { if(!value) value=""; snprintf(${k.secondaryName},sizeof(${k.secondaryName}),"%s",value); ${k.refreshName}(); }`)
+      lines.push(`void FG_Set_${k.stem}_Trend_Text(const char * value) { if(!value) value=""; snprintf(${k.trendTextName},sizeof(${k.trendTextName}),"%s",value); ${k.refreshName}(); }`)
+      lines.push(`void FG_Set_${k.stem}_Trend_State(int32_t value) { ${k.trendStateName}=value<0?0:(value>2?2:value); ${k.refreshName}(); }`)
+      lines.push(`void FG_Set_${k.stem}_Status(int32_t value) { ${k.statusName}=value<0?0:(value>3?3:value); ${k.refreshName}(); }`)
+      lines.push(`void FG_Set_${k.stem}_Target_Text(const char * value) { if(!value) value=""; snprintf(${k.targetName},sizeof(${k.targetName}),"%s",value); ${k.refreshName}(); }`)
     }
   })
   alarmPanelExports.forEach(alarm => {
@@ -10036,6 +10084,7 @@ lines.push(`    fg_system_root = parent;`)
         tankLevelCardExports,
         networkStatusCardExports,
         deviceSummaryCardExports,
+        kpiCardExports,
       )
   }
 
@@ -10787,6 +10836,11 @@ lines.push(`}`)
         `void FG_Set_${d.stem}_Device_Name(const char * name);`, `void FG_Set_${d.stem}_Status(int32_t value);`,
         `void FG_Set_${d.stem}_Uptime(const char * value);`, `void FG_Set_${d.stem}_Firmware_Version(const char * value);`,
         `void FG_Set_${d.stem}_Network_Status(const char * value);`, `void FG_Set_${d.stem}_Storage_Status(const char * value);`,
+      ])).concat(Array.from(kpiCardExports.values()).filter(k=>k.runtimeEnabled).flatMap(k=>[
+        `void FG_Set_${k.stem}_Value(const char * value);`, `void FG_Set_${k.stem}_Unit(const char * value);`,
+        `void FG_Set_${k.stem}_Secondary_Text(const char * value);`, `void FG_Set_${k.stem}_Trend_Text(const char * value);`,
+        `void FG_Set_${k.stem}_Trend_State(int32_t value);`, `void FG_Set_${k.stem}_Status(int32_t value);`,
+        `void FG_Set_${k.stem}_Target_Text(const char * value);`,
       ])).concat(Array.from(barExports.values()).map(
         barExport => `void ${barExport.apiName}(int32_t value);`,
       )).concat(Array.from(progressExports.values()).map(

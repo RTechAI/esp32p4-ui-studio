@@ -91,6 +91,7 @@ type ComponentType =
   | 'TankLevelCard'
   | 'NetworkStatusCard'
   | 'DeviceSummaryCard'
+  | 'KpiCard'
   | 'NumberInput'
   | 'Progress'
   | 'QRCode'

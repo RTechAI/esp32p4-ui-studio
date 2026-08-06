@@ -1,0 +1,15 @@
+import React from 'react'
+import { ChakraProvider } from '@chakra-ui/react'
+import { render, screen } from '@testing-library/react'
+import { FORGEUI_KPI_CARD_DEFAULT_SIZE, FORGEUI_KPI_CARD_MIN_SIZE, normalizeForgeUIKpiCard } from './ForgeUIKpiCard'
+import { ForgeUIKpiCardPreview } from './preview/ForgeUIKpiCardPreview'
+import { FG_PREVIEW_PALETTES } from './preview/forgeThemeMap'
+import { renderForgePreview } from './preview/forgePreviewRenderer'
+
+const component=(id:string,props:Record<string,unknown>={}):IComponent=>({id,parent:'root',type:'KpiCard',children:[],props:{w:240,h:145,...props}})
+describe('KPI Card',()=>{
+  it('normalizes versioned safe defaults, enums, colours and long values',()=>{const model=normalizeForgeUIKpiCard({value:'x'.repeat(100),status:'bad',trendState:'bad',goodColour:'bad'}); expect(model).toMatchObject({schemaVersion:1,title:'Efficiency',unit:'%',secondaryText:'Target 90%',trendText:'+2.1%',status:'neutral',trendState:'flat',goodColour:'#22C55E'}); expect(model.value).toHaveLength(48); expect(FORGEUI_KPI_CARD_DEFAULT_SIZE).toEqual({width:240,height:145}); expect(FORGEUI_KPI_CARD_MIN_SIZE).toEqual({width:220,height:128})})
+  it.each([['42.7','°C','warning','UP'],['98.2','%','good','UP'],['12','alarms','critical','UP'],['1,248','units/h','neutral','FLAT']])('renders %s %s with semantic status and trend',(value,unit,status,trend)=>{render(<ChakraProvider><ForgeUIKpiCardPreview component={component(`kpi-${status}`,{value,unit,status,trendState:trend==='FLAT'?'flat':'up',w:status==='neutral'?220:240,h:status==='neutral'?128:145})} palette={FG_PREVIEW_PALETTES.graphite}/></ChakraProvider>); expect(screen.getByText(value)).toBeInTheDocument(); expect(screen.getByText(unit)).toBeInTheDocument(); expect(screen.getByText(status.toUpperCase())).toBeInTheDocument(); expect(screen.getByText(trend)).toBeInTheDocument(); expect(screen.getByTestId('forgeui-kpi-accent')).toBeInTheDocument()})
+  it('isolates duplicates and safely ellipsizes a concise textual KPI',()=>{render(<ChakraProvider><><ForgeUIKpiCardPreview component={component('a',{title:'Line A',value:'MAINTENANCE REQUIRED SOON'})} palette={FG_PREVIEW_PALETTES.graphite}/><ForgeUIKpiCardPreview component={component('b',{title:'Line B',value:'99999'})} palette={FG_PREVIEW_PALETTES.nordic_ice}/></></ChakraProvider>); expect(screen.getAllByTestId('forgeui-kpi-card')).toHaveLength(2); expect(screen.getByText('Line A')).toBeInTheDocument(); expect(screen.getByText('Line B')).toBeInTheDocument(); expect(screen.getAllByTestId('forgeui-kpi-value')[0]).toHaveStyle('max-width: 174px')})
+  it('routes through the shared Browser/Live preview renderer',()=>{const child=component('live-kpi',{title:'Live KPI',value:'87.4'}); const components:any={root:{id:'root',parent:'root',type:'Box',children:[child.id],props:{w:1024,h:600}},[child.id]:child}; const Harness=()=> <>{renderForgePreview({component:components.root,components})}</>; render(<ChakraProvider><Harness/></ChakraProvider>); expect(screen.getByTestId('forgeui-kpi-card')).toBeInTheDocument(); expect(screen.getByText('Live KPI')).toBeInTheDocument()})
+})

@@ -4,6 +4,7 @@ import { FORGEUI_NETWORK_STATUS_CARD_DEFAULT_SIZE } from '~forgeui/ForgeUINetwor
 import { FORGEUI_DEVICE_SUMMARY_CARD_DEFAULT_SIZE } from '~forgeui/ForgeUIDeviceSummaryCard'
 import { FORGEUI_TANK_LEVEL_CARD_DEFAULT_SIZE } from '~forgeui/ForgeUITankLevelCard'
 import { FORGEUI_BATTERY_CARD_DEFAULT_SIZE } from '~forgeui/ForgeUIBatteryCard'
+import { FORGEUI_KPI_CARD_DEFAULT_SIZE } from '~forgeui/ForgeUIKpiCard'
 
 import {
   BadgeProps,
@@ -115,6 +116,7 @@ type PreviewDefaultProps = {
   TankLevelCard?: PropsWithForm<BoxProps> & Record<string, any>
   NetworkStatusCard?: PropsWithForm<BoxProps> & Record<string, any>
   DeviceSummaryCard?: PropsWithForm<BoxProps> & Record<string, any>
+  KpiCard?: PropsWithForm<BoxProps> & Record<string, any>
   AvatarBadge?: PropsWithForm<AvatarBadgeProps>
   AvatarGroup?: PropsWithForm<Omit<AvatarGroupProps, 'children'>>
   Avatar?: PropsWithForm<AvatarProps>
@@ -475,6 +477,14 @@ WiFi: {
     onlineColour: '#22C55E', warningColour: '#F2A900', errorColour: '#E5484D', offlineColour: '#6B7280',
     generateRuntimeApi: true, positionMode: 'absolute', x: 40, y: 40,
     w: FORGEUI_DEVICE_SUMMARY_CARD_DEFAULT_SIZE.width, h: FORGEUI_DEVICE_SUMMARY_CARD_DEFAULT_SIZE.height,
+  },
+  KpiCard: {
+    nativeWidgetSchemaVersion: 1, title: 'Efficiency', value: '87.4', unit: '%',
+    secondaryText: 'Target 90%', trendText: '+2.1%', trendState: 'up', status: 'good', targetText: '',
+    showSecondary: true, showTrend: true, showTarget: false,
+    neutralColour: '#94A3B8', goodColour: '#22C55E', warningColour: '#F2A900', criticalColour: '#E5484D',
+    generateRuntimeApi: true, positionMode: 'absolute', x: 40, y: 40,
+    w: FORGEUI_KPI_CARD_DEFAULT_SIZE.width, h: FORGEUI_KPI_CARD_DEFAULT_SIZE.height,
   },
   QRCode: {
     contentType: 'custom',

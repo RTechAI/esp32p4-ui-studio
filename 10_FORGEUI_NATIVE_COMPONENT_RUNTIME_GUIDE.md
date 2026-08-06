@@ -1,14 +1,23 @@
 # ForgeUI Native Component Runtime Guide
 
-Current certification (2026-08-07): **twelve current Native Components**. Six are physically proven
+Current certification (2026-08-07): **thirteen current Native Components**. Six are physically proven
 on ESP32-P4** — Dashboard Card, Sensor Tile, Relay Panel, PWM Controller, Trend
 Chart, and Trend Chart Pro. Alarm Panel is **HARDWARE VALIDATED** after fresh
 export, build, flash, and correct physical rendering on ESP32-P4; exhaustive
 runtime interaction and callback proof is deferred. Practical LVGL remains
 **44 / 44 proven**. Alarm Panel, IO Monitor, Battery Card, and Tank Level Card
 are **HARDWARE VALIDATED**. IO Monitor, Battery Card, Tank Level Card, and
-Network Status Card are read-only components. Device Summary Card is
+Network Status Card are read-only components. Device Summary Card and KPI Card are
 **IMPLEMENTED / READY FOR HARDWARE VALIDATION** and monitoring-only.
+
+## KPI Card Runtime SDK quick reference — ready for hardware validation
+
+KPI Card is generic and monitoring-only. Its persisted-ID APIs are
+`FG_Set_<Card>_Value`, `Unit`, `Secondary_Text`, `Trend_Text`, `Trend_State`,
+`Status`, and `Target_Text`. The primary value is text-backed to support numeric,
+formatted, and concise textual KPIs. All seven setters are silent, duplicate
+instances are isolated, and the component generates zero UserEvents. See
+[ForgeUI KPI Card](docs/FORGEUI_KPI_CARD.md).
 
 ## Device Summary Card Runtime SDK quick reference — ready for hardware validation
 

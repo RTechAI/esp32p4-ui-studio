@@ -70,6 +70,8 @@ import { ForgeUIDeviceSummaryCardPreview } from '~forgeui/preview/ForgeUIDeviceS
 import { FORGEUI_DEVICE_SUMMARY_CARD_MIN_SIZE } from '~forgeui/ForgeUIDeviceSummaryCard'
 import { FORGEUI_TANK_LEVEL_CARD_MIN_SIZE } from '~forgeui/ForgeUITankLevelCard'
 import { FORGEUI_BATTERY_CARD_MIN_SIZE } from '~forgeui/ForgeUIBatteryCard'
+import { ForgeUIKpiCardPreview } from '~forgeui/preview/ForgeUIKpiCardPreview'
+import { FORGEUI_KPI_CARD_MIN_SIZE } from '~forgeui/ForgeUIKpiCard'
 import { useForgePreviewPalette } from '~forgeui/theme/ForgeThemeContext'
 import { resolveForgeSemanticPalette } from '~forgeui/preview/forgeThemeMap'
 import InteractiveButtonCanvasPreview, {
@@ -1166,6 +1168,11 @@ case 'NetworkStatusCard':
 case 'DeviceSummaryCard':
   return <PreviewContainer component={component} enableVisualHelper resizeMinWidth={FORGEUI_DEVICE_SUMMARY_CARD_MIN_SIZE.width} resizeMinHeight={FORGEUI_DEVICE_SUMMARY_CARD_MIN_SIZE.height} {...forwardedProps}>
     <ForgeUIDeviceSummaryCardPreview component={component} palette={previewPalette} />
+  </PreviewContainer>
+
+case 'KpiCard':
+  return <PreviewContainer component={component} enableVisualHelper resizeMinWidth={FORGEUI_KPI_CARD_MIN_SIZE.width} resizeMinHeight={FORGEUI_KPI_CARD_MIN_SIZE.height} {...forwardedProps}>
+    <ForgeUIKpiCardPreview component={component} palette={previewPalette} />
   </PreviewContainer>
 
     default:

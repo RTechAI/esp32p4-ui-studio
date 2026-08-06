@@ -63,6 +63,7 @@ import { ForgeUIBatteryCardPreview } from './ForgeUIBatteryCardPreview'
 import { ForgeUITankLevelCardPreview } from './ForgeUITankLevelCardPreview'
 import { ForgeUINetworkStatusCardPreview } from './ForgeUINetworkStatusCardPreview'
 import { ForgeUIDeviceSummaryCardPreview } from './ForgeUIDeviceSummaryCardPreview'
+import { ForgeUIKpiCardPreview } from './ForgeUIKpiCardPreview'
 import ImagePreview from '~components/editor/previews/ImagePreview'
 import StandardCalendarPreview from './StandardCalendarPreview'
 import { resolveForgeSemanticPalette } from './forgeThemeMap'
@@ -865,6 +866,10 @@ case 'NetworkStatusCard': {
 }
 case 'DeviceSummaryCard': {
   output.push(<Box key={child.id} {...commonStyle}><ForgeUIDeviceSummaryCardPreview component={child} palette={palette} /></Box>)
+  break
+}
+case 'KpiCard': {
+  output.push(<Box key={child.id} {...commonStyle}><ForgeUIKpiCardPreview component={child} palette={palette} /></Box>)
   break
 }
 

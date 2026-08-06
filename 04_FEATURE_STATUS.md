@@ -5,7 +5,7 @@
 **ESP32-P4 EXPORTED AND FLASHED — INITIAL PHYSICAL VALIDATION COMPLETE**
 
 - Practical LVGL 9.2: **44 / 44 PROVEN on ESP32-P4**. Lottie remains intentionally excluded.
-- Native Components: **12 current; Dashboard Card through Trend Chart Pro PROVEN; Alarm Panel, IO Monitor, Battery Card, Tank Level Card, and Network Status Card HARDWARE VALIDATED; Device Summary Card IMPLEMENTED / READY FOR HARDWARE VALIDATION**.
+- Native Components: **13 current; Dashboard Card through Trend Chart Pro PROVEN; Alarm Panel, IO Monitor, Battery Card, Tank Level Card, and Network Status Card HARDWARE VALIDATED; Device Summary Card and KPI Card IMPLEMENTED / READY FOR HARDWARE VALIDATION**.
 - Battery Card: **HARDWARE VALIDATED**; intentionally read-only with no UserEvents.
 - Tank Level Card: **HARDWARE VALIDATED**; intentionally display-only with no UserEvents.
 - Network Status Card: **HARDWARE VALIDATED**; read-only live Wi-Fi monitoring with no UserEvents.
@@ -25,6 +25,7 @@
 | Tank Level Card | **HARDWARE VALIDATED** | Read-only monitoring; six silent persisted-ID setters; rename stability and duplicate isolation; Studio, Inspector, Browser Preview, Live Studio, generated LVGL, ESP-IDF build, flash, physical rendering, and Browser/Live/Export parity; no UserEvents |
 | Network Status Card | **HARDWARE VALIDATED** | Read-only monitoring; six silent persisted-ID setters; rename stability and duplicate isolation; Studio/Browser/Live/LVGL parity; live disconnected/connected, SSID, DHCP IPv4, RSSI-derived signal, and Online/Offline projection physically confirmed on ESP32-P4 without opening the System Wi-Fi Manager; no UserEvents |
 | Device Summary Card | **IMPLEMENTED / READY FOR HARDWARE VALIDATION** | Monitoring-only device identity, status, uptime, firmware, network, and storage summary; six silent persisted-ID setters; duplicate isolation; Studio/Browser/Live/LVGL parity; 240 x 145 default and 220 x 128 minimum; no UserEvents |
+| KPI Card | **IMPLEMENTED / READY FOR HARDWARE VALIDATION** | Generic monitoring-only KPI value, unit, context, trend, target, and semantic status; seven silent persisted-ID setters; duplicate isolation; Studio/Browser/Live/LVGL parity; 240 x 145 default and 220 x 128 minimum; no UserEvents |
 
 Trend Chart Pro does not replace Trend Chart. Certification also removed the
 partial-history tail artifact and unwanted LVGL point dots, placed threshold
@@ -174,7 +175,9 @@ Current Native Component roadmap:
 
 12. Device Summary Card — **IMPLEMENTED / READY FOR HARDWARE VALIDATION — MONITORING-ONLY; STACKABLE 240 x 145 DEFAULT, SIX SILENT PERSISTED-ID SETTERS, DUPLICATE ISOLATION, BROWSER/LIVE/LVGL PARITY, AND NO USEREVENTS**
 
-Next certification gate: **Device Summary Card physical ESP32-P4 rendering**.
+13. KPI Card — **IMPLEMENTED / READY FOR HARDWARE VALIDATION — GENERIC MONITORING-ONLY KPI; STACKABLE 240 x 145 DEFAULT, SEVEN SILENT PERSISTED-ID SETTERS, DUPLICATE ISOLATION, BROWSER/LIVE/LVGL PARITY, AND NO USEREVENTS**
+
+Next certification gates: **Device Summary Card and KPI Card physical ESP32-P4 rendering**.
 
 This roadmap supersedes the historical PWM proof-ready paragraph below.
 4. PWM Controller — **NEXT**
