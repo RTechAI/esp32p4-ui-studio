@@ -1,4 +1,6 @@
 export const FORGEUI_TANK_LEVEL_CARD_SCHEMA_VERSION = 1
+export const FORGEUI_TANK_LEVEL_CARD_DEFAULT_SIZE = { width: 240, height: 145 } as const
+export const FORGEUI_TANK_LEVEL_CARD_MIN_SIZE = { width: 220, height: 128 } as const
 export type ForgeUITankShape = 'cylindrical' | 'rectangular' | 'silo'
 
 const num = (value: unknown, fallback: number) => Number.isFinite(Number(value)) ? Number(value) : fallback

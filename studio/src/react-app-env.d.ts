@@ -90,6 +90,7 @@ type ComponentType =
   | 'BatteryCard'
   | 'TankLevelCard'
   | 'NetworkStatusCard'
+  | 'DeviceSummaryCard'
   | 'NumberInput'
   | 'Progress'
   | 'QRCode'

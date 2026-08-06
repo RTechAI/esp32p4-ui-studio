@@ -1,6 +1,6 @@
 # ForgeUI Native Widget Architecture
 
-Status: **AUTHORITATIVE — ELEVEN NATIVE COMPONENTS; NETWORK STATUS CARD HARDWARE VALIDATED** (2026-08-07).
+Status: **AUTHORITATIVE — TWELVE NATIVE COMPONENTS; DEVICE SUMMARY CARD READY FOR HARDWARE VALIDATION** (2026-08-07).
 
 Alarm Panel status: **PHYSICALLY RENDERED ON ESP32-P4 — EXTENDED RUNTIME PROOF
 DEFERRED**.
@@ -387,13 +387,19 @@ separate:
     isolation, no UserEvents, Studio/Browser/Live/LVGL parity, and live ESP32-P4
     Wi-Fi projection without opening the System Wi-Fi Manager.
 
+12. **Device Summary Card** — **IMPLEMENTED / READY FOR HARDWARE VALIDATION**;
+    monitoring-only device identity and concise health summary, six silent
+    persisted-ID setters, rename stability, duplicate isolation, zero
+    UserEvents, 240 x 145 default and 220 x 128 minimum geometry, and
+    Studio/Browser/Live/LVGL parity.
+
 Native monitoring projections execute independently of optional System UI page
 visibility. Generated runtimes order this work as backend pump, snapshot,
 Native Component projection, optional System UI page gate, then System UI
 projection. Monitoring cards therefore cannot accidentally depend on an
 optional manager page being open.
 
-Possible later specialized cards include Device Summary Card, KPI Card, and Power Flow Card. Their ordering
+Possible later specialized cards include KPI Card and Power Flow Card. Their ordering
 is not certified by this ledger.
 
 Weather, Camera, MQTT, CAN, Industrial, Marine and other domain families should

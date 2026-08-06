@@ -1,5 +1,8 @@
 import { getPreviewDefaultProps } from '~utils/defaultProps'
 import { FORGEUI_NETWORK_STATUS_CARD_DEFAULT_SIZE } from '../ForgeUINetworkStatusCard'
+import { FORGEUI_DEVICE_SUMMARY_CARD_DEFAULT_SIZE } from '../ForgeUIDeviceSummaryCard'
+import { FORGEUI_TANK_LEVEL_CARD_DEFAULT_SIZE } from '../ForgeUITankLevelCard'
+import { FORGEUI_BATTERY_CARD_DEFAULT_SIZE } from '../ForgeUIBatteryCard'
 
 // This is authoritative for widgets currently supported by ForgeUI, not an
 // assertion that every official LVGL widget is registered. The final LVGL 9.2
@@ -98,6 +101,7 @@ const displayNames: Partial<Record<ComponentType, string>> = {
   BatteryCard: 'Battery Card',
   TankLevelCard: 'Tank Level Card',
   NetworkStatusCard: 'Network Status Card',
+  DeviceSummaryCard: 'Device Summary Card',
 }
 
 const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
@@ -115,7 +119,7 @@ const categories: Record<ForgeUIWidgetCategory, ComponentType[]> = {
   ],
   Navigation: ['List', 'Tabview', 'Tileview', 'ButtonMatrix', 'ImageButton', 'Window', 'Menu'],
   Feedback: ['Msgbox', 'Keyboard', 'Calendar', 'Spinner'],
-  Dashboard: ['DashboardCard', 'SensorTile', 'RelayPanel', 'PwmController', 'Chart', 'TrendChartPro', 'AlarmPanel', 'IOMonitor', 'BatteryCard', 'TankLevelCard', 'NetworkStatusCard'],
+  Dashboard: ['DashboardCard', 'SensorTile', 'RelayPanel', 'PwmController', 'Chart', 'TrendChartPro', 'AlarmPanel', 'IOMonitor', 'BatteryCard', 'TankLevelCard', 'NetworkStatusCard', 'DeviceSummaryCard'],
   Assets: [
     'InteractiveButton',
     'InteractiveLight',
@@ -189,9 +193,10 @@ const sizes: Partial<Record<ComponentType, [number, number]>> = {
   TrendChartPro: [360, 220],
   AlarmPanel: [420, 300],
   IOMonitor: [420, 300],
-  BatteryCard: [300, 220],
-  TankLevelCard: [320, 230],
+  BatteryCard: [FORGEUI_BATTERY_CARD_DEFAULT_SIZE.width, FORGEUI_BATTERY_CARD_DEFAULT_SIZE.height],
+  TankLevelCard: [FORGEUI_TANK_LEVEL_CARD_DEFAULT_SIZE.width, FORGEUI_TANK_LEVEL_CARD_DEFAULT_SIZE.height],
   NetworkStatusCard: [FORGEUI_NETWORK_STATUS_CARD_DEFAULT_SIZE.width, FORGEUI_NETWORK_STATUS_CARD_DEFAULT_SIZE.height],
+  DeviceSummaryCard: [FORGEUI_DEVICE_SUMMARY_CARD_DEFAULT_SIZE.width, FORGEUI_DEVICE_SUMMARY_CARD_DEFAULT_SIZE.height],
 }
 
 const keywords: Partial<Record<ComponentType, string[]>> = {
@@ -229,6 +234,7 @@ const keywords: Partial<Record<ComponentType, string[]>> = {
   BatteryCard: ['battery', 'charge', 'voltage', 'current', 'ups', 'energy storage', 'forgeui native'],
   TankLevelCard: ['tank', 'level', 'volume', 'capacity', 'water', 'fuel', 'chemical', 'vessel', 'storage', 'forgeui native'],
   NetworkStatusCard: ['network', 'wifi', 'ethernet', 'ssid', 'ip', 'signal', 'connectivity', 'forgeui native'],
+  DeviceSummaryCard: ['device', 'summary', 'uptime', 'firmware', 'network', 'storage', 'health', 'forgeui native'],
 }
 
 type CapabilityDefinition = Omit<
@@ -361,6 +367,10 @@ const capabilitiesByType: Partial<
     ...capability(true, false, false),
     instanceConfiguration: { runtimeApiProperty: 'generateRuntimeApi', runtimeApiDefault: true },
   },
+  DeviceSummaryCard: {
+    ...capability(true, false, false),
+    instanceConfiguration: { runtimeApiProperty: 'generateRuntimeApi', runtimeApiDefault: true },
+  },
 
   Input: capability(true, true, true),
   Textarea: capability(true, true, true),
@@ -478,6 +488,7 @@ const documentationByType: Partial<Record<ComponentType, string>> = {
   BatteryCard: 'docs/FORGEUI_BATTERY_CARD.md',
   TankLevelCard: 'docs/FORGEUI_TANK_LEVEL_CARD.md',
   NetworkStatusCard: 'docs/FORGEUI_NETWORK_STATUS_CARD.md',
+  DeviceSummaryCard: 'docs/FORGEUI_DEVICE_SUMMARY_CARD.md',
   List: 'docs/FORGEUI_LIST_WIDGET.md',
   Tileview: 'docs/FORGEUI_TILEVIEW_WIDGET.md',
   Spinbox: 'docs/FORGEUI_SPINBOX_WIDGET.md',
@@ -516,6 +527,7 @@ const describe = (
     BatteryCard: 'ForgeUI Native semantic battery status dashboard.',
     TankLevelCard: 'ForgeUI Native semantic industrial tank level monitor.',
     NetworkStatusCard: 'ForgeUI Native semantic network connectivity monitor.',
+    DeviceSummaryCard: 'ForgeUI Native compact device health and identity summary.',
     InteractiveButton: 'Reusable state-sheet driven button.',
   }
   return special[type] || `${name} ${category.toLowerCase()} widget.`
@@ -570,9 +582,9 @@ export const forgeUIWidgetDefinitions: ForgeUIWidgetDefinition[] =
       documentationId:
         documentationByType[type] || '04_FEATURE_STATUS.md',
       status: 'available',
-      origin: type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' || type === 'PwmController' || type === 'Chart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor' || type === 'BatteryCard' || type === 'TankLevelCard' || type === 'NetworkStatusCard' ? 'forgeui-native' : 'lvgl-standard',
-      ...(type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' || type === 'PwmController' || type === 'Chart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor' || type === 'BatteryCard' || type === 'TankLevelCard' || type === 'NetworkStatusCard' ? { nativeWidgetSchemaVersion: 1 } : {}),
-      ...(type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' || type === 'PwmController' || type === 'Chart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor' || type === 'BatteryCard' || type === 'TankLevelCard' || type === 'NetworkStatusCard' ? { platform: {
+      origin: type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' || type === 'PwmController' || type === 'Chart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor' || type === 'BatteryCard' || type === 'TankLevelCard' || type === 'NetworkStatusCard' || type === 'DeviceSummaryCard' ? 'forgeui-native' : 'lvgl-standard',
+      ...(type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' || type === 'PwmController' || type === 'Chart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor' || type === 'BatteryCard' || type === 'TankLevelCard' || type === 'NetworkStatusCard' || type === 'DeviceSummaryCard' ? { nativeWidgetSchemaVersion: 1 } : {}),
+      ...(type === 'DashboardCard' || type === 'SensorTile' || type === 'RelayPanel' || type === 'PwmController' || type === 'Chart' || type === 'TrendChartPro' || type === 'AlarmPanel' || type === 'IOMonitor' || type === 'BatteryCard' || type === 'TankLevelCard' || type === 'NetworkStatusCard' || type === 'DeviceSummaryCard' ? { platform: {
         kind: 'native-widget' as const,
         family: type === 'SensorTile' ? 'sensors' : type === 'RelayPanel' || type === 'PwmController' ? 'controls' : type === 'Chart' || type === 'TrendChartPro' ? 'trends' : 'dashboard',
         layoutRoles: type === 'RelayPanel' || type === 'PwmController' ? ['controls', 'main', 'control-grid'] : ['status', 'metrics', 'main', 'card-grid'],

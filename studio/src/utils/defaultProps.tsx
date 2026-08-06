@@ -1,6 +1,9 @@
 import React from 'react'
 import * as Chakra from '@chakra-ui/react'
 import { FORGEUI_NETWORK_STATUS_CARD_DEFAULT_SIZE } from '~forgeui/ForgeUINetworkStatusCard'
+import { FORGEUI_DEVICE_SUMMARY_CARD_DEFAULT_SIZE } from '~forgeui/ForgeUIDeviceSummaryCard'
+import { FORGEUI_TANK_LEVEL_CARD_DEFAULT_SIZE } from '~forgeui/ForgeUITankLevelCard'
+import { FORGEUI_BATTERY_CARD_DEFAULT_SIZE } from '~forgeui/ForgeUIBatteryCard'
 
 import {
   BadgeProps,
@@ -111,6 +114,7 @@ type PreviewDefaultProps = {
   BatteryCard?: PropsWithForm<BoxProps> & Record<string, any>
   TankLevelCard?: PropsWithForm<BoxProps> & Record<string, any>
   NetworkStatusCard?: PropsWithForm<BoxProps> & Record<string, any>
+  DeviceSummaryCard?: PropsWithForm<BoxProps> & Record<string, any>
   AvatarBadge?: PropsWithForm<AvatarBadgeProps>
   AvatarGroup?: PropsWithForm<Omit<AvatarGroupProps, 'children'>>
   Avatar?: PropsWithForm<AvatarProps>
@@ -443,7 +447,8 @@ WiFi: {
     showPercentage: true, showVoltage: true, showCurrent: true, showRuntime: true,
     showTemperature: true, showChargingIcon: true, showHealth: true, animateCharging: false,
     normalColour: '#22C55E', lowColour: '#F2A900', criticalColour: '#E5484D', chargingColour: '#38BDF8',
-    generateRuntimeApi: true, positionMode: 'absolute', x: 40, y: 40, w: 300, h: 220,
+    generateRuntimeApi: true, positionMode: 'absolute', x: 40, y: 40,
+    w: FORGEUI_BATTERY_CARD_DEFAULT_SIZE.width, h: FORGEUI_BATTERY_CARD_DEFAULT_SIZE.height,
   },
   TankLevelCard: {
     nativeWidgetSchemaVersion: 1, title: 'Tank Level', units: 'L', compactMode: false,
@@ -452,7 +457,8 @@ WiFi: {
     fillColour: '#38BDF8', tankOutline: '#94A3B8', lowColour: '#F2A900',
     highColour: '#A78BFA', criticalColour: '#E5484D', overflowColour: '#EF4444',
     animateFill: true, showLabels: true, generateRuntimeApi: true,
-    positionMode: 'absolute', x: 40, y: 40, w: 320, h: 230,
+    positionMode: 'absolute', x: 40, y: 40,
+    w: FORGEUI_TANK_LEVEL_CARD_DEFAULT_SIZE.width, h: FORGEUI_TANK_LEVEL_CARD_DEFAULT_SIZE.height,
   },
   NetworkStatusCard: {
     nativeWidgetSchemaVersion: 1, title: 'Network Status', networkType: 'wifi', connected: true,
@@ -462,6 +468,13 @@ WiFi: {
     positionMode: 'absolute', x: 40, y: 40,
     w: FORGEUI_NETWORK_STATUS_CARD_DEFAULT_SIZE.width,
     h: FORGEUI_NETWORK_STATUS_CARD_DEFAULT_SIZE.height,
+  },
+  DeviceSummaryCard: {
+    title: 'Device Summary', deviceName: 'ForgeUI-P4', overallStatus: 'online',
+    uptime: '02:14:36', firmwareVersion: 'v3.5.4', networkStatus: 'Connected', storageStatus: 'Ready',
+    onlineColour: '#22C55E', warningColour: '#F2A900', errorColour: '#E5484D', offlineColour: '#6B7280',
+    generateRuntimeApi: true, positionMode: 'absolute', x: 40, y: 40,
+    w: FORGEUI_DEVICE_SUMMARY_CARD_DEFAULT_SIZE.width, h: FORGEUI_DEVICE_SUMMARY_CARD_DEFAULT_SIZE.height,
   },
   QRCode: {
     contentType: 'custom',

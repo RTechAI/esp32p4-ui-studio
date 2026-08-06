@@ -66,6 +66,10 @@ import { ForgeUIBatteryCardPreview } from '~forgeui/preview/ForgeUIBatteryCardPr
 import { ForgeUITankLevelCardPreview } from '~forgeui/preview/ForgeUITankLevelCardPreview'
 import { ForgeUINetworkStatusCardPreview } from '~forgeui/preview/ForgeUINetworkStatusCardPreview'
 import { FORGEUI_NETWORK_STATUS_CARD_MIN_SIZE } from '~forgeui/ForgeUINetworkStatusCard'
+import { ForgeUIDeviceSummaryCardPreview } from '~forgeui/preview/ForgeUIDeviceSummaryCardPreview'
+import { FORGEUI_DEVICE_SUMMARY_CARD_MIN_SIZE } from '~forgeui/ForgeUIDeviceSummaryCard'
+import { FORGEUI_TANK_LEVEL_CARD_MIN_SIZE } from '~forgeui/ForgeUITankLevelCard'
+import { FORGEUI_BATTERY_CARD_MIN_SIZE } from '~forgeui/ForgeUIBatteryCard'
 import { useForgePreviewPalette } from '~forgeui/theme/ForgeThemeContext'
 import { resolveForgeSemanticPalette } from '~forgeui/preview/forgeThemeMap'
 import InteractiveButtonCanvasPreview, {
@@ -1145,18 +1149,23 @@ case 'IOMonitor':
   </PreviewContainer>
 
 case 'BatteryCard':
-  return <PreviewContainer component={component} enableVisualHelper resizeMinWidth={220} resizeMinHeight={150} {...forwardedProps}>
+  return <PreviewContainer component={component} enableVisualHelper resizeMinWidth={FORGEUI_BATTERY_CARD_MIN_SIZE.width} resizeMinHeight={FORGEUI_BATTERY_CARD_MIN_SIZE.height} {...forwardedProps}>
     <ForgeUIBatteryCardPreview component={component} palette={previewPalette} />
   </PreviewContainer>
 
 case 'TankLevelCard':
-  return <PreviewContainer component={component} enableVisualHelper resizeMinWidth={240} resizeMinHeight={170} {...forwardedProps}>
+  return <PreviewContainer component={component} enableVisualHelper resizeMinWidth={FORGEUI_TANK_LEVEL_CARD_MIN_SIZE.width} resizeMinHeight={FORGEUI_TANK_LEVEL_CARD_MIN_SIZE.height} {...forwardedProps}>
     <ForgeUITankLevelCardPreview component={component} palette={previewPalette} />
   </PreviewContainer>
 
 case 'NetworkStatusCard':
   return <PreviewContainer component={component} enableVisualHelper resizeMinWidth={FORGEUI_NETWORK_STATUS_CARD_MIN_SIZE.width} resizeMinHeight={FORGEUI_NETWORK_STATUS_CARD_MIN_SIZE.height} {...forwardedProps}>
     <ForgeUINetworkStatusCardPreview component={component} palette={previewPalette} />
+  </PreviewContainer>
+
+case 'DeviceSummaryCard':
+  return <PreviewContainer component={component} enableVisualHelper resizeMinWidth={FORGEUI_DEVICE_SUMMARY_CARD_MIN_SIZE.width} resizeMinHeight={FORGEUI_DEVICE_SUMMARY_CARD_MIN_SIZE.height} {...forwardedProps}>
+    <ForgeUIDeviceSummaryCardPreview component={component} palette={previewPalette} />
   </PreviewContainer>
 
     default:

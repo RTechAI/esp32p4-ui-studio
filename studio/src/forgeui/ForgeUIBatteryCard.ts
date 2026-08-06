@@ -1,4 +1,6 @@
 export const FORGEUI_BATTERY_CARD_SCHEMA_VERSION = 1
+export const FORGEUI_BATTERY_CARD_DEFAULT_SIZE = { width: 240, height: 145 } as const
+export const FORGEUI_BATTERY_CARD_MIN_SIZE = { width: 220, height: 128 } as const
 export type ForgeUIBatteryHealth = 'good' | 'fair' | 'poor' | 'replace'
 
 const num = (v: unknown, fallback: number) => Number.isFinite(Number(v)) ? Number(v) : fallback

@@ -21,24 +21,33 @@
 #include <string.h>
 #include <math.h>
 
-static lv_obj_t * fg_comp_msi2_zkurwhvgm_sensor_tile = NULL;
-static lv_obj_t * fg_comp_msi2_zkurwhvgm_sensor_tile_icon = NULL;
-static lv_obj_t * fg_comp_msi2_zkurwhvgm_sensor_tile_value = NULL;
-static lv_obj_t * fg_comp_msi2_zkurwhvgm_sensor_tile_units = NULL;
-static lv_obj_t * fg_comp_msi2_zkurwhvgm_sensor_tile_status = NULL;
-static lv_obj_t * fg_comp_msi2_zkurwhvgm_sensor_tile_status_indicator = NULL;
-static lv_obj_t * fg_comp_msi2_zkurwhvgm_sensor_tile_trend = NULL;
-static lv_obj_t * fg_comp_msi2_zkurwhvgm_sensor_tile_timestamp = NULL;
-static lv_obj_t * fg_comp_msi2_zkurwhvgm_sensor_tile_progress = NULL;
-static lv_obj_t * fg_comp_msi2_zgq0_m6_rw9_network=NULL; static lv_obj_t * fg_comp_msi2_zgq0_m6_rw9_network_state_label=NULL; static lv_obj_t * fg_comp_msi2_zgq0_m6_rw9_network_name_label=NULL; static lv_obj_t * fg_comp_msi2_zgq0_m6_rw9_network_ip_label=NULL; static lv_obj_t * fg_comp_msi2_zgq0_m6_rw9_network_hostname_label=NULL; static lv_obj_t * fg_comp_msi2_zgq0_m6_rw9_network_status_label=NULL; static lv_obj_t * fg_comp_msi2_zgq0_m6_rw9_network_bar=NULL;
-static bool fg_comp_msi2_zgq0_m6_rw9_network_connected=true; static int32_t fg_comp_msi2_zgq0_m6_rw9_network_signal=78; static int32_t fg_comp_msi2_zgq0_m6_rw9_network_type=0; static char fg_comp_msi2_zgq0_m6_rw9_network_name[65]="ForgeUI-Lab"; static char fg_comp_msi2_zgq0_m6_rw9_network_ip[46]="192.168.1.42"; static char fg_comp_msi2_zgq0_m6_rw9_network_status[97]="Online";
-static void fg_comp_msi2_zgq0_m6_rw9_network_refresh(void) { uint32_t colour=fg_comp_msi2_zgq0_m6_rw9_network_connected?0x22C55E:0xE5484D; static const char * types[]={"Wi-Fi","Ethernet","Cellular","Network"}; if(fg_comp_msi2_zgq0_m6_rw9_network_state_label) { lv_label_set_text(fg_comp_msi2_zgq0_m6_rw9_network_state_label,fg_comp_msi2_zgq0_m6_rw9_network_connected?"CONNECTED":"DISCONNECTED"); lv_obj_set_style_text_color(fg_comp_msi2_zgq0_m6_rw9_network_state_label,lv_color_hex(colour),0); } if(fg_comp_msi2_zgq0_m6_rw9_network_name_label) lv_label_set_text_fmt(fg_comp_msi2_zgq0_m6_rw9_network_name_label,"%s  %s",types[fg_comp_msi2_zgq0_m6_rw9_network_type],fg_comp_msi2_zgq0_m6_rw9_network_name); if(fg_comp_msi2_zgq0_m6_rw9_network_ip_label) lv_label_set_text_fmt(fg_comp_msi2_zgq0_m6_rw9_network_ip_label,"IP %s",fg_comp_msi2_zgq0_m6_rw9_network_connected?fg_comp_msi2_zgq0_m6_rw9_network_ip:"--"); if(fg_comp_msi2_zgq0_m6_rw9_network_status_label) { lv_label_set_text_fmt(fg_comp_msi2_zgq0_m6_rw9_network_status_label,"%s  %ld%%",fg_comp_msi2_zgq0_m6_rw9_network_status,(long)(fg_comp_msi2_zgq0_m6_rw9_network_connected?fg_comp_msi2_zgq0_m6_rw9_network_signal:0)); lv_obj_set_style_text_color(fg_comp_msi2_zgq0_m6_rw9_network_status_label,lv_color_hex(colour),0); } if(fg_comp_msi2_zgq0_m6_rw9_network_bar) { lv_bar_set_value(fg_comp_msi2_zgq0_m6_rw9_network_bar,fg_comp_msi2_zgq0_m6_rw9_network_connected?fg_comp_msi2_zgq0_m6_rw9_network_signal:0,LV_ANIM_OFF); lv_obj_set_style_bg_color(fg_comp_msi2_zgq0_m6_rw9_network_bar,lv_color_hex(colour),LV_PART_INDICATOR); } }
-void FG_Set_Comp_MSI2_ZGQ0_M6_RW9_Connected(bool connected) { fg_comp_msi2_zgq0_m6_rw9_network_connected=connected; fg_comp_msi2_zgq0_m6_rw9_network_refresh(); }
-void FG_Set_Comp_MSI2_ZGQ0_M6_RW9_Network_Name(const char * name) { if(!name) name=""; snprintf(fg_comp_msi2_zgq0_m6_rw9_network_name,sizeof(fg_comp_msi2_zgq0_m6_rw9_network_name),"%s",name); fg_comp_msi2_zgq0_m6_rw9_network_refresh(); }
-void FG_Set_Comp_MSI2_ZGQ0_M6_RW9_IP_Address(const char * ip) { if(!ip) ip=""; snprintf(fg_comp_msi2_zgq0_m6_rw9_network_ip,sizeof(fg_comp_msi2_zgq0_m6_rw9_network_ip),"%s",ip); fg_comp_msi2_zgq0_m6_rw9_network_refresh(); }
-void FG_Set_Comp_MSI2_ZGQ0_M6_RW9_Signal_Strength(int32_t percent) { fg_comp_msi2_zgq0_m6_rw9_network_signal=percent<0?0:(percent>100?100:percent); fg_comp_msi2_zgq0_m6_rw9_network_refresh(); }
-void FG_Set_Comp_MSI2_ZGQ0_M6_RW9_Status_Text(const char * value) { if(!value) value=""; snprintf(fg_comp_msi2_zgq0_m6_rw9_network_status,sizeof(fg_comp_msi2_zgq0_m6_rw9_network_status),"%s",value); fg_comp_msi2_zgq0_m6_rw9_network_refresh(); }
-void FG_Set_Comp_MSI2_ZGQ0_M6_RW9_Network_Type(int32_t value) { fg_comp_msi2_zgq0_m6_rw9_network_type=value<0?0:(value>3?3:value); fg_comp_msi2_zgq0_m6_rw9_network_refresh(); }
+static lv_obj_t * fg_comp_msi3_o236_z0_weq_tank = NULL; static lv_obj_t * fg_comp_msi3_o236_z0_weq_tank_vessel = NULL; static lv_obj_t * fg_comp_msi3_o236_z0_weq_tank_fill = NULL; static lv_obj_t * fg_comp_msi3_o236_z0_weq_tank_percentage_label = NULL; static lv_obj_t * fg_comp_msi3_o236_z0_weq_tank_volume_label = NULL; static lv_obj_t * fg_comp_msi3_o236_z0_weq_tank_status_label = NULL; static lv_obj_t * fg_comp_msi3_o236_z0_weq_tank_low_label = NULL; static lv_obj_t * fg_comp_msi3_o236_z0_weq_tank_high_label = NULL; static lv_obj_t * fg_comp_msi3_o236_z0_weq_tank_critical_label = NULL;
+static float fg_comp_msi3_o236_z0_weq_tank_level = 68.0f; static float fg_comp_msi3_o236_z0_weq_tank_volume = 680.0f; static float fg_comp_msi3_o236_z0_weq_tank_capacity = 1000.0f; static char fg_comp_msi3_o236_z0_weq_tank_units[13] = "L"; static float fg_comp_msi3_o236_z0_weq_tank_low = 20.0f; static float fg_comp_msi3_o236_z0_weq_tank_high = 90.0f;
+static void fg_comp_msi3_o236_z0_weq_tank_refresh(void) { bool overflow = fg_comp_msi3_o236_z0_weq_tank_level > 100.0f || (fg_comp_msi3_o236_z0_weq_tank_capacity > 0.0f && fg_comp_msi3_o236_z0_weq_tank_volume > fg_comp_msi3_o236_z0_weq_tank_capacity); bool empty = fg_comp_msi3_o236_z0_weq_tank_level <= 5.0f; uint32_t colour = overflow ? 0xEF4444 : (empty ? 0xE5484D : (fg_comp_msi3_o236_z0_weq_tank_level <= fg_comp_msi3_o236_z0_weq_tank_low ? 0xF2A900 : (fg_comp_msi3_o236_z0_weq_tank_level >= fg_comp_msi3_o236_z0_weq_tank_high ? 0xA78BFA : 0x38BDF8))); const char * status = overflow ? "OVERFLOW" : (empty ? "EMPTY" : (fg_comp_msi3_o236_z0_weq_tank_level <= fg_comp_msi3_o236_z0_weq_tank_low ? "LOW" : (fg_comp_msi3_o236_z0_weq_tank_level >= fg_comp_msi3_o236_z0_weq_tank_high ? "HIGH" : "NORMAL"))); float bounded = fg_comp_msi3_o236_z0_weq_tank_level < 0.0f ? 0.0f : (fg_comp_msi3_o236_z0_weq_tank_level > 100.0f ? 100.0f : fg_comp_msi3_o236_z0_weq_tank_level); if (fg_comp_msi3_o236_z0_weq_tank_percentage_label) { lv_label_set_text_fmt(fg_comp_msi3_o236_z0_weq_tank_percentage_label, "%.1f%%", (double)fg_comp_msi3_o236_z0_weq_tank_level); lv_obj_set_style_text_color(fg_comp_msi3_o236_z0_weq_tank_percentage_label, lv_color_hex(colour), 0); } if (fg_comp_msi3_o236_z0_weq_tank_volume_label) lv_label_set_text_fmt(fg_comp_msi3_o236_z0_weq_tank_volume_label, "%.1f / %.1f %s", (double)fg_comp_msi3_o236_z0_weq_tank_volume, (double)fg_comp_msi3_o236_z0_weq_tank_capacity, fg_comp_msi3_o236_z0_weq_tank_units); if (fg_comp_msi3_o236_z0_weq_tank_status_label) { lv_label_set_text(fg_comp_msi3_o236_z0_weq_tank_status_label, status); lv_obj_set_style_text_color(fg_comp_msi3_o236_z0_weq_tank_status_label, lv_color_hex(colour), 0); } if (fg_comp_msi3_o236_z0_weq_tank_fill) { lv_bar_set_value(fg_comp_msi3_o236_z0_weq_tank_fill, (int32_t)bounded, LV_ANIM_ON); lv_obj_set_style_bg_color(fg_comp_msi3_o236_z0_weq_tank_fill, lv_color_hex(colour), LV_PART_INDICATOR); } if (fg_comp_msi3_o236_z0_weq_tank_low_label) lv_label_set_text_fmt(fg_comp_msi3_o236_z0_weq_tank_low_label, "LOW\n%.0f%%", (double)fg_comp_msi3_o236_z0_weq_tank_low); if (fg_comp_msi3_o236_z0_weq_tank_high_label) lv_label_set_text_fmt(fg_comp_msi3_o236_z0_weq_tank_high_label, "HIGH\n%.0f%%", (double)fg_comp_msi3_o236_z0_weq_tank_high); if (fg_comp_msi3_o236_z0_weq_tank_critical_label) lv_label_set_text(fg_comp_msi3_o236_z0_weq_tank_critical_label, "CRITICAL\n5%"); }
+void FG_Set_Comp_MSI3_O236_Z0_WEQ_Level(float percent) { fg_comp_msi3_o236_z0_weq_tank_level = percent < 0.0f ? 0.0f : (percent > 120.0f ? 120.0f : percent); fg_comp_msi3_o236_z0_weq_tank_refresh(); }
+void FG_Set_Comp_MSI3_O236_Z0_WEQ_Volume(float value) { fg_comp_msi3_o236_z0_weq_tank_volume = value < 0.0f ? 0.0f : value; fg_comp_msi3_o236_z0_weq_tank_refresh(); }
+void FG_Set_Comp_MSI3_O236_Z0_WEQ_Capacity(float value) { fg_comp_msi3_o236_z0_weq_tank_capacity = value < 0.0f ? 0.0f : value; fg_comp_msi3_o236_z0_weq_tank_refresh(); }
+void FG_Set_Comp_MSI3_O236_Z0_WEQ_Units(const char * units) { if (!units) units = ""; snprintf(fg_comp_msi3_o236_z0_weq_tank_units, sizeof(fg_comp_msi3_o236_z0_weq_tank_units), "%s", units); fg_comp_msi3_o236_z0_weq_tank_refresh(); }
+void FG_Set_Comp_MSI3_O236_Z0_WEQ_LowLevel(float value) { fg_comp_msi3_o236_z0_weq_tank_low = value < 0.0f ? 0.0f : (value > 100.0f ? 100.0f : value); if (fg_comp_msi3_o236_z0_weq_tank_high < fg_comp_msi3_o236_z0_weq_tank_low) fg_comp_msi3_o236_z0_weq_tank_high = fg_comp_msi3_o236_z0_weq_tank_low; fg_comp_msi3_o236_z0_weq_tank_refresh(); }
+void FG_Set_Comp_MSI3_O236_Z0_WEQ_HighLevel(float value) { fg_comp_msi3_o236_z0_weq_tank_high = value < fg_comp_msi3_o236_z0_weq_tank_low ? fg_comp_msi3_o236_z0_weq_tank_low : (value > 100.0f ? 100.0f : value); fg_comp_msi3_o236_z0_weq_tank_refresh(); }
+static lv_obj_t * fg_comp_msi3_o0_h3_h275_p_network=NULL; static lv_obj_t * fg_comp_msi3_o0_h3_h275_p_network_state_label=NULL; static lv_obj_t * fg_comp_msi3_o0_h3_h275_p_network_name_label=NULL; static lv_obj_t * fg_comp_msi3_o0_h3_h275_p_network_ip_label=NULL; static lv_obj_t * fg_comp_msi3_o0_h3_h275_p_network_hostname_label=NULL; static lv_obj_t * fg_comp_msi3_o0_h3_h275_p_network_status_label=NULL; static lv_obj_t * fg_comp_msi3_o0_h3_h275_p_network_bar=NULL;
+static bool fg_comp_msi3_o0_h3_h275_p_network_connected=true; static int32_t fg_comp_msi3_o0_h3_h275_p_network_signal=78; static int32_t fg_comp_msi3_o0_h3_h275_p_network_type=0; static char fg_comp_msi3_o0_h3_h275_p_network_name[65]="ForgeUI-Lab"; static char fg_comp_msi3_o0_h3_h275_p_network_ip[46]="192.168.1.42"; static char fg_comp_msi3_o0_h3_h275_p_network_status[97]="Online";
+static void fg_comp_msi3_o0_h3_h275_p_network_refresh(void) { uint32_t colour=fg_comp_msi3_o0_h3_h275_p_network_connected?0x22C55E:0xE5484D; static const char * types[]={"Wi-Fi","Ethernet","Cellular","Network"}; if(fg_comp_msi3_o0_h3_h275_p_network_state_label) { lv_label_set_text(fg_comp_msi3_o0_h3_h275_p_network_state_label,fg_comp_msi3_o0_h3_h275_p_network_connected?"CONNECTED":"DISCONNECTED"); lv_obj_set_style_text_color(fg_comp_msi3_o0_h3_h275_p_network_state_label,lv_color_hex(colour),0); } if(fg_comp_msi3_o0_h3_h275_p_network_name_label) lv_label_set_text_fmt(fg_comp_msi3_o0_h3_h275_p_network_name_label,"%s  %s",types[fg_comp_msi3_o0_h3_h275_p_network_type],fg_comp_msi3_o0_h3_h275_p_network_name); if(fg_comp_msi3_o0_h3_h275_p_network_ip_label) lv_label_set_text_fmt(fg_comp_msi3_o0_h3_h275_p_network_ip_label,"IP %s",fg_comp_msi3_o0_h3_h275_p_network_connected?fg_comp_msi3_o0_h3_h275_p_network_ip:"--"); if(fg_comp_msi3_o0_h3_h275_p_network_status_label) { lv_label_set_text_fmt(fg_comp_msi3_o0_h3_h275_p_network_status_label,"%s  %ld%%",fg_comp_msi3_o0_h3_h275_p_network_status,(long)(fg_comp_msi3_o0_h3_h275_p_network_connected?fg_comp_msi3_o0_h3_h275_p_network_signal:0)); lv_obj_set_style_text_color(fg_comp_msi3_o0_h3_h275_p_network_status_label,lv_color_hex(colour),0); } if(fg_comp_msi3_o0_h3_h275_p_network_bar) { lv_bar_set_value(fg_comp_msi3_o0_h3_h275_p_network_bar,fg_comp_msi3_o0_h3_h275_p_network_connected?fg_comp_msi3_o0_h3_h275_p_network_signal:0,LV_ANIM_OFF); lv_obj_set_style_bg_color(fg_comp_msi3_o0_h3_h275_p_network_bar,lv_color_hex(colour),LV_PART_INDICATOR); } }
+void FG_Set_Comp_MSI3_O0_H3_H275_P_Connected(bool connected) { fg_comp_msi3_o0_h3_h275_p_network_connected=connected; fg_comp_msi3_o0_h3_h275_p_network_refresh(); }
+void FG_Set_Comp_MSI3_O0_H3_H275_P_Network_Name(const char * name) { if(!name) name=""; snprintf(fg_comp_msi3_o0_h3_h275_p_network_name,sizeof(fg_comp_msi3_o0_h3_h275_p_network_name),"%s",name); fg_comp_msi3_o0_h3_h275_p_network_refresh(); }
+void FG_Set_Comp_MSI3_O0_H3_H275_P_IP_Address(const char * ip) { if(!ip) ip=""; snprintf(fg_comp_msi3_o0_h3_h275_p_network_ip,sizeof(fg_comp_msi3_o0_h3_h275_p_network_ip),"%s",ip); fg_comp_msi3_o0_h3_h275_p_network_refresh(); }
+void FG_Set_Comp_MSI3_O0_H3_H275_P_Signal_Strength(int32_t percent) { fg_comp_msi3_o0_h3_h275_p_network_signal=percent<0?0:(percent>100?100:percent); fg_comp_msi3_o0_h3_h275_p_network_refresh(); }
+void FG_Set_Comp_MSI3_O0_H3_H275_P_Status_Text(const char * value) { if(!value) value=""; snprintf(fg_comp_msi3_o0_h3_h275_p_network_status,sizeof(fg_comp_msi3_o0_h3_h275_p_network_status),"%s",value); fg_comp_msi3_o0_h3_h275_p_network_refresh(); }
+void FG_Set_Comp_MSI3_O0_H3_H275_P_Network_Type(int32_t value) { fg_comp_msi3_o0_h3_h275_p_network_type=value<0?0:(value>3?3:value); fg_comp_msi3_o0_h3_h275_p_network_refresh(); }
+static lv_obj_t * fg_comp_msi3_nylsdfq5_p_device_summary=NULL; static lv_obj_t * fg_comp_msi3_nylsdfq5_p_device_summary_state_label=NULL; static lv_obj_t * fg_comp_msi3_nylsdfq5_p_device_summary_device_label=NULL; static lv_obj_t * fg_comp_msi3_nylsdfq5_p_device_summary_uptime_label=NULL; static lv_obj_t * fg_comp_msi3_nylsdfq5_p_device_summary_firmware_label=NULL; static lv_obj_t * fg_comp_msi3_nylsdfq5_p_device_summary_network_label=NULL; static lv_obj_t * fg_comp_msi3_nylsdfq5_p_device_summary_storage_label=NULL;
+static int32_t fg_comp_msi3_nylsdfq5_p_device_summary_status=1; static char fg_comp_msi3_nylsdfq5_p_device_summary_device[65]="ForgeUI-P4"; static char fg_comp_msi3_nylsdfq5_p_device_summary_uptime[33]="02:14:36"; static char fg_comp_msi3_nylsdfq5_p_device_summary_firmware[49]="v3.5.4"; static char fg_comp_msi3_nylsdfq5_p_device_summary_network[49]="Connected"; static char fg_comp_msi3_nylsdfq5_p_device_summary_storage[49]="Ready";
+static void fg_comp_msi3_nylsdfq5_p_device_summary_refresh(void) { static const char * states[]={"OFFLINE","ONLINE","WARNING","ERROR"}; static const uint32_t colours[]={0x6B7280,0x22C55E,0xF2A900,0xE5484D}; if(fg_comp_msi3_nylsdfq5_p_device_summary_state_label) { lv_label_set_text(fg_comp_msi3_nylsdfq5_p_device_summary_state_label,states[fg_comp_msi3_nylsdfq5_p_device_summary_status]); lv_obj_set_style_text_color(fg_comp_msi3_nylsdfq5_p_device_summary_state_label,lv_color_hex(colours[fg_comp_msi3_nylsdfq5_p_device_summary_status]),0); } if(fg_comp_msi3_nylsdfq5_p_device_summary_device_label) lv_label_set_text(fg_comp_msi3_nylsdfq5_p_device_summary_device_label,fg_comp_msi3_nylsdfq5_p_device_summary_device); if(fg_comp_msi3_nylsdfq5_p_device_summary_uptime_label) lv_label_set_text_fmt(fg_comp_msi3_nylsdfq5_p_device_summary_uptime_label,"Uptime  %s",fg_comp_msi3_nylsdfq5_p_device_summary_uptime); if(fg_comp_msi3_nylsdfq5_p_device_summary_firmware_label) lv_label_set_text_fmt(fg_comp_msi3_nylsdfq5_p_device_summary_firmware_label,"Firmware  %s",fg_comp_msi3_nylsdfq5_p_device_summary_firmware); if(fg_comp_msi3_nylsdfq5_p_device_summary_network_label) lv_label_set_text_fmt(fg_comp_msi3_nylsdfq5_p_device_summary_network_label,"Network  %s",fg_comp_msi3_nylsdfq5_p_device_summary_network); if(fg_comp_msi3_nylsdfq5_p_device_summary_storage_label) lv_label_set_text_fmt(fg_comp_msi3_nylsdfq5_p_device_summary_storage_label,"Storage  %s",fg_comp_msi3_nylsdfq5_p_device_summary_storage); }
+void FG_Set_Comp_MSI3_NYLSDFQ5_P_Device_Name(const char * name) { if(!name) name=""; snprintf(fg_comp_msi3_nylsdfq5_p_device_summary_device,sizeof(fg_comp_msi3_nylsdfq5_p_device_summary_device),"%s",name); fg_comp_msi3_nylsdfq5_p_device_summary_refresh(); }
+void FG_Set_Comp_MSI3_NYLSDFQ5_P_Status(int32_t value) { fg_comp_msi3_nylsdfq5_p_device_summary_status=value<0?0:(value>3?3:value); fg_comp_msi3_nylsdfq5_p_device_summary_refresh(); }
+void FG_Set_Comp_MSI3_NYLSDFQ5_P_Uptime(const char * value) { if(!value) value=""; snprintf(fg_comp_msi3_nylsdfq5_p_device_summary_uptime,sizeof(fg_comp_msi3_nylsdfq5_p_device_summary_uptime),"%s",value); fg_comp_msi3_nylsdfq5_p_device_summary_refresh(); }
+void FG_Set_Comp_MSI3_NYLSDFQ5_P_Firmware_Version(const char * value) { if(!value) value=""; snprintf(fg_comp_msi3_nylsdfq5_p_device_summary_firmware,sizeof(fg_comp_msi3_nylsdfq5_p_device_summary_firmware),"%s",value); fg_comp_msi3_nylsdfq5_p_device_summary_refresh(); }
+void FG_Set_Comp_MSI3_NYLSDFQ5_P_Network_Status(const char * value) { if(!value) value=""; snprintf(fg_comp_msi3_nylsdfq5_p_device_summary_network,sizeof(fg_comp_msi3_nylsdfq5_p_device_summary_network),"%s",value); fg_comp_msi3_nylsdfq5_p_device_summary_refresh(); }
+void FG_Set_Comp_MSI3_NYLSDFQ5_P_Storage_Status(const char * value) { if(!value) value=""; snprintf(fg_comp_msi3_nylsdfq5_p_device_summary_storage,sizeof(fg_comp_msi3_nylsdfq5_p_device_summary_storage),"%s",value); fg_comp_msi3_nylsdfq5_p_device_summary_refresh(); }
 static lv_obj_t * fg_application_page = NULL;
 static lv_obj_t * fg_system_launcher_page = NULL;
 static lv_obj_t * fg_system_brightness_page = NULL;
@@ -162,56 +171,6 @@ static void fg_system_storage_request_teardown(void);
 static void fg_system_storage_finish_teardown(void);
 static void fg_system_storage_worker(void * arg);
 static void fg_system_storage_tick_cb(lv_timer_t * timer);
-
-static void fg_comp_msi2_zkurwhvgm_sensor_tile_clicked_cb(lv_event_t * event)
-{
-    if (lv_event_get_current_target(event) == fg_comp_msi2_zkurwhvgm_sensor_tile) FG_On_Comp_MSI2_ZKURWHVGM_Clicked();
-}
-
-void FG_Set_Comp_MSI2_ZKURWHVGM_Colour(uint32_t rgb)
-{
-    rgb &= 0xFFFFFFu;
-    if (fg_comp_msi2_zkurwhvgm_sensor_tile_icon) lv_obj_set_style_text_color(fg_comp_msi2_zkurwhvgm_sensor_tile_icon, lv_color_hex(rgb), LV_PART_MAIN);
-    if (fg_comp_msi2_zkurwhvgm_sensor_tile_trend) lv_obj_set_style_text_color(fg_comp_msi2_zkurwhvgm_sensor_tile_trend, lv_color_hex(rgb), LV_PART_MAIN);
-    if (fg_comp_msi2_zkurwhvgm_sensor_tile_progress) lv_obj_set_style_bg_color(fg_comp_msi2_zkurwhvgm_sensor_tile_progress, lv_color_hex(rgb), LV_PART_INDICATOR);
-    if (fg_comp_msi2_zkurwhvgm_sensor_tile_status_indicator) lv_obj_set_style_bg_color(fg_comp_msi2_zkurwhvgm_sensor_tile_status_indicator, lv_color_hex(rgb), LV_PART_MAIN);
-}
-
-void FG_Set_Comp_MSI2_ZKURWHVGM_Value(float value)
-{
-    if (fg_comp_msi2_zkurwhvgm_sensor_tile_value) lv_label_set_text_fmt(fg_comp_msi2_zkurwhvgm_sensor_tile_value, "%.*f", 1, (double)value);
-    int32_t progress = (int32_t)(((value - 0.0f) * 100.0f) / (100.0f - 0.0f));
-    if (progress < 0) progress = 0;
-    if (progress > 100) progress = 100;
-    if (fg_comp_msi2_zkurwhvgm_sensor_tile_progress) lv_bar_set_value(fg_comp_msi2_zkurwhvgm_sensor_tile_progress, progress, LV_ANIM_OFF);
-    uint32_t rgb = 0x22C55Eu;
-    if (value <= 10.0f || value >= 90.0f) rgb = 0xEF4444u;
-    else if (value <= 20.0f || value >= 80.0f) rgb = 0xF59E0Bu;
-    FG_Set_Comp_MSI2_ZKURWHVGM_Colour(rgb);
-}
-
-void FG_Set_Comp_MSI2_ZKURWHVGM_Units(const char * units)
-{
-    if (fg_comp_msi2_zkurwhvgm_sensor_tile_units) lv_label_set_text(fg_comp_msi2_zkurwhvgm_sensor_tile_units, units ? units : "");
-    if (fg_comp_msi2_zkurwhvgm_sensor_tile_units && fg_comp_msi2_zkurwhvgm_sensor_tile_value) lv_obj_align_to(fg_comp_msi2_zkurwhvgm_sensor_tile_units, fg_comp_msi2_zkurwhvgm_sensor_tile_value, LV_ALIGN_OUT_RIGHT_BOTTOM, 6, -2);
-}
-
-void FG_Set_Comp_MSI2_ZKURWHVGM_Status(const char * text, uint32_t rgb)
-{
-    if (fg_comp_msi2_zkurwhvgm_sensor_tile_status) lv_label_set_text(fg_comp_msi2_zkurwhvgm_sensor_tile_status, text ? text : "");
-    if (fg_comp_msi2_zkurwhvgm_sensor_tile_status_indicator) lv_obj_set_style_bg_color(fg_comp_msi2_zkurwhvgm_sensor_tile_status_indicator, lv_color_hex(rgb & 0xFFFFFFu), LV_PART_MAIN);
-}
-
-void FG_Set_Comp_MSI2_ZKURWHVGM_Trend(int32_t trend)
-{
-    if (fg_comp_msi2_zkurwhvgm_sensor_tile_trend == NULL) return;
-    lv_label_set_text(fg_comp_msi2_zkurwhvgm_sensor_tile_trend, trend > 0 ? "^ Rising" : trend < 0 ? "v Falling" : "- Stable");
-}
-
-void FG_Set_Comp_MSI2_ZKURWHVGM_Timestamp(const char * timestamp)
-{
-    if (fg_comp_msi2_zkurwhvgm_sensor_tile_timestamp) lv_label_set_text(fg_comp_msi2_zkurwhvgm_sensor_tile_timestamp, timestamp ? timestamp : "");
-}
 
 static void fg_window_close_cb(lv_event_t * event)
 {
@@ -936,18 +895,18 @@ static void fg_wifi_tick_cb(lv_timer_t *timer)
         if (network_card_signal < 0) network_card_signal = 0;
         if (network_card_signal > 100) network_card_signal = 100;
     }
-    FG_Set_Comp_MSI2_ZGQ0_M6_RW9_Network_Type(0);
-    FG_Set_Comp_MSI2_ZGQ0_M6_RW9_Connected(network_card_connected);
+    FG_Set_Comp_MSI3_O0_H3_H275_P_Network_Type(0);
+    FG_Set_Comp_MSI3_O0_H3_H275_P_Connected(network_card_connected);
     if (network_card_connected) {
-        FG_Set_Comp_MSI2_ZGQ0_M6_RW9_Network_Name(network_card_snapshot.ssid[0] ? network_card_snapshot.ssid : "--");
-        FG_Set_Comp_MSI2_ZGQ0_M6_RW9_IP_Address(network_card_snapshot.ip[0] ? network_card_snapshot.ip : "--");
-        FG_Set_Comp_MSI2_ZGQ0_M6_RW9_Signal_Strength(network_card_signal);
-        FG_Set_Comp_MSI2_ZGQ0_M6_RW9_Status_Text("Online");
+        FG_Set_Comp_MSI3_O0_H3_H275_P_Network_Name(network_card_snapshot.ssid[0] ? network_card_snapshot.ssid : "--");
+        FG_Set_Comp_MSI3_O0_H3_H275_P_IP_Address(network_card_snapshot.ip[0] ? network_card_snapshot.ip : "--");
+        FG_Set_Comp_MSI3_O0_H3_H275_P_Signal_Strength(network_card_signal);
+        FG_Set_Comp_MSI3_O0_H3_H275_P_Status_Text("Online");
     } else {
-        FG_Set_Comp_MSI2_ZGQ0_M6_RW9_Network_Name("--");
-        FG_Set_Comp_MSI2_ZGQ0_M6_RW9_IP_Address("--");
-        FG_Set_Comp_MSI2_ZGQ0_M6_RW9_Signal_Strength(0);
-        FG_Set_Comp_MSI2_ZGQ0_M6_RW9_Status_Text("Offline");
+        FG_Set_Comp_MSI3_O0_H3_H275_P_Network_Name("--");
+        FG_Set_Comp_MSI3_O0_H3_H275_P_IP_Address("--");
+        FG_Set_Comp_MSI3_O0_H3_H275_P_Signal_Strength(0);
+        FG_Set_Comp_MSI3_O0_H3_H275_P_Status_Text("Offline");
     }
 
     if (fg_system_wifi_password_dialog &&
@@ -1348,79 +1307,38 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_size(bg_texture_0, 1024, 600);
     lv_obj_move_background(bg_texture_0);
 
-    fg_comp_msi2_zgq0_m6_rw9_network = lv_obj_create(fg_application_page); lv_obj_set_pos(fg_comp_msi2_zgq0_m6_rw9_network, 662, 70.5); lv_obj_set_size(fg_comp_msi2_zgq0_m6_rw9_network, 240, 145); lv_obj_set_style_bg_color(fg_comp_msi2_zgq0_m6_rw9_network, lv_color_hex(0x1E2328), 0); lv_obj_set_style_border_color(fg_comp_msi2_zgq0_m6_rw9_network, lv_color_hex(0xF2A900), 0); lv_obj_set_style_border_width(fg_comp_msi2_zgq0_m6_rw9_network, 1, 0); lv_obj_set_style_radius(fg_comp_msi2_zgq0_m6_rw9_network, 8, 0); lv_obj_set_style_pad_all(fg_comp_msi2_zgq0_m6_rw9_network, 0, 0); lv_obj_clear_flag(fg_comp_msi2_zgq0_m6_rw9_network, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_t * obj1_title = lv_label_create(fg_comp_msi2_zgq0_m6_rw9_network); lv_label_set_text(obj1_title, "Network Status"); lv_obj_set_pos(obj1_title, 10, 10); lv_obj_set_width(obj1_title, 124); lv_label_set_long_mode(obj1_title, LV_LABEL_LONG_DOT); lv_obj_set_style_text_color(obj1_title, lv_color_hex(0xF5F5F5), 0); lv_obj_set_style_text_font(obj1_title, &lv_font_montserrat_12, 0);
-    fg_comp_msi2_zgq0_m6_rw9_network_state_label=lv_label_create(fg_comp_msi2_zgq0_m6_rw9_network); lv_obj_set_pos(fg_comp_msi2_zgq0_m6_rw9_network_state_label,140,11); lv_obj_set_width(fg_comp_msi2_zgq0_m6_rw9_network_state_label,90); lv_obj_set_style_text_align(fg_comp_msi2_zgq0_m6_rw9_network_state_label,LV_TEXT_ALIGN_RIGHT,0); lv_obj_set_style_text_font(fg_comp_msi2_zgq0_m6_rw9_network_state_label,&lv_font_montserrat_10,0);
-    lv_obj_t * obj1_icon=lv_label_create(fg_comp_msi2_zgq0_m6_rw9_network); lv_label_set_text(obj1_icon,LV_SYMBOL_WIFI); lv_obj_set_pos(obj1_icon,10,32); lv_obj_set_size(obj1_icon,46,46); lv_obj_set_style_bg_opa(obj1_icon,LV_OPA_COVER,0); lv_obj_set_style_bg_color(obj1_icon,lv_color_hex(0x2A3138),0); lv_obj_set_style_radius(obj1_icon,8,0); lv_obj_set_style_text_align(obj1_icon,LV_TEXT_ALIGN_CENTER,0); lv_obj_set_style_text_color(obj1_icon,lv_color_hex(0x22C55E),0); lv_obj_set_style_pad_top(obj1_icon,16,0);
-    fg_comp_msi2_zgq0_m6_rw9_network_name_label=lv_label_create(fg_comp_msi2_zgq0_m6_rw9_network); lv_obj_set_pos(fg_comp_msi2_zgq0_m6_rw9_network_name_label,64,32); lv_obj_set_width(fg_comp_msi2_zgq0_m6_rw9_network_name_label,166); lv_label_set_long_mode(fg_comp_msi2_zgq0_m6_rw9_network_name_label,LV_LABEL_LONG_DOT); lv_obj_set_style_text_font(fg_comp_msi2_zgq0_m6_rw9_network_name_label,&lv_font_montserrat_14,0); lv_obj_set_style_text_color(fg_comp_msi2_zgq0_m6_rw9_network_name_label,lv_color_hex(0xF5F5F5),0);
-    fg_comp_msi2_zgq0_m6_rw9_network_ip_label=lv_label_create(fg_comp_msi2_zgq0_m6_rw9_network); lv_obj_set_pos(fg_comp_msi2_zgq0_m6_rw9_network_ip_label,64,51); lv_obj_set_width(fg_comp_msi2_zgq0_m6_rw9_network_ip_label,166); lv_label_set_long_mode(fg_comp_msi2_zgq0_m6_rw9_network_ip_label,LV_LABEL_LONG_DOT); lv_obj_set_style_text_color(fg_comp_msi2_zgq0_m6_rw9_network_ip_label,lv_color_hex(0xB5B6B8),0); lv_obj_set_style_text_font(fg_comp_msi2_zgq0_m6_rw9_network_ip_label,&lv_font_montserrat_10,0);
-    fg_comp_msi2_zgq0_m6_rw9_network_hostname_label=lv_label_create(fg_comp_msi2_zgq0_m6_rw9_network); lv_label_set_text(fg_comp_msi2_zgq0_m6_rw9_network_hostname_label,"forgeui-p4"); lv_obj_set_pos(fg_comp_msi2_zgq0_m6_rw9_network_hostname_label,64,66); lv_obj_set_width(fg_comp_msi2_zgq0_m6_rw9_network_hostname_label,166); lv_label_set_long_mode(fg_comp_msi2_zgq0_m6_rw9_network_hostname_label,LV_LABEL_LONG_DOT); lv_obj_set_style_text_color(fg_comp_msi2_zgq0_m6_rw9_network_hostname_label,lv_color_hex(0xB5B6B8),0); lv_obj_set_style_text_font(fg_comp_msi2_zgq0_m6_rw9_network_hostname_label,&lv_font_montserrat_10,0);
-    fg_comp_msi2_zgq0_m6_rw9_network_status_label=lv_label_create(fg_comp_msi2_zgq0_m6_rw9_network); lv_obj_set_pos(fg_comp_msi2_zgq0_m6_rw9_network_status_label,10,114); lv_obj_set_width(fg_comp_msi2_zgq0_m6_rw9_network_status_label,220); lv_label_set_long_mode(fg_comp_msi2_zgq0_m6_rw9_network_status_label,LV_LABEL_LONG_DOT); lv_obj_set_style_text_font(fg_comp_msi2_zgq0_m6_rw9_network_status_label,&lv_font_montserrat_10,0);
-    fg_comp_msi2_zgq0_m6_rw9_network_bar=lv_bar_create(fg_comp_msi2_zgq0_m6_rw9_network); lv_obj_set_pos(fg_comp_msi2_zgq0_m6_rw9_network_bar,10,129); lv_obj_set_size(fg_comp_msi2_zgq0_m6_rw9_network_bar,220,5); lv_bar_set_range(fg_comp_msi2_zgq0_m6_rw9_network_bar,0,100); lv_obj_set_style_bg_color(fg_comp_msi2_zgq0_m6_rw9_network_bar,lv_color_hex(0x2A3138),LV_PART_MAIN); lv_obj_set_style_radius(fg_comp_msi2_zgq0_m6_rw9_network_bar,3,LV_PART_MAIN); lv_obj_set_style_radius(fg_comp_msi2_zgq0_m6_rw9_network_bar,3,LV_PART_INDICATOR);
-    fg_comp_msi2_zgq0_m6_rw9_network_refresh();
+    fg_comp_msi3_nylsdfq5_p_device_summary=lv_obj_create(fg_application_page); lv_obj_set_pos(fg_comp_msi3_nylsdfq5_p_device_summary,757,107.5); lv_obj_set_size(fg_comp_msi3_nylsdfq5_p_device_summary,240,145); lv_obj_clear_flag(fg_comp_msi3_nylsdfq5_p_device_summary,LV_OBJ_FLAG_SCROLLABLE); lv_obj_set_style_pad_all(fg_comp_msi3_nylsdfq5_p_device_summary,0,0); lv_obj_set_style_radius(fg_comp_msi3_nylsdfq5_p_device_summary,8,0); lv_obj_set_style_bg_color(fg_comp_msi3_nylsdfq5_p_device_summary,lv_color_hex(0x1E2328),0); lv_obj_set_style_border_color(fg_comp_msi3_nylsdfq5_p_device_summary,lv_color_hex(0xF2A900),0); lv_obj_set_style_border_width(fg_comp_msi3_nylsdfq5_p_device_summary,1,0);
+    lv_obj_t * obj1_title=lv_label_create(fg_comp_msi3_nylsdfq5_p_device_summary); lv_label_set_text(obj1_title,"Device Summary"); lv_obj_set_pos(obj1_title,10,10); lv_obj_set_width(obj1_title,124); lv_label_set_long_mode(obj1_title,LV_LABEL_LONG_DOT); lv_obj_set_style_text_font(obj1_title,&lv_font_montserrat_12,0); lv_obj_set_style_text_color(obj1_title,lv_color_hex(0xF5F5F5),0);
+    fg_comp_msi3_nylsdfq5_p_device_summary_state_label=lv_label_create(fg_comp_msi3_nylsdfq5_p_device_summary); lv_obj_set_pos(fg_comp_msi3_nylsdfq5_p_device_summary_state_label,140,11); lv_obj_set_width(fg_comp_msi3_nylsdfq5_p_device_summary_state_label,90); lv_obj_set_style_text_align(fg_comp_msi3_nylsdfq5_p_device_summary_state_label,LV_TEXT_ALIGN_RIGHT,0); lv_obj_set_style_text_font(fg_comp_msi3_nylsdfq5_p_device_summary_state_label,&lv_font_montserrat_10,0); lv_obj_set_style_text_color(fg_comp_msi3_nylsdfq5_p_device_summary_state_label,lv_color_hex(0x22C55E),0);
+    fg_comp_msi3_nylsdfq5_p_device_summary_device_label=lv_label_create(fg_comp_msi3_nylsdfq5_p_device_summary); lv_obj_set_pos(fg_comp_msi3_nylsdfq5_p_device_summary_device_label,10,29); lv_obj_set_width(fg_comp_msi3_nylsdfq5_p_device_summary_device_label,220); lv_label_set_long_mode(fg_comp_msi3_nylsdfq5_p_device_summary_device_label,LV_LABEL_LONG_DOT); lv_obj_set_style_text_font(fg_comp_msi3_nylsdfq5_p_device_summary_device_label,&lv_font_montserrat_14,0); lv_obj_set_style_text_color(fg_comp_msi3_nylsdfq5_p_device_summary_device_label,lv_color_hex(0xF5F5F5),0);
+    fg_comp_msi3_nylsdfq5_p_device_summary_uptime_label=lv_label_create(fg_comp_msi3_nylsdfq5_p_device_summary); lv_label_set_text(fg_comp_msi3_nylsdfq5_p_device_summary_uptime_label,"Uptime  02:14:36"); lv_obj_set_pos(fg_comp_msi3_nylsdfq5_p_device_summary_uptime_label,10,53); lv_obj_set_width(fg_comp_msi3_nylsdfq5_p_device_summary_uptime_label,220); lv_label_set_long_mode(fg_comp_msi3_nylsdfq5_p_device_summary_uptime_label,LV_LABEL_LONG_DOT); lv_obj_set_style_text_font(fg_comp_msi3_nylsdfq5_p_device_summary_uptime_label,&lv_font_montserrat_10,0); lv_obj_set_style_text_color(fg_comp_msi3_nylsdfq5_p_device_summary_uptime_label,lv_color_hex(0xB5B6B8),0);
+    fg_comp_msi3_nylsdfq5_p_device_summary_firmware_label=lv_label_create(fg_comp_msi3_nylsdfq5_p_device_summary); lv_label_set_text(fg_comp_msi3_nylsdfq5_p_device_summary_firmware_label,"Firmware  v3.5.4"); lv_obj_set_pos(fg_comp_msi3_nylsdfq5_p_device_summary_firmware_label,10,70); lv_obj_set_width(fg_comp_msi3_nylsdfq5_p_device_summary_firmware_label,220); lv_label_set_long_mode(fg_comp_msi3_nylsdfq5_p_device_summary_firmware_label,LV_LABEL_LONG_DOT); lv_obj_set_style_text_font(fg_comp_msi3_nylsdfq5_p_device_summary_firmware_label,&lv_font_montserrat_10,0); lv_obj_set_style_text_color(fg_comp_msi3_nylsdfq5_p_device_summary_firmware_label,lv_color_hex(0xB5B6B8),0);
+    fg_comp_msi3_nylsdfq5_p_device_summary_network_label=lv_label_create(fg_comp_msi3_nylsdfq5_p_device_summary); lv_label_set_text(fg_comp_msi3_nylsdfq5_p_device_summary_network_label,"Network  Connected"); lv_obj_set_pos(fg_comp_msi3_nylsdfq5_p_device_summary_network_label,10,87); lv_obj_set_width(fg_comp_msi3_nylsdfq5_p_device_summary_network_label,220); lv_label_set_long_mode(fg_comp_msi3_nylsdfq5_p_device_summary_network_label,LV_LABEL_LONG_DOT); lv_obj_set_style_text_font(fg_comp_msi3_nylsdfq5_p_device_summary_network_label,&lv_font_montserrat_10,0); lv_obj_set_style_text_color(fg_comp_msi3_nylsdfq5_p_device_summary_network_label,lv_color_hex(0xB5B6B8),0);
+    fg_comp_msi3_nylsdfq5_p_device_summary_storage_label=lv_label_create(fg_comp_msi3_nylsdfq5_p_device_summary); lv_label_set_text(fg_comp_msi3_nylsdfq5_p_device_summary_storage_label,"Storage  Ready"); lv_obj_set_pos(fg_comp_msi3_nylsdfq5_p_device_summary_storage_label,10,104); lv_obj_set_width(fg_comp_msi3_nylsdfq5_p_device_summary_storage_label,220); lv_label_set_long_mode(fg_comp_msi3_nylsdfq5_p_device_summary_storage_label,LV_LABEL_LONG_DOT); lv_obj_set_style_text_font(fg_comp_msi3_nylsdfq5_p_device_summary_storage_label,&lv_font_montserrat_10,0); lv_obj_set_style_text_color(fg_comp_msi3_nylsdfq5_p_device_summary_storage_label,lv_color_hex(0xB5B6B8),0);
+    fg_comp_msi3_nylsdfq5_p_device_summary_refresh();
 
-    fg_comp_msi2_zkurwhvgm_sensor_tile = lv_obj_create(fg_application_page);
-    lv_obj_t * obj2 = fg_comp_msi2_zkurwhvgm_sensor_tile;
-    lv_obj_set_pos(fg_comp_msi2_zkurwhvgm_sensor_tile, 222, 105.5);
-    lv_obj_set_size(fg_comp_msi2_zkurwhvgm_sensor_tile, 240, 145);
-    lv_obj_set_style_bg_color(fg_comp_msi2_zkurwhvgm_sensor_tile, lv_color_hex(0x1E2328), LV_PART_MAIN);
-    lv_obj_set_style_border_color(fg_comp_msi2_zkurwhvgm_sensor_tile, lv_color_hex(0xF2A900), LV_PART_MAIN);
-    lv_obj_set_style_border_width(fg_comp_msi2_zkurwhvgm_sensor_tile, 1, LV_PART_MAIN);
-    lv_obj_set_style_radius(fg_comp_msi2_zkurwhvgm_sensor_tile, 8, LV_PART_MAIN);
-    lv_obj_set_style_pad_all(fg_comp_msi2_zkurwhvgm_sensor_tile, 12, LV_PART_MAIN);
-    lv_obj_clear_flag(fg_comp_msi2_zkurwhvgm_sensor_tile, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_add_flag(fg_comp_msi2_zkurwhvgm_sensor_tile, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_add_event_cb(fg_comp_msi2_zkurwhvgm_sensor_tile, fg_comp_msi2_zkurwhvgm_sensor_tile_clicked_cb, LV_EVENT_CLICKED, NULL);
-    fg_comp_msi2_zkurwhvgm_sensor_tile_icon = lv_label_create(fg_comp_msi2_zkurwhvgm_sensor_tile);
-    lv_label_set_text(fg_comp_msi2_zkurwhvgm_sensor_tile_icon, LV_SYMBOL_CHARGE);
-    lv_obj_set_pos(fg_comp_msi2_zkurwhvgm_sensor_tile_icon, 12, 12);
-    lv_obj_set_style_text_font(fg_comp_msi2_zkurwhvgm_sensor_tile_icon, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_color(fg_comp_msi2_zkurwhvgm_sensor_tile_icon, lv_color_hex(0x22C55E), LV_PART_MAIN);
-    lv_obj_t * obj2_title = lv_label_create(fg_comp_msi2_zkurwhvgm_sensor_tile);
-    lv_label_set_text(obj2_title, "Temperature");
-    lv_obj_set_pos(obj2_title, 30, 12);
-    lv_obj_set_width(obj2_title, 120);
-    lv_label_set_long_mode(obj2_title, LV_LABEL_LONG_DOT);
-    lv_obj_set_style_text_font(obj2_title, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_color(obj2_title, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
-    fg_comp_msi2_zkurwhvgm_sensor_tile_status_indicator = lv_obj_create(fg_comp_msi2_zkurwhvgm_sensor_tile);
-    lv_obj_set_size(fg_comp_msi2_zkurwhvgm_sensor_tile_status_indicator, 6, 6);
-    lv_obj_align(fg_comp_msi2_zkurwhvgm_sensor_tile_status_indicator, LV_ALIGN_TOP_RIGHT, -74, 16);
-    lv_obj_set_style_radius(fg_comp_msi2_zkurwhvgm_sensor_tile_status_indicator, LV_RADIUS_CIRCLE, LV_PART_MAIN);
-    lv_obj_set_style_bg_color(fg_comp_msi2_zkurwhvgm_sensor_tile_status_indicator, lv_color_hex(0x22C55E), LV_PART_MAIN);
-    lv_obj_set_style_border_width(fg_comp_msi2_zkurwhvgm_sensor_tile_status_indicator, 0, LV_PART_MAIN);
-    fg_comp_msi2_zkurwhvgm_sensor_tile_status = lv_label_create(fg_comp_msi2_zkurwhvgm_sensor_tile);
-    lv_label_set_text(fg_comp_msi2_zkurwhvgm_sensor_tile_status, "Normal");
-    lv_obj_align(fg_comp_msi2_zkurwhvgm_sensor_tile_status, LV_ALIGN_TOP_RIGHT, -12, 12);
-    lv_obj_set_style_text_font(fg_comp_msi2_zkurwhvgm_sensor_tile_status, &lv_font_montserrat_10, LV_PART_MAIN);
-    lv_obj_set_style_text_color(fg_comp_msi2_zkurwhvgm_sensor_tile_status, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    fg_comp_msi2_zkurwhvgm_sensor_tile_value = lv_label_create(fg_comp_msi2_zkurwhvgm_sensor_tile);
-    lv_label_set_text_fmt(fg_comp_msi2_zkurwhvgm_sensor_tile_value, "%.*f", 1, (double)23.7);
-    lv_obj_set_pos(fg_comp_msi2_zkurwhvgm_sensor_tile_value, 12, 34);
-    lv_obj_set_style_text_font(fg_comp_msi2_zkurwhvgm_sensor_tile_value, &lv_font_montserrat_28, LV_PART_MAIN);
-    lv_obj_set_style_text_color(fg_comp_msi2_zkurwhvgm_sensor_tile_value, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
-    fg_comp_msi2_zkurwhvgm_sensor_tile_units = lv_label_create(fg_comp_msi2_zkurwhvgm_sensor_tile);
-    lv_label_set_text(fg_comp_msi2_zkurwhvgm_sensor_tile_units, "°C");
-    lv_obj_align_to(fg_comp_msi2_zkurwhvgm_sensor_tile_units, fg_comp_msi2_zkurwhvgm_sensor_tile_value, LV_ALIGN_OUT_RIGHT_BOTTOM, 5, -2);
-    lv_obj_set_style_text_font(fg_comp_msi2_zkurwhvgm_sensor_tile_units, &lv_font_montserrat_14, LV_PART_MAIN);
-    lv_obj_set_style_text_color(fg_comp_msi2_zkurwhvgm_sensor_tile_units, lv_color_hex(0xB5B6B8), LV_PART_MAIN);
-    fg_comp_msi2_zkurwhvgm_sensor_tile_trend = lv_label_create(fg_comp_msi2_zkurwhvgm_sensor_tile);
-    lv_label_set_text(fg_comp_msi2_zkurwhvgm_sensor_tile_trend, "▬ Stable");
-    lv_obj_set_pos(fg_comp_msi2_zkurwhvgm_sensor_tile_trend, 12, 68);
-    lv_obj_set_style_text_font(fg_comp_msi2_zkurwhvgm_sensor_tile_trend, &lv_font_montserrat_12, LV_PART_MAIN);
-    lv_obj_set_style_text_color(fg_comp_msi2_zkurwhvgm_sensor_tile_trend, lv_color_hex(0x22C55E), LV_PART_MAIN);
-    fg_comp_msi2_zkurwhvgm_sensor_tile_progress = lv_bar_create(fg_comp_msi2_zkurwhvgm_sensor_tile);
-    lv_obj_set_pos(fg_comp_msi2_zkurwhvgm_sensor_tile_progress, 12, 88);
-    lv_obj_set_size(fg_comp_msi2_zkurwhvgm_sensor_tile_progress, 216, 6);
-    lv_bar_set_range(fg_comp_msi2_zkurwhvgm_sensor_tile_progress, 0, 100);
-    lv_bar_set_value(fg_comp_msi2_zkurwhvgm_sensor_tile_progress, 24, LV_ANIM_OFF);
-    lv_obj_set_style_bg_color(fg_comp_msi2_zkurwhvgm_sensor_tile_progress, lv_color_hex(0x2A3138), LV_PART_MAIN);
-    lv_obj_set_style_bg_color(fg_comp_msi2_zkurwhvgm_sensor_tile_progress, lv_color_hex(0x22C55E), LV_PART_INDICATOR);
-    fg_comp_msi2_zkurwhvgm_sensor_tile_timestamp = lv_label_create(fg_comp_msi2_zkurwhvgm_sensor_tile);
-    lv_label_set_text(fg_comp_msi2_zkurwhvgm_sensor_tile_timestamp, "Now");
-    lv_obj_set_pos(fg_comp_msi2_zkurwhvgm_sensor_tile_timestamp, 12, 100);
-    lv_obj_set_style_text_font(fg_comp_msi2_zkurwhvgm_sensor_tile_timestamp, &lv_font_montserrat_10, LV_PART_MAIN);
-    lv_obj_set_style_text_color(fg_comp_msi2_zkurwhvgm_sensor_tile_timestamp, lv_color_hex(0x7F8284), LV_PART_MAIN);
+    fg_comp_msi3_o0_h3_h275_p_network = lv_obj_create(fg_application_page); lv_obj_set_pos(fg_comp_msi3_o0_h3_h275_p_network, 460, 98.5); lv_obj_set_size(fg_comp_msi3_o0_h3_h275_p_network, 240, 145); lv_obj_set_style_bg_color(fg_comp_msi3_o0_h3_h275_p_network, lv_color_hex(0x1E2328), 0); lv_obj_set_style_border_color(fg_comp_msi3_o0_h3_h275_p_network, lv_color_hex(0xF2A900), 0); lv_obj_set_style_border_width(fg_comp_msi3_o0_h3_h275_p_network, 1, 0); lv_obj_set_style_radius(fg_comp_msi3_o0_h3_h275_p_network, 8, 0); lv_obj_set_style_pad_all(fg_comp_msi3_o0_h3_h275_p_network, 0, 0); lv_obj_clear_flag(fg_comp_msi3_o0_h3_h275_p_network, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_t * obj2_title = lv_label_create(fg_comp_msi3_o0_h3_h275_p_network); lv_label_set_text(obj2_title, "Network Status"); lv_obj_set_pos(obj2_title, 10, 10); lv_obj_set_width(obj2_title, 124); lv_label_set_long_mode(obj2_title, LV_LABEL_LONG_DOT); lv_obj_set_style_text_color(obj2_title, lv_color_hex(0xF5F5F5), 0); lv_obj_set_style_text_font(obj2_title, &lv_font_montserrat_12, 0);
+    fg_comp_msi3_o0_h3_h275_p_network_state_label=lv_label_create(fg_comp_msi3_o0_h3_h275_p_network); lv_obj_set_pos(fg_comp_msi3_o0_h3_h275_p_network_state_label,140,11); lv_obj_set_width(fg_comp_msi3_o0_h3_h275_p_network_state_label,90); lv_obj_set_style_text_align(fg_comp_msi3_o0_h3_h275_p_network_state_label,LV_TEXT_ALIGN_RIGHT,0); lv_obj_set_style_text_font(fg_comp_msi3_o0_h3_h275_p_network_state_label,&lv_font_montserrat_10,0);
+    lv_obj_t * obj2_icon=lv_label_create(fg_comp_msi3_o0_h3_h275_p_network); lv_label_set_text(obj2_icon,LV_SYMBOL_WIFI); lv_obj_set_pos(obj2_icon,10,32); lv_obj_set_size(obj2_icon,46,46); lv_obj_set_style_bg_opa(obj2_icon,LV_OPA_COVER,0); lv_obj_set_style_bg_color(obj2_icon,lv_color_hex(0x2A3138),0); lv_obj_set_style_radius(obj2_icon,8,0); lv_obj_set_style_text_align(obj2_icon,LV_TEXT_ALIGN_CENTER,0); lv_obj_set_style_text_color(obj2_icon,lv_color_hex(0x22C55E),0); lv_obj_set_style_pad_top(obj2_icon,16,0);
+    fg_comp_msi3_o0_h3_h275_p_network_name_label=lv_label_create(fg_comp_msi3_o0_h3_h275_p_network); lv_obj_set_pos(fg_comp_msi3_o0_h3_h275_p_network_name_label,64,32); lv_obj_set_width(fg_comp_msi3_o0_h3_h275_p_network_name_label,166); lv_label_set_long_mode(fg_comp_msi3_o0_h3_h275_p_network_name_label,LV_LABEL_LONG_DOT); lv_obj_set_style_text_font(fg_comp_msi3_o0_h3_h275_p_network_name_label,&lv_font_montserrat_14,0); lv_obj_set_style_text_color(fg_comp_msi3_o0_h3_h275_p_network_name_label,lv_color_hex(0xF5F5F5),0);
+    fg_comp_msi3_o0_h3_h275_p_network_ip_label=lv_label_create(fg_comp_msi3_o0_h3_h275_p_network); lv_obj_set_pos(fg_comp_msi3_o0_h3_h275_p_network_ip_label,64,51); lv_obj_set_width(fg_comp_msi3_o0_h3_h275_p_network_ip_label,166); lv_label_set_long_mode(fg_comp_msi3_o0_h3_h275_p_network_ip_label,LV_LABEL_LONG_DOT); lv_obj_set_style_text_color(fg_comp_msi3_o0_h3_h275_p_network_ip_label,lv_color_hex(0xB5B6B8),0); lv_obj_set_style_text_font(fg_comp_msi3_o0_h3_h275_p_network_ip_label,&lv_font_montserrat_10,0);
+    fg_comp_msi3_o0_h3_h275_p_network_hostname_label=lv_label_create(fg_comp_msi3_o0_h3_h275_p_network); lv_label_set_text(fg_comp_msi3_o0_h3_h275_p_network_hostname_label,"forgeui-p4"); lv_obj_set_pos(fg_comp_msi3_o0_h3_h275_p_network_hostname_label,64,66); lv_obj_set_width(fg_comp_msi3_o0_h3_h275_p_network_hostname_label,166); lv_label_set_long_mode(fg_comp_msi3_o0_h3_h275_p_network_hostname_label,LV_LABEL_LONG_DOT); lv_obj_set_style_text_color(fg_comp_msi3_o0_h3_h275_p_network_hostname_label,lv_color_hex(0xB5B6B8),0); lv_obj_set_style_text_font(fg_comp_msi3_o0_h3_h275_p_network_hostname_label,&lv_font_montserrat_10,0);
+    fg_comp_msi3_o0_h3_h275_p_network_status_label=lv_label_create(fg_comp_msi3_o0_h3_h275_p_network); lv_obj_set_pos(fg_comp_msi3_o0_h3_h275_p_network_status_label,10,114); lv_obj_set_width(fg_comp_msi3_o0_h3_h275_p_network_status_label,220); lv_label_set_long_mode(fg_comp_msi3_o0_h3_h275_p_network_status_label,LV_LABEL_LONG_DOT); lv_obj_set_style_text_font(fg_comp_msi3_o0_h3_h275_p_network_status_label,&lv_font_montserrat_10,0);
+    fg_comp_msi3_o0_h3_h275_p_network_bar=lv_bar_create(fg_comp_msi3_o0_h3_h275_p_network); lv_obj_set_pos(fg_comp_msi3_o0_h3_h275_p_network_bar,10,129); lv_obj_set_size(fg_comp_msi3_o0_h3_h275_p_network_bar,220,5); lv_bar_set_range(fg_comp_msi3_o0_h3_h275_p_network_bar,0,100); lv_obj_set_style_bg_color(fg_comp_msi3_o0_h3_h275_p_network_bar,lv_color_hex(0x2A3138),LV_PART_MAIN); lv_obj_set_style_radius(fg_comp_msi3_o0_h3_h275_p_network_bar,3,LV_PART_MAIN); lv_obj_set_style_radius(fg_comp_msi3_o0_h3_h275_p_network_bar,3,LV_PART_INDICATOR);
+    fg_comp_msi3_o0_h3_h275_p_network_refresh();
+
+    fg_comp_msi3_o236_z0_weq_tank = lv_obj_create(fg_application_page); lv_obj_set_pos(fg_comp_msi3_o236_z0_weq_tank, 78, 46); lv_obj_set_size(fg_comp_msi3_o236_z0_weq_tank, 320, 230); lv_obj_set_style_bg_color(fg_comp_msi3_o236_z0_weq_tank, lv_color_hex(0x1E2328), 0); lv_obj_set_style_border_color(fg_comp_msi3_o236_z0_weq_tank, lv_color_hex(0xF2A900), 0); lv_obj_set_style_border_width(fg_comp_msi3_o236_z0_weq_tank, 1, 0); lv_obj_set_style_radius(fg_comp_msi3_o236_z0_weq_tank, 10, 0); lv_obj_set_style_pad_all(fg_comp_msi3_o236_z0_weq_tank, 0, 0); lv_obj_clear_flag(fg_comp_msi3_o236_z0_weq_tank, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_t * obj3_title = lv_label_create(fg_comp_msi3_o236_z0_weq_tank); lv_label_set_text(obj3_title, "Tank Level"); lv_obj_set_pos(obj3_title, 12, 12); lv_obj_set_width(obj3_title, 220); lv_label_set_long_mode(obj3_title, LV_LABEL_LONG_DOT); lv_obj_set_style_text_color(obj3_title, lv_color_hex(0xF5F5F5), 0); lv_obj_set_style_text_font(obj3_title, &lv_font_montserrat_14, 0);
+    fg_comp_msi3_o236_z0_weq_tank_status_label = lv_label_create(fg_comp_msi3_o236_z0_weq_tank); lv_obj_set_pos(fg_comp_msi3_o236_z0_weq_tank_status_label, 236, 13); lv_obj_set_width(fg_comp_msi3_o236_z0_weq_tank_status_label, 72); lv_obj_set_style_text_align(fg_comp_msi3_o236_z0_weq_tank_status_label, LV_TEXT_ALIGN_RIGHT, 0); lv_obj_set_style_text_font(fg_comp_msi3_o236_z0_weq_tank_status_label, &lv_font_montserrat_10, 0);
+    fg_comp_msi3_o236_z0_weq_tank_vessel = lv_obj_create(fg_comp_msi3_o236_z0_weq_tank); lv_obj_set_pos(fg_comp_msi3_o236_z0_weq_tank_vessel, 12, 40); lv_obj_set_size(fg_comp_msi3_o236_z0_weq_tank_vessel, 70, 166); lv_obj_set_style_bg_color(fg_comp_msi3_o236_z0_weq_tank_vessel, lv_color_hex(0x2A3138), 0); lv_obj_set_style_border_color(fg_comp_msi3_o236_z0_weq_tank_vessel, lv_color_hex(0x94A3B8), 0); lv_obj_set_style_border_width(fg_comp_msi3_o236_z0_weq_tank_vessel, 3, 0); lv_obj_set_style_radius(fg_comp_msi3_o236_z0_weq_tank_vessel, 28, 0); lv_obj_set_style_pad_all(fg_comp_msi3_o236_z0_weq_tank_vessel, 3, 0); lv_obj_clear_flag(fg_comp_msi3_o236_z0_weq_tank_vessel, LV_OBJ_FLAG_SCROLLABLE);
+    fg_comp_msi3_o236_z0_weq_tank_fill = lv_bar_create(fg_comp_msi3_o236_z0_weq_tank_vessel); lv_obj_set_size(fg_comp_msi3_o236_z0_weq_tank_fill, LV_PCT(100), LV_PCT(100)); lv_obj_center(fg_comp_msi3_o236_z0_weq_tank_fill); lv_bar_set_range(fg_comp_msi3_o236_z0_weq_tank_fill, 0, 100); lv_obj_set_style_bg_opa(fg_comp_msi3_o236_z0_weq_tank_fill, LV_OPA_TRANSP, LV_PART_MAIN); lv_obj_set_style_border_width(fg_comp_msi3_o236_z0_weq_tank_fill, 0, LV_PART_MAIN); lv_obj_set_style_radius(fg_comp_msi3_o236_z0_weq_tank_fill, 12, LV_PART_INDICATOR);
+    fg_comp_msi3_o236_z0_weq_tank_percentage_label = lv_label_create(fg_comp_msi3_o236_z0_weq_tank); lv_obj_set_pos(fg_comp_msi3_o236_z0_weq_tank_percentage_label, 96, 54); lv_obj_set_style_text_font(fg_comp_msi3_o236_z0_weq_tank_percentage_label, &lv_font_montserrat_32, 0);
+    fg_comp_msi3_o236_z0_weq_tank_volume_label = lv_label_create(fg_comp_msi3_o236_z0_weq_tank); lv_obj_set_pos(fg_comp_msi3_o236_z0_weq_tank_volume_label, 96, 94); lv_obj_set_width(fg_comp_msi3_o236_z0_weq_tank_volume_label, 212); lv_label_set_long_mode(fg_comp_msi3_o236_z0_weq_tank_volume_label, LV_LABEL_LONG_DOT); lv_obj_set_style_text_color(fg_comp_msi3_o236_z0_weq_tank_volume_label, lv_color_hex(0xF5F5F5), 0);
+    fg_comp_msi3_o236_z0_weq_tank_low_label = lv_label_create(fg_comp_msi3_o236_z0_weq_tank); lv_obj_set_pos(fg_comp_msi3_o236_z0_weq_tank_low_label, 96, 132); lv_obj_set_width(fg_comp_msi3_o236_z0_weq_tank_low_label, 67); lv_obj_set_style_text_font(fg_comp_msi3_o236_z0_weq_tank_low_label, &lv_font_montserrat_10, 0); lv_obj_set_style_text_color(fg_comp_msi3_o236_z0_weq_tank_low_label, lv_color_hex(0xB5B6B8), 0); lv_label_set_text(fg_comp_msi3_o236_z0_weq_tank_low_label, "LOW");
+    fg_comp_msi3_o236_z0_weq_tank_high_label = lv_label_create(fg_comp_msi3_o236_z0_weq_tank); lv_obj_set_pos(fg_comp_msi3_o236_z0_weq_tank_high_label, 168, 132); lv_obj_set_width(fg_comp_msi3_o236_z0_weq_tank_high_label, 67); lv_obj_set_style_text_font(fg_comp_msi3_o236_z0_weq_tank_high_label, &lv_font_montserrat_10, 0); lv_obj_set_style_text_color(fg_comp_msi3_o236_z0_weq_tank_high_label, lv_color_hex(0xB5B6B8), 0); lv_label_set_text(fg_comp_msi3_o236_z0_weq_tank_high_label, "HIGH");
+    fg_comp_msi3_o236_z0_weq_tank_critical_label = lv_label_create(fg_comp_msi3_o236_z0_weq_tank); lv_obj_set_pos(fg_comp_msi3_o236_z0_weq_tank_critical_label, 240, 132); lv_obj_set_width(fg_comp_msi3_o236_z0_weq_tank_critical_label, 67); lv_obj_set_style_text_font(fg_comp_msi3_o236_z0_weq_tank_critical_label, &lv_font_montserrat_10, 0); lv_obj_set_style_text_color(fg_comp_msi3_o236_z0_weq_tank_critical_label, lv_color_hex(0xB5B6B8), 0); lv_label_set_text(fg_comp_msi3_o236_z0_weq_tank_critical_label, "CRITICAL");
+    fg_comp_msi3_o236_z0_weq_tank_refresh();
 
 
     fg_ram_probe_log("02 after application page creation");

@@ -1,7 +1,7 @@
 # ForgeUI Studio
 
-> Current certification (2026-08-06): **44 / 44 practical LVGL 9.2
-> components physically proven on ESP32-P4**, plus eleven current ForgeUI
+> Current certification (2026-08-07): **44 / 44 practical LVGL 9.2
+> components physically proven on ESP32-P4**, plus twelve current ForgeUI
 > Native Components. Dashboard Card, Sensor Tile, Relay Panel, PWM Controller,
 > Trend Chart, and Trend Chart Pro are fully proven. Alarm Panel is
 > **HARDWARE VALIDATED**: exported, built, flashed, and physically rendered on
@@ -19,14 +19,14 @@
 > SDK, ESP-IDF build, ESP32-P4 flash, physical rendering, parity, and duplicate
 > isolation. It is display-only and intentionally generates no UserEvents.
 
-> Network Status Card certification is complete. The Proof Module, Hardware Simulator, automated Runtime SDK proof harness,
+> Network Status Card certification is complete. Device Summary Card is **IMPLEMENTED / READY FOR HARDWARE VALIDATION** as a compact monitoring-only, zero-UserEvents device overview with isolated persisted-ID APIs. The Proof Module, Hardware Simulator, automated Runtime SDK proof harness,
 > ESP-Hosted startup investigation, and export infrastructure improvements
 > remain deferred.
 
 Current architecture save point:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
-Current ForgeUI Platform milestone:
+Latest committed ForgeUI Platform save point (preceding Device Summary hardware-ready work):
 `FORGEUI_V3_5_4__ELEVEN_NATIVE_COMPONENTS__NETWORK_STATUS_HARDWARE_VALIDATED__DOCS_ALIGNED__READY_FOR_DEVICE_SUMMARY_CARD__2026-08-07`.
 
 **ForgeUI Studio is an open-source, AI-assisted visual HMI and embedded GUI designer for ESP32-P4.** It combines a drag-and-drop Canvas, reusable Interactive Assets, AI Layout tools, Browser Preview, native LVGL 9 generation, integrated ESP-IDF Build & Flash, and standalone ESP-IDF project export.
@@ -49,11 +49,12 @@ ForgeUI now rests on two completed foundations:
 
 1. **Practical LVGL Library** — 44 of 44 practical LVGL widgets/components are
    physically proven on ESP32-P4.
-2. **ForgeUI Native Platform** — eleven Native Components are current. Six are **PROVEN** across
+2. **ForgeUI Native Platform** — twelve Native Components are current. Six are **PROVEN** across
    semantic serialization, Browser Preview, Live Studio, Standalone Export,
    Runtime SDK, UserEvents and ESP32-P4 hardware. Alarm Panel is recorded
    separately as **HARDWARE VALIDATED**, pending extended runtime lifecycle proof.
-   IO Monitor, Battery Card, Tank Level Card, and Network Status Card are **HARDWARE VALIDATED**
+   IO Monitor, Battery Card, Tank Level Card, and Network Status Card are **HARDWARE VALIDATED**;
+   Device Summary Card is **IMPLEMENTED / READY FOR HARDWARE VALIDATION**
    read-only monitoring components and generate no UserEvents.
 
 Dashboard Card remains one semantic, serializable Canvas component with private
@@ -304,6 +305,7 @@ The [ForgeUI Developer Portal](https://forgeui.co.nz/developers) is the public o
 | [Battery Card](docs/FORGEUI_BATTERY_CARD.md) | Read-only battery dashboard, semantic Runtime SDK, and ESP32-P4 proof |
 | [Tank Level Card](docs/FORGEUI_TANK_LEVEL_CARD.md) | Read-only tank telemetry, six semantic setters, duplicate isolation, and ESP32-P4 validation |
 | [Network Status Card](docs/FORGEUI_NETWORK_STATUS_CARD.md) | Hardware-validated read-only network telemetry, six silent semantic setters, duplicate isolation, and live ESP32-P4 Wi-Fi projection |
+| [Device Summary Card](docs/FORGEUI_DEVICE_SUMMARY_CARD.md) | Hardware-ready compact device overview, six silent persisted-ID setters, duplicate isolation, and zero UserEvents |
 | [Layout Designer Guide](docs/FORGEUI_LAYOUT_DESIGNER.md) | Preset, Smart Region, Auto Arrange and AI Fill workflow |
 | [QR Code Guide](docs/FORGEUI_QR_CODE.md) | QR authoring, preview, export and validation |
 | [Spinbox Guide](docs/FORGEUI_SPINBOX_WIDGET.md) | Proven native digit editor, integer-backed decimals, APIs and physical evidence |

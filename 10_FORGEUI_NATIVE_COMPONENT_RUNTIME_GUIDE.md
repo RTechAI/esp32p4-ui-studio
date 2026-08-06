@@ -1,13 +1,32 @@
 # ForgeUI Native Component Runtime Guide
 
-Current certification (2026-08-07): **eleven current Native Components**. Six are physically proven
+Current certification (2026-08-07): **twelve current Native Components**. Six are physically proven
 on ESP32-P4** — Dashboard Card, Sensor Tile, Relay Panel, PWM Controller, Trend
 Chart, and Trend Chart Pro. Alarm Panel is **HARDWARE VALIDATED** after fresh
 export, build, flash, and correct physical rendering on ESP32-P4; exhaustive
 runtime interaction and callback proof is deferred. Practical LVGL remains
 **44 / 44 proven**. Alarm Panel, IO Monitor, Battery Card, and Tank Level Card
 are **HARDWARE VALIDATED**. IO Monitor, Battery Card, Tank Level Card, and
-Network Status Card are read-only components.
+Network Status Card are read-only components. Device Summary Card is
+**IMPLEMENTED / READY FOR HARDWARE VALIDATION** and monitoring-only.
+
+## Device Summary Card Runtime SDK quick reference — ready for hardware validation
+
+```c
+void FG_Set_<DeviceSummaryCard>_Device_Name(const char * name);
+void FG_Set_<DeviceSummaryCard>_Status(int32_t status);
+void FG_Set_<DeviceSummaryCard>_Uptime(const char * value);
+void FG_Set_<DeviceSummaryCard>_Firmware_Version(const char * value);
+void FG_Set_<DeviceSummaryCard>_Network_Status(const char * value);
+void FG_Set_<DeviceSummaryCard>_Storage_Status(const char * value);
+```
+
+Status is clamped to `0` Offline, `1` Online, `2` Warning, or `3` Error.
+Persisted-ID APIs are rename-stable and duplicate-isolated. Setters are silent
+and zero UserEvents are generated. No combined backend snapshot is invented;
+applications project authoritative runtime state through these setters without
+depending on optional System UI page visibility. See
+[`docs/FORGEUI_DEVICE_SUMMARY_CARD.md`](docs/FORGEUI_DEVICE_SUMMARY_CARD.md).
 
 ## Network Status Card Runtime SDK quick reference — hardware validated
 

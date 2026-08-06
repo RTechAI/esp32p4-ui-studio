@@ -5,7 +5,7 @@
 **ESP32-P4 EXPORTED AND FLASHED — INITIAL PHYSICAL VALIDATION COMPLETE**
 
 - Practical LVGL 9.2: **44 / 44 PROVEN on ESP32-P4**. Lottie remains intentionally excluded.
-- Native Components: **11 current; Dashboard Card through Trend Chart Pro PROVEN; Alarm Panel, IO Monitor, Battery Card, Tank Level Card, and Network Status Card HARDWARE VALIDATED**.
+- Native Components: **12 current; Dashboard Card through Trend Chart Pro PROVEN; Alarm Panel, IO Monitor, Battery Card, Tank Level Card, and Network Status Card HARDWARE VALIDATED; Device Summary Card IMPLEMENTED / READY FOR HARDWARE VALIDATION**.
 - Battery Card: **HARDWARE VALIDATED**; intentionally read-only with no UserEvents.
 - Tank Level Card: **HARDWARE VALIDATED**; intentionally display-only with no UserEvents.
 - Network Status Card: **HARDWARE VALIDATED**; read-only live Wi-Fi monitoring with no UserEvents.
@@ -24,6 +24,7 @@
 | Battery Card | **HARDWARE VALIDATED** | Read-only monitoring; seven silent persisted-ID setters; rename stability and duplicate isolation; Browser/Live/generated LVGL parity; battery icon, spacing/padding, and metric-tile parity; ESP-IDF 5.5.4 build, flash, and physical rendering; no exhaustive physical Runtime SDK interaction proof claimed |
 | Tank Level Card | **HARDWARE VALIDATED** | Read-only monitoring; six silent persisted-ID setters; rename stability and duplicate isolation; Studio, Inspector, Browser Preview, Live Studio, generated LVGL, ESP-IDF build, flash, physical rendering, and Browser/Live/Export parity; no UserEvents |
 | Network Status Card | **HARDWARE VALIDATED** | Read-only monitoring; six silent persisted-ID setters; rename stability and duplicate isolation; Studio/Browser/Live/LVGL parity; live disconnected/connected, SSID, DHCP IPv4, RSSI-derived signal, and Online/Offline projection physically confirmed on ESP32-P4 without opening the System Wi-Fi Manager; no UserEvents |
+| Device Summary Card | **IMPLEMENTED / READY FOR HARDWARE VALIDATION** | Monitoring-only device identity, status, uptime, firmware, network, and storage summary; six silent persisted-ID setters; duplicate isolation; Studio/Browser/Live/LVGL parity; 240 x 145 default and 220 x 128 minimum; no UserEvents |
 
 Trend Chart Pro does not replace Trend Chart. Certification also removed the
 partial-history tail artifact and unwanted LVGL point dots, placed threshold
@@ -171,8 +172,9 @@ Current Native Component roadmap:
 10. Tank Level Card — **HARDWARE VALIDATED — DISPLAY-ONLY; BROWSER/LIVE/GENERATED LVGL PARITY, DUPLICATE ISOLATION, ESP-IDF BUILD, ESP32-P4 FLASH, AND PHYSICAL RENDERING CONFIRMED; NO USEREVENTS**
 11. Network Status Card — **HARDWARE VALIDATED — READ-ONLY; LIVE WI-FI PROJECTION, DUPLICATE ISOLATION, ESP-IDF BUILD, ESP32-P4 FLASH, AND APPLICATION-PAGE UPDATES CONFIRMED; NO USEREVENTS**
 
-Next: **Device Summary Card** — not started in this
-documentation pass.
+12. Device Summary Card — **IMPLEMENTED / READY FOR HARDWARE VALIDATION — MONITORING-ONLY; STACKABLE 240 x 145 DEFAULT, SIX SILENT PERSISTED-ID SETTERS, DUPLICATE ISOLATION, BROWSER/LIVE/LVGL PARITY, AND NO USEREVENTS**
+
+Next certification gate: **Device Summary Card physical ESP32-P4 rendering**.
 
 This roadmap supersedes the historical PWM proof-ready paragraph below.
 4. PWM Controller — **NEXT**

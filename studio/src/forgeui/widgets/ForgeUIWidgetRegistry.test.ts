@@ -118,6 +118,15 @@ describe('ForgeUI Widget registry', () => {
     })
   })
 
+  it('registers Device Summary Card with stackable monitoring defaults', () => {
+    expect(forgeUIWidgetDefinitions.find(item => item.type === 'DeviceSummaryCard')).toMatchObject({
+      displayName: 'Device Summary Card', category: 'Dashboard', defaultWidth: 240, defaultHeight: 145,
+      documentationId: 'docs/FORGEUI_DEVICE_SUMMARY_CARD.md',
+      capabilities: { supportsRuntimeApi: true, supportsUserEvents: false, acceptsUserInput: false },
+      defaultProperties: { deviceName: 'ForgeUI-P4', overallStatus: 'online', uptime: '02:14:36', firmwareVersion: 'v3.5.4', networkStatus: 'Connected', storageStatus: 'Ready' },
+    })
+  })
+
   it('registers List as a native, serialized navigation widget', () => {
     expect(forgeUIWidgetDefinitions.find(item => item.type === 'List'))
       .toMatchObject({
