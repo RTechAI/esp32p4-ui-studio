@@ -1,12 +1,31 @@
 # ForgeUI Native Component Runtime Guide
 
-Current certification (2026-08-06): **ten current Native Components**. Six are physically proven
+Current certification (2026-08-07): **eleven current Native Components**. Six are physically proven
 on ESP32-P4** — Dashboard Card, Sensor Tile, Relay Panel, PWM Controller, Trend
 Chart, and Trend Chart Pro. Alarm Panel is **HARDWARE VALIDATED** after fresh
 export, build, flash, and correct physical rendering on ESP32-P4; exhaustive
 runtime interaction and callback proof is deferred. Practical LVGL remains
 **44 / 44 proven**. Alarm Panel, IO Monitor, Battery Card, and Tank Level Card
-are **HARDWARE VALIDATED**; the last three are read-only components.
+are **HARDWARE VALIDATED**. IO Monitor, Battery Card, Tank Level Card, and
+Network Status Card are read-only components.
+
+## Network Status Card Runtime SDK quick reference — hardware validated
+
+```c
+void FG_Set_<NetworkStatusCard>_Connected(bool connected);
+void FG_Set_<NetworkStatusCard>_Network_Name(const char * name);
+void FG_Set_<NetworkStatusCard>_IP_Address(const char * ip);
+void FG_Set_<NetworkStatusCard>_Signal_Strength(int32_t percent);
+void FG_Set_<NetworkStatusCard>_Status_Text(const char * text);
+void FG_Set_<NetworkStatusCard>_Network_Type(int32_t type);
+```
+
+The persisted-ID stem is rename-stable and duplicate instances are isolated.
+Setters are silent and zero UserEvents are generated. Canvas values are
+design-time/initial values; live Wi-Fi state overrides monitoring fields when
+available. Physical ESP32-P4 validation confirms application-page updates do
+not require the System Wi-Fi Manager to be open. See
+[`docs/FORGEUI_NETWORK_STATUS_CARD.md`](docs/FORGEUI_NETWORK_STATUS_CARD.md).
 
 ## Tank Level Card Runtime SDK quick reference — hardware validated
 
@@ -110,7 +129,7 @@ Permanent product logic belongs in application-owned services called from
 Status: **AUTHORITATIVE LIVING DEVELOPER REFERENCE** (2026-08-02).
 
 Current ForgeUI Platform milestone:
-`FORGEUI_NATIVE_COMPONENTS_1_TO_10__TANK_LEVEL_CARD_HARDWARE_VALIDATED__READY_FOR_NETWORK_STATUS_CARD__2026-08-06`.
+`FORGEUI_V3_5_4__ELEVEN_NATIVE_COMPONENTS__NETWORK_STATUS_HARDWARE_VALIDATED__DOCS_ALIGNED__READY_FOR_DEVICE_SUMMARY_CARD__2026-08-07`.
 
 Dashboard Card and Sensor Tile, ForgeUI Native Components #1 and #2, are
 **PROVEN** on ESP32-P4. Relay Panel is physically proven on ESP32-P4.
@@ -133,8 +152,12 @@ user interaction -> generated LVGL event -> 95_UserEvents callback
 ```
 
 Read-only monitoring components generate no UserEvents unless genuine user
-interaction exists. IO Monitor, Battery Card, and Tank Level Card currently have
+interaction exists. IO Monitor, Battery Card, Tank Level Card, and Network Status Card currently have
 no interaction contract, so no callbacks are generated for them.
+
+Native monitoring projections must execute independently of optional System UI
+page visibility. The generated order is backend pump, snapshot, Native
+Component projection, optional System UI page gate, then System UI projection.
 
 The generated API is the supported integration surface. Developers should not
 reach into the generated component's labels, bars, icons, containers or

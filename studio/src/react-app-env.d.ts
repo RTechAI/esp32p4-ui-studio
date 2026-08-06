@@ -89,6 +89,7 @@ type ComponentType =
   | 'IOMonitor'
   | 'BatteryCard'
   | 'TankLevelCard'
+  | 'NetworkStatusCard'
   | 'NumberInput'
   | 'Progress'
   | 'QRCode'

@@ -1,6 +1,6 @@
 # ForgeUI Native Widget Architecture
 
-Status: **AUTHORITATIVE — NATIVE COMPONENTS 1–6 PROVEN; ALARM PANEL, IO MONITOR, BATTERY CARD, AND TANK LEVEL CARD HARDWARE VALIDATED** (2026-08-06).
+Status: **AUTHORITATIVE — ELEVEN NATIVE COMPONENTS; NETWORK STATUS CARD HARDWARE VALIDATED** (2026-08-07).
 
 Alarm Panel status: **PHYSICALLY RENDERED ON ESP32-P4 — EXTENDED RUNTIME PROOF
 DEFERRED**.
@@ -29,7 +29,10 @@ duplicate state, and no UserEvents. Browser/Live/generated LVGL parity, build,
 flash, and physical rendering are confirmed without overstating physical
 runtime interaction proof. Tank Level Card is **HARDWARE VALIDATED** with six
 silent persisted-ID setters, duplicate isolation, Browser/Live/Export parity,
-physical rendering, and intentionally no UserEvents. The
+physical rendering, and intentionally no UserEvents. Network Status Card is
+**HARDWARE VALIDATED** as a read-only monitor with six silent persisted-ID
+setters, duplicate isolation, zero UserEvents, and live ESP32-P4 Wi-Fi
+projection independent of the optional System Wi-Fi Manager page. The
 Simulator / Proof Module, automated Runtime SDK proof harness, ESP-Hosted
 startup investigation, and further export infrastructure remain deferred.
 
@@ -37,7 +40,7 @@ Current milestone:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
 Current ForgeUI Platform milestone:
-`FORGEUI_NATIVE_COMPONENTS_1_TO_10__TANK_LEVEL_CARD_HARDWARE_VALIDATED__READY_FOR_NETWORK_STATUS_CARD__2026-08-06`.
+`FORGEUI_V3_5_4__ELEVEN_NATIVE_COMPONENTS__NETWORK_STATUS_HARDWARE_VALIDATED__DOCS_ALIGNED__READY_FOR_DEVICE_SUMMARY_CARD__2026-08-07`.
 
 ## Decision
 
@@ -379,8 +382,18 @@ separate:
     six silent persisted-ID setters, rename stability, duplicate isolation, no
     UserEvents, Browser/Live/Export parity, and confirmed ESP32-P4 rendering.
 
-Next: **Network Status Card**. It is planned but not started. Possible later
-specialized cards include Device Summary Card, KPI Card, and Power Flow Card. Their ordering
+11. **Network Status Card** — **HARDWARE VALIDATED**; read-only connectivity
+    telemetry, six silent persisted-ID setters, rename stability, duplicate
+    isolation, no UserEvents, Studio/Browser/Live/LVGL parity, and live ESP32-P4
+    Wi-Fi projection without opening the System Wi-Fi Manager.
+
+Native monitoring projections execute independently of optional System UI page
+visibility. Generated runtimes order this work as backend pump, snapshot,
+Native Component projection, optional System UI page gate, then System UI
+projection. Monitoring cards therefore cannot accidentally depend on an
+optional manager page being open.
+
+Possible later specialized cards include Device Summary Card, KPI Card, and Power Flow Card. Their ordering
 is not certified by this ledger.
 
 Weather, Camera, MQTT, CAN, Industrial, Marine and other domain families should

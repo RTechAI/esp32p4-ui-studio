@@ -43,6 +43,7 @@ duplicate-instance isolation, ESP-IDF build, ESP32-P4 flash, physical rendering,
 and Browser/Live/Export parity are confirmed. Tank Level Card is therefore
 **HARDWARE VALIDATED**.
 
-The next planned Native Component is **Network Status Card**. The Proof Module,
+Network Status Card subsequently reached **HARDWARE VALIDATED** status. Device
+Summary Card is next but is not started here. The Proof Module,
 Hardware Simulator, automated Runtime SDK proof harness, ESP-Hosted startup
 investigation, and export infrastructure improvements remain deferred.

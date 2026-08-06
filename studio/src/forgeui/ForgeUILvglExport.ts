@@ -55,6 +55,7 @@ import { normalizeForgeUIAlarmPanel } from './ForgeUIAlarmPanel'
 import { normalizeForgeUIIOMonitor } from './ForgeUIIOMonitor'
 import { normalizeForgeUIBatteryCard } from './ForgeUIBatteryCard'
 import { normalizeForgeUITankLevelCard } from './ForgeUITankLevelCard'
+import { normalizeForgeUINetworkStatusCard } from './ForgeUINetworkStatusCard'
 import {
   getForgeUIStandardSpinboxModel,
   type ForgeUIStandardSpinboxModel,
@@ -657,6 +658,21 @@ const createTankLevelCardExports = (components: IComponents): Map<string, TankLe
     while (used.has(stem)) stem = `${base}_${suffix++}`; used.add(stem)
     const p = `fg_${stem.toLowerCase()}_tank`; const model = normalizeForgeUITankLevelCard(component.props)
     result.set(component.id, { model, stem, rootName: p, tankName: `${p}_vessel`, fillName: `${p}_fill`, percentageLabel: `${p}_percentage_label`, volumeLabel: `${p}_volume_label`, statusLabel: `${p}_status_label`, lowLabel: `${p}_low_label`, highLabel: `${p}_high_label`, criticalLabel: `${p}_critical_label`, levelName: `${p}_level`, volumeName: `${p}_volume`, capacityName: `${p}_capacity`, unitsName: `${p}_units`, lowName: `${p}_low`, highName: `${p}_high`, refreshName: `${p}_refresh`, runtimeEnabled: model.generateRuntimeApi })
+  }); return result
+}
+
+type NetworkStatusCardExport = {
+  model: ReturnType<typeof normalizeForgeUINetworkStatusCard>; stem: string; rootName: string
+  stateLabel: string; nameLabel: string; ipLabel: string; hostnameLabel: string; statusLabel: string; barName: string
+  connectedName: string; networkName: string; ipName: string; signalName: string; statusName: string; typeName: string
+  refreshName: string; runtimeEnabled: boolean
+}
+const createNetworkStatusCardExports = (components: IComponents): Map<string, NetworkStatusCardExport> => {
+  const result = new Map<string, NetworkStatusCardExport>(); const used = new Set<string>()
+  Object.values(components).filter(c => c.type === 'NetworkStatusCard').sort((a,b)=>a.id.localeCompare(b.id)).forEach(c => {
+    const base=toCIdentifier(c.id,'Network_Status_Card').replace(/([a-z0-9])([A-Z])/g,'$1_$2'); let stem=base; let suffix=2
+    while(used.has(stem)) stem=`${base}_${suffix++}`; used.add(stem); const p=`fg_${stem.toLowerCase()}_network`; const model=normalizeForgeUINetworkStatusCard(c.props)
+    result.set(c.id,{model,stem,rootName:p,stateLabel:`${p}_state_label`,nameLabel:`${p}_name_label`,ipLabel:`${p}_ip_label`,hostnameLabel:`${p}_hostname_label`,statusLabel:`${p}_status_label`,barName:`${p}_bar`,connectedName:`${p}_connected`,networkName:`${p}_name`,ipName:`${p}_ip`,signalName:`${p}_signal`,statusName:`${p}_status`,typeName:`${p}_type`,refreshName:`${p}_refresh`,runtimeEnabled:model.generateRuntimeApi})
   }); return result
 }
 
@@ -3040,6 +3056,7 @@ const buildLvglBlock = (
   ioMonitorExports: Map<string, IOMonitorExport>,
   batteryCardExports: Map<string, BatteryCardExport>,
   tankLevelCardExports: Map<string, TankLevelCardExport>,
+  networkStatusCardExports: Map<string, NetworkStatusCardExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -4872,6 +4889,22 @@ case 'TankLevelCard': {
   lines.push(`${tank.refreshName}();`); lines.push(``); break
 }
 
+case 'NetworkStatusCard': {
+  const card=networkStatusCardExports.get(child.id); if(!card) break; const m=card.model; const pad=m.compactMode?8:12; const cw=Math.max(1,Number(w)); const ch=Math.max(1,Number(h)); const colour=m.connected?m.accentColour:m.disconnectedColour
+  lines.push(`${card.rootName} = lv_obj_create(${parentVar}); lv_obj_set_pos(${card.rootName}, ${x}, ${y}); lv_obj_set_size(${card.rootName}, ${w}, ${h}); lv_obj_set_style_bg_color(${card.rootName}, lv_color_hex(${palette.surface}), 0); lv_obj_set_style_border_color(${card.rootName}, lv_color_hex(${palette.surfaceBorder}), 0); lv_obj_set_style_border_width(${card.rootName}, 1, 0); lv_obj_set_style_radius(${card.rootName}, 10, 0); lv_obj_set_style_pad_all(${card.rootName}, 0, 0); lv_obj_clear_flag(${card.rootName}, LV_OBJ_FLAG_SCROLLABLE);`)
+  lines.push(`lv_obj_t * ${varName}_title = lv_label_create(${card.rootName}); lv_label_set_text(${varName}_title, "${esc(m.title)}"); lv_obj_set_pos(${varName}_title, ${pad}, ${pad}); lv_obj_set_width(${varName}_title, ${Math.max(50,cw-120)}); lv_label_set_long_mode(${varName}_title, LV_LABEL_LONG_DOT); lv_obj_set_style_text_color(${varName}_title, lv_color_hex(${palette.textPrimary}), 0); lv_obj_set_style_text_font(${varName}_title, &lv_font_montserrat_${m.compactMode?12:14}, 0);`)
+  lines.push(`${card.stateLabel}=lv_label_create(${card.rootName}); lv_obj_set_pos(${card.stateLabel},${Math.max(pad,cw-105)},${pad+1}); lv_obj_set_width(${card.stateLabel},${93}); lv_obj_set_style_text_align(${card.stateLabel},LV_TEXT_ALIGN_RIGHT,0); lv_obj_set_style_text_font(${card.stateLabel},&lv_font_montserrat_10,0);`)
+  const iconSize=m.compactMode?54:66, contentX=pad+iconSize+12, mainY=m.compactMode?39:45
+  lines.push(`lv_obj_t * ${varName}_icon=lv_label_create(${card.rootName}); lv_label_set_text(${varName}_icon,${m.networkType==='wifi'?'LV_SYMBOL_WIFI':'"'+(m.networkType==='ethernet'?'ETH':m.networkType==='cellular'?'CELL':'NET')+'"'}); lv_obj_set_pos(${varName}_icon,${pad},${mainY}); lv_obj_set_size(${varName}_icon,${iconSize},${iconSize}); lv_obj_set_style_bg_opa(${varName}_icon,LV_OPA_COVER,0); lv_obj_set_style_bg_color(${varName}_icon,lv_color_hex(${palette.surfaceSecondary}),0); lv_obj_set_style_radius(${varName}_icon,10,0); lv_obj_set_style_text_align(${varName}_icon,LV_TEXT_ALIGN_CENTER,0); lv_obj_set_style_text_color(${varName}_icon,lv_color_hex(0x${colour.slice(1)}),0); lv_obj_set_style_pad_top(${varName}_icon,${m.compactMode?20:25},0);`)
+  lines.push(`${card.nameLabel}=lv_label_create(${card.rootName}); lv_obj_set_pos(${card.nameLabel},${contentX},${mainY}); lv_obj_set_width(${card.nameLabel},${Math.max(60,cw-contentX-pad)}); lv_label_set_long_mode(${card.nameLabel},LV_LABEL_LONG_DOT); lv_obj_set_style_text_font(${card.nameLabel},&lv_font_montserrat_${m.compactMode?14:16},0); lv_obj_set_style_text_color(${card.nameLabel},lv_color_hex(${palette.textPrimary}),0);`)
+  lines.push(`${card.ipLabel}=lv_label_create(${card.rootName}); lv_obj_set_pos(${card.ipLabel},${contentX},${mainY+25}); lv_obj_set_width(${card.ipLabel},${Math.max(60,cw-contentX-pad)}); lv_label_set_long_mode(${card.ipLabel},LV_LABEL_LONG_DOT); lv_obj_set_style_text_color(${card.ipLabel},lv_color_hex(${palette.textSecondary}),0);`)
+  lines.push(`${card.hostnameLabel}=lv_label_create(${card.rootName}); lv_label_set_text(${card.hostnameLabel},"${esc(m.hostname)}"); lv_obj_set_pos(${card.hostnameLabel},${contentX},${mainY+45}); lv_obj_set_width(${card.hostnameLabel},${Math.max(60,cw-contentX-pad)}); lv_label_set_long_mode(${card.hostnameLabel},LV_LABEL_LONG_DOT); lv_obj_set_style_text_color(${card.hostnameLabel},lv_color_hex(${palette.textSecondary}),0); lv_obj_set_style_text_font(${card.hostnameLabel},&lv_font_montserrat_10,0);`)
+  const barY=Math.max(mainY+iconSize+9,ch-pad-22)
+  lines.push(`${card.statusLabel}=lv_label_create(${card.rootName}); lv_obj_set_pos(${card.statusLabel},${pad},${barY-16}); lv_obj_set_width(${card.statusLabel},${cw-pad*2}); lv_obj_set_style_text_font(${card.statusLabel},&lv_font_montserrat_10,0);`)
+  lines.push(`${card.barName}=lv_bar_create(${card.rootName}); lv_obj_set_pos(${card.barName},${pad},${barY}); lv_obj_set_size(${card.barName},${Math.max(80,cw-pad*2)},7); lv_bar_set_range(${card.barName},0,100); lv_obj_set_style_bg_color(${card.barName},lv_color_hex(${palette.surfaceSecondary}),LV_PART_MAIN); lv_obj_set_style_radius(${card.barName},4,LV_PART_MAIN); lv_obj_set_style_radius(${card.barName},4,LV_PART_INDICATOR);`)
+  lines.push(`${card.refreshName}();`); lines.push(``); break
+}
+
 case 'Spinbox': {
   const spinboxExport = spinboxExports.get(child.id)
   if (!spinboxExport) break
@@ -6084,6 +6117,7 @@ case 'TrendChartPro': {
         ioMonitorExports,
         batteryCardExports,
         tankLevelCardExports,
+        networkStatusCardExports,
       )
     }
   })
@@ -6428,6 +6462,7 @@ export const generateForgeUILvglCode = (
   const ioMonitorExports = createIOMonitorExports(components, usedHookNames, userEventHooks)
   const batteryCardExports = createBatteryCardExports(components)
   const tankLevelCardExports = createTankLevelCardExports(components)
+  const networkStatusCardExports = createNetworkStatusCardExports(components)
   const fiIconExports = createFiIconExports(
     components,
     usedHookNames,
@@ -7158,7 +7193,7 @@ const backgroundMode =
   lines.push(`#include "freertos/semphr.h"`)
   lines.push(`#include "freertos/task.h"`)
   lines.push(`#include "esp_timer.h"`)
-  if (hasInteractiveButtons || dashboardCardExports.size > 0 || sensorTileExports.size > 0 || relayPanelExports.size > 0 || pwmControllerExports.size > 0 || alarmPanelExports.size > 0 || ioMonitorExports.size > 0 || batteryCardExports.size > 0 || tankLevelCardExports.size > 0 || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
+  if (hasInteractiveButtons || dashboardCardExports.size > 0 || sensorTileExports.size > 0 || relayPanelExports.size > 0 || pwmControllerExports.size > 0 || alarmPanelExports.size > 0 || ioMonitorExports.size > 0 || batteryCardExports.size > 0 || tankLevelCardExports.size > 0 || networkStatusCardExports.size > 0 || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
     lines.push(`#include "95_UserEvents.h"`)
   }
   if (Array.from(fiIconExports.values()).some(icon => icon.runtimeEnabled)) {
@@ -7287,6 +7322,20 @@ const backgroundMode =
       lines.push(`void FG_Set_${t.stem}_Units(const char * units) { if (!units) units = ""; snprintf(${t.unitsName}, sizeof(${t.unitsName}), "%s", units); ${t.refreshName}(); }`)
       lines.push(`void FG_Set_${t.stem}_LowLevel(float value) { ${t.lowName} = value < 0.0f ? 0.0f : (value > 100.0f ? 100.0f : value); if (${t.highName} < ${t.lowName}) ${t.highName} = ${t.lowName}; ${t.refreshName}(); }`)
       lines.push(`void FG_Set_${t.stem}_HighLevel(float value) { ${t.highName} = value < ${t.lowName} ? ${t.lowName} : (value > 100.0f ? 100.0f : value); ${t.refreshName}(); }`)
+    }
+  })
+  networkStatusCardExports.forEach(n => {
+    const typeIndex={wifi:0,ethernet:1,cellular:2,other:3}[n.model.networkType]
+    lines.push(`static lv_obj_t * ${n.rootName}=NULL; static lv_obj_t * ${n.stateLabel}=NULL; static lv_obj_t * ${n.nameLabel}=NULL; static lv_obj_t * ${n.ipLabel}=NULL; static lv_obj_t * ${n.hostnameLabel}=NULL; static lv_obj_t * ${n.statusLabel}=NULL; static lv_obj_t * ${n.barName}=NULL;`)
+    lines.push(`static bool ${n.connectedName}=${n.model.connected?'true':'false'}; static int32_t ${n.signalName}=${Math.round(n.model.signalStrength)}; static int32_t ${n.typeName}=${typeIndex}; static char ${n.networkName}[65]="${esc(n.model.networkName)}"; static char ${n.ipName}[46]="${esc(n.model.ipAddress)}"; static char ${n.statusName}[97]="${esc(n.model.statusText)}";`)
+    lines.push(`static void ${n.refreshName}(void) { uint32_t colour=${n.connectedName}?0x${n.model.accentColour.slice(1)}:0x${n.model.disconnectedColour.slice(1)}; static const char * types[]={"Wi-Fi","Ethernet","Cellular","Network"}; if(${n.stateLabel}) { lv_label_set_text(${n.stateLabel},${n.connectedName}?"CONNECTED":"DISCONNECTED"); lv_obj_set_style_text_color(${n.stateLabel},lv_color_hex(colour),0); } if(${n.nameLabel}) lv_label_set_text_fmt(${n.nameLabel},"%s  %s",types[${n.typeName}],${n.networkName}); if(${n.ipLabel}) lv_label_set_text_fmt(${n.ipLabel},"IP %s",${n.connectedName}?${n.ipName}:"--"); if(${n.statusLabel}) { lv_label_set_text_fmt(${n.statusLabel},"%s                                      %ld%%",${n.statusName},(long)(${n.connectedName}?${n.signalName}:0)); lv_obj_set_style_text_color(${n.statusLabel},lv_color_hex(colour),0); } if(${n.barName}) { lv_bar_set_value(${n.barName},${n.connectedName}?${n.signalName}:0,LV_ANIM_OFF); lv_obj_set_style_bg_color(${n.barName},lv_color_hex(colour),LV_PART_INDICATOR); } }`)
+    if(n.runtimeEnabled) {
+      lines.push(`void FG_Set_${n.stem}_Connected(bool connected) { ${n.connectedName}=connected; ${n.refreshName}(); }`)
+      lines.push(`void FG_Set_${n.stem}_Network_Name(const char * name) { if(!name) name=""; snprintf(${n.networkName},sizeof(${n.networkName}),"%s",name); ${n.refreshName}(); }`)
+      lines.push(`void FG_Set_${n.stem}_IP_Address(const char * ip) { if(!ip) ip=""; snprintf(${n.ipName},sizeof(${n.ipName}),"%s",ip); ${n.refreshName}(); }`)
+      lines.push(`void FG_Set_${n.stem}_Signal_Strength(int32_t percent) { ${n.signalName}=percent<0?0:(percent>100?100:percent); ${n.refreshName}(); }`)
+      lines.push(`void FG_Set_${n.stem}_Status_Text(const char * value) { if(!value) value=""; snprintf(${n.statusName},sizeof(${n.statusName}),"%s",value); ${n.refreshName}(); }`)
+      lines.push(`void FG_Set_${n.stem}_Network_Type(int32_t value) { ${n.typeName}=value<0?0:(value>3?3:value); ${n.refreshName}(); }`)
     }
   })
   alarmPanelExports.forEach(alarm => {
@@ -9682,6 +9731,34 @@ lines.push(`}`)
   lines.push(`    fg_wifi_pump();`)
   lines.push(`    if (!fg_system_wifi_connected_probe_logged && fg_wifi_is_connected()) { fg_system_wifi_connected_probe_logged = true; fg_ram_probe_log("17 connected on application page"); }`)
   lines.push(``)
+  const runtimeNetworkStatusCards = Array.from(networkStatusCardExports.values()).filter(card => card.runtimeEnabled)
+  if (runtimeNetworkStatusCards.length > 0) {
+    lines.push(`    fg_wifi_snapshot_t network_card_snapshot;`)
+    lines.push(`    bool network_card_snapshot_ready = fg_wifi_get_snapshot(&network_card_snapshot) == FG_WIFI_OP_OK;`)
+    lines.push(`    bool network_card_connected = network_card_snapshot_ready && network_card_snapshot.connected;`)
+    lines.push(`    int32_t network_card_signal = 0;`)
+    lines.push(`    if (network_card_connected) {`)
+    lines.push(`        network_card_signal = (network_card_snapshot.rssi + 100) * 2;`)
+    lines.push(`        if (network_card_signal < 0) network_card_signal = 0;`)
+    lines.push(`        if (network_card_signal > 100) network_card_signal = 100;`)
+    lines.push(`    }`)
+    runtimeNetworkStatusCards.forEach(card => {
+      lines.push(`    FG_Set_${card.stem}_Network_Type(0);`)
+      lines.push(`    FG_Set_${card.stem}_Connected(network_card_connected);`)
+      lines.push(`    if (network_card_connected) {`)
+      lines.push(`        FG_Set_${card.stem}_Network_Name(network_card_snapshot.ssid[0] ? network_card_snapshot.ssid : "--");`)
+      lines.push(`        FG_Set_${card.stem}_IP_Address(network_card_snapshot.ip[0] ? network_card_snapshot.ip : "--");`)
+      lines.push(`        FG_Set_${card.stem}_Signal_Strength(network_card_signal);`)
+      lines.push(`        FG_Set_${card.stem}_Status_Text("Online");`)
+      lines.push(`    } else {`)
+      lines.push(`        FG_Set_${card.stem}_Network_Name("--");`)
+      lines.push(`        FG_Set_${card.stem}_IP_Address("--");`)
+      lines.push(`        FG_Set_${card.stem}_Signal_Strength(0);`)
+      lines.push(`        FG_Set_${card.stem}_Status_Text("Offline");`)
+      lines.push(`    }`)
+    })
+    lines.push(``)
+  }
   lines.push(`    if (fg_system_wifi_password_dialog &&`)
   lines.push(`        !lv_obj_has_flag(fg_system_wifi_password_dialog, LV_OBJ_FLAG_HIDDEN)) return;`)
   lines.push(``)
@@ -9731,8 +9808,13 @@ lines.push(`}`)
   }
   lines.push(``)
   lines.push(`    if (!fg_system_wifi_page || !fg_system_wifi_page_active) return;`)
-  lines.push(`    fg_wifi_snapshot_t snapshot;`)
-  lines.push(`    if (fg_wifi_get_snapshot(&snapshot) != FG_WIFI_OP_OK) return;`)
+  if (runtimeNetworkStatusCards.length > 0) {
+    lines.push(`    if (!network_card_snapshot_ready) return;`)
+    lines.push(`    fg_wifi_snapshot_t snapshot = network_card_snapshot;`)
+  } else {
+    lines.push(`    fg_wifi_snapshot_t snapshot;`)
+    lines.push(`    if (fg_wifi_get_snapshot(&snapshot) != FG_WIFI_OP_OK) return;`)
+  }
   lines.push(`    const char * state_text = "Wi-Fi Off";`)
   lines.push(`    switch (snapshot.state) {`)
   lines.push(`        case FG_WIFI_STATE_INIT: state_text = "Turning On"; break;`)
@@ -9908,6 +9990,7 @@ lines.push(`    fg_system_root = parent;`)
         ioMonitorExports,
         batteryCardExports,
         tankLevelCardExports,
+        networkStatusCardExports,
       )
   }
 
@@ -10651,6 +10734,10 @@ lines.push(`}`)
         `void FG_Set_${t.stem}_Level(float percent);`, `void FG_Set_${t.stem}_Volume(float value);`,
         `void FG_Set_${t.stem}_Capacity(float value);`, `void FG_Set_${t.stem}_Units(const char * units);`,
         `void FG_Set_${t.stem}_LowLevel(float value);`, `void FG_Set_${t.stem}_HighLevel(float value);`,
+      ])).concat(Array.from(networkStatusCardExports.values()).filter(n=>n.runtimeEnabled).flatMap(n=>[
+        `void FG_Set_${n.stem}_Connected(bool connected);`, `void FG_Set_${n.stem}_Network_Name(const char * name);`,
+        `void FG_Set_${n.stem}_IP_Address(const char * ip);`, `void FG_Set_${n.stem}_Signal_Strength(int32_t percent);`,
+        `void FG_Set_${n.stem}_Status_Text(const char * value);`, `void FG_Set_${n.stem}_Network_Type(int32_t value);`,
       ])).concat(Array.from(barExports.values()).map(
         barExport => `void ${barExport.apiName}(int32_t value);`,
       )).concat(Array.from(progressExports.values()).map(

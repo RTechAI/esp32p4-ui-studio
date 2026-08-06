@@ -1,7 +1,7 @@
 # ForgeUI Studio
 
 > Current certification (2026-08-06): **44 / 44 practical LVGL 9.2
-> components physically proven on ESP32-P4**, plus ten current ForgeUI
+> components physically proven on ESP32-P4**, plus eleven current ForgeUI
 > Native Components. Dashboard Card, Sensor Tile, Relay Panel, PWM Controller,
 > Trend Chart, and Trend Chart Pro are fully proven. Alarm Panel is
 > **HARDWARE VALIDATED**: exported, built, flashed, and physically rendered on
@@ -11,13 +11,15 @@
 > Battery Card is **HARDWARE VALIDATED** after Browser/Live/generated LVGL parity,
 > successful ESP-IDF build and ESP32-P4 flash, and confirmed physical rendering.
 > It is read-only, exposes seven silent semantic APIs, isolates duplicate
-> identities, and intentionally generates no UserEvents. Tank Level Card is
+> identities, and intentionally generates no UserEvents. Network Status Card is
+> **HARDWARE VALIDATED**, with live connected/disconnected, real SSID, DHCP IP,
+> RSSI-derived signal, and Online/Offline projection independent of the System
+> Wi-Fi Manager page. Tank Level Card is
 > **HARDWARE VALIDATED** through Studio, Browser, Live, generated LVGL, Runtime
 > SDK, ESP-IDF build, ESP32-P4 flash, physical rendering, parity, and duplicate
 > isolation. It is display-only and intentionally generates no UserEvents.
 
-> Next Native Component (recorded, not implemented): **Network Status Card**. The
-> Proof Module, Hardware Simulator, automated Runtime SDK proof harness,
+> Network Status Card certification is complete. The Proof Module, Hardware Simulator, automated Runtime SDK proof harness,
 > ESP-Hosted startup investigation, and export infrastructure improvements
 > remain deferred.
 
@@ -25,7 +27,7 @@ Current architecture save point:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
 Current ForgeUI Platform milestone:
-`FORGEUI_NATIVE_COMPONENTS_1_TO_10__TANK_LEVEL_CARD_HARDWARE_VALIDATED__READY_FOR_NETWORK_STATUS_CARD__2026-08-06`.
+`FORGEUI_V3_5_4__ELEVEN_NATIVE_COMPONENTS__NETWORK_STATUS_HARDWARE_VALIDATED__DOCS_ALIGNED__READY_FOR_DEVICE_SUMMARY_CARD__2026-08-07`.
 
 **ForgeUI Studio is an open-source, AI-assisted visual HMI and embedded GUI designer for ESP32-P4.** It combines a drag-and-drop Canvas, reusable Interactive Assets, AI Layout tools, Browser Preview, native LVGL 9 generation, integrated ESP-IDF Build & Flash, and standalone ESP-IDF project export.
 
@@ -47,11 +49,11 @@ ForgeUI now rests on two completed foundations:
 
 1. **Practical LVGL Library** — 44 of 44 practical LVGL widgets/components are
    physically proven on ESP32-P4.
-2. **ForgeUI Native Platform** — ten Native Components are current. Six are **PROVEN** across
+2. **ForgeUI Native Platform** — eleven Native Components are current. Six are **PROVEN** across
    semantic serialization, Browser Preview, Live Studio, Standalone Export,
    Runtime SDK, UserEvents and ESP32-P4 hardware. Alarm Panel is recorded
    separately as **HARDWARE VALIDATED**, pending extended runtime lifecycle proof.
-   IO Monitor, Battery Card, and Tank Level Card are **HARDWARE VALIDATED**
+   IO Monitor, Battery Card, Tank Level Card, and Network Status Card are **HARDWARE VALIDATED**
    read-only monitoring components and generate no UserEvents.
 
 Dashboard Card remains one semantic, serializable Canvas component with private
@@ -301,6 +303,7 @@ The [ForgeUI Developer Portal](https://forgeui.co.nz/developers) is the public o
 | [IO Monitor](docs/FORGEUI_IO_MONITOR.md) | Read-only IO Monitor configuration, Runtime SDK, interaction contract, and ESP32-P4 validation |
 | [Battery Card](docs/FORGEUI_BATTERY_CARD.md) | Read-only battery dashboard, semantic Runtime SDK, and ESP32-P4 proof |
 | [Tank Level Card](docs/FORGEUI_TANK_LEVEL_CARD.md) | Read-only tank telemetry, six semantic setters, duplicate isolation, and ESP32-P4 validation |
+| [Network Status Card](docs/FORGEUI_NETWORK_STATUS_CARD.md) | Hardware-validated read-only network telemetry, six silent semantic setters, duplicate isolation, and live ESP32-P4 Wi-Fi projection |
 | [Layout Designer Guide](docs/FORGEUI_LAYOUT_DESIGNER.md) | Preset, Smart Region, Auto Arrange and AI Fill workflow |
 | [QR Code Guide](docs/FORGEUI_QR_CODE.md) | QR authoring, preview, export and validation |
 | [Spinbox Guide](docs/FORGEUI_SPINBOX_WIDGET.md) | Proven native digit editor, integer-backed decimals, APIs and physical evidence |

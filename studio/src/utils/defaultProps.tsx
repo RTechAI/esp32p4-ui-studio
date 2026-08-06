@@ -109,6 +109,7 @@ type PreviewDefaultProps = {
   IOMonitor?: PropsWithForm<BoxProps> & Record<string, any>
   BatteryCard?: PropsWithForm<BoxProps> & Record<string, any>
   TankLevelCard?: PropsWithForm<BoxProps> & Record<string, any>
+  NetworkStatusCard?: PropsWithForm<BoxProps> & Record<string, any>
   AvatarBadge?: PropsWithForm<AvatarBadgeProps>
   AvatarGroup?: PropsWithForm<Omit<AvatarGroupProps, 'children'>>
   Avatar?: PropsWithForm<AvatarProps>
@@ -451,6 +452,13 @@ WiFi: {
     highColour: '#A78BFA', criticalColour: '#E5484D', overflowColour: '#EF4444',
     animateFill: true, showLabels: true, generateRuntimeApi: true,
     positionMode: 'absolute', x: 40, y: 40, w: 320, h: 230,
+  },
+  NetworkStatusCard: {
+    nativeWidgetSchemaVersion: 1, title: 'Network Status', networkType: 'wifi', connected: true,
+    networkName: 'ForgeUI-Lab', ipAddress: '192.168.1.42', signalStrength: 78,
+    hostname: 'forgeui-p4', statusText: 'Online', accentColour: '#22C55E',
+    disconnectedColour: '#E5484D', compactMode: false, generateRuntimeApi: true,
+    positionMode: 'absolute', x: 40, y: 40, w: 300, h: 190,
   },
   QRCode: {
     contentType: 'custom',

@@ -1,12 +1,29 @@
 # ForgeUI Runtime SDK Direction
 
-Current Native Component certification (2026-08-06): Dashboard Card, Sensor
+Current Native Component certification (2026-08-07): Dashboard Card, Sensor
 Tile, Relay Panel, PWM Controller, Trend Chart, and Trend Chart Pro are
 fully proven on ESP32-P4. Alarm Panel's SDK is implemented and automated tests
 pass; the component is **HARDWARE VALIDATED** after fresh export, build, flash,
 and correct physical rendering. Exhaustive runtime transition and callback
 verification remains deferred to future Proof Module / hardware simulation work.
 The practical LVGL ledger remains 44 / 44.
+
+Network Status Card is **HARDWARE VALIDATED** as a read-only monitor. Its
+persisted-ID, rename-stable and duplicate-isolated contract is:
+
+```c
+void FG_Set_<NetworkStatusCard>_Connected(bool connected);
+void FG_Set_<NetworkStatusCard>_Network_Name(const char * name);
+void FG_Set_<NetworkStatusCard>_IP_Address(const char * ip);
+void FG_Set_<NetworkStatusCard>_Signal_Strength(int32_t percent);
+void FG_Set_<NetworkStatusCard>_Status_Text(const char * text);
+void FG_Set_<NetworkStatusCard>_Network_Type(int32_t type);
+```
+
+These setters are silent and the component generates zero UserEvents. Canvas
+values initialize the component; live runtime values override its monitoring
+fields when a snapshot becomes available. Native monitoring projection runs
+before the optional System Wi-Fi Manager page gate.
 
 Tank Level Card is **HARDWARE VALIDATED** and intentionally display-only. Its
 generated contract contains only the APIs that are actually emitted:

@@ -3380,6 +3380,27 @@ suppression, click-disabled non-interaction, independent presentation instances
 and Live/Standalone parity.
 ## IO Monitor generated contract — 2026-08-06
 
+## Network Status Card generated contract — 2026-08-07
+
+Network Status Card is **HARDWARE VALIDATED** and read-only. The shared exporter
+emits six silent persisted-ID setters:
+
+```c
+void FG_Set_<NetworkStatusCard>_Connected(bool connected);
+void FG_Set_<NetworkStatusCard>_Network_Name(const char * name);
+void FG_Set_<NetworkStatusCard>_IP_Address(const char * ip);
+void FG_Set_<NetworkStatusCard>_Signal_Strength(int32_t percent);
+void FG_Set_<NetworkStatusCard>_Status_Text(const char * text);
+void FG_Set_<NetworkStatusCard>_Network_Type(int32_t type);
+```
+
+API identity is rename-stable and duplicate instances are isolated. No
+`FG_On_*` contract or `95_UserEvents` entry is generated. Canvas monitoring
+values initialize LVGL; a live Wi-Fi snapshot overrides them before the
+optional System Wi-Fi Manager page gate. ESP32-P4 validation confirms live
+SSID, DHCP IPv4, RSSI-derived signal, and Online/Offline projection on the
+application page.
+
 ## Tank Level Card generated contract — 2026-08-06
 
 Tank Level Card is **HARDWARE VALIDATED** and display-only. The shared exporter
