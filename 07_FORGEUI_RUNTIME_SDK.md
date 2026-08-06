@@ -8,6 +8,22 @@ and correct physical rendering. Exhaustive runtime transition and callback
 verification remains deferred to future Proof Module / hardware simulation work.
 The practical LVGL ledger remains 44 / 44.
 
+Tank Level Card is **HARDWARE VALIDATED** and intentionally display-only. Its
+generated contract contains only the APIs that are actually emitted:
+
+```c
+void FG_Set_<TankLevelCard>_Level(float percent);
+void FG_Set_<TankLevelCard>_Volume(float value);
+void FG_Set_<TankLevelCard>_Capacity(float value);
+void FG_Set_<TankLevelCard>_Units(const char * units);
+void FG_Set_<TankLevelCard>_LowLevel(float value);
+void FG_Set_<TankLevelCard>_HighLevel(float value);
+```
+
+Persisted identity makes these names rename-stable and duplicate instances are
+isolated. Setters are silent and private LVGL objects remain generator-owned.
+Tank Level Card generates no UserEvents because it has no genuine interaction.
+
 Battery Card is **HARDWARE VALIDATED** as a read-only monitor. Its generated
 contract contains only the implemented silent setters:
 

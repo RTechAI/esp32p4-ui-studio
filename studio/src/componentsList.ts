@@ -212,6 +212,7 @@ export const componentsList: ComponentType[] = ([
 'AlarmPanel',
 'IOMonitor',
 'BatteryCard',
+'TankLevelCard',
 'Editable',
 'Flex',
 'FormControl',

@@ -63,6 +63,7 @@ import { ForgeUITrendChartProPreview } from '~forgeui/preview/ForgeUITrendChartP
 import { ForgeUIAlarmPanelPreview } from '~forgeui/preview/ForgeUIAlarmPanelPreview'
 import { ForgeUIIOMonitorPreview } from '~forgeui/preview/ForgeUIIOMonitorPreview'
 import { ForgeUIBatteryCardPreview } from '~forgeui/preview/ForgeUIBatteryCardPreview'
+import { ForgeUITankLevelCardPreview } from '~forgeui/preview/ForgeUITankLevelCardPreview'
 import { useForgePreviewPalette } from '~forgeui/theme/ForgeThemeContext'
 import { resolveForgeSemanticPalette } from '~forgeui/preview/forgeThemeMap'
 import InteractiveButtonCanvasPreview, {
@@ -1144,6 +1145,11 @@ case 'IOMonitor':
 case 'BatteryCard':
   return <PreviewContainer component={component} enableVisualHelper resizeMinWidth={220} resizeMinHeight={150} {...forwardedProps}>
     <ForgeUIBatteryCardPreview component={component} palette={previewPalette} />
+  </PreviewContainer>
+
+case 'TankLevelCard':
+  return <PreviewContainer component={component} enableVisualHelper resizeMinWidth={240} resizeMinHeight={170} {...forwardedProps}>
+    <ForgeUITankLevelCardPreview component={component} palette={previewPalette} />
   </PreviewContainer>
 
     default:

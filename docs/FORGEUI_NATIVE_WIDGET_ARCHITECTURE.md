@@ -1,6 +1,6 @@
 # ForgeUI Native Widget Architecture
 
-Status: **AUTHORITATIVE — NATIVE COMPONENTS 1–6 PROVEN; ALARM PANEL, IO MONITOR, AND BATTERY CARD HARDWARE VALIDATED** (2026-08-06).
+Status: **AUTHORITATIVE — NATIVE COMPONENTS 1–6 PROVEN; ALARM PANEL, IO MONITOR, BATTERY CARD, AND TANK LEVEL CARD HARDWARE VALIDATED** (2026-08-06).
 
 Alarm Panel status: **PHYSICALLY RENDERED ON ESP32-P4 — EXTENDED RUNTIME PROOF
 DEFERRED**.
@@ -27,7 +27,9 @@ touch callbacks. Battery Card is **HARDWARE VALIDATED** as a read-only semantic
 monitor with seven silent APIs, persisted-ID/rename-stable identity, isolated
 duplicate state, and no UserEvents. Browser/Live/generated LVGL parity, build,
 flash, and physical rendering are confirmed without overstating physical
-runtime interaction proof. The
+runtime interaction proof. Tank Level Card is **HARDWARE VALIDATED** with six
+silent persisted-ID setters, duplicate isolation, Browser/Live/Export parity,
+physical rendering, and intentionally no UserEvents. The
 Simulator / Proof Module, automated Runtime SDK proof harness, ESP-Hosted
 startup investigation, and further export infrastructure remain deferred.
 
@@ -35,7 +37,7 @@ Current milestone:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
 Current ForgeUI Platform milestone:
-`FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__RUNTIME_SDK_USEREVENTS_MASTER_CONTROL_PROVEN__READY_FOR_PWM_CONTROLLER__2026-08-02`.
+`FORGEUI_NATIVE_COMPONENTS_1_TO_10__TANK_LEVEL_CARD_HARDWARE_VALIDATED__READY_FOR_NETWORK_STATUS_CARD__2026-08-06`.
 
 ## Decision
 
@@ -373,9 +375,12 @@ separate:
    silent setters, no UserEvents, parity-complete generated rendering, and
    confirmed ESP32-P4 physical rendering.
 
-Next: **Tank Level Card**. It is planned but not started. Possible later
-specialized cards include Network
-Status Card, Device Summary Card, KPI Card, and Power Flow Card. Their ordering
+10. **Tank Level Card** — **HARDWARE VALIDATED**; display-only tank telemetry,
+    six silent persisted-ID setters, rename stability, duplicate isolation, no
+    UserEvents, Browser/Live/Export parity, and confirmed ESP32-P4 rendering.
+
+Next: **Network Status Card**. It is planned but not started. Possible later
+specialized cards include Device Summary Card, KPI Card, and Power Flow Card. Their ordering
 is not certified by this ledger.
 
 Weather, Camera, MQTT, CAN, Industrial, Marine and other domain families should

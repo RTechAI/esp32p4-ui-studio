@@ -60,6 +60,7 @@ import { ForgeUITrendChartProPreview } from './ForgeUITrendChartProPreview'
 import { ForgeUIAlarmPanelPreview } from './ForgeUIAlarmPanelPreview'
 import { ForgeUIIOMonitorPreview } from './ForgeUIIOMonitorPreview'
 import { ForgeUIBatteryCardPreview } from './ForgeUIBatteryCardPreview'
+import { ForgeUITankLevelCardPreview } from './ForgeUITankLevelCardPreview'
 import ImagePreview from '~components/editor/previews/ImagePreview'
 import StandardCalendarPreview from './StandardCalendarPreview'
 import { resolveForgeSemanticPalette } from './forgeThemeMap'
@@ -850,6 +851,10 @@ case 'IOMonitor': {
 }
 case 'BatteryCard': {
   output.push(<Box key={child.id} {...commonStyle}><ForgeUIBatteryCardPreview component={child} palette={palette} /></Box>)
+  break
+}
+case 'TankLevelCard': {
+  output.push(<Box key={child.id} {...commonStyle}><ForgeUITankLevelCardPreview component={child} palette={palette} /></Box>)
   break
 }
 

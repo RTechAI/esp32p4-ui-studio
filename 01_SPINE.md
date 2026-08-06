@@ -6,9 +6,9 @@
 
 The practical LVGL 9.2 foundation remains **44 / 44 physically proven on
 ESP32-P4**; Lottie remains intentionally excluded. The Native Component ledger
-contains nine implemented components. Seven are physically proven: Dashboard
-Card, Sensor Tile, Relay Panel, PWM Controller, Trend Chart, and Trend Chart
-Pro. Alarm Panel is **HARDWARE VALIDATED**: its fresh standalone export built,
+contains ten current components. Dashboard Card, Sensor Tile, Relay Panel, PWM
+Controller, Trend Chart, and Trend Chart Pro are **PROVEN**. Alarm Panel is
+**HARDWARE VALIDATED**: its fresh standalone export built,
 flashed, and rendered correctly on ESP32-P4, while extended runtime interaction
 and callback lifecycle proof remains deferred. IO Monitor is **HARDWARE
 VALIDATED** after export, ESP-IDF 5.5.4 build, flash, and correct physical
@@ -38,8 +38,12 @@ infrastructure remain deferred.
 
 Battery Card completes Native Component #9. Its semantic setters use persisted-ID,
 rename-stable identities and isolated state; no raw LVGL manipulation is needed.
-It intentionally emits no UserEvents. **Tank Level Card** is the next Native
-Component; implementation has not started. The Proof Module, Hardware Simulator,
+It intentionally emits no UserEvents. **Tank Level Card**, Native Component #10,
+is **HARDWARE VALIDATED** through Studio, Inspector, Browser Preview, Live Studio,
+generated LVGL, Runtime SDK, duplicate isolation, ESP-IDF build, ESP32-P4 flash,
+physical rendering, and Browser/Live/Export parity. It is display-only and emits
+no UserEvents. **Network Status Card** is the next Native Component; implementation
+has not started. The Proof Module, Hardware Simulator,
 automated Runtime SDK proof harness, ESP-Hosted startup investigation, and export
 infrastructure improvements remain deferred.
 
@@ -67,7 +71,7 @@ PWM Controller is implemented through the existing Registry, semantic persistenc
 
 ## Current ForgeUI Platform milestone
 
-**FORGEUI_NATIVE_COMPONENT_3__RELAY_PANEL_PROVEN__ESP32P4_VALIDATED__RUNTIME_SDK_USEREVENTS_MASTER_CONTROL_PROVEN__READY_FOR_PWM_CONTROLLER__2026-08-02**
+**FORGEUI_NATIVE_COMPONENTS_1_TO_10__TANK_LEVEL_CARD_HARDWARE_VALIDATED__READY_FOR_NETWORK_STATUS_CARD__2026-08-06**
 
 Dashboard Card is **ForgeUI Native Component #1 — PROVEN**. Physical validation
 confirmed Registry integration, semantic serialization, single-component Canvas

@@ -23,6 +23,7 @@ import { TrendChartProPanel } from '~components/inspector/panels/components/Tren
 import { AlarmPanelPanel } from '~components/inspector/panels/components/AlarmPanelPanel'
 import { IOMonitorPanel } from '~components/inspector/panels/components/IOMonitorPanel'
 import { BatteryCardPanel } from '~components/inspector/panels/components/BatteryCardPanel'
+import { TankLevelCardPanel } from '~components/inspector/panels/components/TankLevelCardPanel'
 import ProgressPanel from '~components/inspector/panels/components/ProgressPanel'
 import BarPanel from '~components/inspector/panels/components/BarPanel'
 import ArcPanel from '~components/inspector/panels/components/ArcPanel'
@@ -113,6 +114,7 @@ const Panels: React.FC<{ component: IComponent; isRoot: boolean }> = ({
       {type === 'AlarmPanel' && <AlarmPanelPanel />}
       {type === 'IOMonitor' && <IOMonitorPanel />}
       {type === 'BatteryCard' && <BatteryCardPanel />}
+      {type === 'TankLevelCard' && <TankLevelCardPanel />}
       {type === 'Progress' && <ProgressPanel />}
       {type === 'Bar' && <BarPanel />}
       {type === 'Arc' && <ArcPanel />}

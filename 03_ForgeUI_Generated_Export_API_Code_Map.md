@@ -3380,6 +3380,25 @@ suppression, click-disabled non-interaction, independent presentation instances
 and Live/Standalone parity.
 ## IO Monitor generated contract — 2026-08-06
 
+## Tank Level Card generated contract — 2026-08-06
+
+Tank Level Card is **HARDWARE VALIDATED** and display-only. The shared exporter
+emits six silent persisted-ID setters:
+
+```c
+void FG_Set_<TankLevelCard>_Level(float percent);
+void FG_Set_<TankLevelCard>_Volume(float value);
+void FG_Set_<TankLevelCard>_Capacity(float value);
+void FG_Set_<TankLevelCard>_Units(const char * units);
+void FG_Set_<TankLevelCard>_LowLevel(float value);
+void FG_Set_<TankLevelCard>_HighLevel(float value);
+```
+
+The contract is rename-stable and duplicate-instance isolated. Private `fg_*`
+LVGL objects remain generator-owned. No `FG_On_*` contract or `95_UserEvents`
+entry is generated because Tank Level Card has no genuine user interaction. See
+[`docs/FORGEUI_TANK_LEVEL_CARD.md`](docs/FORGEUI_TANK_LEVEL_CARD.md).
+
 ## Battery Card generated contract — 2026-08-06
 
 Battery Card is **HARDWARE VALIDATED** and read-only. The shared exporter emits

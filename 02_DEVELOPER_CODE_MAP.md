@@ -1,6 +1,6 @@
 # Developer Code Map: where features live, who owns each layer, and which files are authoritative
 
-## Native Components 1–9 implementation map — 2026-08-06
+## Native Components 1–10 implementation map — 2026-08-06
 
 Current documentation status: **ALARM PANEL — HARDWARE VALIDATED; EXTENDED
 RUNTIME PROOF DEFERRED** (2026-08-06).
@@ -16,8 +16,11 @@ and physical rendering. Battery Card is **HARDWARE VALIDATED** after successful
 build, flash, and physical rendering, with Browser/Live/generated parity,
 persisted-ID and rename-stable Runtime SDK identities, duplicate isolation,
 silent setters, and intentionally no UserEvents. This status does not claim an
-exhaustive physical runtime interaction proof. Tank Level Card is next and is
-not implemented by this documentation pass.
+exhaustive physical runtime interaction proof. Tank Level Card is **HARDWARE
+VALIDATED** as a display-only component with six silent semantic setters,
+rename-stable persisted identity, duplicate isolation, full Browser/Live/Export
+parity, build, flash, and physical rendering. It generates no UserEvents.
+Network Status Card is next and is not implemented by this documentation pass.
 
 | Concern | Authoritative owner |
 |---|---|
@@ -35,6 +38,9 @@ not implemented by this documentation pass.
 | Battery Card semantic model | `studio/src/forgeui/ForgeUIBatteryCard.ts` |
 | Battery Card Browser Preview | `studio/src/forgeui/preview/ForgeUIBatteryCardPreview.tsx` |
 | Battery Card Inspector | `studio/src/components/inspector/panels/components/BatteryCardPanel.tsx` |
+| Tank Level Card semantic model | `studio/src/forgeui/ForgeUITankLevelCard.ts` |
+| Tank Level Card Browser Preview | `studio/src/forgeui/preview/ForgeUITankLevelCardPreview.tsx` |
+| Tank Level Card Inspector | `studio/src/components/inspector/panels/components/TankLevelCardPanel.tsx` |
 | Shared Live/Standalone LVGL, Runtime APIs and callback calls | `studio/src/forgeui/ForgeUILvglExport.ts` |
 | Canonical UserEvents preservation and ownership | `studio/export-server.js` |
 | Native Component registration and documentation routes | `studio/src/forgeui/widgets/ForgeUIWidgetRegistry.ts` |

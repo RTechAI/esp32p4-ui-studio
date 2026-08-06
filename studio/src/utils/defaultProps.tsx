@@ -108,6 +108,7 @@ type PreviewDefaultProps = {
   AlarmPanel?: PropsWithForm<BoxProps> & Record<string, any>
   IOMonitor?: PropsWithForm<BoxProps> & Record<string, any>
   BatteryCard?: PropsWithForm<BoxProps> & Record<string, any>
+  TankLevelCard?: PropsWithForm<BoxProps> & Record<string, any>
   AvatarBadge?: PropsWithForm<AvatarBadgeProps>
   AvatarGroup?: PropsWithForm<Omit<AvatarGroupProps, 'children'>>
   Avatar?: PropsWithForm<AvatarProps>
@@ -441,6 +442,15 @@ WiFi: {
     showTemperature: true, showChargingIcon: true, showHealth: true, animateCharging: false,
     normalColour: '#22C55E', lowColour: '#F2A900', criticalColour: '#E5484D', chargingColour: '#38BDF8',
     generateRuntimeApi: true, positionMode: 'absolute', x: 40, y: 40, w: 300, h: 220,
+  },
+  TankLevelCard: {
+    nativeWidgetSchemaVersion: 1, title: 'Tank Level', units: 'L', compactMode: false,
+    level: 68, capacity: 1000, currentVolume: 680, showPercentage: true, showVolume: true,
+    tankShape: 'cylindrical', lowLevel: 20, highLevel: 90, criticalLevel: 5,
+    fillColour: '#38BDF8', tankOutline: '#94A3B8', lowColour: '#F2A900',
+    highColour: '#A78BFA', criticalColour: '#E5484D', overflowColour: '#EF4444',
+    animateFill: true, showLabels: true, generateRuntimeApi: true,
+    positionMode: 'absolute', x: 40, y: 40, w: 320, h: 230,
   },
   QRCode: {
     contentType: 'custom',

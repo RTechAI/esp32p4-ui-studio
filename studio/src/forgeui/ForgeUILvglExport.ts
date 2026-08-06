@@ -54,6 +54,7 @@ import { normalizeForgeUITrendChartPro } from './ForgeUITrendChartPro'
 import { normalizeForgeUIAlarmPanel } from './ForgeUIAlarmPanel'
 import { normalizeForgeUIIOMonitor } from './ForgeUIIOMonitor'
 import { normalizeForgeUIBatteryCard } from './ForgeUIBatteryCard'
+import { normalizeForgeUITankLevelCard } from './ForgeUITankLevelCard'
 import {
   getForgeUIStandardSpinboxModel,
   type ForgeUIStandardSpinboxModel,
@@ -638,6 +639,24 @@ const createBatteryCardExports = (components: IComponents): Map<string, BatteryC
     while (used.has(stem)) stem = `${base}_${suffix++}`; used.add(stem)
     const runtimeStem = stem.toLowerCase(); const model = normalizeForgeUIBatteryCard(component.props); const p = `fg_${runtimeStem}_battery`
     result.set(component.id, { model, stem, runtimeStem, rootName: p, percentageLabel: `${p}_percentage_label`, statusLabel: `${p}_status_label`, iconFillName: `${p}_icon_fill`, voltageLabel: `${p}_voltage_label`, currentLabel: `${p}_current_label`, runtimeLabel: `${p}_runtime_label`, temperatureLabel: `${p}_temperature_label`, healthLabel: `${p}_health_label`, barName: `${p}_bar`, percentageName: `${p}_percentage`, voltageName: `${p}_voltage`, currentName: `${p}_current`, chargingName: `${p}_charging`, runtimeName: `${p}_runtime`, temperatureName: `${p}_temperature`, healthName: `${p}_health`, refreshName: `${p}_refresh`, runtimeEnabled: model.generateRuntimeApi })
+  }); return result
+}
+
+type TankLevelCardExport = {
+  model: ReturnType<typeof normalizeForgeUITankLevelCard>; stem: string
+  rootName: string; tankName: string; fillName: string; percentageLabel: string
+  volumeLabel: string; statusLabel: string; lowLabel: string; highLabel: string; criticalLabel: string
+  levelName: string; volumeName: string; capacityName: string; unitsName: string
+  lowName: string; highName: string; refreshName: string; runtimeEnabled: boolean
+}
+
+const createTankLevelCardExports = (components: IComponents): Map<string, TankLevelCardExport> => {
+  const result = new Map<string, TankLevelCardExport>(); const used = new Set<string>()
+  Object.values(components).filter(component => component.type === 'TankLevelCard').sort((a,b) => a.id.localeCompare(b.id)).forEach(component => {
+    const base = toCIdentifier(component.id, 'Tank_Level_Card').replace(/([a-z0-9])([A-Z])/g, '$1_$2'); let stem = base; let suffix = 2
+    while (used.has(stem)) stem = `${base}_${suffix++}`; used.add(stem)
+    const p = `fg_${stem.toLowerCase()}_tank`; const model = normalizeForgeUITankLevelCard(component.props)
+    result.set(component.id, { model, stem, rootName: p, tankName: `${p}_vessel`, fillName: `${p}_fill`, percentageLabel: `${p}_percentage_label`, volumeLabel: `${p}_volume_label`, statusLabel: `${p}_status_label`, lowLabel: `${p}_low_label`, highLabel: `${p}_high_label`, criticalLabel: `${p}_critical_label`, levelName: `${p}_level`, volumeName: `${p}_volume`, capacityName: `${p}_capacity`, unitsName: `${p}_units`, lowName: `${p}_low`, highName: `${p}_high`, refreshName: `${p}_refresh`, runtimeEnabled: model.generateRuntimeApi })
   }); return result
 }
 
@@ -3020,6 +3039,7 @@ const buildLvglBlock = (
   alarmPanelExports: Map<string, AlarmPanelExport>,
   ioMonitorExports: Map<string, IOMonitorExport>,
   batteryCardExports: Map<string, BatteryCardExport>,
+  tankLevelCardExports: Map<string, TankLevelCardExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -4831,6 +4851,27 @@ case 'BatteryCard': {
   lines.push(`${battery.refreshName}();`); lines.push(``); break
 }
 
+case 'TankLevelCard': {
+  const tank = tankLevelCardExports.get(child.id); if (!tank) break
+  const model = tank.model; const pad = model.compactMode ? 8 : 12
+  const cardWidth = Math.max(1, Number(w)); const cardHeight = Math.max(1, Number(h))
+  const vesselWidth = model.compactMode ? 54 : 70; const vesselHeight = Math.max(80, cardHeight - (model.compactMode ? 58 : 64))
+  const contentX = pad + vesselWidth + (model.compactMode ? 10 : 14); const contentWidth = Math.max(80, cardWidth - contentX - pad)
+  const radius = model.tankShape === 'rectangular' ? 4 : model.tankShape === 'silo' ? 18 : 28
+  lines.push(`${tank.rootName} = lv_obj_create(${parentVar}); lv_obj_set_pos(${tank.rootName}, ${x}, ${y}); lv_obj_set_size(${tank.rootName}, ${w}, ${h}); lv_obj_set_style_bg_color(${tank.rootName}, lv_color_hex(${palette.surface}), 0); lv_obj_set_style_border_color(${tank.rootName}, lv_color_hex(${palette.surfaceBorder}), 0); lv_obj_set_style_border_width(${tank.rootName}, 1, 0); lv_obj_set_style_radius(${tank.rootName}, 10, 0); lv_obj_set_style_pad_all(${tank.rootName}, 0, 0); lv_obj_clear_flag(${tank.rootName}, LV_OBJ_FLAG_SCROLLABLE);`)
+  lines.push(`lv_obj_t * ${varName}_title = lv_label_create(${tank.rootName}); lv_label_set_text(${varName}_title, "${esc(model.title)}"); lv_obj_set_pos(${varName}_title, ${pad}, ${pad}); lv_obj_set_width(${varName}_title, ${Math.max(40, cardWidth - 100)}); lv_label_set_long_mode(${varName}_title, LV_LABEL_LONG_DOT); lv_obj_set_style_text_color(${varName}_title, lv_color_hex(${palette.textPrimary}), 0); lv_obj_set_style_text_font(${varName}_title, &lv_font_montserrat_${model.compactMode ? 12 : 14}, 0);`)
+  lines.push(`${tank.statusLabel} = lv_label_create(${tank.rootName}); lv_obj_set_pos(${tank.statusLabel}, ${Math.max(pad, cardWidth - 84)}, ${pad + 1}); lv_obj_set_width(${tank.statusLabel}, 72); lv_obj_set_style_text_align(${tank.statusLabel}, LV_TEXT_ALIGN_RIGHT, 0); lv_obj_set_style_text_font(${tank.statusLabel}, &lv_font_montserrat_10, 0);`)
+  lines.push(`${tank.tankName} = lv_obj_create(${tank.rootName}); lv_obj_set_pos(${tank.tankName}, ${pad}, ${model.compactMode ? 35 : 40}); lv_obj_set_size(${tank.tankName}, ${vesselWidth}, ${vesselHeight}); lv_obj_set_style_bg_color(${tank.tankName}, lv_color_hex(${palette.surfaceSecondary}), 0); lv_obj_set_style_border_color(${tank.tankName}, lv_color_hex(0x${model.tankOutline.slice(1)}), 0); lv_obj_set_style_border_width(${tank.tankName}, 3, 0); lv_obj_set_style_radius(${tank.tankName}, ${radius}, 0); lv_obj_set_style_pad_all(${tank.tankName}, 3, 0); lv_obj_clear_flag(${tank.tankName}, LV_OBJ_FLAG_SCROLLABLE);`)
+  lines.push(`${tank.fillName} = lv_bar_create(${tank.tankName}); lv_obj_set_size(${tank.fillName}, LV_PCT(100), LV_PCT(100)); lv_obj_center(${tank.fillName}); lv_bar_set_range(${tank.fillName}, 0, 100); lv_obj_set_style_bg_opa(${tank.fillName}, LV_OPA_TRANSP, LV_PART_MAIN); lv_obj_set_style_border_width(${tank.fillName}, 0, LV_PART_MAIN); lv_obj_set_style_radius(${tank.fillName}, ${Math.min(radius, 12)}, LV_PART_INDICATOR);`)
+  if (model.showPercentage) lines.push(`${tank.percentageLabel} = lv_label_create(${tank.rootName}); lv_obj_set_pos(${tank.percentageLabel}, ${contentX}, ${model.compactMode ? 48 : 54}); lv_obj_set_style_text_font(${tank.percentageLabel}, &lv_font_montserrat_${model.compactMode ? 28 : 32}, 0);`)
+  if (model.showVolume) lines.push(`${tank.volumeLabel} = lv_label_create(${tank.rootName}); lv_obj_set_pos(${tank.volumeLabel}, ${contentX}, ${model.compactMode ? 82 : 94}); lv_obj_set_width(${tank.volumeLabel}, ${contentWidth}); lv_label_set_long_mode(${tank.volumeLabel}, LV_LABEL_LONG_DOT); lv_obj_set_style_text_color(${tank.volumeLabel}, lv_color_hex(${palette.textPrimary}), 0);`)
+  if (model.showLabels) {
+    const labelY = Math.min(cardHeight - 34, model.compactMode ? 116 : 132); const labelWidth = Math.max(48, Math.floor((contentWidth - 10) / 3))
+    ;[[tank.lowLabel,'LOW'],[tank.highLabel,'HIGH'],[tank.criticalLabel,'CRITICAL']].forEach(([name,label], index) => lines.push(`${name} = lv_label_create(${tank.rootName}); lv_obj_set_pos(${name}, ${contentX + index*(labelWidth+5)}, ${labelY}); lv_obj_set_width(${name}, ${labelWidth}); lv_obj_set_style_text_font(${name}, &lv_font_montserrat_10, 0); lv_obj_set_style_text_color(${name}, lv_color_hex(${palette.textSecondary}), 0); lv_label_set_text(${name}, "${label}");`))
+  }
+  lines.push(`${tank.refreshName}();`); lines.push(``); break
+}
+
 case 'Spinbox': {
   const spinboxExport = spinboxExports.get(child.id)
   if (!spinboxExport) break
@@ -6042,6 +6083,7 @@ case 'TrendChartPro': {
         alarmPanelExports,
         ioMonitorExports,
         batteryCardExports,
+        tankLevelCardExports,
       )
     }
   })
@@ -6385,6 +6427,7 @@ export const generateForgeUILvglCode = (
   const alarmPanelExports = createAlarmPanelExports(components, usedHookNames, userEventHooks)
   const ioMonitorExports = createIOMonitorExports(components, usedHookNames, userEventHooks)
   const batteryCardExports = createBatteryCardExports(components)
+  const tankLevelCardExports = createTankLevelCardExports(components)
   const fiIconExports = createFiIconExports(
     components,
     usedHookNames,
@@ -7115,7 +7158,7 @@ const backgroundMode =
   lines.push(`#include "freertos/semphr.h"`)
   lines.push(`#include "freertos/task.h"`)
   lines.push(`#include "esp_timer.h"`)
-  if (hasInteractiveButtons || dashboardCardExports.size > 0 || sensorTileExports.size > 0 || relayPanelExports.size > 0 || pwmControllerExports.size > 0 || alarmPanelExports.size > 0 || ioMonitorExports.size > 0 || batteryCardExports.size > 0 || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
+  if (hasInteractiveButtons || dashboardCardExports.size > 0 || sensorTileExports.size > 0 || relayPanelExports.size > 0 || pwmControllerExports.size > 0 || alarmPanelExports.size > 0 || ioMonitorExports.size > 0 || batteryCardExports.size > 0 || tankLevelCardExports.size > 0 || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
     lines.push(`#include "95_UserEvents.h"`)
   }
   if (Array.from(fiIconExports.values()).some(icon => icon.runtimeEnabled)) {
@@ -7231,6 +7274,19 @@ const backgroundMode =
       lines.push(`void FG_Set_${b.stem}_Health(int32_t value) { ${b.healthName} = value < 0 ? 0 : (value > 3 ? 3 : value); ${b.refreshName}(); }`)
       lines.push(`void FG_Set_${b.stem}_Runtime(int32_t value) { ${b.runtimeName} = value < 0 ? 0 : value; ${b.refreshName}(); }`)
       lines.push(`void FG_Set_${b.stem}_Temperature(float value) { ${b.temperatureName} = value; ${b.refreshName}(); }`)
+    }
+  })
+  tankLevelCardExports.forEach(t => {
+    lines.push(`static lv_obj_t * ${t.rootName} = NULL; static lv_obj_t * ${t.tankName} = NULL; static lv_obj_t * ${t.fillName} = NULL; static lv_obj_t * ${t.percentageLabel} = NULL; static lv_obj_t * ${t.volumeLabel} = NULL; static lv_obj_t * ${t.statusLabel} = NULL; static lv_obj_t * ${t.lowLabel} = NULL; static lv_obj_t * ${t.highLabel} = NULL; static lv_obj_t * ${t.criticalLabel} = NULL;`)
+    lines.push(`static float ${t.levelName} = ${cFloatLiteral(t.model.level)}; static float ${t.volumeName} = ${cFloatLiteral(t.model.currentVolume)}; static float ${t.capacityName} = ${cFloatLiteral(t.model.capacity)}; static char ${t.unitsName}[13] = "${esc(t.model.units)}"; static float ${t.lowName} = ${cFloatLiteral(t.model.lowLevel)}; static float ${t.highName} = ${cFloatLiteral(t.model.highLevel)};`)
+    lines.push(`static void ${t.refreshName}(void) { bool overflow = ${t.levelName} > 100.0f || (${t.capacityName} > 0.0f && ${t.volumeName} > ${t.capacityName}); bool empty = ${t.levelName} <= ${cFloatLiteral(t.model.criticalLevel)}; uint32_t colour = overflow ? 0x${t.model.overflowColour.slice(1)} : (empty ? 0x${t.model.criticalColour.slice(1)} : (${t.levelName} <= ${t.lowName} ? 0x${t.model.lowColour.slice(1)} : (${t.levelName} >= ${t.highName} ? 0x${t.model.highColour.slice(1)} : 0x${t.model.fillColour.slice(1)}))); const char * status = overflow ? "OVERFLOW" : (empty ? "EMPTY" : (${t.levelName} <= ${t.lowName} ? "LOW" : (${t.levelName} >= ${t.highName} ? "HIGH" : "NORMAL"))); float bounded = ${t.levelName} < 0.0f ? 0.0f : (${t.levelName} > 100.0f ? 100.0f : ${t.levelName}); if (${t.percentageLabel}) { lv_label_set_text_fmt(${t.percentageLabel}, "%.1f%%", (double)${t.levelName}); lv_obj_set_style_text_color(${t.percentageLabel}, lv_color_hex(colour), 0); } if (${t.volumeLabel}) lv_label_set_text_fmt(${t.volumeLabel}, "%.1f / %.1f %s", (double)${t.volumeName}, (double)${t.capacityName}, ${t.unitsName}); if (${t.statusLabel}) { lv_label_set_text(${t.statusLabel}, status); lv_obj_set_style_text_color(${t.statusLabel}, lv_color_hex(colour), 0); } if (${t.fillName}) { lv_bar_set_value(${t.fillName}, (int32_t)bounded, ${t.model.animateFill ? 'LV_ANIM_ON' : 'LV_ANIM_OFF'}); lv_obj_set_style_bg_color(${t.fillName}, lv_color_hex(colour), LV_PART_INDICATOR); } if (${t.lowLabel}) lv_label_set_text_fmt(${t.lowLabel}, "LOW\\n%.0f%%", (double)${t.lowName}); if (${t.highLabel}) lv_label_set_text_fmt(${t.highLabel}, "HIGH\\n%.0f%%", (double)${t.highName}); if (${t.criticalLabel}) lv_label_set_text(${t.criticalLabel}, "CRITICAL\\n${Number(t.model.criticalLevel.toFixed(0))}%"); }`)
+    if (t.runtimeEnabled) {
+      lines.push(`void FG_Set_${t.stem}_Level(float percent) { ${t.levelName} = percent < 0.0f ? 0.0f : (percent > 120.0f ? 120.0f : percent); ${t.refreshName}(); }`)
+      lines.push(`void FG_Set_${t.stem}_Volume(float value) { ${t.volumeName} = value < 0.0f ? 0.0f : value; ${t.refreshName}(); }`)
+      lines.push(`void FG_Set_${t.stem}_Capacity(float value) { ${t.capacityName} = value < 0.0f ? 0.0f : value; ${t.refreshName}(); }`)
+      lines.push(`void FG_Set_${t.stem}_Units(const char * units) { if (!units) units = ""; snprintf(${t.unitsName}, sizeof(${t.unitsName}), "%s", units); ${t.refreshName}(); }`)
+      lines.push(`void FG_Set_${t.stem}_LowLevel(float value) { ${t.lowName} = value < 0.0f ? 0.0f : (value > 100.0f ? 100.0f : value); if (${t.highName} < ${t.lowName}) ${t.highName} = ${t.lowName}; ${t.refreshName}(); }`)
+      lines.push(`void FG_Set_${t.stem}_HighLevel(float value) { ${t.highName} = value < ${t.lowName} ? ${t.lowName} : (value > 100.0f ? 100.0f : value); ${t.refreshName}(); }`)
     }
   })
   alarmPanelExports.forEach(alarm => {
@@ -9851,6 +9907,7 @@ lines.push(`    fg_system_root = parent;`)
         alarmPanelExports,
         ioMonitorExports,
         batteryCardExports,
+        tankLevelCardExports,
       )
   }
 
@@ -10590,6 +10647,10 @@ lines.push(`}`)
         `void FG_Set_${b.stem}_Percentage(float value);`, `void FG_Set_${b.stem}_Voltage(float value);`, `void FG_Set_${b.stem}_Current(float value);`,
         `void FG_Set_${b.stem}_Charging(bool enabled);`, `void FG_Set_${b.stem}_Health(int32_t value);`,
         `void FG_Set_${b.stem}_Runtime(int32_t value);`, `void FG_Set_${b.stem}_Temperature(float value);`,
+      ])).concat(Array.from(tankLevelCardExports.values()).filter(t => t.runtimeEnabled).flatMap(t => [
+        `void FG_Set_${t.stem}_Level(float percent);`, `void FG_Set_${t.stem}_Volume(float value);`,
+        `void FG_Set_${t.stem}_Capacity(float value);`, `void FG_Set_${t.stem}_Units(const char * units);`,
+        `void FG_Set_${t.stem}_LowLevel(float value);`, `void FG_Set_${t.stem}_HighLevel(float value);`,
       ])).concat(Array.from(barExports.values()).map(
         barExport => `void ${barExport.apiName}(int32_t value);`,
       )).concat(Array.from(progressExports.values()).map(
