@@ -393,10 +393,16 @@ separate:
     UserEvents, 240 x 145 default and 220 x 128 minimum geometry, and
     Studio/Browser/Live/LVGL parity.
 
-13. **KPI Card** — **IMPLEMENTED / READY FOR HARDWARE VALIDATION**; generic
+13. **KPI Card** — **HARDWARE VALIDATED**; generic
     monitoring-only value/status card with stackable geometry, seven silent
     persisted-ID setters, duplicate isolation, Browser/Live/LVGL parity, and no
-    UserEvents.
+    UserEvents. Three independent 240 x 145 cards were physically confirmed on
+    the 1024 x 600 ESP32-P4 display.
+
+The currently aligned stackable card family uses a 240 x 145 default and a
+220 x 128 minimum for Battery Card, Tank Level Card, Network Status Card,
+Device Summary Card, and KPI Card. This is a compact dashboard convention, not
+a claim about every historical Native Component.
 
 Native monitoring projections execute independently of optional System UI page
 visibility. Generated runtimes order this work as backend pump, snapshot,

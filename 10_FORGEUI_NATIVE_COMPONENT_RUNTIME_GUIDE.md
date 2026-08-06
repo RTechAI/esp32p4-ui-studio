@@ -7,10 +7,11 @@ export, build, flash, and correct physical rendering on ESP32-P4; exhaustive
 runtime interaction and callback proof is deferred. Practical LVGL remains
 **44 / 44 proven**. Alarm Panel, IO Monitor, Battery Card, and Tank Level Card
 are **HARDWARE VALIDATED**. IO Monitor, Battery Card, Tank Level Card, and
-Network Status Card are read-only components. Device Summary Card and KPI Card are
-**IMPLEMENTED / READY FOR HARDWARE VALIDATION** and monitoring-only.
+Network Status Card and KPI Card are read-only components. KPI Card is
+**HARDWARE VALIDATED**; Device Summary Card remains **IMPLEMENTED / READY FOR
+HARDWARE VALIDATION** and monitoring-only.
 
-## KPI Card Runtime SDK quick reference — ready for hardware validation
+## KPI Card Runtime SDK quick reference — hardware validated
 
 KPI Card is generic and monitoring-only. Its persisted-ID APIs are
 `FG_Set_<Card>_Value`, `Unit`, `Secondary_Text`, `Trend_Text`, `Trend_State`,
@@ -18,6 +19,10 @@ KPI Card is generic and monitoring-only. Its persisted-ID APIs are
 formatted, and concise textual KPIs. All seven setters are silent, duplicate
 instances are isolated, and the component generates zero UserEvents. See
 [ForgeUI KPI Card](docs/FORGEUI_KPI_CARD.md).
+
+Physical ESP32-P4 validation confirmed three independent 240 x 145 cards:
+Efficiency `87.4 %` / Good, Temperature `42.7 C` / Warning, and Alarm Count
+`12` / Critical. Each retained its persisted identity and Runtime SDK namespace.
 
 ## Device Summary Card Runtime SDK quick reference — ready for hardware validation
 

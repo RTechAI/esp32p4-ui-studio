@@ -1,6 +1,6 @@
 # ForgeUI KPI Card
 
-Status: **IMPLEMENTED / READY FOR HARDWARE VALIDATION**
+Status: **HARDWARE VALIDATED** (ESP32-P4, 2026-08-07)
 
 KPI Card is a monitoring-only ForgeUI Native Component for one prominent numeric or concise textual key performance indicator. It is generic and runtime-driven: application code supplies data through generated Runtime SDK setters; the component is not coupled to a backend.
 
@@ -31,6 +31,6 @@ All setters are silent and refresh only their own instance. Identity derives fro
 
 ## Platform parity
 
-The versioned normalized model is shared by Studio defaults, Inspector, Browser Preview, and Live Studio. The authoritative generator emits ordinary LVGL 9.2 objects and fixed-size text buffers with long-label truncation. A clean three-instance 1024 x 600 proof payload is ready for ESP32-P4 validation.
+The versioned normalized model is shared by Studio defaults, Inspector, Browser Preview, and Live Studio. The authoritative generator emits ordinary LVGL 9.2 objects and fixed-size text buffers with long-label truncation. Developers or runtime code feed generic KPI values through the generated Runtime SDK; no hardware/backend source is built into the card.
 
-Physical rendering has not yet been claimed. Promote this component to **HARDWARE VALIDATED** only after the generated payload is built, flashed, and confirmed on ESP32-P4.
+Physical inspection on the 1024 x 600 ESP32-P4 display confirmed three independent 240 x 145 cards rendered correctly: Efficiency `87.4 %` / Good, Temperature `42.7 C` / Warning, and Alarm Count `12` / Critical. Each used an independent persisted ID and Runtime SDK namespace and generated zero UserEvents. Browser Preview, Live Studio, generated LVGL, and physical output are aligned for this proof.
