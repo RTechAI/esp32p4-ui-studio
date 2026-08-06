@@ -6,13 +6,18 @@
 
 The practical LVGL 9.2 foundation remains **44 / 44 physically proven on
 ESP32-P4**; Lottie remains intentionally excluded. The Native Component ledger
-contains eight implemented components. Six are physically proven: Dashboard
+contains nine implemented components. Seven are physically proven: Dashboard
 Card, Sensor Tile, Relay Panel, PWM Controller, Trend Chart, and Trend Chart
 Pro. Alarm Panel is **HARDWARE VALIDATED**: its fresh standalone export built,
 flashed, and rendered correctly on ESP32-P4, while extended runtime interaction
 and callback lifecycle proof remains deferred. IO Monitor is **HARDWARE
 VALIDATED** after export, ESP-IDF 5.5.4 build, flash, and correct physical
 rendering. It is a read-only display component and generates no touch UserEvents.
+Battery Card is **HARDWARE VALIDATED** after successful ESP-IDF build, ESP32-P4
+flash, and confirmed physical rendering. Browser Preview, Live Studio, and
+generated LVGL parity are complete, including the battery icon, spacing/padding,
+and metric tiles. Its implemented Runtime SDK is silent and duplicate identities
+are isolated, but no exhaustive physical runtime interaction proof is claimed.
 
 Trend Chart is the lightweight technical industrial trend. Trend Chart Pro is
 the separate premium dashboard-oriented engineering trend; it does not replace
@@ -31,9 +36,12 @@ Proof Module, automated Runtime SDK
 proof harness, ESP-Hosted startup investigation, and further export
 infrastructure remain deferred.
 
-The next planned Native Component is **Battery Card**. IO Monitor's semantic
-setters use persisted-ID, rename-stable identities and isolated bounded storage;
-applications do not need raw LVGL manipulation.
+Battery Card completes Native Component #9. Its semantic setters use persisted-ID,
+rename-stable identities and isolated state; no raw LVGL manipulation is needed.
+It intentionally emits no UserEvents. **Tank Level Card** is the next Native
+Component; implementation has not started. The Proof Module, Hardware Simulator,
+automated Runtime SDK proof harness, ESP-Hosted startup investigation, and export
+infrastructure improvements remain deferred.
 
 Earlier dated save points below are historical records and are superseded only
 where they describe the then-current Native Component count or next component.

@@ -1,15 +1,23 @@
 # ForgeUI Studio
 
 > Current certification (2026-08-06): **44 / 44 practical LVGL 9.2
-> components physically proven on ESP32-P4**, plus eight implemented ForgeUI
+> components physically proven on ESP32-P4**, plus nine implemented ForgeUI
 > Native Components. Dashboard Card, Sensor Tile, Relay Panel, PWM Controller,
 > Trend Chart, and Trend Chart Pro are fully proven. Alarm Panel is
 > **HARDWARE VALIDATED**: exported, built, flashed, and physically rendered on
 > ESP32-P4; extended runtime interaction and callback proof is deferred. IO
 > Monitor is also **HARDWARE VALIDATED** after export, ESP-IDF 5.5.4 build,
 > flash, and physical rendering; it is intentionally read-only with no touch callbacks.
+> Battery Card is **HARDWARE VALIDATED** after Browser/Live/generated LVGL parity,
+> successful ESP-IDF build and ESP32-P4 flash, and confirmed physical rendering.
+> It is read-only, exposes seven silent semantic APIs, isolates duplicate
+> identities, and intentionally generates no UserEvents. Exhaustive physical
+> runtime interaction is not claimed.
 
-> Next architecture sprint (recorded, not implemented): **ForgeUI ESP32-S3 Simulator Platform** for simulated digital I/O, PWM, analogue, battery, tank, motor and relay behavior, Wi-Fi communication, repeatable hardware validation, a future Test Certificate Card and a public hardware-proof workflow.
+> Next Native Component (recorded, not implemented): **Tank Level Card**. The
+> Proof Module, Hardware Simulator, automated Runtime SDK proof harness,
+> ESP-Hosted startup investigation, and export infrastructure improvements
+> remain deferred.
 
 Current architecture save point:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
@@ -41,7 +49,8 @@ ForgeUI now rests on two completed foundations:
    semantic serialization, Browser Preview, Live Studio, Standalone Export,
    Runtime SDK, UserEvents and ESP32-P4 hardware. Alarm Panel is recorded
    separately as **HARDWARE VALIDATED**, pending extended runtime lifecycle proof.
-   IO Monitor is **HARDWARE VALIDATED** as a read-only monitoring component.
+   IO Monitor and Battery Card are **HARDWARE VALIDATED** read-only monitoring
+   components; Battery Card generates no UserEvents in the current release.
 
 Dashboard Card remains one semantic, serializable Canvas component with private
 multi-object LVGL composition. See
@@ -288,6 +297,7 @@ The [ForgeUI Developer Portal](https://forgeui.co.nz/developers) is the public o
 | [09 — Fi Runtime Guide](09_FORGEUI_FI_RUNTIME_GUIDE.md) | Canonical Fi pipeline, 90/95/96 ownership, generated presentation APIs and optional click hooks |
 | [10 — Native Component Runtime Guide](10_FORGEUI_NATIVE_COMPONENT_RUNTIME_GUIDE.md) | Living post-export reference for Native Component semantic APIs, UserEvents, ownership, task safety and hardware adapters |
 | [IO Monitor](docs/FORGEUI_IO_MONITOR.md) | Read-only IO Monitor configuration, Runtime SDK, interaction contract, and ESP32-P4 validation |
+| [Battery Card](docs/FORGEUI_BATTERY_CARD.md) | Read-only battery dashboard, semantic Runtime SDK, and ESP32-P4 proof |
 | [Layout Designer Guide](docs/FORGEUI_LAYOUT_DESIGNER.md) | Preset, Smart Region, Auto Arrange and AI Fill workflow |
 | [QR Code Guide](docs/FORGEUI_QR_CODE.md) | QR authoring, preview, export and validation |
 | [Spinbox Guide](docs/FORGEUI_SPINBOX_WIDGET.md) | Proven native digit editor, integer-backed decimals, APIs and physical evidence |

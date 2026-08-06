@@ -59,6 +59,7 @@ import { ForgeUIPwmControllerPreview } from './ForgeUIPwmControllerPreview'
 import { ForgeUITrendChartProPreview } from './ForgeUITrendChartProPreview'
 import { ForgeUIAlarmPanelPreview } from './ForgeUIAlarmPanelPreview'
 import { ForgeUIIOMonitorPreview } from './ForgeUIIOMonitorPreview'
+import { ForgeUIBatteryCardPreview } from './ForgeUIBatteryCardPreview'
 import ImagePreview from '~components/editor/previews/ImagePreview'
 import StandardCalendarPreview from './StandardCalendarPreview'
 import { resolveForgeSemanticPalette } from './forgeThemeMap'
@@ -845,6 +846,10 @@ case 'AlarmPanel': {
 }
 case 'IOMonitor': {
   output.push(<Box key={child.id} {...commonStyle}><ForgeUIIOMonitorPreview component={child} palette={palette} /></Box>)
+  break
+}
+case 'BatteryCard': {
+  output.push(<Box key={child.id} {...commonStyle}><ForgeUIBatteryCardPreview component={child} palette={palette} /></Box>)
   break
 }
 

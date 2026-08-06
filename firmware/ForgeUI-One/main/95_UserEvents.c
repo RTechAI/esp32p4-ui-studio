@@ -18,9 +18,3 @@
 #include "95_UserEvents.h"
 #include "90_Studio_Export.h"
 #include <stdio.h>
-
-void FG_On_Comp_MSH8868_TNTWC1_Row_Selected(const char * channel, FG_IO_Type io_type)
-{
-    (void)channel;
-    (void)io_type;
-}

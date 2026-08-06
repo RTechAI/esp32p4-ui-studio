@@ -63,6 +63,6 @@ design; all four I/O row types were visible; no LVGL warnings or resets were
 observed during the display proof. Touch proof is neither claimed nor required
 because interaction is not part of this component's contract.
 
-The next planned Native Component is Battery Card. Simulator / Proof Module,
-automated Runtime SDK proof harness, ESP-Hosted startup investigation, and
-further export infrastructure work remain deferred.
+Battery Card subsequently completed its own certification. Simulator / Proof
+Module, automated Runtime SDK proof harness, ESP-Hosted startup investigation,
+and further export infrastructure work remain deferred.

@@ -5,8 +5,8 @@
 **ESP32-P4 EXPORTED AND FLASHED — INITIAL PHYSICAL VALIDATION COMPLETE**
 
 - Practical LVGL 9.2: **44 / 44 PROVEN on ESP32-P4**. Lottie remains intentionally excluded.
-- Native Components: **8 implemented; 6 fully proven; Alarm Panel and IO Monitor HARDWARE VALIDATED**.
-- Next planned Native Component: **Battery Card**; not implemented in this documentation pass.
+- Native Components: **9 implemented; 6 fully proven; Alarm Panel, IO Monitor, and Battery Card HARDWARE VALIDATED**.
+- Battery Card: **HARDWARE VALIDATED**; intentionally read-only with no UserEvents.
 - Deferred without change: Simulator / Proof Module, automated Runtime SDK proof harness, ESP-Hosted startup investigation, and further export infrastructure.
 
 | Native Component | Current status | Certified scope |
@@ -19,6 +19,7 @@
 | Trend Chart Pro | **PROVEN** | Separate premium engineering trend, bounded history, header/units, trace/glow/fill/marker/grid/bands, transition UserEvents, all preview/export paths, ESP32-P4 |
 | Alarm Panel | **HARDWARE VALIDATED** | Studio insertion, per-alarm editing/persistence, Browser Preview, repaired LVGL layout, fresh standalone export, ESP-IDF build, flash, and correct physical rendering confirmed; extended runtime transition/callback proof deferred |
 | IO Monitor | **HARDWARE VALIDATED** | Read-only digital/analogue input/output monitoring; Inspector, Browser Preview, standalone export, ESP-IDF 5.5.4 build, ESP32-P4 flash, and correct physical rendering confirmed; no touch/UserEvents contract |
+| Battery Card | **HARDWARE VALIDATED** | Read-only monitoring; seven silent persisted-ID setters; rename stability and duplicate isolation; Browser/Live/generated LVGL parity; battery icon, spacing/padding, and metric-tile parity; ESP-IDF 5.5.4 build, flash, and physical rendering; no exhaustive physical Runtime SDK interaction proof claimed |
 
 Trend Chart Pro does not replace Trend Chart. Certification also removed the
 partial-history tail artifact and unwanted LVGL point dots, placed threshold
@@ -162,9 +163,10 @@ Current Native Component roadmap:
 6. Trend Chart Pro — **PROVEN**
 7. Alarm Panel — **HARDWARE VALIDATED — EXPORTED, FLASHED, AND PHYSICALLY RENDERED ON ESP32-P4; EXTENDED RUNTIME INTERACTION PROOF DEFERRED TO THE FUTURE PROOF MODULE / HARDWARE SIMULATION WORK**
 8. IO Monitor — **HARDWARE VALIDATED — EXPORTED, BUILT WITH ESP-IDF 5.5.4, FLASHED, AND PHYSICALLY RENDERED ON ESP32-P4; READ-ONLY WITH NO TOUCH USEREVENTS**
+9. Battery Card — **HARDWARE VALIDATED — READ-ONLY; BROWSER/LIVE/GENERATED LVGL PARITY, ESP-IDF BUILD, ESP32-P4 FLASH, AND PHYSICAL RENDERING CONFIRMED; NO USEREVENTS**
 
-The next planned Native Component is **Battery Card**. It remains a separate future
-implementation; do not begin it from this documentation save point.
+Next: **Tank Level Card** — planned only; implementation is not started by this
+documentation pass.
 
 This roadmap supersedes the historical PWM proof-ready paragraph below.
 4. PWM Controller — **NEXT**

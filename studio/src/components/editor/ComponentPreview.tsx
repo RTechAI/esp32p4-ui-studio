@@ -62,6 +62,7 @@ import { ForgeUIPwmControllerPreview } from '~forgeui/preview/ForgeUIPwmControll
 import { ForgeUITrendChartProPreview } from '~forgeui/preview/ForgeUITrendChartProPreview'
 import { ForgeUIAlarmPanelPreview } from '~forgeui/preview/ForgeUIAlarmPanelPreview'
 import { ForgeUIIOMonitorPreview } from '~forgeui/preview/ForgeUIIOMonitorPreview'
+import { ForgeUIBatteryCardPreview } from '~forgeui/preview/ForgeUIBatteryCardPreview'
 import { useForgePreviewPalette } from '~forgeui/theme/ForgeThemeContext'
 import { resolveForgeSemanticPalette } from '~forgeui/preview/forgeThemeMap'
 import InteractiveButtonCanvasPreview, {
@@ -1138,6 +1139,11 @@ case 'AlarmPanel':
 case 'IOMonitor':
   return <PreviewContainer component={component} enableVisualHelper resizeMinWidth={240} resizeMinHeight={180} {...forwardedProps}>
     <ForgeUIIOMonitorPreview component={component} palette={previewPalette} />
+  </PreviewContainer>
+
+case 'BatteryCard':
+  return <PreviewContainer component={component} enableVisualHelper resizeMinWidth={220} resizeMinHeight={150} {...forwardedProps}>
+    <ForgeUIBatteryCardPreview component={component} palette={previewPalette} />
   </PreviewContainer>
 
     default:

@@ -3380,6 +3380,19 @@ suppression, click-disabled non-interaction, independent presentation instances
 and Live/Standalone parity.
 ## IO Monitor generated contract — 2026-08-06
 
+## Battery Card generated contract — 2026-08-06
+
+Battery Card is **HARDWARE VALIDATED** and read-only. The shared exporter emits
+seven silent persisted-ID setters for percentage, voltage, current, charging,
+health, runtime minutes, and temperature. APIs are rename-stable and duplicate-
+instance isolated; private LVGL remains internal and no `FG_On_*` contract is
+generated. Battery Card intentionally contributes no UserEvents in the current
+release. Browser Preview, Live Studio, and generated LVGL parity, successful
+ESP-IDF build and flash, and physical rendering are confirmed; exhaustive
+physical setter interaction is not claimed. See
+[`docs/FORGEUI_BATTERY_CARD.md`](docs/FORGEUI_BATTERY_CARD.md).
+
+
 IO Monitor is **HARDWARE VALIDATED** and read-only. The shared exporter emits
 four semantic, `bool`-returning setter families using the persisted-ID stem:
 

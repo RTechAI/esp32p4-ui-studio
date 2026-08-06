@@ -43,13 +43,13 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- `FG_On_Comp_MSH8868_TNTWC1_Row_Selected()`
+- None
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| Comp_MSH8868_TNTWC1_Row_Selected | Click | `FG_On_Comp_MSH8868_TNTWC1_Row_Selected()` |
+| None | - | - |
 
 ---
 

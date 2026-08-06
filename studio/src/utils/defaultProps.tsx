@@ -107,6 +107,7 @@ type PreviewDefaultProps = {
   TrendChartPro?: PropsWithForm<BoxProps> & Record<string, any>
   AlarmPanel?: PropsWithForm<BoxProps> & Record<string, any>
   IOMonitor?: PropsWithForm<BoxProps> & Record<string, any>
+  BatteryCard?: PropsWithForm<BoxProps> & Record<string, any>
   AvatarBadge?: PropsWithForm<AvatarBadgeProps>
   AvatarGroup?: PropsWithForm<Omit<AvatarGroupProps, 'children'>>
   Avatar?: PropsWithForm<AvatarProps>
@@ -431,6 +432,15 @@ WiFi: {
       { id: 'io-4', ioType: 'analog-output', channel: 'AO1', displayName: 'Valve Demand', value: 68, state: true, units: '%', colour: '#A78BFA', showValue: true, showState: true, visible: true },
     ], generateRuntimeApi: true, enableUserEvents: true,
     positionMode: 'absolute', x: 40, y: 40, w: 420, h: 300,
+  },
+  BatteryCard: {
+    nativeWidgetSchemaVersion: 1, title: 'Battery Status', units: '%', percentage: 76,
+    voltage: 12.6, current: -1.4, charging: false, health: 'good', remainingMinutes: 185,
+    temperature: 31.5, lowThreshold: 20, criticalThreshold: 10, compactMode: false,
+    showPercentage: true, showVoltage: true, showCurrent: true, showRuntime: true,
+    showTemperature: true, showChargingIcon: true, showHealth: true, animateCharging: false,
+    normalColour: '#22C55E', lowColour: '#F2A900', criticalColour: '#E5484D', chargingColour: '#38BDF8',
+    generateRuntimeApi: true, positionMode: 'absolute', x: 40, y: 40, w: 300, h: 220,
   },
   QRCode: {
     contentType: 'custom',

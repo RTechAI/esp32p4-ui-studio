@@ -5,7 +5,19 @@ on ESP32-P4** — Dashboard Card, Sensor Tile, Relay Panel, PWM Controller, Tren
 Chart, and Trend Chart Pro. Alarm Panel is **HARDWARE VALIDATED** after fresh
 export, build, flash, and correct physical rendering on ESP32-P4; exhaustive
 runtime interaction and callback proof is deferred. Practical LVGL remains
-**44 / 44 proven**.
+**44 / 44 proven**. IO Monitor and Battery Card are separately recorded as
+**HARDWARE VALIDATED** read-only components.
+
+Battery Card is **HARDWARE VALIDATED**. Its seven persisted-ID setters project
+percentage, voltage, current, charging, health, runtime minutes, and temperature.
+It is read-only, generates no UserEvents, and isolates duplicate instances. See
+[`docs/FORGEUI_BATTERY_CARD.md`](docs/FORGEUI_BATTERY_CARD.md).
+
+The generated names remain stable across display-name changes. Runtime calls
+update presentation silently and do not create touch callbacks or operator
+events. Browser/Live/generated LVGL parity, ESP-IDF build, ESP32-P4 flash, and
+physical rendering are confirmed; exhaustive physical setter interaction is
+not claimed.
 
 IO Monitor is **HARDWARE VALIDATED** after standalone export, ESP-IDF 5.5.4
 build, ESP32-P4 flash, and physical rendering. It is intentionally read-only.

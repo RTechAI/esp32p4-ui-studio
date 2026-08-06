@@ -26,7 +26,7 @@ typedef enum
 extern "C" {
 #endif
 
-void FG_On_Comp_MSH8868_TNTWC1_Row_Selected(const char * channel, FG_IO_Type io_type);
+
 
 #ifdef __cplusplus
 }

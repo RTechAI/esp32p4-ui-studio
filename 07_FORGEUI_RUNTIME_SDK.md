@@ -8,6 +8,25 @@ and correct physical rendering. Exhaustive runtime transition and callback
 verification remains deferred to future Proof Module / hardware simulation work.
 The practical LVGL ledger remains 44 / 44.
 
+Battery Card is **HARDWARE VALIDATED** as a read-only monitor. Its generated
+contract contains only the implemented silent setters:
+
+```c
+void FG_Set_<BatteryCard>_Percentage(float value);
+void FG_Set_<BatteryCard>_Voltage(float value);
+void FG_Set_<BatteryCard>_Current(float value);
+void FG_Set_<BatteryCard>_Runtime(int32_t value);
+void FG_Set_<BatteryCard>_Temperature(float value);
+void FG_Set_<BatteryCard>_Health(int32_t value);
+void FG_Set_<BatteryCard>_Charging(bool enabled);
+```
+
+The generated stem derives from persisted identity, remains stable across
+display-name changes, and isolates duplicate instances. Setters refresh the
+display silently. Battery Card intentionally generates no UserEvents in the
+current release; build, flash, parity, and physical rendering are confirmed,
+without claiming exhaustive physical setter interaction.
+
 ## Alarm Panel contract — hardware validated; extended runtime proof deferred
 
 Alarm Panel uses fixed-capacity per-instance storage and rejects a new ID with
@@ -207,6 +226,13 @@ plus a genuine-click hook; icon-source swapping remains owned by Image. Both
 families allocate collision-safe names for multiple instances.
 
 ## UserEvents
+
+Battery Card is read-only and exposes seven silent persisted-ID setters for
+percentage, voltage, current, charging, health, runtime minutes, and temperature.
+Health is `0..3` (Good through Replace). Duplicate instances remain isolated and
+no Battery Card UserEvent is generated. See
+[`docs/FORGEUI_BATTERY_CARD.md`](docs/FORGEUI_BATTERY_CARD.md).
+
 
 UserEvents carry genuine interaction into developer code:
 

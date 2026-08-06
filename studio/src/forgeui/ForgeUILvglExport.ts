@@ -53,6 +53,7 @@ import { normalizeForgeUIPwmController } from './ForgeUIPwmController'
 import { normalizeForgeUITrendChartPro } from './ForgeUITrendChartPro'
 import { normalizeForgeUIAlarmPanel } from './ForgeUIAlarmPanel'
 import { normalizeForgeUIIOMonitor } from './ForgeUIIOMonitor'
+import { normalizeForgeUIBatteryCard } from './ForgeUIBatteryCard'
 import {
   getForgeUIStandardSpinboxModel,
   type ForgeUIStandardSpinboxModel,
@@ -618,6 +619,26 @@ const createIOMonitorExports = (
       })
     })
   return result
+}
+
+type BatteryCardExport = {
+  model: ReturnType<typeof normalizeForgeUIBatteryCard>; stem: string; runtimeStem: string
+  rootName: string; percentageLabel: string; statusLabel: string; iconFillName: string
+  voltageLabel: string; currentLabel: string; runtimeLabel: string; temperatureLabel: string
+  healthLabel: string; barName: string
+  percentageName: string; voltageName: string; currentName: string; chargingName: string
+  runtimeName: string; temperatureName: string; healthName: string; refreshName: string
+  runtimeEnabled: boolean
+}
+
+const createBatteryCardExports = (components: IComponents): Map<string, BatteryCardExport> => {
+  const result = new Map<string, BatteryCardExport>(); const used = new Set<string>()
+  Object.values(components).filter(component => component.type === 'BatteryCard').sort((a,b) => a.id.localeCompare(b.id)).forEach(component => {
+    const base = toCIdentifier(component.id, 'Battery_Card').replace(/([a-z0-9])([A-Z])/g, '$1_$2'); let stem = base; let suffix = 2
+    while (used.has(stem)) stem = `${base}_${suffix++}`; used.add(stem)
+    const runtimeStem = stem.toLowerCase(); const model = normalizeForgeUIBatteryCard(component.props); const p = `fg_${runtimeStem}_battery`
+    result.set(component.id, { model, stem, runtimeStem, rootName: p, percentageLabel: `${p}_percentage_label`, statusLabel: `${p}_status_label`, iconFillName: `${p}_icon_fill`, voltageLabel: `${p}_voltage_label`, currentLabel: `${p}_current_label`, runtimeLabel: `${p}_runtime_label`, temperatureLabel: `${p}_temperature_label`, healthLabel: `${p}_health_label`, barName: `${p}_bar`, percentageName: `${p}_percentage`, voltageName: `${p}_voltage`, currentName: `${p}_current`, chargingName: `${p}_charging`, runtimeName: `${p}_runtime`, temperatureName: `${p}_temperature`, healthName: `${p}_health`, refreshName: `${p}_refresh`, runtimeEnabled: model.generateRuntimeApi })
+  }); return result
 }
 
 type FiIconExport = {
@@ -2998,6 +3019,7 @@ const buildLvglBlock = (
   pwmControllerExports: Map<string, PwmControllerExport>,
   alarmPanelExports: Map<string, AlarmPanelExport>,
   ioMonitorExports: Map<string, IOMonitorExport>,
+  batteryCardExports: Map<string, BatteryCardExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -4771,6 +4793,44 @@ case 'IOMonitor': {
   break
 }
 
+case 'BatteryCard': {
+  const battery = batteryCardExports.get(child.id); if (!battery) break
+  const model = battery.model; const pad = model.compactMode ? 8 : 12
+  const cardWidth = Math.max(1, Number(w))
+  const cardHeight = Math.max(1, Number(h))
+  const headerRightWidth = model.compactMode ? 96 : 112
+  const headerRightX = Math.max(pad, cardWidth - pad - 92)
+  const titleWidth = Math.max(24, cardWidth - pad * 2 - headerRightWidth - 8)
+  const percentY = model.compactMode ? 32 : 40
+  const barY = model.compactMode ? 68 : 82
+  const metricGap = model.compactMode ? 5 : 8
+  const metricY = model.compactMode ? 86 : 104
+  const metricHeight = model.compactMode ? 29 : 31
+  const metricWidth = Math.max(62, Math.floor((cardWidth - pad * 2 - metricGap * 2) / 3))
+  const metricRows = [
+    [battery.voltageLabel, 0, model.showVoltage],
+    [battery.currentLabel, 1, model.showCurrent],
+    [battery.runtimeLabel, 2, model.showRuntime],
+    [battery.temperatureLabel, 0, model.showTemperature],
+    [battery.healthLabel, 1, model.showHealth],
+  ] as const
+  lines.push(`${battery.rootName} = lv_obj_create(${parentVar}); lv_obj_set_pos(${battery.rootName}, ${x}, ${y}); lv_obj_set_size(${battery.rootName}, ${w}, ${h}); lv_obj_set_style_bg_color(${battery.rootName}, lv_color_hex(${palette.surface}), 0); lv_obj_set_style_border_color(${battery.rootName}, lv_color_hex(${palette.surfaceBorder}), 0); lv_obj_set_style_border_width(${battery.rootName}, 1, 0); lv_obj_set_style_radius(${battery.rootName}, 10, 0); lv_obj_set_style_pad_all(${battery.rootName}, 0, 0); lv_obj_clear_flag(${battery.rootName}, LV_OBJ_FLAG_SCROLLABLE);`)
+  lines.push(`lv_obj_t * ${varName}_title = lv_label_create(${battery.rootName}); lv_label_set_text(${varName}_title, "${esc(model.title)}"); lv_obj_set_pos(${varName}_title, ${pad}, ${pad}); lv_obj_set_width(${varName}_title, ${titleWidth}); lv_label_set_long_mode(${varName}_title, LV_LABEL_LONG_DOT); lv_obj_set_style_text_color(${varName}_title, lv_color_hex(${palette.textPrimary}), 0); lv_obj_set_style_text_font(${varName}_title, &lv_font_montserrat_${model.compactMode ? 12 : 14}, 0);`)
+  lines.push(`lv_obj_t * ${varName}_battery_icon = lv_obj_create(${battery.rootName}); lv_obj_set_pos(${varName}_battery_icon, ${headerRightX}, ${pad + 1}); lv_obj_set_size(${varName}_battery_icon, 24, 12); lv_obj_set_style_bg_opa(${varName}_battery_icon, LV_OPA_TRANSP, 0); lv_obj_set_style_border_color(${varName}_battery_icon, lv_color_hex(${palette.textSecondary}), 0); lv_obj_set_style_border_width(${varName}_battery_icon, 1, 0); lv_obj_set_style_radius(${varName}_battery_icon, 3, 0); lv_obj_set_style_pad_all(${varName}_battery_icon, 0, 0); lv_obj_clear_flag(${varName}_battery_icon, LV_OBJ_FLAG_SCROLLABLE);`)
+  lines.push(`${battery.iconFillName} = lv_obj_create(${varName}_battery_icon); lv_obj_set_pos(${battery.iconFillName}, 2, 2); lv_obj_set_size(${battery.iconFillName}, 18, 6); lv_obj_set_style_border_width(${battery.iconFillName}, 0, 0); lv_obj_set_style_radius(${battery.iconFillName}, 2, 0); lv_obj_clear_flag(${battery.iconFillName}, LV_OBJ_FLAG_SCROLLABLE);`)
+  lines.push(`lv_obj_t * ${varName}_battery_cap = lv_obj_create(${battery.rootName}); lv_obj_set_pos(${varName}_battery_cap, ${headerRightX + 26}, ${pad + 4}); lv_obj_set_size(${varName}_battery_cap, 3, 6); lv_obj_set_style_bg_color(${varName}_battery_cap, lv_color_hex(${palette.textSecondary}), 0); lv_obj_set_style_border_width(${varName}_battery_cap, 0, 0); lv_obj_set_style_radius(${varName}_battery_cap, 2, 0); lv_obj_clear_flag(${varName}_battery_cap, LV_OBJ_FLAG_SCROLLABLE);`)
+  lines.push(`${battery.statusLabel} = lv_label_create(${battery.rootName}); lv_obj_set_pos(${battery.statusLabel}, ${headerRightX + 34}, ${pad + 1}); lv_obj_set_width(${battery.statusLabel}, 58); lv_label_set_long_mode(${battery.statusLabel}, LV_LABEL_LONG_DOT); lv_obj_set_style_text_align(${battery.statusLabel}, LV_TEXT_ALIGN_RIGHT, 0); lv_obj_set_style_text_font(${battery.statusLabel}, &lv_font_montserrat_10, 0);`)
+  if (model.showPercentage) lines.push(`${battery.percentageLabel} = lv_label_create(${battery.rootName}); lv_obj_set_pos(${battery.percentageLabel}, ${pad}, ${percentY}); lv_obj_set_style_text_font(${battery.percentageLabel}, &lv_font_montserrat_${model.compactMode ? 28 : 32}, 0);`)
+  lines.push(`${battery.barName} = lv_bar_create(${battery.rootName}); lv_obj_set_pos(${battery.barName}, ${pad}, ${barY}); lv_obj_set_size(${battery.barName}, ${Math.max(80, cardWidth-pad*2)}, ${model.compactMode ? 8 : 9}); lv_bar_set_range(${battery.barName}, 0, 100); lv_obj_set_style_bg_color(${battery.barName}, lv_color_hex(${palette.surfaceSecondary}), LV_PART_MAIN); lv_obj_set_style_radius(${battery.barName}, 4, LV_PART_MAIN); lv_obj_set_style_radius(${battery.barName}, 4, LV_PART_INDICATOR);`)
+  metricRows.forEach(([name,index,visible], i) => {
+    if (!visible) return
+    const tileName = `${name}_tile`
+    lines.push(`lv_obj_t * ${tileName} = lv_obj_create(${battery.rootName}); lv_obj_set_pos(${tileName}, ${pad + Number(index)*(metricWidth + metricGap)}, ${Math.min(cardHeight - metricHeight - pad, metricY + (i >= 3 ? metricHeight + metricGap : 0))}); lv_obj_set_size(${tileName}, ${metricWidth}, ${metricHeight}); lv_obj_set_style_bg_color(${tileName}, lv_color_hex(${palette.surfaceSecondary}), 0); lv_obj_set_style_border_width(${tileName}, 0, 0); lv_obj_set_style_radius(${tileName}, 5, 0); lv_obj_set_style_pad_all(${tileName}, 0, 0); lv_obj_clear_flag(${tileName}, LV_OBJ_FLAG_SCROLLABLE);`)
+    lines.push(`${name} = lv_label_create(${tileName}); lv_obj_set_pos(${name}, 6, 4); lv_obj_set_width(${name}, ${metricWidth-12}); lv_label_set_long_mode(${name}, LV_LABEL_LONG_DOT); lv_obj_set_style_text_font(${name}, &lv_font_montserrat_10, 0); lv_obj_set_style_text_color(${name}, lv_color_hex(${palette.textPrimary}), 0);`)
+  })
+  lines.push(`${battery.refreshName}();`); lines.push(``); break
+}
+
 case 'Spinbox': {
   const spinboxExport = spinboxExports.get(child.id)
   if (!spinboxExport) break
@@ -5981,6 +6041,7 @@ case 'TrendChartPro': {
         pwmControllerExports,
         alarmPanelExports,
         ioMonitorExports,
+        batteryCardExports,
       )
     }
   })
@@ -6323,6 +6384,7 @@ export const generateForgeUILvglCode = (
   const pwmControllerExports = createPwmControllerExports(components, usedHookNames, userEventHooks)
   const alarmPanelExports = createAlarmPanelExports(components, usedHookNames, userEventHooks)
   const ioMonitorExports = createIOMonitorExports(components, usedHookNames, userEventHooks)
+  const batteryCardExports = createBatteryCardExports(components)
   const fiIconExports = createFiIconExports(
     components,
     usedHookNames,
@@ -7053,7 +7115,7 @@ const backgroundMode =
   lines.push(`#include "freertos/semphr.h"`)
   lines.push(`#include "freertos/task.h"`)
   lines.push(`#include "esp_timer.h"`)
-  if (hasInteractiveButtons || dashboardCardExports.size > 0 || sensorTileExports.size > 0 || relayPanelExports.size > 0 || pwmControllerExports.size > 0 || alarmPanelExports.size > 0 || ioMonitorExports.size > 0 || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
+  if (hasInteractiveButtons || dashboardCardExports.size > 0 || sensorTileExports.size > 0 || relayPanelExports.size > 0 || pwmControllerExports.size > 0 || alarmPanelExports.size > 0 || ioMonitorExports.size > 0 || batteryCardExports.size > 0 || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
     lines.push(`#include "95_UserEvents.h"`)
   }
   if (Array.from(fiIconExports.values()).some(icon => icon.runtimeEnabled)) {
@@ -7155,6 +7217,20 @@ const backgroundMode =
       setter(io.setAnalogInputApiName, 'FG_IO_ANALOG_INPUT', true)
       setter(io.setAnalogOutputApiName, 'FG_IO_ANALOG_OUTPUT', true)
       lines.push(``)
+    }
+  })
+  batteryCardExports.forEach(b => {
+    lines.push(`static lv_obj_t * ${b.rootName} = NULL; static lv_obj_t * ${b.percentageLabel} = NULL; static lv_obj_t * ${b.statusLabel} = NULL; static lv_obj_t * ${b.iconFillName} = NULL; static lv_obj_t * ${b.voltageLabel} = NULL; static lv_obj_t * ${b.currentLabel} = NULL; static lv_obj_t * ${b.runtimeLabel} = NULL; static lv_obj_t * ${b.temperatureLabel} = NULL; static lv_obj_t * ${b.healthLabel} = NULL; static lv_obj_t * ${b.barName} = NULL;`)
+    lines.push(`static float ${b.percentageName} = ${cFloatLiteral(b.model.percentage)}; static float ${b.voltageName} = ${cFloatLiteral(b.model.voltage)}; static float ${b.currentName} = ${cFloatLiteral(b.model.current)}; static bool ${b.chargingName} = ${b.model.charging ? 'true' : 'false'}; static int32_t ${b.runtimeName} = ${b.model.remainingMinutes}; static float ${b.temperatureName} = ${cFloatLiteral(b.model.temperature)}; static int32_t ${b.healthName} = ${['good','fair','poor','replace'].indexOf(b.model.health)};`)
+    lines.push(`static void ${b.refreshName}(void) { uint32_t colour = ${b.chargingName} ? 0x${b.model.chargingColour.slice(1)} : (${b.percentageName} <= ${cFloatLiteral(b.model.criticalThreshold)} ? 0x${b.model.criticalColour.slice(1)} : (${b.percentageName} <= ${cFloatLiteral(b.model.lowThreshold)} ? 0x${b.model.lowColour.slice(1)} : 0x${b.model.normalColour.slice(1)})); static const char * names[] = {"GOOD","FAIR","POOR","REPLACE"}; if (${b.percentageLabel}) { lv_label_set_text_fmt(${b.percentageLabel}, "%.1f ${escPrintfLiteral(b.model.units)}", (double)${b.percentageName}); lv_obj_set_style_text_color(${b.percentageLabel}, lv_color_hex(colour), 0); } if (${b.statusLabel}) { lv_label_set_text(${b.statusLabel}, ${b.model.showChargingIcon ? `${b.chargingName} ? "CHARGING" : names[${b.healthName}]` : `names[${b.healthName}]`}); lv_obj_set_style_text_color(${b.statusLabel}, lv_color_hex(colour), 0); } if (${b.iconFillName}) { int32_t fill_w = (int32_t)(18.0f * ${b.percentageName} / 100.0f); if (fill_w < 0) fill_w = 0; if (fill_w > 18) fill_w = 18; lv_obj_set_width(${b.iconFillName}, fill_w); lv_obj_set_style_bg_color(${b.iconFillName}, lv_color_hex(colour), 0); } if (${b.barName}) { lv_bar_set_value(${b.barName}, (int32_t)${b.percentageName}, LV_ANIM_OFF); lv_obj_set_style_bg_color(${b.barName}, lv_color_hex(colour), LV_PART_INDICATOR); } if (${b.voltageLabel}) lv_label_set_text_fmt(${b.voltageLabel}, "VOLTAGE\\n%.2f V", (double)${b.voltageName}); if (${b.currentLabel}) lv_label_set_text_fmt(${b.currentLabel}, "CURRENT\\n%.2f A", (double)${b.currentName}); if (${b.runtimeLabel}) lv_label_set_text_fmt(${b.runtimeLabel}, "RUNTIME\\n%ldh %ldm", (long)(${b.runtimeName}/60), (long)(${b.runtimeName}%60)); if (${b.temperatureLabel}) lv_label_set_text_fmt(${b.temperatureLabel}, "TEMP\\n%.1f C", (double)${b.temperatureName}); if (${b.healthLabel}) lv_label_set_text_fmt(${b.healthLabel}, "HEALTH\\n%s", names[${b.healthName}]); }`)
+    if (b.runtimeEnabled) {
+      lines.push(`void FG_Set_${b.stem}_Percentage(float value) { ${b.percentageName} = value < 0.0f ? 0.0f : (value > 100.0f ? 100.0f : value); ${b.refreshName}(); }`)
+      lines.push(`void FG_Set_${b.stem}_Voltage(float value) { ${b.voltageName} = value; ${b.refreshName}(); }`)
+      lines.push(`void FG_Set_${b.stem}_Current(float value) { ${b.currentName} = value; ${b.refreshName}(); }`)
+      lines.push(`void FG_Set_${b.stem}_Charging(bool enabled) { ${b.chargingName} = enabled; ${b.refreshName}(); }`)
+      lines.push(`void FG_Set_${b.stem}_Health(int32_t value) { ${b.healthName} = value < 0 ? 0 : (value > 3 ? 3 : value); ${b.refreshName}(); }`)
+      lines.push(`void FG_Set_${b.stem}_Runtime(int32_t value) { ${b.runtimeName} = value < 0 ? 0 : value; ${b.refreshName}(); }`)
+      lines.push(`void FG_Set_${b.stem}_Temperature(float value) { ${b.temperatureName} = value; ${b.refreshName}(); }`)
     }
   })
   alarmPanelExports.forEach(alarm => {
@@ -9774,6 +9850,7 @@ lines.push(`    fg_system_root = parent;`)
         pwmControllerExports,
         alarmPanelExports,
         ioMonitorExports,
+        batteryCardExports,
       )
   }
 
@@ -10509,6 +10586,10 @@ lines.push(`}`)
         `bool ${io.setDigitalOutputApiName}(const char * channel, bool state);`,
         `bool ${io.setAnalogInputApiName}(const char * channel, float value);`,
         `bool ${io.setAnalogOutputApiName}(const char * channel, float value);`,
+      ])).concat(Array.from(batteryCardExports.values()).filter(b => b.runtimeEnabled).flatMap(b => [
+        `void FG_Set_${b.stem}_Percentage(float value);`, `void FG_Set_${b.stem}_Voltage(float value);`, `void FG_Set_${b.stem}_Current(float value);`,
+        `void FG_Set_${b.stem}_Charging(bool enabled);`, `void FG_Set_${b.stem}_Health(int32_t value);`,
+        `void FG_Set_${b.stem}_Runtime(int32_t value);`, `void FG_Set_${b.stem}_Temperature(float value);`,
       ])).concat(Array.from(barExports.values()).map(
         barExport => `void ${barExport.apiName}(int32_t value);`,
       )).concat(Array.from(progressExports.values()).map(

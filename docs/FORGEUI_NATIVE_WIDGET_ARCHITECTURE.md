@@ -1,6 +1,6 @@
 # ForgeUI Native Widget Architecture
 
-Status: **AUTHORITATIVE — NATIVE COMPONENTS 1–6 PROVEN; ALARM PANEL AND IO MONITOR HARDWARE VALIDATED** (2026-08-06).
+Status: **AUTHORITATIVE — NATIVE COMPONENTS 1–6 PROVEN; ALARM PANEL, IO MONITOR, AND BATTERY CARD HARDWARE VALIDATED** (2026-08-06).
 
 Alarm Panel status: **PHYSICALLY RENDERED ON ESP32-P4 — EXTENDED RUNTIME PROOF
 DEFERRED**.
@@ -23,7 +23,11 @@ flash, and physical rendering are confirmed. Exhaustive transition, callback,
 acknowledgement, and clear lifecycle proof awaits the future Proof Module. The
 IO Monitor is **HARDWARE VALIDATED** after export, build, flash, and correct
 physical rendering on ESP32-P4. It is intentionally read-only and generates no
-touch callbacks. The next planned Native Component is **Battery Card**. The
+touch callbacks. Battery Card is **HARDWARE VALIDATED** as a read-only semantic
+monitor with seven silent APIs, persisted-ID/rename-stable identity, isolated
+duplicate state, and no UserEvents. Browser/Live/generated LVGL parity, build,
+flash, and physical rendering are confirmed without overstating physical
+runtime interaction proof. The
 Simulator / Proof Module, automated Runtime SDK proof harness, ESP-Hosted
 startup investigation, and further export infrastructure remain deferred.
 
@@ -365,8 +369,12 @@ separate:
 8. **IO Monitor** — **HARDWARE VALIDATED**; read-only live digital and analogue
    I/O visibility, semantic silent setters, and physical ESP32-P4 rendering.
 
-The next planned Native Component is **Battery Card**. Possible later specialized
-cards include Tank Level Card, Network
+9. **Battery Card** — **HARDWARE VALIDATED**; semantic battery telemetry, seven
+   silent setters, no UserEvents, parity-complete generated rendering, and
+   confirmed ESP32-P4 physical rendering.
+
+Next: **Tank Level Card**. It is planned but not started. Possible later
+specialized cards include Network
 Status Card, Device Summary Card, KPI Card, and Power Flow Card. Their ordering
 is not certified by this ledger.
 
