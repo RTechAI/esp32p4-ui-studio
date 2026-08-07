@@ -43,7 +43,7 @@ export const normalizeProjectFeatures = (
 ): ForgeUIFirmwareFeatures => {
   const profile = getBoardProfile(boardId) || waveshareEsp32P4Wifi6Touch7B
   const resolved = { ...profile.defaultFeatures, ...(features || {}) }
-  ;(['wifi', 'bluetooth', 'audio', 'sdCard', 'usbHost', 'camera'] as const)
+  ;(['wifi', 'bluetooth', 'audio', 'sdCard', 'rtc', 'usbHost', 'camera'] as const)
     .forEach(key => {
       if (!profile.capabilities[key]) resolved[key] = false
     })

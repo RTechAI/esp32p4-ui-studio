@@ -4,6 +4,8 @@ import { act } from 'react-dom/test-utils'
 import { hydrateRoot, Root } from 'react-dom/client'
 import {
   FORGEUI_PROJECT_HARDWARE_STORAGE_KEY,
+  loadForgeUIProjectHardware,
+  saveForgeUIProjectHardware,
   useForgeUIProjectHardware,
 } from './ForgeUIProjectHardware'
 
@@ -54,6 +56,18 @@ describe('project hardware hydration', () => {
     }
   })
 
+  it('persists an explicitly disabled external RTC across save and load', () => {
+    const saved = saveForgeUIProjectHardware({
+      ...loadForgeUIProjectHardware(),
+      firmwareFeatures: {
+        ...loadForgeUIProjectHardware().firmwareFeatures,
+        rtc: false,
+      },
+    })
+    expect(saved.firmwareFeatures.rtc).toBe(false)
+    expect(loadForgeUIProjectHardware().firmwareFeatures.rtc).toBe(false)
+  })
+
   it('uses deterministic defaults for SSR even when browser storage exists', () => {
     window.localStorage.setItem(
       FORGEUI_PROJECT_HARDWARE_STORAGE_KEY,
@@ -61,7 +75,7 @@ describe('project hardware hydration', () => {
     )
     const html = renderToString(<HardwareSummary />)
     expect(html).toContain('waveshare-esp32p4-wifi6-touch-lcd-7b')
-    expect(html).toContain('data-testid="features">6</span>')
+    expect(html).toContain('data-testid="features">7</span>')
     expect(html).toContain('data-testid="hydrated">false</span>')
   })
 
@@ -84,7 +98,7 @@ describe('project hardware hydration', () => {
 
     expect(recoverableErrors).toEqual([])
     expect(document.querySelector('[data-testid="features"]'))
-      .toHaveTextContent('0')
+      .toHaveTextContent('1')
     expect(document.querySelector('[data-testid="hydrated"]'))
       .toHaveTextContent('true')
   })
@@ -105,6 +119,6 @@ describe('project hardware hydration', () => {
     })
 
     expect(document.querySelector('[data-testid="features"]'))
-      .toHaveTextContent('0')
+      .toHaveTextContent('1')
   })
 })

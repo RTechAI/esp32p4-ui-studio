@@ -5,6 +5,7 @@ export type ForgeUIFirmwareFeatures = {
   bluetooth: boolean
   audio: boolean
   sdCard: boolean
+  rtc: boolean
   usbHost: boolean
   camera: boolean
   settingsLauncher: boolean
@@ -15,7 +16,7 @@ export type ForgeUIFirmwareFeatures = {
 
 export type ForgeUIBoardCapability =
   | 'display' | 'touch' | 'backlight' | 'wifi' | 'bluetooth'
-  | 'audio' | 'sdCard' | 'usbHost' | 'camera'
+  | 'audio' | 'sdCard' | 'rtc' | 'usbHost' | 'camera'
 
 export interface ForgeUIBoardProfile {
   id: string

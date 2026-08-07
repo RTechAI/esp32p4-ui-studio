@@ -45,6 +45,21 @@ describe('ForgeUI board registry', () => {
     })
   })
 
+  it('normalizes a missing RTC field to the backward-compatible board default', () => {
+    const legacy = normalizeProjectHardware({
+      firmwareFeatures: { wifi: false } as any,
+    })
+    expect(legacy.firmwareFeatures.rtc).toBe(true)
+  })
+
+  it('preserves an explicitly disabled external RTC', () => {
+    const project = normalizeProjectHardware({
+      firmwareFeatures: { rtc: false } as any,
+    })
+    expect(project.firmwareFeatures.rtc).toBe(false)
+    expect(normalizeProjectHardware(project)).toEqual(project)
+  })
+
   it('normalizes unsupported capabilities and feature dependencies', () => {
     expect(normalizeProjectFeatures(DEFAULT_FORGEUI_BOARD_ID, {
       bluetooth: true,

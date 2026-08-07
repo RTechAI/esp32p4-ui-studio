@@ -22,7 +22,7 @@ type Props = {
 
 const labels: Record<keyof ForgeUIFirmwareFeatures, string> = {
   wifi: 'Wi-Fi', bluetooth: 'Bluetooth', audio: 'Audio', sdCard: 'SD Card',
-  usbHost: 'USB Host', camera: 'Camera', settingsLauncher: 'Settings Launcher',
+  rtc: 'External RTC', usbHost: 'USB Host', camera: 'Camera', settingsLauncher: 'Settings Launcher',
   wifiManager: 'Wi-Fi Manager', storageBrowser: 'Storage Browser',
   diagnostics: 'Diagnostics',
 }
@@ -59,6 +59,8 @@ const ForgeUIBoardSelector: React.FC<Props> = ({ project, onChange }) => {
         : true
     const explanation = !supported
       ? 'Not available on this board.'
+      : key === 'rtc'
+        ? 'Use an external DS3231 real-time clock at I2C address 0x68.'
       : key === 'wifiManager'
         ? 'Requires Wi-Fi to be enabled.'
         : key === 'storageBrowser'
@@ -218,7 +220,7 @@ const ForgeUIBoardSelector: React.FC<Props> = ({ project, onChange }) => {
                 {section(
                   'Optional Hardware',
                   'Included in firmware only when enabled.',
-                  ['wifi', 'bluetooth', 'audio', 'sdCard', 'usbHost', 'camera'],
+                  ['wifi', 'bluetooth', 'audio', 'sdCard', 'rtc', 'usbHost', 'camera'],
                 )}
                 <Divider borderColor={semantic.surfaceBorder} />
                 {section(

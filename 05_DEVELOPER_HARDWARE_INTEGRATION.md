@@ -2553,6 +2553,8 @@ The built-in Storage Browser communicates with the non-generated SD backend.
 
 Application-owned Wi-Fi, MQTT, BLE or cloud behaviour remains separate.
 
+External RTC is not a System Runtime control. It is project/board hardware configuration at **ForgeUI Studio → Board: ESP32-P4 7B → Configure Hardware → Hardware Configuration → Optional Hardware → External RTC**. Persisted `firmwareFeatures.rtc` is authoritative for both Live Studio and Standalone Export, and legacy projects without that field normalize to enabled. Enabled mode supports the DS3231 at I2C `0x68` with software/NVS fallback; disabled mode emits `FG_FEATURE_RTC 0`, performs no DS3231 access and retains software/NVS time.
+
 ---
 
 # 60. Hosted Wi-Fi Boundary

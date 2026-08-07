@@ -3134,7 +3134,8 @@ Preserve these rules:
 ### FORGEUI_BOARD_PROFILES__EXPORT_TIME_FEATURE_GATING__LAZY_SYSTEM_TOOLS__CONNECTED_WIFI_45KB_FREE__RAM_OVERLAY__READY_FOR_FINAL_OPERATOR_VALIDATION__2026-07-31
 
 - `ForgeUILvglExport.ts` consumes the persisted Board Profile feature set and removes disabled includes, models, callbacks, pages, timers and assets. `export-server.js` writes `00_ForgeUI_Features.h` and applies the same profile to live and standalone CMake/source/component-manifest output.
-- `FG_FEATURE_WIFI` and `FG_FEATURE_SD_CARD` gate backend-facing generation; `FG_FEATURE_WIFI_MANAGER`, `FG_FEATURE_STORAGE_BROWSER`, `FG_FEATURE_DIAGNOSTICS` and `FG_FEATURE_SETTINGS` gate their generated UI/runtime owners.
+- `FG_FEATURE_WIFI`, `FG_FEATURE_SD_CARD` and `FG_FEATURE_RTC` gate backend-facing behavior; `FG_FEATURE_WIFI_MANAGER`, `FG_FEATURE_STORAGE_BROWSER`, `FG_FEATURE_DIAGNOSTICS` and `FG_FEATURE_SETTINGS` gate their generated UI/runtime owners. `FG_FEATURE_RTC 0` skips every DS3231 access and enters software/NVS time initialization directly; it does not remove time from Clock or Runtime APIs.
+- The export source of truth is persisted `firmwareFeatures.rtc`, shared by Live Studio and Standalone Export. Missing legacy values normalize to `true`. This project/board option is configured at **ForgeUI Studio → Board: ESP32-P4 7B → Configure Hardware → Hardware Configuration → Optional Hardware → External RTC**, not in the generated runtime System menu. Enabled mode retains the DS3231 at I2C `0x68` and fallback behavior.
 - Wi-Fi Manager/dialogs and Storage UI/worker resources are lazy. Diagnostics is implemented. The compact RAM overlay in the built ELF is not reproducible from the current managed-component source and remains a durability issue.
 
 ### FORGEUI_WIDGET_REGISTRY__LAYOUT_TEMPLATE_LIBRARY__QRCODE_RUNTIME__READY_FOR_QR_HARDWARE_PROOF__2026-07-30

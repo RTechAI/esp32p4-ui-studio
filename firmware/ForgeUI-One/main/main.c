@@ -67,10 +67,8 @@ void app_main(void)
              (unsigned)esp_get_free_heap_size(),
              (unsigned)esp_get_minimum_free_heap_size());
 
-#if FORGEUI_ENABLE_RTC
-    // ---- RTC INIT ----
+    // ---- TIME INIT (external RTC or software/NVS fallback) ----
     fg_rtc_init();
-#endif
 
 #if FORGEUI_ENABLE_WIFI
     bool wifi_ready = false;

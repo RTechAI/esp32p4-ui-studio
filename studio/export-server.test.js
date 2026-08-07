@@ -1476,6 +1476,7 @@ describe('board profile firmware resolution', () => {
       firmwareFeatures: expect.objectContaining({
         wifi: true,
         sdCard: true,
+        rtc: true,
         settingsLauncher: true,
         diagnostics: true,
       }),
@@ -1503,6 +1504,34 @@ describe('board profile firmware resolution', () => {
     const header = generateFeatureHeader(project)
     expect(header).toContain('#define FG_FEATURE_WIFI 0')
     expect(header).toContain('#define FG_FEATURE_SETTINGS 0')
+  })
+
+  it('generates the authoritative external RTC gate in enabled and disabled modes', () => {
+    const enabled = normalizeProjectHardware({ firmwareFeatures: { rtc: true } })
+    const disabled = normalizeProjectHardware({ firmwareFeatures: { rtc: false } })
+    expect(generateFeatureHeader(enabled)).toContain('#define FG_FEATURE_RTC 1')
+    expect(generateFeatureHeader(disabled)).toContain('#define FG_FEATURE_RTC 0')
+    expect(resolveFirmwareBuild(disabled).sources).toContain('"20_RTC.c"')
+  })
+
+  it('keeps Live and Standalone RTC generation identical', () => {
+    const disabled = normalizeProjectHardware({ firmwareFeatures: { rtc: false } })
+    const liveHeader = generateFeatureHeader(disabled)
+    const standaloneHeader = generateFeatureHeader(disabled)
+    expect(liveHeader).toBe(standaloneHeader)
+    expect(liveHeader).toContain('#define FG_FEATURE_RTC 0')
+  })
+
+  it('keeps fallback initialization active while compiling DS3231 access only when enabled', () => {
+    const firmwareMain = fs.readFileSync(path.join(__dirname, '..', 'firmware', 'ForgeUI-One', 'main', 'main.c'), 'utf8')
+    const config = fs.readFileSync(path.join(__dirname, '..', 'firmware', 'ForgeUI-One', 'main', '00_ForgeUI_Config.h'), 'utf8')
+    const rtc = fs.readFileSync(path.join(__dirname, '..', 'firmware', 'ForgeUI-One', 'main', '20_RTC.c'), 'utf8')
+    expect(firmwareMain).toContain('fg_rtc_init();')
+    expect(firmwareMain).not.toMatch(/#if FORGEUI_ENABLE_RTC\s+\/\/ ---- TIME INIT/)
+    expect(config).toContain('#define FORGEUI_ENABLE_RTC                 FG_FEATURE_RTC')
+    expect(config).toMatch(/#else\s+#define FORGEUI_RTC_BACKEND\s+FORGEUI_RTC_BACKEND_ESP_NVS/)
+    expect(rtc).toContain('#if FORGEUI_RTC_BACKEND == FORGEUI_RTC_BACKEND_DS3231')
+    expect(rtc).toContain('fg_rtc_load_epoch_nvs(&epoch)')
   })
 
   it('removes optional sources and dependencies for a core-only build', () => {

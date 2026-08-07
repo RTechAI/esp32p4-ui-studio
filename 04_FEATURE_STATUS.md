@@ -63,6 +63,8 @@ Widget Registry architecture cleanup is complete at the metadata boundary:
 
 - Board/profile ownership is registry-driven; the supported production profile is Waveshare ESP32-P4 WiFi6 Touch LCD 7B.
 - Persisted project features hydrate after mount and generate `00_ForgeUI_Features.h`.
+- External RTC hardware-profile control is **PHYSICALLY VALIDATED / PROVEN** on ESP32-P4. A fresh Standalone Export with Wi-Fi ON, SD ON and RTC OFF generated `FG_FEATURE_RTC 0`, made no DS3231 attach/read attempt and emitted no DS3231 unavailable/failure warning. The NVS/software fallback epoch loaded correctly while Wi-Fi, SD and normal runtime remained operational.
+- `firmwareFeatures.rtc` is the authoritative persisted setting. Configure it at **ForgeUI Studio → Board: ESP32-P4 7B → Configure Hardware → Hardware Configuration → Optional Hardware → External RTC**; it is intentionally not part of the runtime System menu. Enabled mode retains DS3231 support at I2C `0x68` plus fallback behavior; Live Studio and Standalone Export inherit the project value; legacy projects missing the field normalize to `true`.
 - Disabled System features are pruned from generated C, assets, CMake sources/components and `idf_component.yml`; they are not merely hidden.
 - Diagnostics is implemented. Wi-Fi Manager and Storage UI/worker resources are created lazily and destroyed safely while their backends remain separately alive.
 - Connected Application-page evidence records 45,795 bytes current internal free heap, a 27,648-byte largest block and 62 LVGL objects. Ten-cycle operator validation remains pending.

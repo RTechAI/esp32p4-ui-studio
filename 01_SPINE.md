@@ -65,7 +65,7 @@ PWM Controller is implemented through the existing Registry, semantic persistenc
 
 ## Current Save Point
 
-**FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02**
+**FORGEUI_V3_5_4__EXTERNAL_RTC_OPTIONAL_HARDWARE_PHYSICALLY_VALIDATED__READY_FOR_POWER_FLOW_CARD__2026-08-07**
 
 **CURRENT PRIORITY: FORGEUI PLATFORM DEVELOPMENT ON THE COMPLETED PRACTICAL LVGL 9.2 FOUNDATION**
 
@@ -215,7 +215,7 @@ open. Direct COM-port flashing by GPT is not the default workflow.
 
 ## Current Proven Status..
 
-The 2026-07-31 architecture milestone adds a data-driven Board Profile registry, persisted per-project hardware and feature selection, hydration-safe Board Selector loading, one generated `00_ForgeUI_Features.h`, export-time C/CMake/component-manifest pruning, deterministic asset-source deduplication, implemented Diagnostics, and lazy Wi-Fi Manager and Storage Browser lifecycles. Live Build & Flash and standalone ESP-IDF export consume the same project hardware profile and shared `ForgeUILvglExport.ts` generator.
+The 2026-07-31 architecture milestone adds a data-driven Board Profile registry, persisted per-project hardware and feature selection, hydration-safe Board Selector loading, one generated `00_ForgeUI_Features.h`, export-time C/CMake/component-manifest pruning, deterministic asset-source deduplication, implemented Diagnostics, and lazy Wi-Fi Manager and Storage Browser lifecycles. Live Build & Flash and standalone ESP-IDF export consume the same project hardware profile and shared `ForgeUILvglExport.ts` generator. External DS3231 use is controlled per project by authoritative `firmwareFeatures.rtc`; legacy projects missing the field normalize to the board's historical enabled default. The setting belongs to project/board Hardware Configuration, never the runtime System menu.
 
 QR Code is completed through the permanent Proven Widget Pipeline. Its Registry, Tray discovery and insertion, Canvas, Inspector, shared Browser Preview, semantic theme behavior, project-model compatibility, undo/redo, native LVGL 9.2.2 export and `FG_Set_QR_Code_Text(const char * text)` runtime API are implemented and validated. QR Code is output-only and intentionally generates no `95_UserEvents` callback. The generated code displayed correctly on ESP32-P4, scanned successfully with a mobile phone and matched across Live and Standalone export. Status: **PROVEN**.
 
@@ -301,7 +301,9 @@ System Tool UI
 
 Board Selector rendering uses deterministic registry defaults during SSR and the browser's first hydration render. Persisted local project state is applied after mount. Firmware Clean explicitly refreshes hardware state without remounting.
 
-Current generated flags are `FG_FEATURE_WIFI`, `FG_FEATURE_BLUETOOTH`, `FG_FEATURE_AUDIO`, `FG_FEATURE_SD_CARD`, `FG_FEATURE_USB_HOST`, `FG_FEATURE_CAMERA`, `FG_FEATURE_SETTINGS`, `FG_FEATURE_WIFI_MANAGER`, `FG_FEATURE_STORAGE_BROWSER` and `FG_FEATURE_DIAGNOSTICS`. A flag is not proof that its hardware backend or UI is implemented.
+Current generated flags are `FG_FEATURE_WIFI`, `FG_FEATURE_BLUETOOTH`, `FG_FEATURE_AUDIO`, `FG_FEATURE_SD_CARD`, `FG_FEATURE_RTC`, `FG_FEATURE_USB_HOST`, `FG_FEATURE_CAMERA`, `FG_FEATURE_SETTINGS`, `FG_FEATURE_WIFI_MANAGER`, `FG_FEATURE_STORAGE_BROWSER` and `FG_FEATURE_DIAGNOSTICS`. `FG_FEATURE_RTC` specifically controls probing and use of the external DS3231 at address `0x68`. When disabled, ForgeUI generates `FG_FEATURE_RTC 0`, skips all DS3231 I2C access and initializes the existing software/NVS fallback time path directly, so Clock and Runtime APIs remain available. Configure it at **ForgeUI Studio → Board: ESP32-P4 7B → Configure Hardware → Hardware Configuration → Optional Hardware → External RTC**. Enabled mode retains DS3231 hardware support and fallback behavior. Live Studio and Standalone Export inherit the same persisted value.
+
+External RTC disabled is **PHYSICALLY VALIDATED / PROVEN** on ESP32-P4 using a fresh Standalone Export. The confirmed boot profile was Wi-Fi ON, SD ON and RTC OFF. No DS3231 attach or read was attempted, no DS3231 unavailable/failure warning appeared, the NVS/software fallback epoch loaded correctly, Wi-Fi and SD remained operational, and normal ESP32-P4 runtime continued successfully.
 
 `ForgeUILvglExport.ts` owns export-time System generation. Disabled features are removed from applicable includes, globals, typedefs/models, callbacks, page construction, timers and generated assets. `export-server.js` uses the same profile to prune source files, CMake requirements and `idf_component.yml` dependencies. `FG_FEATURE_WIFI` gates backend-facing Wi-Fi generation; `FG_FEATURE_WIFI_MANAGER` gates Manager UI. `FG_FEATURE_SD_CARD` gates backend-facing SD generation; `FG_FEATURE_STORAGE_BROWSER` gates Browser UI and worker resources. `FG_FEATURE_DIAGNOSTICS` gates Diagnostics page/runtime and overlay visibility. `FG_FEATURE_SETTINGS` gates the launcher and System pages.
 

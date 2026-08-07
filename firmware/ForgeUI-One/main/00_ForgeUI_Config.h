@@ -54,7 +54,7 @@
 //
 // ============================================================
 
-#define FORGEUI_ENABLE_RTC                 1
+#define FORGEUI_ENABLE_RTC                 FG_FEATURE_RTC
 #define FORGEUI_ENABLE_WIFI                FG_FEATURE_WIFI
 #define FORGEUI_ENABLE_SD                  FG_FEATURE_SD_CARD
 #define FORGEUI_ENABLE_AUDIO               FG_FEATURE_AUDIO
@@ -113,7 +113,7 @@
 #if FORGEUI_ENABLE_RTC
 #define FORGEUI_RTC_BACKEND                FORGEUI_RTC_BACKEND_DS3231
 #else
-#define FORGEUI_RTC_BACKEND                FORGEUI_RTC_BACKEND_NONE
+#define FORGEUI_RTC_BACKEND                FORGEUI_RTC_BACKEND_ESP_NVS
 #endif
 
 // ============================================================

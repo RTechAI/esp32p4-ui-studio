@@ -31,6 +31,13 @@ describe('ForgeUIBoardSelector', () => {
     expect(screen.getByText('Optional Hardware')).toBeInTheDocument()
     expect(screen.getByText('Developer Tools')).toBeInTheDocument()
     expect(screen.getByLabelText('Wi-Fi')).toBeChecked()
+    expect(screen.getByLabelText('External RTC')).toBeChecked()
+    expect(screen.getByText('Use an external DS3231 real-time clock at I2C address 0x68.'))
+      .toBeInTheDocument()
+    fireEvent.click(screen.getByLabelText('External RTC'))
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+      firmwareFeatures: expect.objectContaining({ rtc: false }),
+    }))
     expect(screen.getByLabelText('Bluetooth')).toBeDisabled()
     expect(screen.getByText('Not available on this board.'))
       .toBeInTheDocument()

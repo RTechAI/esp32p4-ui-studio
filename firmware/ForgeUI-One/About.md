@@ -18,7 +18,7 @@ ForgeUI One removes much of the painful low-level ESP32-P4 bring-up stage by alr
 - GT911 capacitive touch support
 - ESP-Hosted WiFi
 - ESP32-C6 remote WiFi transport
-- DS3231 RTC integration
+- optional per-project DS3231 RTC integration with software/NVS fallback
 - SD card support
 - LVGL v9 runtime
 - modular UI architecture
@@ -86,7 +86,7 @@ Current proven ForgeUI One baseline includes:
 - hosted WiFi operational
 - WiFi scan/connect/disconnect
 - RTC persistence
-- DS3231 RTC integration
+- physically proven optional DS3231 RTC integration at I2C `0x68`, with software/NVS fallback
 - audio subsystem support
 - SD card support
 - keyboard overlay system
@@ -173,9 +173,11 @@ Current proven hardware support includes:
 - ESP32-C6 Hosted WiFi
 - EK79007 display controller
 - GT911 touch controller
-- DS3231 RTC
+- optional DS3231 RTC (enabled or disabled per project hardware profile)
 - SD card support
 - audio subsystem support
+
+Configure External RTC at **ForgeUI Studio → Board: ESP32-P4 7B → Configure Hardware → Hardware Configuration → Optional Hardware → External RTC**. `firmwareFeatures.rtc` is the authoritative persisted setting for Live Studio and Standalone Export and is not a runtime System-menu option. Enabled mode retains DS3231 and fallback support. Disabled mode generates `FG_FEATURE_RTC 0`, performs no DS3231 hardware access and continues with software/NVS time. Legacy projects missing the setting normalize to enabled.
 
 ---
 

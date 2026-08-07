@@ -15,14 +15,14 @@ export const waveshareEsp32P4Wifi6Touch7B: ForgeUIBoardProfile = {
   memory: { flashBytes: 32 * 1024 * 1024, psramBytes: 32 * 1024 * 1024 },
   capabilities: {
     display: true, touch: true, backlight: true, wifi: true,
-    bluetooth: false, audio: true, sdCard: true, usbHost: true, camera: true,
+    bluetooth: false, audio: true, sdCard: true, rtc: true, usbHost: true, camera: true,
   },
   supportedFeatures: {
     settingsLauncher: true, wifiManager: true,
     storageBrowser: true, diagnostics: true,
   },
   defaultFeatures: {
-    wifi: true, bluetooth: false, audio: false, sdCard: true,
+    wifi: true, bluetooth: false, audio: false, sdCard: true, rtc: true,
     usbHost: false, camera: false, settingsLauncher: true,
     wifiManager: true, storageBrowser: true, diagnostics: true,
   },

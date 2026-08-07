@@ -225,6 +225,8 @@ Batch 1 implementation and hardware steps are recorded in
 
 The Board Selector is backed by a data-driven profile registry. The current supported production profile is the Waveshare ESP32-P4 WiFi6 Touch LCD 7B (`esp32p4`, 1024 × 600). Project feature and transport selection is persisted after hydration and shared by live Build & Flash and standalone export. The profile owns ESP-Hosted SDIO/SPI settings and SDMMC host, pin, width, frequency and power settings. Generated `sdkconfig.defaults`, `00_ForgeUI_Features.h`, CMake sources/components and `idf_component.yml` are validated together; standalone packaging never copies a stale live `sdkconfig`.
 
+External RTC is configured at **ForgeUI Studio → Board: ESP32-P4 7B → Configure Hardware → Hardware Configuration → Optional Hardware → External RTC**. The authoritative persisted setting is `firmwareFeatures.rtc`; it remains project/board hardware configuration and is not a runtime System-menu setting. Enabled mode retains DS3231 support at I2C address `0x68` and the software/NVS fallback. Disabled mode generates `FG_FEATURE_RTC 0`, performs no DS3231 hardware access and continues to provide software/NVS time. Live Studio and Standalone Export inherit the same project setting. Legacy projects without `firmwareFeatures.rtc` normalize to `true` for backward compatibility.
+
 The proven target is:
 
 - **Waveshare ESP32-P4-WiFi6-Touch-LCD-7B**
@@ -232,7 +234,7 @@ The proven target is:
 - **ESP-IDF 5.5.4**
 - **LVGL 9.2.2**
 
-Recorded physical proof includes the established Standard component groups, all five Interactive Asset runtime paths within their documented scopes, generated semantic theme parity, Display/Brightness, the generated Wi-Fi Manager, reusable System keyboard, Storage Browser, ESP-Hosted connectivity through the board’s ESP32-C6, SD storage and simultaneous Wi-Fi/SD operation.
+Recorded physical proof includes the established Standard component groups, all five Interactive Asset runtime paths within their documented scopes, generated semantic theme parity, Display/Brightness, the generated Wi-Fi Manager, reusable System keyboard, Storage Browser, ESP-Hosted connectivity through the board’s ESP32-C6, SD storage and simultaneous Wi-Fi/SD operation. External RTC disabled is also physically proven from a fresh Standalone Export: boot showed Wi-Fi ON, SD ON and RTC OFF; no DS3231 attach, read or failure path ran; the NVS/software fallback epoch loaded; and Wi-Fi, SD and normal ESP32-P4 runtime remained operational.
 
 Spinbox proof on ESP-IDF 5.5.4 and LVGL 9.2.2 includes drag/drop, Canvas
 controls, Inspector synchronization, Browser parity, signed and decimal values,

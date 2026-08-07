@@ -6189,6 +6189,7 @@ const FG_DEFAULT_FIRMWARE_FEATURES: ForgeUIFirmwareFeatures = {
   bluetooth: false,
   audio: false,
   sdCard: true,
+  rtc: true,
   usbHost: false,
   camera: false,
   settingsLauncher: true,

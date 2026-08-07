@@ -1089,7 +1089,7 @@ function appendAssetSourcesToCMake(cmakeSources, assetSources) {
 const DEFAULT_PROJECT_HARDWARE = Object.freeze({
   boardId: 'waveshare-esp32p4-wifi6-touch-lcd-7b',
   firmwareFeatures: Object.freeze({
-    wifi: true, bluetooth: false, audio: false, sdCard: true,
+    wifi: true, bluetooth: false, audio: false, sdCard: true, rtc: true,
     usbHost: false, camera: false, settingsLauncher: true,
     wifiManager: true, storageBrowser: true, diagnostics: true,
   }),
@@ -1265,6 +1265,7 @@ function validateHardwareArtifacts(project, defaults, featureHeader, boardId) {
   if (p.firmwareFeatures.wifi && !defaults.includes(expectedTransport)) errors.push(`selected Wi-Fi transport ${p.wifiHosted.transport} missing from sdkconfig.defaults`)
   if (featureHeader.includes(`#define FG_FEATURE_WIFI ${p.firmwareFeatures.wifi ? 0 : 1}`)) errors.push('Wi-Fi feature header disagrees with project profile')
   if (featureHeader.includes(`#define FG_FEATURE_SD_CARD ${p.firmwareFeatures.sdCard ? 0 : 1}`)) errors.push('SD feature header disagrees with project profile')
+  if (featureHeader.includes(`#define FG_FEATURE_RTC ${p.firmwareFeatures.rtc ? 0 : 1}`)) errors.push('RTC feature header disagrees with project profile')
   const expectedHardwareLines = generateSdkconfigDefaults(p).split('\n').filter(line =>
     /^(CONFIG_ESP_HOSTED_|# CONFIG_ESP_HOSTED_|CONFIG_ESP_WIFI_REMOTE_|# CONFIG_ESP_WIFI_REMOTE_|CONFIG_SLAVE_IDF_TARGET_|CONFIG_FORGEUI_SD_)/.test(line)
   )
@@ -1296,6 +1297,7 @@ function generateFeatureHeader(project) {
 #define FG_FEATURE_BLUETOOTH ${flag('bluetooth')}
 #define FG_FEATURE_AUDIO ${flag('audio')}
 #define FG_FEATURE_SD_CARD ${flag('sdCard')}
+#define FG_FEATURE_RTC ${flag('rtc')}
 #define FG_FEATURE_USB_HOST ${flag('usbHost')}
 #define FG_FEATURE_CAMERA ${flag('camera')}
 #define FG_FEATURE_SETTINGS ${flag('settingsLauncher')}
