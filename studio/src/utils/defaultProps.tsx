@@ -5,6 +5,7 @@ import { FORGEUI_DEVICE_SUMMARY_CARD_DEFAULT_SIZE } from '~forgeui/ForgeUIDevice
 import { FORGEUI_TANK_LEVEL_CARD_DEFAULT_SIZE } from '~forgeui/ForgeUITankLevelCard'
 import { FORGEUI_BATTERY_CARD_DEFAULT_SIZE } from '~forgeui/ForgeUIBatteryCard'
 import { FORGEUI_KPI_CARD_DEFAULT_SIZE } from '~forgeui/ForgeUIKpiCard'
+import { FORGEUI_POWER_FLOW_CARD_DEFAULT_SIZE } from '~forgeui/ForgeUIPowerFlowCard'
 
 import {
   BadgeProps,
@@ -117,6 +118,7 @@ type PreviewDefaultProps = {
   NetworkStatusCard?: PropsWithForm<BoxProps> & Record<string, any>
   DeviceSummaryCard?: PropsWithForm<BoxProps> & Record<string, any>
   KpiCard?: PropsWithForm<BoxProps> & Record<string, any>
+  PowerFlowCard?: PropsWithForm<BoxProps> & Record<string, any>
   AvatarBadge?: PropsWithForm<AvatarBadgeProps>
   AvatarGroup?: PropsWithForm<Omit<AvatarGroupProps, 'children'>>
   Avatar?: PropsWithForm<AvatarProps>
@@ -485,6 +487,16 @@ WiFi: {
     neutralColour: '#94A3B8', goodColour: '#22C55E', warningColour: '#F2A900', criticalColour: '#E5484D',
     generateRuntimeApi: true, positionMode: 'absolute', x: 40, y: 40,
     w: FORGEUI_KPI_CARD_DEFAULT_SIZE.width, h: FORGEUI_KPI_CARD_DEFAULT_SIZE.height,
+  },
+  PowerFlowCard: {
+    nativeWidgetSchemaVersion: 1, title: 'Power Flow',
+    gridVisible: true, gridValue: '1.2 kW', gridFlow: 'into-centre',
+    solarVisible: true, solarValue: '2.8 kW', solarFlow: 'into-centre',
+    batteryVisible: true, batteryValue: '0.6 kW', batteryFlow: 'out-from-centre',
+    loadVisible: true, loadValue: '3.4 kW',
+    activeColour: '#22C55E', inactiveColour: '#64748B', generateRuntimeApi: true,
+    positionMode: 'absolute', x: 40, y: 40,
+    w: FORGEUI_POWER_FLOW_CARD_DEFAULT_SIZE.width, h: FORGEUI_POWER_FLOW_CARD_DEFAULT_SIZE.height,
   },
   QRCode: {
     contentType: 'custom',

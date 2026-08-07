@@ -1,6 +1,6 @@
 # ForgeUI Native Widget Architecture
 
-Status: **AUTHORITATIVE — TWELVE NATIVE COMPONENTS; DEVICE SUMMARY CARD READY FOR HARDWARE VALIDATION** (2026-08-07).
+Status: **AUTHORITATIVE — FOURTEEN NATIVE COMPONENTS; CURRENT PLATFORM RUN COMPLETE** (2026-08-07).
 
 Alarm Panel status: **PHYSICALLY RENDERED ON ESP32-P4 — EXTENDED RUNTIME PROOF
 DEFERRED**.
@@ -33,14 +33,14 @@ physical rendering, and intentionally no UserEvents. Network Status Card is
 **HARDWARE VALIDATED** as a read-only monitor with six silent persisted-ID
 setters, duplicate isolation, zero UserEvents, and live ESP32-P4 Wi-Fi
 projection independent of the optional System Wi-Fi Manager page. The
-Simulator / Proof Module, automated Runtime SDK proof harness, ESP-Hosted
-startup investigation, and further export infrastructure remain deferred.
+Device Summary Card, KPI Card, and Power Flow Card are also **HARDWARE
+VALIDATED**. The current fourteen-component run is complete.
 
 Current milestone:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.
 
 Current ForgeUI Platform milestone:
-`FORGEUI_V3_5_4__ELEVEN_NATIVE_COMPONENTS__NETWORK_STATUS_HARDWARE_VALIDATED__DOCS_ALIGNED__READY_FOR_DEVICE_SUMMARY_CARD__2026-08-07`.
+`FORGEUI_V3_5_4__FOURTEEN_NATIVE_COMPONENTS__POWER_FLOW_HARDWARE_VALIDATED__NATIVE_PLATFORM_RUN_COMPLETE__READY_FOR_HARDWARE_IO_PROOF__2026-08-07`.
 
 ## Decision
 
@@ -354,11 +354,11 @@ Legacy projects without Native Widgets require no migration. Unknown or
 unsupported Native Widget versions must fail validation clearly rather than
 exporting a partial substitute.
 
-## 10. Native Component ledger and next planned component
+## 10. Native Component ledger and platform closure
 
-The current ledger preserves the six fully proven components, records Alarm
-Panel in its intermediate hardware-validation state, and keeps future work
-separate:
+The current ledger preserves the six fully proven components, records the eight
+hardware-validated components at their exact evidence boundaries, and keeps
+future work separate:
 
 1. **Dashboard Card** — **PROVEN**.
 2. **Sensor Tile** — **PROVEN**; typed engineering
@@ -387,7 +387,7 @@ separate:
     isolation, no UserEvents, Studio/Browser/Live/LVGL parity, and live ESP32-P4
     Wi-Fi projection without opening the System Wi-Fi Manager.
 
-12. **Device Summary Card** — **IMPLEMENTED / READY FOR HARDWARE VALIDATION**;
+12. **Device Summary Card** — **HARDWARE VALIDATED**;
     monitoring-only device identity and concise health summary, six silent
     persisted-ID setters, rename stability, duplicate isolation, zero
     UserEvents, 240 x 145 default and 220 x 128 minimum geometry, and
@@ -399,9 +399,14 @@ separate:
     UserEvents. Three independent 240 x 145 cards were physically confirmed on
     the 1024 x 600 ESP32-P4 display.
 
+14. **Power Flow Card** — **HARDWARE VALIDATED**; bounded Grid / Solar /
+    Battery / Load topology, visible static flow directions, readable node
+    values, seven silent persisted-ID setters, duplicate isolation, zero
+    UserEvents, and correct physical rendering on the 1024 x 600 ESP32-P4.
+
 The currently aligned stackable card family uses a 240 x 145 default and a
 220 x 128 minimum for Battery Card, Tank Level Card, Network Status Card,
-Device Summary Card, and KPI Card. This is a compact dashboard convention, not
+Device Summary Card, KPI Card, and Power Flow Card. This is a compact dashboard convention, not
 a claim about every historical Native Component.
 
 Native monitoring projections execute independently of optional System UI page
@@ -410,8 +415,33 @@ Native Component projection, optional System UI page gate, then System UI
 projection. Monitoring cards therefore cannot accidentally depend on an
 optional manager page being open.
 
-Possible later specialized cards include Power Flow Card. Its ordering is not
-certified by this ledger.
+The latest physical dashboard operated Network Status Card, KPI / Efficiency
+Card, Power Flow Card, and Device Summary Card simultaneously with Wi-Fi
+connected, SD mounted, System Settings, Diagnostics, and software/NVS time
+fallback while external RTC was disabled. This is practical multi-component
+coexistence evidence, not a formal stress test.
+
+The established architecture is registry-owned and version-serialized, with
+persisted component identity, rename-stable generated APIs, duplicate-instance
+isolation, Browser Preview, Live Studio, Standalone LVGL export, silent Runtime
+SDK setters, genuine-user-only UserEvents in the developer-owned UserEvents
+layer, hardware-profile-driven export, stackable dashboard geometry, and
+physical ESP32-P4 validation.
+
+## 11. Next phase — FORGEUI HARDWARE I/O PROOF PROGRAM
+
+Implementation has not started. The next session will select the smallest
+practical proof matrix for both directions:
+
+```text
+PHYSICAL HARDWARE -> developer/backend code -> generated Runtime SDK -> ForgeUI UI
+FORGEUI TOUCH -> genuine UserEvent -> developer-owned code -> PHYSICAL HARDWARE
+```
+
+Candidate hardware includes switches, potentiometers, LEDs, relay modules,
+spare ESP32 boards, I2C sensors/modules, RFID, GPS, cellular, FRAM, and other
+common development modules. No final hardware, simulator, or Modbus/CAN/MQTT
+binding is selected in this closure pass.
 
 Weather, Camera, MQTT, CAN, Industrial, Marine and other domain families should
 follow only after common binding and service boundaries are proven. Their

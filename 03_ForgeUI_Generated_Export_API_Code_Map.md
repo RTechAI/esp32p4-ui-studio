@@ -45,6 +45,14 @@ are private generated details, not application integration points.
 The older PWM proof-ready entry below is retained as a superseded historical
 record.
 
+## Power Flow Card generated boundary — hardware validated
+
+Power Flow Card is a monitoring-only Native Component with a fixed Grid/Solar/Battery/Load topology. `ForgeUILvglExport.ts` emits ordinary LVGL containers, labels, three-pixel connection objects and static canonical arrow symbols; it emits no canvas, dynamic graph, backend binding, clickable node, or UserEvent.
+
+Seven optional public setters are generated from the persisted component ID: Grid Value/Flow, Solar Value/Flow, Battery Value/Flow, and Load Value. Text setters copy into bounded per-instance buffers; flow setters clamp to `0` None, `1` Into centre/load, or `2` Out from centre/load. Every setter calls its private refresh function immediately and silently. Duplicate cards have independent objects, state buffers and public namespaces, and display-name changes do not rename the API.
+
+Canvas, Browser Preview and Live Studio use one canonical preview. Live and Standalone Export use this same generated LVGL branch. The 240 x 145 card, four-node topology, readable values, and visible static directions rendered correctly on the physical 1024 x 600 ESP32-P4 display. Status: **HARDWARE VALIDATED**.
+
 ## PWM Controller generated API — 2026-08-02
 
 Generated 90 owns `FG_Set/Get_<PersistedId>_Value(float)` and `FG_Set/Get_<PersistedId>_Enabled(bool)`. Silent setters clamp/quantize and update private LVGL state under a programmatic guard. Genuine interaction calls `FG_On_<PersistedId>_Value_Changed(float)` and `FG_On_<PersistedId>_Enabled_Changed(bool)` through preservation-merged 95. Live and Standalone use the same generator. Status: **READY FOR HARDWARE PROOF**.

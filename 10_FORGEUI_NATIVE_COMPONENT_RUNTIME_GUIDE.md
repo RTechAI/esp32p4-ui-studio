@@ -1,6 +1,6 @@
 # ForgeUI Native Component Runtime Guide
 
-Current certification (2026-08-07): **thirteen current Native Components**. Six are physically proven
+Current certification (2026-08-07): **fourteen current Native Components**. Six are physically proven
 on ESP32-P4** — Dashboard Card, Sensor Tile, Relay Panel, PWM Controller, Trend
 Chart, and Trend Chart Pro. Alarm Panel is **HARDWARE VALIDATED** after fresh
 export, build, flash, and correct physical rendering on ESP32-P4; exhaustive
@@ -8,8 +8,24 @@ runtime interaction and callback proof is deferred. Practical LVGL remains
 **44 / 44 proven**. Alarm Panel, IO Monitor, Battery Card, and Tank Level Card
 are **HARDWARE VALIDATED**. IO Monitor, Battery Card, Tank Level Card, and
 Network Status Card and KPI Card are read-only components. KPI Card is
-**HARDWARE VALIDATED**; Device Summary Card remains **IMPLEMENTED / READY FOR
-HARDWARE VALIDATION** and monitoring-only.
+**HARDWARE VALIDATED**; Device Summary Card and Power Flow Card are also
+**HARDWARE VALIDATED** and monitoring-only.
+
+## Power Flow Card Runtime SDK quick reference — hardware validated
+
+Power Flow Card uses a bounded Grid/Solar/Battery/Load topology. Flow values are `0` None, `1` Into centre/load, and `2` Out from centre/load.
+
+```c
+void FG_Set_<PowerFlowCard>_Grid_Value(const char * value);
+void FG_Set_<PowerFlowCard>_Grid_Flow(int32_t flow);
+void FG_Set_<PowerFlowCard>_Solar_Value(const char * value);
+void FG_Set_<PowerFlowCard>_Solar_Flow(int32_t flow);
+void FG_Set_<PowerFlowCard>_Battery_Value(const char * value);
+void FG_Set_<PowerFlowCard>_Battery_Flow(int32_t flow);
+void FG_Set_<PowerFlowCard>_Load_Value(const char * value);
+```
+
+All setters are silent and refresh immediately. Persisted IDs keep API names stable across display-name changes and isolate duplicates. The component generates zero UserEvents and has no automatic backend binding. See [ForgeUI Power Flow Card](docs/FORGEUI_POWER_FLOW_CARD.md).
 
 ## KPI Card Runtime SDK quick reference — hardware validated
 
@@ -24,7 +40,7 @@ Physical ESP32-P4 validation confirmed three independent 240 x 145 cards:
 Efficiency `87.4 %` / Good, Temperature `42.7 C` / Warning, and Alarm Count
 `12` / Critical. Each retained its persisted identity and Runtime SDK namespace.
 
-## Device Summary Card Runtime SDK quick reference — ready for hardware validation
+## Device Summary Card Runtime SDK quick reference — hardware validated
 
 ```c
 void FG_Set_<DeviceSummaryCard>_Device_Name(const char * name);

@@ -1,6 +1,6 @@
 # ForgeUI Device Summary Card
 
-Status: **IMPLEMENTED / READY FOR HARDWARE VALIDATION** (2026-08-07)
+Status: **HARDWARE VALIDATED** (ESP32-P4, 2026-08-07)
 
 Device Summary Card is ForgeUI Native Component #12. It is a compact,
 monitoring-only overview of device identity and essential system state, not a

@@ -58,6 +58,7 @@ import { normalizeForgeUITankLevelCard } from './ForgeUITankLevelCard'
 import { normalizeForgeUINetworkStatusCard } from './ForgeUINetworkStatusCard'
 import { normalizeForgeUIDeviceSummaryCard } from './ForgeUIDeviceSummaryCard'
 import { normalizeForgeUIKpiCard } from './ForgeUIKpiCard'
+import { normalizeForgeUIPowerFlowCard } from './ForgeUIPowerFlowCard'
 import {
   getForgeUIStandardSpinboxModel,
   type ForgeUIStandardSpinboxModel,
@@ -705,6 +706,23 @@ const createKpiCardExports = (components: IComponents): Map<string, KpiCardExpor
     const base=toCIdentifier(c.id,'Kpi_Card').replace(/([a-z0-9])([A-Z])/g,'$1_$2'); let stem=base; let suffix=2
     while(used.has(stem)) stem=`${base}_${suffix++}`; used.add(stem); const p=`fg_${stem.toLowerCase()}_kpi`; const model=normalizeForgeUIKpiCard(c.props)
     result.set(c.id,{model,stem,rootName:p,stateLabel:`${p}_state_label`,valueLabel:`${p}_value_label`,unitLabel:`${p}_unit_label`,secondaryLabel:`${p}_secondary_label`,trendLabel:`${p}_trend_label`,targetLabel:`${p}_target_label`,accentName:`${p}_accent`,valueName:`${p}_value`,unitName:`${p}_unit`,secondaryName:`${p}_secondary`,trendTextName:`${p}_trend_text`,trendStateName:`${p}_trend_state`,statusName:`${p}_status`,targetName:`${p}_target`,refreshName:`${p}_refresh`,runtimeEnabled:model.generateRuntimeApi})
+  }); return result
+}
+
+type PowerFlowCardExport = {
+  model: ReturnType<typeof normalizeForgeUIPowerFlowCard>; stem: string; rootName: string
+  gridLabel: string; solarLabel: string; batteryLabel: string; loadLabel: string
+  gridFlowLabel: string; solarFlowLabel: string; batteryFlowLabel: string
+  gridLine: string; solarLine: string; batteryLine: string
+  gridValue: string; solarValue: string; batteryValue: string; loadValue: string
+  gridFlow: string; solarFlow: string; batteryFlow: string; refreshName: string; runtimeEnabled: boolean
+}
+const createPowerFlowCardExports = (components: IComponents): Map<string, PowerFlowCardExport> => {
+  const result=new Map<string,PowerFlowCardExport>(); const used=new Set<string>()
+  Object.values(components).filter(c=>c.type==='PowerFlowCard').sort((a,b)=>a.id.localeCompare(b.id)).forEach(c=>{
+    const base=toCIdentifier(c.id,'Power_Flow_Card').replace(/([a-z0-9])([A-Z])/g,'$1_$2'); let stem=base; let suffix=2
+    while(used.has(stem)) stem=`${base}_${suffix++}`; used.add(stem); const p=`fg_${stem.toLowerCase()}_power_flow`; const model=normalizeForgeUIPowerFlowCard(c.props)
+    result.set(c.id,{model,stem,rootName:p,gridLabel:`${p}_grid_label`,solarLabel:`${p}_solar_label`,batteryLabel:`${p}_battery_label`,loadLabel:`${p}_load_label`,gridFlowLabel:`${p}_grid_flow_label`,solarFlowLabel:`${p}_solar_flow_label`,batteryFlowLabel:`${p}_battery_flow_label`,gridLine:`${p}_grid_line`,solarLine:`${p}_solar_line`,batteryLine:`${p}_battery_line`,gridValue:`${p}_grid_value`,solarValue:`${p}_solar_value`,batteryValue:`${p}_battery_value`,loadValue:`${p}_load_value`,gridFlow:`${p}_grid_flow`,solarFlow:`${p}_solar_flow`,batteryFlow:`${p}_battery_flow`,refreshName:`${p}_refresh`,runtimeEnabled:model.generateRuntimeApi})
   }); return result
 }
 
@@ -3091,6 +3109,7 @@ const buildLvglBlock = (
   networkStatusCardExports: Map<string, NetworkStatusCardExport>,
   deviceSummaryCardExports: Map<string, DeviceSummaryCardExport>,
   kpiCardExports: Map<string, KpiCardExport>,
+  powerFlowCardExports: Map<string, PowerFlowCardExport>,
 ) => {
   ;(component.children || []).forEach((key: string) => {
     const child = components[key]
@@ -4964,6 +4983,21 @@ case 'KpiCard': {
   lines.push(`${card.refreshName}();`); lines.push(``); break
 }
 
+case 'PowerFlowCard': {
+  const card=powerFlowCardExports.get(child.id); if(!card) break; const m=card.model; const cw=Math.max(220,Number(w)); const ch=Math.max(128,Number(h)); const nodeW=62; const nodeH=31; const centreX=Math.floor((cw-nodeW)/2); const loadY=Math.floor((ch-nodeH)/2)+5; const solarY=22; const batteryY=ch-nodeH-7; const gridX=8; const gridY=loadY; const arrowX=Math.floor((gridX+nodeW+centreX)/2)-6
+  lines.push(`${card.rootName}=lv_obj_create(${parentVar}); lv_obj_set_pos(${card.rootName},${x},${y}); lv_obj_set_size(${card.rootName},${w},${h}); lv_obj_clear_flag(${card.rootName},LV_OBJ_FLAG_SCROLLABLE); lv_obj_set_style_pad_all(${card.rootName},0,0); lv_obj_set_style_radius(${card.rootName},8,0); lv_obj_set_style_bg_color(${card.rootName},lv_color_hex(${palette.surface}),0); lv_obj_set_style_border_color(${card.rootName},lv_color_hex(${palette.surfaceBorder}),0); lv_obj_set_style_border_width(${card.rootName},1,0);`)
+  lines.push(`lv_obj_t * ${varName}_title=lv_label_create(${card.rootName}); lv_label_set_text(${varName}_title,"${esc(m.title)}"); lv_obj_set_pos(${varName}_title,9,6); lv_obj_set_width(${varName}_title,${cw-18}); lv_label_set_long_mode(${varName}_title,LV_LABEL_LONG_DOT); lv_obj_set_style_text_font(${varName}_title,&lv_font_montserrat_12,0); lv_obj_set_style_text_color(${varName}_title,lv_color_hex(${palette.textPrimary}),0);`)
+  const makeNode=(label:string,name:string,value:string,nx:number,ny:number,visible:boolean)=>lines.push(`${label}=lv_label_create(${card.rootName}); lv_label_set_text_fmt(${label},"${name}\\n%s",${value}); lv_obj_set_pos(${label},${nx},${ny}); lv_obj_set_size(${label},${nodeW},${nodeH}); lv_label_set_long_mode(${label},LV_LABEL_LONG_DOT); lv_obj_set_style_text_align(${label},LV_TEXT_ALIGN_CENTER,0); lv_obj_set_style_text_font(${label},&lv_font_montserrat_10,0); lv_obj_set_style_text_color(${label},lv_color_hex(${palette.textPrimary}),0); lv_obj_set_style_bg_color(${label},lv_color_hex(${palette.surfaceSecondary}),0); lv_obj_set_style_bg_opa(${label},LV_OPA_COVER,0); lv_obj_set_style_border_color(${label},lv_color_hex(${palette.surfaceBorder}),0); lv_obj_set_style_border_width(${label},1,0); lv_obj_set_style_radius(${label},5,0);${visible?'':` lv_obj_add_flag(${label},LV_OBJ_FLAG_HIDDEN);`}`)
+  makeNode(card.gridLabel,'GRID',card.gridValue,gridX,gridY,m.gridVisible); makeNode(card.solarLabel,'SOLAR',card.solarValue,centreX,solarY,m.solarVisible); makeNode(card.loadLabel,'LOAD',card.loadValue,centreX,loadY,m.loadVisible); makeNode(card.batteryLabel,'BATTERY',card.batteryValue,centreX,batteryY,m.batteryVisible)
+  lines.push(`${card.gridLine}=lv_obj_create(${card.rootName}); lv_obj_set_pos(${card.gridLine},${gridX+nodeW},${loadY+14}); lv_obj_set_size(${card.gridLine},${Math.max(8,centreX-gridX-nodeW)},3); lv_obj_set_style_border_width(${card.gridLine},0,0); lv_obj_clear_flag(${card.gridLine},LV_OBJ_FLAG_SCROLLABLE);`)
+  lines.push(`${card.solarLine}=lv_obj_create(${card.rootName}); lv_obj_set_pos(${card.solarLine},${centreX+30},${solarY+nodeH}); lv_obj_set_size(${card.solarLine},3,${Math.max(6,loadY-solarY-nodeH)}); lv_obj_set_style_border_width(${card.solarLine},0,0); lv_obj_clear_flag(${card.solarLine},LV_OBJ_FLAG_SCROLLABLE);`)
+  lines.push(`${card.batteryLine}=lv_obj_create(${card.rootName}); lv_obj_set_pos(${card.batteryLine},${centreX+30},${loadY+nodeH}); lv_obj_set_size(${card.batteryLine},3,${Math.max(6,batteryY-loadY-nodeH)}); lv_obj_set_style_border_width(${card.batteryLine},0,0); lv_obj_clear_flag(${card.batteryLine},LV_OBJ_FLAG_SCROLLABLE);`)
+  lines.push(`${card.gridFlowLabel}=lv_label_create(${card.rootName}); lv_obj_set_pos(${card.gridFlowLabel},${arrowX},${loadY+7}); lv_obj_set_width(${card.gridFlowLabel},16); lv_obj_set_style_text_align(${card.gridFlowLabel},LV_TEXT_ALIGN_CENTER,0);`)
+  lines.push(`${card.solarFlowLabel}=lv_label_create(${card.rootName}); lv_obj_set_pos(${card.solarFlowLabel},${centreX+22},${solarY+nodeH-4}); lv_obj_set_width(${card.solarFlowLabel},20); lv_obj_set_style_text_align(${card.solarFlowLabel},LV_TEXT_ALIGN_CENTER,0);`)
+  lines.push(`${card.batteryFlowLabel}=lv_label_create(${card.rootName}); lv_obj_set_pos(${card.batteryFlowLabel},${centreX+22},${loadY+nodeH-4}); lv_obj_set_width(${card.batteryFlowLabel},20); lv_obj_set_style_text_align(${card.batteryFlowLabel},LV_TEXT_ALIGN_CENTER,0);`)
+  lines.push(`${card.refreshName}();`); lines.push(``); break
+}
+
 case 'Spinbox': {
   const spinboxExport = spinboxExports.get(child.id)
   if (!spinboxExport) break
@@ -6179,6 +6213,7 @@ case 'TrendChartPro': {
         networkStatusCardExports,
         deviceSummaryCardExports,
         kpiCardExports,
+        powerFlowCardExports,
       )
     }
   })
@@ -6527,6 +6562,7 @@ export const generateForgeUILvglCode = (
   const networkStatusCardExports = createNetworkStatusCardExports(components)
   const deviceSummaryCardExports = createDeviceSummaryCardExports(components)
   const kpiCardExports = createKpiCardExports(components)
+  const powerFlowCardExports = createPowerFlowCardExports(components)
   const fiIconExports = createFiIconExports(
     components,
     usedHookNames,
@@ -7257,7 +7293,7 @@ const backgroundMode =
   lines.push(`#include "freertos/semphr.h"`)
   lines.push(`#include "freertos/task.h"`)
   lines.push(`#include "esp_timer.h"`)
-  if (hasInteractiveButtons || dashboardCardExports.size > 0 || sensorTileExports.size > 0 || relayPanelExports.size > 0 || pwmControllerExports.size > 0 || alarmPanelExports.size > 0 || ioMonitorExports.size > 0 || batteryCardExports.size > 0 || tankLevelCardExports.size > 0 || networkStatusCardExports.size > 0 || deviceSummaryCardExports.size > 0 || kpiCardExports.size > 0 || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
+  if (hasInteractiveButtons || dashboardCardExports.size > 0 || sensorTileExports.size > 0 || relayPanelExports.size > 0 || pwmControllerExports.size > 0 || alarmPanelExports.size > 0 || ioMonitorExports.size > 0 || batteryCardExports.size > 0 || tankLevelCardExports.size > 0 || networkStatusCardExports.size > 0 || deviceSummaryCardExports.size > 0 || kpiCardExports.size > 0 || powerFlowCardExports.size > 0 || listExports.size > 0 || toggleInputExports.size > 0 || threeWayInputExports.size > 0 || ledExports.size > 0 || barExports.size > 0 || arcExports.size > 0 || chartExports.size > 0 || keyboardExports.size > 0 || calendarExports.size > 0 || rollerExports.size > 0 || messageBoxExports.size > 0 || buttonMatrixExports.size > 0 || tabViewExports.size > 0 || tileViewExports.size > 0 || inputExports.size > 0 || switchExports.size > 0 || checkboxExports.size > 0 || radioExports.size > 0 || numberInputExports.size > 0 || selectExports.size > 0 || iconButtonExports.size > 0 || sliderExports.size > 0 || spinboxExports.size > 0 || Array.from(fiIconExports.values()).some(icon => icon.clickEnabled)) {
     lines.push(`#include "95_UserEvents.h"`)
   }
   if (Array.from(fiIconExports.values()).some(icon => icon.runtimeEnabled)) {
@@ -7429,6 +7465,21 @@ const backgroundMode =
       lines.push(`void FG_Set_${k.stem}_Trend_State(int32_t value) { ${k.trendStateName}=value<0?0:(value>2?2:value); ${k.refreshName}(); }`)
       lines.push(`void FG_Set_${k.stem}_Status(int32_t value) { ${k.statusName}=value<0?0:(value>3?3:value); ${k.refreshName}(); }`)
       lines.push(`void FG_Set_${k.stem}_Target_Text(const char * value) { if(!value) value=""; snprintf(${k.targetName},sizeof(${k.targetName}),"%s",value); ${k.refreshName}(); }`)
+    }
+  })
+  powerFlowCardExports.forEach(p => {
+    const flowIndex=(value:string)=>value==='into-centre'?1:value==='out-from-centre'?2:0
+    lines.push(`static lv_obj_t * ${p.rootName}=NULL; static lv_obj_t * ${p.gridLabel}=NULL; static lv_obj_t * ${p.solarLabel}=NULL; static lv_obj_t * ${p.batteryLabel}=NULL; static lv_obj_t * ${p.loadLabel}=NULL; static lv_obj_t * ${p.gridFlowLabel}=NULL; static lv_obj_t * ${p.solarFlowLabel}=NULL; static lv_obj_t * ${p.batteryFlowLabel}=NULL; static lv_obj_t * ${p.gridLine}=NULL; static lv_obj_t * ${p.solarLine}=NULL; static lv_obj_t * ${p.batteryLine}=NULL;`)
+    lines.push(`static char ${p.gridValue}[25]="${esc(p.model.gridValue)}"; static char ${p.solarValue}[25]="${esc(p.model.solarValue)}"; static char ${p.batteryValue}[25]="${esc(p.model.batteryValue)}"; static char ${p.loadValue}[25]="${esc(p.model.loadValue)}"; static int32_t ${p.gridFlow}=${flowIndex(p.model.gridFlow)}; static int32_t ${p.solarFlow}=${flowIndex(p.model.solarFlow)}; static int32_t ${p.batteryFlow}=${flowIndex(p.model.batteryFlow)};`)
+    lines.push(`static void ${p.refreshName}(void) { static const char * horizontal[]={"-",LV_SYMBOL_RIGHT,LV_SYMBOL_LEFT}; static const char * vertical[]={"-",LV_SYMBOL_DOWN,LV_SYMBOL_UP}; const uint32_t active=0x${p.model.activeColour.slice(1)}; const uint32_t inactive=0x${p.model.inactiveColour.slice(1)}; if(${p.gridLabel}) lv_label_set_text_fmt(${p.gridLabel},"GRID\\n%s",${p.gridValue}); if(${p.solarLabel}) lv_label_set_text_fmt(${p.solarLabel},"SOLAR\\n%s",${p.solarValue}); if(${p.batteryLabel}) lv_label_set_text_fmt(${p.batteryLabel},"BATTERY\\n%s",${p.batteryValue}); if(${p.loadLabel}) lv_label_set_text_fmt(${p.loadLabel},"LOAD\\n%s",${p.loadValue}); if(${p.gridFlowLabel}) { lv_label_set_text(${p.gridFlowLabel},horizontal[${p.gridFlow}]); lv_obj_set_style_text_color(${p.gridFlowLabel},lv_color_hex(${p.gridFlow}?active:inactive),0); } if(${p.solarFlowLabel}) { lv_label_set_text(${p.solarFlowLabel},vertical[${p.solarFlow}]); lv_obj_set_style_text_color(${p.solarFlowLabel},lv_color_hex(${p.solarFlow}?active:inactive),0); } if(${p.batteryFlowLabel}) { lv_label_set_text(${p.batteryFlowLabel},vertical[${p.batteryFlow}]); lv_obj_set_style_text_color(${p.batteryFlowLabel},lv_color_hex(${p.batteryFlow}?active:inactive),0); } if(${p.gridLine}) lv_obj_set_style_bg_color(${p.gridLine},lv_color_hex(${p.gridFlow}?active:inactive),0); if(${p.solarLine}) lv_obj_set_style_bg_color(${p.solarLine},lv_color_hex(${p.solarFlow}?active:inactive),0); if(${p.batteryLine}) lv_obj_set_style_bg_color(${p.batteryLine},lv_color_hex(${p.batteryFlow}?active:inactive),0); }`)
+    if(p.runtimeEnabled) {
+      lines.push(`void FG_Set_${p.stem}_Grid_Value(const char * value) { if(!value) value=""; snprintf(${p.gridValue},sizeof(${p.gridValue}),"%s",value); ${p.refreshName}(); }`)
+      lines.push(`void FG_Set_${p.stem}_Grid_Flow(int32_t value) { ${p.gridFlow}=value<0?0:(value>2?2:value); ${p.refreshName}(); }`)
+      lines.push(`void FG_Set_${p.stem}_Solar_Value(const char * value) { if(!value) value=""; snprintf(${p.solarValue},sizeof(${p.solarValue}),"%s",value); ${p.refreshName}(); }`)
+      lines.push(`void FG_Set_${p.stem}_Solar_Flow(int32_t value) { ${p.solarFlow}=value<0?0:(value>2?2:value); ${p.refreshName}(); }`)
+      lines.push(`void FG_Set_${p.stem}_Battery_Value(const char * value) { if(!value) value=""; snprintf(${p.batteryValue},sizeof(${p.batteryValue}),"%s",value); ${p.refreshName}(); }`)
+      lines.push(`void FG_Set_${p.stem}_Battery_Flow(int32_t value) { ${p.batteryFlow}=value<0?0:(value>2?2:value); ${p.refreshName}(); }`)
+      lines.push(`void FG_Set_${p.stem}_Load_Value(const char * value) { if(!value) value=""; snprintf(${p.loadValue},sizeof(${p.loadValue}),"%s",value); ${p.refreshName}(); }`)
     }
   })
   alarmPanelExports.forEach(alarm => {
@@ -10086,6 +10137,7 @@ lines.push(`    fg_system_root = parent;`)
         networkStatusCardExports,
         deviceSummaryCardExports,
         kpiCardExports,
+        powerFlowCardExports,
       )
   }
 
@@ -10842,6 +10894,11 @@ lines.push(`}`)
         `void FG_Set_${k.stem}_Secondary_Text(const char * value);`, `void FG_Set_${k.stem}_Trend_Text(const char * value);`,
         `void FG_Set_${k.stem}_Trend_State(int32_t value);`, `void FG_Set_${k.stem}_Status(int32_t value);`,
         `void FG_Set_${k.stem}_Target_Text(const char * value);`,
+      ])).concat(Array.from(powerFlowCardExports.values()).filter(p=>p.runtimeEnabled).flatMap(p=>[
+        `void FG_Set_${p.stem}_Grid_Value(const char * value);`, `void FG_Set_${p.stem}_Grid_Flow(int32_t value);`,
+        `void FG_Set_${p.stem}_Solar_Value(const char * value);`, `void FG_Set_${p.stem}_Solar_Flow(int32_t value);`,
+        `void FG_Set_${p.stem}_Battery_Value(const char * value);`, `void FG_Set_${p.stem}_Battery_Flow(int32_t value);`,
+        `void FG_Set_${p.stem}_Load_Value(const char * value);`,
       ])).concat(Array.from(barExports.values()).map(
         barExport => `void ${barExport.apiName}(int32_t value);`,
       )).concat(Array.from(progressExports.values()).map(

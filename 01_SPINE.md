@@ -6,7 +6,7 @@
 
 The practical LVGL 9.2 foundation remains **44 / 44 physically proven on
 ESP32-P4**; Lottie remains intentionally excluded. The Native Component ledger
-contains ten current components. Dashboard Card, Sensor Tile, Relay Panel, PWM
+contains fourteen current components. Dashboard Card, Sensor Tile, Relay Panel, PWM
 Controller, Trend Chart, and Trend Chart Pro are **PROVEN**. Alarm Panel is
 **HARDWARE VALIDATED**: its fresh standalone export built,
 flashed, and rendered correctly on ESP32-P4, while extended runtime interaction
@@ -42,10 +42,7 @@ It intentionally emits no UserEvents. **Tank Level Card**, Native Component #10,
 is **HARDWARE VALIDATED** through Studio, Inspector, Browser Preview, Live Studio,
 generated LVGL, Runtime SDK, duplicate isolation, ESP-IDF build, ESP32-P4 flash,
 physical rendering, and Browser/Live/Export parity. It is display-only and emits
-no UserEvents. **Network Status Card** is the next Native Component; implementation
-has not started. The Proof Module, Hardware Simulator,
-automated Runtime SDK proof harness, ESP-Hosted startup investigation, and export
-infrastructure improvements remain deferred.
+no UserEvents. **Power Flow Card**, Native Component #14 and the final component in the current planned card run, is **HARDWARE VALIDATED**. Its bounded Grid/Solar/Battery/Load topology uses visible static none/inward/outward flow, readable node values, seven silent persisted-ID setters, duplicate isolation, shared Browser/Live preview, deterministic LVGL and zero UserEvents. Device Summary Card is also **HARDWARE VALIDATED**. The four-card physical dashboard operated Network Status Card, KPI / Efficiency Card, Power Flow Card, and Device Summary Card simultaneously with connected Wi-Fi, mounted SD, System Settings, Diagnostics, and software/NVS RTC fallback while external RTC was disabled. This is practical coexistence proof, not a formal stress test. The next documented phase is the **FORGEUI HARDWARE I/O PROOF PROGRAM**; no implementation begins in this closure pass.
 
 Earlier dated save points below are historical records and are superseded only
 where they describe the then-current Native Component count or next component.

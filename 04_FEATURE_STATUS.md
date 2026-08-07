@@ -5,11 +5,11 @@
 **ESP32-P4 EXPORTED AND FLASHED — INITIAL PHYSICAL VALIDATION COMPLETE**
 
 - Practical LVGL 9.2: **44 / 44 PROVEN on ESP32-P4**. Lottie remains intentionally excluded.
-- Native Components: **13 current; Dashboard Card through Trend Chart Pro PROVEN; Alarm Panel, IO Monitor, Battery Card, Tank Level Card, Network Status Card, and KPI Card HARDWARE VALIDATED; Device Summary Card IMPLEMENTED / READY FOR HARDWARE VALIDATION**.
+- Native Components: **14 current; Dashboard Card through Trend Chart Pro PROVEN; Alarm Panel, IO Monitor, Battery Card, Tank Level Card, Network Status Card, Device Summary Card, KPI Card, and Power Flow Card HARDWARE VALIDATED**.
 - Battery Card: **HARDWARE VALIDATED**; intentionally read-only with no UserEvents.
 - Tank Level Card: **HARDWARE VALIDATED**; intentionally display-only with no UserEvents.
 - Network Status Card: **HARDWARE VALIDATED**; read-only live Wi-Fi monitoring with no UserEvents.
-- Deferred without change: Simulator / Proof Module, automated Runtime SDK proof harness, ESP-Hosted startup investigation, and further export infrastructure.
+- Deferred without change: the Hardware I/O Proof Program, ESP-Hosted host/co-processor version mismatch warning, 32 MB physical flash versus 16 MB binary-header warning, GPIO32 LEDC display-startup warning, and further export infrastructure.
 
 | Native Component | Current status | Certified scope |
 |---|---|---|
@@ -24,8 +24,9 @@
 | Battery Card | **HARDWARE VALIDATED** | Read-only monitoring; seven silent persisted-ID setters; rename stability and duplicate isolation; Browser/Live/generated LVGL parity; battery icon, spacing/padding, and metric-tile parity; ESP-IDF 5.5.4 build, flash, and physical rendering; no exhaustive physical Runtime SDK interaction proof claimed |
 | Tank Level Card | **HARDWARE VALIDATED** | Read-only monitoring; six silent persisted-ID setters; rename stability and duplicate isolation; Studio, Inspector, Browser Preview, Live Studio, generated LVGL, ESP-IDF build, flash, physical rendering, and Browser/Live/Export parity; no UserEvents |
 | Network Status Card | **HARDWARE VALIDATED** | Read-only monitoring; six silent persisted-ID setters; rename stability and duplicate isolation; Studio/Browser/Live/LVGL parity; live disconnected/connected, SSID, DHCP IPv4, RSSI-derived signal, and Online/Offline projection physically confirmed on ESP32-P4 without opening the System Wi-Fi Manager; no UserEvents |
-| Device Summary Card | **IMPLEMENTED / READY FOR HARDWARE VALIDATION** | Monitoring-only device identity, status, uptime, firmware, network, and storage summary; six silent persisted-ID setters; duplicate isolation; Studio/Browser/Live/LVGL parity; 240 x 145 default and 220 x 128 minimum; no UserEvents |
+| Device Summary Card | **HARDWARE VALIDATED** | Monitoring-only device identity, status, uptime, firmware, network, and storage summary; six silent persisted-ID setters; duplicate isolation; Studio/Browser/Live/LVGL parity; 240 x 145 default and 220 x 128 minimum; correct physical ESP32-P4 rendering in the four-card dashboard; no UserEvents |
 | KPI Card | **HARDWARE VALIDATED** | Generic monitoring-only KPI value, unit, context, trend, target, and semantic status; seven silent persisted-ID setters; duplicate isolation; Studio/Browser/Live/LVGL parity; compact 240 x 145 physical ESP32-P4 proof; 220 x 128 minimum; no UserEvents |
+| Power Flow Card | **HARDWARE VALIDATED** | Bounded Grid/Solar/Battery/Load topology; visible static directions and readable node values; seven silent persisted-ID setters; duplicate isolation and rename stability; Studio/Browser/Live/LVGL parity; 240 x 145 default and 220 x 128 minimum; correct physical ESP32-P4 rendering; zero UserEvents |
 
 Trend Chart Pro does not replace Trend Chart. Certification also removed the
 partial-history tail artifact and unwanted LVGL point dots, placed threshold
@@ -49,7 +50,7 @@ widgets/components and 44 physically proven on ESP32-P4**. Window and Menu are
 
 Widget Registry architecture cleanup is complete at the metadata boundary:
 
-- all 49 registered entries have explicit API, UserEvent, input,
+- all 50 registered entries have explicit API, UserEvent, input,
   Interactive-Asset and child-ownership capabilities;
 - metadata is aligned with generated `publicApiDeclarations` and
   `userEventHooks`;
@@ -175,11 +176,13 @@ Current Native Component roadmap:
 10. Tank Level Card — **HARDWARE VALIDATED — DISPLAY-ONLY; BROWSER/LIVE/GENERATED LVGL PARITY, DUPLICATE ISOLATION, ESP-IDF BUILD, ESP32-P4 FLASH, AND PHYSICAL RENDERING CONFIRMED; NO USEREVENTS**
 11. Network Status Card — **HARDWARE VALIDATED — READ-ONLY; LIVE WI-FI PROJECTION, DUPLICATE ISOLATION, ESP-IDF BUILD, ESP32-P4 FLASH, AND APPLICATION-PAGE UPDATES CONFIRMED; NO USEREVENTS**
 
-12. Device Summary Card — **IMPLEMENTED / READY FOR HARDWARE VALIDATION — MONITORING-ONLY; STACKABLE 240 x 145 DEFAULT, SIX SILENT PERSISTED-ID SETTERS, DUPLICATE ISOLATION, BROWSER/LIVE/LVGL PARITY, AND NO USEREVENTS**
+12. Device Summary Card — **HARDWARE VALIDATED — MONITORING-ONLY; STACKABLE 240 x 145 DEFAULT, SIX SILENT PERSISTED-ID SETTERS, DUPLICATE ISOLATION, BROWSER/LIVE/LVGL PARITY, PHYSICAL ESP32-P4 RENDERING, AND NO USEREVENTS**
 
 13. KPI Card — **HARDWARE VALIDATED — GENERIC MONITORING-ONLY KPI; THREE INDEPENDENT 240 x 145 CARDS PHYSICALLY CONFIRMED ON ESP32-P4, SEVEN SILENT PERSISTED-ID SETTERS, DUPLICATE ISOLATION, BROWSER/LIVE/LVGL PARITY, AND NO USEREVENTS**
 
-Next certification gate: **Device Summary Card physical ESP32-P4 rendering**.
+14. Power Flow Card — **HARDWARE VALIDATED — BOUNDED FOUR-NODE MONITORING TOPOLOGY; VISIBLE STATIC FLOW DIRECTIONS AND READABLE VALUES; SEVEN SILENT PERSISTED-ID SETTERS; DUPLICATE ISOLATION; BROWSER/LIVE/LVGL PARITY; 240 x 145 DEFAULT, 220 x 128 MINIMUM; PHYSICAL ESP32-P4 RENDERING; ZERO USEREVENTS**
+
+The planned fourteen-component Native Component development and certification run is complete. The next phase is the **FORGEUI HARDWARE I/O PROOF PROGRAM**, documented only in this closure pass.
 
 This roadmap supersedes the historical PWM proof-ready paragraph below.
 4. PWM Controller — **NEXT**
