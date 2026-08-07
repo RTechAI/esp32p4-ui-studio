@@ -20,8 +20,30 @@ const {
   shouldCopyFirmwareSource,
   generateIdfComponentManifest,
   resolveFirmwareBuild,
+  appendHardwareExample01Source,
   validateExportPayload,
 } = require('./export-server')
+
+describe('Hardware Example 01 developer source ownership', () => {
+  it('retains the developer module only for the exact generated contracts', () => {
+    const mainDir = fs.mkdtempSync(path.join(os.tmpdir(), 'forgeui-hw-example-'))
+    fs.writeFileSync(path.join(mainDir, '96_Hardware_Example_01.c'), '')
+    const sources = ['"main.c"', '"95_UserEvents.c"']
+    appendHardwareExample01Source(sources, mainDir, [
+      'void FG_Set_Indicator1(bool on);',
+      'void FG_Set_Indicator2(bool on);',
+    ], [
+      'FG_On_LED1_Toggle_Changed',
+      'FG_On_LED2_Toggle_Changed',
+    ])
+    expect(sources).toContain('"96_Hardware_Example_01.c"')
+
+    const unrelated = ['"main.c"', '"95_UserEvents.c"']
+    appendHardwareExample01Source(unrelated, mainDir, [], [])
+    expect(unrelated).not.toContain('"96_Hardware_Example_01.c"')
+    fs.rmSync(mainDir, { recursive: true, force: true })
+  })
+})
 
 describe('generated public UI API headers', () => {
   it('generates typed PWM value and enabled hooks with developer-owned hardware guidance', () => {

@@ -1,0 +1,51 @@
+# FORGEUI HARDWARE EXAMPLES — NEXT: I2C PHYSICAL PROOF
+
+## Established baseline
+
+- The ForgeUI Native Component platform is already proven.
+- Hardware Example infrastructure now exists in the Studio left tray.
+- Hardware Example 01 establishes the editable GPIO input/output pattern for
+  the Waveshare ESP32-P4-WIFI6-Touch-LCD-7B.
+- The board master is
+  `11_ESP32_P4_WIFI6_TOUCH_7B_BOARD_PINOUT_MASTER.md`; Example 01 is `11.01`.
+- Developer-owned hardware behavior lives outside generated LVGL and uses the
+  public generated Runtime SDK and genuine UserEvents.
+- The board rear-photograph, connector evidence, pin-ownership audit, allocation
+  register, and evidence-based physical-proof rules are established.
+- Example 01 outputs are physically proven. Its input paths still require
+  explicit physical confirmation; do not infer that proof.
+
+## Next mission: Hardware Example 02
+
+Choose one real I2C breakout from Scott's physical parts kit. Do not guess the
+module. First record:
+
+- manufacturer, model, and chip;
+- clear front and rear photographs;
+- all printed pin labels;
+- operating voltage;
+- I2C address and address-selection options;
+- interrupt pins, if present; and
+- authoritative module documentation and chip datasheet.
+
+Then audit the existing board master and current BSP/firmware ownership for the
+correct available I2C connection. Do not assume that a photographed connector or
+an I2C-labelled header is electrically available without reconciling ownership.
+
+Create:
+
+`11.02_ESP32_P4_WIFI6_TOUCH_7B__EXAMPLE_02__<DEVICE>.md`
+
+Keep the first I2C proof deliberately simple:
+
+`physical I2C device → developer driver/read logic → ForgeUI Runtime SDK → live editable widget`
+
+Where appropriate, also prove:
+
+`ForgeUI control → genuine UserEvent → developer-owned I2C write → physical device`
+
+Leave behind an editable UI, wiring guide, developer code, generated API usage,
+physical proof record, and board allocation update. Continue progressively:
+GPIO → I2C → sensors/actuators → joystick/ADC/PWM → I3C → CAN → RS485 → Modbus.
+
+Physical proof must remain evidence-based throughout.

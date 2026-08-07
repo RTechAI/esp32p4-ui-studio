@@ -18,6 +18,7 @@
 #include "00_ForgeUI_Config.h"
 
 #include "01_FG_Runtime.h"
+#include "96_Hardware_Example_01.h"
 
 void fg_sidebar_init(void);
 
@@ -63,6 +64,7 @@ void app_main(void)
     bsp_display_lock(0);
     fg_runtime_init();
     bsp_display_unlock();
+    fg_hardware_example_01_init();
     ESP_LOGI(TAG, "BOOT 20 UI init returned heap=%u min_heap=%u",
              (unsigned)esp_get_free_heap_size(),
              (unsigned)esp_get_minimum_free_heap_size());
@@ -157,7 +159,8 @@ void app_main(void)
 
     while (1)
     {
-        vTaskDelay(pdMS_TO_TICKS(50));
+        vTaskDelay(pdMS_TO_TICKS(10));
+        fg_hardware_example_01_poll();
 
 #if FORGEUI_ENABLE_WIFI
         // ---- WIFI SERVICE PUMP ----

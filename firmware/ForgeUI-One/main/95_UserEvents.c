@@ -17,4 +17,31 @@
 
 #include "95_UserEvents.h"
 #include "90_Studio_Export.h"
+#include "96_Hardware_Example_01.h"
 #include <stdio.h>
+
+void FG_On_Indicator1_Changed(bool enabled)
+{
+    printf("[ForgeUI User Event] Indicator1 changed: %s\n",
+           enabled ? "ON" : "OFF");
+}
+
+void FG_On_Indicator2_Changed(bool enabled)
+{
+    printf("[ForgeUI User Event] Indicator2 changed: %s\n",
+           enabled ? "ON" : "OFF");
+}
+
+void FG_On_LED1_Toggle_Changed(bool checked)
+{
+    fg_hardware_example_01_set_led1(checked);
+    printf("[ForgeUI User Event] LED1 Toggle changed: %s\n",
+           checked ? "ON" : "OFF");
+}
+
+void FG_On_LED2_Toggle_Changed(bool checked)
+{
+    fg_hardware_example_01_set_led2(checked);
+    printf("[ForgeUI User Event] LED2 Toggle changed: %s\n",
+           checked ? "ON" : "OFF");
+}

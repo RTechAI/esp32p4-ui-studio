@@ -1348,6 +1348,33 @@ function resolveFirmwareBuild(project) {
   return { ...normalized, sources, components }
 }
 
+function appendHardwareExample01Source(
+  sources,
+  mainDir,
+  publicApiDeclarations = [],
+  userEventHooks = [],
+) {
+  const sourceName = '96_Hardware_Example_01.c'
+  const requiredDeclarations = new Set([
+    'void FG_Set_Indicator1(bool on);',
+    'void FG_Set_Indicator2(bool on);',
+  ])
+  const requiredHooks = new Set([
+    'FG_On_LED1_Toggle_Changed',
+    'FG_On_LED2_Toggle_Changed',
+  ])
+  const hasContracts = [...requiredDeclarations].every(contract =>
+    publicApiDeclarations.includes(contract)
+  ) && [...requiredHooks].every(hook => userEventHooks.includes(hook))
+  const sourceEntry = `"${sourceName}"`
+  if (
+    hasContracts &&
+    fs.existsSync(path.join(mainDir, sourceName)) &&
+    !sources.includes(sourceEntry)
+  ) sources.push(sourceEntry)
+  return sources
+}
+
 function validateSpinboxHelperGeometry(code, diagnostics) {
   const spinboxPattern =
     /([A-Za-z_][A-Za-z0-9_]*)\s*=\s*lv_spinbox_create\(([A-Za-z_][A-Za-z0-9_]*)\);/g
@@ -2238,6 +2265,12 @@ const cmakeSources = [
   `"${defaultHeroCSource}"`,
 ]
 if (hasFiRuntime) cmakeSources.push('"96_FiRuntime.c"')
+appendHardwareExample01Source(
+  cmakeSources,
+  mainDir,
+  publicApiDeclarations,
+  userEventHooks,
+)
 
 appendAssetSourcesToCMake(cmakeSources, assetSources)
 
@@ -2506,6 +2539,12 @@ const cmakeSources = [
   `"${defaultHeroCSource}"`,
 ]
 if (hasFiRuntime) cmakeSources.push('"96_FiRuntime.c"')
+appendHardwareExample01Source(
+  cmakeSources,
+  path.join(exportDir, 'main'),
+  publicApiDeclarations,
+  userEventHooks,
+)
 
 appendAssetSourcesToCMake(cmakeSources, assetSources)
 
@@ -2770,5 +2809,6 @@ module.exports = {
   shouldCopyFirmwareSource,
   generateIdfComponentManifest,
   resolveFirmwareBuild,
+  appendHardwareExample01Source,
   validateExportPayload,
 }

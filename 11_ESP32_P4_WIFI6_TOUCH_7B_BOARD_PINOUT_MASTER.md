@@ -202,10 +202,39 @@ P4 GPIO26 is RS485 UART TX into the transceiver and GPIO27 is RX from it. The co
 
 | Proof | Purpose | GPIO | Direction | Hardware | Status |
 |---|---|---:|---|---|---|
-| Hardware I/O Proof #1 | Physical button input | TBD | Input | Momentary pushbutton | NOT ALLOCATED |
-| Hardware I/O Proof #1 | Physical LED output | TBD | Output | LED + resistor | NOT ALLOCATED |
+| Hardware Example 01 | Button 1 | 2 | Active-low input, internal pull-up | Momentary button to GND | INPUT PROOF PENDING |
+| Hardware Example 01 | LED 1 | 3 | Active-high output, initially LOW | LED + 330-ohm resistor to GND | OUTPUT PHYSICALLY PROVEN 2026-08-08 |
+| Hardware Example 01 | Button 2 | 4 | Active-low input, internal pull-up | Momentary button to GND | INPUT PROOF PENDING |
+| Hardware Example 01 | LED 2 | 5 | Active-high output, initially LOW | LED + 330-ohm resistor to GND | OUTPUT PHYSICALLY PROVEN 2026-08-08 |
 
-No pin is allocated merely by appearing in the candidate table. Allocation requires a proof-specific wiring review.
+These allocations were reconciled with the ForgeUI board profile, compiled BSP,
+firmware configuration, official board documentation, schematic evidence and the
+rear-board photograph. The photograph proves connector identity and access, not
+electrical safety by itself. See the board-specific example record
+`11.01_ESP32_P4_WIFI6_TOUCH_7B__EXAMPLE_01__BUTTONS_LEDS.md`.
+
+### Example 01 physical evidence — 2026-08-08
+
+Scott flashed the current build to the actual Waveshare
+`ESP32-P4-WIFI6-Touch-LCD-7B` and directly measured both output GPIOs:
+
+| GPIO | UI command | Measured result | Evidence status |
+|---:|---|---:|---|
+| 3 | LED 1 touchscreen switch OFF | approximately 0 V | Physically proven |
+| 3 | LED 1 touchscreen switch ON | approximately 3.3 V | Physically proven |
+| 5 | LED 2 touchscreen switch OFF | approximately 0 V | Physically proven |
+| 5 | LED 2 touchscreen switch ON | approximately 3.3 V | Physically proven |
+
+Both physical LED test circuits operated when their local normally-off
+enable/slider/interlock was switched ON. This local interlock is part of the test
+hardware, not ForgeUI or the ESP32-P4 GPIO path.
+
+No explicit physical confirmation for GPIO2 Button 1 → Indicator 1 or GPIO4
+Button 2 → Indicator 2 is present in the closeout evidence. Therefore:
+
+- **OUTPUT SIDE — PHYSICALLY PROVEN**
+- **INPUT SIDE — AWAITING FINAL PHYSICAL CONFIRMATION**
+- **WHOLE EXAMPLE — NOT YET PHYSICALLY PROVEN**
 
 ## 8. Electrical rules
 
@@ -253,10 +282,19 @@ The Project Hardware Profile remains authoritative for generated export configur
 
 If the board profile changes, this document must be reviewed and aligned.
 
+Every new ForgeUI development board receives its own numbered board-master
+Markdown record, physical rear-board evidence, pin-ownership audit, and numbered
+board-specific Hardware Example records. Example records refer back to the board
+master and never replace its allocation register.
+
 ## 11. Audit conclusion
 
 - Current unrestricted general-I/O candidates: **GPIO2, GPIO3, GPIO4, GPIO5, GPIO28, GPIO29, GPIO30 and GPIO31**.
 - Restricted candidate: **GPIO34**, because it is a strapping pin.
 - Do not use header GPIO36: it is a strapping pin and is tied to board battery/indicator circuitry in the official schematic.
-- At least two unrestricted GPIOs are available for Hardware I/O Proof #1, but **none have been allocated** in this document.
-- Hardware I/O Proof #1 remains **NOT ALLOCATED** and is not proven.
+- Hardware Example 01 allocates GPIO2/GPIO4 to active-low buttons and GPIO3/GPIO5
+  to active-high LEDs.
+- Hardware Example 01 output GPIO3/GPIO5 paths are **PHYSICALLY PROVEN** on the
+  actual board; GPIO2/GPIO4 input paths await final physical confirmation.
+- The whole example remains **NOT YET PHYSICALLY PROVEN** until both input paths
+  and simultaneous/independent operation are explicitly confirmed.

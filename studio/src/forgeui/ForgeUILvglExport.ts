@@ -6354,10 +6354,31 @@ export const gateForgeUIGeneratedSystemCode = (
   }
 
   if (!features.settingsLauncher) {
-    const declarationStart =
-      'static lv_obj_t * fg_system_launcher_page = NULL;'
-    const declarationEnd = '// ForgeUI LVGL Export Proof V1'
-    code = removeGeneratedRange(code, declarationStart, declarationEnd)
+    removeFunctions.push(name =>
+      name.startsWith('fg_system_') ||
+      name.startsWith('fg_wifi_') ||
+      name.startsWith('fg_keyboard_') ||
+      name.startsWith('fg_storage_') ||
+      name.startsWith('fg_diagnostics_'),
+    )
+    code = removeTopLevelGeneratedFunctions(
+      code,
+      name => removeFunctions.some(predicate => predicate(name)),
+    )
+    const systemTokens = [
+      'fg_system_',
+      'fg_wifi_',
+      'FG_WIFI_',
+      'fg_storage_',
+      'FG_STORAGE_',
+      'fg_diagnostics_',
+      'LV_SYMBOL_BLUETOOTH',
+      'LV_SYMBOL_VOLUME_MAX',
+      'LV_SYMBOL_HOME "\\nDevice',
+    ]
+    code = code.split(/\r?\n/).filter(
+      line => !systemTokens.some(token => line.includes(token)),
+    ).join('\n')
     const gearStart = code.lastIndexOf(
       '    LV_IMAGE_DECLARE(fg_icon_settings_fi_48px);',
     )
@@ -7711,10 +7732,12 @@ const backgroundMode =
   switchExports.forEach(switchExport => {
     lines.push(`static lv_obj_t * ${switchExport.objectName} = NULL;`)
     lines.push(`static bool ${switchExport.programmaticUpdateName} = false;`)
+    lines.push(`static void ${switchExport.eventCallbackName}(lv_event_t * event);`)
   })
   checkboxExports.forEach(checkboxExport => {
     lines.push(`static lv_obj_t * ${checkboxExport.objectName} = NULL;`)
     lines.push(`static bool ${checkboxExport.programmaticUpdateName} = false;`)
+    lines.push(`static void ${checkboxExport.eventCallbackName}(lv_event_t * event);`)
   })
   radioExports.forEach(radioExport => {
     lines.push(`static lv_obj_t * ${radioExport.objectName} = NULL;`)

@@ -48,6 +48,7 @@ import {
   openToggleCreator,
 } from '~forgeui/ForgeUINavigation'
 import { FORGEUI_ACTIVE_DEVICE } from '~forgeui/ForgeUIDeviceConfig'
+import { HardwareExamplesPanel } from '~forgeui/hardwareExamples/HardwareExamplesPanel'
 
 type TrayEntry = {
   id: string
@@ -374,6 +375,7 @@ const Menu = () => {
             },
           }}
         >
+          {!searchTerm && <HardwareExamplesPanel />}
           {!hasResults && (
             <Box
               color="gray.400"

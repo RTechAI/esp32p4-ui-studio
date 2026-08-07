@@ -3,9 +3,3 @@ dependencies:
   lvgl/lvgl:
     version: 9.2.*
     public: true
-
-  espressif/esp_wifi_remote:
-    version: "1.3.*"
-
-  espressif/esp_hosted:
-    version: "2.9.*"

@@ -43,13 +43,19 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- None
+- `FG_On_Indicator1_Changed()`
+- `FG_On_Indicator2_Changed()`
+- `FG_On_LED1_Toggle_Changed()`
+- `FG_On_LED2_Toggle_Changed()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| None | - | - |
+| Indicator1_Changed | Click | `FG_On_Indicator1_Changed()` |
+| Indicator2_Changed | Click | `FG_On_Indicator2_Changed()` |
+| LED1_Toggle_Changed | Click | `FG_On_LED1_Toggle_Changed()` |
+| LED2_Toggle_Changed | Click | `FG_On_LED2_Toggle_Changed()` |
 
 ---
 

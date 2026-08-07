@@ -1,0 +1,76 @@
+const component = (
+  id: string,
+  type: ComponentType,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  props: Record<string, unknown>,
+  componentName?: string,
+): IComponent => ({
+  id,
+  parent: 'root',
+  type,
+  componentName,
+  props: { positionMode: 'absolute', x, y, w, h, ...props },
+  children: [],
+  rootParentType: type,
+})
+
+export const HARDWARE_EXAMPLE_01_PROJECT: IComponents = {
+  root: {
+    id: 'root',
+    parent: 'root',
+    type: 'Box',
+    props: { backgroundColor: '#121417' },
+    children: [
+      'example-title', 'example-subtitle',
+      'inputs-title', 'indicator1-label', 'indicator1',
+      'indicator2-label', 'indicator2',
+      'outputs-title', 'led1-label', 'led1-toggle',
+      'led2-label', 'led2-toggle',
+    ],
+  },
+  'example-title': component('example-title', 'Heading', 64, 38, 896, 54,
+    { children: 'HARDWARE EXAMPLE 01', fontSize: '3xl' }),
+  'example-subtitle': component('example-subtitle', 'Text', 66, 96, 896, 36,
+    { children: '2 BUTTONS + 2 LEDS', fontSize: 'xl' }),
+  'inputs-title': component('inputs-title', 'Heading', 90, 166, 360, 40,
+    { children: 'PHYSICAL INPUTS', fontSize: 'lg' }),
+  'indicator1-label': component('indicator1-label', 'Text', 110, 232, 210, 34,
+    { children: 'Button 1      Indicator 1', fontSize: 'lg' }),
+  indicator1: component('indicator1', 'Led', 342, 231, 36, 36,
+    { on: false }, 'Indicator1'),
+  'indicator2-label': component('indicator2-label', 'Text', 110, 306, 210, 34,
+    { children: 'Button 2      Indicator 2', fontSize: 'lg' }),
+  indicator2: component('indicator2', 'Led', 342, 305, 36, 36,
+    { on: false }, 'Indicator2'),
+  'outputs-title': component('outputs-title', 'Heading', 574, 166, 360, 40,
+    { children: 'PHYSICAL OUTPUTS', fontSize: 'lg' }),
+  'led1-label': component('led1-label', 'Text', 594, 232, 190, 34,
+    { children: 'LED1 Toggle', fontSize: 'lg' }),
+  'led1-toggle': component('led1-toggle', 'Switch', 820, 229, 64, 36,
+    { isChecked: false }, 'LED1 Toggle'),
+  'led2-label': component('led2-label', 'Text', 594, 306, 190, 34,
+    { children: 'LED2 Toggle', fontSize: 'lg' }),
+  'led2-toggle': component('led2-toggle', 'Switch', 820, 303, 64, 36,
+    { isChecked: false }, 'LED2 Toggle'),
+}
+
+export const HARDWARE_EXAMPLE_01 = {
+  id: 'hardware-example-01',
+  number: 1,
+  name: '2 Buttons + 2 LEDs',
+  board: 'Waveshare ESP32-P4-WIFI6-Touch-LCD-7B',
+  guide: '11.01_ESP32_P4_WIFI6_TOUCH_7B__EXAMPLE_01__BUTTONS_LEDS.md',
+  gpio: {
+    button1: 2,
+    led1: 3,
+    button2: 4,
+    led2: 5,
+  },
+  status: 'OUTPUTS PHYSICALLY PROVEN — INPUT CONFIRMATION PENDING',
+  project: HARDWARE_EXAMPLE_01_PROJECT,
+} as const
+
+export const HARDWARE_EXAMPLES = [HARDWARE_EXAMPLE_01] as const

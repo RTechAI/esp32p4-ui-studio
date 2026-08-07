@@ -26,7 +26,10 @@ typedef enum
 extern "C" {
 #endif
 
-
+void FG_On_Indicator1_Changed(bool enabled);
+void FG_On_Indicator2_Changed(bool enabled);
+void FG_On_LED1_Toggle_Changed(bool checked);
+void FG_On_LED2_Toggle_Changed(bool checked);
 
 #ifdef __cplusplus
 }
