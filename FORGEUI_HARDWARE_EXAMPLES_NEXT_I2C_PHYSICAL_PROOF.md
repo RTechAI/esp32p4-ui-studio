@@ -12,13 +12,18 @@
   public generated Runtime SDK and genuine UserEvents.
 - The board rear-photograph, connector evidence, pin-ownership audit, allocation
   register, and evidence-based physical-proof rules are established.
-- Example 01 outputs are physically proven. Its input paths still require
-  explicit physical confirmation; do not infer that proof.
+- Hardware Example 01 is the first fully physically proven ForgeUI Hardware
+  Example. It proves physical digital input → ForgeUI UI and ForgeUI UI →
+  physical digital output, while preserving the developer-owned hardware-code,
+  generated Runtime SDK, and genuine UserEvent boundaries.
+- Example 01 also establishes board-specific wiring/proof documentation and a
+  permanent board GPIO allocation/proof record.
 
 ## Next mission: Hardware Example 02
 
-Choose one real I2C breakout from Scott's physical parts kit. Do not guess the
-module. First record:
+Scott will supply the physical breakout and front/rear photographs in the next
+session. Choose one real I2C breakout from that evidence; do not guess or invent
+the device. First record:
 
 - manufacturer, model, and chip;
 - clear front and rear photographs;

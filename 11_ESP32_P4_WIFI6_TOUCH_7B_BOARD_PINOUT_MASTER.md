@@ -202,10 +202,10 @@ P4 GPIO26 is RS485 UART TX into the transceiver and GPIO27 is RX from it. The co
 
 | Proof | Purpose | GPIO | Direction | Hardware | Status |
 |---|---|---:|---|---|---|
-| Hardware Example 01 | Button 1 | 2 | Active-low input, internal pull-up | Momentary button to GND | INPUT PROOF PENDING |
-| Hardware Example 01 | LED 1 | 3 | Active-high output, initially LOW | LED + 330-ohm resistor to GND | OUTPUT PHYSICALLY PROVEN 2026-08-08 |
-| Hardware Example 01 | Button 2 | 4 | Active-low input, internal pull-up | Momentary button to GND | INPUT PROOF PENDING |
-| Hardware Example 01 | LED 2 | 5 | Active-high output, initially LOW | LED + 330-ohm resistor to GND | OUTPUT PHYSICALLY PROVEN 2026-08-08 |
+| Hardware Example 01 | Button 1 | 2 | Active-low input, internal pull-up | Momentary button to GND | PHYSICALLY PROVEN 2026-08-08 |
+| Hardware Example 01 | LED 1 | 3 | Active-high output, initially LOW | LED + 330-ohm resistor to GND | PHYSICALLY PROVEN 2026-08-08 |
+| Hardware Example 01 | Button 2 | 4 | Active-low input, internal pull-up | Momentary button to GND | PHYSICALLY PROVEN 2026-08-08 |
+| Hardware Example 01 | LED 2 | 5 | Active-high output, initially LOW | LED + 330-ohm resistor to GND | PHYSICALLY PROVEN 2026-08-08 |
 
 These allocations were reconciled with the ForgeUI board profile, compiled BSP,
 firmware configuration, official board documentation, schematic evidence and the
@@ -229,12 +229,16 @@ Both physical LED test circuits operated when their local normally-off
 enable/slider/interlock was switched ON. This local interlock is part of the test
 hardware, not ForgeUI or the ESP32-P4 GPIO path.
 
-No explicit physical confirmation for GPIO2 Button 1 → Indicator 1 or GPIO4
-Button 2 → Indicator 2 is present in the closeout evidence. Therefore:
+Scott subsequently completed the remaining input proof on the same working
+implementation and actual board:
 
-- **OUTPUT SIDE — PHYSICALLY PROVEN**
-- **INPUT SIDE — AWAITING FINAL PHYSICAL CONFIRMATION**
-- **WHOLE EXAMPLE — NOT YET PHYSICALLY PROVEN**
+| GPIO | Physical action | ForgeUI result | Evidence status |
+|---:|---|---|---|
+| 2 | Press/release Button 1 | Indicator 1 changes on the display | Physically proven |
+| 4 | Press/release Button 2 | Indicator 2 changes on the display | Physically proven |
+
+Both input channels and both output channels operate correctly. The complete
+bidirectional Example 01 bridge is **PHYSICALLY PROVEN**.
 
 ## 8. Electrical rules
 
@@ -294,7 +298,7 @@ master and never replace its allocation register.
 - Do not use header GPIO36: it is a strapping pin and is tied to board battery/indicator circuitry in the official schematic.
 - Hardware Example 01 allocates GPIO2/GPIO4 to active-low buttons and GPIO3/GPIO5
   to active-high LEDs.
-- Hardware Example 01 output GPIO3/GPIO5 paths are **PHYSICALLY PROVEN** on the
-  actual board; GPIO2/GPIO4 input paths await final physical confirmation.
-- The whole example remains **NOT YET PHYSICALLY PROVEN** until both input paths
-  and simultaneous/independent operation are explicitly confirmed.
+- Hardware Example 01 GPIO2/GPIO4 physical inputs and GPIO3/GPIO5 physical
+  outputs are **PHYSICALLY PROVEN** on the actual board.
+- Hardware Example 01 is the first fully physically proven ForgeUI Hardware
+  Example and demonstrates the complete bidirectional UI/hardware boundary.

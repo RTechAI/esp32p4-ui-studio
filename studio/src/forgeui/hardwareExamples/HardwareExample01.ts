@@ -69,7 +69,7 @@ export const HARDWARE_EXAMPLE_01 = {
     button2: 4,
     led2: 5,
   },
-  status: 'OUTPUTS PHYSICALLY PROVEN — INPUT CONFIRMATION PENDING',
+  status: 'PHYSICALLY PROVEN',
   project: HARDWARE_EXAMPLE_01_PROJECT,
 } as const
 

@@ -22,6 +22,9 @@ export const HardwareExamplesPanel = () => {
         <Text color="white" fontSize="sm" mb={2}>
           {HARDWARE_EXAMPLE_01.name}
         </Text>
+        <Text color="green.200" fontSize="xs" fontWeight="bold" mb={2}>
+          {HARDWARE_EXAMPLE_01.status}
+        </Text>
         <Button size="xs" colorScheme="cyan" mr={2} onClick={() =>
           dispatch.components.reset(HARDWARE_EXAMPLE_01.project)}>
           Load Example

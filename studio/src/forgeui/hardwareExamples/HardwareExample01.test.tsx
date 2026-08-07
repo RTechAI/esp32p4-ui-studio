@@ -19,6 +19,7 @@ describe('Hardware Example 01 Studio UI', () => {
     render(<ChakraProvider><HardwareExamplesPanel /></ChakraProvider>)
     expect(screen.getByText('Hardware Examples')).toBeInTheDocument()
     expect(screen.getByText('Example 01')).toBeInTheDocument()
+    expect(screen.getByText('PHYSICALLY PROVEN')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Load Example' }))
     expect(reset).toHaveBeenCalledWith(HARDWARE_EXAMPLE_01_PROJECT)
     fireEvent.click(screen.getByRole('button', { name: 'Wiring Guide' }))
@@ -31,8 +32,7 @@ describe('Hardware Example 01 Studio UI', () => {
     expect(HARDWARE_EXAMPLE_01.gpio).toEqual({
       button1: 2, led1: 3, button2: 4, led2: 5,
     })
-    expect(HARDWARE_EXAMPLE_01.status).toContain('OUTPUTS PHYSICALLY PROVEN')
-    expect(HARDWARE_EXAMPLE_01.status).toContain('INPUT CONFIRMATION PENDING')
+    expect(HARDWARE_EXAMPLE_01.status).toBe('PHYSICALLY PROVEN')
     expect(HARDWARE_EXAMPLE_01.guide).toBe(
       '11.01_ESP32_P4_WIFI6_TOUCH_7B__EXAMPLE_01__BUTTONS_LEDS.md',
     )
