@@ -6,6 +6,9 @@ export type ForgeUIUploadedAssetExportStatus =
 export type ForgeUIUploadedAsset = {
   id: string
   name: string
+  // User-editable label. `name` remains the original filename/stable legacy
+  // identity used by asset classification and disk operations.
+  displayName?: string
   type: string
   size: number
 
@@ -44,11 +47,7 @@ export const forgeUIFindAlphaContentBounds = (
   width: number,
   height: number,
 ): ForgeUIImageContentBounds | undefined => {
-  if (
-    width <= 0 ||
-    height <= 0 ||
-    rgba.length < width * height * 4
-  ) {
+  if (width <= 0 || height <= 0 || rgba.length < width * height * 4) {
     return undefined
   }
 
@@ -83,10 +82,7 @@ export const forgeUIRecordRenderedImageMetadata = (
   asset: ForgeUIUploadedAsset,
   image: HTMLImageElement,
 ) => {
-  if (
-    image.naturalWidth <= 0 ||
-    image.naturalHeight <= 0
-  ) {
+  if (image.naturalWidth <= 0 || image.naturalHeight <= 0) {
     return
   }
 
@@ -97,18 +93,9 @@ export const forgeUIRecordRenderedImageMetadata = (
     canvas.height = image.naturalHeight
     const context = canvas.getContext('2d')
     context?.drawImage(image, 0, 0)
-    const pixels = context?.getImageData(
-      0,
-      0,
-      canvas.width,
-      canvas.height,
-    )
+    const pixels = context?.getImageData(0, 0, canvas.width, canvas.height)
     contentBounds = pixels
-      ? forgeUIFindAlphaContentBounds(
-          pixels.data,
-          canvas.width,
-          canvas.height,
-        )
+      ? forgeUIFindAlphaContentBounds(pixels.data, canvas.width, canvas.height)
       : undefined
   } catch {
     // Cross-origin or malformed images retain safe intrinsic bounds.
@@ -124,24 +111,15 @@ export const forgeUIRecordRenderedImageMetadata = (
 export const forgeUIParsePngDimensions = (
   bytes: Uint8Array,
 ): ForgeUIImageDimensions | undefined => {
-  const signature = [
-    0x89, 0x50, 0x4e, 0x47,
-    0x0d, 0x0a, 0x1a, 0x0a,
-  ]
+  const signature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]
   if (
     bytes.length < 24 ||
-    signature.some((value, index) =>
-      bytes[index] !== value,
-    )
+    signature.some((value, index) => bytes[index] !== value)
   ) {
     return undefined
   }
 
-  const view = new DataView(
-    bytes.buffer,
-    bytes.byteOffset,
-    bytes.byteLength,
-  )
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
   const ihdrLength = view.getUint32(8)
   const ihdrType = String.fromCharCode(
     bytes[12],
@@ -163,10 +141,7 @@ export const forgeUIParsePngDimensions = (
 }
 
 export const forgeUIResolveUploadedAssetDimensions = (
-  asset: Pick<
-    ForgeUIUploadedAsset,
-    'width' | 'height' | 'browserSrc'
-  >,
+  asset: Pick<ForgeUIUploadedAsset, 'width' | 'height' | 'browserSrc'>,
 ): ForgeUIImageDimensions | undefined => {
   if (
     Number.isFinite(asset.width) &&
@@ -189,18 +164,14 @@ export const forgeUIResolveUploadedAssetDimensions = (
 
   try {
     const decoded = atob(match[1].replace(/\s/g, ''))
-    const bytes = Uint8Array.from(
-      decoded,
-      character => character.charCodeAt(0),
-    )
+    const bytes = Uint8Array.from(decoded, character => character.charCodeAt(0))
     return forgeUIParsePngDimensions(bytes)
   } catch {
     return undefined
   }
 }
 
-const FORGEUI_UPLOADED_ASSETS_KEY =
-  'forgeui_uploaded_assets_v1'
+const FORGEUI_UPLOADED_ASSETS_KEY = 'forgeui_uploaded_assets_v1'
 
 const loadPersistedAssets = (): ForgeUIUploadedAsset[] => {
   if (typeof window === 'undefined') {
@@ -208,9 +179,7 @@ const loadPersistedAssets = (): ForgeUIUploadedAsset[] => {
   }
 
   try {
-    const raw = window.localStorage.getItem(
-      FORGEUI_UPLOADED_ASSETS_KEY,
-    )
+    const raw = window.localStorage.getItem(FORGEUI_UPLOADED_ASSETS_KEY)
 
     if (!raw) {
       return []
@@ -230,30 +199,24 @@ const loadPersistedAssets = (): ForgeUIUploadedAsset[] => {
           typeof asset.lvgl === 'string',
       )
       .map((asset: ForgeUIUploadedAsset) => {
-        const persistentBrowserSrc =
-          `http://localhost:3030/forgeui-assets/uploads/${asset.lvgl}.png`
+        const persistentBrowserSrc = `http://localhost:3030/forgeui-assets/uploads/${asset.lvgl}.png`
 
         return {
           ...asset,
           browserSrc:
-            !asset.browserSrc ||
-            asset.browserSrc.startsWith('blob:')
+            !asset.browserSrc || asset.browserSrc.startsWith('blob:')
               ? persistentBrowserSrc
               : asset.browserSrc,
         }
       })
   } catch (err) {
-    console.error(
-      'Failed to restore ForgeUI uploaded assets:',
-      err,
-    )
+    console.error('Failed to restore ForgeUI uploaded assets:', err)
 
     return []
   }
 }
 
-let forgeUIUploadedAssets: ForgeUIUploadedAsset[] =
-  loadPersistedAssets()
+let forgeUIUploadedAssets: ForgeUIUploadedAsset[] = loadPersistedAssets()
 
 const persistUploadedAssets = () => {
   if (typeof window === 'undefined') {
@@ -261,8 +224,8 @@ const persistUploadedAssets = () => {
   }
 
   try {
-    const serialisableAssets =
-      forgeUIUploadedAssets.map(({ file, ...asset }) => ({
+    const serialisableAssets = forgeUIUploadedAssets.map(
+      ({ file, ...asset }) => ({
         ...asset,
 
         browserSrc:
@@ -270,17 +233,15 @@ const persistUploadedAssets = () => {
           asset.browserSrc.startsWith('blob:')
             ? ''
             : asset.browserSrc,
-      }))
+      }),
+    )
 
     window.localStorage.setItem(
       FORGEUI_UPLOADED_ASSETS_KEY,
       JSON.stringify(serialisableAssets),
     )
   } catch (err) {
-    console.error(
-      'Failed to persist ForgeUI uploaded assets:',
-      err,
-    )
+    console.error('Failed to persist ForgeUI uploaded assets:', err)
   }
 }
 
@@ -289,9 +250,7 @@ const notifyAssetsUpdated = () => {
     return
   }
 
-  window.dispatchEvent(
-    new Event('forgeui-assets-updated'),
-  )
+  window.dispatchEvent(new Event('forgeui-assets-updated'))
 }
 
 const forgeUISafeAssetName = (name: string) =>
@@ -308,8 +267,7 @@ export function forgeUICreateUploadedAsset(
   const baseName = forgeUISafeAssetName(file.name)
 
   const id =
-    typeof crypto !== 'undefined' &&
-    'randomUUID' in crypto
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
       ? crypto.randomUUID()
       : `${Date.now()}_${Math.random()
           .toString(16)
@@ -339,9 +297,7 @@ export function forgeUICreateUploadedAsset(
     browserSrc,
     kind: 'uploaded',
 
-    exportStatus: isConvertibleImage
-      ? 'pending_conversion'
-      : 'browser_only',
+    exportStatus: isConvertibleImage ? 'pending_conversion' : 'browser_only',
 
     lvgl: symbol,
     cFile: `assets/uploads/${symbol}.c`,
@@ -353,13 +309,8 @@ export function forgeUIGetUploadedAssets() {
   return forgeUIUploadedAssets
 }
 
-export function forgeUIAddUploadedAssets(
-  assets: ForgeUIUploadedAsset[],
-) {
-  forgeUIUploadedAssets = [
-    ...forgeUIUploadedAssets,
-    ...assets,
-  ]
+export function forgeUIAddUploadedAssets(assets: ForgeUIUploadedAsset[]) {
+  forgeUIUploadedAssets = [...forgeUIUploadedAssets, ...assets]
 
   persistUploadedAssets()
   notifyAssetsUpdated()
@@ -367,49 +318,36 @@ export function forgeUIAddUploadedAssets(
   return forgeUIUploadedAssets
 }
 
-export async function forgeUIDeleteUploadedAsset(
-  id: string,
-) {
-  const asset = forgeUIUploadedAssets.find(
-    item => item.id === id,
-  )
+export async function forgeUIDeleteUploadedAsset(id: string) {
+  const asset = forgeUIUploadedAssets.find(item => item.id === id)
 
   if (!asset) {
     return forgeUIUploadedAssets
   }
 
   try {
-    await fetch(
-      'http://localhost:3030/delete-forgeui-asset',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id: asset.id,
-          name: asset.name,
-          lvgl: asset.lvgl,
-          cFile: asset.cFile,
-          browserSrc: asset.browserSrc,
-        }),
+    await fetch('http://localhost:3030/delete-forgeui-asset', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    )
+      body: JSON.stringify({
+        id: asset.id,
+        name: asset.name,
+        lvgl: asset.lvgl,
+        cFile: asset.cFile,
+        browserSrc: asset.browserSrc,
+      }),
+    })
   } catch (err) {
-    console.error(
-      'Failed to delete ForgeUI asset from disk:',
-      err,
-    )
+    console.error('Failed to delete ForgeUI asset from disk:', err)
   }
 
   if (asset.browserSrc?.startsWith('blob:')) {
     URL.revokeObjectURL(asset.browserSrc)
   }
 
-  forgeUIUploadedAssets =
-    forgeUIUploadedAssets.filter(
-      item => item.id !== id,
-    )
+  forgeUIUploadedAssets = forgeUIUploadedAssets.filter(item => item.id !== id)
 
   persistUploadedAssets()
   notifyAssetsUpdated()
@@ -432,6 +370,7 @@ export function forgeUIUpdateUploadedAsset(
       | 'contentY'
       | 'contentWidth'
       | 'contentHeight'
+      | 'displayName'
     >
   >,
   options: { preserveDimensions?: boolean } = {},
@@ -443,8 +382,7 @@ export function forgeUIUpdateUploadedAsset(
     }
 
     const browserSourceChanged =
-      patch.browserSrc !== undefined &&
-      patch.browserSrc !== asset.browserSrc
+      patch.browserSrc !== undefined && patch.browserSrc !== asset.browserSrc
     const next = {
       ...asset,
       ...(browserSourceChanged && !options.preserveDimensions
@@ -459,10 +397,9 @@ export function forgeUIUpdateUploadedAsset(
         : {}),
       ...patch,
     }
-    const keys = new Set([
-      ...Object.keys(asset),
-      ...Object.keys(next),
-    ]) as Set<keyof ForgeUIUploadedAsset>
+    const keys = new Set([...Object.keys(asset), ...Object.keys(next)]) as Set<
+      keyof ForgeUIUploadedAsset
+    >
     if ([...keys].every(key => asset[key] === next[key])) {
       return asset
     }
@@ -491,9 +428,7 @@ export function forgeUIClearUploadedAssets() {
   forgeUIUploadedAssets = []
 
   if (typeof window !== 'undefined') {
-    window.localStorage.removeItem(
-      FORGEUI_UPLOADED_ASSETS_KEY,
-    )
+    window.localStorage.removeItem(FORGEUI_UPLOADED_ASSETS_KEY)
   }
 
   notifyAssetsUpdated()

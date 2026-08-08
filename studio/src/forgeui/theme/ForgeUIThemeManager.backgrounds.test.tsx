@@ -11,8 +11,12 @@ jest.mock('./ForgeThemeContext', () => ({
   useForgeTheme: jest.fn(),
 }))
 
+const mockUpdateUploadedAsset = jest.fn()
+let mockUploadedAssets: any[] = []
 jest.mock('../ForgeUIUploadedAssetRegistry', () => ({
-  forgeUIGetUploadedAssets: () => [],
+  forgeUIGetUploadedAssets: () => mockUploadedAssets,
+  forgeUIUpdateUploadedAsset: (...args: any[]) =>
+    mockUpdateUploadedAsset(...args),
 }))
 
 jest.mock('../ai/ForgeUIAIImagePipeline', () => ({
@@ -26,6 +30,7 @@ const mockSetHeroBackground = jest.fn()
 describe('ForgeUI Theme Manager background gallery', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    mockUploadedAssets = []
     mockUseForgeTheme.mockReturnValue({
       themeId: 'graphite',
       heroBackground: null,
@@ -88,5 +93,44 @@ describe('ForgeUI Theme Manager background gallery', () => {
       )
     })
     expect(mockRegisterAndConvertImage).toHaveBeenCalledTimes(1)
+  })
+
+  it('renames background display metadata while retaining filename-based classification', () => {
+    mockUploadedAssets = [
+      {
+        id: 'hero-1',
+        name: 'ai_hero_original.png',
+        type: 'image/png',
+        size: 1,
+        createdAt: 1,
+        browserSrc: '/hero.png',
+        kind: 'uploaded',
+        exportStatus: 'lvgl_ready',
+        lvgl: 'fg_hero',
+        cFile: 'assets/fg_hero.c',
+      },
+    ]
+    render(
+      <ChakraProvider>
+        <ForgeUIThemeManager
+          onClose={jest.fn()}
+          onInsertImageAsset={jest.fn()}
+        />
+      </ChakraProvider>,
+    )
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Rename ai_hero_original.png' }),
+    )
+    const input = screen.getByRole('textbox', {
+      name: 'Rename ai_hero_original.png',
+    })
+    fireEvent.change(input, { target: { value: 'Weather - Clear Day' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+
+    expect(mockUpdateUploadedAsset).toHaveBeenCalledWith('hero-1', {
+      displayName: 'Weather - Clear Day',
+    })
+    expect(mockSetHeroBackground).not.toHaveBeenCalled()
   })
 })

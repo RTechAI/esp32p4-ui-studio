@@ -2,12 +2,12 @@ idf_component_register(
     SRCS
         "main.c"
         "01_FG_Runtime.c"
-        "05_FG_RAM_Probe.c"
         "20_RTC.c"
+        "30_Audio.c"
+        "30_WIFI.c"
+        "40_SD.c"
+        "50_DIAGNOSTICS.c"
         "90_Studio_Export.c"
-        "95_UserEvents.c"
-        "assets/defaults/fg_upload_ai_hero_1784342478518_b95a7dc0.c"
-        "97_Hardware_Example_02_Discovery.c"
 
     INCLUDE_DIRS
         "."
@@ -17,6 +17,13 @@ idf_component_register(
         driver
         esp_event
         esp_app_format
+        esp_netif
+        esp_wifi
+        esp_wifi_remote
+        esp_hosted
+        fatfs
+        sdmmc
+        spi_flash
         waveshare__esp32_p4_wifi6_touch_lcd_7b
 
     PRIV_REQUIRES

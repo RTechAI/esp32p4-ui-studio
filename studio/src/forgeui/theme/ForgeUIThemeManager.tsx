@@ -1,9 +1,22 @@
 import React, { useState } from 'react'
-import { Badge, Box, Button, Flex, HStack, Image } from '@chakra-ui/react'
+import {
+  Badge,
+  Box,
+  Button,
+  Flex,
+  HStack,
+  IconButton,
+  Image,
+  Input,
+} from '@chakra-ui/react'
+import { FiEdit2 } from 'react-icons/fi'
 
 import { useForgeTheme } from './ForgeThemeContext'
 import { FG_PREVIEW_PALETTES } from '~forgeui/preview/forgeThemeMap'
-import { forgeUIGetUploadedAssets } from '~forgeui/ForgeUIUploadedAssetRegistry'
+import {
+  forgeUIGetUploadedAssets,
+  forgeUIUpdateUploadedAsset,
+} from '~forgeui/ForgeUIUploadedAssetRegistry'
 import {
   FORGEUI_BACKGROUND_ASSETS,
   FORGEUI_BACKGROUND_CATEGORIES,
@@ -42,6 +55,17 @@ const ForgeUIThemeManager = ({
     string | null
   >(null)
   const [backgroundError, setBackgroundError] = useState<string | null>(null)
+  const [renamingAssetId, setRenamingAssetId] = useState<string | null>(null)
+  const [renameValue, setRenameValue] = useState('')
+  const [, setAssetRevision] = useState(0)
+
+  const saveBackgroundName = (asset: UploadedAsset) => {
+    const displayName = renameValue.trim()
+    if (!displayName) return
+    forgeUIUpdateUploadedAsset(asset.id, { displayName })
+    setRenamingAssetId(null)
+    setAssetRevision(revision => revision + 1)
+  }
 
   const backgroundPrefix = (asset: ForgeUIBackgroundAsset) =>
     `background_${asset.id}`.replace(/[^a-z0-9]+/gi, '_').toLowerCase()
@@ -381,9 +405,45 @@ const ForgeUIThemeManager = ({
                   bg="#05070a"
                 />
 
-                <Box mt={3} fontSize="sm" fontWeight="semibold" noOfLines={1}>
-                  {asset.name}
-                </Box>
+                <Flex mt={3} align="center" gap={1}>
+                  {renamingAssetId === asset.id ? (
+                    <Input
+                      size="xs"
+                      aria-label={`Rename ${asset.displayName || asset.name}`}
+                      value={renameValue}
+                      autoFocus
+                      onClick={event => event.stopPropagation()}
+                      onChange={event => setRenameValue(event.target.value)}
+                      onKeyDown={event => {
+                        if (event.key === 'Enter') saveBackgroundName(asset)
+                        if (event.key === 'Escape') setRenamingAssetId(null)
+                      }}
+                      onBlur={() => saveBackgroundName(asset)}
+                    />
+                  ) : (
+                    <Box
+                      flex={1}
+                      minWidth={0}
+                      fontSize="sm"
+                      fontWeight="semibold"
+                      noOfLines={1}
+                    >
+                      {asset.displayName || asset.name}
+                    </Box>
+                  )}
+                  <IconButton
+                    aria-label={`Rename ${asset.displayName || asset.name}`}
+                    title="Rename background"
+                    icon={<FiEdit2 />}
+                    size="xs"
+                    variant="ghost"
+                    onClick={event => {
+                      event.stopPropagation()
+                      setRenameValue(asset.displayName || asset.name)
+                      setRenamingAssetId(asset.id)
+                    }}
+                  />
+                </Flex>
 
                 <Badge mt={2} colorScheme="cyan" variant="subtle">
                   BACKGROUND
