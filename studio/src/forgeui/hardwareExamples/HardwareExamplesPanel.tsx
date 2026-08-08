@@ -5,6 +5,8 @@ import {
 } from '@chakra-ui/react'
 import useDispatch from '~hooks/useDispatch'
 import { HARDWARE_EXAMPLE_01 } from './HardwareExample01'
+import { HARDWARE_EXAMPLE_02 } from './HardwareExample02'
+import { HARDWARE_EXAMPLE_03 } from './HardwareExample03'
 
 export const HardwareExamplesPanel = () => {
   const dispatch = useDispatch()
@@ -32,6 +34,28 @@ export const HardwareExamplesPanel = () => {
         <Button size="xs" variant="outline" colorScheme="cyan"
           onClick={wiring.onOpen}>
           Wiring Guide
+        </Button>
+      </Box>
+      <Box bg="whiteAlpha.100" borderRadius="md" p={2} mt={2}>
+        <Text color="gray.100" fontSize="xs" fontWeight="semibold">Example 03</Text>
+        <Text color="white" fontSize="sm" mb={2}>{HARDWARE_EXAMPLE_03.name}</Text>
+        <Text color="orange.200" fontSize="xs" fontWeight="bold" mb={2}>
+          {HARDWARE_EXAMPLE_03.status}
+        </Text>
+        <Button size="xs" colorScheme="cyan" onClick={() =>
+          dispatch.components.reset(HARDWARE_EXAMPLE_03.project)}>
+          Load NFC Example
+        </Button>
+      </Box>
+      <Box bg="whiteAlpha.100" borderRadius="md" p={2} mt={2}>
+        <Text color="gray.100" fontSize="xs" fontWeight="semibold">Example 02</Text>
+        <Text color="white" fontSize="sm" mb={2}>{HARDWARE_EXAMPLE_02.name}</Text>
+        <Text color="green.200" fontSize="xs" fontWeight="bold" mb={2}>
+          {HARDWARE_EXAMPLE_02.status}
+        </Text>
+        <Button size="xs" colorScheme="cyan" onClick={() =>
+          dispatch.components.reset(HARDWARE_EXAMPLE_02.project)}>
+          Load FRAM Example
         </Button>
       </Box>
       <Modal isOpen={wiring.isOpen} onClose={wiring.onClose} size="lg">

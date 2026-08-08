@@ -1,5 +1,11 @@
 # ForgeUI Studio
 
+> Hardware Examples status (2026-08-08): **01 — GPIO Bidirectional — PHYSICALLY
+> PROVEN; 02 — I2C FRAM Persistence — PHYSICALLY PROVEN / CLOSED; 03 — SPI
+> NFC/RFID — PHYSICALLY PROVEN / CLOSED.** Example 02 was physically proven on Waveshare
+> ESP32-P4-WIFI6-Touch-LCD-7B with an MB85RC256V at `0x50`, including Device-ID,
+> write/read verification and complete power-cycle persistence. Example 03 proved PN532 identity, SAMConfig, ISO14443A polling, stable UID, removal detection and one logical read per presentation.
+
 > Current certification (2026-08-07): **44 / 44 practical LVGL 9.2
 > components physically proven on ESP32-P4**, plus fourteen current ForgeUI
 > Native Components. Dashboard Card, Sensor Tile, Relay Panel, PWM Controller,
@@ -19,7 +25,7 @@
 > SDK, ESP-IDF build, ESP32-P4 flash, physical rendering, parity, and duplicate
 > isolation. It is display-only and intentionally generates no UserEvents.
 
-> Network Status Card and KPI Card certification is complete. Device Summary Card and Power Flow Card are also **HARDWARE VALIDATED** after the latest four-card dashboard rendered and operated correctly on ESP32-P4. These monitoring-only cards use isolated persisted-ID APIs and generate zero UserEvents. The Hardware I/O Proof Program is the next documented phase; implementation has not started.
+> Network Status Card and KPI Card certification is complete. Device Summary Card and Power Flow Card are also **HARDWARE VALIDATED** after the latest four-card dashboard rendered and operated correctly on ESP32-P4. These monitoring-only cards use isolated persisted-ID APIs and generate zero UserEvents. Hardware Examples 01, 02 and 03 are physically proven and closed under the exclusive-selection architecture.
 
 Current architecture save point:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.

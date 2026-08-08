@@ -1,5 +1,30 @@
 # Generated Export API Code Map: what generated firmware exposes, how callbacks and runtime APIs fit together, and what developers are allowed to extend.
 
+## Hardware Example 02 semantic and selection contract (2026-08-08)
+
+The proven path is `ForgeUI UI → generated semantic APIs/events →
+developer-owned FRAM driver → existing BSP-owned I2C bus → physical
+MB85RC256V`. Generated APIs are `FG_Set_FRAM_Status_Text`,
+`FG_Set_FRAM_Address_Text`, `FG_Set_FRAM_Value_Text`, and
+`FG_Set_FRAM_Verify_Text`; UserEvents are `FG_On_WRITE_TEST_Clicked` and
+`FG_On_READ_TEST_Clicked`.
+
+These exclusive contracts select Example 02 for Live and Standalone export.
+The exporter rejects mixed contracts, writes `00_ForgeUI_Hardware_Example.h`,
+and places only the selected developer source in CMake. Completed unselected
+implementation files remain preserved.
+
+## Hardware Example 03 semantic and selection contract (2026-08-08)
+
+The physically proven path is `ForgeUI UI → generated NFC status setters →
+developer-owned PN532 software-SPI driver → physical PN532/tag`. Generated
+APIs are `FG_Set_NFC_Device_Text`, `FG_Set_NFC_Interface_Text`,
+`FG_Set_NFC_Card_Text`, `FG_Set_NFC_UID_Text`, and
+`FG_Set_NFC_Read_Count_Text`. These contracts select Example 03 exclusively;
+only its implementation is linked and initialized. Physical proof confirmed
+SAMConfig, ISO14443A polling, stable UID `04:8D:E6:5F:B7:2A:81`, removal
+detection and one logical count per card presentation.
+
 ## Current chart Runtime SDK contract — 2026-08-06
 
 Trend Chart and Trend Chart Pro are physically proven Native Components. Both

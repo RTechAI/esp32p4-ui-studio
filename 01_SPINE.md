@@ -1,5 +1,9 @@
 # Project Spine: what ForgeUI is, what is proven, current priorities, and what must not regress..
 
+## Hardware Examples selection and proof — 2026-08-08
+
+Hardware Examples 01, 02 and 03 are **PHYSICALLY PROVEN / CLOSED**. Example 02 uses the physically Device-ID-verified MB85RC256V at I2C `0x50`; write/read passed and `counter=9`, `value=0xA553` survived a complete power cycle. Example 03 uses an Elechouse PN532 V3 over software SPI; identity, SAMConfig, ISO14443A polling, stable UID `04:8D:E6:5F:B7:2A:81`, removal detection and one logical count per presentation were physically proven. Hardware Example selection is mutually exclusive from Studio project loading through generated contracts, source inclusion, initialization and polling. Unselected implementation files remain preserved and their GPIO is inactive.
+
 ## Current Save Point — 2026-08-06
 
 **ESP32-P4 EXPORTED AND FLASHED — INITIAL PHYSICAL VALIDATION COMPLETE**

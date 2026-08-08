@@ -2,7 +2,7 @@
 
 Status: authoritative human-readable ForgeUI hardware-I/O reference  
 Board audited: Waveshare `ESP32-P4-WIFI6-Touch-LCD-7B` (production board photographed in this repository)  
-Last audited: 2026-08-07
+Last audited: 2026-08-08
 
 > [!IMPORTANT]
 > This document records current evidence; it does not configure an export. The ForgeUI **Project Hardware Profile** remains authoritative for generated export configuration. This reference must not silently override it. If the profile changes, review and align this document before selecting hardware-I/O pins.
@@ -206,6 +206,17 @@ P4 GPIO26 is RS485 UART TX into the transceiver and GPIO27 is RX from it. The co
 | Hardware Example 01 | LED 1 | 3 | Active-high output, initially LOW | LED + 330-ohm resistor to GND | PHYSICALLY PROVEN 2026-08-08 |
 | Hardware Example 01 | Button 2 | 4 | Active-low input, internal pull-up | Momentary button to GND | PHYSICALLY PROVEN 2026-08-08 |
 | Hardware Example 01 | LED 2 | 5 | Active-high output, initially LOW | LED + 330-ohm resistor to GND | PHYSICALLY PROVEN 2026-08-08 |
+| Hardware Example 02 | MB85RC256V FRAM | I2C 0x50 on GPIO7/8 shared BSP bus | 2.7–5.5 V device; 3.3 V-safe bus logic required | Dedicated I2C connector | PHYSICALLY PROVEN 2026-08-08 |
+| Hardware Example 03 | PN532 RSTO | 2 | Active-low reset output from ESP32-P4 | Elechouse PN532 V3 | PHYSICALLY PROVEN 2026-08-08 |
+| Hardware Example 03 | PN532 MOSI | 28 | Software-SPI output | Elechouse PN532 V3 | PHYSICALLY PROVEN 2026-08-08 |
+| Hardware Example 03 | PN532 MISO | 29 | Software-SPI input | Elechouse PN532 V3 | PHYSICALLY PROVEN 2026-08-08 |
+| Hardware Example 03 | PN532 SCK | 30 | Software-SPI output | Elechouse PN532 V3 | PHYSICALLY PROVEN 2026-08-08 |
+| Hardware Example 03 | PN532 CS | 31 | Active-low software-SPI chip select, idle HIGH | Elechouse PN532 V3 | PHYSICALLY PROVEN 2026-08-08 |
+
+Example 03 IRQ is unused. GPIO2 and GPIO28–GPIO31 are allocated to these PN532
+roles only while Hardware Example 03 is selected. Hardware Examples are
+exclusive: unselected implementations remain preserved but are not linked,
+initialized or polled, and do not own or initialize their GPIO.
 
 These allocations were reconciled with the ForgeUI board profile, compiled BSP,
 firmware configuration, official board documentation, schematic evidence and the
@@ -239,6 +250,19 @@ implementation and actual board:
 
 Both input channels and both output channels operate correctly. The complete
 bidirectional Example 01 bridge is **PHYSICALLY PROVEN**.
+
+### Example 02 physical evidence — 2026-08-08
+
+The dedicated I2C connector exposes GPIO7 SDA and GPIO8 SCL on the existing
+BSP-owned shared bus. Example 02 does not claim exclusive ownership and does not
+reconfigure either pin. The physical scan detected `0x18`, `0x40`, `0x50`, and
+`0x5D`. The external device at `0x50` returned Device-ID `00 A5 10`
+(manufacturer `0x00A`, product `0x510`), identifying the 32 KiB RAMXEED /
+Fujitsu-family MB85RC256V.
+
+WRITE TEST and READ TEST both verified PASS. After a complete power cycle the
+board recovered `counter=9`, `value=0xA553`, `verify=PASS`. Hardware Example 02
+is **PHYSICALLY PROVEN / CLOSED**.
 
 ## 8. Electrical rules
 
@@ -293,7 +317,7 @@ master and never replace its allocation register.
 
 ## 11. Audit conclusion
 
-- Current unrestricted general-I/O candidates: **GPIO2, GPIO3, GPIO4, GPIO5, GPIO28, GPIO29, GPIO30 and GPIO31**.
+- General-I/O candidates when not owned by the selected Hardware Example: **GPIO2, GPIO3, GPIO4, GPIO5, GPIO28, GPIO29, GPIO30 and GPIO31**.
 - Restricted candidate: **GPIO34**, because it is a strapping pin.
 - Do not use header GPIO36: it is a strapping pin and is tied to board battery/indicator circuitry in the official schematic.
 - Hardware Example 01 allocates GPIO2/GPIO4 to active-low buttons and GPIO3/GPIO5
@@ -302,3 +326,12 @@ master and never replace its allocation register.
   outputs are **PHYSICALLY PROVEN** on the actual board.
 - Hardware Example 01 is the first fully physically proven ForgeUI Hardware
   Example and demonstrates the complete bidirectional UI/hardware boundary.
+- Hardware Example 02 uses the dedicated connector without taking ownership
+  away from the BSP shared I2C bus. MB85RC256V at `0x50`, Device-ID, write/read,
+  and complete power-cycle persistence are **PHYSICALLY PROVEN**.
+- Hardware Example 03 conditionally allocates GPIO28 MOSI, GPIO29 MISO,
+  GPIO30 SCK, GPIO31 CS and GPIO2 RSTO; IRQ is unused. PN532 identity,
+  SAMConfig, ISO14443A polling, stable UID, removal detection and one logical
+  count per presentation are **PHYSICALLY PROVEN**.
+- Hardware Example GPIO ownership is active only for the exclusively selected
+  example. Unselected example implementations remain present but inactive.

@@ -1,4 +1,12 @@
-# FORGEUI HARDWARE EXAMPLES — NEXT: I2C PHYSICAL PROOF
+# ARCHIVED HANDOFF — HARDWARE EXAMPLE 02 I2C PHYSICAL PROOF
+
+Status: **COMPLETED / SUPERSEDED / CLOSED 2026-08-08**.
+
+Hardware Example 02 is physically proven with an MB85RC256V at `0x50`, Device-ID
+`00 A5 10`, write/read PASS and persistence PASS across a complete power cycle.
+The authoritative closure record is
+`11.02_ESP32_P4_WIFI6_TOUCH_7B__EXAMPLE_02__I2C_FRAM.md`. The text below is
+retained only as historical pre-proof planning and is not a current mission.
 
 ## Established baseline
 
@@ -19,7 +27,7 @@
 - Example 01 also establishes board-specific wiring/proof documentation and a
   permanent board GPIO allocation/proof record.
 
-## Next mission: Hardware Example 02
+## Historical mission: Hardware Example 02 (completed)
 
 Scott will supply the physical breakout and front/rear photographs in the next
 session. Choose one real I2C breakout from that evidence; do not guess or invent

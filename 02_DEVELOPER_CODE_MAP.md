@@ -1,5 +1,21 @@
 # Developer Code Map: where features live, who owns each layer, and which files are authoritative
 
+## Hardware Examples 01–03 — exclusive selection baseline (2026-08-08)
+
+| Layer | Authoritative source | Responsibility |
+|---|---|---|
+| Studio selection/UI | `studio/src/forgeui/hardwareExamples/HardwareExamplesPanel.tsx`, `HardwareExample01.ts`, `HardwareExample02.ts`, `HardwareExample03.ts` | Loading an example replaces the component project; examples never accumulate |
+| Selection/export | `studio/export-server.js` | Derives the selected example from exclusive generated contracts, rejects mixed contracts, emits `00_ForgeUI_Hardware_Example.h`, and includes only the selected implementation source |
+| Runtime activation | `firmware/ForgeUI-One/main/main.c` | Includes, initializes and polls only the enabled example |
+| Example 01 hardware | `96_Hardware_Example_01.c/.h` | Developer-owned GPIO2–GPIO5 button/LED behavior |
+| Example 02 hardware | `97_Hardware_Example_02_Discovery.c/.h` | Developer-owned MB85RC256V identification and persistence proof on the BSP-owned shared I2C bus |
+| Example 03 hardware | `98_Hardware_Example_03_Probe.c/.h` | Developer-owned PN532 software-SPI identity, SAMConfig, ISO14443A polling, UID and de-duplication behavior |
+
+Current selection is Example 03: Example 01 and Example 02 are disabled and
+`FG_HARDWARE_EXAMPLE_03_ENABLED 1`. Unselected implementations remain preserved
+but are not generated, linked, initialized or polled. Examples 01, 02 and 03 are
+**PHYSICALLY PROVEN / CLOSED**.
+
 ## Native Components 1–10 implementation map — 2026-08-06
 
 Current documentation status: **ALARM PANEL — HARDWARE VALIDATED; EXTENDED

@@ -21,6 +21,10 @@ const {
   generateIdfComponentManifest,
   resolveFirmwareBuild,
   appendHardwareExample01Source,
+  appendHardwareExample02Source,
+  appendHardwareExample03Source,
+  selectedHardwareExample,
+  generateHardwareExampleHeader,
   validateExportPayload,
 } = require('./export-server')
 
@@ -42,6 +46,88 @@ describe('Hardware Example 01 developer source ownership', () => {
     appendHardwareExample01Source(unrelated, mainDir, [], [])
     expect(unrelated).not.toContain('"96_Hardware_Example_01.c"')
     fs.rmSync(mainDir, { recursive: true, force: true })
+  })
+})
+
+describe('Hardware Example 02 developer source ownership', () => {
+  it('includes the FRAM driver only when all semantic contracts exist', () => {
+    const mainDir = fs.mkdtempSync(path.join(os.tmpdir(), 'forgeui-fram-'))
+    fs.writeFileSync(path.join(mainDir, '97_Hardware_Example_02_Discovery.c'), '')
+    const sources = []
+    appendHardwareExample02Source(sources, mainDir, [
+      'void FG_Set_FRAM_Status_Text(const char * text);',
+      'void FG_Set_FRAM_Address_Text(const char * text);',
+      'void FG_Set_FRAM_Value_Text(const char * text);',
+      'void FG_Set_FRAM_Verify_Text(const char * text);',
+    ], ['FG_On_WRITE_TEST_Clicked', 'FG_On_READ_TEST_Clicked'])
+    expect(sources).toContain('"97_Hardware_Example_02_Discovery.c"')
+  })
+})
+
+describe('Hardware Example 03 developer source ownership', () => {
+  it('includes only the PN532 driver for the complete NFC semantic API', () => {
+    const mainDir = fs.mkdtempSync(path.join(os.tmpdir(), 'forgeui-nfc-'))
+    fs.writeFileSync(path.join(mainDir, '98_Hardware_Example_03_Probe.c'), '')
+    const sources = []
+    appendHardwareExample03Source(sources, mainDir, [
+      'void FG_Set_NFC_Device_Text(const char * text);',
+      'void FG_Set_NFC_Interface_Text(const char * text);',
+      'void FG_Set_NFC_Card_Text(const char * text);',
+      'void FG_Set_NFC_UID_Text(const char * text);',
+      'void FG_Set_NFC_Read_Count_Text(const char * text);',
+    ])
+    expect(sources).toEqual(['"98_Hardware_Example_03_Probe.c"'])
+    expect(sources).not.toContain('"96_Hardware_Example_01.c"')
+    expect(sources).not.toContain('"97_Hardware_Example_02_Discovery.c"')
+    fs.rmSync(mainDir, { recursive: true, force: true })
+  })
+})
+
+describe('exclusive Hardware Example selection', () => {
+  const example01Apis = ['void FG_Set_Indicator1(bool on);', 'void FG_Set_Indicator2(bool on);']
+  const example01Hooks = ['FG_On_LED1_Toggle_Changed', 'FG_On_LED2_Toggle_Changed']
+  const example02Apis = [
+    'void FG_Set_FRAM_Status_Text(const char * text);',
+    'void FG_Set_FRAM_Address_Text(const char * text);',
+    'void FG_Set_FRAM_Value_Text(const char * text);',
+    'void FG_Set_FRAM_Verify_Text(const char * text);',
+  ]
+  const example02Hooks = ['FG_On_WRITE_TEST_Clicked', 'FG_On_READ_TEST_Clicked']
+  const example03Apis = [
+    'void FG_Set_NFC_Device_Text(const char * text);',
+    'void FG_Set_NFC_Interface_Text(const char * text);',
+    'void FG_Set_NFC_Card_Text(const char * text);',
+    'void FG_Set_NFC_UID_Text(const char * text);',
+    'void FG_Set_NFC_Read_Count_Text(const char * text);',
+  ]
+
+  it('selects Example 03 alone and emits exclusive macros', () => {
+    expect(selectedHardwareExample(example03Apis, [])).toBe(3)
+    const header = generateHardwareExampleHeader(example03Apis, [])
+    expect(header).toContain('#define FG_HARDWARE_EXAMPLE_01_ENABLED 0')
+    expect(header).toContain('#define FG_HARDWARE_EXAMPLE_02_ENABLED 0')
+    expect(header).toContain('#define FG_HARDWARE_EXAMPLE_03_ENABLED 1')
+  })
+
+  it('rejects Example 03 accumulated with an earlier example', () => {
+    expect(() => selectedHardwareExample([...example02Apis, ...example03Apis],
+      example02Hooks)).toThrow(/exclusive/)
+  })
+
+  it('selects Example 02 without enabling Example 01', () => {
+    expect(selectedHardwareExample(example02Apis, example02Hooks)).toBe(2)
+    expect(generateHardwareExampleHeader(example02Apis, example02Hooks)).toContain(
+      '#define FG_HARDWARE_EXAMPLE_01_ENABLED 0'
+    )
+    expect(generateHardwareExampleHeader(example02Apis, example02Hooks)).toContain(
+      '#define FG_HARDWARE_EXAMPLE_02_ENABLED 1'
+    )
+  })
+
+  it('rejects cumulative example contracts', () => {
+    expect(() => selectedHardwareExample(
+      [...example01Apis, ...example02Apis], [...example01Hooks, ...example02Hooks],
+    )).toThrow(/exclusive/)
   })
 })
 

@@ -1,5 +1,23 @@
 # ForgeUI Runtime SDK Direction
 
+## Hardware Example 02 — FRAM semantic surface
+
+The physically proven MB85RC256V example updates generated UI only through
+`FG_Set_FRAM_Status_Text`, `FG_Set_FRAM_Address_Text`,
+`FG_Set_FRAM_Value_Text`, and `FG_Set_FRAM_Verify_Text`. Touch actions enter
+developer-owned hardware code through `FG_On_WRITE_TEST_Clicked` and
+`FG_On_READ_TEST_Clicked`. Boot identifies and reads the FRAM; only a deliberate
+WRITE TEST event writes physical memory.
+
+## Hardware Example 03 — NFC semantic surface
+
+The physically proven PN532 example publishes hardware state through
+`FG_Set_NFC_Device_Text`, `FG_Set_NFC_Interface_Text`,
+`FG_Set_NFC_Card_Text`, `FG_Set_NFC_UID_Text`, and
+`FG_Set_NFC_Read_Count_Text`. The read-only fields do not own hardware actions.
+Example selection alone controls whether the PN532 source and GPIO allocation
+are linked and initialized.
+
 Current Native Component certification (2026-08-07): Dashboard Card, Sensor
 Tile, Relay Panel, PWM Controller, Trend Chart, and Trend Chart Pro are
 fully proven on ESP32-P4. Alarm Panel's SDK is implemented and automated tests

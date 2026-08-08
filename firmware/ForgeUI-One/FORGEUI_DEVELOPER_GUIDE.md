@@ -43,19 +43,23 @@ main/90_Studio_Export.h
 
 # Generated Event Hooks
 
-- `FG_On_Indicator1_Changed()`
-- `FG_On_Indicator2_Changed()`
-- `FG_On_LED1_Toggle_Changed()`
-- `FG_On_LED2_Toggle_Changed()`
+- `FG_On_READ_TEST_Clicked()`
+- `FG_On_WRITE_TEST_Clicked()`
+- `FG_On_FRAM_Address_Changed()`
+- `FG_On_FRAM_Status_Changed()`
+- `FG_On_FRAM_Value_Changed()`
+- `FG_On_FRAM_Verify_Changed()`
 
 ---
 
 | Component | Event | Hook |
 |-----------|-------|------|
-| Indicator1_Changed | Click | `FG_On_Indicator1_Changed()` |
-| Indicator2_Changed | Click | `FG_On_Indicator2_Changed()` |
-| LED1_Toggle_Changed | Click | `FG_On_LED1_Toggle_Changed()` |
-| LED2_Toggle_Changed | Click | `FG_On_LED2_Toggle_Changed()` |
+| READ_TEST | Click | `FG_On_READ_TEST_Clicked()` |
+| WRITE_TEST | Click | `FG_On_WRITE_TEST_Clicked()` |
+| FRAM_Address_Changed | Click | `FG_On_FRAM_Address_Changed()` |
+| FRAM_Status_Changed | Click | `FG_On_FRAM_Status_Changed()` |
+| FRAM_Value_Changed | Click | `FG_On_FRAM_Value_Changed()` |
+| FRAM_Verify_Changed | Click | `FG_On_FRAM_Verify_Changed()` |
 
 ---
 

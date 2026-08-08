@@ -16,9 +16,16 @@
 #include "40_SD.h"
 #include "05_FG_RAM_Probe.h"
 #include "00_ForgeUI_Config.h"
+#include "00_ForgeUI_Hardware_Example.h"
 
 #include "01_FG_Runtime.h"
+#if FG_HARDWARE_EXAMPLE_01_ENABLED
 #include "96_Hardware_Example_01.h"
+#elif FG_HARDWARE_EXAMPLE_02_ENABLED
+#include "97_Hardware_Example_02_Discovery.h"
+#elif FG_HARDWARE_EXAMPLE_03_ENABLED
+#include "98_Hardware_Example_03_Probe.h"
+#endif
 
 void fg_sidebar_init(void);
 
@@ -64,7 +71,15 @@ void app_main(void)
     bsp_display_lock(0);
     fg_runtime_init();
     bsp_display_unlock();
+#if FG_HARDWARE_EXAMPLE_01_ENABLED
     fg_hardware_example_01_init();
+#elif FG_HARDWARE_EXAMPLE_02_ENABLED
+    bsp_display_lock(0);
+    fg_hardware_example_02_init();
+    bsp_display_unlock();
+#elif FG_HARDWARE_EXAMPLE_03_ENABLED
+    fg_hardware_example_03_init();
+#endif
     ESP_LOGI(TAG, "BOOT 20 UI init returned heap=%u min_heap=%u",
              (unsigned)esp_get_free_heap_size(),
              (unsigned)esp_get_minimum_free_heap_size());
@@ -160,7 +175,9 @@ void app_main(void)
     while (1)
     {
         vTaskDelay(pdMS_TO_TICKS(10));
+#if FG_HARDWARE_EXAMPLE_01_ENABLED
         fg_hardware_example_01_poll();
+#endif
 
 #if FORGEUI_ENABLE_WIFI
         // ---- WIFI SERVICE PUMP ----

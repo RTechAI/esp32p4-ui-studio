@@ -19,84 +19,102 @@
 #include <math.h>
 
 static lv_obj_t * fg_application_page = NULL;
-static lv_obj_t * fg_indicator1_led = NULL;
-static bool fg_indicator1_led_on = false;
-static lv_obj_t * fg_indicator2_led = NULL;
-static bool fg_indicator2_led_on = false;
-static lv_obj_t * fg_led1_toggle_switch = NULL;
-static bool fg_led1_toggle_switch_programmatic_update = false;
-static void fg_led1_toggle_switch_value_changed_cb(lv_event_t * event);
-static lv_obj_t * fg_led2_toggle_switch = NULL;
-static bool fg_led2_toggle_switch_programmatic_update = false;
-static void fg_led2_toggle_switch_value_changed_cb(lv_event_t * event);
+static lv_obj_t * fg_fram_address_input = NULL;
+static bool fg_fram_address_input_programmatic_update = false;
+static lv_obj_t * fg_fram_status_input = NULL;
+static bool fg_fram_status_input_programmatic_update = false;
+static lv_obj_t * fg_fram_value_input = NULL;
+static bool fg_fram_value_input_programmatic_update = false;
+static lv_obj_t * fg_fram_verify_input = NULL;
+static bool fg_fram_verify_input_programmatic_update = false;
 static void fg_keyboard_hide(void);
 static void fg_keyboard_show_for(lv_obj_t * textarea);
 static void fg_keyboard_event_cb(lv_event_t * event);
 
-void FG_Set_Indicator1(bool on)
+static void fg_fram_address_input_value_changed_cb(lv_event_t * event)
 {
-    if (fg_indicator1_led == NULL || fg_indicator1_led_on == on) return;
-    fg_indicator1_led_on = on;
-    if (on) lv_led_on(fg_indicator1_led); else lv_led_off(fg_indicator1_led);
-    FG_On_Indicator1_Changed(on);
+    lv_obj_t * input = lv_event_get_current_target(event);
+    if (input != fg_fram_address_input || fg_fram_address_input_programmatic_update) return;
+    FG_On_FRAM_Address_Changed(lv_textarea_get_text(input));
 }
 
-void FG_Set_Indicator2(bool on)
+void FG_Set_FRAM_Address_Text(const char * text)
 {
-    if (fg_indicator2_led == NULL || fg_indicator2_led_on == on) return;
-    fg_indicator2_led_on = on;
-    if (on) lv_led_on(fg_indicator2_led); else lv_led_off(fg_indicator2_led);
-    FG_On_Indicator2_Changed(on);
+    if (fg_fram_address_input == NULL) return;
+    if (text == NULL) text = "";
+    if (strcmp(lv_textarea_get_text(fg_fram_address_input), text) == 0) return;
+    fg_fram_address_input_programmatic_update = true;
+    lv_textarea_set_text(fg_fram_address_input, text);
+    fg_fram_address_input_programmatic_update = false;
 }
 
-static void fg_led1_toggle_switch_value_changed_cb(lv_event_t * event)
+static void fg_fram_status_input_value_changed_cb(lv_event_t * event)
 {
-    lv_obj_t * switch_object = lv_event_get_current_target(event);
-    if (switch_object != fg_led1_toggle_switch || fg_led1_toggle_switch_programmatic_update) return;
-    bool checked = lv_obj_has_state(switch_object, LV_STATE_CHECKED);
-    FG_On_LED1_Toggle_Changed(checked);
+    lv_obj_t * input = lv_event_get_current_target(event);
+    if (input != fg_fram_status_input || fg_fram_status_input_programmatic_update) return;
+    FG_On_FRAM_Status_Changed(lv_textarea_get_text(input));
 }
 
-void FG_Set_LED1_Toggle_Checked(bool checked)
+void FG_Set_FRAM_Status_Text(const char * text)
 {
-    if (fg_led1_toggle_switch == NULL) return;
-    bool current_checked = lv_obj_has_state(fg_led1_toggle_switch, LV_STATE_CHECKED);
-    if (current_checked == checked) return;
-    fg_led1_toggle_switch_programmatic_update = true;
-    if (checked) {
-        lv_obj_add_state(fg_led1_toggle_switch, LV_STATE_CHECKED);
-    } else {
-        lv_obj_remove_state(fg_led1_toggle_switch, LV_STATE_CHECKED);
-    }
-    fg_led1_toggle_switch_programmatic_update = false;
+    if (fg_fram_status_input == NULL) return;
+    if (text == NULL) text = "";
+    if (strcmp(lv_textarea_get_text(fg_fram_status_input), text) == 0) return;
+    fg_fram_status_input_programmatic_update = true;
+    lv_textarea_set_text(fg_fram_status_input, text);
+    fg_fram_status_input_programmatic_update = false;
 }
 
-static void fg_led2_toggle_switch_value_changed_cb(lv_event_t * event)
+static void fg_fram_value_input_value_changed_cb(lv_event_t * event)
 {
-    lv_obj_t * switch_object = lv_event_get_current_target(event);
-    if (switch_object != fg_led2_toggle_switch || fg_led2_toggle_switch_programmatic_update) return;
-    bool checked = lv_obj_has_state(switch_object, LV_STATE_CHECKED);
-    FG_On_LED2_Toggle_Changed(checked);
+    lv_obj_t * input = lv_event_get_current_target(event);
+    if (input != fg_fram_value_input || fg_fram_value_input_programmatic_update) return;
+    FG_On_FRAM_Value_Changed(lv_textarea_get_text(input));
 }
 
-void FG_Set_LED2_Toggle_Checked(bool checked)
+void FG_Set_FRAM_Value_Text(const char * text)
 {
-    if (fg_led2_toggle_switch == NULL) return;
-    bool current_checked = lv_obj_has_state(fg_led2_toggle_switch, LV_STATE_CHECKED);
-    if (current_checked == checked) return;
-    fg_led2_toggle_switch_programmatic_update = true;
-    if (checked) {
-        lv_obj_add_state(fg_led2_toggle_switch, LV_STATE_CHECKED);
-    } else {
-        lv_obj_remove_state(fg_led2_toggle_switch, LV_STATE_CHECKED);
-    }
-    fg_led2_toggle_switch_programmatic_update = false;
+    if (fg_fram_value_input == NULL) return;
+    if (text == NULL) text = "";
+    if (strcmp(lv_textarea_get_text(fg_fram_value_input), text) == 0) return;
+    fg_fram_value_input_programmatic_update = true;
+    lv_textarea_set_text(fg_fram_value_input, text);
+    fg_fram_value_input_programmatic_update = false;
+}
+
+static void fg_fram_verify_input_value_changed_cb(lv_event_t * event)
+{
+    lv_obj_t * input = lv_event_get_current_target(event);
+    if (input != fg_fram_verify_input || fg_fram_verify_input_programmatic_update) return;
+    FG_On_FRAM_Verify_Changed(lv_textarea_get_text(input));
+}
+
+void FG_Set_FRAM_Verify_Text(const char * text)
+{
+    if (fg_fram_verify_input == NULL) return;
+    if (text == NULL) text = "";
+    if (strcmp(lv_textarea_get_text(fg_fram_verify_input), text) == 0) return;
+    fg_fram_verify_input_programmatic_update = true;
+    lv_textarea_set_text(fg_fram_verify_input, text);
+    fg_fram_verify_input_programmatic_update = false;
 }
 
 static void fg_window_close_cb(lv_event_t * event)
 {
     lv_obj_t * window = (lv_obj_t *)lv_event_get_user_data(event);
     if (window) lv_obj_add_flag(window, LV_OBJ_FLAG_HIDDEN);
+}
+
+static void fg_read_test_clicked_cb(lv_event_t * event)
+{
+    LV_UNUSED(event);
+    FG_On_READ_TEST_Clicked();
+}
+
+static void fg_write_test_clicked_cb(lv_event_t * event)
+{
+    LV_UNUSED(event);
+    FG_On_WRITE_TEST_Clicked();
 }
 
 static void FG_Set_Display_Brightness(uint8_t percent)
@@ -138,7 +156,7 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_pos(obj1, 64, 38);
     lv_label_set_long_mode(obj1, LV_LABEL_LONG_WRAP);
     lv_obj_set_size(obj1, 896, 54);
-    lv_label_set_text(obj1, "HARDWARE EXAMPLE 01");
+    lv_label_set_text(obj1, "HARDWARE EXAMPLE 02");
     lv_obj_set_style_text_color(obj1, lv_color_hex(0xF5F5F5), 0);
     lv_obj_set_style_text_font(obj1, &lv_font_montserrat_32, 0);
     lv_obj_set_style_text_align(obj1, LV_TEXT_ALIGN_LEFT, 0);
@@ -147,108 +165,185 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_pos(obj2, 66, 96);
     lv_obj_set_size(obj2, 896, 36);
     lv_label_set_long_mode(obj2, LV_LABEL_LONG_WRAP);
-    lv_label_set_text(obj2, "2 BUTTONS + 2 LEDS");
+    lv_label_set_text(obj2, "I²C FRAM PERSISTENCE");
     lv_obj_set_style_text_color(obj2, lv_color_hex(0xF5F5F5), 0);
     lv_obj_set_style_text_font(obj2, &lv_font_montserrat_24, 0);
     lv_obj_set_style_text_align(obj2, LV_TEXT_ALIGN_LEFT, 0);
 
     lv_obj_t * obj3 = lv_label_create(fg_application_page);
-    lv_obj_set_pos(obj3, 90, 166);
+    lv_obj_set_pos(obj3, 90, 170);
     lv_label_set_long_mode(obj3, LV_LABEL_LONG_WRAP);
-    lv_obj_set_size(obj3, 360, 40);
-    lv_label_set_text(obj3, "PHYSICAL INPUTS");
+    lv_obj_set_size(obj3, 520, 40);
+    lv_label_set_text(obj3, "FRAM MEMORY — MB85RC256V");
     lv_obj_set_style_text_color(obj3, lv_color_hex(0xF5F5F5), 0);
     lv_obj_set_style_text_font(obj3, &lv_font_montserrat_32, 0);
     lv_obj_set_style_text_align(obj3, LV_TEXT_ALIGN_LEFT, 0);
 
-    lv_obj_t * obj4 = lv_label_create(fg_application_page);
-    lv_obj_set_pos(obj4, 110, 232);
-    lv_obj_set_size(obj4, 210, 34);
-    lv_label_set_long_mode(obj4, LV_LABEL_LONG_WRAP);
-    lv_label_set_text(obj4, "Button 1      Indicator 1");
-    lv_obj_set_style_text_color(obj4, lv_color_hex(0xF5F5F5), 0);
-    lv_obj_set_style_text_font(obj4, &lv_font_montserrat_24, 0);
-    lv_obj_set_style_text_align(obj4, LV_TEXT_ALIGN_LEFT, 0);
+    fg_fram_status_input = lv_textarea_create(fg_application_page);
+    lv_textarea_set_one_line(fg_fram_status_input, true);
+    lv_textarea_set_placeholder_text(fg_fram_status_input, "Input");
+    lv_textarea_set_text(fg_fram_status_input, "DISCOVERING");
+    lv_obj_set_pos(fg_fram_status_input, 110, 230);
+    lv_obj_set_size(fg_fram_status_input, 330, 26);
+    lv_obj_set_style_bg_color(fg_fram_status_input, lv_color_hex(0x1E2328), 0);
+    lv_obj_set_style_bg_opa(fg_fram_status_input, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_text_color(fg_fram_status_input, lv_color_hex(0xF5F5F5), 0);
+    lv_obj_set_style_border_color(fg_fram_status_input, lv_color_hex(0xF2A900), 0);
+    lv_obj_set_style_border_opa(fg_fram_status_input, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_border_width(fg_fram_status_input, 1, LV_PART_MAIN);
+    lv_obj_set_style_radius(fg_fram_status_input, 6, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(fg_fram_status_input, 0, LV_PART_MAIN);
+    lv_obj_set_style_shadow_width(fg_fram_status_input, 0, LV_PART_MAIN);
+    lv_obj_set_style_pad_left(fg_fram_status_input, 16, LV_PART_MAIN);
+    lv_obj_set_style_pad_right(fg_fram_status_input, 16, LV_PART_MAIN);
+    lv_obj_set_style_pad_top(fg_fram_status_input, 0, LV_PART_MAIN);
+    lv_obj_set_style_pad_bottom(fg_fram_status_input, 0, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(fg_fram_status_input, LV_OPA_TRANSP, LV_PART_SCROLLBAR);
+    lv_obj_set_style_border_width(fg_fram_status_input, 0, LV_PART_SCROLLBAR);
+    lv_obj_set_style_outline_width(fg_fram_status_input, 0, LV_PART_SCROLLBAR);
+    lv_obj_set_style_shadow_width(fg_fram_status_input, 0, LV_PART_SCROLLBAR);
+    lv_obj_set_style_text_color(fg_fram_status_input, lv_color_hex(0xB5B6B8), LV_PART_TEXTAREA_PLACEHOLDER);
+    lv_obj_set_style_border_color(fg_fram_status_input, lv_color_hex(0xF2A900), LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_border_width(fg_fram_status_input, 1, LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_outline_width(fg_fram_status_input, 0, LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_shadow_width(fg_fram_status_input, 0, LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_text_color(fg_fram_status_input, lv_color_hex(0x7F8284), LV_PART_MAIN | LV_STATE_DISABLED);
+    lv_obj_add_event_cb(fg_fram_status_input, fg_fram_status_input_value_changed_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
-    fg_indicator1_led = lv_led_create(fg_application_page);
-    lv_obj_set_pos(fg_indicator1_led, 342, 231);
-    lv_obj_set_size(fg_indicator1_led, 36, 36);
-    lv_led_set_color(fg_indicator1_led, lv_palette_main(LV_PALETTE_GREEN));
-    lv_led_set_brightness(fg_indicator1_led, 255);
-    lv_led_off(fg_indicator1_led);
-    fg_indicator1_led_on = false;
+    fg_fram_address_input = lv_textarea_create(fg_application_page);
+    lv_textarea_set_one_line(fg_fram_address_input, true);
+    lv_textarea_set_placeholder_text(fg_fram_address_input, "Input");
+    lv_textarea_set_text(fg_fram_address_input, "--");
+    lv_obj_set_pos(fg_fram_address_input, 110, 280);
+    lv_obj_set_size(fg_fram_address_input, 330, 26);
+    lv_obj_set_style_bg_color(fg_fram_address_input, lv_color_hex(0x1E2328), 0);
+    lv_obj_set_style_bg_opa(fg_fram_address_input, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_text_color(fg_fram_address_input, lv_color_hex(0xF5F5F5), 0);
+    lv_obj_set_style_border_color(fg_fram_address_input, lv_color_hex(0xF2A900), 0);
+    lv_obj_set_style_border_opa(fg_fram_address_input, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_border_width(fg_fram_address_input, 1, LV_PART_MAIN);
+    lv_obj_set_style_radius(fg_fram_address_input, 6, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(fg_fram_address_input, 0, LV_PART_MAIN);
+    lv_obj_set_style_shadow_width(fg_fram_address_input, 0, LV_PART_MAIN);
+    lv_obj_set_style_pad_left(fg_fram_address_input, 16, LV_PART_MAIN);
+    lv_obj_set_style_pad_right(fg_fram_address_input, 16, LV_PART_MAIN);
+    lv_obj_set_style_pad_top(fg_fram_address_input, 0, LV_PART_MAIN);
+    lv_obj_set_style_pad_bottom(fg_fram_address_input, 0, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(fg_fram_address_input, LV_OPA_TRANSP, LV_PART_SCROLLBAR);
+    lv_obj_set_style_border_width(fg_fram_address_input, 0, LV_PART_SCROLLBAR);
+    lv_obj_set_style_outline_width(fg_fram_address_input, 0, LV_PART_SCROLLBAR);
+    lv_obj_set_style_shadow_width(fg_fram_address_input, 0, LV_PART_SCROLLBAR);
+    lv_obj_set_style_text_color(fg_fram_address_input, lv_color_hex(0xB5B6B8), LV_PART_TEXTAREA_PLACEHOLDER);
+    lv_obj_set_style_border_color(fg_fram_address_input, lv_color_hex(0xF2A900), LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_border_width(fg_fram_address_input, 1, LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_outline_width(fg_fram_address_input, 0, LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_shadow_width(fg_fram_address_input, 0, LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_text_color(fg_fram_address_input, lv_color_hex(0x7F8284), LV_PART_MAIN | LV_STATE_DISABLED);
+    lv_obj_add_event_cb(fg_fram_address_input, fg_fram_address_input_value_changed_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
-    lv_obj_t * obj6 = lv_label_create(fg_application_page);
-    lv_obj_set_pos(obj6, 110, 306);
-    lv_obj_set_size(obj6, 210, 34);
-    lv_label_set_long_mode(obj6, LV_LABEL_LONG_WRAP);
-    lv_label_set_text(obj6, "Button 2      Indicator 2");
-    lv_obj_set_style_text_color(obj6, lv_color_hex(0xF5F5F5), 0);
-    lv_obj_set_style_text_font(obj6, &lv_font_montserrat_24, 0);
-    lv_obj_set_style_text_align(obj6, LV_TEXT_ALIGN_LEFT, 0);
+    fg_fram_value_input = lv_textarea_create(fg_application_page);
+    lv_textarea_set_one_line(fg_fram_value_input, true);
+    lv_textarea_set_placeholder_text(fg_fram_value_input, "Input");
+    lv_textarea_set_text(fg_fram_value_input, "---- / ----");
+    lv_obj_set_pos(fg_fram_value_input, 110, 330);
+    lv_obj_set_size(fg_fram_value_input, 330, 26);
+    lv_obj_set_style_bg_color(fg_fram_value_input, lv_color_hex(0x1E2328), 0);
+    lv_obj_set_style_bg_opa(fg_fram_value_input, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_text_color(fg_fram_value_input, lv_color_hex(0xF5F5F5), 0);
+    lv_obj_set_style_border_color(fg_fram_value_input, lv_color_hex(0xF2A900), 0);
+    lv_obj_set_style_border_opa(fg_fram_value_input, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_border_width(fg_fram_value_input, 1, LV_PART_MAIN);
+    lv_obj_set_style_radius(fg_fram_value_input, 6, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(fg_fram_value_input, 0, LV_PART_MAIN);
+    lv_obj_set_style_shadow_width(fg_fram_value_input, 0, LV_PART_MAIN);
+    lv_obj_set_style_pad_left(fg_fram_value_input, 16, LV_PART_MAIN);
+    lv_obj_set_style_pad_right(fg_fram_value_input, 16, LV_PART_MAIN);
+    lv_obj_set_style_pad_top(fg_fram_value_input, 0, LV_PART_MAIN);
+    lv_obj_set_style_pad_bottom(fg_fram_value_input, 0, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(fg_fram_value_input, LV_OPA_TRANSP, LV_PART_SCROLLBAR);
+    lv_obj_set_style_border_width(fg_fram_value_input, 0, LV_PART_SCROLLBAR);
+    lv_obj_set_style_outline_width(fg_fram_value_input, 0, LV_PART_SCROLLBAR);
+    lv_obj_set_style_shadow_width(fg_fram_value_input, 0, LV_PART_SCROLLBAR);
+    lv_obj_set_style_text_color(fg_fram_value_input, lv_color_hex(0xB5B6B8), LV_PART_TEXTAREA_PLACEHOLDER);
+    lv_obj_set_style_border_color(fg_fram_value_input, lv_color_hex(0xF2A900), LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_border_width(fg_fram_value_input, 1, LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_outline_width(fg_fram_value_input, 0, LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_shadow_width(fg_fram_value_input, 0, LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_text_color(fg_fram_value_input, lv_color_hex(0x7F8284), LV_PART_MAIN | LV_STATE_DISABLED);
+    lv_obj_add_event_cb(fg_fram_value_input, fg_fram_value_input_value_changed_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
-    fg_indicator2_led = lv_led_create(fg_application_page);
-    lv_obj_set_pos(fg_indicator2_led, 342, 305);
-    lv_obj_set_size(fg_indicator2_led, 36, 36);
-    lv_led_set_color(fg_indicator2_led, lv_palette_main(LV_PALETTE_GREEN));
-    lv_led_set_brightness(fg_indicator2_led, 255);
-    lv_led_off(fg_indicator2_led);
-    fg_indicator2_led_on = false;
+    fg_fram_verify_input = lv_textarea_create(fg_application_page);
+    lv_textarea_set_one_line(fg_fram_verify_input, true);
+    lv_textarea_set_placeholder_text(fg_fram_verify_input, "Input");
+    lv_textarea_set_text(fg_fram_verify_input, "NOT RUN");
+    lv_obj_set_pos(fg_fram_verify_input, 110, 380);
+    lv_obj_set_size(fg_fram_verify_input, 330, 26);
+    lv_obj_set_style_bg_color(fg_fram_verify_input, lv_color_hex(0x1E2328), 0);
+    lv_obj_set_style_bg_opa(fg_fram_verify_input, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_text_color(fg_fram_verify_input, lv_color_hex(0xF5F5F5), 0);
+    lv_obj_set_style_border_color(fg_fram_verify_input, lv_color_hex(0xF2A900), 0);
+    lv_obj_set_style_border_opa(fg_fram_verify_input, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_border_width(fg_fram_verify_input, 1, LV_PART_MAIN);
+    lv_obj_set_style_radius(fg_fram_verify_input, 6, LV_PART_MAIN);
+    lv_obj_set_style_outline_width(fg_fram_verify_input, 0, LV_PART_MAIN);
+    lv_obj_set_style_shadow_width(fg_fram_verify_input, 0, LV_PART_MAIN);
+    lv_obj_set_style_pad_left(fg_fram_verify_input, 16, LV_PART_MAIN);
+    lv_obj_set_style_pad_right(fg_fram_verify_input, 16, LV_PART_MAIN);
+    lv_obj_set_style_pad_top(fg_fram_verify_input, 0, LV_PART_MAIN);
+    lv_obj_set_style_pad_bottom(fg_fram_verify_input, 0, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(fg_fram_verify_input, LV_OPA_TRANSP, LV_PART_SCROLLBAR);
+    lv_obj_set_style_border_width(fg_fram_verify_input, 0, LV_PART_SCROLLBAR);
+    lv_obj_set_style_outline_width(fg_fram_verify_input, 0, LV_PART_SCROLLBAR);
+    lv_obj_set_style_shadow_width(fg_fram_verify_input, 0, LV_PART_SCROLLBAR);
+    lv_obj_set_style_text_color(fg_fram_verify_input, lv_color_hex(0xB5B6B8), LV_PART_TEXTAREA_PLACEHOLDER);
+    lv_obj_set_style_border_color(fg_fram_verify_input, lv_color_hex(0xF2A900), LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_border_width(fg_fram_verify_input, 1, LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_outline_width(fg_fram_verify_input, 0, LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_shadow_width(fg_fram_verify_input, 0, LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_text_color(fg_fram_verify_input, lv_color_hex(0x7F8284), LV_PART_MAIN | LV_STATE_DISABLED);
+    lv_obj_add_event_cb(fg_fram_verify_input, fg_fram_verify_input_value_changed_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
-    lv_obj_t * obj8 = lv_label_create(fg_application_page);
-    lv_obj_set_pos(obj8, 574, 166);
-    lv_label_set_long_mode(obj8, LV_LABEL_LONG_WRAP);
-    lv_obj_set_size(obj8, 360, 40);
-    lv_label_set_text(obj8, "PHYSICAL OUTPUTS");
-    lv_obj_set_style_text_color(obj8, lv_color_hex(0xF5F5F5), 0);
-    lv_obj_set_style_text_font(obj8, &lv_font_montserrat_32, 0);
-    lv_obj_set_style_text_align(obj8, LV_TEXT_ALIGN_LEFT, 0);
+    lv_obj_t * obj8 = lv_button_create(fg_application_page);
+    lv_obj_set_pos(obj8, 560, 250);
+    lv_obj_set_size(obj8, 170, 64);
+    lv_obj_set_style_radius(obj8, 12, 0);
+    lv_obj_set_style_bg_color(obj8, lv_color_hex(0x1E2328), 0);
+    lv_obj_set_style_bg_opa(obj8, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_color(obj8, lv_color_hex(0xF2A900), 0);
+    lv_obj_set_style_border_width(obj8, 2, 0);
+    lv_obj_set_style_bg_color(obj8, lv_color_hex(0xF2A900), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_set_style_border_color(obj8, lv_color_hex(0xF2A900), LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_bg_color(obj8, lv_color_hex(0x2A3138), LV_PART_MAIN | LV_STATE_DISABLED);
+    lv_obj_set_style_text_color(obj8, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
+    lv_obj_set_style_text_color(obj8, lv_color_hex(0x121417), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_set_style_text_color(obj8, lv_color_hex(0x7F8284), LV_PART_MAIN | LV_STATE_DISABLED);
+    lv_obj_t * obj8_label = lv_label_create(obj8);
+    lv_label_set_text(obj8_label, "WRITE TEST");
+    lv_obj_set_style_text_font(obj8_label, &lv_font_montserrat_14, 0);
+    lv_obj_set_style_text_align(obj8_label, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_center(obj8_label);
+    lv_obj_add_event_cb(obj8, fg_write_test_clicked_cb, LV_EVENT_CLICKED, NULL);
 
-    lv_obj_t * obj9 = lv_label_create(fg_application_page);
-    lv_obj_set_pos(obj9, 594, 232);
-    lv_obj_set_size(obj9, 190, 34);
-    lv_label_set_long_mode(obj9, LV_LABEL_LONG_WRAP);
-    lv_label_set_text(obj9, "LED1 Toggle");
-    lv_obj_set_style_text_color(obj9, lv_color_hex(0xF5F5F5), 0);
-    lv_obj_set_style_text_font(obj9, &lv_font_montserrat_24, 0);
-    lv_obj_set_style_text_align(obj9, LV_TEXT_ALIGN_LEFT, 0);
-
-    fg_led1_toggle_switch = lv_switch_create(fg_application_page);
-    lv_obj_set_pos(fg_led1_toggle_switch, 820, 229);
-    lv_obj_set_size(fg_led1_toggle_switch, 64, 36);
-    lv_obj_add_state(fg_led1_toggle_switch, LV_STATE_CHECKED);
-    lv_obj_set_style_bg_color(fg_led1_toggle_switch, lv_color_hex(0x2A3138), LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(fg_led1_toggle_switch, LV_OPA_COVER, LV_PART_MAIN);
-    lv_obj_set_style_bg_color(fg_led1_toggle_switch, lv_color_hex(0xF2A900), LV_PART_INDICATOR);
-    lv_obj_set_style_bg_opa(fg_led1_toggle_switch, LV_OPA_TRANSP, LV_PART_INDICATOR);
-    lv_obj_set_style_bg_color(fg_led1_toggle_switch, lv_color_hex(0xF2A900), LV_PART_INDICATOR | LV_STATE_CHECKED);
-    lv_obj_set_style_bg_opa(fg_led1_toggle_switch, LV_OPA_COVER, LV_PART_INDICATOR | LV_STATE_CHECKED);
-    lv_obj_set_style_bg_color(fg_led1_toggle_switch, lv_color_hex(0x121417), LV_PART_KNOB);
-    lv_obj_set_style_bg_opa(fg_led1_toggle_switch, LV_OPA_COVER, LV_PART_KNOB);
-    lv_obj_add_event_cb(fg_led1_toggle_switch, fg_led1_toggle_switch_value_changed_cb, LV_EVENT_VALUE_CHANGED, NULL);
-
-    lv_obj_t * obj11 = lv_label_create(fg_application_page);
-    lv_obj_set_pos(obj11, 594, 306);
-    lv_obj_set_size(obj11, 190, 34);
-    lv_label_set_long_mode(obj11, LV_LABEL_LONG_WRAP);
-    lv_label_set_text(obj11, "LED2 Toggle");
-    lv_obj_set_style_text_color(obj11, lv_color_hex(0xF5F5F5), 0);
-    lv_obj_set_style_text_font(obj11, &lv_font_montserrat_24, 0);
-    lv_obj_set_style_text_align(obj11, LV_TEXT_ALIGN_LEFT, 0);
-
-    fg_led2_toggle_switch = lv_switch_create(fg_application_page);
-    lv_obj_set_pos(fg_led2_toggle_switch, 820, 303);
-    lv_obj_set_size(fg_led2_toggle_switch, 64, 36);
-    lv_obj_add_state(fg_led2_toggle_switch, LV_STATE_CHECKED);
-    lv_obj_set_style_bg_color(fg_led2_toggle_switch, lv_color_hex(0x2A3138), LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(fg_led2_toggle_switch, LV_OPA_COVER, LV_PART_MAIN);
-    lv_obj_set_style_bg_color(fg_led2_toggle_switch, lv_color_hex(0xF2A900), LV_PART_INDICATOR);
-    lv_obj_set_style_bg_opa(fg_led2_toggle_switch, LV_OPA_TRANSP, LV_PART_INDICATOR);
-    lv_obj_set_style_bg_color(fg_led2_toggle_switch, lv_color_hex(0xF2A900), LV_PART_INDICATOR | LV_STATE_CHECKED);
-    lv_obj_set_style_bg_opa(fg_led2_toggle_switch, LV_OPA_COVER, LV_PART_INDICATOR | LV_STATE_CHECKED);
-    lv_obj_set_style_bg_color(fg_led2_toggle_switch, lv_color_hex(0x121417), LV_PART_KNOB);
-    lv_obj_set_style_bg_opa(fg_led2_toggle_switch, LV_OPA_COVER, LV_PART_KNOB);
-    lv_obj_add_event_cb(fg_led2_toggle_switch, fg_led2_toggle_switch_value_changed_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_t * obj9 = lv_button_create(fg_application_page);
+    lv_obj_set_pos(obj9, 760, 250);
+    lv_obj_set_size(obj9, 170, 64);
+    lv_obj_set_style_radius(obj9, 12, 0);
+    lv_obj_set_style_bg_color(obj9, lv_color_hex(0x1E2328), 0);
+    lv_obj_set_style_bg_opa(obj9, LV_OPA_COVER, 0);
+    lv_obj_set_style_border_color(obj9, lv_color_hex(0xF2A900), 0);
+    lv_obj_set_style_border_width(obj9, 2, 0);
+    lv_obj_set_style_bg_color(obj9, lv_color_hex(0xF2A900), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_set_style_border_color(obj9, lv_color_hex(0xF2A900), LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_bg_color(obj9, lv_color_hex(0x2A3138), LV_PART_MAIN | LV_STATE_DISABLED);
+    lv_obj_set_style_text_color(obj9, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
+    lv_obj_set_style_text_color(obj9, lv_color_hex(0x121417), LV_PART_MAIN | LV_STATE_PRESSED);
+    lv_obj_set_style_text_color(obj9, lv_color_hex(0x7F8284), LV_PART_MAIN | LV_STATE_DISABLED);
+    lv_obj_t * obj9_label = lv_label_create(obj9);
+    lv_label_set_text(obj9_label, "READ TEST");
+    lv_obj_set_style_text_font(obj9_label, &lv_font_montserrat_14, 0);
+    lv_obj_set_style_text_align(obj9_label, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_center(obj9_label);
+    lv_obj_add_event_cb(obj9, fg_read_test_clicked_cb, LV_EVENT_CLICKED, NULL);
 
 
     fg_ram_probe_log("02 after application page creation");

@@ -7,7 +7,7 @@ idf_component_register(
         "90_Studio_Export.c"
         "95_UserEvents.c"
         "assets/defaults/fg_upload_ai_hero_1784342478518_b95a7dc0.c"
-        "96_Hardware_Example_01.c"
+        "97_Hardware_Example_02_Discovery.c"
 
     INCLUDE_DIRS
         "."
