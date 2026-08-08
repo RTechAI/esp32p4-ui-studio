@@ -2,6 +2,7 @@ import {
   autoArrangeForgeUIRegion,
   composeForgeUIDashboardTemplate,
   forgeUIDashboardTemplate,
+  forgeUIWeatherDashboardTemplate,
   forgeUILayoutTemplates,
   composeForgeUILayoutTemplate,
 } from './ForgeUILayoutDesigner'
@@ -23,25 +24,58 @@ const overlaps = (
   second: Record<string, unknown>,
 ) => {
   const a = {
-    x: Number(first.x), y: Number(first.y),
-    w: Number(first.w), h: Number(first.h),
+    x: Number(first.x),
+    y: Number(first.y),
+    w: Number(first.w),
+    h: Number(first.h),
   }
   const b = {
-    x: Number(second.x), y: Number(second.y),
-    w: Number(second.w), h: Number(second.h),
+    x: Number(second.x),
+    y: Number(second.y),
+    w: Number(second.w),
+    h: Number(second.h),
   }
   return (
-    a.x < b.x + b.w &&
-    a.x + a.w > b.x &&
-    a.y < b.y + b.h &&
-    a.y + a.h > b.y
+    a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y
   )
 }
 
 describe('ForgeUI Dashboard Layout Designer', () => {
+  it('provides deterministic Weather Dashboard geometry with five equal forecast regions', () => {
+    expect(forgeUILayoutTemplates).toContain(forgeUIWeatherDashboardTemplate)
+    expect(forgeUIWeatherDashboardTemplate).toMatchObject({
+      id: 'weather-dashboard',
+      name: 'Weather Dashboard',
+      width: 1024,
+      height: 600,
+    })
+    const regions = forgeUIWeatherDashboardTemplate.layout.map(
+      item => item.props,
+    )
+    expect(regions.map(item => item.layoutRegionKey)).toEqual([
+      'weather-dashboard.header-left',
+      'weather-dashboard.header-right',
+      'weather-dashboard.current-weather',
+      'weather-dashboard.metrics',
+      'weather-dashboard.forecast-day1',
+      'weather-dashboard.forecast-day2',
+      'weather-dashboard.forecast-day3',
+      'weather-dashboard.forecast-day4',
+      'weather-dashboard.forecast-day5',
+    ])
+    const forecast = regions.filter(item =>
+      String(item.layoutRegionKey).includes('forecast-day'),
+    )
+    expect(forecast).toHaveLength(5)
+    expect(new Set(forecast.map(item => item.w))).toEqual(new Set([180]))
+    expect(new Set(forecast.map(item => item.y))).toEqual(new Set([468]))
+    expect(new Set(forecast.map(item => item.h))).toEqual(new Set([108]))
+  })
+
   it('defines deterministic stable regions inside 1024x600 without overlap', () => {
-    const regions = forgeUIDashboardTemplate.layout
-      .filter(item => item.type === 'Box')
+    const regions = forgeUIDashboardTemplate.layout.filter(
+      item => item.type === 'Box',
+    )
     expect(regions.map(region => region.props.layoutRegionKey)).toEqual([
       'dashboard.header',
       'dashboard.status',
@@ -74,10 +108,12 @@ describe('ForgeUI Dashboard Layout Designer', () => {
           new RegExp(`^${definition.id}\\.`),
         )
         expect(item.props.layoutRegionLabel).toEqual(expect.any(String))
-        expect(Number(item.props.x) + Number(item.props.w))
-          .toBeLessThanOrEqual(definition.width)
-        expect(Number(item.props.y) + Number(item.props.h))
-          .toBeLessThanOrEqual(definition.height)
+        expect(Number(item.props.x) + Number(item.props.w)).toBeLessThanOrEqual(
+          definition.width,
+        )
+        expect(Number(item.props.y) + Number(item.props.h)).toBeLessThanOrEqual(
+          definition.height,
+        )
         regions.slice(index + 1).forEach(other => {
           expect(overlaps(item.props, other.props)).toBe(false)
         })
@@ -97,13 +133,13 @@ describe('ForgeUI Dashboard Layout Designer', () => {
         definition.layout.filter(item => item.type === 'Box').length,
       )
       const restored = JSON.parse(JSON.stringify(layout))
-      restored.filter((item: any) =>
-        !['Box', 'Divider'].includes(item.type)
-      ).forEach((item: any) => {
-        expect(item.props.layoutRegionId).toMatch(
-          new RegExp(`^${definition.id}\\.`),
-        )
-      })
+      restored
+        .filter((item: any) => !['Box', 'Divider'].includes(item.type))
+        .forEach((item: any) => {
+          expect(item.props.layoutRegionId).toMatch(
+            new RegExp(`^${definition.id}\\.`),
+          )
+        })
     },
   )
 
@@ -113,7 +149,10 @@ describe('ForgeUI Dashboard Layout Designer', () => {
     ['grid', 2],
   ])('auto-arranges %s inside region bounds', (arrangement, columns) => {
     const region = asComponent('region', 'Box', {
-      x: 100, y: 80, w: 600, h: 360,
+      x: 100,
+      y: 80,
+      w: 600,
+      h: 360,
       layoutRegionKey: 'dashboard.main',
       layoutArrangement: arrangement,
       layoutColumns: columns,
@@ -150,18 +189,19 @@ describe('ForgeUI Dashboard Layout Designer', () => {
       { type: 'Button', props: { children: 'Start' } },
     ])
     expect(layout.filter(item => item.type === 'Box')).toHaveLength(5)
-    expect(layout.find(item => item.type === 'Chart')?.props)
-      .toMatchObject({ layoutRegionId: 'dashboard.main' })
-    expect(layout.find(item => item.type === 'Button')?.props)
-      .toMatchObject({
-        layoutRegionId: 'dashboard.controls',
-        children: 'Start',
-      })
-    expect(layout.find(item => item.type === 'CircularProgress')?.props)
-      .toMatchObject({
-        layoutRegionId: 'dashboard.status',
-        value: 68,
-      })
+    expect(layout.find(item => item.type === 'Chart')?.props).toMatchObject({
+      layoutRegionId: 'dashboard.main',
+    })
+    expect(layout.find(item => item.type === 'Button')?.props).toMatchObject({
+      layoutRegionId: 'dashboard.controls',
+      children: 'Start',
+    })
+    expect(
+      layout.find(item => item.type === 'CircularProgress')?.props,
+    ).toMatchObject({
+      layoutRegionId: 'dashboard.status',
+      value: 68,
+    })
     layout.forEach(item => {
       expect(typeof item.type).toBe('string')
       expect(item.props.positionMode).toBe('absolute')
@@ -170,7 +210,10 @@ describe('ForgeUI Dashboard Layout Designer', () => {
 
   it('keeps old Boxes valid without any region metadata', () => {
     const legacy = asComponent('legacy', 'Box', {
-      x: 10, y: 20, w: 100, h: 80,
+      x: 10,
+      y: 20,
+      w: 100,
+      h: 80,
     })
     expect(legacy.props.layoutRegionKey).toBeUndefined()
     expect(autoArrangeForgeUIRegion(legacy, [])).toEqual([])
@@ -181,12 +224,14 @@ describe('ForgeUI Dashboard Layout Designer', () => {
       { type: 'Chart', props: { seriesCount: 2 } },
     ])
     const restored = JSON.parse(JSON.stringify(layout))
-    expect(restored.find((item: any) =>
-      item.props.layoutRegionKey === 'dashboard.main'
-    )).toBeDefined()
-    expect(restored.find((item: any) =>
-      item.type === 'Chart'
-    ).props).toMatchObject({
+    expect(
+      restored.find(
+        (item: any) => item.props.layoutRegionKey === 'dashboard.main',
+      ),
+    ).toBeDefined()
+    expect(
+      restored.find((item: any) => item.type === 'Chart').props,
+    ).toMatchObject({
       layoutRegionId: 'dashboard.main',
       seriesCount: 2,
     })

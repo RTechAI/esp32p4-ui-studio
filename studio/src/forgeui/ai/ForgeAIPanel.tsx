@@ -1407,7 +1407,9 @@ const applyLayoutDesignerTemplate = () => {
 const buildLayoutAIComposerPrompt = () => {
   leaveAllComponentsTest()
   setHelperSelectedTypes([
-    'Heading', 'Text', 'Led', 'Progress', 'CircularProgress',
+    'Heading', 'Text',
+    ...(selectedLayoutDefinition.id === 'weather-dashboard' ? ['Icon'] : []),
+    'Led', 'Progress', 'CircularProgress',
     'Chart', 'Button', 'Switch',
   ])
   const regionNames = selectedLayoutDefinition.layout
@@ -1426,6 +1428,21 @@ Content guidance: ${selectedLayoutDefinition.aiGuidance}
 
 Return content grouped only into these regions:
 ${regionNames.map(name => `- ${name}`).join('\n')}
+
+${selectedLayoutDefinition.id === 'weather-dashboard' ? `Use normal editable ForgeUI Heading, Text and Icon components inside the structural Box regions. Favour these semantic component names where naming is supported:
+- Weather_Location
+- Weather_Date
+- Weather_Time
+- Weather_Temperature
+- Weather_Condition
+- Weather_FeelsLike
+- Weather_Humidity
+- Weather_Wind
+- Weather_Rain
+- Weather_UV
+- Forecast_Day1 through Forecast_Day5
+
+Include location, date, time, temperature, condition, feels-like, humidity, wind, rain, UV and five daily forecast groups. Do not request, select or replace a background image.` : ''}
 
 Do not create Box, Divider or Line components.
 Do not include unrelated specialist controls.

@@ -1,11 +1,6 @@
 import React from 'react'
 import { ChakraProvider } from '@chakra-ui/react'
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import ForgeAIPanel from './ForgeAIPanel'
 import {
@@ -13,163 +8,118 @@ import {
   forgeUIGetUploadedAssets,
 } from '~forgeui/ForgeUIUploadedAssetRegistry'
 
-jest.mock(
-  '~forgeui/theme/ForgeThemeContext',
-  () => ({
-    useForgeTheme: () => ({
-      heroBackground: '',
-      setHeroBackground: jest.fn(),
-    }),
+jest.mock('~forgeui/theme/ForgeThemeContext', () => ({
+  useForgeTheme: () => ({
+    heroBackground: '',
+    setHeroBackground: jest.fn(),
   }),
-)
+}))
 
 jest.mock('./StateSheetOverlay', () => ({
   __esModule: true,
   default: ({ project }: any) => (
     <div data-testid="state-sheet-overlay">
       {project.regions.map((region: any) => (
-        <span key={region.id}>
-          {region.label} selector
-        </span>
+        <span key={region.id}>{region.label} selector</span>
       ))}
     </div>
   ),
 }))
 
-jest.mock(
-  '~forgeui/interactive/ForgeUIInteractiveAssetPanel',
-  () => ({
-    __esModule: true,
-    default: ({
-      onBuildToggleSet,
-      toggleStateSheetResult,
-      onToggleStateSheetResultConsumed,
-      navigationRequest,
-    }: {
-      onBuildToggleSet?: (
-        stateSheetSourceAssetId?: string,
-      ) => void
-      toggleStateSheetResult?: {
-        offAssetId: string
-        onAssetId: string
-        stateSheetSourceAssetId: string
-      } | null
-      onToggleStateSheetResultConsumed?: () => void
-      navigationRequest?: {
-        sourceComponentId: string
-        interactiveAssetId?: string
-      } | null
-    }) => {
-      const [draftName, setDraftName] =
-        React.useState('Preserved Toggle Draft')
-      const [offAssetId, setOffAssetId] =
-        React.useState('')
-      const [onAssetId, setOnAssetId] =
-        React.useState('')
-      const [
-        stateSheetSourceAssetId,
-        setStateSheetSourceAssetId,
-      ] = React.useState('')
+jest.mock('~forgeui/interactive/ForgeUIInteractiveAssetPanel', () => ({
+  __esModule: true,
+  default: ({
+    onBuildToggleSet,
+    toggleStateSheetResult,
+    onToggleStateSheetResultConsumed,
+    navigationRequest,
+  }: {
+    onBuildToggleSet?: (stateSheetSourceAssetId?: string) => void
+    toggleStateSheetResult?: {
+      offAssetId: string
+      onAssetId: string
+      stateSheetSourceAssetId: string
+    } | null
+    onToggleStateSheetResultConsumed?: () => void
+    navigationRequest?: {
+      sourceComponentId: string
+      interactiveAssetId?: string
+    } | null
+  }) => {
+    const [draftName, setDraftName] = React.useState('Preserved Toggle Draft')
+    const [offAssetId, setOffAssetId] = React.useState('')
+    const [onAssetId, setOnAssetId] = React.useState('')
+    const [
+      stateSheetSourceAssetId,
+      setStateSheetSourceAssetId,
+    ] = React.useState('')
 
-      React.useEffect(() => {
-        if (!toggleStateSheetResult) return
-        setOffAssetId(
-          toggleStateSheetResult.offAssetId,
-        )
-        setOnAssetId(
-          toggleStateSheetResult.onAssetId,
-        )
-        setStateSheetSourceAssetId(
-          toggleStateSheetResult
-            .stateSheetSourceAssetId,
-        )
-        onToggleStateSheetResultConsumed?.()
-      }, [
-        onToggleStateSheetResultConsumed,
-        toggleStateSheetResult,
-      ])
+    React.useEffect(() => {
+      if (!toggleStateSheetResult) return
+      setOffAssetId(toggleStateSheetResult.offAssetId)
+      setOnAssetId(toggleStateSheetResult.onAssetId)
+      setStateSheetSourceAssetId(toggleStateSheetResult.stateSheetSourceAssetId)
+      onToggleStateSheetResultConsumed?.()
+    }, [onToggleStateSheetResultConsumed, toggleStateSheetResult])
 
-      return (
-        <div>
-          <label>
-            Toggle name
-            <input
-              value={draftName}
-              onChange={event =>
-                setDraftName(event.target.value)
-              }
-            />
-          </label>
-          <button
-            onClick={() =>
-              onBuildToggleSet?.(
-                stateSheetSourceAssetId ||
-                  undefined,
-              )
-            }
-          >
-            {offAssetId && onAssetId
-              ? stateSheetSourceAssetId
-                ? 'Rebuild Toggle Set'
-                : 'Replace Toggle Set'
-              : 'Create Toggle Set'}
-          </button>
-          <button
-            onClick={() => {
-              setOffAssetId('legacy-off')
-              setOnAssetId('legacy-on')
-              setStateSheetSourceAssetId('')
-            }}
-          >
-            Load legacy Toggle
-          </button>
-          <output aria-label="OFF asset">
-            {offAssetId}
-          </output>
-          <output aria-label="ON asset">
-            {onAssetId}
-          </output>
-          <output aria-label="State sheet source asset">
-            {stateSheetSourceAssetId}
-          </output>
-          <output aria-label="Navigation source component">
-            {navigationRequest?.sourceComponentId}
-          </output>
-          <output aria-label="Navigation interactive asset">
-            {navigationRequest?.interactiveAssetId}
-          </output>
-        </div>
-      )
-    },
-  }),
-)
+    return (
+      <div>
+        <label>
+          Toggle name
+          <input
+            value={draftName}
+            onChange={event => setDraftName(event.target.value)}
+          />
+        </label>
+        <button
+          onClick={() =>
+            onBuildToggleSet?.(stateSheetSourceAssetId || undefined)
+          }
+        >
+          {offAssetId && onAssetId
+            ? stateSheetSourceAssetId
+              ? 'Rebuild Toggle Set'
+              : 'Replace Toggle Set'
+            : 'Create Toggle Set'}
+        </button>
+        <button
+          onClick={() => {
+            setOffAssetId('legacy-off')
+            setOnAssetId('legacy-on')
+            setStateSheetSourceAssetId('')
+          }}
+        >
+          Load legacy Toggle
+        </button>
+        <output aria-label="OFF asset">{offAssetId}</output>
+        <output aria-label="ON asset">{onAssetId}</output>
+        <output aria-label="State sheet source asset">
+          {stateSheetSourceAssetId}
+        </output>
+        <output aria-label="Navigation source component">
+          {navigationRequest?.sourceComponentId}
+        </output>
+        <output aria-label="Navigation interactive asset">
+          {navigationRequest?.interactiveAssetId}
+        </output>
+      </div>
+    )
+  },
+}))
 
 describe('ForgeAIPanel Toggle State Sheet entry', () => {
   beforeEach(() => {
     window.localStorage.clear()
     forgeUIClearUploadedAssets()
+    jest.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
+      clearRect: jest.fn(),
+      drawImage: jest.fn(),
+    } as any)
     jest
-      .spyOn(
-        HTMLCanvasElement.prototype,
-        'getContext',
-      )
-      .mockReturnValue({
-        clearRect: jest.fn(),
-        drawImage: jest.fn(),
-      } as any)
+      .spyOn(HTMLCanvasElement.prototype, 'toDataURL')
+      .mockReturnValue('data:image/png;base64,crop')
     jest
-      .spyOn(
-        HTMLCanvasElement.prototype,
-        'toDataURL',
-      )
-      .mockReturnValue(
-        'data:image/png;base64,crop',
-      )
-    jest
-      .spyOn(
-        HTMLCanvasElement.prototype,
-        'toBlob',
-      )
+      .spyOn(HTMLCanvasElement.prototype, 'toBlob')
       .mockImplementation(callback => {
         callback(
           new Blob(['crop'], {
@@ -178,67 +128,51 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
         )
       })
     let artworkGeneration = 0
-    global.fetch = jest.fn(
-      async (input: RequestInfo | URL) => {
-        if (
-          String(input).includes(
-            'convert-lvgl-image',
-          )
-        ) {
-          return {
-            ok: true,
-            json: async () => ({
-              ok: true,
-              symbolName: 'fg_toggle_crop',
-              assetSource: 'toggle_crop.c',
-            }),
-          } as Response
-        }
-
-        if (
-          String(input).startsWith('data:image/')
-        ) {
-          return {
-            ok: true,
-            blob: async () =>
-              new Blob(['source'], {
-                type: 'image/png',
-              }),
-          } as Response
-        }
-
-        artworkGeneration += 1
+    global.fetch = jest.fn(async (input: RequestInfo | URL) => {
+      if (String(input).includes('convert-lvgl-image')) {
         return {
           ok: true,
           json: async () => ({
             ok: true,
-            image:
-              `data:image/png;base64,state-sheet-${artworkGeneration}`,
+            symbolName: 'fg_toggle_crop',
+            assetSource: 'toggle_crop.c',
           }),
         } as Response
-      },
-    ) as jest.Mock
+      }
+
+      if (String(input).startsWith('data:image/')) {
+        return {
+          ok: true,
+          blob: async () =>
+            new Blob(['source'], {
+              type: 'image/png',
+            }),
+        } as Response
+      }
+
+      artworkGeneration += 1
+      return {
+        ok: true,
+        json: async () => ({
+          ok: true,
+          image: `data:image/png;base64,state-sheet-${artworkGeneration}`,
+        }),
+      } as Response
+    }) as jest.Mock
   })
 
   afterEach(() => {
     jest.restoreAllMocks()
   })
 
-  const renderPanel = (
-    insertAiLayout = jest.fn(),
-  ) =>
+  const renderPanel = (insertAiLayout = jest.fn()) =>
     render(
       <ChakraProvider>
-        <ForgeAIPanel
-          onClose={jest.fn()}
-          insertAiLayout={insertAiLayout}
-        />
+        <ForgeAIPanel onClose={jest.fn()} insertAiLayout={insertAiLayout} />
       </ChakraProvider>,
     )
 
-  const loadArtworkImage = (
-    image: HTMLElement,
-  ) => {
+  const loadArtworkImage = (image: HTMLElement) => {
     Object.defineProperties(image, {
       complete: {
         configurable: true,
@@ -261,16 +195,22 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
 
     expect(screen.getByText('Selection Controls')).toBeInTheDocument()
     expect(screen.getByText('Interactive Assets')).toBeInTheDocument()
-    expect(screen.getByRole('checkbox', {
-      name: 'NumberInput',
-    })).toBeInTheDocument()
-    expect(screen.getByRole('checkbox', {
-      name: 'InteractiveButton',
-    })).toBeDisabled()
+    expect(
+      screen.getByRole('checkbox', {
+        name: 'NumberInput',
+      }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('checkbox', {
+        name: 'InteractiveButton',
+      }),
+    ).toBeDisabled()
 
-    fireEvent.click(screen.getByRole('button', {
-      name: 'All Components Test',
-    }))
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'All Components Test',
+      }),
+    )
 
     const prompt = screen.getByPlaceholderText(
       /Create a modern industrial dashboard/,
@@ -280,19 +220,27 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
     expect(prompt.value).toContain('- CircularProgress:')
     expect(prompt.value).not.toContain('- InteractiveButton:')
     expect(prompt.value).toContain('Never fabricate asset IDs')
-    expect(screen.getByText(
-      'Validation only. Requests every AI-supported component on one 1024×600 screen. The result will be dense and is not intended to be a usable interface.',
-    )).toBeInTheDocument()
-    expect(screen.getByRole('button', {
-      name: 'All Components Test',
-    })).toHaveAttribute('aria-pressed', 'true')
+    expect(
+      screen.getByText(
+        'Validation only. Requests every AI-supported component on one 1024×600 screen. The result will be dense and is not intended to be a usable interface.',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', {
+        name: 'All Components Test',
+      }),
+    ).toHaveAttribute('aria-pressed', 'true')
 
-    fireEvent.click(screen.getByRole('button', {
-      name: 'Dashboard',
-    }))
-    expect(screen.getByRole('button', {
-      name: 'All Components Test',
-    })).toHaveAttribute('aria-pressed', 'false')
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Dashboard',
+      }),
+    )
+    expect(
+      screen.getByRole('button', {
+        name: 'All Components Test',
+      }),
+    ).toHaveAttribute('aria-pressed', 'false')
     expect(prompt.value).toBe('')
   })
 
@@ -303,60 +251,103 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
     expect(screen.getByTestId('layout-designer-preview')).toHaveTextContent(
       'HeaderStatusMainControlsFooter',
     )
-    fireEvent.click(screen.getByRole('button', {
-      name: 'Apply Dashboard',
-    }))
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Apply Dashboard',
+      }),
+    )
     expect(insertAiLayout).toHaveBeenCalledTimes(1)
     const applied = insertAiLayout.mock.calls[0][0]
     expect(applied.filter((item: any) => item.type === 'Box')).toHaveLength(5)
-    expect(applied.map((item: any) => item.props.layoutRegionKey))
-      .toEqual(expect.arrayContaining([
+    expect(applied.map((item: any) => item.props.layoutRegionKey)).toEqual(
+      expect.arrayContaining([
         'dashboard.header',
         'dashboard.status',
         'dashboard.main',
         'dashboard.controls',
         'dashboard.footer',
-      ]))
+      ]),
+    )
 
-    fireEvent.click(screen.getByRole('button', {
-      name: 'AI Fill Dashboard',
-    }))
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'AI Fill Dashboard',
+      }),
+    )
     const prompt = screen.getByPlaceholderText(
       /Create a modern industrial dashboard/,
     ) as HTMLTextAreaElement
     expect(prompt.value).toContain('FORGEUI_LAYOUT_TEMPLATE: dashboard')
-    expect(prompt.value).toContain('ForgeUI owns all structural region geometry')
+    expect(prompt.value).toContain(
+      'ForgeUI owns all structural region geometry',
+    )
   })
 
   it.each([
+    [
+      'Weather Dashboard',
+      'HeaderLeftHeaderRightCurrentWeatherMetricsForecast_Day1Forecast_Day2Forecast_Day3Forecast_Day4Forecast_Day5',
+    ],
     ['Industrial HMI', 'NavigationMachine StatusProcess AreaAlarm Panel'],
     ['Control Panel', 'Left ControlsCentre GraphicRight Controls'],
     ['Monitoring', 'Large Trend GraphMetrics StripAlarm List'],
-    ['SCADA Overview', 'Left NavigationMain MimicRight InformationBottom Events'],
+    [
+      'SCADA Overview',
+      'Left NavigationMain MimicRight InformationBottom Events',
+    ],
     ['Mobile / Portrait', 'Main CardSecondary CardControls'],
   ])('previews, applies and prepares AI Fill for %s', (name, labels) => {
     const insertAiLayout = jest.fn()
     renderPanel(insertAiLayout)
     fireEvent.change(screen.getByDisplayValue('Dashboard'), {
       target: {
-        value: name.toLowerCase()
+        value: name
+          .toLowerCase()
           .replace(' / ', '-')
           .replace(/ /g, '-'),
       },
     })
-    expect(screen.getByTestId('layout-designer-preview'))
-      .toHaveTextContent(labels)
-    fireEvent.click(screen.getByRole('button', {
-      name: `Apply ${name}`,
-    }))
+    expect(screen.getByTestId('layout-designer-preview')).toHaveTextContent(
+      labels,
+    )
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: `Apply ${name}`,
+      }),
+    )
     expect(insertAiLayout).toHaveBeenCalledTimes(1)
-    fireEvent.click(screen.getByRole('button', {
-      name: `AI Fill ${name}`,
-    }))
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: `AI Fill ${name}`,
+      }),
+    )
     const layoutPrompt = screen.getByPlaceholderText(
       /Create a modern industrial dashboard/,
     ) as HTMLTextAreaElement
     expect(layoutPrompt.value).toContain('FORGEUI_LAYOUT_TEMPLATE:')
+  })
+
+  it('routes Weather Dashboard AI Fill through semantic weather regions and normal components', () => {
+    renderPanel(jest.fn())
+    fireEvent.change(screen.getByDisplayValue('Dashboard'), {
+      target: { value: 'weather-dashboard' },
+    })
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'AI Fill Weather Dashboard',
+      }),
+    )
+    const prompt = screen.getByPlaceholderText(
+      /Create a modern industrial dashboard/,
+    ) as HTMLTextAreaElement
+    expect(prompt.value).toContain('FORGEUI_LAYOUT_TEMPLATE: weather-dashboard')
+    expect(prompt.value).toContain('- current-weather')
+    expect(prompt.value).toContain('- forecast-day5')
+    expect(prompt.value).toContain('Weather_Temperature')
+    expect(prompt.value).toContain('Forecast_Day1 through Forecast_Day5')
+    expect(prompt.value).toContain(
+      'Do not request, select or replace a background image',
+    )
   })
 
   it('opens the Interactive tab and forwards a Toggle creator request', async () => {
@@ -376,15 +367,17 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
     )
 
     await waitFor(() =>
-      expect(screen.getByTestId('forge-ai-tabs'))
-        .toHaveAttribute('data-active-tab-index', '3'),
+      expect(screen.getByTestId('forge-ai-tabs')).toHaveAttribute(
+        'data-active-tab-index',
+        '3',
+      ),
     )
-    expect(screen.getByLabelText(
-      'Navigation source component',
-    )).toHaveTextContent('canvas-toggle')
-    expect(screen.getByLabelText(
-      'Navigation interactive asset',
-    )).toHaveTextContent('saved-toggle')
+    expect(
+      screen.getByLabelText('Navigation source component'),
+    ).toHaveTextContent('canvas-toggle')
+    expect(
+      screen.getByLabelText('Navigation interactive asset'),
+    ).toHaveTextContent('saved-toggle')
   })
 
   it('opens the Interactive tab for a Status Indicator creator request', async () => {
@@ -402,12 +395,14 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
       </ChakraProvider>,
     )
     await waitFor(() =>
-      expect(screen.getByTestId('forge-ai-tabs'))
-        .toHaveAttribute('data-active-tab-index', '3'),
+      expect(screen.getByTestId('forge-ai-tabs')).toHaveAttribute(
+        'data-active-tab-index',
+        '3',
+      ),
     )
-    expect(screen.getByLabelText(
-      'Navigation source component',
-    )).toHaveTextContent('canvas-status')
+    expect(
+      screen.getByLabelText('Navigation source component'),
+    ).toHaveTextContent('canvas-status')
   })
 
   const generateArtwork = async () => {
@@ -417,9 +412,7 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
       }),
     )
     fireEvent.change(
-      screen.getByPlaceholderText(
-        /Create a compact industrial battery/,
-      ),
+      screen.getByPlaceholderText(/Create a compact industrial battery/),
       {
         target: {
           value: 'Create a two-state switch sheet',
@@ -432,9 +425,7 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
       }),
     )
 
-    const image = await screen.findByAltText(
-      'AI generated artwork',
-    )
+    const image = await screen.findByAltText('AI generated artwork')
     loadArtworkImage(image)
   }
 
@@ -458,9 +449,7 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
         name: 'Interactive',
       }),
     )
-    const draft = screen.getByLabelText(
-      'Toggle name',
-    )
+    const draft = screen.getByLabelText('Toggle name')
     fireEvent.change(draft, {
       target: { value: 'Unsaved Pump Toggle' },
     })
@@ -474,20 +463,15 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
         name: 'Create Toggle Set',
       }),
     )
-    loadArtworkImage(
-      screen.getByAltText(
-        'AI generated artwork',
-      ),
-    )
+    loadArtworkImage(screen.getByAltText('AI generated artwork'))
 
     await waitFor(() => {
-      expect(
-        screen.getByTestId('state-sheet-overlay'),
-      ).toBeInTheDocument()
+      expect(screen.getByTestId('state-sheet-overlay')).toBeInTheDocument()
     })
-    expect(
-      screen.getByTestId('forge-ai-tabs'),
-    ).toHaveAttribute('data-active-tab-index', '3')
+    expect(screen.getByTestId('forge-ai-tabs')).toHaveAttribute(
+      'data-active-tab-index',
+      '3',
+    )
     expect(
       screen.getByRole('heading', {
         name: 'Toggle State Sheet Builder',
@@ -499,12 +483,8 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
       }),
     ).not.toBeInTheDocument()
     expect(draft).not.toBeVisible()
-    expect(
-      screen.getByText('OFF selector'),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText('ON selector'),
-    ).toBeInTheDocument()
+    expect(screen.getByText('OFF selector')).toBeInTheDocument()
+    expect(screen.getByText('ON selector')).toBeInTheDocument()
     expect(
       screen.getByRole('button', {
         name: 'Create Toggle Set',
@@ -525,12 +505,8 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
         name: 'Insert Artwork',
       }),
     ).not.toBeInTheDocument()
-    expect(
-      screen.queryByText('AI Asset Designer'),
-    ).not.toBeInTheDocument()
-    expect(
-      screen.queryByText('My Forge Assets'),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByText('AI Asset Designer')).not.toBeInTheDocument()
+    expect(screen.queryByText('My Forge Assets')).not.toBeInTheDocument()
     expect(
       screen.queryByRole('button', {
         name: 'Show Advanced JSON',
@@ -548,181 +524,152 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
         name: 'Interactive',
       }),
     ).toHaveAttribute('aria-selected', 'true')
-    expect(
-      screen.getByLabelText('Toggle name'),
-    ).toHaveValue('Unsaved Pump Toggle')
-    expect(
-      screen.getByLabelText('Toggle name'),
-    ).toBeVisible()
+    expect(screen.getByLabelText('Toggle name')).toHaveValue(
+      'Unsaved Pump Toggle',
+    )
+    expect(screen.getByLabelText('Toggle name')).toBeVisible()
   })
 
   it('creates both assets and reveals the same unsaved draft without changing tabs', async () => {
     renderPanel()
     await generateArtwork()
-    fireEvent.click(screen.getByRole('tab', {
-      name: 'Interactive',
-    }))
-    const draft = screen.getByLabelText(
-      'Toggle name',
+    fireEvent.click(
+      screen.getByRole('tab', {
+        name: 'Interactive',
+      }),
     )
+    const draft = screen.getByLabelText('Toggle name')
     fireEvent.change(draft, {
       target: { value: 'Created Pump Toggle' },
     })
-    fireEvent.click(screen.getByRole('button', {
-      name: 'Create Toggle Set',
-    }))
-    loadArtworkImage(screen.getByAltText(
-      'AI generated artwork',
-    ))
-
-    await screen.findByTestId(
-      'state-sheet-overlay',
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Create Toggle Set',
+      }),
     )
-    expect(
-      screen.getByTestId('forge-ai-tabs'),
-    ).toHaveAttribute('data-active-tab-index', '3')
-    fireEvent.click(screen.getByRole('button', {
-      name: 'Create Toggle Set',
-    }))
+    loadArtworkImage(screen.getByAltText('AI generated artwork'))
+
+    await screen.findByTestId('state-sheet-overlay')
+    expect(screen.getByTestId('forge-ai-tabs')).toHaveAttribute(
+      'data-active-tab-index',
+      '3',
+    )
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Create Toggle Set',
+      }),
+    )
 
     await waitFor(() => {
       expect(
-        screen.queryByTestId(
-          'toggle-state-sheet-workspace',
-        ),
+        screen.queryByTestId('toggle-state-sheet-workspace'),
       ).not.toBeInTheDocument()
+      expect(screen.getByLabelText('OFF asset')).not.toHaveTextContent(/^$/)
+      expect(screen.getByLabelText('ON asset')).not.toHaveTextContent(/^$/)
       expect(
-        screen.getByLabelText('OFF asset'),
-      ).not.toHaveTextContent(/^$/)
-      expect(
-        screen.getByLabelText('ON asset'),
-      ).not.toHaveTextContent(/^$/)
-      expect(
-        screen.getByLabelText(
-          'State sheet source asset',
-        ),
+        screen.getByLabelText('State sheet source asset'),
       ).not.toHaveTextContent(/^$/)
     })
+    expect(screen.getByTestId('forge-ai-tabs')).toHaveAttribute(
+      'data-active-tab-index',
+      '3',
+    )
+    expect(screen.getByLabelText('Toggle name')).toHaveValue(
+      'Created Pump Toggle',
+    )
+    expect(screen.getByLabelText('Toggle name')).toBeVisible()
+    const sourceAssetId = screen.getByLabelText('State sheet source asset')
+      .textContent
     expect(
-      screen.getByTestId('forge-ai-tabs'),
-    ).toHaveAttribute('data-active-tab-index', '3')
-    expect(
-      screen.getByLabelText('Toggle name'),
-    ).toHaveValue('Created Pump Toggle')
-    expect(
-      screen.getByLabelText('Toggle name'),
-    ).toBeVisible()
-    const sourceAssetId =
-      screen.getByLabelText(
-        'State sheet source asset',
-      ).textContent
-    expect(
-      forgeUIGetUploadedAssets().some(
-        asset => asset.id === sourceAssetId,
-      ),
+      forgeUIGetUploadedAssets().some(asset => asset.id === sourceAssetId),
     ).toBe(true)
 
-    const firstOffAssetId =
-      screen.getByLabelText(
-        'OFF asset',
-      ).textContent
-    const firstOnAssetId =
-      screen.getByLabelText(
-        'ON asset',
-      ).textContent
+    const firstOffAssetId = screen.getByLabelText('OFF asset').textContent
+    const firstOnAssetId = screen.getByLabelText('ON asset').textContent
 
-    fireEvent.click(screen.getByRole('tab', {
-      name: 'Assets',
-    }))
-    fireEvent.click(screen.getByRole('button', {
-      name: /Create AI Artwork/,
-    }))
+    fireEvent.click(
+      screen.getByRole('tab', {
+        name: 'Assets',
+      }),
+    )
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: /Create AI Artwork/,
+      }),
+    )
     await waitFor(() => {
-      expect(
-        screen.getByAltText(
-          'AI generated artwork',
-        ),
-      ).toHaveAttribute(
+      expect(screen.getByAltText('AI generated artwork')).toHaveAttribute(
         'src',
         'data:image/png;base64,state-sheet-2',
       )
     })
-    loadArtworkImage(screen.getByAltText(
-      'AI generated artwork',
-    ))
+    loadArtworkImage(screen.getByAltText('AI generated artwork'))
 
-    fireEvent.click(screen.getByRole('tab', {
-      name: 'Interactive',
-    }))
-    fireEvent.click(screen.getByRole('button', {
-      name: 'Rebuild Toggle Set',
-    }))
+    fireEvent.click(
+      screen.getByRole('tab', {
+        name: 'Interactive',
+      }),
+    )
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Rebuild Toggle Set',
+      }),
+    )
 
-    const retainedSourceImage =
-      screen.getByAltText(
-        'AI generated artwork',
-      )
+    const retainedSourceImage = screen.getByAltText('AI generated artwork')
     expect(retainedSourceImage).toHaveAttribute(
       'src',
       'data:image/png;base64,state-sheet-1',
     )
     loadArtworkImage(retainedSourceImage)
-    expect(
-      await screen.findByTestId(
-        'state-sheet-overlay',
-      ),
-    ).toBeInTheDocument()
-    expect(
-      screen.queryByText('AI artwork required'),
-    ).not.toBeInTheDocument()
+    expect(await screen.findByTestId('state-sheet-overlay')).toBeInTheDocument()
+    expect(screen.queryByText('AI artwork required')).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', {
-      name: 'Create Toggle Set',
-    }))
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Create Toggle Set',
+      }),
+    )
     await waitFor(() => {
       expect(
-        screen.getByLabelText(
-          'State sheet source asset',
-        ),
+        screen.getByLabelText('State sheet source asset'),
       ).toHaveTextContent(sourceAssetId || '')
-      expect(
-        screen.getByLabelText('OFF asset'),
-      ).not.toHaveTextContent(
+      expect(screen.getByLabelText('OFF asset')).not.toHaveTextContent(
         firstOffAssetId || '',
       )
-      expect(
-        screen.getByLabelText('ON asset'),
-      ).not.toHaveTextContent(
+      expect(screen.getByLabelText('ON asset')).not.toHaveTextContent(
         firstOnAssetId || '',
       )
     })
-    expect(
-      screen.getByLabelText('Toggle name'),
-    ).toHaveValue('Created Pump Toggle')
+    expect(screen.getByLabelText('Toggle name')).toHaveValue(
+      'Created Pump Toggle',
+    )
   })
 
   it('opens a focused source step for a legacy Toggle and continues into cropping', async () => {
     renderPanel()
-    fireEvent.click(screen.getByRole('tab', {
-      name: 'Interactive',
-    }))
-    const draft = screen.getByLabelText(
-      'Toggle name',
+    fireEvent.click(
+      screen.getByRole('tab', {
+        name: 'Interactive',
+      }),
     )
+    const draft = screen.getByLabelText('Toggle name')
     fireEvent.change(draft, {
       target: { value: 'Legacy Pump Toggle' },
     })
-    fireEvent.click(screen.getByRole('button', {
-      name: 'Load legacy Toggle',
-    }))
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Load legacy Toggle',
+      }),
+    )
 
-    fireEvent.click(screen.getByRole('button', {
-      name: 'Replace Toggle Set',
-    }))
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Replace Toggle Set',
+      }),
+    )
     expect(
-      screen.getByTestId(
-        'toggle-state-sheet-workspace',
-      ),
+      screen.getByTestId('toggle-state-sheet-workspace'),
     ).toBeInTheDocument()
     expect(
       screen.getByRole('heading', {
@@ -735,55 +682,48 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
       }),
     ).toBeInTheDocument()
     expect(
-      screen.queryByText(
-        'Toggle source artwork required',
-      ),
+      screen.queryByText('Toggle source artwork required'),
     ).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', {
-      name: 'Cancel',
-    }))
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Cancel',
+      }),
+    )
     expect(draft).toBeVisible()
     expect(draft).toHaveValue('Legacy Pump Toggle')
-    expect(
-      screen.getByLabelText('OFF asset'),
-    ).toHaveTextContent('legacy-off')
-    expect(
-      screen.getByLabelText('ON asset'),
-    ).toHaveTextContent('legacy-on')
+    expect(screen.getByLabelText('OFF asset')).toHaveTextContent('legacy-off')
+    expect(screen.getByLabelText('ON asset')).toHaveTextContent('legacy-on')
 
-    fireEvent.click(screen.getByRole('button', {
-      name: 'Replace Toggle Set',
-    }))
-    fireEvent.click(screen.getByRole('button', {
-      name: 'Generate Source Artwork',
-    }))
-    const generatedSource =
-      await screen.findByAltText(
-        'AI generated artwork',
-      )
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Replace Toggle Set',
+      }),
+    )
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Generate Source Artwork',
+      }),
+    )
+    const generatedSource = await screen.findByAltText('AI generated artwork')
     loadArtworkImage(generatedSource)
-    expect(
-      await screen.findByTestId(
-        'state-sheet-overlay',
-      ),
-    ).toBeInTheDocument()
+    expect(await screen.findByTestId('state-sheet-overlay')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', {
-      name: 'Create Toggle Set',
-    }))
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Create Toggle Set',
+      }),
+    )
     await waitFor(() => {
       expect(
-        screen.getByLabelText(
-          'State sheet source asset',
-        ),
+        screen.getByLabelText('State sheet source asset'),
       ).not.toHaveTextContent(/^$/)
-      expect(
-        screen.getByLabelText('OFF asset'),
-      ).not.toHaveTextContent('legacy-off')
-      expect(
-        screen.getByLabelText('ON asset'),
-      ).not.toHaveTextContent('legacy-on')
+      expect(screen.getByLabelText('OFF asset')).not.toHaveTextContent(
+        'legacy-off',
+      )
+      expect(screen.getByLabelText('ON asset')).not.toHaveTextContent(
+        'legacy-on',
+      )
     })
     expect(draft).toBeVisible()
     expect(draft).toHaveValue('Legacy Pump Toggle')
@@ -792,24 +732,24 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
   it('uses current artwork immediately when replacing a legacy Toggle', async () => {
     renderPanel()
     await generateArtwork()
-    fireEvent.click(screen.getByRole('tab', {
-      name: 'Interactive',
-    }))
-    fireEvent.click(screen.getByRole('button', {
-      name: 'Load legacy Toggle',
-    }))
-    fireEvent.click(screen.getByRole('button', {
-      name: 'Replace Toggle Set',
-    }))
-    loadArtworkImage(screen.getByAltText(
-      'AI generated artwork',
-    ))
+    fireEvent.click(
+      screen.getByRole('tab', {
+        name: 'Interactive',
+      }),
+    )
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Load legacy Toggle',
+      }),
+    )
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Replace Toggle Set',
+      }),
+    )
+    loadArtworkImage(screen.getByAltText('AI generated artwork'))
 
-    expect(
-      await screen.findByTestId(
-        'state-sheet-overlay',
-      ),
-    ).toBeInTheDocument()
+    expect(await screen.findByTestId('state-sheet-overlay')).toBeInTheDocument()
     expect(
       screen.queryByRole('button', {
         name: 'Generate Source Artwork',

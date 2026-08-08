@@ -1,6 +1,4 @@
-import {
-  resolveForgeAIComponentType,
-} from './ForgeAIComponentCatalogue'
+import { resolveForgeAIComponentType } from './ForgeAIComponentCatalogue'
 import {
   ForgeUILayoutTemplateId,
   getForgeUILayoutTemplate,
@@ -11,12 +9,15 @@ export type ForgeAIRegionComposerDocument = {
   description?: string
   template: ForgeUILayoutTemplateId
   title?: string
-  regions: Record<string, Array<{
-    type: string
-    props?: Record<string, unknown>
-    importance?: number
-    order?: number
-  }>>
+  regions: Record<
+    string,
+    Array<{
+      type: string
+      props?: Record<string, unknown>
+      importance?: number
+      order?: number
+    }>
+  >
 }
 
 export const isForgeAIRegionComposerDocument = (
@@ -26,9 +27,8 @@ export const isForgeAIRegionComposerDocument = (
   const candidate = value as Record<string, unknown>
   return (
     typeof candidate.template === 'string' &&
-    getForgeUILayoutTemplate(
-      candidate.template as ForgeUILayoutTemplateId,
-    ).id === candidate.template &&
+    getForgeUILayoutTemplate(candidate.template as ForgeUILayoutTemplateId)
+      .id === candidate.template &&
     Boolean(candidate.regions) &&
     typeof candidate.regions === 'object' &&
     !Array.isArray(candidate.regions)
@@ -76,17 +76,17 @@ export const flattenForgeAIRegionComposerDocument = (
       })
     })
   })
-  if (
-    document.title &&
-    !layout.some(item => item.type === 'Heading')
-  ) {
+  if (document.title && !layout.some(item => item.type === 'Heading')) {
+    const headerRegionKey = definition.layout.find(
+      item => item.type === 'Box' && item.props.layoutRegionRole === 'header',
+    )?.props.layoutRegionKey
     layout.unshift({
       type: 'Heading',
       props: {
         children: document.title,
         textValue: document.title,
         positionMode: 'absolute',
-        layoutRegionId: `${definition.id}.header`,
+        layoutRegionId: String(headerRegionKey || `${definition.id}.header`),
         layoutOrder: 0,
       },
     })
