@@ -83,6 +83,7 @@ static bool s_fallback_time_reported;
 static time_t s_last_displayed_minute;
 static bool s_request_in_flight;
 static uint32_t s_request_count;
+static char s_visual_background_key[48];
 
 static void log_memory_state(const char *stage)
 {
@@ -151,6 +152,15 @@ static bool read_number(cJSON *object, const char *name, float *value)
     return true;
 }
 
+static bool read_first_epoch(cJSON *object, const char *name, int64_t *value)
+{
+    cJSON *values = cJSON_GetObjectItemCaseSensitive(object, name);
+    cJSON *item = cJSON_IsArray(values) ? cJSON_GetArrayItem(values, 0) : NULL;
+    if (!cJSON_IsNumber(item) || !isfinite(item->valuedouble)) return false;
+    *value = (int64_t)item->valuedouble;
+    return true;
+}
+
 static bool fetch_current_conditions(const fg_weather_location_t *location,
                                      fg_weather_snapshot_t *snapshot)
 {
@@ -159,7 +169,7 @@ static bool fetch_current_conditions(const fg_weather_location_t *location,
     char request_url[512];
     const int url_length = snprintf(
         request_url, sizeof(request_url),
-        "https://api.open-meteo.com/v1/forecast?latitude=%.6f&longitude=%.6f&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,precipitation,weather_code,is_day&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm",
+        "https://api.open-meteo.com/v1/forecast?latitude=%.6f&longitude=%.6f&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,precipitation,weather_code,is_day&daily=sunrise,sunset&timeformat=unixtime&forecast_days=1&timezone=auto&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm",
         location->latitude, location->longitude);
     if (url_length < 0 || (size_t)url_length >= sizeof(request_url)) {
         ESP_LOGW(TAG, "request URL exceeds bounded buffer");
@@ -196,6 +206,7 @@ static bool fetch_current_conditions(const fg_weather_location_t *location,
 
     cJSON *root = cJSON_ParseWithLength(response.data, response.used);
     cJSON *current = root == NULL ? NULL : cJSON_GetObjectItemCaseSensitive(root, "current");
+    cJSON *daily = root == NULL ? NULL : cJSON_GetObjectItemCaseSensitive(root, "daily");
     float is_day = 0.0f;
     float weather_code = 0.0f;
     const bool valid = current != NULL &&
@@ -205,7 +216,10 @@ static bool fetch_current_conditions(const fg_weather_location_t *location,
         read_number(current, "wind_speed_10m", &snapshot->wind_speed_kmh) &&
         read_number(current, "precipitation", &snapshot->precipitation_mm) &&
         read_number(current, "weather_code", &weather_code) &&
-        read_number(current, "is_day", &is_day);
+        read_number(current, "is_day", &is_day) &&
+        daily != NULL &&
+        read_first_epoch(daily, "sunrise", &snapshot->sunrise_unix) &&
+        read_first_epoch(daily, "sunset", &snapshot->sunset_unix);
     if (valid) {
         snapshot->weather_code = (int)lroundf(weather_code);
         snapshot->is_day = is_day >= 0.5f;
@@ -245,6 +259,21 @@ static const char *weather_background_key(int code, bool is_day)
     return is_day ? "weather.partly_cloudy.day" : "weather.partly_cloudy.night";
 }
 
+static void publish_weather_visual_state(int weather_code, bool is_day)
+{
+    const char *key = weather_background_key(weather_code, is_day);
+    if (strcmp(s_visual_background_key, key) == 0) return;
+    if (!bsp_display_lock(0)) {
+        ESP_LOGW(TAG, "display lock unavailable; visual update deferred");
+        return;
+    }
+    FG_Set_Weather_Background_Key(key);
+    bsp_display_unlock();
+    snprintf(s_visual_background_key, sizeof(s_visual_background_key), "%s", key);
+    ESP_LOGI(TAG, "Weather visual state: condition=%d day=%d background=%s",
+             weather_code, is_day, key);
+}
+
 static void publish_current_conditions(const fg_weather_snapshot_t *snapshot)
 {
     char temperature[16];
@@ -260,7 +289,6 @@ static void publish_current_conditions(const fg_weather_snapshot_t *snapshot)
     if (bsp_display_lock(0)) {
         FG_Set_Weather_Temperature_Text(temperature);
         FG_Set_Weather_Condition_Text(condition_text(snapshot->weather_code));
-        FG_Set_Weather_Background_Key(weather_background_key(snapshot->weather_code, snapshot->is_day));
         FG_Set_Weather_Feels_Like_Text(feels_like);
         FG_Set_Weather_Humidity_Text(humidity);
         FG_Set_Weather_Wind_Text(wind);
@@ -270,6 +298,7 @@ static void publish_current_conditions(const fg_weather_snapshot_t *snapshot)
     } else {
         ESP_LOGW(TAG, "display lock unavailable; update deferred");
     }
+    publish_weather_visual_state(snapshot->weather_code, snapshot->is_day);
 }
 
 static void start_network_time(const fg_weather_location_t *location)
@@ -303,6 +332,16 @@ static void update_local_time(void)
     const time_t minute = now / 60;
     if (minute == s_last_displayed_minute) return;
     s_last_displayed_minute = minute;
+    fg_weather_snapshot_t visual_snapshot = {0};
+    if (fg_weather_get_snapshot(&visual_snapshot) && visual_snapshot.current_conditions_valid &&
+        visual_snapshot.sunrise_unix > 0 && visual_snapshot.sunset_unix > visual_snapshot.sunrise_unix) {
+        const bool local_is_day = now >= visual_snapshot.sunrise_unix && now < visual_snapshot.sunset_unix;
+        if (s_lock != NULL && xSemaphoreTake(s_lock, pdMS_TO_TICKS(100)) == pdTRUE) {
+            s_snapshot.is_day = local_is_day;
+            xSemaphoreGive(s_lock);
+        }
+        publish_weather_visual_state(visual_snapshot.weather_code, local_is_day);
+    }
     char date[40];
     char time_text[24];
     char weekday[16];
@@ -386,8 +425,8 @@ static void weather_task(void *argument)
                     next_attempt = now + pdMS_TO_TICKS(FG_WEATHER_RETRY_MS);
                 }
             }
-            update_local_time();
         }
+        update_local_time();
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }

@@ -23,10 +23,10 @@ describe('Hardware Example 04 online weather contract', () => {
     expect(weatherSource).not.toContain('lv_label_set_text')
   })
 
-  it('requests only the bounded Phase 2 current conditions through the existing Wi-Fi service', () => {
+  it('requests bounded current conditions and one-day solar boundaries through the existing Wi-Fi service', () => {
     expect(weatherSource).toContain('fg_wifi_get_snapshot(&wifi)')
     expect(weatherSource).toContain('current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,precipitation,weather_code,is_day')
-    expect(weatherSource).not.toContain('daily=')
+    expect(weatherSource).toContain('daily=sunrise,sunset')
     expect(weatherSource).not.toContain('hourly=')
   })
 
@@ -40,7 +40,7 @@ describe('Hardware Example 04 online weather contract', () => {
     expect(weatherSource).toContain('.timezone_posix = "NZST-12NZDT,M9.5.0,M4.1.0/3"')
     expect(weatherSource).toContain('#define FG_WEATHER_RESPONSE_CAPACITY 1024')
     for (const field of ['current_conditions_valid', 'apparent_temperature_c', 'relative_humidity_percent',
-      'wind_speed_kmh', 'precipitation_mm', 'weather_code', 'is_day']) {
+      'wind_speed_kmh', 'precipitation_mm', 'weather_code', 'is_day', 'sunrise_unix', 'sunset_unix']) {
       expect(weatherHeader).toContain(field)
     }
   })
@@ -62,6 +62,29 @@ describe('Hardware Example 04 online weather contract', () => {
     expect(weatherSource).toContain('#define FG_WEATHER_RETRY_MS (60U * 1000U)')
     expect(weatherSource).toContain('Fetch failed; retaining last value')
     expect(weatherSource).not.toMatch(/s_snapshot\.valid\s*=\s*false/)
+  })
+
+  it('re-evaluates day and night presentation locally without another weather request', () => {
+    expect(weatherSource).toContain('daily=sunrise,sunset&timeformat=unixtime&forecast_days=1&timezone=auto')
+    expect(weatherSource).toContain('read_first_epoch(daily, "sunrise", &snapshot->sunrise_unix)')
+    expect(weatherSource).toContain('read_first_epoch(daily, "sunset", &snapshot->sunset_unix)')
+    expect(weatherSource).toContain('const bool local_is_day = now >= visual_snapshot.sunrise_unix && now < visual_snapshot.sunset_unix;')
+    expect(weatherSource).toContain('publish_weather_visual_state(visual_snapshot.weather_code, local_is_day);')
+    expect(weatherSource).toContain('if (strcmp(s_visual_background_key, key) == 0) return;')
+    expect(weatherSource).toContain('Weather visual state: condition=%d day=%d background=%s')
+    expect(weatherSource).toContain('FG_Set_Weather_Background_Key(key);')
+    expect(weatherSource.match(/fetch_current_conditions\(/g)).toHaveLength(2)
+    const background = (code: number, isDay: boolean) => {
+      if (code === 0) return isDay ? 'weather.clear.day' : 'weather.clear.night'
+      if (code === 1 || code === 2) return isDay ? 'weather.partly_cloudy.day' : 'weather.partly_cloudy.night'
+      if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return isDay ? 'weather.rain.day' : 'weather.rain.night'
+      return 'weather.overcast'
+    }
+    expect(background(2, true)).toBe('weather.partly_cloudy.day')
+    expect(background(2, false)).toBe('weather.partly_cloudy.night')
+    expect(background(61, true)).toBe('weather.rain.day')
+    expect(background(61, false)).toBe('weather.rain.night')
+    expect(background(3, true)).toBe(background(3, false))
   })
 
   it('preserves HTTPS while removing the ESP32-P4 hardware-AES DMA collision', () => {

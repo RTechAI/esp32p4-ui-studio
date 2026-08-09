@@ -23,6 +23,8 @@ typedef struct {
     float precipitation_mm;
     int weather_code;
     bool is_day;
+    int64_t sunrise_unix;
+    int64_t sunset_unix;
     uint32_t last_success_ms;
     char status[48];
 } fg_weather_snapshot_t;
