@@ -55,8 +55,18 @@ describe('Hardware Example 04 Studio integration', () => {
   let loadedWeatherProject: IComponents
 
   beforeAll(async () => {
-    global.fetch = jest.fn(async (_url, init) => {
+    global.fetch = jest.fn(async (url, init) => {
       const request = JSON.parse(String(init?.body || '{}'))
+      if (String(url).endsWith('/forgeui-asset-source-exists')) {
+        const firmwareMain = path.resolve(process.cwd(), '..', 'firmware', 'ForgeUI-One', 'main')
+        return {
+          ok: true,
+          json: async () => ({
+            ok: true,
+            exists: fs.existsSync(path.join(firmwareMain, request.assetSource || '')),
+          }),
+        } as any
+      }
       const match = String(request.fileName).match(/^(FiSun|FiCloudRain)_(40|136)x\2\.png$/)
       if (!match) return { ok: false, json: async () => ({ error: 'Unexpected icon request' }) } as any
       const [, iconName, size] = match

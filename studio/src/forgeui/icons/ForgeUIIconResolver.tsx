@@ -45,17 +45,31 @@ const fileToBase64 = (
     reader.readAsDataURL(file)
   })
 
-const findExistingIconAsset = (
+const iconAssetSourceExists = async (assetSource: string): Promise<boolean> => {
+  try {
+    const response = await fetch('http://localhost:3030/forgeui-asset-source-exists', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ assetSource }),
+    })
+    const result = await response.json()
+    return response.ok && result?.ok === true && result?.exists === true
+  } catch {
+    return false
+  }
+}
+
+const findExistingIconAsset = async (
   iconName: string,
   width: number,
   height: number,
-): ForgeUIResolvedIcon | null => {
+): Promise<ForgeUIResolvedIcon | null> => {
   const expectedName =
     `${iconName}_${width}x${height}.png`
       .toLowerCase()
 
-  const asset =
-    forgeUIGetUploadedAssets().find(
+  const candidates =
+    forgeUIGetUploadedAssets().filter(
       item =>
         item.name.toLowerCase() ===
           expectedName &&
@@ -63,21 +77,21 @@ const findExistingIconAsset = (
           'lvgl_ready',
     )
 
-  if (!asset) {
-    return null
+  for (const asset of candidates) {
+    if (!(await iconAssetSourceExists(asset.cFile))) continue
+    return {
+      iconName,
+      icon: iconName,
+      uploadedAssetId: asset.id,
+      src: asset.browserSrc,
+      assetName: asset.name,
+      alt: asset.name,
+      objectFit: 'contain',
+      lvgl: asset.lvgl,
+      cFile: asset.cFile,
+    }
   }
-
-  return {
-    iconName,
-    icon: iconName,
-    uploadedAssetId: asset.id,
-    src: asset.browserSrc,
-    assetName: asset.name,
-    alt: asset.name,
-    objectFit: 'contain',
-    lvgl: asset.lvgl,
-    cFile: asset.cFile,
-  }
+  return null
 }
 
 const resolveIconRegistryName = (
@@ -125,7 +139,7 @@ export const resolveForgeUIIcon = async (
   )
 
   const existing =
-    findExistingIconAsset(
+    await findExistingIconAsset(
       iconName,
       width,
       height,

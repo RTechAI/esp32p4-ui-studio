@@ -1020,6 +1020,29 @@ const CANONICAL_ASSET_MANIFEST = Object.freeze({
   ),
 })
 
+app.post('/forgeui-asset-source-exists', (req, res) => {
+  try {
+    const mainDir = path.resolve(__dirname, '../firmware/ForgeUI-One/main')
+    const normalized = String(req.body?.assetSource || '').replace(/\\/g, '/')
+    if (
+      path.posix.isAbsolute(normalized) ||
+      /^[A-Za-z]:/.test(normalized) ||
+      normalized.split('/').includes('..') ||
+      !normalized.endsWith('.c')
+    ) return res.status(400).json({ ok: false, exists: false })
+    const source = path.resolve(mainDir, normalized)
+    if (!source.startsWith(`${mainDir}${path.sep}`)) {
+      return res.status(400).json({ ok: false, exists: false })
+    }
+    return res.json({
+      ok: true,
+      exists: fs.existsSync(source) && fs.statSync(source).isFile(),
+    })
+  } catch (error) {
+    return res.status(500).json({ ok: false, exists: false, error: String(error) })
+  }
+})
+
 function materializeCanonicalAssetSources(assetSources, options = {}) {
   const mainDir = path.resolve(
     options.mainDir || path.resolve(__dirname, '../firmware/ForgeUI-One/main'),

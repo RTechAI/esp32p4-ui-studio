@@ -8,6 +8,7 @@ import {
 
 import {
   resolveForgeUIIconLayoutItems,
+  resolveForgeUIIconProject,
 } from '~forgeui/icons/ForgeUIIconResolver'
 import ForgeUIThemeManager from '~forgeui/theme/ForgeUIThemeManager'
 import React, { memo, useEffect, useRef, useState } from 'react'
@@ -374,15 +375,16 @@ const exportToForgeUIOne = async () => {
 })
 }
 
-const buildFirmwareExportPayload = () => {
+const buildFirmwareExportPayload = async () => {
   let result
   try {
+    const exportComponents = await resolveForgeUIIconProject(components)
     result = assertForgeUIExportValid(
-      components,
+      exportComponents,
       getAllInteractiveAssets(),
       forgeUIGetUploadedAssets(),
       generateForgeUILvglCode(
-        components,
+        exportComponents,
         themeId,
         selectedHeroAsset,
         { palette, firmwareFeatures: projectHardware.firmwareFeatures },
@@ -408,7 +410,7 @@ const buildFirmwareExportPayload = () => {
 }
 
 const generateLiveFirmware = async (): Promise<boolean> => {
-  const payload = buildFirmwareExportPayload()
+  const payload = await buildFirmwareExportPayload()
   if (!payload) return false
 
   const response = await fetch('http://localhost:3030/export', {
@@ -430,12 +432,13 @@ const generateLiveFirmware = async (): Promise<boolean> => {
   const exportEspIdfProject = async () => {
   let result
   try {
+    const exportComponents = await resolveForgeUIIconProject(components)
     result = assertForgeUIExportValid(
-      components,
+      exportComponents,
       getAllInteractiveAssets(),
       forgeUIGetUploadedAssets(),
       generateForgeUILvglCode(
-        components,
+        exportComponents,
         themeId,
         selectedHeroAsset,
         { palette, firmwareFeatures: projectHardware.firmwareFeatures },
