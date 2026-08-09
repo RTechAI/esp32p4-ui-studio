@@ -4,7 +4,7 @@
 
 The authoritative network/export configuration is documented in [`12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md`](12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md). For Waveshare 7B Wi-Fi projects, the board profile and exporter generate the proven Hosted/Remote dependency series, streaming SDIO transport, memory/TLS policy and explicit persisted-network startup connection. Generated semantic APIs and `95_UserEvents` may consume cached connectivity state, but must not own SDIO, issue repeated synchronous Hosted status RPCs, or require users to configure the stock C6.
 
-## Hardware Example 04 Weather export contract (2026-08-09)
+## Hardware Example 04 — Online Services — Live Weather export contract (2026-08-09)
 
 The proven path is `normal Studio example loader -> conversion materialization -> applicable cleanup -> dependency collection -> source verification -> strict validation -> shared generation -> build -> explicit flash`. Weather 04 emits its current/forecast semantic APIs and depends on exactly ten local RGB565 backgrounds. It does not make the full seventeen-image library a firmware dependency.
 

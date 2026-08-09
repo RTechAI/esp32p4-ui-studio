@@ -2,11 +2,12 @@
 
 ## Hardware Examples physical proof — 2026-08-08
 
-- Hardware Example 01 — 2 Buttons + 2 LEDs: **PHYSICALLY PROVEN**.
-- Hardware Example 02 — I2C FRAM Persistence: **PHYSICALLY PROVEN / CLOSED**. MB85RC256V Device-ID `00 A5 10` verified at `0x50`; write/read passed; counter `9` / value `0xA553` persisted across a complete power cycle.
+- Hardware Example 01 — GPIO Digital I/O: **PHYSICALLY PROVEN**.
+- Hardware Example 02 — I²C FRAM Persistence: **PHYSICALLY PROVEN / CLOSED**. MB85RC256V Device-ID `00 A5 10` verified at `0x50`; write/read passed; counter `9` / value `0xA553` persisted across a complete power cycle.
 - Hardware Example 03 — SPI NFC/RFID: **PHYSICALLY PROVEN / CLOSED**. PN532 identity (`IC=0x32`, firmware `1.6`), SAMConfig, ISO14443A polling, stable UID `04:8D:E6:5F:B7:2A:81`, card removal and held-card de-duplication were proven on the real ESP32-P4.
-- Hardware Example 04 — Online Weather: **PROVEN / CLOSED** on the stock Waveshare 7B and stock C6 through the real Studio Build & Flash workflow. Association, DHCP, DNS, the complete TLS certificate record, certificate validation, HTTP 200, Open-Meteo current and forecast data, generated semantic UI updates, live Fi icons, SNTP/local Tauranga time and dynamic local backgrounds passed. Live fields include current/apparent temperature, humidity, wind, rain, UV, weather code, day/night, date/time and forecast days/highs/lows. Location search is not claimed by this proof.
+- Hardware Example 04 — Online Services — Live Weather: **PHYSICALLY PROVEN / CLOSED** on the stock Waveshare 7B and stock C6 through standalone export and the real Studio Build & Flash workflow. Association, DHCP, DNS, the complete TLS certificate record, certificate validation, HTTP 200, Open-Meteo current and forecast data, generated semantic UI updates, live Fi icons, SNTP/local Tauranga time and dynamic local backgrounds passed. Live fields include current/apparent temperature, humidity, wind, rain, UV, weather code, day/night, date/time and forecast days/highs/lows. Tauranga is the current example configuration; automatic location detection is not claimed.
 - Selection is exclusive: implementation files remain preserved, while only the selected example is generated, linked, initialized and polled.
+- Studio presents every example through the same compact **Load Example** and **Guide** actions. Examples 01–03 put wiring/test instructions in Guide; Example 04 puts online-service and Weather behavior there.
 
 The Waveshare 7B ESP32-P4 Wi-Fi/HTTPS connected runtime is **PHYSICALLY PROVEN**. Its authoritative architecture and evidence scope are in [`12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md`](12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md).
 

@@ -1,10 +1,10 @@
 # ForgeUI Studio
 
-> Connected services (2026-08-09): the Waveshare ESP32-P4-WIFI6-Touch-LCD-7B Wi-Fi/HTTPS runtime and Hardware Example 04 — Online Weather are **PHYSICALLY PROVEN** with the stock onboard C6. See [12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md](12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md) for the authoritative component, SDIO, startup, cached-state, memory and TLS architecture. These board/profile-owned details require no C6 update or manual user configuration.
+> Connected services (2026-08-09): the Waveshare ESP32-P4-WIFI6-Touch-LCD-7B Wi-Fi/HTTPS runtime and Hardware Example 04 — Online Services — Live Weather are **PHYSICALLY PROVEN** with the stock onboard C6. See [12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md](12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md) for the authoritative component, SDIO, startup, cached-state, memory and TLS architecture. These board/profile-owned details require no C6 update or manual user configuration.
 
 > Weather 04 is proven through the real Studio Build & Flash path with current and forecast Open-Meteo data, Tauranga time, intended Fi icons and stable dynamic local backgrounds. Its reusable library has seventeen backgrounds, while dependency-driven export compiles only the ten reachable by the V1 runtime. See [Hardware Example 04](11.04_ESP32_P4_WIFI6_TOUCH_7B__EXAMPLE_04__ONLINE_WEATHER.md) and the [Weather Background Pack](docs/FORGEUI_WEATHER_BACKGROUND_PACK.md).
 
-> Hardware Examples status (2026-08-08): **01 — GPIO Bidirectional — PHYSICALLY
+> Hardware Examples status (2026-08-08): **01 — GPIO Digital I/O — PHYSICALLY
 > PROVEN; 02 — I2C FRAM Persistence — PHYSICALLY PROVEN / CLOSED; 03 — SPI
 > NFC/RFID — PHYSICALLY PROVEN / CLOSED.** Example 02 was physically proven on Waveshare
 > ESP32-P4-WIFI6-Touch-LCD-7B with an MB85RC256V at `0x50`, including Device-ID,
@@ -30,6 +30,8 @@
 > isolation. It is display-only and intentionally generates no UserEvents.
 
 > Network Status Card and KPI Card certification is complete. Device Summary Card and Power Flow Card are also **HARDWARE VALIDATED** after the latest four-card dashboard rendered and operated correctly on ESP32-P4. These monitoring-only cards use isolated persisted-ID APIs and generate zero UserEvents. Hardware Examples 01, 02 and 03 are physically proven and closed under the exclusive-selection architecture.
+
+The Hardware Examples sidebar uses one scalable pattern for all four physically proven examples: **Load Example** loads the editable project and **Guide** opens concise example-specific help. Examples 01–03 include authoritative wiring and test steps. Example 04’s Guide explains Open-Meteo current/forecast data, verified HTTPS/TLS, ESP-Hosted Wi-Fi, network time, local dynamic backgrounds, Fi icons, the reusable Weather pack and physical proof. Its current location is configured as Tauranga; no automatic geolocation is claimed.
 
 Current architecture save point:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.

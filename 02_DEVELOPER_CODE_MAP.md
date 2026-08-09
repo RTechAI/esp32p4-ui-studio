@@ -4,7 +4,7 @@
 
 See [`12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md`](12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md) for the authoritative Waveshare 7B Hosted Wi-Fi, startup, cached-state, DMA and TLS architecture. `30_WIFI.c` owns cached network state and the explicit startup connection; board profiles and `export-server.js` own the user-invisible component, SDIO and memory configuration. Hardware Example 04 consumes this reusable service without owning the transport.
 
-## Hardware Example 04 — Weather ownership map (2026-08-09)
+## Hardware Example 04 — Online Services — Live Weather ownership map (2026-08-09)
 
 | Layer | Authoritative source | Responsibility |
 |---|---|---|
@@ -18,6 +18,8 @@ See [`12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md`](12_FORGEUI_ESP32P4_WIFI_H
 | Device application | `firmware/ForgeUI-One/main/99_Hardware_Example_04_Weather.c/.h` | Applies data, icons and local backgrounds without rebuilding the screen |
 
 An `assets/...` source is always relative to `firmware/ForgeUI-One/main`; standalone export preserves the same subtree under its own `main`. Permanent PNGs and ten committed Weather RGB565 sources survive cleanup. Hash-named Fi icon C files are ephemeral conversion outputs: export preparation must materialize or verify them before strict validation. Missing generated C remains a refusal, never a placeholder.
+
+`HardwareExamplesPanel.tsx` owns the standardized four-card presentation and reuses one Guide modal. It preserves the exclusive project-reset actions while keeping detailed wiring/service explanations out of the narrow sidebar.
 
 ## Hardware Examples 01–03 — exclusive selection baseline (2026-08-08)
 

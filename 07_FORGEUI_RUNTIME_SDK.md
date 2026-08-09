@@ -4,7 +4,7 @@
 
 The authoritative Waveshare 7B networking architecture is [`12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md`](12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md). Runtime SDK and generated UI code read cached `fg_wifi_snapshot_t` state; frequently polled getters must not issue synchronous Hosted RPC calls such as `esp_wifi_sta_get_ap_info()`. Network state is captured at Wi-Fi/IP events so UI polling cannot contend with TLS traffic. Hardware Example 04 proves this shared connected-service layer with certificate-verified HTTPS and SNTP; future REST, MQTT, cloud telemetry and time integrations may reuse it without implying those services already exist.
 
-## Hardware Example 04 — Weather semantic surface
+## Hardware Example 04 — Online Services — Live Weather semantic surface
 
 Weather 04 uses the existing Open-Meteo `weather_code` and `is_day` values to choose one of ten local background semantics. It swaps the image source on the existing LVGL background object, suppresses a duplicate assignment when the semantic background is unchanged, and does not rebuild the screen or issue another network request. Forecast/current setters and generated Fi presentation APIs remain the public boundary; application code must not manipulate private generated objects. The images are ForgeUI assets, not images downloaded from Open-Meteo.
 
