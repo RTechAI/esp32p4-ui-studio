@@ -1,3 +1,9 @@
+import {
+  FORGEUI_WEATHER_BACKGROUND_DEFINITIONS,
+  FORGEUI_WEATHER_BACKGROUND_PACK_NAME,
+  FORGEUI_WEATHER_RUNTIME_BACKGROUND_KEYS,
+} from './weather/ForgeUIWeatherBackgrounds'
+
 export const FORGEUI_IMAGE_ASSETS = [
   {
     name: 'Settings',
@@ -30,11 +36,16 @@ export type ForgeUIBackgroundAsset = {
     | 'ForgeUI Background Collection V1'
     | 'ForgeUI Background Library V2'
     | 'ForgeUI Background Collection V3'
+    | 'ForgeUI Weather Background Pack'
   category: ForgeUIBackgroundCategory
   colorFamily: string
   themeType: 'dark' | 'light'
   tags: string[]
   recommendedUses: string[]
+  semanticKey?: string
+  lvgl?: string
+  cFile?: string
+  exportStatus?: 'lvgl_ready'
 }
 
 export const FORGEUI_BACKGROUND_V2_CATEGORIES = [
@@ -63,6 +74,7 @@ export const FORGEUI_BACKGROUND_V3_CATEGORIES = [
 export const FORGEUI_BACKGROUND_CATEGORIES = [
   ...FORGEUI_BACKGROUND_V2_CATEGORIES,
   ...FORGEUI_BACKGROUND_V3_CATEGORIES,
+  'Weather',
 ] as const
 
 export type ForgeUIBackgroundCategory = typeof FORGEUI_BACKGROUND_CATEGORIES[number]
@@ -917,10 +929,39 @@ export const FORGEUI_BACKGROUND_COLLECTION_V3: ForgeUIBackgroundAsset[] = [
   ]),
 ]
 
+export const FORGEUI_WEATHER_BACKGROUND_PACK: ForgeUIBackgroundAsset[] =
+  FORGEUI_WEATHER_BACKGROUND_DEFINITIONS.map(([semanticKey, name, suffix]) => {
+    const sourceSymbol = `fg_upload_ai_hero_${suffix}`
+    const symbol = (FORGEUI_WEATHER_RUNTIME_BACKGROUND_KEYS as readonly string[])
+      .includes(semanticKey)
+      ? `${sourceSymbol}_rgb565`
+      : sourceSymbol
+    return {
+      id: semanticKey.replace(/\./g, '-'),
+      semanticKey,
+      name,
+      description: `${name} weather scene from the reusable ForgeUI Weather Background Pack.`,
+      src: `http://localhost:3030/forgeui-assets/uploads/${sourceSymbol}.png`,
+      width: 1024,
+      height: 600,
+      kind: 'background' as const,
+      collection: FORGEUI_WEATHER_BACKGROUND_PACK_NAME,
+      category: 'Weather' as const,
+      colorFamily: 'weather',
+      themeType: 'dark' as const,
+      tags: ['weather', 'dynamic', semanticKey],
+      recommendedUses: ['weather dashboards', 'forecast displays'],
+      lvgl: symbol,
+      cFile: `assets/uploads/${symbol}.c`,
+      exportStatus: 'lvgl_ready' as const,
+    }
+  })
+
 export const FORGEUI_BACKGROUND_ASSETS = [
   ...FORGEUI_BACKGROUND_COLLECTION_V1,
   ...FORGEUI_BACKGROUND_COLLECTION_V2,
   ...FORGEUI_BACKGROUND_COLLECTION_V3,
+  ...FORGEUI_WEATHER_BACKGROUND_PACK,
 ]
 
 FORGEUI_IMAGE_ASSETS.forEach((asset: any) => {

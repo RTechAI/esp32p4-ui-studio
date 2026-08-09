@@ -14,6 +14,7 @@ import { FiEdit2 } from 'react-icons/fi'
 import { useForgeTheme } from './ForgeThemeContext'
 import { FG_PREVIEW_PALETTES } from '~forgeui/preview/forgeThemeMap'
 import {
+  forgeUIAddUploadedAssets,
   forgeUIGetUploadedAssets,
   forgeUIUpdateUploadedAsset,
 } from '~forgeui/ForgeUIUploadedAssetRegistry'
@@ -81,6 +82,30 @@ const ForgeUIThemeManager = ({
     const converted = findConvertedBackground(asset)
     if (converted?.exportStatus === 'lvgl_ready') {
       setHeroBackground(converted.browserSrc)
+      return
+    }
+
+    // Weather pack assets already have authoritative converted LVGL sources.
+    // Materialize that identity in the normal uploaded-asset registry without
+    // creating a duplicate conversion or a second C asset.
+    if (asset.exportStatus === 'lvgl_ready' && asset.lvgl && asset.cFile) {
+      const ready = {
+        id: `bundled-${asset.id}`,
+        name: `background_${asset.id}.png`,
+        displayName: asset.name,
+        type: 'image/png',
+        size: 0,
+        createdAt: Date.now(),
+        browserSrc: asset.src,
+        kind: 'uploaded' as const,
+        exportStatus: 'lvgl_ready' as const,
+        lvgl: asset.lvgl,
+        cFile: asset.cFile,
+        width: asset.width,
+        height: asset.height,
+      }
+      forgeUIAddUploadedAssets([ready])
+      setHeroBackground(ready.browserSrc)
       return
     }
 

@@ -19,6 +19,19 @@
 #include <string.h>
 #include <math.h>
 
+LV_IMAGE_DECLARE(fg_upload_ai_hero_1786173676218_aeb0dfd0_rgb565);
+LV_IMAGE_DECLARE(fg_upload_ai_hero_1786175544095_ef74779f_rgb565);
+LV_IMAGE_DECLARE(fg_upload_ai_hero_1786175636953_e2570088_rgb565);
+LV_IMAGE_DECLARE(fg_upload_ai_hero_1786176586614_981a4670_rgb565);
+LV_IMAGE_DECLARE(fg_upload_ai_hero_1786175736552_7ca78d5b_rgb565);
+LV_IMAGE_DECLARE(fg_upload_ai_hero_1786176018471_8897993e_rgb565);
+LV_IMAGE_DECLARE(fg_upload_ai_hero_1786175833774_dcf82046_rgb565);
+LV_IMAGE_DECLARE(fg_upload_ai_hero_1786176442715_8a47a244_rgb565);
+LV_IMAGE_DECLARE(fg_upload_ai_hero_1786176207823_5b8eb6de_rgb565);
+LV_IMAGE_DECLARE(fg_upload_ai_hero_1786175925517_846bc1d6_rgb565);
+static lv_obj_t * fg_weather_background_image = NULL;
+static const char * fg_weather_background_key = NULL;
+
 static lv_obj_t * fg_weather_date_label = NULL;
 static lv_obj_t * fg_weather_time_label = NULL;
 static lv_obj_t * fg_weather_temperature_label = NULL;
@@ -708,6 +721,26 @@ static void fg_wifi_tick_cb(lv_timer_t *timer)
     lv_obj_update_layout(fg_system_wifi_network_container);
 }
 
+void FG_Set_Weather_Background_Key(const char * key)
+{
+    if (!key || !fg_weather_background_image) return;
+    if (fg_weather_background_key && strcmp(fg_weather_background_key, key) == 0) return;
+    const void * source = NULL;
+    if (strcmp(key, "weather.clear.day") == 0) source = &fg_upload_ai_hero_1786173676218_aeb0dfd0_rgb565;
+    else if (strcmp(key, "weather.clear.night") == 0) source = &fg_upload_ai_hero_1786175544095_ef74779f_rgb565;
+    else if (strcmp(key, "weather.partly_cloudy.day") == 0) source = &fg_upload_ai_hero_1786175636953_e2570088_rgb565;
+    else if (strcmp(key, "weather.partly_cloudy.night") == 0) source = &fg_upload_ai_hero_1786176586614_981a4670_rgb565;
+    else if (strcmp(key, "weather.overcast") == 0) source = &fg_upload_ai_hero_1786175736552_7ca78d5b_rgb565;
+    else if (strcmp(key, "weather.fog") == 0) source = &fg_upload_ai_hero_1786176018471_8897993e_rgb565;
+    else if (strcmp(key, "weather.rain.day") == 0) source = &fg_upload_ai_hero_1786175833774_dcf82046_rgb565;
+    else if (strcmp(key, "weather.rain.night") == 0) source = &fg_upload_ai_hero_1786176442715_8a47a244_rgb565;
+    else if (strcmp(key, "weather.snow") == 0) source = &fg_upload_ai_hero_1786176207823_5b8eb6de_rgb565;
+    else if (strcmp(key, "weather.thunderstorm") == 0) source = &fg_upload_ai_hero_1786175925517_846bc1d6_rgb565;
+    if (!source) return;
+    lv_image_set_src(fg_weather_background_image, source);
+    fg_weather_background_key = key;
+}
+
 static bool fg_system_wifi_create_page(void)
 {
     if (fg_system_wifi_page) return true;
@@ -1040,12 +1073,11 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_bg_color(fg_application_page, lv_color_hex(0x121417), 0);
     lv_obj_set_style_bg_opa(fg_application_page, LV_OPA_COVER, 0);
 
-    LV_IMAGE_DECLARE(fg_upload_ai_hero_1786177133674_eb2ae86e);
-    lv_obj_t * bg_texture_0 = lv_image_create(fg_application_page);
-    lv_image_set_src(bg_texture_0, &fg_upload_ai_hero_1786177133674_eb2ae86e);
-    lv_obj_set_pos(bg_texture_0, 0, 0);
-    lv_obj_set_size(bg_texture_0, 1024, 600);
-    lv_obj_move_background(bg_texture_0);
+    fg_weather_background_image = lv_image_create(fg_application_page);
+    lv_image_set_src(fg_weather_background_image, &fg_upload_ai_hero_1786173676218_aeb0dfd0_rgb565);
+    lv_obj_set_pos(fg_weather_background_image, 0, 0);
+    lv_obj_set_size(fg_weather_background_image, 1024, 600);
+    lv_obj_move_background(fg_weather_background_image);
 
     fg_box = lv_obj_create(fg_application_page);
     lv_obj_t * obj1 = fg_box;
@@ -1236,11 +1268,11 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_text_font(fg_weather_feels_like_label, &lv_font_montserrat_24, 0);
     lv_obj_set_style_text_align(fg_weather_feels_like_label, LV_TEXT_ALIGN_LEFT, 0);
 
-    LV_IMAGE_DECLARE(fg_icon_settings_fi_48px);
+    LV_IMAGE_DECLARE(fg_upload_fisun_136x136_5e2bccdd);
     lv_obj_t * obj16 = lv_image_create(fg_application_page);
-    lv_image_set_src(obj16, &fg_icon_settings_fi_48px);
-    lv_image_set_scale(obj16, 667);
-    lv_image_set_pivot(obj16, 24, 24);
+    lv_image_set_src(obj16, &fg_upload_fisun_136x136_5e2bccdd);
+    lv_image_set_scale(obj16, 235);
+    lv_image_set_pivot(obj16, 68, 68);
     lv_obj_set_pos(obj16, 464, 166);
     lv_obj_set_size(obj16, 136, 136);
     lv_image_set_inner_align(obj16, LV_IMAGE_ALIGN_CENTER);
@@ -1295,10 +1327,11 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_text_font(fg_forecast_day1_name_label, &lv_font_montserrat_24, 0);
     lv_obj_set_style_text_align(fg_forecast_day1_name_label, LV_TEXT_ALIGN_CENTER, 0);
 
+    LV_IMAGE_DECLARE(fg_upload_fisun_40x40_3a46c017);
     lv_obj_t * obj22 = lv_image_create(fg_application_page);
-    lv_image_set_src(obj22, &fg_icon_settings_fi_48px);
-    lv_image_set_scale(obj22, 197);
-    lv_image_set_pivot(obj22, 24, 24);
+    lv_image_set_src(obj22, &fg_upload_fisun_40x40_3a46c017);
+    lv_image_set_scale(obj22, 237);
+    lv_image_set_pivot(obj22, 20, 20);
     lv_obj_set_pos(obj22, 94, 498);
     lv_obj_set_size(obj22, 40, 40);
     lv_image_set_inner_align(obj22, LV_IMAGE_ALIGN_CENTER);
@@ -1327,9 +1360,9 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_text_align(fg_forecast_day2_name_label, LV_TEXT_ALIGN_CENTER, 0);
 
     lv_obj_t * obj25 = lv_image_create(fg_application_page);
-    lv_image_set_src(obj25, &fg_icon_settings_fi_48px);
-    lv_image_set_scale(obj25, 197);
-    lv_image_set_pivot(obj25, 24, 24);
+    lv_image_set_src(obj25, &fg_upload_fisun_40x40_3a46c017);
+    lv_image_set_scale(obj25, 237);
+    lv_image_set_pivot(obj25, 20, 20);
     lv_obj_set_pos(obj25, 293, 498);
     lv_obj_set_size(obj25, 40, 40);
     lv_image_set_inner_align(obj25, LV_IMAGE_ALIGN_CENTER);
@@ -1357,10 +1390,11 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_text_font(fg_forecast_day3_name_label, &lv_font_montserrat_24, 0);
     lv_obj_set_style_text_align(fg_forecast_day3_name_label, LV_TEXT_ALIGN_CENTER, 0);
 
+    LV_IMAGE_DECLARE(fg_upload_ficloudrain_40x40_771045b9);
     lv_obj_t * obj28 = lv_image_create(fg_application_page);
-    lv_image_set_src(obj28, &fg_icon_settings_fi_48px);
-    lv_image_set_scale(obj28, 197);
-    lv_image_set_pivot(obj28, 24, 24);
+    lv_image_set_src(obj28, &fg_upload_ficloudrain_40x40_771045b9);
+    lv_image_set_scale(obj28, 237);
+    lv_image_set_pivot(obj28, 20, 20);
     lv_obj_set_pos(obj28, 492, 498);
     lv_obj_set_size(obj28, 40, 40);
     lv_image_set_inner_align(obj28, LV_IMAGE_ALIGN_CENTER);
@@ -1389,9 +1423,9 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_text_align(fg_forecast_day4_name_label, LV_TEXT_ALIGN_CENTER, 0);
 
     lv_obj_t * obj31 = lv_image_create(fg_application_page);
-    lv_image_set_src(obj31, &fg_icon_settings_fi_48px);
-    lv_image_set_scale(obj31, 197);
-    lv_image_set_pivot(obj31, 24, 24);
+    lv_image_set_src(obj31, &fg_upload_fisun_40x40_3a46c017);
+    lv_image_set_scale(obj31, 237);
+    lv_image_set_pivot(obj31, 20, 20);
     lv_obj_set_pos(obj31, 691, 498);
     lv_obj_set_size(obj31, 40, 40);
     lv_image_set_inner_align(obj31, LV_IMAGE_ALIGN_CENTER);
@@ -1420,9 +1454,9 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_text_align(fg_forecast_day5_name_label, LV_TEXT_ALIGN_CENTER, 0);
 
     lv_obj_t * obj34 = lv_image_create(fg_application_page);
-    lv_image_set_src(obj34, &fg_icon_settings_fi_48px);
-    lv_image_set_scale(obj34, 197);
-    lv_image_set_pivot(obj34, 24, 24);
+    lv_image_set_src(obj34, &fg_upload_fisun_40x40_3a46c017);
+    lv_image_set_scale(obj34, 237);
+    lv_image_set_pivot(obj34, 20, 20);
     lv_obj_set_pos(obj34, 890, 498);
     lv_obj_set_size(obj34, 40, 40);
     lv_image_set_inner_align(obj34, LV_IMAGE_ALIGN_CENTER);
@@ -1443,6 +1477,7 @@ void fg_studio_export_create(lv_obj_t *parent)
 
 
     fg_ram_probe_log("02 after application page creation");
+    LV_IMAGE_DECLARE(fg_icon_settings_fi_48px);
     lv_obj_t * system_gear = fg_system_create_button(fg_application_page, "", 948, 18, 58, 58);
     lv_obj_set_style_radius(system_gear, LV_RADIUS_CIRCLE, 0);
     lv_obj_t * system_gear_label = lv_obj_get_child(system_gear, 0);

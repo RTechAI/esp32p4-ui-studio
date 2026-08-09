@@ -55,7 +55,10 @@ export const getForgeUIStandardIconPresentation = (
   const source = props || {}
   const normalColor = color(source.color, textPrimary)
   return {
-    icon: String(source.icon || 'FiSettings'),
+    // AI documents intentionally carry iconName until canvas insertion resolves
+    // the export asset. Static projects (including Hardware Example 04) also use
+    // that canonical request field, so it must win before the manual-tool default.
+    icon: String(source.icon || source.iconName || 'FiSettings'),
     src: String(source.src || source.browserSrc || ''),
     // Automatic fitting keeps a small symmetric inset so transformed and
     // anti-aliased edge pixels remain inside LVGL's image object bounds.

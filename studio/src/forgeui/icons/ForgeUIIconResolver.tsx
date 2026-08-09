@@ -251,3 +251,33 @@ export const resolveForgeUIIconLayoutItems =
       }),
     )
   }
+
+export const resolveForgeUIIconProject = async (
+  components: IComponents,
+): Promise<IComponents> => {
+  const entries = Object.entries(components)
+  const resolutions = new Map<string, Promise<ForgeUIResolvedIcon>>()
+  const resolved = await Promise.all(entries.map(async ([id, component]) => {
+    if (
+      component.type !== 'Icon' ||
+      typeof component.props?.iconName !== 'string'
+    ) return [id, component] as const
+
+    const width = Number(component.props.w) || 32
+    const height = Number(component.props.h) || 32
+    const key = `${component.props.iconName}:${width}x${height}`
+    if (!resolutions.has(key)) {
+      resolutions.set(key, resolveForgeUIIcon(
+        component.props.iconName,
+        width,
+        height,
+      ))
+    }
+    const icon = await resolutions.get(key)!
+    return [id, {
+      ...component,
+      props: { ...component.props, ...icon },
+    }] as const
+  }))
+  return Object.fromEntries(resolved) as IComponents
+}

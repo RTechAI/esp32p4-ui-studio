@@ -980,6 +980,7 @@ function normalizePublicApiDeclarations(declarations) {
             /^void FG_Set_[A-Za-z0-9_]+\((?:bool (?:enabled|on|checked|visible)|int32_t value)\);$/.test(declaration) ||
             /^void FG_Set_[A-Za-z0-9_]+\(float value\);$/.test(declaration) ||
             /^void FG_Set_[A-Za-z0-9_]+\(const char \* (?:title|value|units|description|timestamp|footer)\);$/.test(declaration) ||
+            /^void FG_Set_[A-Za-z0-9_]+\(const char \* key\);$/.test(declaration) ||
             /^void FG_Set_[A-Za-z0-9_]+\(const char \* text, uint32_t rgb\);$/.test(declaration) ||
             /^void FG_Set_[A-Za-z0-9_]+\(uint32_t rgb\);$/.test(declaration) ||
             /^void FG_Set_[A-Za-z0-9_]+\(int32_t trend\);$/.test(declaration) ||

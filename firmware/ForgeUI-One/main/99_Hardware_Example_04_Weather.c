@@ -231,6 +231,20 @@ static const char *condition_text(int code)
     return "CURRENT WEATHER";
 }
 
+static const char *weather_background_key(int code, bool is_day)
+{
+    if (code == 0) return is_day ? "weather.clear.day" : "weather.clear.night";
+    if (code == 1 || code == 2) return is_day ? "weather.partly_cloudy.day" : "weather.partly_cloudy.night";
+    if (code == 3) return "weather.overcast";
+    if (code == 45 || code == 48) return "weather.fog";
+    if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) {
+        return is_day ? "weather.rain.day" : "weather.rain.night";
+    }
+    if ((code >= 71 && code <= 77) || (code >= 85 && code <= 86)) return "weather.snow";
+    if (code >= 95 && code <= 99) return "weather.thunderstorm";
+    return is_day ? "weather.partly_cloudy.day" : "weather.partly_cloudy.night";
+}
+
 static void publish_current_conditions(const fg_weather_snapshot_t *snapshot)
 {
     char temperature[16];
@@ -246,6 +260,7 @@ static void publish_current_conditions(const fg_weather_snapshot_t *snapshot)
     if (bsp_display_lock(0)) {
         FG_Set_Weather_Temperature_Text(temperature);
         FG_Set_Weather_Condition_Text(condition_text(snapshot->weather_code));
+        FG_Set_Weather_Background_Key(weather_background_key(snapshot->weather_code, snapshot->is_day));
         FG_Set_Weather_Feels_Like_Text(feels_like);
         FG_Set_Weather_Humidity_Text(humidity);
         FG_Set_Weather_Wind_Text(wind);

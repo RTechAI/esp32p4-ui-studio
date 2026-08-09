@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import http from 'http'
 import { ChakraProvider } from '@chakra-ui/react'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { generateForgeUILvglCode } from '../ForgeUILvglExport'
 import { forgeUIWeatherDashboardTemplate } from '../layout/ForgeUILayoutDesigner'
 import { HARDWARE_EXAMPLE_01_PROJECT } from './HardwareExample01'
@@ -13,7 +13,30 @@ import {
   HARDWARE_EXAMPLE_04,
   HARDWARE_EXAMPLE_04_PROJECT,
 } from './HardwareExample04'
-import { HardwareExamplesPanel } from './HardwareExamplesPanel'
+import {
+  HardwareExamplesPanel,
+  loadHardwareExample04Project,
+} from './HardwareExamplesPanel'
+import { getPreviewDefaultProps } from '../../utils/defaultProps'
+import { forgeUIGetUploadedAssets } from '../ForgeUIUploadedAssetRegistry'
+import { validateForgeUIExport } from '../ForgeUIExportValidation'
+import {
+  FORGEUI_WEATHER_BACKGROUND_PACK,
+} from '../ForgeUIAssetRegistry'
+import {
+  FORGEUI_WEATHER_RUNTIME_BACKGROUND_KEYS,
+  resolveForgeUIWeatherBackgroundKey,
+} from '../weather/ForgeUIWeatherBackgrounds'
+
+jest.mock('../icons/ForgeUIIconAssetRenderer', () => ({
+  forgeUIIconNameToPngFile: jest.fn(async (
+    iconName: string,
+    width: number,
+    height: number,
+  ) => new File([`${iconName}:${width}x${height}`], `${iconName}_${width}x${height}.png`, {
+    type: 'image/png',
+  })),
+}))
 
 const { TextDecoder, TextEncoder } = require('util')
 Object.assign(global, { TextDecoder, TextEncoder })
@@ -29,16 +52,41 @@ const reset = jest.fn()
 jest.mock('~hooks/useDispatch', () => () => ({ components: { reset } }))
 
 describe('Hardware Example 04 Studio integration', () => {
+  let loadedWeatherProject: IComponents
+
+  beforeAll(async () => {
+    global.fetch = jest.fn(async (_url, init) => {
+      const request = JSON.parse(String(init?.body || '{}'))
+      const match = String(request.fileName).match(/^(FiSun|FiCloudRain)_(40|136)x\2\.png$/)
+      if (!match) return { ok: false, json: async () => ({ error: 'Unexpected icon request' }) } as any
+      const [, iconName, size] = match
+      const canonical = iconName === 'FiCloudRain'
+        ? 'fg_upload_ficloudrain_40x40_771045b9'
+        : size === '136'
+          ? 'fg_upload_fisun_136x136_5e2bccdd'
+          : 'fg_upload_fisun_40x40_3a46c017'
+      return {
+        ok: true,
+        json: async () => ({
+          ok: true,
+          symbolName: canonical,
+          assetSource: `assets/uploads/${canonical}.c`,
+        }),
+      } as any
+    }) as any
+    loadedWeatherProject = await loadHardwareExample04Project()
+  })
+
   beforeEach(() => reset.mockClear())
 
-  it('is visible with physically proven status and loads the Weather project', () => {
+  it('is visible with physically proven status and loads the resolved Weather project', async () => {
     render(<ChakraProvider><HardwareExamplesPanel /></ChakraProvider>)
     expect(screen.getByText('Example 04')).toBeInTheDocument()
     expect(screen.getByText('Online Weather')).toBeInTheDocument()
     expect(screen.getAllByText('PHYSICALLY PROVEN')).toHaveLength(4)
     fireEvent.click(screen.getByRole('button', { name: 'Load Weather Example' }))
-    expect(reset).toHaveBeenCalledTimes(1)
-    expect(reset).toHaveBeenCalledWith(HARDWARE_EXAMPLE_04_PROJECT)
+    await waitFor(() => expect(reset).toHaveBeenCalledTimes(1))
+    expect(reset).toHaveBeenCalledWith(loadedWeatherProject)
     expect(HARDWARE_EXAMPLE_04.status).toBe('PHYSICALLY PROVEN')
   })
 
@@ -59,7 +107,7 @@ describe('Hardware Example 04 Studio integration', () => {
       forgeUIWeatherDashboardTemplate.layout.map(item => item.props.layoutRegionKey),
     )
     const generated = generateForgeUILvglCode(
-      HARDWARE_EXAMPLE_04_PROJECT,
+      loadedWeatherProject,
       'graphite',
       undefined,
       { includeThemeTexture: false },
@@ -72,11 +120,112 @@ describe('Hardware Example 04 Studio integration', () => {
       generated.publicApiDeclarations,
       generated.userEventHooks,
     )).toContain('#define FG_HARDWARE_EXAMPLE_04_ENABLED 1')
+    const { generateStudioExportHeader } = require('../../../export-server')
+    expect(generateStudioExportHeader(generated.publicApiDeclarations)).toContain(
+      'void FG_Set_Weather_Background_Key(const char * key);',
+    )
+  })
+
+  it('keeps Weather icons intentional and excludes implicit Settings icons', () => {
+    const icons = Object.values(loadedWeatherProject)
+      .filter(component => component.type === 'Icon')
+    expect(icons).toHaveLength(6)
+    expect(icons.map(component => component.props.icon)).toEqual([
+      'FiSun', 'FiSun', 'FiSun', 'FiCloudRain', 'FiSun', 'FiSun',
+    ])
+    expect(icons.every(component => component.props.icon !== 'FiSettings')).toBe(true)
+
+    const generated = generateForgeUILvglCode(
+      loadedWeatherProject,
+      'graphite',
+      undefined,
+      {
+        includeThemeTexture: false,
+        firmwareFeatures: { settingsLauncher: false },
+      },
+    )
+    expect(generated.code).not.toContain('fg_icon_settings_fi_48px')
+    expect(generated.assetSources).toEqual(expect.arrayContaining([
+      'assets/uploads/fg_upload_fisun_136x136_5e2bccdd.c',
+      'assets/uploads/fg_upload_fisun_40x40_3a46c017.c',
+      'assets/uploads/fg_upload_ficloudrain_40x40_771045b9.c',
+    ]))
+    const assets = forgeUIGetUploadedAssets()
+    expect(icons.every(component => assets.some(asset =>
+      asset.id === component.props.uploadedAssetId &&
+      asset.exportStatus === 'lvgl_ready' &&
+      asset.lvgl === component.props.lvgl &&
+      asset.cFile === component.props.cFile,
+    ))).toBe(true)
+    expect(validateForgeUIExport(loadedWeatherProject, [], assets, generated).ok)
+      .toBe(true)
+  })
+
+  it('loads and exports the reusable dynamic Weather background pack', () => {
+    expect(FORGEUI_WEATHER_BACKGROUND_PACK).toHaveLength(17)
+    expect(new Set(FORGEUI_WEATHER_BACKGROUND_PACK.map(asset => asset.semanticKey)).size)
+      .toBe(17)
+    expect(resolveForgeUIWeatherBackgroundKey(0, true)).toBe('weather.clear.day')
+    expect(resolveForgeUIWeatherBackgroundKey(0, false)).toBe('weather.clear.night')
+    expect(resolveForgeUIWeatherBackgroundKey(61, false)).toBe('weather.rain.night')
+    expect(resolveForgeUIWeatherBackgroundKey(95, true)).toBe('weather.thunderstorm')
+
+    const generated = generateForgeUILvglCode(
+      loadedWeatherProject,
+      'graphite',
+      undefined,
+      { includeThemeTexture: false },
+    )
+    const runtimeAssets = FORGEUI_WEATHER_BACKGROUND_PACK.filter(asset =>
+      FORGEUI_WEATHER_RUNTIME_BACKGROUND_KEYS.includes(asset.semanticKey as any),
+    )
+    expect(runtimeAssets).toHaveLength(10)
+    expect(generated.assetSources).toEqual(expect.arrayContaining(
+      runtimeAssets.map(asset => asset.cFile),
+    ))
+    expect(generated.assetSources.filter(source =>
+      source.includes('fg_upload_ai_hero_178617') && source.endsWith('.c'),
+    )).toHaveLength(10)
+    expect(generated.assetSources).not.toContain(
+      'assets/uploads/fg_upload_ai_hero_1786177133674_eb2ae86e.c',
+    )
+    runtimeAssets.forEach(asset => {
+      expect(generated.code).toContain(`LV_IMAGE_DECLARE(${asset.lvgl});`)
+      expect(generated.code).toContain(`strcmp(key, "${asset.semanticKey}")`)
+    })
+    expect(generated.code).toContain('static lv_obj_t * fg_weather_background_image = NULL;')
+    expect(generated.code).toContain('strcmp(fg_weather_background_key, key) == 0')
+    expect(generated.code).toContain('lv_image_set_src(fg_weather_background_image, source);')
+    expect(generated.publicApiDeclarations).toContain(
+      'void FG_Set_Weather_Background_Key(const char * key);',
+    )
+    expect(validateForgeUIExport(
+      loadedWeatherProject,
+      [],
+      forgeUIGetUploadedAssets(),
+      generated,
+    ).ok).toBe(true)
+  })
+
+  it('still refuses an unresolved icon from the raw static project', () => {
+    expect(() => generateForgeUILvglCode(
+      HARDWARE_EXAMPLE_04_PROJECT,
+      'graphite',
+      undefined,
+      { includeThemeTexture: false },
+    )).toThrow('Icon FiSun requires a converted LVGL asset')
+  })
+
+  it('does not assign an implicit Settings icon to general containers', () => {
+    expect(getPreviewDefaultProps('Box' as ComponentType)?.icon).toBeUndefined()
+    expect(getPreviewDefaultProps('DashboardCard' as ComponentType)?.icon).toBe('')
+    expect(getPreviewDefaultProps('SensorTile' as ComponentType)?.icon)
+      .toBe('LV_SYMBOL_CHARGE')
   })
 
   it('keeps named label setters and Wi-Fi function boundaries valid with Diagnostics disabled', () => {
     const generated = generateForgeUILvglCode(
-      HARDWARE_EXAMPLE_04_PROJECT,
+      loadedWeatherProject,
       'graphite',
       undefined,
       {
@@ -143,11 +292,33 @@ describe('Hardware Example 04 Studio integration', () => {
       wifiManager: true, storageBrowser: false, diagnostics: false,
     }
     const generated = generateForgeUILvglCode(
-      HARDWARE_EXAMPLE_04_PROJECT,
+      loadedWeatherProject,
       'graphite',
       undefined,
       { includeThemeTexture: false, firmwareFeatures },
     )
+    if (process.env.FORGEUI_EXPORT_WEATHER_EXAMPLE_04_LIVE === '1') {
+      const livePayload = JSON.stringify({
+        ...generated,
+        projectHardware: { firmwareFeatures },
+      })
+      const liveResponse = await new Promise<any>((resolve, reject) => {
+        const request = http.request({
+          hostname: '127.0.0.1', port: 3030, path: '/export', method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(livePayload) },
+        }, result => {
+          let body = ''
+          result.setEncoding('utf8')
+          result.on('data', chunk => { body += chunk })
+          result.on('end', () => result.statusCode === 200
+            ? resolve(JSON.parse(body))
+            : reject(new Error(body)))
+        })
+        request.on('error', reject)
+        request.end(livePayload)
+      })
+      expect(liveResponse.ok).toBe(true)
+    }
     const payload = JSON.stringify({
       ...generated,
       projectName: 'ForgeUI_Export_Weather04_Studio_Final_015',

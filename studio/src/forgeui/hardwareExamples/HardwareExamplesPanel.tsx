@@ -8,6 +8,10 @@ import { HARDWARE_EXAMPLE_01 } from './HardwareExample01'
 import { HARDWARE_EXAMPLE_02 } from './HardwareExample02'
 import { HARDWARE_EXAMPLE_03 } from './HardwareExample03'
 import { HARDWARE_EXAMPLE_04 } from './HardwareExample04'
+import { resolveForgeUIIconProject } from '../icons/ForgeUIIconResolver'
+
+export const loadHardwareExample04Project = async () =>
+  resolveForgeUIIconProject(HARDWARE_EXAMPLE_04.project)
 
 export const HardwareExamplesPanel = () => {
   const dispatch = useDispatch()
@@ -65,8 +69,8 @@ export const HardwareExamplesPanel = () => {
         <Text color="orange.200" fontSize="xs" fontWeight="bold" mb={2}>
           {HARDWARE_EXAMPLE_04.status}
         </Text>
-        <Button size="xs" colorScheme="cyan" onClick={() =>
-          dispatch.components.reset(HARDWARE_EXAMPLE_04.project)}>
+        <Button size="xs" colorScheme="cyan" onClick={async () =>
+          dispatch.components.reset(await loadHardwareExample04Project())}>
           Load Weather Example
         </Button>
       </Box>

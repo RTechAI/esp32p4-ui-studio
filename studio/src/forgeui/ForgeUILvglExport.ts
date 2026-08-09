@@ -2,7 +2,12 @@ import {
   forgeUIGetUploadedAssets,
   forgeUIResolveUploadedAssetDimensions,
 } from './ForgeUIUploadedAssetRegistry'
-import { FORGEUI_IMAGE_ASSETS } from './ForgeUIAssetRegistry'
+import {
+  FORGEUI_IMAGE_ASSETS,
+  FORGEUI_WEATHER_BACKGROUND_PACK,
+  type ForgeUIBackgroundAsset,
+} from './ForgeUIAssetRegistry'
+import { FORGEUI_WEATHER_RUNTIME_BACKGROUND_KEYS } from './weather/ForgeUIWeatherBackgrounds'
 import { allocateUniqueOutputApiName } from './ForgeUIGeneratedApiNames'
 import { getForgeUIStandardButtonText } from './ForgeUIStandardButton'
 import { getForgeUIStandardCheckboxText } from './ForgeUIStandardCheckbox'
@@ -7333,18 +7338,31 @@ const heroAsset =
       }
     : undefined
 
-// Export priority:
-// 1. Selected AI/uploaded Hero
-// 2. Theme texture
-// 3. Solid theme colour
+const isWeather04Project = Object.values(components).some(
+  (component: any) => component?.componentName === 'Weather_Temperature',
+)
+const weatherRuntimeAssets = isWeather04Project
+  ? FORGEUI_WEATHER_RUNTIME_BACKGROUND_KEYS.map(key =>
+      FORGEUI_WEATHER_BACKGROUND_PACK.find(asset => asset.semanticKey === key),
+    ).filter((asset): asset is ForgeUIBackgroundAsset => Boolean(asset))
+  : []
+
+const weatherDefaultAsset = weatherRuntimeAssets.find(
+  asset => asset.semanticKey === 'weather.clear.day',
+)
+
+// Weather 04 must start from its runtime pack, not retain an unrelated/manual
+// Studio hero as an eleventh firmware dependency.
 const backgroundAsset =
+  (isWeather04Project && weatherDefaultAsset?.lvgl && weatherDefaultAsset.cFile
+    ? { symbol: weatherDefaultAsset.lvgl, source: weatherDefaultAsset.cFile }
+    : undefined) ||
   heroAsset ||
   (options?.includeThemeTexture === false ? undefined : palette.textureAsset)
 
-const backgroundMode =
-  heroAsset
-    ? 'fullscreen'
-    : palette.textureMode
+const backgroundMode = heroAsset || weatherDefaultAsset
+  ? 'fullscreen'
+  : palette.textureMode
 
   lines.push(`#include "90_Studio_Export.h"`)
   lines.push(`#include "00_ForgeUI_Features.h"`)
@@ -7374,6 +7392,19 @@ const backgroundMode =
   lines.push(`#include <string.h>`)
   lines.push(`#include <math.h>`)
   lines.push(``)
+  const declaredBackgroundSymbols = new Set<string>()
+  const declareBackgroundSymbol = (symbol?: string) => {
+    if (!symbol || declaredBackgroundSymbols.has(symbol)) return
+    declaredBackgroundSymbols.add(symbol)
+    lines.push(`LV_IMAGE_DECLARE(${symbol});`)
+  }
+  declareBackgroundSymbol(backgroundAsset?.symbol)
+  weatherRuntimeAssets.forEach(asset => declareBackgroundSymbol(asset.lvgl))
+  if (isWeather04Project) {
+    lines.push(`static lv_obj_t * fg_weather_background_image = NULL;`)
+    lines.push(`static const char * fg_weather_background_key = NULL;`)
+    lines.push(``)
+  }
   clockExports.forEach(clockExport => {
     lines.push(`static lv_obj_t * ${clockExport.labelName} = NULL;`)
     lines.push(`static lv_timer_t * ${clockExport.timerName} = NULL;`)
@@ -10094,6 +10125,25 @@ lines.push(`}`)
   lines.push(`}`)
   lines.push(``)
 
+  if (isWeather04Project) {
+    weatherRuntimeAssets.forEach(asset => {
+      if (asset.cFile) usedAssetSources.add(asset.cFile)
+    })
+    lines.push(`void FG_Set_Weather_Background_Key(const char * key)`)
+    lines.push(`{`)
+    lines.push(`    if (!key || !fg_weather_background_image) return;`)
+    lines.push(`    if (fg_weather_background_key && strcmp(fg_weather_background_key, key) == 0) return;`)
+    lines.push(`    const void * source = NULL;`)
+    weatherRuntimeAssets.forEach((asset, index) => {
+      lines.push(`    ${index === 0 ? 'if' : 'else if'} (strcmp(key, "${asset.semanticKey}") == 0) source = &${asset.lvgl};`)
+    })
+    lines.push(`    if (!source) return;`)
+    lines.push(`    lv_image_set_src(fg_weather_background_image, source);`)
+    lines.push(`    fg_weather_background_key = key;`)
+    lines.push(`}`)
+    lines.push(``)
+  }
+
   lines.push(`// ForgeUI LVGL Export Proof V1`)
   lines.push(`// Generated from ForgeUI Studio`)
   lines.push(``)
@@ -10123,14 +10173,13 @@ lines.push(`    fg_system_root = parent;`)
 ) {
   usedAssetSources.add(backgroundAsset.source)
 
-  lines.push(`    LV_IMAGE_DECLARE(${backgroundAsset.symbol});`)
-
   if (backgroundMode === 'fullscreen') {
-    lines.push(`    lv_obj_t * bg_texture_0 = lv_image_create(fg_application_page);`)
-    lines.push(`    lv_image_set_src(bg_texture_0, &${backgroundAsset.symbol});`)
-    lines.push(`    lv_obj_set_pos(bg_texture_0, 0, 0);`)
-    lines.push(`    lv_obj_set_size(bg_texture_0, 1024, 600);`)
-    lines.push(`    lv_obj_move_background(bg_texture_0);`)
+    lines.push(`    ${isWeather04Project ? 'fg_weather_background_image' : 'lv_obj_t * bg_texture_0'} = lv_image_create(fg_application_page);`)
+    const backgroundObject = isWeather04Project ? 'fg_weather_background_image' : 'bg_texture_0'
+    lines.push(`    lv_image_set_src(${backgroundObject}, &${backgroundAsset.symbol});`)
+    lines.push(`    lv_obj_set_pos(${backgroundObject}, 0, 0);`)
+    lines.push(`    lv_obj_set_size(${backgroundObject}, 1024, 600);`)
+    lines.push(`    lv_obj_move_background(${backgroundObject});`)
   } else {
     lines.push(`    lv_obj_t * bg_texture_0 = lv_image_create(fg_application_page);`)
     lines.push(`    lv_image_set_src(bg_texture_0, &${backgroundAsset.symbol});`)
@@ -11056,6 +11105,8 @@ lines.push(`}`)
       )).concat(Array.from(radioExports.values()).map(
         radioExport =>
           `void ${radioExport.apiName}(bool selected);`,
-      )),
+      )).concat(isWeather04Project ? [
+        'void FG_Set_Weather_Background_Key(const char * key);',
+      ] : []),
   }
 }

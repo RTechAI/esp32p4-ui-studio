@@ -13,6 +13,13 @@ describe('Standard Icon presentation parity', () => {
     })
   })
 
+  it('honours an unresolved AI iconName before the manual Settings default', () => {
+    expect(getForgeUIStandardIconPresentation(
+      { iconName: 'FiSun', w: 40, h: 40 },
+      '#F5F5F5',
+    ).icon).toBe('FiSun')
+  })
+
   it('fits an unset icon size to the shortest component edge', () => {
     expect(getForgeUIStandardIconPresentation(
       { icon: 'FiSettings', w: 96, h: 80 },

@@ -39,6 +39,7 @@ void FG_Set_Forecast_Day4_Temperature_Text(const char * text);
 void FG_Set_Forecast_Day5_Name_Text(const char * text);
 void FG_Set_Forecast_Day5_Temperature_Text(const char * text);
 void FG_Set_Weather_Location_Text(const char * text);
+void FG_Set_Weather_Background_Key(const char * key);
 
 #ifdef __cplusplus
 }
