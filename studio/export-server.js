@@ -425,7 +425,10 @@ app.post(
 
       emptyDirectory(iconsDir)
       emptyDirectory(themesDir)
-      emptyDirectory(uploadsDir)
+
+      // uploads is the authoritative source root for both user-converted assets
+      // and committed permanent packs (for example Weather RGB565). Generated
+      // firmware/build outputs may be reset, but source assets must survive.
 
       fs.mkdirSync(iconsDir, {
         recursive: true,
@@ -533,13 +536,11 @@ target_compile_definitions(\${COMPONENT_LIB} PRIVATE
 
       const filesRemoved =
         iconsBefore.files +
-        themesBefore.files +
-        uploadsBefore.files
+        themesBefore.files
 
       const bytesRecovered =
         iconsBefore.bytes +
-        themesBefore.bytes +
-        uploadsBefore.bytes
+        themesBefore.bytes
 
       console.log(
         'Firmware destructive reset complete:',
@@ -551,7 +552,7 @@ target_compile_definitions(\${COMPONENT_LIB} PRIVATE
           themesRemoved:
             themesBefore.files,
           uploadsRemoved:
-            uploadsBefore.files,
+            0,
           buildDeleted:
             buildExisted,
         }
@@ -575,7 +576,8 @@ target_compile_definitions(\${COMPONENT_LIB} PRIVATE
          foldersCleaned: {
           icons: iconsBefore.files,
           themes: themesBefore.files,
-          uploads: uploadsBefore.files,
+          uploads: 0,
+          uploadsPreserved: uploadsBefore.files,
         },
 
         buildDeleted:

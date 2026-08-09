@@ -298,6 +298,28 @@ describe('Hardware Example 04 Studio integration', () => {
       { includeThemeTexture: false, firmwareFeatures },
     )
     if (process.env.FORGEUI_EXPORT_WEATHER_EXAMPLE_04_LIVE === '1') {
+      const cleanResponse = await new Promise<any>((resolve, reject) => {
+        const request = http.request({
+          hostname: '127.0.0.1', port: 3030, path: '/clean-firmware-sweep', method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Content-Length': 2 },
+        }, result => {
+          let body = ''
+          result.setEncoding('utf8')
+          result.on('data', chunk => { body += chunk })
+          result.on('end', () => result.statusCode === 200
+            ? resolve(JSON.parse(body))
+            : reject(new Error(body)))
+        })
+        request.on('error', reject)
+        request.end('{}')
+      })
+      expect(cleanResponse.ok).toBe(true)
+      expect(cleanResponse.foldersCleaned.uploads).toBe(0)
+      const firmwareMain = path.resolve(process.cwd(), '..', 'firmware', 'ForgeUI-One', 'main')
+      generated.assetSources.filter(source => source.includes('_rgb565.c')).forEach(source => {
+        expect(fs.existsSync(path.join(firmwareMain, source))).toBe(true)
+      })
+
       const livePayload = JSON.stringify({
         ...generated,
         projectHardware: { firmwareFeatures },
@@ -352,6 +374,33 @@ describe('Hardware Example 04 Studio integration', () => {
     expect(exportedDefaults).toContain('# CONFIG_MBEDTLS_HARDWARE_AES is not set')
     expect(exportedDefaults).toContain('CONFIG_MBEDTLS_DEFAULT_MEM_ALLOC=y')
     expect(exportedDefaults).toContain('CONFIG_SPIRAM_MALLOC_RESERVE_INTERNAL=32768')
+    const exportedWeatherAssets = generated.assetSources
+      .filter(source => source.includes('_rgb565.c'))
+    expect(exportedWeatherAssets).toHaveLength(10)
+    exportedWeatherAssets.forEach(source => {
+      expect(fs.existsSync(path.join(response.exportDir, 'main', source))).toBe(true)
+    })
+
+    const missingSource = 'assets/uploads/fg_missing_weather_regression.c'
+    const invalidPayload = JSON.stringify({
+      ...generated,
+      code: `${generated.code}\n/* fg_missing_weather_regression */`,
+      assetSources: [...generated.assetSources, missingSource],
+      projectName: 'ForgeUI_Export_Weather04_Missing_Asset_Must_Fail',
+      projectHardware: { firmwareFeatures },
+    })
+    const invalidStatus = await new Promise<number>((resolve, reject) => {
+      const request = http.request({
+        hostname: '127.0.0.1', port: 3030, path: '/export-idf-project', method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(invalidPayload) },
+      }, result => {
+        result.resume()
+        result.on('end', () => resolve(result.statusCode || 0))
+      })
+      request.on('error', reject)
+      request.end(invalidPayload)
+    })
+    expect(invalidStatus).toBe(500)
     process.stdout.write(`WEATHER_EXAMPLE_04_EXPORT=${response.exportDir}\n`)
   }, 30000)
 })
