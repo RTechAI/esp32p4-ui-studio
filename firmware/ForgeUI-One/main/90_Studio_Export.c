@@ -32,6 +32,7 @@ LV_IMAGE_DECLARE(fg_upload_ai_hero_1786175925517_846bc1d6_rgb565);
 static lv_obj_t * fg_weather_background_image = NULL;
 static const char * fg_weather_background_key = NULL;
 
+static lv_obj_t * fg_wi_fi_status_label = NULL;
 static lv_obj_t * fg_weather_date_label = NULL;
 static lv_obj_t * fg_weather_time_label = NULL;
 static lv_obj_t * fg_weather_temperature_label = NULL;
@@ -665,6 +666,31 @@ static void fg_wifi_tick_cb(lv_timer_t *timer)
     if (fg_system_wifi_password_dialog &&
         !lv_obj_has_flag(fg_system_wifi_password_dialog, LV_OBJ_FLAG_HIDDEN)) return;
 
+    fg_wifi_snapshot_t widget_snapshot;
+    bool widget_snapshot_ready = fg_wifi_get_snapshot(&widget_snapshot) == FG_WIFI_OP_OK;
+    const char * widget_status = "Disabled";
+    if (widget_snapshot_ready) {
+        const char * backend_status = fg_wifi_status_text();
+        if (backend_status && (strcmp(backend_status, "INTERNET") == 0 || strcmp(backend_status, "INTERNET_AVAILABLE") == 0)) widget_status = "Internet Available";
+        else {
+        switch (widget_snapshot.state) {
+            case FG_WIFI_STATE_INIT: widget_status = "Starting"; break;
+            case FG_WIFI_STATE_READY:
+            case FG_WIFI_STATE_DISCONNECTING:
+            case FG_WIFI_STATE_DISCONNECTED:
+            case FG_WIFI_STATE_SCANNING: widget_status = "Starting"; break;
+            case FG_WIFI_STATE_CONNECTING: widget_status = "Connecting"; break;
+            case FG_WIFI_STATE_CONNECTED: widget_status = "Connected"; break;
+            case FG_WIFI_STATE_ERROR: widget_status = "Failed"; break;
+            default: widget_status = "Disabled"; break;
+        }
+        }
+    }
+    if (fg_wi_fi_status_label) {
+        char widget_buf[96];
+        snprintf(widget_buf, sizeof(widget_buf), LV_SYMBOL_WIFI " %s", widget_status);
+        lv_label_set_text(fg_wi_fi_status_label, widget_buf);
+    }
 
     if (!fg_system_wifi_page || !fg_system_wifi_page_active) return;
     fg_wifi_snapshot_t snapshot;
@@ -1224,7 +1250,7 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_text_align(fg_weather_location_label, LV_TEXT_ALIGN_LEFT, 0);
 
     fg_weather_date_label = lv_label_create(fg_application_page);
-    lv_obj_set_pos(fg_weather_date_label, 532, 32);
+    lv_obj_set_pos(fg_weather_date_label, 479, 28);
     lv_obj_set_size(fg_weather_date_label, 456, 25);
     lv_label_set_long_mode(fg_weather_date_label, LV_LABEL_LONG_WRAP);
     lv_label_set_text(fg_weather_date_label, "SATURDAY 8 AUGUST");
@@ -1233,7 +1259,7 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_text_align(fg_weather_date_label, LV_TEXT_ALIGN_RIGHT, 0);
 
     fg_weather_time_label = lv_label_create(fg_application_page);
-    lv_obj_set_pos(fg_weather_time_label, 532, 59);
+    lv_obj_set_pos(fg_weather_time_label, 473, 59);
     lv_obj_set_size(fg_weather_time_label, 456, 25);
     lv_label_set_long_mode(fg_weather_time_label, LV_LABEL_LONG_WRAP);
     lv_label_set_text(fg_weather_time_label, "8:20 PM");
@@ -1268,9 +1294,9 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_text_font(fg_weather_feels_like_label, &lv_font_montserrat_24, 0);
     lv_obj_set_style_text_align(fg_weather_feels_like_label, LV_TEXT_ALIGN_LEFT, 0);
 
-    LV_IMAGE_DECLARE(fg_upload_fisun_136x136_5e2bccdd);
+    LV_IMAGE_DECLARE(fg_upload_fisun_136x136_13d13edc);
     lv_obj_t * obj16 = lv_image_create(fg_application_page);
-    lv_image_set_src(obj16, &fg_upload_fisun_136x136_5e2bccdd);
+    lv_image_set_src(obj16, &fg_upload_fisun_136x136_13d13edc);
     lv_image_set_scale(obj16, 235);
     lv_image_set_pivot(obj16, 68, 68);
     lv_obj_set_pos(obj16, 464, 166);
@@ -1327,9 +1353,9 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_text_font(fg_forecast_day1_name_label, &lv_font_montserrat_24, 0);
     lv_obj_set_style_text_align(fg_forecast_day1_name_label, LV_TEXT_ALIGN_CENTER, 0);
 
-    LV_IMAGE_DECLARE(fg_upload_fisun_40x40_3a46c017);
+    LV_IMAGE_DECLARE(fg_upload_fisun_40x40_7ac15a67);
     lv_obj_t * obj22 = lv_image_create(fg_application_page);
-    lv_image_set_src(obj22, &fg_upload_fisun_40x40_3a46c017);
+    lv_image_set_src(obj22, &fg_upload_fisun_40x40_7ac15a67);
     lv_image_set_scale(obj22, 237);
     lv_image_set_pivot(obj22, 20, 20);
     lv_obj_set_pos(obj22, 94, 498);
@@ -1360,7 +1386,7 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_text_align(fg_forecast_day2_name_label, LV_TEXT_ALIGN_CENTER, 0);
 
     lv_obj_t * obj25 = lv_image_create(fg_application_page);
-    lv_image_set_src(obj25, &fg_upload_fisun_40x40_3a46c017);
+    lv_image_set_src(obj25, &fg_upload_fisun_40x40_7ac15a67);
     lv_image_set_scale(obj25, 237);
     lv_image_set_pivot(obj25, 20, 20);
     lv_obj_set_pos(obj25, 293, 498);
@@ -1390,9 +1416,9 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_text_font(fg_forecast_day3_name_label, &lv_font_montserrat_24, 0);
     lv_obj_set_style_text_align(fg_forecast_day3_name_label, LV_TEXT_ALIGN_CENTER, 0);
 
-    LV_IMAGE_DECLARE(fg_upload_ficloudrain_40x40_771045b9);
+    LV_IMAGE_DECLARE(fg_upload_ficloudrain_40x40_bfe0fcc6);
     lv_obj_t * obj28 = lv_image_create(fg_application_page);
-    lv_image_set_src(obj28, &fg_upload_ficloudrain_40x40_771045b9);
+    lv_image_set_src(obj28, &fg_upload_ficloudrain_40x40_bfe0fcc6);
     lv_image_set_scale(obj28, 237);
     lv_image_set_pivot(obj28, 20, 20);
     lv_obj_set_pos(obj28, 492, 498);
@@ -1423,7 +1449,7 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_text_align(fg_forecast_day4_name_label, LV_TEXT_ALIGN_CENTER, 0);
 
     lv_obj_t * obj31 = lv_image_create(fg_application_page);
-    lv_image_set_src(obj31, &fg_upload_fisun_40x40_3a46c017);
+    lv_image_set_src(obj31, &fg_upload_fisun_40x40_7ac15a67);
     lv_image_set_scale(obj31, 237);
     lv_image_set_pivot(obj31, 20, 20);
     lv_obj_set_pos(obj31, 691, 498);
@@ -1454,7 +1480,7 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_text_align(fg_forecast_day5_name_label, LV_TEXT_ALIGN_CENTER, 0);
 
     lv_obj_t * obj34 = lv_image_create(fg_application_page);
-    lv_image_set_src(obj34, &fg_upload_fisun_40x40_3a46c017);
+    lv_image_set_src(obj34, &fg_upload_fisun_40x40_7ac15a67);
     lv_image_set_scale(obj34, 237);
     lv_image_set_pivot(obj34, 20, 20);
     lv_obj_set_pos(obj34, 890, 498);
@@ -1474,6 +1500,22 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_text_color(fg_forecast_day5_temperature_label, lv_color_hex(0xF5F5F5), 0);
     lv_obj_set_style_text_font(fg_forecast_day5_temperature_label, &lv_font_montserrat_24, 0);
     lv_obj_set_style_text_align(fg_forecast_day5_temperature_label, LV_TEXT_ALIGN_CENTER, 0);
+
+    lv_obj_t * fg_wi_fi_status_label_container = lv_obj_create(fg_application_page);
+    lv_obj_set_pos(fg_wi_fi_status_label_container, 855, 368);
+    lv_obj_set_size(fg_wi_fi_status_label_container, 120, 60);
+    lv_obj_clear_flag(fg_wi_fi_status_label_container, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_pad_all(fg_wi_fi_status_label_container, 0, 0);
+    lv_obj_set_style_border_width(fg_wi_fi_status_label_container, 0, 0);
+    lv_obj_set_style_bg_opa(fg_wi_fi_status_label_container, LV_OPA_TRANSP, 0);
+    fg_wi_fi_status_label = lv_label_create(fg_wi_fi_status_label_container);
+    lv_label_set_text(fg_wi_fi_status_label, "Failed");
+    lv_obj_set_size(fg_wi_fi_status_label, 120, LV_SIZE_CONTENT);
+    lv_obj_set_style_text_color(fg_wi_fi_status_label, lv_color_hex(0xF2A900), 0);
+    lv_obj_set_style_text_font(fg_wi_fi_status_label, &lv_font_montserrat_20, 0);
+    lv_obj_set_style_text_align(fg_wi_fi_status_label, LV_TEXT_ALIGN_LEFT, 0);
+    lv_label_set_long_mode(fg_wi_fi_status_label, LV_LABEL_LONG_CLIP);
+    lv_obj_align(fg_wi_fi_status_label, LV_ALIGN_LEFT_MID, 0, 0);
 
 
     fg_ram_probe_log("02 after application page creation");

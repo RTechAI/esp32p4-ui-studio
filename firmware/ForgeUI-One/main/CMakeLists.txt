@@ -20,9 +20,9 @@ idf_component_register(
         "assets/uploads/fg_upload_ai_hero_1786176442715_8a47a244_rgb565.c"
         "assets/uploads/fg_upload_ai_hero_1786176207823_5b8eb6de_rgb565.c"
         "assets/uploads/fg_upload_ai_hero_1786175925517_846bc1d6_rgb565.c"
-        "assets/uploads/fg_upload_fisun_136x136_5e2bccdd.c"
-        "assets/uploads/fg_upload_fisun_40x40_3a46c017.c"
-        "assets/uploads/fg_upload_ficloudrain_40x40_771045b9.c"
+        "assets/uploads/fg_upload_fisun_136x136_13d13edc.c"
+        "assets/uploads/fg_upload_fisun_40x40_7ac15a67.c"
+        "assets/uploads/fg_upload_ficloudrain_40x40_bfe0fcc6.c"
         "assets/icons/fg_icon_settings_fi_48px.c"
 
     INCLUDE_DIRS
