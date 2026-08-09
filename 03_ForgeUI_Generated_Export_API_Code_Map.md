@@ -1,5 +1,9 @@
 # Generated Export API Code Map: what generated firmware exposes, how callbacks and runtime APIs fit together, and what developers are allowed to extend.
 
+## Connected-service export contract
+
+The authoritative network/export configuration is documented in [`12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md`](12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md). For Waveshare 7B Wi-Fi projects, the board profile and exporter generate the proven Hosted/Remote dependency series, streaming SDIO transport, memory/TLS policy and explicit persisted-network startup connection. Generated semantic APIs and `95_UserEvents` may consume cached connectivity state, but must not own SDIO, issue repeated synchronous Hosted status RPCs, or require users to configure the stock C6.
+
 ## Hardware Example 02 semantic and selection contract (2026-08-08)
 
 The proven path is `ForgeUI UI → generated semantic APIs/events →

@@ -5,7 +5,10 @@
 - Hardware Example 01 — 2 Buttons + 2 LEDs: **PHYSICALLY PROVEN**.
 - Hardware Example 02 — I2C FRAM Persistence: **PHYSICALLY PROVEN / CLOSED**. MB85RC256V Device-ID `00 A5 10` verified at `0x50`; write/read passed; counter `9` / value `0xA553` persisted across a complete power cycle.
 - Hardware Example 03 — SPI NFC/RFID: **PHYSICALLY PROVEN / CLOSED**. PN532 identity (`IC=0x32`, firmware `1.6`), SAMConfig, ISO14443A polling, stable UID `04:8D:E6:5F:B7:2A:81`, card removal and held-card de-duplication were proven on the real ESP32-P4.
+- Hardware Example 04 — Online Weather: **PHYSICALLY PROVEN / CLOSED** on the stock Waveshare 7B and stock C6. Association, DHCP, DNS, the complete TLS certificate record, certificate validation, HTTP 200, current Open-Meteo conditions, generated semantic UI updates and SNTP/local Tauranga time passed from repeatable fresh Studio exports. Live fields are current/apparent temperature, humidity, wind, precipitation, weather code, day/night, date and time. Forecast cards and location search are not yet live.
 - Selection is exclusive: implementation files remain preserved, while only the selected example is generated, linked, initialized and polled.
+
+The Waveshare 7B ESP32-P4 Wi-Fi/HTTPS connected runtime is **PHYSICALLY PROVEN**. Its authoritative architecture and evidence scope are in [`12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md`](12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md).
 
 ## Current certification — 2026-08-07
 
@@ -16,7 +19,7 @@
 - Battery Card: **HARDWARE VALIDATED**; intentionally read-only with no UserEvents.
 - Tank Level Card: **HARDWARE VALIDATED**; intentionally display-only with no UserEvents.
 - Network Status Card: **HARDWARE VALIDATED**; read-only live Wi-Fi monitoring with no UserEvents.
-- Deferred without change: the Hardware I/O Proof Program, ESP-Hosted host/co-processor version mismatch warning, 32 MB physical flash versus 16 MB binary-header warning, GPIO32 LEDC display-startup warning, and further export infrastructure.
+- Deferred without change: the Hardware I/O Proof Program, 32 MB physical flash versus 16 MB binary-header warning, GPIO32 LEDC display-startup warning, and further export infrastructure.
 
 | Native Component | Current status | Certified scope |
 |---|---|---|

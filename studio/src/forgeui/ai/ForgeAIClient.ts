@@ -48,14 +48,15 @@ export const requestForgeAILayout = async ({
   if (
     !payload.document ||
     typeof payload.document !== 'object' ||
-    !Array.isArray(payload.document.layout) &&
-    !(
-      payload.document.template === 'dashboard' &&
-      payload.document.regions &&
-      typeof payload.document.regions === 'object'
-    )
+    Array.isArray(payload.document)
   ) {
-    throw new Error('ForgeUI AI returned an invalid layout document')
+    const reason = !payload.document
+      ? 'missing document object'
+      : 'invalid root object'
+    console.error('ForgeUI AI response envelope rejected:', reason)
+    throw new Error(
+      `ForgeUI AI returned an invalid document envelope: ${reason}`,
+    )
   }
 
   return {

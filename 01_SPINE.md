@@ -1,5 +1,9 @@
 # Project Spine: what ForgeUI is, what is proven, current priorities, and what must not regress..
 
+## Connected-services authority — 2026-08-09
+
+[`12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md`](12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md) is the authoritative networking reference. The Waveshare 7B connected runtime is physically proven with the stock C6, ESP-IDF 5.5.4, `esp_hosted` 1.4.7, `esp_wifi_remote` 0.14.5, four-bit 40 MHz streaming SDIO, certificate-verified HTTPS and SNTP. Hardware Example 04 — Online Weather is **PHYSICALLY PROVEN**. This is reusable platform capability for future REST, MQTT, telemetry and time-service integrations; those protocols are not claimed implemented until separately delivered and proven.
+
 ## Hardware Examples selection and proof — 2026-08-08
 
 Hardware Examples 01, 02 and 03 are **PHYSICALLY PROVEN / CLOSED**. Example 02 uses the physically Device-ID-verified MB85RC256V at I2C `0x50`; write/read passed and `counter=9`, `value=0xA553` survived a complete power cycle. Example 03 uses an Elechouse PN532 V3 over software SPI; identity, SAMConfig, ISO14443A polling, stable UID `04:8D:E6:5F:B7:2A:81`, removal detection and one logical count per presentation were physically proven. Hardware Example selection is mutually exclusive from Studio project loading through generated contracts, source inclusion, initialization and polling. Unselected implementation files remain preserved and their GPIO is inactive.
@@ -1082,8 +1086,8 @@ The associated platform baseline is:
 
 - PSRAM XIP disabled
 - ESP-IDF 5.5.4
-- esp_hosted 2.9.7
-- esp_wifi_remote 1.3.0
+- esp_hosted 1.4.7
+- esp_wifi_remote 0.14.5
 - Waveshare BSP 1.0.2
 
 ## Project Health Phase 1 — Clean Baseline

@@ -21,6 +21,7 @@ static bool g_connected;
 static volatile bool g_scan_in_progress;
 static volatile bool g_first_scan_probe_pending;
 static bool g_first_scan_probe_logged;
+static bool g_connect_on_start;
 static fg_wifi_state_t g_state = FG_WIFI_STATE_OFF;
 static fg_wifi_result_t g_latest_result = FG_WIFI_OP_OK;
 static TickType_t g_connect_started;
@@ -192,8 +193,20 @@ static void event_handler(void *arg, esp_event_base_t base, int32_t id, void *da
 {
     (void)arg;
     if (base == WIFI_EVENT && id == WIFI_EVENT_STA_START) {
-        g_state = FG_WIFI_STATE_READY;
-        set_status("READY", FG_WIFI_OP_OK);
+        if (g_connect_on_start) {
+            g_state = FG_WIFI_STATE_CONNECTING;
+            g_connect_started = xTaskGetTickCount();
+            set_status("CONNECTING", FG_WIFI_OP_ACCEPTED);
+            esp_err_t connect_err = esp_wifi_connect();
+            ESP_LOGI(TAG, "startup esp_wifi_connect: %s (0x%x)",
+                     esp_err_to_name(connect_err), (unsigned)connect_err);
+            if (connect_err != ESP_OK) {
+                set_error("CONNECT_FAIL", FG_WIFI_OP_FAILED, esp_err_to_name(connect_err));
+            }
+        } else {
+            g_state = FG_WIFI_STATE_READY;
+            set_status("READY", FG_WIFI_OP_OK);
+        }
     } else if (base == WIFI_EVENT && id == WIFI_EVENT_STA_DISCONNECTED) {
         wifi_event_sta_disconnected_t *event = data;
         bool was_connecting = g_state == FG_WIFI_STATE_CONNECTING;
@@ -233,17 +246,20 @@ void fg_wifi_init(void)
     if (err != ESP_OK && err != ESP_ERR_INVALID_STATE) { set_error("WIFI_FAIL", FG_WIFI_OP_FAILED, esp_err_to_name(err)); return; }
     esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, event_handler, NULL, NULL);
     esp_event_handler_instance_register(IP_EVENT, IP_EVENT_STA_GOT_IP, event_handler, NULL, NULL);
+    esp_wifi_set_storage(WIFI_STORAGE_FLASH);
+    wifi_config_t persisted = {0};
+    if (esp_wifi_get_config(WIFI_IF_STA, &persisted) == ESP_OK && persisted.sta.ssid[0]) {
+        snprintf(g_saved_ssid, sizeof(g_saved_ssid), "%s", (const char *)persisted.sta.ssid);
+        g_has_saved = true;
+        g_connect_on_start = true;
+        err = esp_wifi_set_config(WIFI_IF_STA, &persisted);
+        if (err != ESP_OK) { set_error("CONFIG_FAIL", FG_WIFI_OP_FAILED, esp_err_to_name(err)); return; }
+    }
     if (esp_wifi_set_mode(WIFI_MODE_STA) != ESP_OK) { set_error("MODE_FAIL", FG_WIFI_OP_FAILED, "Station mode failed"); return; }
     err = esp_wifi_start();
     if (err != ESP_OK && err != ESP_ERR_WIFI_CONN) { set_error("START_FAIL", FG_WIFI_OP_FAILED, esp_err_to_name(err)); return; }
     vTaskDelay(pdMS_TO_TICKS(500));
     esp_wifi_get_mac(WIFI_IF_STA, g_station_mac);
-    wifi_config_t persisted = {0};
-    esp_wifi_set_storage(WIFI_STORAGE_FLASH);
-    if (esp_wifi_get_config(WIFI_IF_STA, &persisted) == ESP_OK && persisted.sta.ssid[0]) {
-        snprintf(g_saved_ssid, sizeof(g_saved_ssid), "%s", (const char *)persisted.sta.ssid);
-        g_has_saved = true;
-    }
     g_ready = true;
     g_state = FG_WIFI_STATE_READY;
     set_status("READY", FG_WIFI_OP_OK);
@@ -270,14 +286,16 @@ bool fg_wifi_is_connected(void) { return g_connected; }
 fg_wifi_state_t fg_wifi_state(void) { return g_scan_in_progress && !g_connected ? FG_WIFI_STATE_SCANNING : g_state; }
 const char *fg_wifi_status_text(void) { return g_status; }
 const char *fg_wifi_ip_text(void) { return g_ip; }
-const char *fg_wifi_ssid_text(void) { if (g_connected) refresh_station(); return g_ssid; }
-int fg_wifi_rssi(void) { if (g_connected) refresh_station(); return g_rssi; }
+/* Station details are populated on GOT_IP.  Do not turn UI/status reads into
+ * synchronous ESP-Hosted RPCs: WifiStaGetApInfo can otherwise overlap socket
+ * traffic and stall an older co-processor's RPC dispatcher. */
+const char *fg_wifi_ssid_text(void) { return g_ssid; }
+int fg_wifi_rssi(void) { return g_rssi; }
 bool fg_wifi_scan_in_progress(void) { return g_scan_in_progress; }
 
 fg_wifi_result_t fg_wifi_get_snapshot(fg_wifi_snapshot_t *snapshot)
 {
     if (!snapshot) return FG_WIFI_OP_INVALID_ARGUMENT;
-    if (g_connected) refresh_station();
     memset(snapshot, 0, sizeof(*snapshot));
     snapshot->state = fg_wifi_state();
     snprintf(snapshot->ssid, sizeof(snapshot->ssid), "%s", g_ssid);

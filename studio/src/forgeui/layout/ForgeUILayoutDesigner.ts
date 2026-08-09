@@ -33,6 +33,7 @@ export type ForgeUILayoutArrangement =
 
 export type ForgeUILayoutTemplateItem = {
   type: ComponentType
+  componentName?: string
   props: Record<string, unknown>
 }
 
@@ -51,10 +52,107 @@ export type ForgeUILayoutTemplate = {
   description: string
   useCases: string[]
   aiGuidance: string
+  defaultPrompt?: string
   width: number
   height: number
   layout: ForgeUILayoutTemplateItem[]
 }
+
+export const FORGEUI_WEATHER_DASHBOARD_DEFAULT_PROMPT = `Create a premium modern weather dashboard for a 1024x600 ESP32-P4 touchscreen.
+
+Populate the existing Weather Dashboard smart regions only.
+Preserve the currently selected Theme and weather background.
+Do not generate, select, clear or replace the background.
+
+HeaderLeft:
+Display location "TAURANGA".
+
+HeaderRight:
+Display date "SATURDAY 8 AUGUST".
+Display time "8:20 PM".
+
+CurrentWeather:
+Display a very large dominant temperature "18°".
+Display condition "CLEAR SKY".
+Display "Feels like 17°".
+Place the temperature on the left, condition and feels-like beneath it, and a smaller current-weather icon toward the right.
+
+Metrics:
+Create four compact weather metrics:
+HUMIDITY — 72%
+WIND — 11 km/h
+RAIN — 10%
+UV — 2
+
+Forecast_Day1:
+SUN
+suitable sunny weather icon
+17° / 9°
+
+Forecast_Day2:
+MON
+suitable cloudy weather icon
+16° / 10°
+
+Forecast_Day3:
+TUE
+suitable rain weather icon
+14° / 8°
+
+Forecast_Day4:
+WED
+suitable sunny weather icon
+17° / 7°
+
+Forecast_Day5:
+THU
+suitable partly-cloudy weather icon
+16° / 9°
+
+Use only normal editable ForgeUI components such as Heading, Text and Icon.
+In each forecast region keep the day at top, icon centred and high/low temperature at bottom. Keep every child completely inside its assigned Smart Region.
+
+Use clean white typography.
+Make the current temperature the dominant visual element.
+Use restrained translucent dark-glass styling where required for readability.
+Keep substantial portions of the weather background visible.
+
+Do not add buttons.
+Do not add navigation.
+Do not add charts.
+Do not add sliders or controls.
+Do not create a Native Weather Component.
+Do not create private LVGL objects.
+
+Use meaningful stable component names where the current ForgeUI model supports them:
+Weather_Location
+Weather_Date
+Weather_Time
+Weather_Temperature
+Weather_Condition
+Weather_FeelsLike
+Weather_Humidity
+Weather_Wind
+Weather_Rain
+Weather_UV
+Forecast_Day1_Name
+Forecast_Day1_Icon
+Forecast_Day1_Temperature
+Forecast_Day2_Name
+Forecast_Day2_Icon
+Forecast_Day2_Temperature
+Forecast_Day3_Name
+Forecast_Day3_Icon
+Forecast_Day3_Temperature
+Forecast_Day4_Name
+Forecast_Day4_Icon
+Forecast_Day4_Temperature
+Forecast_Day5_Name
+Forecast_Day5_Icon
+Forecast_Day5_Temperature
+
+Goal:
+Produce a polished editable first-pass weather application screen ready for later Runtime SDK wiring to live online weather data.`
 
 const region = (
   key: string,
@@ -222,6 +320,7 @@ export const forgeUIWeatherDashboardTemplate: ForgeUILayoutTemplate = {
   ],
   aiGuidance:
     'Use Heading, Text and Icon components for location, date, time, temperature, condition, feels-like, humidity, wind, rain, UV and five daily forecasts. Keep content concise and use meaningful stable Weather_ and Forecast_Day names where component naming is supported.',
+  defaultPrompt: FORGEUI_WEATHER_DASHBOARD_DEFAULT_PROMPT,
   width: 1024,
   height: 600,
   layout: [
@@ -828,6 +927,166 @@ export const autoArrangeForgeUILayoutByRegion = (
     return autoArrangeForgeUIRegion(regionComponent, assigned)
   })
 
+const weatherTemplateInternalUpdates = (
+  definition: ForgeUILayoutTemplate,
+  items: ForgeUILayoutTemplateItem[],
+): Map<number, Record<string, unknown>> => {
+  const updates = new Map<number, Record<string, unknown>>()
+  if (definition.id !== 'weather-dashboard') return updates
+
+  const regionProps = (suffix: string) =>
+    definition.layout.find(
+      item => item.props.layoutRegionKey === `weather-dashboard.${suffix}`,
+    )?.props
+  const assigned = (suffix: string) =>
+    items.map((item, index) => ({ item, index })).filter(
+      entry =>
+        entry.item.type !== 'Box' &&
+        entry.item.props.layoutRegionId === `weather-dashboard.${suffix}`,
+    )
+  const place = (
+    index: number,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    extra: Record<string, unknown> = {},
+  ) => updates.set(index, {
+    positionMode: 'absolute',
+    x: Math.round(x),
+    y: Math.round(y),
+    w: Math.max(1, Math.round(w)),
+    h: Math.max(1, Math.round(h)),
+    ...extra,
+  })
+  const placeHorizontal = (
+    entries: Array<{ index: number }>,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    gap = 4,
+    extra: Record<string, unknown> = {},
+  ) => {
+    if (entries.length === 0) return
+    const cellW = (w - gap * (entries.length - 1)) / entries.length
+    entries.forEach((entry, position) =>
+      place(entry.index, x + position * (cellW + gap), y, cellW, h, extra),
+    )
+  }
+
+  const current = regionProps('current-weather')
+  if (current) {
+    const entries = assigned('current-weather')
+    const temperature = entries.find(entry =>
+      String(entry.item.componentName || '').includes('Temperature'),
+    ) || entries.find(entry => entry.item.type === 'Heading')
+    const icon = entries.find(entry => entry.item.type === 'Icon')
+    const supporting = entries.filter(
+      entry => entry !== temperature && entry !== icon,
+    )
+    const x = Number(current.x) + 12
+    const y = Number(current.y) + 12
+    const innerW = Number(current.w) - 24
+    const innerH = Number(current.h) - 24
+    const leftW = Math.round(innerW * 0.64)
+    if (temperature) {
+      place(temperature.index, x, y, leftW, 112, {
+        fontSize: 72,
+        textAlign: 'left',
+      })
+    }
+    if (supporting.length > 0) {
+      const supportingH = innerH - 120
+      const rowH = (supportingH - 4 * (supporting.length - 1)) /
+        supporting.length
+      supporting.forEach((entry, position) =>
+        place(
+          entry.index,
+          x,
+          y + 120 + position * (rowH + 4),
+          leftW,
+          rowH,
+          { textAlign: 'left' },
+        ),
+      )
+    }
+    if (icon) {
+      const iconSize = Math.min(136, innerH - 36)
+      place(
+        icon.index,
+        x + innerW - iconSize - 12,
+        y + Math.round((innerH - iconSize) / 2),
+        iconSize,
+        iconSize,
+      )
+    }
+  }
+
+  const headerRight = regionProps('header-right')
+  if (headerRight) {
+    const entries = assigned('header-right')
+    const date = entries.find(entry =>
+      String(entry.item.componentName || '').includes('Date'),
+    ) || entries[0]
+    const time = entries.find(entry =>
+      String(entry.item.componentName || '').includes('Time'),
+    ) || entries.find(entry => entry !== date)
+    const x = Number(headerRight.x) + 12
+    const y = Number(headerRight.y) + 8
+    const w = Number(headerRight.w) - 24
+    if (date) place(date.index, x, y, w, 25, { textAlign: 'right' })
+    if (time) place(time.index, x, y + 27, w, 25, { textAlign: 'right' })
+  }
+
+  for (let day = 1; day <= 5; day += 1) {
+    const suffix = `forecast-day${day}`
+    const forecast = regionProps(suffix)
+    if (!forecast) continue
+    const entries = assigned(suffix)
+    const icons = entries.filter(entry => entry.item.type === 'Icon')
+    const names = entries.filter(entry =>
+      String(entry.item.componentName || '').endsWith('_Name'),
+    )
+    const temperatures = entries.filter(entry =>
+      String(entry.item.componentName || '').includes('Temperature'),
+    )
+    const claimed = new Set([
+      ...icons.map(entry => entry.index),
+      ...names.map(entry => entry.index),
+      ...temperatures.map(entry => entry.index),
+    ])
+    const remaining = entries.filter(entry => !claimed.has(entry.index))
+    if (names.length === 0 && remaining.length > 0) names.push(remaining.shift()!)
+    temperatures.push(...remaining)
+
+    const x = Number(forecast.x) + 12
+    const y = Number(forecast.y) + 8
+    const w = Number(forecast.w) - 24
+    placeHorizontal(names, x, y, w, 20, 4, { textAlign: 'center' })
+    const iconSize = 40
+    placeHorizontal(
+      icons,
+      x + Math.max(0, (w - iconSize * icons.length - 4 * Math.max(0, icons.length - 1)) / 2),
+      y + 22,
+      Math.min(w, iconSize * icons.length + 4 * Math.max(0, icons.length - 1)),
+      40,
+      4,
+    )
+    placeHorizontal(
+      temperatures,
+      x,
+      y + 64,
+      w,
+      24,
+      4,
+      { textAlign: 'center' },
+    )
+  }
+
+  return updates
+}
+
 const regionForType = (
   definition: ForgeUILayoutTemplate,
   type: string,
@@ -915,7 +1174,10 @@ export const composeForgeUILayoutTemplate = (
     }
   }
   const generatedContent = content
-    .filter(item => !['Heading', 'Box', 'Divider', 'Line'].includes(item.type))
+    .filter(item =>
+      !(item.type === 'Heading' && templateHeading) &&
+      !['Box', 'Divider', 'Line'].includes(item.type),
+    )
     .map((item, index) => ({
       ...item,
       props: {
@@ -950,11 +1212,13 @@ export const composeForgeUILayoutTemplate = (
       update.props,
     ]),
   )
+  const weatherUpdates = weatherTemplateInternalUpdates(definition, combined)
   return combined.map((item, index) => ({
     ...item,
     props: {
       ...item.props,
       ...(updates.get(`layout-${index}`) || {}),
+      ...(weatherUpdates.get(index) || {}),
     },
   }))
 }

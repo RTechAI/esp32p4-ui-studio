@@ -1221,17 +1221,19 @@ function generateSdkconfigDefaults(project, baseline = '') {
     lines.push('CONFIG_ESP_HOSTED_ENABLED=y', 'CONFIG_ESP_HOSTED_IDF_SLAVE_TARGET="esp32c6"')
     if (w.transport === 'sdio') {
       lines.push('CONFIG_ESP_HOSTED_SDIO_HOST_INTERFACE=y', '# CONFIG_ESP_HOSTED_SPI_HOST_INTERFACE is not set',
-        `CONFIG_ESP_HOSTED_SDIO_SLOT_${w.slot}=y`, `CONFIG_ESP_HOSTED_SDIO_${w.width}_BIT_BUS=y`,
+        `CONFIG_ESP_HOSTED_SDIO_${w.width}_BIT_BUS=y`,
         `CONFIG_ESP_HOSTED_SDIO_CLOCK_FREQ_KHZ=${w.frequencyKHz}`,
-        `CONFIG_ESP_HOSTED_PRIV_SDIO_PIN_CLK_SLOT_${w.slot}=${w.clk}`,
-        `CONFIG_ESP_HOSTED_PRIV_SDIO_PIN_CMD_SLOT_${w.slot}=${w.cmd}`,
-        `CONFIG_ESP_HOSTED_PRIV_SDIO_PIN_D0_SLOT_${w.slot}=${w.d0}`,
-        `CONFIG_ESP_HOSTED_PRIV_SDIO_PIN_D1_4BIT_BUS_SLOT_${w.slot}=${w.d1}`,
-        `CONFIG_ESP_HOSTED_PRIV_SDIO_PIN_D2_4BIT_BUS_SLOT_${w.slot}=${w.d2}`,
-        `CONFIG_ESP_HOSTED_PRIV_SDIO_PIN_D3_4BIT_BUS_SLOT_${w.slot}=${w.d3}`,
+        `CONFIG_ESP_HOSTED_SDIO_PIN_CLK=${w.clk}`,
+        `CONFIG_ESP_HOSTED_SDIO_PIN_CMD=${w.cmd}`,
+        `CONFIG_ESP_HOSTED_SDIO_PIN_D0=${w.d0}`,
+        `CONFIG_ESP_HOSTED_SDIO_PRIV_PIN_D1_4BIT_BUS=${w.d1}`,
+        `CONFIG_ESP_HOSTED_SDIO_PIN_D2=${w.d2}`,
+        `CONFIG_ESP_HOSTED_SDIO_PIN_D3=${w.d3}`,
         `CONFIG_ESP_HOSTED_SDIO_GPIO_RESET_SLAVE=${w.reset}`,
-        `CONFIG_ESP_HOSTED_SDIO_RESET_DELAY_MS=${w.resetDelayMs}`,
-        `CONFIG_ESP_HOSTED_SDIO_TX_Q_SIZE=${w.txQueueSize}`, `CONFIG_ESP_HOSTED_SDIO_RX_Q_SIZE=${w.rxQueueSize}`)
+        `CONFIG_ESP_HOSTED_SDIO_TX_Q_SIZE=${w.txQueueSize}`, `CONFIG_ESP_HOSTED_SDIO_RX_Q_SIZE=${w.rxQueueSize}`,
+        '# CONFIG_ESP_HOSTED_SDIO_OPTIMIZATION_RX_NONE is not set',
+        '# CONFIG_ESP_HOSTED_SDIO_OPTIMIZATION_RX_MAX_SIZE is not set',
+        'CONFIG_ESP_HOSTED_SDIO_OPTIMIZATION_RX_STREAMING_MODE=y')
     } else {
       lines.push('CONFIG_ESP_HOSTED_SPI_HOST_INTERFACE=y', '# CONFIG_ESP_HOSTED_SDIO_HOST_INTERFACE is not set',
         `CONFIG_ESP_HOSTED_SPI_PRIV_MODE_${w.mode}_ESP32XX=y`, `CONFIG_ESP_HOSTED_SPI_MODE=${w.mode}`,
@@ -1242,8 +1244,7 @@ function generateSdkconfigDefaults(project, baseline = '') {
         `CONFIG_ESP_HOSTED_SPI_CLK_FREQ=${Math.round(w.frequencyKHz / 1000)}`,
         `CONFIG_ESP_HOSTED_SPI_TX_Q_SIZE=${w.txQueueSize}`, `CONFIG_ESP_HOSTED_SPI_RX_Q_SIZE=${w.rxQueueSize}`)
     }
-    lines.push('CONFIG_ESP_HOSTED_SLAVE_RESET_ON_EVERY_HOST_BOOTUP=y', 'CONFIG_ESP_HOSTED_TRANSPORT_RESTART_ON_FAILURE=y',
-      'CONFIG_ESP_WIFI_REMOTE_ENABLED=y', 'CONFIG_ESP_WIFI_REMOTE_LIBRARY_HOSTED=y', 'CONFIG_SLAVE_IDF_TARGET_ESP32C6=y')
+    lines.push('CONFIG_ESP_WIFI_REMOTE_ENABLED=y', 'CONFIG_ESP_WIFI_REMOTE_LIBRARY_HOSTED=y', 'CONFIG_SLAVE_IDF_TARGET_ESP32C6=y')
   } else {
     lines.push('# CONFIG_ESP_HOSTED_ENABLED is not set', '# CONFIG_ESP_WIFI_REMOTE_ENABLED is not set')
   }
@@ -1313,10 +1314,10 @@ function generateIdfComponentManifest(project) {
     ? `
 
   espressif/esp_wifi_remote:
-    version: "1.3.*"
+    version: "0.14.*"
 
   espressif/esp_hosted:
-    version: "2.9.*"`
+    version: "1.4.*"`
     : ''
   return `dependencies:
 
@@ -1398,6 +1399,18 @@ function appendHardwareExample03Source(sources, mainDir, publicApiDeclarations =
   return sources
 }
 
+function appendHardwareExample04Source(sources, mainDir, publicApiDeclarations = []) {
+  const sourceName = '99_Hardware_Example_04_Weather.c'
+  const enabled = publicApiDeclarations.includes(
+    'void FG_Set_Weather_Temperature_Text(const char * text);'
+  )
+  const entry = `"${sourceName}"`
+  if (enabled && fs.existsSync(path.join(mainDir, sourceName)) && !sources.includes(entry)) {
+    sources.push(entry)
+  }
+  return sources
+}
+
 function selectedHardwareExample(publicApiDeclarations = [], userEventHooks = []) {
   const has01 = ['void FG_Set_Indicator1(bool on);', 'void FG_Set_Indicator2(bool on);']
     .every(value => publicApiDeclarations.includes(value))
@@ -1411,10 +1424,13 @@ function selectedHardwareExample(publicApiDeclarations = [], userEventHooks = []
   const has03 = ['FG_Set_NFC_Device_Text', 'FG_Set_NFC_Interface_Text',
     'FG_Set_NFC_Card_Text', 'FG_Set_NFC_UID_Text', 'FG_Set_NFC_Read_Count_Text']
     .every(name => publicApiDeclarations.some(value => value.includes(name)))
-  if ([has01, has02, has03].filter(Boolean).length > 1) {
+  const has04 = publicApiDeclarations.includes(
+    'void FG_Set_Weather_Temperature_Text(const char * text);'
+  )
+  if ([has01, has02, has03, has04].filter(Boolean).length > 1) {
     throw new Error('Hardware Examples are exclusive; project contains cumulative example contracts')
   }
-  return has01 ? 1 : has02 ? 2 : has03 ? 3 : 0
+  return has01 ? 1 : has02 ? 2 : has03 ? 3 : has04 ? 4 : 0
 }
 
 function generateHardwareExampleHeader(publicApiDeclarations = [], userEventHooks = []) {
@@ -1426,7 +1442,18 @@ function generateHardwareExampleHeader(publicApiDeclarations = [], userEventHook
 #define FG_HARDWARE_EXAMPLE_01_ENABLED ${selected === 1 ? 1 : 0}
 #define FG_HARDWARE_EXAMPLE_02_ENABLED ${selected === 2 ? 1 : 0}
 #define FG_HARDWARE_EXAMPLE_03_ENABLED ${selected === 3 ? 1 : 0}
+#define FG_HARDWARE_EXAMPLE_04_ENABLED ${selected === 4 ? 1 : 0}
 `
+}
+
+function applyHardwareExampleBuildRequirements(firmwareBuild, selected) {
+  if (selected !== 4) return firmwareBuild
+  for (const component of ['esp_http_client', 'json', 'mbedtls']) {
+    if (!firmwareBuild.components.includes(component)) {
+      firmwareBuild.components.push(component)
+    }
+  }
+  return firmwareBuild
 }
 
 function validateSpinboxHelperGeometry(code, diagnostics) {
@@ -2329,6 +2356,11 @@ appendHardwareExample01Source(
 )
 appendHardwareExample02Source(cmakeSources, mainDir, publicApiDeclarations, userEventHooks)
 appendHardwareExample03Source(cmakeSources, mainDir, publicApiDeclarations)
+appendHardwareExample04Source(cmakeSources, mainDir, publicApiDeclarations)
+applyHardwareExampleBuildRequirements(
+  firmwareBuild,
+  selectedHardwareExample(publicApiDeclarations, userEventHooks),
+)
 
 appendAssetSourcesToCMake(cmakeSources, assetSources)
 
@@ -2610,6 +2642,11 @@ appendHardwareExample01Source(
 )
 appendHardwareExample02Source(cmakeSources, path.join(exportDir, 'main'), publicApiDeclarations, userEventHooks)
 appendHardwareExample03Source(cmakeSources, path.join(exportDir, 'main'), publicApiDeclarations)
+appendHardwareExample04Source(cmakeSources, path.join(exportDir, 'main'), publicApiDeclarations)
+applyHardwareExampleBuildRequirements(
+  firmwareBuild,
+  selectedHardwareExample(publicApiDeclarations, userEventHooks),
+)
 
 appendAssetSourcesToCMake(cmakeSources, assetSources)
 
@@ -2882,7 +2919,9 @@ module.exports = {
   appendHardwareExample01Source,
   appendHardwareExample02Source,
   appendHardwareExample03Source,
+  appendHardwareExample04Source,
   selectedHardwareExample,
   generateHardwareExampleHeader,
+  applyHardwareExampleBuildRequirements,
   validateExportPayload,
 }

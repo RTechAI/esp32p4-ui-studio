@@ -1,5 +1,9 @@
 # ForgeUI Runtime SDK Direction
 
+## Connected-service state contract
+
+The authoritative Waveshare 7B networking architecture is [`12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md`](12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md). Runtime SDK and generated UI code read cached `fg_wifi_snapshot_t` state; frequently polled getters must not issue synchronous Hosted RPC calls such as `esp_wifi_sta_get_ap_info()`. Network state is captured at Wi-Fi/IP events so UI polling cannot contend with TLS traffic. Hardware Example 04 proves this shared connected-service layer with certificate-verified HTTPS and SNTP; future REST, MQTT, cloud telemetry and time integrations may reuse it without implying those services already exist.
+
 ## Hardware Example 02 — FRAM semantic surface
 
 The physically proven MB85RC256V example updates generated UI only through

@@ -2,6 +2,8 @@
 
 # ForgeUI Developer Hardware Integration Guide
 
+For Waveshare 7B Wi-Fi, HTTPS and future connected-service integration, follow [`12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md`](12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md). The board profile owns the stock-C6 Hosted stack, SDIO pins/mode/queues, memory policy and certificate verification; application and UserEvents code must not reconfigure those internals.
+
 This is the application/hardware companion to
 `05_DEVELOPER_GUIDE.md`. The Internal Developer Guide owns Studio architecture
 and widget-pipeline guidance; this document owns post-export application,

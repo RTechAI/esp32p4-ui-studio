@@ -66,7 +66,7 @@ import type {
 
 type ForgeAIPanelProps = {
   onClose: () => void
-  insertAiLayout: (items: any[]) => void
+  insertAiLayout: (items: any[]) => void | boolean | Promise<void | boolean>
   navigationRequest?: ForgeUINavigationRequest | null
   onNavigationRequestConsumed?: () => void
 }
@@ -1142,6 +1142,7 @@ export const ForgeAIPanel = ({
 const [jsonError, setJsonError] = useState('')
 
 const [aiPrompt, setAiPrompt] = useState('')
+const [layoutDesignerPrompt, setLayoutDesignerPrompt] = useState('')
 
 //
 // Layout Prompt Helper
@@ -1175,6 +1176,11 @@ const promptBuilderAssets =
 
 const [isGenerating, setIsGenerating] =
   useState(false)
+const [isGeneratingTemplate, setIsGeneratingTemplate] = useState(false)
+const [templateGenerationStatus, setTemplateGenerationStatus] =
+  useState<'idle' | 'success' | 'error'>('idle')
+const [templateGenerationMessage, setTemplateGenerationMessage] = useState('')
+const templateGenerationLock = useRef(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [resultName, setResultName] = useState('')
   const [resultDescription, setResultDescription] = useState('')
@@ -1404,23 +1410,22 @@ const applyLayoutDesignerTemplate = () => {
   )
 }
 
-const buildLayoutAIComposerPrompt = () => {
-  leaveAllComponentsTest()
-  setHelperSelectedTypes([
-    'Heading', 'Text',
-    ...(selectedLayoutDefinition.id === 'weather-dashboard' ? ['Icon'] : []),
-    'Led', 'Progress', 'CircularProgress',
-    'Chart', 'Button', 'Switch',
-  ])
+const createLayoutAIComposerPrompt = (visiblePrompt: string) => {
   const regionNames = selectedLayoutDefinition.layout
     .filter(item => item.type === 'Box')
     .map(item => String(item.props.layoutRegionKey).slice(
       selectedLayoutDefinition.id.length + 1,
     ))
-  setAiPrompt(`FORGEUI_LAYOUT_TEMPLATE: ${selectedLayoutDefinition.id}
+  const templateBrief =
+    selectedLayoutDefinition.defaultPrompt && visiblePrompt.trim()
+      ? visiblePrompt.trim()
+      : selectedLayoutDefinition.defaultPrompt || ''
+  return `FORGEUI_LAYOUT_TEMPLATE: ${selectedLayoutDefinition.id}
 
 Create the content for one coherent 1024x600 ${selectedLayoutDefinition.name} screen.
 ForgeUI owns all structural region geometry.
+
+${templateBrief}
 
 Purpose: ${selectedLayoutDefinition.description}
 Designed for: ${selectedLayoutDefinition.useCases.join(', ')}.
@@ -1444,11 +1449,68 @@ ${selectedLayoutDefinition.id === 'weather-dashboard' ? `Use normal editable For
 
 Include location, date, time, temperature, condition, feels-like, humidity, wind, rain, UV and five daily forecast groups. Do not request, select or replace a background image.` : ''}
 
+${selectedLayoutDefinition.id === 'weather-dashboard' ? 'Preserve the supplied semantic component names. Keep every generated child inside its assigned region. CurrentWeather must place the dominant temperature left, supporting text below and a smaller icon right. HeaderRight must show date above time. Every forecast day must use its own top-name, centred-icon and bottom-temperature stack.' : ''}
+
 Do not create Box, Divider or Line components.
 Do not include unrelated specialist controls.
 Do not include x, y, w or h. ForgeUI will assign and auto-arrange content in the selected semantic regions.
 
-Return valid ForgeUI JSON only.`)
+Return valid ForgeUI JSON only.`
+}
+
+const buildLayoutAIComposerPrompt = () => {
+  leaveAllComponentsTest()
+  setHelperSelectedTypes([
+    'Heading', 'Text',
+    ...(selectedLayoutDefinition.id === 'weather-dashboard'
+      ? (['Icon'] as ComponentType[])
+      : []),
+    'Led', 'Progress', 'CircularProgress',
+    'Chart', 'Button', 'Switch',
+  ])
+  setAiPrompt(createLayoutAIComposerPrompt(layoutDesignerPrompt))
+}
+
+const generateSelectedLayoutTemplate = async () => {
+  if (templateGenerationLock.current) return
+  templateGenerationLock.current = true
+  setIsGeneratingTemplate(true)
+  setTemplateGenerationStatus('idle')
+  setTemplateGenerationMessage(
+    `Generating ${selectedLayoutDefinition.name}…`,
+  )
+  try {
+    leaveAllComponentsTest()
+    if (!selectedLayoutDefinition.defaultPrompt) {
+      const inserted = await Promise.resolve(
+        insertAiLayout(selectedLayoutDefinition.layout),
+      )
+      if (inserted === false) throw new Error('Canvas insertion failed.')
+    } else {
+      const routedPrompt = createLayoutAIComposerPrompt(layoutDesignerPrompt)
+      const context = createForgeAIContext({ userPrompt: routedPrompt })
+      const document = await generateForgeAILayout({
+        prompt: routedPrompt,
+        ...context,
+      })
+      const inserted = await Promise.resolve(insertAiLayout(document.layout))
+      if (inserted === false) throw new Error('Canvas insertion failed.')
+    }
+    setTemplateGenerationStatus('success')
+    setTemplateGenerationMessage(
+      `${selectedLayoutDefinition.name} generated and inserted on canvas.`,
+    )
+  } catch (error) {
+    setTemplateGenerationStatus('error')
+    setTemplateGenerationMessage(
+      error instanceof Error
+        ? error.message
+        : `${selectedLayoutDefinition.name} generation failed.`,
+    )
+  } finally {
+    templateGenerationLock.current = false
+    setIsGeneratingTemplate(false)
+  }
 }
 
 const buildAssetGenerationPrompt = () => {
@@ -3066,17 +3128,25 @@ toast({
                       <Badge colorScheme="cyan">SMART REGIONS</Badge>
                     </HStack>
                     <Text color="gray.400" fontSize="sm" mb={4}>
-                      Apply deterministic editable structure, then assign and
-                      auto-arrange normal ForgeUI components.
+                      Choose a built-in layout, customize its prompt, then
+                      generate the finished editable screen in one step.
+                    </Text>
+                    <Text fontSize="xs" color="cyan.200" mb={1}>
+                      1. Choose Layout
                     </Text>
                     <Select
                       size="sm"
                       value={layoutDesignerTemplate}
-                      onChange={event =>
-                        setLayoutDesignerTemplate(
-                          event.target.value as ForgeUILayoutTemplateId,
-                        )
-                      }
+                      isDisabled={isGeneratingTemplate}
+                      onChange={event => {
+                        const templateId =
+                          event.target.value as ForgeUILayoutTemplateId
+                        const definition = getForgeUILayoutTemplate(templateId)
+                        setLayoutDesignerTemplate(templateId)
+                        setLayoutDesignerPrompt(definition.defaultPrompt || '')
+                        setTemplateGenerationStatus('idle')
+                        setTemplateGenerationMessage('')
+                      }}
                       mb={4}
                     >
                       {forgeUILayoutTemplates.map(definition => (
@@ -3117,23 +3187,98 @@ toast({
                           </Box>
                         ))}
                     </Box>
-                    <SimpleGrid columns={2} spacing={3}>
-                      <Button
-                        size="sm"
-                        colorScheme="cyan"
-                        onClick={applyLayoutDesignerTemplate}
+                    <Text fontSize="xs" color="cyan.200" mb={1}>
+                      2. Customize
+                    </Text>
+                    {selectedLayoutDefinition.defaultPrompt ? (
+                      <Textarea
+                        aria-label="Layout Designer prompt"
+                        value={layoutDesignerPrompt}
+                        onChange={event =>
+                          setLayoutDesignerPrompt(event.target.value)
+                        }
+                        minH="190px"
+                        resize="vertical"
+                        bg="#050914"
+                        color="white"
+                        borderColor="rgba(34,211,238,0.4)"
+                        isDisabled={isGeneratingTemplate}
+                        mb={4}
+                      />
+                    ) : (
+                      <Text color="gray.500" fontSize="sm" mb={4}>
+                        This template creates its deterministic editable region
+                        structure without AI content.
+                      </Text>
+                    )}
+                    <Text fontSize="xs" color="cyan.200" mb={1}>
+                      3. Create
+                    </Text>
+                    <Button
+                      width="100%"
+                      size="md"
+                      colorScheme="cyan"
+                      onClick={generateSelectedLayoutTemplate}
+                      isLoading={isGeneratingTemplate}
+                      loadingText={`Generating ${selectedLayoutDefinition.name}…`}
+                      isDisabled={
+                        isGeneratingTemplate ||
+                        Boolean(
+                          selectedLayoutDefinition.defaultPrompt &&
+                          !layoutDesignerPrompt.trim(),
+                        )
+                      }
+                    >
+                      Generate {selectedLayoutDefinition.name}
+                    </Button>
+                    {templateGenerationMessage && (
+                      <Box
+                        mt={3}
+                        role={templateGenerationStatus === 'error' ? 'alert' : 'status'}
+                        color={
+                          templateGenerationStatus === 'error'
+                            ? 'red.200'
+                            : templateGenerationStatus === 'success'
+                              ? 'green.200'
+                              : 'cyan.200'
+                        }
+                        fontSize="sm"
                       >
-                        Apply {selectedLayoutDefinition.name}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        colorScheme="purple"
-                        onClick={buildLayoutAIComposerPrompt}
-                      >
-                        AI Fill {selectedLayoutDefinition.name}
-                      </Button>
-                    </SimpleGrid>
+                        {templateGenerationMessage}
+                      </Box>
+                    )}
+                    <Box
+                      as="details"
+                      mt={4}
+                      borderTop="1px solid rgba(148,163,184,0.16)"
+                      pt={3}
+                    >
+                      <Box as="summary" cursor="pointer" fontSize="sm" color="gray.400">
+                        Advanced
+                      </Box>
+                      <SimpleGrid columns={2} spacing={3} mt={3}>
+                        <Button
+                          size="xs"
+                          variant="outline"
+                          onClick={applyLayoutDesignerTemplate}
+                          isDisabled={isGeneratingTemplate}
+                        >
+                          Apply Regions Only
+                        </Button>
+                        <Button
+                          size="xs"
+                          variant="outline"
+                          colorScheme="purple"
+                          onClick={buildLayoutAIComposerPrompt}
+                          isDisabled={
+                            isGeneratingTemplate ||
+                            !selectedLayoutDefinition.defaultPrompt
+                          }
+                        >
+                          AI Fill Existing Regions
+                        </Button>
+                      </SimpleGrid>
+                    </Box>
                   </Box>
                   <Box
                     border="1px solid rgba(124, 58, 237, 0.4)"

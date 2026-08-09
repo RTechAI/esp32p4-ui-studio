@@ -25,11 +25,23 @@
 #include "97_Hardware_Example_02_Discovery.h"
 #elif FG_HARDWARE_EXAMPLE_03_ENABLED
 #include "98_Hardware_Example_03_Probe.h"
+#elif FG_HARDWARE_EXAMPLE_04_ENABLED
+#include "99_Hardware_Example_04_Weather.h"
 #endif
 
 void fg_sidebar_init(void);
 
 static const char *TAG = "APP_MAIN";
+
+static void log_display_heap(const char *stage)
+{
+    ESP_LOGI(TAG, "%s internal=%u/%u dma=%u/%u",
+             stage,
+             (unsigned)heap_caps_get_free_size(MALLOC_CAP_INTERNAL),
+             (unsigned)heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL),
+             (unsigned)heap_caps_get_free_size(MALLOC_CAP_DMA),
+             (unsigned)heap_caps_get_largest_free_block(MALLOC_CAP_DMA));
+}
 
 void app_main(void)
 {
@@ -57,8 +69,10 @@ void app_main(void)
         }
     };
 
+    log_display_heap("display-before");
     ESP_LOGI(TAG, "BOOT 02 display init begin");
     lv_display_t *display_result = bsp_display_start_with_config(&cfg);
+    log_display_heap("display-after");
     ESP_LOGI(TAG, "BOOT 03 display init end handle=%p heap=%u min_heap=%u",
              display_result,
              (unsigned)esp_get_free_heap_size(),
@@ -114,6 +128,10 @@ void app_main(void)
 
     fg_wifi_init();
     fg_ram_probe_log("06 after Wi-Fi backend initialization");
+
+#if FG_HARDWARE_EXAMPLE_04_ENABLED
+    fg_hardware_example_04_init();
+#endif
 
     vTaskDelay(pdMS_TO_TICKS(2500));
 

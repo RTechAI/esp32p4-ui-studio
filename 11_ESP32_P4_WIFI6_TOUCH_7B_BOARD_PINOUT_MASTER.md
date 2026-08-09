@@ -1,5 +1,7 @@
 # Waveshare ESP32-P4-WIFI6-Touch-LCD-7B Board Pinout Master
 
+Networking behavior, component versions, startup ordering, memory and TLS ownership are authoritative in [`12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md`](12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md). This document remains authoritative for physical pin ownership.
+
 Status: authoritative human-readable ForgeUI hardware-I/O reference  
 Board audited: Waveshare `ESP32-P4-WIFI6-Touch-LCD-7B` (production board photographed in this repository)  
 Last audited: 2026-08-08

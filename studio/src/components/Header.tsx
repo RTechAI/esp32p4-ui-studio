@@ -239,22 +239,24 @@ const selectedHeroAsset =
 
   const insertAiLayout = async (
   items: any[],
-) => {
+): Promise<boolean> => {
   try {
     const resolvedItems =
       await resolveForgeUIIconLayoutItems(
         items,
       )
 
-    resolvedItems.forEach(item => {
-      dispatch.components.addComponent({
-        parentName: 'root',
+    dispatch.components.addComponents({
+      parentName: 'root',
+      items: resolvedItems.map(item => ({
         type: item.type as any,
         rootParentType:
           item.type as any,
+        componentName: item.componentName,
         props: item.props,
-      })
+      })),
     })
+    return true
   } catch (err: any) {
     console.error(
       'AI icon resolution failed:',
@@ -270,6 +272,7 @@ const selectedHeroAsset =
       duration: 5000,
       isClosable: true,
     })
+    return false
   }
 }
 

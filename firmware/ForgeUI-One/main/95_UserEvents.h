@@ -26,12 +26,7 @@ typedef enum
 extern "C" {
 #endif
 
-void FG_On_READ_TEST_Clicked(void);
-void FG_On_WRITE_TEST_Clicked(void);
-void FG_On_FRAM_Address_Changed(const char * text);
-void FG_On_FRAM_Status_Changed(const char * text);
-void FG_On_FRAM_Value_Changed(const char * text);
-void FG_On_FRAM_Verify_Changed(const char * text);
+
 
 #ifdef __cplusplus
 }

@@ -72,6 +72,79 @@ describe('ForgeUI Dashboard Layout Designer', () => {
     expect(new Set(forecast.map(item => item.h))).toEqual(new Set([108]))
   })
 
+  it('deterministically contains Weather hero, header and five forecast compositions', () => {
+    const content: any[] = [
+      { type: 'Text', componentName: 'Weather_Date', props: { textValue: 'SATURDAY 8 AUGUST', layoutRegionId: 'weather-dashboard.header-right' } },
+      { type: 'Text', componentName: 'Weather_Time', props: { textValue: '8:20 PM', layoutRegionId: 'weather-dashboard.header-right' } },
+      { type: 'Heading', componentName: 'Weather_Temperature', props: { headingText: '18°', layoutRegionId: 'weather-dashboard.current-weather' } },
+      { type: 'Text', componentName: 'Weather_Condition', props: { textValue: 'CLEAR SKY', layoutRegionId: 'weather-dashboard.current-weather' } },
+      { type: 'Text', componentName: 'Weather_FeelsLike', props: { textValue: 'Feels like 17°', layoutRegionId: 'weather-dashboard.current-weather' } },
+      { type: 'Icon', componentName: 'Weather_Current_Icon', props: { iconName: 'FiSun', layoutRegionId: 'weather-dashboard.current-weather' } },
+      ...Array.from({ length: 5 }, (_, index) => {
+        const day = index + 1
+        const region = `weather-dashboard.forecast-day${day}`
+        return [
+          { type: 'Text', componentName: `Forecast_Day${day}_Name`, props: { textValue: ['SUN', 'MON', 'TUE', 'WED', 'THU'][index], layoutRegionId: region } },
+          { type: 'Icon', componentName: `Forecast_Day${day}_Icon`, props: { iconName: index === 2 ? 'FiCloudRain' : 'FiSun', layoutRegionId: region } },
+          { type: 'Text', componentName: `Forecast_Day${day}_Temperature`, props: { textValue: '17° / 9°', layoutRegionId: region } },
+        ]
+      }).flat(),
+    ]
+    const layout = composeForgeUILayoutTemplate(
+      forgeUIWeatherDashboardTemplate,
+      content,
+    )
+    const byName = (name: string) =>
+      layout.find(item => item.componentName === name)!
+    const byRegion = (key: string) =>
+      layout.find(item => item.props.layoutRegionKey === key)!
+    const isContained = (child: any, parent: any) =>
+      Number(child.props.x) >= Number(parent.props.x) &&
+      Number(child.props.y) >= Number(parent.props.y) &&
+      Number(child.props.x) + Number(child.props.w) <=
+        Number(parent.props.x) + Number(parent.props.w) &&
+      Number(child.props.y) + Number(child.props.h) <=
+        Number(parent.props.y) + Number(parent.props.h)
+
+    const temperature = byName('Weather_Temperature')
+    const currentIcon = byName('Weather_Current_Icon')
+    expect(temperature.props).toMatchObject({
+      headingText: '18°',
+      fontSize: 72,
+      x: 36,
+      y: 124,
+    })
+    expect(Number(currentIcon.props.w)).toBeLessThan(
+      Number(temperature.props.w),
+    )
+    expect(Number(currentIcon.props.x)).toBeGreaterThan(
+      Number(temperature.props.x),
+    )
+    expect(isContained(
+      temperature,
+      byRegion('weather-dashboard.current-weather'),
+    )).toBe(true)
+
+    const date = byName('Weather_Date')
+    const time = byName('Weather_Time')
+    expect(date.props.textValue).toBe('SATURDAY 8 AUGUST')
+    expect(time.props.textValue).toBe('8:20 PM')
+    expect(Number(time.props.y)).toBeGreaterThan(Number(date.props.y))
+
+    for (let day = 1; day <= 5; day += 1) {
+      const region = byRegion(`weather-dashboard.forecast-day${day}`)
+      const name = byName(`Forecast_Day${day}_Name`)
+      const icon = byName(`Forecast_Day${day}_Icon`)
+      const value = byName(`Forecast_Day${day}_Temperature`)
+      expect([name, icon, value].every(item => isContained(item, region)))
+        .toBe(true)
+      expect(Number(name.props.y)).toBeLessThan(Number(icon.props.y))
+      expect(Number(icon.props.y)).toBeLessThan(Number(value.props.y))
+      expect(Number(icon.props.x) + Number(icon.props.w) / 2)
+        .toBe(Number(region.props.x) + Number(region.props.w) / 2)
+    }
+  })
+
   it('defines deterministic stable regions inside 1024x600 without overlap', () => {
     const regions = forgeUIDashboardTemplate.layout.filter(
       item => item.type === 'Box',

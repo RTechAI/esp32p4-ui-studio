@@ -8,6 +8,7 @@ export default function filterActions(action: Action) {
       'components/resetProps',
       'components/updateProps',
       'components/addComponent',
+      'components/addComponents',
       'components/deleteComponent',
       'components/moveComponent',
       'components/addMetaComponent',

@@ -53,6 +53,9 @@ const ICON_SEARCH_TERMS = [
   'menu',
   'search',
   'user',
+  'sun',
+  'cloud',
+  'rain',
 ]
 
 const findRelevantIcons = (
@@ -62,8 +65,13 @@ const findRelevantIcons = (
 
   return ICON_SEARCH_TERMS
     .filter(term => {
+  const promptTerms: Record<string, string[]> = {
+    sun: ['sun', 'sunny'],
+    cloud: ['cloud', 'cloudy', 'partly-cloudy'],
+    rain: ['rain', 'rainy'],
+  }
   const pattern = new RegExp(
-    `\\b${term}\\b`,
+    `\\b(?:${(promptTerms[term] || [term]).join('|')})\\b`,
     'i',
   )
 
@@ -71,7 +79,10 @@ const findRelevantIcons = (
 })
     .map(term => ({
       query: term,
-      matches: searchForgeUIIcons(term, 5),
+      matches: searchForgeUIIcons(
+        term,
+        ['sun', 'cloud', 'rain'].includes(term) ? 8 : 5,
+      ),
     }))
     .filter(group => group.matches.length > 0)
 }

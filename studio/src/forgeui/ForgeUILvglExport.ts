@@ -1057,6 +1057,37 @@ type ImageExport = {
 
 type QRCodeExport = { apiName: string; objectName: string }
 
+type LabelTextExport = { apiName: string; objectName: string }
+
+const createLabelTextExports = (
+  components: IComponents,
+  existingApiNames: Iterable<string>,
+): Map<string, LabelTextExport> => {
+  const result = new Map<string, LabelTextExport>()
+  const used = new Set(existingApiNames)
+  Object.values(components)
+    .filter(component =>
+      (component.type === 'Text' || component.type === 'Heading') &&
+      typeof component.componentName === 'string' &&
+      component.componentName.trim().length > 0,
+    )
+    .sort((a, b) => a.id.localeCompare(b.id))
+    .forEach(component => {
+      const base = toCIdentifier(component.componentName!, 'Label')
+        .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      let name = base
+      let suffix = 2
+      while (used.has(`FG_Set_${name}_Text`)) name = `${base}_${suffix++}`
+      const apiName = `FG_Set_${name}_Text`
+      used.add(apiName)
+      result.set(component.id, {
+        apiName,
+        objectName: `fg_${name.toLowerCase()}_label`,
+      })
+    })
+  return result
+}
+
 const createQRCodeExports = (
   components: IComponents,
   existingApiNames: Iterable<string>,
@@ -3091,6 +3122,7 @@ const buildLvglBlock = (
   tileViewExports: Map<string, TileViewExport>,
   clockExports: Map<string, ClockExport>,
   wifiStatusExports: Map<string, WifiStatusExport>,
+  labelTextExports: Map<string, LabelTextExport>,
   inputExports: Map<string, InputExport>,
   switchExports: Map<string, SwitchExport>,
   checkboxExports: Map<string, SwitchExport>,
@@ -3126,6 +3158,8 @@ const buildLvglBlock = (
 
     switch (child.type) {
       case 'Text': {
+        const labelExport = labelTextExports.get(child.id)
+        const labelObject = labelExport?.objectName || varName
         const text = esc(getForgeUIStandardTextValue(child.props))
         const color = palette.textPrimary
         const fontSize = resolveMontserratSize(child.props.fontSize, 24)
@@ -3133,32 +3167,38 @@ const buildLvglBlock = (
           child.props.textAlign || child.props.align,
         )
 
-        lines.push(`lv_obj_t * ${varName} = lv_label_create(${parentVar});`)
-        lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
-        lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
-        lines.push(`lv_label_set_long_mode(${varName}, LV_LABEL_LONG_WRAP);`)
-        lines.push(`lv_label_set_text(${varName}, "${text}");`)
-        lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${color}), 0);`)
-        lines.push(`lv_obj_set_style_text_font(${varName}, &lv_font_montserrat_${fontSize}, 0);`)
-        lines.push(`lv_obj_set_style_text_align(${varName}, ${textAlign}, 0);`)
+        lines.push(labelExport
+          ? `${labelObject} = lv_label_create(${parentVar});`
+          : `lv_obj_t * ${labelObject} = lv_label_create(${parentVar});`)
+        lines.push(`lv_obj_set_pos(${labelObject}, ${x}, ${y});`)
+        lines.push(`lv_obj_set_size(${labelObject}, ${w}, ${h});`)
+        lines.push(`lv_label_set_long_mode(${labelObject}, LV_LABEL_LONG_WRAP);`)
+        lines.push(`lv_label_set_text(${labelObject}, "${text}");`)
+        lines.push(`lv_obj_set_style_text_color(${labelObject}, lv_color_hex(${color}), 0);`)
+        lines.push(`lv_obj_set_style_text_font(${labelObject}, &lv_font_montserrat_${fontSize}, 0);`)
+        lines.push(`lv_obj_set_style_text_align(${labelObject}, ${textAlign}, 0);`)
         lines.push(``)
         break
       }
 
       case 'Heading': {
+  const labelExport = labelTextExports.get(child.id)
+  const labelObject = labelExport?.objectName || varName
   const heading = getForgeUIStandardHeadingPresentation(child.props)
   const text = esc(heading.text)
   const color = palette.textPrimary
   const textAlign = resolveLvTextAlign(heading.textAlign)
 
-  lines.push(`lv_obj_t * ${varName} = lv_label_create(${parentVar});`)
-  lines.push(`lv_obj_set_pos(${varName}, ${x}, ${y});`)
-  lines.push(`lv_label_set_long_mode(${varName}, LV_LABEL_LONG_WRAP);`)
-  lines.push(`lv_obj_set_size(${varName}, ${w}, ${h});`)
-  lines.push(`lv_label_set_text(${varName}, "${text}");`)
-  lines.push(`lv_obj_set_style_text_color(${varName}, lv_color_hex(${color}), 0);`)
-  lines.push(`lv_obj_set_style_text_font(${varName}, &lv_font_montserrat_${heading.fontSize}, 0);`)
-  lines.push(`lv_obj_set_style_text_align(${varName}, ${textAlign}, 0);`)
+  lines.push(labelExport
+    ? `${labelObject} = lv_label_create(${parentVar});`
+    : `lv_obj_t * ${labelObject} = lv_label_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${labelObject}, ${x}, ${y});`)
+  lines.push(`lv_label_set_long_mode(${labelObject}, LV_LABEL_LONG_WRAP);`)
+  lines.push(`lv_obj_set_size(${labelObject}, ${w}, ${h});`)
+  lines.push(`lv_label_set_text(${labelObject}, "${text}");`)
+  lines.push(`lv_obj_set_style_text_color(${labelObject}, lv_color_hex(${color}), 0);`)
+  lines.push(`lv_obj_set_style_text_font(${labelObject}, &lv_font_montserrat_${heading.fontSize}, 0);`)
+  lines.push(`lv_obj_set_style_text_align(${labelObject}, ${textAlign}, 0);`)
   lines.push(``)
   break
 }
@@ -6195,6 +6235,7 @@ case 'TrendChartPro': {
         tileViewExports,
         clockExports,
         wifiStatusExports,
+        labelTextExports,
         inputExports,
         switchExports,
         checkboxExports,
@@ -6335,7 +6376,8 @@ export const gateForgeUIGeneratedSystemCode = (
   if (!features.diagnostics) {
     removeFunctions.push(name =>
       name.startsWith('fg_system_diagnostics_') ||
-      name.startsWith('fg_diagnostics_'),
+      name.startsWith('fg_diagnostics_') ||
+      name === 'fg_system_open_diagnostics_cb',
     )
     code = removeGeneratedRange(
       code,
@@ -7223,6 +7265,10 @@ export const generateForgeUILvglCode = (
   )
   const clockExports = createClockExports(components)
   const wifiStatusExports = createWifiStatusExports(components)
+  const labelTextExports = createLabelTextExports(components, [
+    ...Array.from(inputExports.values()).map(value => value.apiName),
+    ...Array.from(qrCodeExports.values()).map(value => value.apiName),
+  ])
 
   const previewPalette =
   options?.palette ||
@@ -7335,6 +7381,9 @@ const backgroundMode =
   })
   wifiStatusExports.forEach(wifi => {
     lines.push(`static lv_obj_t * ${wifi.labelName} = NULL;`)
+  })
+  labelTextExports.forEach(labelExport => {
+    lines.push(`static lv_obj_t * ${labelExport.objectName} = NULL;`)
   })
   dashboardCardExports.forEach(card => {
     lines.push(`static lv_obj_t * ${card.rootName} = NULL;`)
@@ -7725,6 +7774,16 @@ const backgroundMode =
   inputExports.forEach(inputExport => {
     lines.push(`static lv_obj_t * ${inputExport.objectName} = NULL;`)
     lines.push(`static bool ${inputExport.programmaticUpdateName} = false;`)
+  })
+
+  labelTextExports.forEach(labelExport => {
+    lines.push(`void ${labelExport.apiName}(const char * text)`)
+    lines.push(`{`)
+    lines.push(`    if (${labelExport.objectName} == NULL) return;`)
+    lines.push(`    if (text == NULL) text = "";`)
+    lines.push(`    lv_label_set_text(${labelExport.objectName}, text);`)
+    lines.push(`}`)
+    lines.push(``)
   })
   qrCodeExports.forEach(qrExport => {
     lines.push(`static lv_obj_t * ${qrExport.objectName} = NULL;`)
@@ -10142,6 +10201,7 @@ lines.push(`    fg_system_root = parent;`)
         tileViewExports,
         clockExports,
         wifiStatusExports,
+        labelTextExports,
         inputExports,
         switchExports,
         checkboxExports,
@@ -10981,6 +11041,9 @@ lines.push(`}`)
       )).concat(Array.from(inputExports.values()).map(
         inputExport =>
           `void ${inputExport.apiName}(const char * text);`,
+      )).concat(Array.from(labelTextExports.values()).map(
+        labelExport =>
+          `void ${labelExport.apiName}(const char * text);`,
       )).concat(Array.from(qrCodeExports.values()).map(
         qrExport =>
           `void ${qrExport.apiName}(const char * text);`,

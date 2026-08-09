@@ -5,6 +5,7 @@ import {
 
 export type ForgeAILayoutItem = {
   type: string
+  componentName?: string
   props: Record<string, unknown>
 }
 
@@ -36,7 +37,7 @@ const clampNumber = (
   return Math.min(max, Math.max(min, numericValue))
 }
 
-const extractJsonText = (value: string): string => {
+export const extractForgeAIJsonText = (value: string): string => {
   const trimmed = value.trim()
 
   if (!trimmed) {
@@ -91,11 +92,41 @@ const validateLayoutItem = (
   }
 
   const catalogueEntry = getForgeAIComponentEntry(resolvedType)
+  const sourceProps = candidate.props as Record<string, unknown>
   const normalizedProps: Record<string, unknown> = {
     ...(catalogueEntry?.defaultProps ?? {}),
-    ...(candidate.props as Record<string, unknown>),
+    ...sourceProps,
     positionMode: 'absolute',
   }
+
+  const semanticText = [
+    sourceProps.children,
+    sourceProps.text,
+    sourceProps.value,
+  ].find(value => typeof value === 'string')
+  if (
+    resolvedType === 'Heading' &&
+    typeof sourceProps.headingText !== 'string' &&
+    typeof semanticText === 'string'
+  ) {
+    normalizedProps.headingText = semanticText
+  }
+  if (
+    resolvedType === 'Text' &&
+    typeof sourceProps.textValue !== 'string' &&
+    typeof semanticText === 'string'
+  ) {
+    normalizedProps.textValue = semanticText
+  }
+
+  const requestedComponentName =
+    candidate.componentName ?? sourceProps.componentName
+  const componentName =
+    typeof requestedComponentName === 'string' &&
+    /^[A-Z]\w*$/.test(requestedComponentName)
+      ? requestedComponentName
+      : undefined
+  delete normalizedProps.componentName
 
   if (['NumberInput', 'Progress', 'CircularProgress', 'Slider', 'Bar', 'Arc'].includes(resolvedType)) {
     const min = Number.isFinite(Number(normalizedProps.min))
@@ -161,6 +192,7 @@ const validateLayoutItem = (
 
   return {
     type: resolvedType,
+    ...(componentName ? { componentName } : {}),
     props: {
       ...normalizedProps,
       x,
@@ -178,7 +210,7 @@ export const parseForgeAIResponse = (
   screenHeight = 600,
   availableAssets: ForgeAIParserAsset[] = [],
 ): ForgeAILayoutDocument => {
-  const jsonText = extractJsonText(rawResponse)
+  const jsonText = extractForgeAIJsonText(rawResponse)
 
   let parsed: unknown
 

@@ -95,6 +95,48 @@ describe('ForgeUI AI component catalogue', () => {
     }), forgeAIVisibleComponents)).toThrow('Unsupported component')
   })
 
+  it('preserves AI text semantics and stable component names over catalogue defaults', () => {
+    const parsed = parseForgeAIResponse(JSON.stringify({
+      layout: [
+        {
+          type: 'Heading',
+          componentName: 'Weather_Location',
+          props: { children: 'TAURANGA' },
+        },
+        {
+          type: 'Text',
+          props: {
+            componentName: 'Weather_Temperature',
+            children: '18°',
+          },
+        },
+        {
+          type: 'Icon',
+          componentName: 'Forecast_Day1_Icon',
+          props: { iconName: 'FiSun' },
+        },
+        {
+          type: 'Icon',
+          componentName: 'Forecast_Day3_Icon',
+          props: { iconName: 'FiCloudRain' },
+        },
+      ],
+    }), forgeAIVisibleComponents)
+
+    expect(parsed.layout[0]).toMatchObject({
+      componentName: 'Weather_Location',
+      props: { headingText: 'TAURANGA' },
+    })
+    expect(parsed.layout[1]).toMatchObject({
+      componentName: 'Weather_Temperature',
+      props: { textValue: '18°' },
+    })
+    expect(parsed.layout.map(item => item.props.iconName).filter(Boolean))
+      .toEqual(['FiSun', 'FiCloudRain'])
+    expect(parsed.layout[0].props.headingText).not.toBe('Heading title')
+    expect(parsed.layout[1].props.textValue).not.toBe('Text value')
+  })
+
   it('propagates only exact export-ready asset IDs', () => {
     const document = JSON.stringify({
       layout: [{

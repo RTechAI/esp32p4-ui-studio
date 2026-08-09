@@ -3,15 +3,28 @@ import { ChakraProvider } from '@chakra-ui/react'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import ForgeAIPanel from './ForgeAIPanel'
+import { generateForgeAILayout } from './ForgeAIEngine'
+import {
+  composeForgeUILayoutTemplate,
+  forgeUIWeatherDashboardTemplate,
+} from '~forgeui/layout/ForgeUILayoutDesigner'
 import {
   forgeUIClearUploadedAssets,
   forgeUIGetUploadedAssets,
 } from '~forgeui/ForgeUIUploadedAssetRegistry'
 
+const mockSetHeroBackground = jest.fn()
+
+jest.mock('./ForgeAIEngine', () => ({
+  generateForgeAILayout: jest.fn(),
+}))
+
+const mockGenerateForgeAILayout = generateForgeAILayout as jest.Mock
+
 jest.mock('~forgeui/theme/ForgeThemeContext', () => ({
   useForgeTheme: () => ({
-    heroBackground: '',
-    setHeroBackground: jest.fn(),
+    heroBackground: '/weather-background.png',
+    setHeroBackground: mockSetHeroBackground,
   }),
 }))
 
@@ -109,6 +122,23 @@ jest.mock('~forgeui/interactive/ForgeUIInteractiveAssetPanel', () => ({
 
 describe('ForgeAIPanel Toggle State Sheet entry', () => {
   beforeEach(() => {
+    mockSetHeroBackground.mockClear()
+    mockGenerateForgeAILayout.mockReset()
+    mockGenerateForgeAILayout.mockResolvedValue({
+      name: 'Weather Dashboard',
+      description: 'Generated weather screen',
+      layout: composeForgeUILayoutTemplate(
+        forgeUIWeatherDashboardTemplate,
+        [{
+          type: 'Heading',
+          componentName: 'Weather_Temperature',
+          props: {
+            headingText: '18°',
+            layoutRegionId: 'weather-dashboard.current-weather',
+          },
+        }],
+      ),
+    })
     window.localStorage.clear()
     forgeUIClearUploadedAssets()
     jest.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
@@ -244,7 +274,7 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
     expect(prompt.value).toBe('')
   })
 
-  it('previews and applies the deterministic Dashboard Layout Designer template', () => {
+  it('generates deterministic templates without a default prompt in one action', async () => {
     const insertAiLayout = jest.fn()
     renderPanel(insertAiLayout)
 
@@ -253,10 +283,10 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
     )
     fireEvent.click(
       screen.getByRole('button', {
-        name: 'Apply Dashboard',
+        name: 'Generate Dashboard',
       }),
     )
-    expect(insertAiLayout).toHaveBeenCalledTimes(1)
+    await waitFor(() => expect(insertAiLayout).toHaveBeenCalledTimes(1))
     const applied = insertAiLayout.mock.calls[0][0]
     expect(applied.filter((item: any) => item.type === 'Box')).toHaveLength(5)
     expect(applied.map((item: any) => item.props.layoutRegionKey)).toEqual(
@@ -269,25 +299,12 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
       ]),
     )
 
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: 'AI Fill Dashboard',
-      }),
-    )
-    const prompt = screen.getByPlaceholderText(
-      /Create a modern industrial dashboard/,
-    ) as HTMLTextAreaElement
-    expect(prompt.value).toContain('FORGEUI_LAYOUT_TEMPLATE: dashboard')
-    expect(prompt.value).toContain(
-      'ForgeUI owns all structural region geometry',
-    )
+    expect(mockGenerateForgeAILayout).not.toHaveBeenCalled()
+    expect(screen.queryByRole('button', { name: 'Apply Dashboard' }))
+      .not.toBeInTheDocument()
   })
 
   it.each([
-    [
-      'Weather Dashboard',
-      'HeaderLeftHeaderRightCurrentWeatherMetricsForecast_Day1Forecast_Day2Forecast_Day3Forecast_Day4Forecast_Day5',
-    ],
     ['Industrial HMI', 'NavigationMachine StatusProcess AreaAlarm Panel'],
     ['Control Panel', 'Left ControlsCentre GraphicRight Controls'],
     ['Monitoring', 'Large Trend GraphMetrics StripAlarm List'],
@@ -296,7 +313,7 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
       'Left NavigationMain MimicRight InformationBottom Events',
     ],
     ['Mobile / Portrait', 'Main CardSecondary CardControls'],
-  ])('previews, applies and prepares AI Fill for %s', (name, labels) => {
+  ])('keeps built-in deterministic template generation compatible for %s', async (name, labels) => {
     const insertAiLayout = jest.fn()
     renderPanel(insertAiLayout)
     fireEvent.change(screen.getByDisplayValue('Dashboard'), {
@@ -312,42 +329,218 @@ describe('ForgeAIPanel Toggle State Sheet entry', () => {
     )
     fireEvent.click(
       screen.getByRole('button', {
-        name: `Apply ${name}`,
+        name: `Generate ${name}`,
       }),
     )
-    expect(insertAiLayout).toHaveBeenCalledTimes(1)
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: `AI Fill ${name}`,
-      }),
-    )
-    const layoutPrompt = screen.getByPlaceholderText(
-      /Create a modern industrial dashboard/,
-    ) as HTMLTextAreaElement
-    expect(layoutPrompt.value).toContain('FORGEUI_LAYOUT_TEMPLATE:')
+    await waitFor(() => expect(insertAiLayout).toHaveBeenCalledTimes(1))
+    expect(mockGenerateForgeAILayout).not.toHaveBeenCalled()
   })
 
-  it('routes Weather Dashboard AI Fill through semantic weather regions and normal components', () => {
-    renderPanel(jest.fn())
+  it('runs the complete Weather template pipeline and inserts automatically', async () => {
+    const insertAiLayout = jest.fn().mockResolvedValue(true)
+    renderPanel(insertAiLayout)
     fireEvent.change(screen.getByDisplayValue('Dashboard'), {
       target: { value: 'weather-dashboard' },
     })
+    const prompt = screen.getByRole('textbox', {
+      name: 'Layout Designer prompt',
+    }) as HTMLTextAreaElement
+    fireEvent.change(prompt, {
+      target: { value: 'My edited weather brief with TAURANGA and 18°' },
+    })
     fireEvent.click(
       screen.getByRole('button', {
-        name: 'AI Fill Weather Dashboard',
+        name: 'Generate Weather Dashboard',
       }),
     )
+    await waitFor(() => expect(insertAiLayout).toHaveBeenCalledTimes(1))
+    const request = mockGenerateForgeAILayout.mock.calls[0][0]
+    expect(request.prompt).toContain('My edited weather brief')
+    expect(request.prompt).toContain(
+      'FORGEUI_LAYOUT_TEMPLATE: weather-dashboard',
+    )
+    const inserted = insertAiLayout.mock.calls[0][0]
+    expect(inserted.some((item: any) =>
+      item.props.layoutRegionKey === 'weather-dashboard.current-weather',
+    )).toBe(true)
+    expect(inserted).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        componentName: 'Weather_Temperature',
+        props: expect.objectContaining({ headingText: '18°' }),
+      }),
+    ]))
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Weather Dashboard generated and inserted on canvas.',
+    )
+    expect(screen.queryByRole('button', {
+      name: 'AI Fill Weather Dashboard',
+    })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Insert Into Canvas' }))
+      .toBeDisabled()
+    expect(mockSetHeroBackground).not.toHaveBeenCalled()
+  })
+
+  it('passes a representative Weather region response through the real unified parsing pipeline', async () => {
+    const actualEngine = jest.requireActual('./ForgeAIEngine') as typeof import('./ForgeAIEngine')
+    mockGenerateForgeAILayout.mockImplementation(
+      actualEngine.generateForgeAILayout,
+    )
+    global.fetch = jest.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        document: {
+          name: 'Weather Dashboard',
+          template: 'weather-dashboard',
+          regions: {
+            'header-left': [{
+              type: 'Heading',
+              componentName: 'Weather_Location',
+              props: { children: 'TAURANGA' },
+            }],
+            'header-right': [
+              { type: 'Text', componentName: 'Weather_Date', props: { children: 'SATURDAY 8 AUGUST' } },
+              { type: 'Text', componentName: 'Weather_Time', props: { children: '8:20 PM' } },
+            ],
+            'current-weather': [{
+              type: 'Heading',
+              componentName: 'Weather_Temperature',
+              props: { children: '18°' },
+            }],
+            'forecast-day1': [
+              { type: 'Text', componentName: 'Forecast_Day1_Name', props: { children: 'SUN' } },
+              { type: 'Icon', componentName: 'Forecast_Day1_Icon', props: { iconName: 'FiSun' } },
+              { type: 'Text', componentName: 'Forecast_Day1_Temperature', props: { children: '17° / 9°' } },
+            ],
+          },
+        },
+      }),
+    })) as jest.Mock
+    const insertAiLayout = jest.fn().mockResolvedValue(true)
+    renderPanel(insertAiLayout)
+    fireEvent.change(screen.getByDisplayValue('Dashboard'), {
+      target: { value: 'weather-dashboard' },
+    })
+    fireEvent.click(screen.getByRole('button', {
+      name: 'Generate Weather Dashboard',
+    }))
+
+    await waitFor(() => expect(insertAiLayout).toHaveBeenCalledTimes(1))
+    const inserted = insertAiLayout.mock.calls[0][0]
+    expect(inserted).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        componentName: 'Weather_Location',
+        props: expect.objectContaining({ headingText: 'TAURANGA' }),
+      }),
+      expect.objectContaining({
+        componentName: 'Weather_Temperature',
+        props: expect.objectContaining({
+          headingText: '18°',
+          layoutRegionId: 'weather-dashboard.current-weather',
+        }),
+      }),
+      expect.objectContaining({
+        componentName: 'Forecast_Day1_Temperature',
+        props: expect.objectContaining({ textValue: '17° / 9°' }),
+      }),
+    ]))
+  })
+
+  it('reports a malformed real Weather response without canvas mutation', async () => {
+    const actualEngine = jest.requireActual('./ForgeAIEngine') as typeof import('./ForgeAIEngine')
+    mockGenerateForgeAILayout.mockImplementation(
+      actualEngine.generateForgeAILayout,
+    )
+    global.fetch = jest.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        document: { template: 'weather-dashboard' },
+      }),
+    })) as jest.Mock
+    const insertAiLayout = jest.fn()
+    renderPanel(insertAiLayout)
+    fireEvent.change(screen.getByDisplayValue('Dashboard'), {
+      target: { value: 'weather-dashboard' },
+    })
+    fireEvent.click(screen.getByRole('button', {
+      name: 'Generate Weather Dashboard',
+    }))
+
+    await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent(
+      'AI response must contain a layout array',
+    ))
+    expect(insertAiLayout).not.toHaveBeenCalled()
+  })
+
+  it('exposes and preserves the editable template-owned Weather prompt independently of free-form AI', () => {
+    renderPanel(jest.fn())
+    const freeFormPrompt = screen.getByPlaceholderText(
+      /Create a modern industrial dashboard/,
+    ) as HTMLTextAreaElement
+    expect(freeFormPrompt.value).toBe('')
+
+    fireEvent.change(screen.getByDisplayValue('Dashboard'), {
+      target: { value: 'weather-dashboard' },
+    })
+    const prompt = screen.getByRole('textbox', {
+      name: 'Layout Designer prompt',
+    }) as HTMLTextAreaElement
+    expect(prompt.value).toContain('TAURANGA')
+    expect(prompt.value).toContain('SATURDAY 8 AUGUST')
+    expect(prompt.value).toContain('18')
+    expect(prompt.value).not.toContain('FiSun')
+
+    fireEvent.change(prompt, {
+      target: { value: 'My edited weather brief' },
+    })
+    expect(prompt.value).toBe('My edited weather brief')
+    expect(freeFormPrompt.value).toBe('')
+    expect(mockSetHeroBackground).not.toHaveBeenCalled()
+  })
+
+  it('locks concurrent Weather generation and leaves the canvas untouched on failure', async () => {
+    let rejectGeneration!: (error: Error) => void
+    mockGenerateForgeAILayout.mockReturnValue(new Promise((_, reject) => {
+      rejectGeneration = reject
+    }))
+    const insertAiLayout = jest.fn()
+    renderPanel(insertAiLayout)
+    fireEvent.change(screen.getByDisplayValue('Dashboard'), {
+      target: { value: 'weather-dashboard' },
+    })
+    const generate = screen.getByRole('button', {
+      name: 'Generate Weather Dashboard',
+    })
+    fireEvent.click(generate)
+    fireEvent.click(generate)
+    expect(generate).toBeDisabled()
+    expect(mockGenerateForgeAILayout).toHaveBeenCalledTimes(1)
+
+    rejectGeneration(new Error('AI unavailable'))
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent('AI unavailable'),
+    )
+    expect(insertAiLayout).not.toHaveBeenCalled()
+  })
+
+  it('keeps free-form Create a layout generation independent', async () => {
+    const insertAiLayout = jest.fn()
+    renderPanel(insertAiLayout)
     const prompt = screen.getByPlaceholderText(
       /Create a modern industrial dashboard/,
     ) as HTMLTextAreaElement
-    expect(prompt.value).toContain('FORGEUI_LAYOUT_TEMPLATE: weather-dashboard')
-    expect(prompt.value).toContain('- current-weather')
-    expect(prompt.value).toContain('- forecast-day5')
-    expect(prompt.value).toContain('Weather_Temperature')
-    expect(prompt.value).toContain('Forecast_Day1 through Forecast_Day5')
-    expect(prompt.value).toContain(
-      'Do not request, select or replace a background image',
-    )
+    fireEvent.change(prompt, {
+      target: { value: 'Create a completely free-form marine screen' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Generate Layout' }))
+
+    await waitFor(() => expect(mockGenerateForgeAILayout).toHaveBeenCalled())
+    expect(mockGenerateForgeAILayout.mock.calls[0][0].prompt)
+      .toBe('Create a completely free-form marine screen')
+    expect(insertAiLayout).not.toHaveBeenCalled()
   })
 
   it('opens the Interactive tab and forwards a Toggle creator request', async () => {

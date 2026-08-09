@@ -174,6 +174,7 @@ const components = createModel({
         parentName: string
         type: ComponentType
         rootParentType?: ComponentType
+        componentName?: string
         testId?: string
         props?: any
     },
@@ -194,6 +195,9 @@ const components = createModel({
         draftState.components[payload.parentName].children.push(id)
         draftState.components[id] = {
           id,
+          ...(payload.componentName
+            ? { componentName: payload.componentName }
+            : {}),
           props: {
             ...(defaultProps || {}),
             ...(payload.props || {}),
@@ -203,6 +207,42 @@ const components = createModel({
             parent: payload.parentName,
             rootParentType: payload.rootParentType || payload.type,
       }
+      })
+    },
+    addComponents(
+      state: ComponentsState,
+      payload: {
+        parentName: string
+        items: Array<{
+          type: ComponentType
+          rootParentType?: ComponentType
+          componentName?: string
+          props?: any
+        }>
+      },
+    ): ComponentsState {
+      return produce(state, (draftState: ComponentsState) => {
+        payload.items.forEach(item => {
+          const id = generateId()
+          const { form, ...defaultProps } =
+            getPreviewDefaultProps(item.type) || {}
+          draftState.components[payload.parentName].children.push(id)
+          draftState.components[id] = {
+            id,
+            ...(item.componentName
+              ? { componentName: item.componentName }
+              : {}),
+            props: {
+              ...(defaultProps || {}),
+              ...(item.props || {}),
+            },
+            children: [],
+            type: item.type,
+            parent: payload.parentName,
+            rootParentType: item.rootParentType || item.type,
+          }
+          draftState.selectedId = id
+        })
       })
     },
     addMetaComponent(

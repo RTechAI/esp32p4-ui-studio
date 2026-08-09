@@ -23,6 +23,7 @@ const {
   appendHardwareExample01Source,
   appendHardwareExample02Source,
   appendHardwareExample03Source,
+  appendHardwareExample04Source,
   selectedHardwareExample,
   generateHardwareExampleHeader,
   validateExportPayload,
@@ -83,6 +84,20 @@ describe('Hardware Example 03 developer source ownership', () => {
   })
 })
 
+describe('Hardware Example 04 developer source ownership', () => {
+  it('includes the weather service only for the semantic temperature setter', () => {
+    const mainDir = fs.mkdtempSync(path.join(os.tmpdir(), 'forgeui-weather-'))
+    fs.writeFileSync(path.join(mainDir, '99_Hardware_Example_04_Weather.c'), '')
+    const sources = []
+    appendHardwareExample04Source(sources, mainDir, [
+      'void FG_Set_Weather_Temperature_Text(const char * text);',
+    ])
+    expect(sources).toEqual(['"99_Hardware_Example_04_Weather.c"'])
+    expect(appendHardwareExample04Source([], mainDir, [])).toEqual([])
+    fs.rmSync(mainDir, { recursive: true, force: true })
+  })
+})
+
 describe('exclusive Hardware Example selection', () => {
   const example01Apis = ['void FG_Set_Indicator1(bool on);', 'void FG_Set_Indicator2(bool on);']
   const example01Hooks = ['FG_On_LED1_Toggle_Changed', 'FG_On_LED2_Toggle_Changed']
@@ -100,6 +115,17 @@ describe('exclusive Hardware Example selection', () => {
     'void FG_Set_NFC_UID_Text(const char * text);',
     'void FG_Set_NFC_Read_Count_Text(const char * text);',
   ]
+  const example04Apis = [
+    'void FG_Set_Weather_Temperature_Text(const char * text);',
+  ]
+
+  it('selects Example 04 from the generated Weather temperature API', () => {
+    expect(selectedHardwareExample(example04Apis, [])).toBe(4)
+    const header = generateHardwareExampleHeader(example04Apis, [])
+    expect(header).toContain('#define FG_HARDWARE_EXAMPLE_SELECTED 4')
+    expect(header).toContain('#define FG_HARDWARE_EXAMPLE_04_ENABLED 1')
+    expect(header).toContain('#define FG_HARDWARE_EXAMPLE_03_ENABLED 0')
+  })
 
   it('selects Example 03 alone and emits exclusive macros', () => {
     expect(selectedHardwareExample(example03Apis, [])).toBe(3)
@@ -1523,8 +1549,10 @@ describe('board profile firmware resolution', () => {
     })
     const defaults = generateSdkconfigDefaults(project)
     expect(defaults).toContain('CONFIG_ESP_HOSTED_SDIO_HOST_INTERFACE=y')
-    expect(defaults).toContain('CONFIG_ESP_HOSTED_PRIV_SDIO_PIN_CLK_SLOT_1=18')
+    expect(defaults).toContain('CONFIG_ESP_HOSTED_SDIO_PIN_CLK=18')
     expect(defaults).toContain('CONFIG_ESP_HOSTED_SDIO_GPIO_RESET_SLAVE=54')
+    expect(defaults).toContain('# CONFIG_ESP_HOSTED_SDIO_OPTIMIZATION_RX_MAX_SIZE is not set')
+    expect(defaults).toContain('CONFIG_ESP_HOSTED_SDIO_OPTIMIZATION_RX_STREAMING_MODE=y')
     expect(defaults).not.toContain('CONFIG_ESP_HOSTED_SPI_HOST_INTERFACE=y')
   })
 
@@ -1698,6 +1726,9 @@ describe('board profile firmware resolution', () => {
     })
     expect(enabled).toContain('esp_wifi_remote')
     expect(enabled).toContain('esp_hosted')
+    expect(enabled).toContain('version: "0.14.*"')
+    expect(enabled).toContain('version: "1.4.*"')
+    expect(enabled).not.toMatch(/slave[_-]ota|host_performs_slave_ota|c6[_-]flash/i)
   })
 
 })

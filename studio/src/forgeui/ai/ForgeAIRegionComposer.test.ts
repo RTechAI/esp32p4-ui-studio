@@ -2,6 +2,8 @@ import {
   flattenForgeAIRegionComposerDocument,
   isForgeAIRegionComposerDocument,
 } from './ForgeAIRegionComposer'
+import { parseForgeAIResponse } from './ForgeAIParser'
+import { forgeAIVisibleComponents } from './ForgeAIComponentCatalogue'
 
 describe('ForgeAI Dashboard region composer contract', () => {
   it('parses canonical region content without pixel geometry', () => {
@@ -67,6 +69,90 @@ describe('ForgeAI Dashboard region composer contract', () => {
         },
       }).layout,
     ).toEqual([])
+  })
+
+  it('carries Weather Dashboard semantic values and names into normal region items', () => {
+    const flattened = flattenForgeAIRegionComposerDocument({
+      template: 'weather-dashboard',
+      regions: {
+        'header-left': [{
+          type: 'Heading',
+          componentName: 'Weather_Location',
+          props: { children: 'TAURANGA' },
+        }],
+        'current-weather': [{
+          type: 'Text',
+          componentName: 'Weather_Temperature',
+          props: { textValue: '18°' },
+        }],
+        'forecast-day1': [{
+          type: 'Icon',
+          componentName: 'Forecast_Day1_Icon',
+          props: { iconName: 'FiSun' },
+        }],
+      },
+    })
+    expect(flattened.layout).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        componentName: 'Weather_Location',
+        props: expect.objectContaining({
+          children: 'TAURANGA',
+          layoutRegionId: 'weather-dashboard.header-left',
+        }),
+      }),
+      expect.objectContaining({
+        componentName: 'Weather_Temperature',
+        props: expect.objectContaining({ textValue: '18°' }),
+      }),
+      expect.objectContaining({
+        componentName: 'Forecast_Day1_Icon',
+        props: expect.objectContaining({ iconName: 'FiSun' }),
+      }),
+    ]))
+  })
+
+  it('retains Weather semantic values through composer and authoritative parser normalization', () => {
+    const flattened = flattenForgeAIRegionComposerDocument({
+      template: 'weather-dashboard',
+      regions: {
+        'header-left': [{
+          type: 'Heading',
+          componentName: 'Weather_Location',
+          props: { children: 'TAURANGA' },
+        }],
+        'current-weather': [
+          {
+            type: 'Text',
+            componentName: 'Weather_Temperature',
+            props: { children: '18°' },
+          },
+          {
+            type: 'Text',
+            componentName: 'Weather_Condition',
+            props: { children: 'CLEAR SKY' },
+          },
+        ],
+      },
+    })
+    const parsed = parseForgeAIResponse(
+      JSON.stringify(flattened),
+      forgeAIVisibleComponents,
+    )
+
+    expect(parsed.layout).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        componentName: 'Weather_Location',
+        props: expect.objectContaining({ headingText: 'TAURANGA' }),
+      }),
+      expect.objectContaining({
+        componentName: 'Weather_Temperature',
+        props: expect.objectContaining({ textValue: '18°' }),
+      }),
+      expect.objectContaining({
+        componentName: 'Weather_Condition',
+        props: expect.objectContaining({ textValue: 'CLEAR SKY' }),
+      }),
+    ]))
   })
 
   it.each([

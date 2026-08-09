@@ -129,6 +129,8 @@ OUTPUT RULES:
 6. Every layout item must contain:
    - "type"
    - "props"
+   An optional top-level "componentName" may be supplied when the user requests
+   a meaningful stable editable component name. It must match ^[A-Z]\\w*$.
 7. Every props object must contain:
    - "positionMode": "absolute"
    - "x"
@@ -173,7 +175,7 @@ return pixel geometry. Return this contract instead:
   "template": "<template-id>",
   "title": "One screen title",
   "regions": {
-    "header": [{ "type": "Text", "props": { "textValue": "Connected" } }],
+    "header": [{ "type": "Text", "componentName": "Header_Status", "props": { "textValue": "Connected" } }],
     "status": [{ "type": "CircularProgress", "props": { "value": 68 } }],
     "main": [{ "type": "Chart", "props": {} }],
     "controls": [{ "type": "Button", "props": { "buttonText": "Start" } }],

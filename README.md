@@ -1,5 +1,7 @@
 # ForgeUI Studio
 
+> Connected services (2026-08-09): the Waveshare ESP32-P4-WIFI6-Touch-LCD-7B Wi-Fi/HTTPS runtime and Hardware Example 04 — Online Weather are **PHYSICALLY PROVEN** with the stock onboard C6. See [12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md](12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md) for the authoritative component, SDIO, startup, cached-state, memory and TLS architecture. These board/profile-owned details require no C6 update or manual user configuration.
+
 > Hardware Examples status (2026-08-08): **01 — GPIO Bidirectional — PHYSICALLY
 > PROVEN; 02 — I2C FRAM Persistence — PHYSICALLY PROVEN / CLOSED; 03 — SPI
 > NFC/RFID — PHYSICALLY PROVEN / CLOSED.** Example 02 was physically proven on Waveshare

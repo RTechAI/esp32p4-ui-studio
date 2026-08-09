@@ -1,5 +1,9 @@
 # Developer Code Map: where features live, who owns each layer, and which files are authoritative
 
+## Connected-services authority
+
+See [`12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md`](12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md) for the authoritative Waveshare 7B Hosted Wi-Fi, startup, cached-state, DMA and TLS architecture. `30_WIFI.c` owns cached network state and the explicit startup connection; board profiles and `export-server.js` own the user-invisible component, SDIO and memory configuration. Hardware Example 04 consumes this reusable service without owning the transport.
+
 ## Hardware Examples 01–03 — exclusive selection baseline (2026-08-08)
 
 | Layer | Authoritative source | Responsibility |
@@ -1427,8 +1431,8 @@ This repository-level file owns the permanent ForgeUI firmware baseline for:
 This repository-level file owns the exact resolved component graph. The physically proven relevant versions are:
 
 - ESP-IDF 5.5.4
-- `esp_hosted` 2.9.7
-- `esp_wifi_remote` 1.3.0
+- `esp_hosted` 1.4.7
+- `esp_wifi_remote` 0.14.5
 - Waveshare BSP 1.0.2
 
 EPPP transitive components may be present while the active Wi-Fi Remote library remains Hosted.

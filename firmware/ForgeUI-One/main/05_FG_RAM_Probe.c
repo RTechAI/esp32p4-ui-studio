@@ -27,11 +27,15 @@ void fg_ram_probe_log(const char *stage)
     }
     ESP_LOGI(
         "FG_RAM_STAGE",
-        "%s internal_free=%u internal_min=%u internal_largest=%u lvgl_objects=%u",
+        "%s internal=%u/%u dma=%u/%u 8bit=%u/%u psram=%u lvgl_objects=%u",
         stage != NULL ? stage : "-",
         (unsigned)heap_caps_get_free_size(MALLOC_CAP_INTERNAL),
-        (unsigned)heap_caps_get_minimum_free_size(MALLOC_CAP_INTERNAL),
         (unsigned)heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL),
+        (unsigned)heap_caps_get_free_size(MALLOC_CAP_DMA),
+        (unsigned)heap_caps_get_largest_free_block(MALLOC_CAP_DMA),
+        (unsigned)heap_caps_get_free_size(MALLOC_CAP_8BIT),
+        (unsigned)heap_caps_get_largest_free_block(MALLOC_CAP_8BIT),
+        (unsigned)heap_caps_get_free_size(MALLOC_CAP_SPIRAM),
         (unsigned)object_count
     );
 }

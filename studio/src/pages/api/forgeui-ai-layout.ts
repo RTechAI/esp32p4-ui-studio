@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import OpenAI from 'openai'
+import { extractForgeAIJsonText } from '../../forgeui/ai/ForgeAIParser'
 
 type ForgeUILayoutItem = {
   type: string
@@ -22,14 +23,6 @@ type ApiResponse =
       ok: false
       error: string
     }
-
-function stripCodeFence(value: string): string {
-  return value
-    .trim()
-    .replace(/^```(?:json)?\s*/i, '')
-    .replace(/\s*```$/, '')
-    .trim()
-}
 
 export default async function handler(
   req: NextApiRequest,
@@ -99,7 +92,7 @@ try {
 
 
 
-    const outputText = stripCodeFence(response.output_text || '')
+    const outputText = response.output_text || ''
 
     if (!outputText) {
       return res.status(502).json({
@@ -114,13 +107,21 @@ try {
     }
 
     try {
-      document = JSON.parse(outputText) as ForgeUILayoutDocument
-    } catch {
-      console.error('Invalid OpenAI JSON:', outputText)
+      document = JSON.parse(
+        extractForgeAIJsonText(outputText),
+      ) as ForgeUILayoutDocument
+    } catch (error) {
+      console.error(
+        'ForgeUI AI layout response validation failed:',
+        error instanceof Error ? error.message : 'JSON extraction failed',
+      )
 
       return res.status(502).json({
         ok: false,
-        error: 'OpenAI returned invalid JSON',
+        error:
+          error instanceof Error
+            ? `OpenAI layout JSON extraction failed: ${error.message}`
+            : 'OpenAI layout JSON extraction failed',
       })
     }
 
@@ -134,9 +135,13 @@ try {
         typeof document.regions === 'object'
       )
     ) {
+      const reason = !document || typeof document !== 'object'
+        ? 'invalid root object'
+        : 'missing layout array or template regions object'
+      console.error('ForgeUI AI layout document rejected:', reason)
       return res.status(502).json({
         ok: false,
-        error: 'OpenAI returned an invalid ForgeUI document',
+        error: `OpenAI returned an invalid ForgeUI document: ${reason}`,
       })
     }
 

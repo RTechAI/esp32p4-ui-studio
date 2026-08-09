@@ -13,7 +13,6 @@ const generateHeading = (props: Record<string, unknown> = {}) => {
       id: 'heading',
       parent: 'root',
       type: 'Heading',
-      componentName: 'Component Name Is Not Its Heading',
       props: {
         x: 17,
         y: 29,
@@ -85,5 +84,27 @@ describe('standard Heading LVGL export', () => {
     expect(generated.code).toContain('lv_label_set_text(obj2, "Second");')
     expect(generated.publicApiDeclarations).toEqual([])
     expect(generated.userEventHooks).toEqual([])
+  })
+
+  it('exports a runtime text setter for a semantically named heading', () => {
+    const components: IComponents = {
+      root: { id: 'root', parent: 'root', type: 'Box', props: {}, children: ['temperature'] },
+      temperature: {
+        id: 'temperature',
+        parent: 'root',
+        type: 'Heading',
+        componentName: 'Weather_Temperature',
+        props: { headingText: '18°', x: 20, y: 30, w: 180, h: 80 },
+        children: [],
+      },
+    }
+    const generated = generateForgeUILvglCode(components, 'graphite', undefined, { includeThemeTexture: false })
+    expect(generated.publicApiDeclarations).toContain(
+      'void FG_Set_Weather_Temperature_Text(const char * text);',
+    )
+    expect(generated.code).toContain('static lv_obj_t * fg_weather_temperature_label = NULL;')
+    expect(generated.code).toContain('fg_weather_temperature_label = lv_label_create(fg_application_page);')
+    expect(generated.code).toContain('void FG_Set_Weather_Temperature_Text(const char * text)')
+    expect(generated.code).toContain('lv_label_set_text(fg_weather_temperature_label, text);')
   })
 })

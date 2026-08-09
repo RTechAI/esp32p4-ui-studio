@@ -13,6 +13,7 @@ export type ForgeAIRegionComposerDocument = {
     string,
     Array<{
       type: string
+      componentName?: string
       props?: Record<string, unknown>
       importance?: number
       order?: number
@@ -43,6 +44,7 @@ export const flattenForgeAIRegionComposerDocument = (
   description: string
   layout: Array<{
     type: string
+    componentName?: string
     props: Record<string, unknown>
   }>
 } => {
@@ -66,6 +68,13 @@ export const flattenForgeAIRegionComposerDocument = (
       }
       layout.push({
         type,
+        ...(item.componentName || item.props?.componentName
+          ? {
+              componentName: String(
+                item.componentName || item.props?.componentName,
+              ),
+            }
+          : {}),
         props: {
           ...(item.props || {}),
           positionMode: 'absolute',

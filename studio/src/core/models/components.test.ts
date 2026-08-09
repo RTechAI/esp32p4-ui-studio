@@ -124,6 +124,49 @@ describe('Components model', () => {
     expect(nextState).toEqual(STATE)
   })
 
+  it('preserves a normal AI-provided component name during insertion', () => {
+    const nextState = components.reducers.addComponent({
+      components: INITIAL_COMPONENTS,
+      selectedId: 'root',
+    }, {
+      parentName: 'root',
+      type: 'Text',
+      testId: 'weather-location',
+      componentName: 'Weather_Location',
+      props: { textValue: 'TAURANGA' },
+    })
+    expect(nextState.components['weather-location']).toMatchObject({
+      componentName: 'Weather_Location',
+      props: { textValue: 'TAURANGA' },
+    })
+  })
+
+  it('inserts a complete generated layout atomically', () => {
+    const nextState = components.reducers.addComponents({
+      components: INITIAL_COMPONENTS,
+      selectedId: 'root',
+    }, {
+      parentName: 'root',
+      items: [
+        { type: 'Box', props: { layoutRegionKey: 'weather.header' } },
+        {
+          type: 'Text',
+          componentName: 'Weather_Location',
+          props: { textValue: 'TAURANGA' },
+        },
+      ],
+    })
+    expect(nextState.components.root.children).toHaveLength(2)
+    expect(Object.values(nextState.components)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          componentName: 'Weather_Location',
+          props: expect.objectContaining({ textValue: 'TAURANGA' }),
+        }),
+      ]),
+    )
+  })
+
   it('should delete a simple component', async () => {
     const nextState = components.reducers.deleteComponent(
       STATE,
