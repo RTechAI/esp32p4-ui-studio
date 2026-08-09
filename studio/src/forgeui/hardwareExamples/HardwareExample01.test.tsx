@@ -9,6 +9,10 @@ import {
 } from './HardwareExample01'
 import { HardwareExamplesPanel } from './HardwareExamplesPanel'
 
+jest.mock('../icons/ForgeUIIconResolver', () => ({
+  resolveForgeUIIconProject: jest.fn(),
+}))
+
 const reset = jest.fn()
 jest.mock('~hooks/useDispatch', () => () => ({ components: { reset } }))
 
@@ -19,10 +23,10 @@ describe('Hardware Example 01 Studio UI', () => {
     render(<ChakraProvider><HardwareExamplesPanel /></ChakraProvider>)
     expect(screen.getByText('Hardware Examples')).toBeInTheDocument()
     expect(screen.getByText('Example 01')).toBeInTheDocument()
-    expect(screen.getAllByText('PHYSICALLY PROVEN')).toHaveLength(2)
-    fireEvent.click(screen.getByRole('button', { name: 'Load Example' }))
+    expect(screen.getAllByText('PHYSICALLY PROVEN')).toHaveLength(4)
+    fireEvent.click(screen.getAllByRole('button', { name: 'Load Example' })[0])
     expect(reset).toHaveBeenCalledWith(HARDWARE_EXAMPLE_01_PROJECT)
-    fireEvent.click(screen.getByRole('button', { name: 'Wiring Guide' }))
+    fireEvent.click(screen.getAllByRole('button', { name: 'Guide' })[0])
     expect(screen.getByText(/GPIO2 → Button 1 → GND/)).toBeInTheDocument()
     expect(screen.getByText(/local slider\/interlock/)).toBeInTheDocument()
   })

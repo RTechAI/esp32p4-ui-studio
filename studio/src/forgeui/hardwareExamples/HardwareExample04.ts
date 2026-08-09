@@ -59,7 +59,7 @@ composed.forEach((item, index) => {
 export const HARDWARE_EXAMPLE_04 = {
   id: 'hardware-example-04',
   number: 4,
-  name: 'Online Weather',
+  name: 'Online Services — Live Weather',
   board: 'Waveshare ESP32-P4-WIFI6-Touch-LCD-7B',
   status: 'PHYSICALLY PROVEN',
   project: HARDWARE_EXAMPLE_04_PROJECT,

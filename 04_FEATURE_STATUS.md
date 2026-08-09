@@ -5,10 +5,12 @@
 - Hardware Example 01 — 2 Buttons + 2 LEDs: **PHYSICALLY PROVEN**.
 - Hardware Example 02 — I2C FRAM Persistence: **PHYSICALLY PROVEN / CLOSED**. MB85RC256V Device-ID `00 A5 10` verified at `0x50`; write/read passed; counter `9` / value `0xA553` persisted across a complete power cycle.
 - Hardware Example 03 — SPI NFC/RFID: **PHYSICALLY PROVEN / CLOSED**. PN532 identity (`IC=0x32`, firmware `1.6`), SAMConfig, ISO14443A polling, stable UID `04:8D:E6:5F:B7:2A:81`, card removal and held-card de-duplication were proven on the real ESP32-P4.
-- Hardware Example 04 — Online Weather: **PHYSICALLY PROVEN / CLOSED** on the stock Waveshare 7B and stock C6. Association, DHCP, DNS, the complete TLS certificate record, certificate validation, HTTP 200, current Open-Meteo conditions, generated semantic UI updates and SNTP/local Tauranga time passed from repeatable fresh Studio exports. Live fields are current/apparent temperature, humidity, wind, precipitation, weather code, day/night, date and time. Forecast cards and location search are not yet live.
+- Hardware Example 04 — Online Weather: **PROVEN / CLOSED** on the stock Waveshare 7B and stock C6 through the real Studio Build & Flash workflow. Association, DHCP, DNS, the complete TLS certificate record, certificate validation, HTTP 200, Open-Meteo current and forecast data, generated semantic UI updates, live Fi icons, SNTP/local Tauranga time and dynamic local backgrounds passed. Live fields include current/apparent temperature, humidity, wind, rain, UV, weather code, day/night, date/time and forecast days/highs/lows. Location search is not claimed by this proof.
 - Selection is exclusive: implementation files remain preserved, while only the selected example is generated, linked, initialized and polled.
 
 The Waveshare 7B ESP32-P4 Wi-Fi/HTTPS connected runtime is **PHYSICALLY PROVEN**. Its authoritative architecture and evidence scope are in [`12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md`](12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md).
+
+The reusable Weather Background Pack contains seventeen Studio-owned images. Weather 04 dynamically depends on exactly ten; seven are manual/future choices and are not compiled into this example. Minor visual polish may remain, but it does not downgrade the proven networking, data, export, icon, background or stable-runtime result.
 
 ## Current certification — 2026-08-07
 

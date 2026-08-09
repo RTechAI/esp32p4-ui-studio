@@ -2,6 +2,8 @@
 
 > Connected services (2026-08-09): the Waveshare ESP32-P4-WIFI6-Touch-LCD-7B Wi-Fi/HTTPS runtime and Hardware Example 04 — Online Weather are **PHYSICALLY PROVEN** with the stock onboard C6. See [12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md](12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md) for the authoritative component, SDIO, startup, cached-state, memory and TLS architecture. These board/profile-owned details require no C6 update or manual user configuration.
 
+> Weather 04 is proven through the real Studio Build & Flash path with current and forecast Open-Meteo data, Tauranga time, intended Fi icons and stable dynamic local backgrounds. Its reusable library has seventeen backgrounds, while dependency-driven export compiles only the ten reachable by the V1 runtime. See [Hardware Example 04](11.04_ESP32_P4_WIFI6_TOUCH_7B__EXAMPLE_04__ONLINE_WEATHER.md) and the [Weather Background Pack](docs/FORGEUI_WEATHER_BACKGROUND_PACK.md).
+
 > Hardware Examples status (2026-08-08): **01 — GPIO Bidirectional — PHYSICALLY
 > PROVEN; 02 — I2C FRAM Persistence — PHYSICALLY PROVEN / CLOSED; 03 — SPI
 > NFC/RFID — PHYSICALLY PROVEN / CLOSED.** Example 02 was physically proven on Waveshare
@@ -22,7 +24,7 @@
 > identities, and intentionally generates no UserEvents. Network Status Card is
 > **HARDWARE VALIDATED**, with live connected/disconnected, real SSID, DHCP IP,
 > RSSI-derived signal, and Online/Offline projection independent of the System
-> Wi-Fi Manager page. Tank Level Card is
+> Wi-Fi Manager page. Hardware Example 04 is also **PROVEN / CLOSED**. Tank Level Card is
 > **HARDWARE VALIDATED** through Studio, Browser, Live, generated LVGL, Runtime
 > SDK, ESP-IDF build, ESP32-P4 flash, physical rendering, parity, and duplicate
 > isolation. It is display-only and intentionally generates no UserEvents.

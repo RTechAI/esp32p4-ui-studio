@@ -56,6 +56,8 @@ LVGL C, not a browser runtime. Live Build & Flash and Standalone Export consume
 the same project model and generator. A feature is not complete if those paths
 diverge.
 
+For asset-backed projects, the real lifecycle is: load, materialize required conversions, perform applicable cleanup, collect actual dependencies, verify existence, run strict validation, generate, build, then flash only on an explicit Build & Flash action. `assets/...` is canonical relative to `firmware/ForgeUI-One/main` and retains that structure in standalone export. Cleanup preserves permanent Studio sources and committed permanent derived assets. Ephemeral Fi conversions may be removed only when authoritative rematerialization is guaranteed before validation. Never weaken missing-generated-C refusal or substitute a placeholder.
+
 ### Ownership
 
 | Layer | Owner | Rule |

@@ -1,5 +1,7 @@
 # ForgeUI Background Collection V3
 
+Weather backgrounds are a separate reusable semantic pack. Hardware Example 04 dependency-selects ten of its seventeen entries; it does not change V3 collection ownership or cause unrelated projects to compile Weather assets. See [ForgeUI Weather Background Pack](FORGEUI_WEATHER_BACKGROUND_PACK.md).
+
 ForgeUI Background Collection V3 adds 52 premium technology backgrounds at
 exactly 1024 x 600 pixels. The collection includes six coordinated assets in
 each core set—Cyber Blue, Cyber Purple, Cyber Cyan, Emerald Tech, Amber Energy,

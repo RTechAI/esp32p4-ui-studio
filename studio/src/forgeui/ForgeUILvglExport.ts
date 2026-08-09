@@ -3232,14 +3232,22 @@ case 'Clock': {
 case 'WiFi': {
   const wifi = wifiStatusExports.get(child.id)
   const label = wifi?.labelName || varName
-  lines.push(`${label} = lv_label_create(${parentVar});`)
+  const container = `${label}_container`
+  lines.push(`lv_obj_t * ${container} = lv_obj_create(${parentVar});`)
+  lines.push(`lv_obj_set_pos(${container}, ${x}, ${y});`)
+  lines.push(`lv_obj_set_size(${container}, ${w}, ${h});`)
+  lines.push(`lv_obj_clear_flag(${container}, LV_OBJ_FLAG_SCROLLABLE);`)
+  lines.push(`lv_obj_set_style_pad_all(${container}, 0, 0);`)
+  lines.push(`lv_obj_set_style_border_width(${container}, 0, 0);`)
+  lines.push(`lv_obj_set_style_bg_opa(${container}, LV_OPA_TRANSP, 0);`)
+  lines.push(`${label} = lv_label_create(${container});`)
   lines.push(`lv_label_set_text(${label}, "Failed");`)
-  lines.push(`lv_obj_set_pos(${label}, ${x}, ${y});`)
-  lines.push(`lv_obj_set_size(${label}, ${w}, ${h});`)
+  lines.push(`lv_obj_set_size(${label}, ${w}, LV_SIZE_CONTENT);`)
   lines.push(`lv_obj_set_style_text_color(${label}, lv_color_hex(${palette.accent}), 0);`)
   lines.push(`lv_obj_set_style_text_font(${label}, &lv_font_montserrat_20, 0);`)
   lines.push(`lv_obj_set_style_text_align(${label}, LV_TEXT_ALIGN_LEFT, 0);`)
   lines.push(`lv_label_set_long_mode(${label}, LV_LABEL_LONG_CLIP);`)
+  lines.push(`lv_obj_align(${label}, LV_ALIGN_LEFT_MID, 0, 0);`)
   lines.push(``)
   break
 }

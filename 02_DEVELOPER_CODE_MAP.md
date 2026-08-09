@@ -4,6 +4,21 @@
 
 See [`12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md`](12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md) for the authoritative Waveshare 7B Hosted Wi-Fi, startup, cached-state, DMA and TLS architecture. `30_WIFI.c` owns cached network state and the explicit startup connection; board profiles and `export-server.js` own the user-invisible component, SDIO and memory configuration. Hardware Example 04 consumes this reusable service without owning the transport.
 
+## Hardware Example 04 — Weather ownership map (2026-08-09)
+
+| Layer | Authoritative source | Responsibility |
+|---|---|---|
+| Example model | `studio/src/forgeui/hardwareExamples/HardwareExample04.ts` | Six intentional Weather icons and the semantic component graph |
+| Normal Studio loader | `HardwareExamplesPanel.tsx` | Loads the same model used by real interactive export |
+| Weather pack | `studio/src/forgeui/weather/ForgeUIWeatherBackgrounds.ts` | Seventeen library entries and the exact ten runtime mappings |
+| Bundled PNG catalogue | `studio/src/forgeui/ForgeUIAssetRegistry.ts`, `firmware/ForgeUI-One/main/assets/uploads/_input` | Permanent Studio-owned source artwork and its registered source location |
+| Generated UI/dependencies | `studio/src/forgeui/ForgeUILvglExport.ts` | Emits Weather semantics and only referenced background/icon sources |
+| Icon conversion | `studio/src/forgeui/icons/ForgeUIIconResolver.tsx`, uploaded-asset registry | Materializes and deduplicates normal Fi outputs |
+| Interactive export | `studio/src/components/Header.tsx`, `studio/export-server.js` | Materializes, cleans where applicable, verifies, validates, copies and builds |
+| Device application | `firmware/ForgeUI-One/main/99_Hardware_Example_04_Weather.c/.h` | Applies data, icons and local backgrounds without rebuilding the screen |
+
+An `assets/...` source is always relative to `firmware/ForgeUI-One/main`; standalone export preserves the same subtree under its own `main`. Permanent PNGs and ten committed Weather RGB565 sources survive cleanup. Hash-named Fi icon C files are ephemeral conversion outputs: export preparation must materialize or verify them before strict validation. Missing generated C remains a refusal, never a placeholder.
+
 ## Hardware Examples 01–03 — exclusive selection baseline (2026-08-08)
 
 | Layer | Authoritative source | Responsibility |

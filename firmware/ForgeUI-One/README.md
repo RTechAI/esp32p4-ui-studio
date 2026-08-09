@@ -8,6 +8,8 @@ Current validated target hardware:
 
 * Waveshare ESP32-P4-WIFI6-Touch-LCD-7B
 
+Hardware Example 04 — Online Weather is **PROVEN / CLOSED** on that stock board and stock C6 through the real Studio Build & Flash path. Its ten runtime Weather backgrounds and required generated Fi icons follow the normal dependency-driven asset/export lifecycle.
+
 ---
 
 # Overview

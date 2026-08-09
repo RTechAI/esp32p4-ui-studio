@@ -1,6 +1,6 @@
 # ForgeUI ESP32-P4 Hosted Wi-Fi Architecture
 
-This document defines the physically proven Wi-Fi and HTTPS architecture for the Waveshare ESP32-P4-WIFI6-Touch-LCD-7B. The immutable proof export is `C:\ForgeUI-Exports\ForgeUI_Export_Weather04_GateB_014`; it must not be modified.
+This document defines the physically proven Wi-Fi and HTTPS architecture for the Waveshare ESP32-P4-WIFI6-Touch-LCD-7B. The immutable initial networking proof export is `C:\ForgeUI-Exports\ForgeUI_Export_Weather04_GateB_014`; it must not be modified. Subsequent proof exercised the complete real Studio Build & Flash route with the finished Weather UI and asset lifecycle.
 
 ## Hardware and component baseline
 
@@ -34,7 +34,7 @@ On the stock board and stock C6 firmware, the proven path completed:
 
 `Wi-Fi -> DHCP -> DNS -> TLS ClientHello -> ServerHello -> complete 4086-byte certificate record -> certificate validation -> TLS connected -> HTTP 200`
 
-The generated Weather Example then applied current conditions and synchronized local Tauranga time. Normal runtime retains concise connection, DNS, TLS, HTTP, weather-application, and time-synchronization logs. Full mbedTLS handshake tracing is diagnostic-only and is disabled in normal generated firmware.
+The generated Weather Example then applied current and forecast conditions, synchronized local Tauranga time, updated its intended Fi icons and selected local day/night/condition backgrounds. The runtime was stable on the physical display. This does not claim that every possible weather transition was physically observed. Normal runtime retains concise connection, DNS, TLS, HTTP, weather-application, and time-synchronization logs. Full mbedTLS handshake tracing is diagnostic-only and is disabled in normal generated firmware.
 
 ## Product rule
 

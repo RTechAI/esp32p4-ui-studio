@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import http from 'http'
 import { ChakraProvider } from '@chakra-ui/react'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { generateForgeUILvglCode } from '../ForgeUILvglExport'
 import { forgeUIWeatherDashboardTemplate } from '../layout/ForgeUILayoutDesigner'
 import { HARDWARE_EXAMPLE_01_PROJECT } from './HardwareExample01'
@@ -92,22 +92,43 @@ describe('Hardware Example 04 Studio integration', () => {
   it('is visible with physically proven status and loads the resolved Weather project', async () => {
     render(<ChakraProvider><HardwareExamplesPanel /></ChakraProvider>)
     expect(screen.getByText('Example 04')).toBeInTheDocument()
-    expect(screen.getByText('Online Weather')).toBeInTheDocument()
+    expect(screen.getByText('Online Services — Live Weather')).toBeInTheDocument()
     expect(screen.getAllByText('PHYSICALLY PROVEN')).toHaveLength(4)
-    fireEvent.click(screen.getByRole('button', { name: 'Load Weather Example' }))
+    fireEvent.click(within(screen.getByTestId('hardware-example-card-4'))
+      .getByRole('button', { name: 'Load Example' }))
     await waitFor(() => expect(reset).toHaveBeenCalledTimes(1))
     expect(reset).toHaveBeenCalledWith(loadedWeatherProject)
     expect(HARDWARE_EXAMPLE_04.status).toBe('PHYSICALLY PROVEN')
   })
 
-  it('preserves all existing example actions and project identities', () => {
+  it('standardises all cards while preserving every load action and identity', async () => {
     render(<ChakraProvider><HardwareExamplesPanel /></ChakraProvider>)
-    expect(screen.getByRole('button', { name: 'Load Example' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Load FRAM Example' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Load NFC Example' })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Load Example' })).toHaveLength(4)
+    expect(screen.getAllByRole('button', { name: 'Guide' })).toHaveLength(4)
+    for (const number of [1, 2, 3] as const) {
+      fireEvent.click(within(screen.getByTestId(`hardware-example-card-${number}`))
+        .getByRole('button', { name: 'Load Example' }))
+    }
+    expect(reset).toHaveBeenNthCalledWith(1, HARDWARE_EXAMPLE_01_PROJECT)
+    expect(reset).toHaveBeenNthCalledWith(2, HARDWARE_EXAMPLE_02_PROJECT)
+    expect(reset).toHaveBeenNthCalledWith(3, HARDWARE_EXAMPLE_03_PROJECT)
     expect(HARDWARE_EXAMPLE_01_PROJECT.indicator1.componentName).toBe('Indicator1')
     expect(HARDWARE_EXAMPLE_02_PROJECT['fram-status'].componentName).toBe('FRAM_Status')
     expect(HARDWARE_EXAMPLE_03_PROJECT.device.componentName).toBe('NFC_Device')
+  })
+
+  it.each([
+    [1, 'Example 01 — GPIO Digital I/O', 'GPIO2 → Button 1 → GND'],
+    [2, 'Example 02 — I²C FRAM Persistence', 'MB85RC256V at I²C address 0x50'],
+    [3, 'Example 03 — SPI NFC/RFID', 'MOSI GPIO28'],
+    [4, 'Example 04 — Online Services — Live Weather', 'configured for Tauranga'],
+  ])('opens the correct concise Guide for Example %i', (number, title, detail) => {
+    render(<ChakraProvider><HardwareExamplesPanel /></ChakraProvider>)
+    fireEvent.click(within(screen.getByTestId(`hardware-example-card-${number}`))
+      .getByRole('button', { name: 'Guide' }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(screen.getByText(title)).toBeInTheDocument()
+    expect(screen.getByText(new RegExp(detail))).toBeInTheDocument()
   })
 
   it('reuses canonical Weather geometry and generates the real temperature API', () => {

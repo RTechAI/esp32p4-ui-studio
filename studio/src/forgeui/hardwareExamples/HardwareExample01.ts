@@ -60,7 +60,7 @@ export const HARDWARE_EXAMPLE_01_PROJECT: IComponents = {
 export const HARDWARE_EXAMPLE_01 = {
   id: 'hardware-example-01',
   number: 1,
-  name: '2 Buttons + 2 LEDs',
+  name: 'GPIO Digital I/O',
   board: 'Waveshare ESP32-P4-WIFI6-Touch-LCD-7B',
   guide: '11.01_ESP32_P4_WIFI6_TOUCH_7B__EXAMPLE_01__BUTTONS_LEDS.md',
   gpio: {

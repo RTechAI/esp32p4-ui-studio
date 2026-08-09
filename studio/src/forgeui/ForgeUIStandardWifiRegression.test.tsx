@@ -75,6 +75,7 @@ describe('Standard Wi-Fi display regression', () => {
         lineHeight: '1',
         overflow: 'hidden',
       })
+      expect(getComputedStyle(display).alignItems).toBe('center')
     })
   })
 
@@ -92,6 +93,19 @@ describe('Standard Wi-Fi display regression', () => {
     expect(code).toContain(
       'lv_label_set_long_mode(fg_wifi_label, LV_LABEL_LONG_CLIP);',
     )
+    expect(code).toContain('lv_obj_t * fg_wifi_label_container = lv_obj_create(fg_application_page);')
+    expect(code).toContain('lv_obj_set_pos(fg_wifi_label_container, 726, 87);')
+    expect(code).toContain('lv_obj_set_size(fg_wifi_label_container, 120, 60);')
+    expect(code).toContain('lv_obj_set_style_pad_all(fg_wifi_label_container, 0, 0);')
+    expect(code).toContain('lv_obj_set_style_bg_opa(fg_wifi_label_container, LV_OPA_TRANSP, 0);')
+    expect(code).toContain('fg_wifi_label = lv_label_create(fg_wifi_label_container);')
+    expect(code).toContain('lv_obj_set_size(fg_wifi_label, 120, LV_SIZE_CONTENT);')
+    expect(code).toContain('lv_obj_align(fg_wifi_label, LV_ALIGN_LEFT_MID, 0, 0);')
+    expect(code).toContain('LV_SYMBOL_WIFI " %s", widget_status')
+    expect(code).toContain('case FG_WIFI_STATE_CONNECTED: widget_status = "Connected"; break;')
+    expect(code).toContain('case FG_WIFI_STATE_ERROR: widget_status = "Failed"; break;')
+    expect(code).toContain('lv_obj_set_style_text_color(fg_wifi_label, lv_color_hex(')
+    expect(code).not.toContain('lv_obj_set_pos(fg_wifi_label, 726, 87);')
     expect(code).not.toContain(
       'lv_label_set_long_mode(fg_wifi_label, LV_LABEL_LONG_WRAP);',
     )

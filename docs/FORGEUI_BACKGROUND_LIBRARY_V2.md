@@ -21,6 +21,8 @@ Only the current selected background source is added to an export payload.
 Browsing or filtering the library does not convert or include its images, and
 the complete library is never embedded automatically into a firmware project.
 
+Weather 04 is a dependency-driven multi-background use case, not a change to this rule: it includes only its ten runtime-reachable semantic backgrounds, never the complete seventeen-image Weather pack. See [ForgeUI Weather Background Pack](FORGEUI_WEATHER_BACKGROUND_PACK.md).
+
 ## Memory considerations
 
 A full-screen 1024 x 600 image decoded as RGB565 requires approximately
