@@ -18,7 +18,7 @@
 #include <string.h>
 #include <math.h>
 
-LV_IMAGE_DECLARE(fg_upload_ai_hero_1784342478518_b95a7dc0);
+LV_IMAGE_DECLARE(fg_upload_carbon_fiber_be774fd2);
 static lv_obj_t * fg_gps_altitude_label = NULL;
 static lv_obj_t * fg_gps_fix_label = NULL;
 static lv_obj_t * fg_gps_hdop_label = NULL;
@@ -871,10 +871,21 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_bg_opa(fg_application_page, LV_OPA_COVER, 0);
 
     lv_obj_t * bg_texture_0 = lv_image_create(fg_application_page);
-    lv_image_set_src(bg_texture_0, &fg_upload_ai_hero_1784342478518_b95a7dc0);
+    lv_image_set_src(bg_texture_0, &fg_upload_carbon_fiber_be774fd2);
     lv_obj_set_pos(bg_texture_0, 0, 0);
-    lv_obj_set_size(bg_texture_0, 1024, 600);
+    lv_obj_t * bg_texture_1 = lv_image_create(fg_application_page);
+    lv_image_set_src(bg_texture_1, &fg_upload_carbon_fiber_be774fd2);
+    lv_obj_set_pos(bg_texture_1, 512, 0);
+    lv_obj_t * bg_texture_2 = lv_image_create(fg_application_page);
+    lv_image_set_src(bg_texture_2, &fg_upload_carbon_fiber_be774fd2);
+    lv_obj_set_pos(bg_texture_2, 0, 512);
+    lv_obj_t * bg_texture_3 = lv_image_create(fg_application_page);
+    lv_image_set_src(bg_texture_3, &fg_upload_carbon_fiber_be774fd2);
+    lv_obj_set_pos(bg_texture_3, 512, 512);
     lv_obj_move_background(bg_texture_0);
+    lv_obj_move_background(bg_texture_1);
+    lv_obj_move_background(bg_texture_2);
+    lv_obj_move_background(bg_texture_3);
 
     lv_obj_t * obj1 = lv_label_create(fg_application_page);
     lv_obj_set_pos(obj1, 64, 30);
@@ -907,7 +918,7 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_pos(obj4, 90, 190);
     lv_obj_set_size(obj4, 170, 34);
     lv_label_set_long_mode(obj4, LV_LABEL_LONG_WRAP);
-    lv_label_set_text(obj4, "UART");
+    lv_label_set_text(obj4, "Receiver");
     lv_obj_set_style_text_color(obj4, lv_color_hex(0xF5F5F5), 0);
     lv_obj_set_style_text_font(obj4, &lv_font_montserrat_24, 0);
     lv_obj_set_style_text_align(obj4, LV_TEXT_ALIGN_LEFT, 0);
@@ -976,13 +987,49 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_text_align(fg_gps_satellites_label, LV_TEXT_ALIGN_LEFT, 0);
 
     lv_obj_t * obj12 = lv_label_create(fg_application_page);
-    lv_obj_set_pos(obj12, 530, 190);
+    lv_obj_set_pos(obj12, 90, 370);
     lv_obj_set_size(obj12, 170, 34);
     lv_label_set_long_mode(obj12, LV_LABEL_LONG_WRAP);
-    lv_label_set_text(obj12, "Latitude");
+    lv_label_set_text(obj12, "UART RX");
     lv_obj_set_style_text_color(obj12, lv_color_hex(0xF5F5F5), 0);
     lv_obj_set_style_text_font(obj12, &lv_font_montserrat_24, 0);
     lv_obj_set_style_text_align(obj12, LV_TEXT_ALIGN_LEFT, 0);
+
+    lv_obj_t * obj13 = lv_label_create(fg_application_page);
+    lv_obj_set_pos(obj13, 270, 370);
+    lv_obj_set_size(obj13, 240, 34);
+    lv_label_set_long_mode(obj13, LV_LABEL_LONG_WRAP);
+    lv_label_set_text(obj13, "GPIO3");
+    lv_obj_set_style_text_color(obj13, lv_color_hex(0xF5F5F5), 0);
+    lv_obj_set_style_text_font(obj13, &lv_font_montserrat_24, 0);
+    lv_obj_set_style_text_align(obj13, LV_TEXT_ALIGN_LEFT, 0);
+
+    lv_obj_t * obj14 = lv_label_create(fg_application_page);
+    lv_obj_set_pos(obj14, 90, 415);
+    lv_obj_set_size(obj14, 170, 34);
+    lv_label_set_long_mode(obj14, LV_LABEL_LONG_WRAP);
+    lv_label_set_text(obj14, "UART TX");
+    lv_obj_set_style_text_color(obj14, lv_color_hex(0xF5F5F5), 0);
+    lv_obj_set_style_text_font(obj14, &lv_font_montserrat_24, 0);
+    lv_obj_set_style_text_align(obj14, LV_TEXT_ALIGN_LEFT, 0);
+
+    lv_obj_t * obj15 = lv_label_create(fg_application_page);
+    lv_obj_set_pos(obj15, 270, 415);
+    lv_obj_set_size(obj15, 240, 34);
+    lv_label_set_long_mode(obj15, LV_LABEL_LONG_WRAP);
+    lv_label_set_text(obj15, "GPIO4");
+    lv_obj_set_style_text_color(obj15, lv_color_hex(0xF5F5F5), 0);
+    lv_obj_set_style_text_font(obj15, &lv_font_montserrat_24, 0);
+    lv_obj_set_style_text_align(obj15, LV_TEXT_ALIGN_LEFT, 0);
+
+    lv_obj_t * obj16 = lv_label_create(fg_application_page);
+    lv_obj_set_pos(obj16, 530, 190);
+    lv_obj_set_size(obj16, 170, 34);
+    lv_label_set_long_mode(obj16, LV_LABEL_LONG_WRAP);
+    lv_label_set_text(obj16, "Latitude");
+    lv_obj_set_style_text_color(obj16, lv_color_hex(0xF5F5F5), 0);
+    lv_obj_set_style_text_font(obj16, &lv_font_montserrat_24, 0);
+    lv_obj_set_style_text_align(obj16, LV_TEXT_ALIGN_LEFT, 0);
 
     fg_gps_latitude_label = lv_label_create(fg_application_page);
     lv_obj_set_pos(fg_gps_latitude_label, 710, 190);
@@ -993,14 +1040,14 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_text_font(fg_gps_latitude_label, &lv_font_montserrat_24, 0);
     lv_obj_set_style_text_align(fg_gps_latitude_label, LV_TEXT_ALIGN_LEFT, 0);
 
-    lv_obj_t * obj14 = lv_label_create(fg_application_page);
-    lv_obj_set_pos(obj14, 530, 235);
-    lv_obj_set_size(obj14, 170, 34);
-    lv_label_set_long_mode(obj14, LV_LABEL_LONG_WRAP);
-    lv_label_set_text(obj14, "Longitude");
-    lv_obj_set_style_text_color(obj14, lv_color_hex(0xF5F5F5), 0);
-    lv_obj_set_style_text_font(obj14, &lv_font_montserrat_24, 0);
-    lv_obj_set_style_text_align(obj14, LV_TEXT_ALIGN_LEFT, 0);
+    lv_obj_t * obj18 = lv_label_create(fg_application_page);
+    lv_obj_set_pos(obj18, 530, 235);
+    lv_obj_set_size(obj18, 170, 34);
+    lv_label_set_long_mode(obj18, LV_LABEL_LONG_WRAP);
+    lv_label_set_text(obj18, "Longitude");
+    lv_obj_set_style_text_color(obj18, lv_color_hex(0xF5F5F5), 0);
+    lv_obj_set_style_text_font(obj18, &lv_font_montserrat_24, 0);
+    lv_obj_set_style_text_align(obj18, LV_TEXT_ALIGN_LEFT, 0);
 
     fg_gps_longitude_label = lv_label_create(fg_application_page);
     lv_obj_set_pos(fg_gps_longitude_label, 710, 235);
@@ -1011,14 +1058,14 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_text_font(fg_gps_longitude_label, &lv_font_montserrat_24, 0);
     lv_obj_set_style_text_align(fg_gps_longitude_label, LV_TEXT_ALIGN_LEFT, 0);
 
-    lv_obj_t * obj16 = lv_label_create(fg_application_page);
-    lv_obj_set_pos(obj16, 530, 280);
-    lv_obj_set_size(obj16, 170, 34);
-    lv_label_set_long_mode(obj16, LV_LABEL_LONG_WRAP);
-    lv_label_set_text(obj16, "Altitude");
-    lv_obj_set_style_text_color(obj16, lv_color_hex(0xF5F5F5), 0);
-    lv_obj_set_style_text_font(obj16, &lv_font_montserrat_24, 0);
-    lv_obj_set_style_text_align(obj16, LV_TEXT_ALIGN_LEFT, 0);
+    lv_obj_t * obj20 = lv_label_create(fg_application_page);
+    lv_obj_set_pos(obj20, 530, 280);
+    lv_obj_set_size(obj20, 170, 34);
+    lv_label_set_long_mode(obj20, LV_LABEL_LONG_WRAP);
+    lv_label_set_text(obj20, "Altitude");
+    lv_obj_set_style_text_color(obj20, lv_color_hex(0xF5F5F5), 0);
+    lv_obj_set_style_text_font(obj20, &lv_font_montserrat_24, 0);
+    lv_obj_set_style_text_align(obj20, LV_TEXT_ALIGN_LEFT, 0);
 
     fg_gps_altitude_label = lv_label_create(fg_application_page);
     lv_obj_set_pos(fg_gps_altitude_label, 710, 280);
@@ -1029,14 +1076,14 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_text_font(fg_gps_altitude_label, &lv_font_montserrat_24, 0);
     lv_obj_set_style_text_align(fg_gps_altitude_label, LV_TEXT_ALIGN_LEFT, 0);
 
-    lv_obj_t * obj18 = lv_label_create(fg_application_page);
-    lv_obj_set_pos(obj18, 530, 325);
-    lv_obj_set_size(obj18, 170, 34);
-    lv_label_set_long_mode(obj18, LV_LABEL_LONG_WRAP);
-    lv_label_set_text(obj18, "Speed");
-    lv_obj_set_style_text_color(obj18, lv_color_hex(0xF5F5F5), 0);
-    lv_obj_set_style_text_font(obj18, &lv_font_montserrat_24, 0);
-    lv_obj_set_style_text_align(obj18, LV_TEXT_ALIGN_LEFT, 0);
+    lv_obj_t * obj22 = lv_label_create(fg_application_page);
+    lv_obj_set_pos(obj22, 530, 325);
+    lv_obj_set_size(obj22, 170, 34);
+    lv_label_set_long_mode(obj22, LV_LABEL_LONG_WRAP);
+    lv_label_set_text(obj22, "Speed");
+    lv_obj_set_style_text_color(obj22, lv_color_hex(0xF5F5F5), 0);
+    lv_obj_set_style_text_font(obj22, &lv_font_montserrat_24, 0);
+    lv_obj_set_style_text_align(obj22, LV_TEXT_ALIGN_LEFT, 0);
 
     fg_gps_speed_label = lv_label_create(fg_application_page);
     lv_obj_set_pos(fg_gps_speed_label, 710, 325);
@@ -1047,41 +1094,41 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_text_font(fg_gps_speed_label, &lv_font_montserrat_24, 0);
     lv_obj_set_style_text_align(fg_gps_speed_label, LV_TEXT_ALIGN_LEFT, 0);
 
-    lv_obj_t * obj20 = lv_label_create(fg_application_page);
-    lv_obj_set_pos(obj20, 530, 370);
-    lv_obj_set_size(obj20, 170, 34);
-    lv_label_set_long_mode(obj20, LV_LABEL_LONG_WRAP);
-    lv_label_set_text(obj20, "UTC");
-    lv_obj_set_style_text_color(obj20, lv_color_hex(0xF5F5F5), 0);
-    lv_obj_set_style_text_font(obj20, &lv_font_montserrat_24, 0);
-    lv_obj_set_style_text_align(obj20, LV_TEXT_ALIGN_LEFT, 0);
-
-    fg_gps_utc_label = lv_label_create(fg_application_page);
-    lv_obj_set_pos(fg_gps_utc_label, 710, 370);
-    lv_obj_set_size(fg_gps_utc_label, 240, 34);
-    lv_label_set_long_mode(fg_gps_utc_label, LV_LABEL_LONG_WRAP);
-    lv_label_set_text(fg_gps_utc_label, "--");
-    lv_obj_set_style_text_color(fg_gps_utc_label, lv_color_hex(0xF5F5F5), 0);
-    lv_obj_set_style_text_font(fg_gps_utc_label, &lv_font_montserrat_24, 0);
-    lv_obj_set_style_text_align(fg_gps_utc_label, LV_TEXT_ALIGN_LEFT, 0);
-
-    lv_obj_t * obj22 = lv_label_create(fg_application_page);
-    lv_obj_set_pos(obj22, 530, 415);
-    lv_obj_set_size(obj22, 170, 34);
-    lv_label_set_long_mode(obj22, LV_LABEL_LONG_WRAP);
-    lv_label_set_text(obj22, "HDOP");
-    lv_obj_set_style_text_color(obj22, lv_color_hex(0xF5F5F5), 0);
-    lv_obj_set_style_text_font(obj22, &lv_font_montserrat_24, 0);
-    lv_obj_set_style_text_align(obj22, LV_TEXT_ALIGN_LEFT, 0);
+    lv_obj_t * obj24 = lv_label_create(fg_application_page);
+    lv_obj_set_pos(obj24, 530, 370);
+    lv_obj_set_size(obj24, 170, 34);
+    lv_label_set_long_mode(obj24, LV_LABEL_LONG_WRAP);
+    lv_label_set_text(obj24, "HDOP");
+    lv_obj_set_style_text_color(obj24, lv_color_hex(0xF5F5F5), 0);
+    lv_obj_set_style_text_font(obj24, &lv_font_montserrat_24, 0);
+    lv_obj_set_style_text_align(obj24, LV_TEXT_ALIGN_LEFT, 0);
 
     fg_gps_hdop_label = lv_label_create(fg_application_page);
-    lv_obj_set_pos(fg_gps_hdop_label, 710, 415);
+    lv_obj_set_pos(fg_gps_hdop_label, 710, 370);
     lv_obj_set_size(fg_gps_hdop_label, 240, 34);
     lv_label_set_long_mode(fg_gps_hdop_label, LV_LABEL_LONG_WRAP);
     lv_label_set_text(fg_gps_hdop_label, "--");
     lv_obj_set_style_text_color(fg_gps_hdop_label, lv_color_hex(0xF5F5F5), 0);
     lv_obj_set_style_text_font(fg_gps_hdop_label, &lv_font_montserrat_24, 0);
     lv_obj_set_style_text_align(fg_gps_hdop_label, LV_TEXT_ALIGN_LEFT, 0);
+
+    lv_obj_t * obj26 = lv_label_create(fg_application_page);
+    lv_obj_set_pos(obj26, 530, 415);
+    lv_obj_set_size(obj26, 170, 34);
+    lv_label_set_long_mode(obj26, LV_LABEL_LONG_WRAP);
+    lv_label_set_text(obj26, "UTC");
+    lv_obj_set_style_text_color(obj26, lv_color_hex(0xF5F5F5), 0);
+    lv_obj_set_style_text_font(obj26, &lv_font_montserrat_24, 0);
+    lv_obj_set_style_text_align(obj26, LV_TEXT_ALIGN_LEFT, 0);
+
+    fg_gps_utc_label = lv_label_create(fg_application_page);
+    lv_obj_set_pos(fg_gps_utc_label, 710, 415);
+    lv_obj_set_size(fg_gps_utc_label, 240, 34);
+    lv_label_set_long_mode(fg_gps_utc_label, LV_LABEL_LONG_WRAP);
+    lv_label_set_text(fg_gps_utc_label, "--");
+    lv_obj_set_style_text_color(fg_gps_utc_label, lv_color_hex(0xF5F5F5), 0);
+    lv_obj_set_style_text_font(fg_gps_utc_label, &lv_font_montserrat_24, 0);
+    lv_obj_set_style_text_align(fg_gps_utc_label, LV_TEXT_ALIGN_LEFT, 0);
 
 
     fg_ram_probe_log("02 after application page creation");
