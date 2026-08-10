@@ -109,9 +109,8 @@ const ForgeUIThemeManager = ({
       return
     }
 
-    // Apply the ordinary image immediately in browser preview, then pass the
-    // same asset through the existing converter for Live/Standalone export.
-    setHeroBackground(asset.src)
+    // Do not mark the browser preview ACTIVE until its exact firmware asset
+    // identity exists. ACTIVE must mean preview and LVGL export are the same.
     setConvertingBackgroundId(asset.id)
     try {
       const ready = await registerAndConvertImage({

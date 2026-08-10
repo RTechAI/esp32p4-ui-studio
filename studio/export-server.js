@@ -627,10 +627,17 @@ app.post('/convert-lvgl-image', (req, res) => {
 
 const height =
   Number(req.body.height || 0)
+  const sourceAssetId = String(req.body.sourceAssetId || '')
+  const sourceName = String(req.body.sourceName || fileName)
+  const sourceBrowserSrc = String(req.body.sourceBrowserSrc || '')
   console.log('=== CONVERT REQUEST ===')
   console.log('fileName :', fileName)
   console.log('assetMode:', assetMode)
   console.log('symbol   :', symbolName)
+  console.log('source id:', sourceAssetId || '(not supplied)')
+  console.log('source   :', sourceName)
+  console.log('browser  :', sourceBrowserSrc || '(not supplied)')
+  console.log('target   :', `${width}x${height}`)
 
     if (!base64) {
       return res.status(400).json({
@@ -670,18 +677,47 @@ const height =
       `${symbolName}.png`
     )
 
-    const cleanBase64 = String(base64).replace(
-      /^data:image\/\w+;base64,/,
+    const base64Text = String(base64)
+    const isDataUrl = /^data:image\/[a-zA-Z0-9.+-]+;base64,/.test(base64Text)
+    const cleanBase64 = base64Text.replace(
+      /^data:image\/[a-zA-Z0-9.+-]+;base64,/,
       ''
     )
 
+    if (!isDataUrl) {
+      return res.status(400).json({
+        ok: false,
+        error: `Image input encoding failed for ${sourceName}`,
+        detail: 'Expected a data:image/...;base64 URL, but received a browser path or unsupported value.',
+        stage: 'input-decode',
+        sourceAssetId,
+        sourceBrowserSrc,
+      })
+    }
+
+    const inputBytes = Buffer.from(cleanBase64, 'base64')
+
     fs.writeFileSync(
       inputPath,
-      Buffer.from(cleanBase64, 'base64')
+      inputBytes
     )
+
+    const pngSignature = inputBytes.length >= 24 &&
+      inputBytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))
+    const sourceWidth = pngSignature ? inputBytes.readUInt32BE(16) : 0
+    const sourceHeight = pngSignature ? inputBytes.readUInt32BE(20) : 0
+    console.log('resolved input:', inputPath)
+    console.log('input exists  :', fs.existsSync(inputPath))
+    console.log('input bytes   :', inputBytes.length)
+    console.log('input format  :', pngSignature ? 'PNG' : 'non-PNG')
+    console.log('source size   :', `${sourceWidth}x${sourceHeight}`)
+    console.log('output path   :', outputDir)
 
     console.log('Preprocessor:', preprocessorPath)
     console.log('Preprocess input:', inputPath)
+    console.log('Preprocess args:', JSON.stringify([
+      preprocessorPath, inputPath, assetMode, String(width), String(height),
+    ]))
 
     const preprocess = spawn(
   pythonPath,
@@ -734,7 +770,9 @@ const height =
 
         return res.status(500).json({
           ok: false,
-          error: 'Image preprocessing failed',
+        error: `Image preprocessing failed for ${sourceName}`,
+        detail: `Stage preprocess exited ${preprocessCode}; input=${inputPath}; source=${sourceWidth}x${sourceHeight} PNG; target=${width}x${height}`,
+        stage: 'preprocess',
           code: preprocessCode,
           log: preprocessLog,
           preprocessorPath,

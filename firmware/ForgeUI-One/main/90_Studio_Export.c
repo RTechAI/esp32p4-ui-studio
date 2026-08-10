@@ -18,7 +18,7 @@
 #include <string.h>
 #include <math.h>
 
-LV_IMAGE_DECLARE(fg_upload_carbon_fiber_be774fd2);
+LV_IMAGE_DECLARE(fg_upload_background_forgeui_background_v3_cyber_blue_edge_routes_1786355864130_e6e7fb80);
 static lv_obj_t * fg_gps_altitude_label = NULL;
 static lv_obj_t * fg_gps_fix_label = NULL;
 static lv_obj_t * fg_gps_hdop_label = NULL;
@@ -871,21 +871,10 @@ void fg_studio_export_create(lv_obj_t *parent)
     lv_obj_set_style_bg_opa(fg_application_page, LV_OPA_COVER, 0);
 
     lv_obj_t * bg_texture_0 = lv_image_create(fg_application_page);
-    lv_image_set_src(bg_texture_0, &fg_upload_carbon_fiber_be774fd2);
+    lv_image_set_src(bg_texture_0, &fg_upload_background_forgeui_background_v3_cyber_blue_edge_routes_1786355864130_e6e7fb80);
     lv_obj_set_pos(bg_texture_0, 0, 0);
-    lv_obj_t * bg_texture_1 = lv_image_create(fg_application_page);
-    lv_image_set_src(bg_texture_1, &fg_upload_carbon_fiber_be774fd2);
-    lv_obj_set_pos(bg_texture_1, 512, 0);
-    lv_obj_t * bg_texture_2 = lv_image_create(fg_application_page);
-    lv_image_set_src(bg_texture_2, &fg_upload_carbon_fiber_be774fd2);
-    lv_obj_set_pos(bg_texture_2, 0, 512);
-    lv_obj_t * bg_texture_3 = lv_image_create(fg_application_page);
-    lv_image_set_src(bg_texture_3, &fg_upload_carbon_fiber_be774fd2);
-    lv_obj_set_pos(bg_texture_3, 512, 512);
+    lv_obj_set_size(bg_texture_0, 1024, 600);
     lv_obj_move_background(bg_texture_0);
-    lv_obj_move_background(bg_texture_1);
-    lv_obj_move_background(bg_texture_2);
-    lv_obj_move_background(bg_texture_3);
 
     lv_obj_t * obj1 = lv_label_create(fg_application_page);
     lv_obj_set_pos(obj1, 64, 30);

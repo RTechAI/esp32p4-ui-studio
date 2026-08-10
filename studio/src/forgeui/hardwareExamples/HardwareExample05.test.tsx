@@ -135,9 +135,44 @@ describe('Hardware Example 05 Studio and export integration', () => {
       usbHost: false, camera: false, settingsLauncher: true,
       wifiManager: false, storageBrowser: false, diagnostics: false,
     }
+    const blueEdgeSymbol =
+      'fg_upload_background_forgeui_background_v3_cyber_blue_edge_routes_proof'
+    const blueEdgeSource = `assets/uploads/${blueEdgeSymbol}.c`
+    const blueEdgePng = fs.readFileSync(path.resolve(
+      process.cwd(), 'public/assets/backgrounds/forgeui-v3/cyber-blue-edge-routes.png',
+    ))
+    const postJson = (requestPath: string, body: unknown) => new Promise<any>((resolve, reject) => {
+      const payload = JSON.stringify(body)
+      const request = http.request({
+        hostname: '127.0.0.1', port: 3030, path: requestPath, method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) },
+      }, result => {
+        let responseBody = ''
+        result.setEncoding('utf8')
+        result.on('data', chunk => { responseBody += chunk })
+        result.on('end', () => result.statusCode === 200
+          ? resolve(JSON.parse(responseBody)) : reject(new Error(responseBody)))
+      })
+      request.on('error', reject)
+      request.end(payload)
+    })
+    const converted = await postJson('/convert-lvgl-image', {
+      fileName: 'cyber-blue-edge-routes.png',
+      symbolName: blueEdgeSymbol,
+      base64: `data:image/png;base64,${blueEdgePng.toString('base64')}`,
+      assetMode: 'hero', width: 1024, height: 600,
+    })
+    expect(converted.assetSource).toBe(blueEdgeSource)
+    const selectedBackground = {
+      exportStatus: 'lvgl_ready', lvgl: blueEdgeSymbol, cFile: blueEdgeSource,
+    }
     const generated = generateForgeUILvglCode(
-      HARDWARE_EXAMPLE_05_PROJECT, 'graphite', undefined,
+      HARDWARE_EXAMPLE_05_PROJECT, 'graphite', selectedBackground,
       { includeThemeTexture: true, firmwareFeatures },
+    )
+    expect(generated.assetSources).toContain(blueEdgeSource)
+    expect(generated.assetSources).not.toContain(
+      'assets/uploads/fg_upload_carbon_fiber_be774fd2.c',
     )
     const payload = JSON.stringify({
       ...generated,
@@ -165,17 +200,19 @@ describe('Hardware Example 05 Studio and export integration', () => {
     const main = fs.readFileSync(path.join(exportedMain, 'main.c'), 'utf8')
     const gps = fs.readFileSync(path.join(exportedMain,
       '99_Hardware_Example_05_GPS.c'), 'utf8')
-    const carbonSource = 'assets/uploads/fg_upload_carbon_fiber_be774fd2.c'
-    const carbon = fs.readFileSync(path.join(exportedMain, carbonSource), 'utf8')
+    const blueEdge = fs.readFileSync(path.join(exportedMain, blueEdgeSource), 'utf8')
     expect(fs.existsSync(path.join(exportedMain, '99_Hardware_Example_05_GPS.h'))).toBe(true)
     expect(selection).toContain('#define FG_HARDWARE_EXAMPLE_SELECTED 5')
     expect(selection).toContain('#define FG_HARDWARE_EXAMPLE_05_ENABLED 1')
     expect(selection).not.toContain('STARTUP_ENABLED')
     expect(cmake).toContain('"99_Hardware_Example_05_GPS.c"')
-    expect(cmake).toContain(`"${carbonSource}"`)
-    expect(carbon).toContain('const lv_image_dsc_t fg_upload_carbon_fiber_be774fd2')
+    expect(cmake).toContain(`"${blueEdgeSource}"`)
+    expect(cmake).not.toContain('fg_upload_carbon_fiber_be774fd2.c')
+    expect(blueEdge).toContain(`const lv_image_dsc_t ${blueEdgeSymbol}`)
     expect(fs.readFileSync(path.join(exportedMain, '90_Studio_Export.c'), 'utf8'))
-      .toContain('LV_IMAGE_DECLARE(fg_upload_carbon_fiber_be774fd2)')
+      .toContain(`LV_IMAGE_DECLARE(${blueEdgeSymbol})`)
+    expect(fs.readFileSync(path.join(exportedMain, '90_Studio_Export.c'), 'utf8'))
+      .toContain(`lv_image_set_src(bg_texture_0, &${blueEdgeSymbol})`)
     expect(main).toContain('fg_hardware_example_05_init();')
     expect(main).toContain('fg_hardware_example_05_ui_binding_init();')
     expect(gps).toContain('ESP_LOGI(TAG, "startup begin")')

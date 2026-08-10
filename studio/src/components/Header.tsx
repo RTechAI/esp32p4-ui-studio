@@ -33,6 +33,11 @@ import {
   forgeUIGetUploadedAssets,
   forgeUIClearUploadedAssets,
 } from '~forgeui/ForgeUIUploadedAssetRegistry'
+import {
+  prepareForgeUISelectedBackgroundAsset,
+  resolveForgeUISelectedBackgroundAsset,
+} from '~forgeui/theme/ForgeUIBackgroundSelection'
+import { registerAndConvertImage } from '~forgeui/ai/ForgeUIAIImagePipeline'
 
 import {
   Box,
@@ -174,10 +179,7 @@ const defaultHeroAsset = {
 } as any
 
 const selectedHeroAsset =
-  uploadedAssets.find(
-    asset =>
-      asset.browserSrc === heroBackground,
-  ) ||
+  resolveForgeUISelectedBackgroundAsset(heroBackground, uploadedAssets) ||
   (
     heroBackground ===
     defaultHeroAsset.browserSrc
@@ -378,6 +380,15 @@ const exportToForgeUIOne = async () => {
 const buildFirmwareExportPayload = async () => {
   let result
   try {
+    const exportHeroAsset = selectedHeroAsset ||
+      await prepareForgeUISelectedBackgroundAsset(
+        heroBackground, forgeUIGetUploadedAssets(), registerAndConvertImage,
+      )
+    if (heroBackground && !exportHeroAsset) {
+      throw new Error(
+        'The selected Studio background is not export-ready. Re-select it and wait for image conversion to complete.',
+      )
+    }
     const exportComponents = await resolveForgeUIIconProject(components)
     result = assertForgeUIExportValid(
       exportComponents,
@@ -386,7 +397,7 @@ const buildFirmwareExportPayload = async () => {
       generateForgeUILvglCode(
         exportComponents,
         themeId,
-        selectedHeroAsset,
+        exportHeroAsset,
         { palette, firmwareFeatures: projectHardware.firmwareFeatures },
       ),
     )
@@ -432,6 +443,15 @@ const generateLiveFirmware = async (): Promise<boolean> => {
   const exportEspIdfProject = async () => {
   let result
   try {
+    const exportHeroAsset = selectedHeroAsset ||
+      await prepareForgeUISelectedBackgroundAsset(
+        heroBackground, forgeUIGetUploadedAssets(), registerAndConvertImage,
+      )
+    if (heroBackground && !exportHeroAsset) {
+      throw new Error(
+        'The selected Studio background is not export-ready. Re-select it and wait for image conversion to complete.',
+      )
+    }
     const exportComponents = await resolveForgeUIIconProject(components)
     result = assertForgeUIExportValid(
       exportComponents,
@@ -440,7 +460,7 @@ const generateLiveFirmware = async (): Promise<boolean> => {
       generateForgeUILvglCode(
         exportComponents,
         themeId,
-        selectedHeroAsset,
+        exportHeroAsset,
         { palette, firmwareFeatures: projectHardware.firmwareFeatures },
       ),
     )

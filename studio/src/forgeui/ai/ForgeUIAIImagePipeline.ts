@@ -49,7 +49,22 @@ type LVGLConversionResponse = {
   assetSource?: string
   browserSrc?: string
   error?: string
+  detail?: string
+  log?: string
+  stage?: string
 }
+
+const blobToDataUrl = (blob: Blob): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onerror = () => reject(
+      new Error(`Unable to read ${blob.type || 'image'} source bytes.`),
+    )
+    reader.onload = () => typeof reader.result === 'string'
+      ? resolve(reader.result)
+      : reject(new Error('Image source did not produce a data URL.'))
+    reader.readAsDataURL(blob)
+  })
 
 const createSafeFilePrefix = (
   value: string,
@@ -118,6 +133,7 @@ export const registerAndConvertImage = async ({
   }
 
   const blob = await imageResponse.blob()
+  const conversionDataUrl = await blobToDataUrl(blob)
   const extension =
     blob.type === 'image/jpeg' ? 'jpg' : 'png'
   const safePrefix =
@@ -148,7 +164,10 @@ export const registerAndConvertImage = async ({
       body: JSON.stringify({
         fileName: uploadedAsset.name,
         symbolName: uploadedAsset.lvgl,
-        base64: uploadedAsset.browserSrc,
+        base64: conversionDataUrl,
+        sourceAssetId: filePrefix,
+        sourceName: file.name,
+        sourceBrowserSrc: browserSrc,
         assetMode,
         width,
         height,
@@ -165,10 +184,9 @@ export const registerAndConvertImage = async ({
     !conversionPayload.symbolName ||
     !conversionPayload.assetSource
   ) {
-    throw new Error(
-      conversionPayload.error ||
-        'LVGL conversion failed.',
-    )
+    const detail = [conversionPayload.error, conversionPayload.detail,
+      conversionPayload.log].filter(Boolean).join('\n')
+    throw new Error(detail || 'LVGL conversion failed.')
   }
 
   const completedAsset: ForgeUIUploadedAsset = {
