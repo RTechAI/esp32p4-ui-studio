@@ -10,6 +10,12 @@ The proven path is `normal Studio example loader -> conversion materialization -
 
 Canonical `assets/...` references resolve relative to `firmware/ForgeUI-One/main` and retain the same structure under standalone `main`. The ten Weather RGB565 C sources are permanent derived assets. FiSun/FiCloudRain C sources are normal ephemeral icon-conversion outputs: preparation must rematerialize or verify the deduplicated 136x136 Sun, 40x40 Sun and 40x40 Cloud/Rain sources before validation. Missing generated C is refused; neither a placeholder nor the Settings icon is an acceptable fallback.
 
+## Hardware Example 05 — GPS / GNSS export contract (2026-08-10)
+
+The physically proven path is `Studio Load Example -> generated GPS semantic APIs -> developer-owned UART1/NMEA/UBX implementation -> standalone export -> ESP-IDF 5.5.4 Build & Flash`. The exclusive GPS contract is selected by `FG_Set_GPS_UART_Text`, `FG_Set_GPS_NMEA_Text`, `FG_Set_GPS_Fix_Text`, `FG_Set_GPS_Satellites_Text`, `FG_Set_GPS_Latitude_Text`, `FG_Set_GPS_Longitude_Text`, `FG_Set_GPS_Altitude_Text`, `FG_Set_GPS_Speed_Text`, `FG_Set_GPS_HDOP_Text`, and `FG_Set_GPS_UTC_Text`. Export carries `99_Hardware_Example_05_GPS.c/.h`; the generated UI does not own UART or parser behavior.
+
+Physical proof covers UART1 RX GPIO3 / TX GPIO4 at 9600 8N1 with no flow control, checksum-valid NMEA, 2D/3D fix presentation, and a read-only UBX-MON-VER request/checksum-valid response. It does not imply mapping, navigation, routing, production vehicle navigation, or persistent UBX configuration. Public reference: `RTechAI/ForgeUI-P4-UART-GPS-GNSS`, release `v1.0.0`.
+
 ## Hardware Example 02 semantic and selection contract (2026-08-08)
 
 The proven path is `ForgeUI UI → generated semantic APIs/events →

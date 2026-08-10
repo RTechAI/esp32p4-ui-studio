@@ -1,13 +1,14 @@
 # 04_FEATURE_STATUS.md
 
-## Hardware Examples physical proof — 2026-08-08
+## Hardware Examples physical proof — 2026-08-10
 
 - Hardware Example 01 — GPIO Digital I/O: **PHYSICALLY PROVEN**.
 - Hardware Example 02 — I²C FRAM Persistence: **PHYSICALLY PROVEN / CLOSED**. MB85RC256V Device-ID `00 A5 10` verified at `0x50`; write/read passed; counter `9` / value `0xA553` persisted across a complete power cycle.
 - Hardware Example 03 — SPI NFC/RFID: **PHYSICALLY PROVEN / CLOSED**. PN532 identity (`IC=0x32`, firmware `1.6`), SAMConfig, ISO14443A polling, stable UID `04:8D:E6:5F:B7:2A:81`, card removal and held-card de-duplication were proven on the real ESP32-P4.
 - Hardware Example 04 — Online Services — Live Weather: **PHYSICALLY PROVEN / CLOSED** on the stock Waveshare 7B and stock C6 through standalone export and the real Studio Build & Flash workflow. Association, DHCP, DNS, the complete TLS certificate record, certificate validation, HTTP 200, Open-Meteo current and forecast data, generated semantic UI updates, live Fi icons, SNTP/local Tauranga time and dynamic local backgrounds passed. Live fields include current/apparent temperature, humidity, wind, rain, UV, weather code, day/night, date/time and forecast days/highs/lows. Tauranga is the current example configuration; automatic location detection is not claimed.
+- Hardware Example 05 — GPS / GNSS: **PHYSICALLY PROVEN** on the Waveshare 7B with a u-blox NEO-8 and ESP-IDF 5.5.4. Full-duplex UART1 on GPIO3 RX / GPIO4 TX at 9600 8N1 proved UART RX, checksum-valid NMEA, 3D fix with 12 satellites observed, latitude/longitude, altitude, speed, HDOP, UTC, UART TX, a read-only UBX-MON-VER request and checksum-valid response, generated Studio UI live updates, standalone export, and the real Build & Flash workflow. This proof does not claim mapping, navigation, routing, production vehicle navigation, or persistent UBX configuration. Public reference: `RTechAI/ForgeUI-P4-UART-GPS-GNSS`, release `v1.0.0`.
 - Selection is exclusive: implementation files remain preserved, while only the selected example is generated, linked, initialized and polled.
-- Studio presents every example through the same compact **Load Example** and **Guide** actions. Examples 01–03 put wiring/test instructions in Guide; Example 04 puts online-service and Weather behavior there.
+- Studio presents all five examples through the same compact **Load Example** and **Guide** actions, ordered Example 01, Example 02, Example 03, Example 04 — Online Services / Live Weather, and Example 05 — GPS / GNSS.
 
 The Waveshare 7B ESP32-P4 Wi-Fi/HTTPS connected runtime is **PHYSICALLY PROVEN**. Its authoritative architecture and evidence scope are in [`12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md`](12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md).
 

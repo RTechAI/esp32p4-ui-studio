@@ -27,6 +27,11 @@ Browser/LVGL confirmation path exists.
 
 For application-to-hardware examples after export, use
 [05_DEVELOPER_HARDWARE_INTEGRATION.md](05_DEVELOPER_HARDWARE_INTEGRATION.md).
+The current hardware-example sequence is Example 01, Example 02, Example 03,
+Example 04 — Online Services / Live Weather, and Example 05 — GPS / GNSS. The
+physically proven GPS/GNSS wiring, Studio loading, standalone export, and
+ESP-IDF 5.5.4 Build & Flash workflow are in
+[11.05_ESP32_P4_WIFI6_TOUCH_7B__EXAMPLE_05__GPS_GNSS.md](11.05_ESP32_P4_WIFI6_TOUCH_7B__EXAMPLE_05__GPS_GNSS.md).
 For exact generated signatures, use
 [03_ForgeUI_Generated_Export_API_Code_Map.md](03_ForgeUI_Generated_Export_API_Code_Map.md).
 

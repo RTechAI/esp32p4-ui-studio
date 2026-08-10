@@ -214,11 +214,20 @@ P4 GPIO26 is RS485 UART TX into the transceiver and GPIO27 is RX from it. The co
 | Hardware Example 03 | PN532 MISO | 29 | Software-SPI input | Elechouse PN532 V3 | PHYSICALLY PROVEN 2026-08-08 |
 | Hardware Example 03 | PN532 SCK | 30 | Software-SPI output | Elechouse PN532 V3 | PHYSICALLY PROVEN 2026-08-08 |
 | Hardware Example 03 | PN532 CS | 31 | Active-low software-SPI chip select, idle HIGH | Elechouse PN532 V3 | PHYSICALLY PROVEN 2026-08-08 |
+| Hardware Example 05 | NEO-8 TX → P4 UART1 RX | 3 | 3.3 V UART input, 9600 8N1 | u-blox NEO-8 GPS/GNSS | PHYSICALLY PROVEN 2026-08-10 |
+| Hardware Example 05 | NEO-8 RX ← P4 UART1 TX | 4 | 3.3 V UART output, 9600 8N1 | u-blox NEO-8 GPS/GNSS | PHYSICALLY PROVEN 2026-08-10 |
 
 Example 03 IRQ is unused. GPIO2 and GPIO28–GPIO31 are allocated to these PN532
 roles only while Hardware Example 03 is selected. Hardware Examples are
 exclusive: unselected implementations remain preserved but are not linked,
 initialized or polled, and do not own or initialize their GPIO.
+
+Example 05 conditionally allocates GPIO3 as UART1 RX and GPIO4 as UART1 TX with
+no flow control. Its module is powered from UART connector VCC / `Core_5V` and
+GND while data uses the bottom IO3/IO4 header. GPIO38/RXD is not used for GPS RX
+because it shares the CH343P TX net; GPIO37/TXD is not used for GPS TX because
+it shares the CH343P RX net. GPIO3/GPIO4 are the physically proven ForgeUI GPS
+pair.
 
 These allocations were reconciled with the ForgeUI board profile, compiled BSP,
 firmware configuration, official board documentation, schematic evidence and the
@@ -302,6 +311,7 @@ is **PHYSICALLY PROVEN / CLOSED**.
 2. **Touch interrupt/reset:** the schematic extraction indicates a GPIO23 interrupt/test-point connection, while the current managed BSP defines touch reset and interrupt as `GPIO_NUM_NC`. GPIO23 remains reserved and unresolved.
 3. **Production header versus schematic connector:** Scott's production PCB photograph clearly labels the bottom header `3V3 GND IO2 IO3 IO4 IO5 IO28 IO29 IO30 IO31 IO34 IO36`. The current official schematic PDF's extracted 12-pin connector region also presents GPIO49–52 nets in a way that cannot be reconciled confidently with that production silkscreen. The photograph establishes physical availability; it does not erase schematic electrical warnings, particularly GPIO36's battery/indicator connection.
 4. **UART VCC and exact independent-header wiring:** GPIO37/38 are proven in the USB-to-UART/console circuit and correspond to P4 UART0 TX/RX, but the separate labeled header VCC rail is not unambiguous in extracted schematic text. Measure/confirm it before use.
+   Hardware Example 05 does not use GPIO37/38 for GPS data. Its physically proven GPS pair is bottom-header GPIO3/GPIO4; its proof used UART connector VCC / `Core_5V` only for module power and the UART connector GND for common ground.
 5. **GPIO20 and GPIO46–52:** board connections appear in the schematic, but their exact production-board roles were not proven sufficiently for external use. They remain reserved/unknown.
 
 ## 10. Document ownership rule
@@ -335,5 +345,11 @@ master and never replace its allocation register.
   GPIO30 SCK, GPIO31 CS and GPIO2 RSTO; IRQ is unused. PN532 identity,
   SAMConfig, ISO14443A polling, stable UID, removal detection and one logical
   count per presentation are **PHYSICALLY PROVEN**.
+- Hardware Example 05 conditionally allocates GPIO3 to UART1 RX and GPIO4 to
+  UART1 TX at 9600 8N1 with no flow control. Checksum-valid NMEA, 3D fix with 12
+  satellites observed, position/altitude/speed/HDOP/UTC, read-only UBX-MON-VER,
+  generated UI updates, standalone export, and ESP-IDF 5.5.4 Build & Flash are
+  **PHYSICALLY PROVEN**. GPIO37/GPIO38 remain avoided because of their CH343P
+  shared nets.
 - Hardware Example GPIO ownership is active only for the exclusively selected
   example. Unselected example implementations remain present but inactive.

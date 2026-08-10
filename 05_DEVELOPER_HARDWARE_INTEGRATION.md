@@ -9,6 +9,12 @@ This is the application/hardware companion to
 and widget-pipeline guidance; this document owns post-export application,
 driver, task and hardware integration examples.
 
+The five physically proven Studio hardware examples are ordered Example 01,
+Example 02, Example 03, Example 04 — Online Services / Live Weather, and Example
+05 — GPS / GNSS. For Example 05's full-duplex UART1 wiring, NMEA/UBX proof,
+standalone export, and Build & Flash procedure, use
+[`11.05_ESP32_P4_WIFI6_TOUCH_7B__EXAMPLE_05__GPS_GNSS.md`](11.05_ESP32_P4_WIFI6_TOUCH_7B__EXAMPLE_05__GPS_GNSS.md).
+
 Current generated List interaction:
 
 ```c

@@ -4,11 +4,13 @@
 
 > Weather 04 is proven through the real Studio Build & Flash path with current and forecast Open-Meteo data, Tauranga time, intended Fi icons and stable dynamic local backgrounds. Its reusable library has seventeen backgrounds, while dependency-driven export compiles only the ten reachable by the V1 runtime. See [Hardware Example 04](11.04_ESP32_P4_WIFI6_TOUCH_7B__EXAMPLE_04__ONLINE_WEATHER.md) and the [Weather Background Pack](docs/FORGEUI_WEATHER_BACKGROUND_PACK.md).
 
-> Hardware Examples status (2026-08-08): **01 — GPIO Digital I/O — PHYSICALLY
+> Hardware Examples status (2026-08-10): **01 — GPIO Digital I/O — PHYSICALLY
 > PROVEN; 02 — I2C FRAM Persistence — PHYSICALLY PROVEN / CLOSED; 03 — SPI
-> NFC/RFID — PHYSICALLY PROVEN / CLOSED.** Example 02 was physically proven on Waveshare
+> NFC/RFID — PHYSICALLY PROVEN / CLOSED; 04 — Online Services / Live Weather —
+> PHYSICALLY PROVEN / CLOSED; 05 — GPS / GNSS — PHYSICALLY PROVEN.** Example 02 was physically proven on Waveshare
 > ESP32-P4-WIFI6-Touch-LCD-7B with an MB85RC256V at `0x50`, including Device-ID,
 > write/read verification and complete power-cycle persistence. Example 03 proved PN532 identity, SAMConfig, ISO14443A polling, stable UID, removal detection and one logical read per presentation.
+> Example 05 proved full-duplex UART1 on GPIO3/GPIO4, checksum-valid NMEA, a 3D fix with 12 satellites observed, live GPS fields, and a read-only UBX-MON-VER request/checksum-valid response through standalone export and ESP-IDF 5.5.4 Build & Flash.
 
 > Current certification (2026-08-07): **44 / 44 practical LVGL 9.2
 > components physically proven on ESP32-P4**, plus fourteen current ForgeUI
@@ -29,9 +31,9 @@
 > SDK, ESP-IDF build, ESP32-P4 flash, physical rendering, parity, and duplicate
 > isolation. It is display-only and intentionally generates no UserEvents.
 
-> Network Status Card and KPI Card certification is complete. Device Summary Card and Power Flow Card are also **HARDWARE VALIDATED** after the latest four-card dashboard rendered and operated correctly on ESP32-P4. These monitoring-only cards use isolated persisted-ID APIs and generate zero UserEvents. Hardware Examples 01, 02 and 03 are physically proven and closed under the exclusive-selection architecture.
+> Network Status Card and KPI Card certification is complete. Device Summary Card and Power Flow Card are also **HARDWARE VALIDATED** after the latest four-card dashboard rendered and operated correctly on ESP32-P4. These monitoring-only cards use isolated persisted-ID APIs and generate zero UserEvents. Hardware Examples 01–05 are physically proven under the exclusive-selection architecture.
 
-The Hardware Examples sidebar uses one scalable pattern for all four physically proven examples: **Load Example** loads the editable project and **Guide** opens concise example-specific help. Examples 01–03 include authoritative wiring and test steps. Example 04’s Guide explains Open-Meteo current/forecast data, verified HTTPS/TLS, ESP-Hosted Wi-Fi, network time, local dynamic backgrounds, Fi icons, the reusable Weather pack and physical proof. Its current location is configured as Tauranga; no automatic geolocation is claimed.
+The Hardware Examples sidebar uses one scalable pattern for all five physically proven examples: **Load Example** loads the editable project and **Guide** opens concise example-specific help. The current order is **Example 01 — GPIO Digital I/O**, **Example 02 — I2C FRAM Persistence**, **Example 03 — SPI NFC/RFID**, **Example 04 — Online Services / Live Weather**, and **Example 05 — GPS / GNSS**. Examples 01–03 include authoritative wiring and test steps. Example 04’s Guide explains its proven Weather implementation; its current location is configured as Tauranga and no automatic geolocation is claimed. Example 05’s Guide documents the physically proven full-duplex UART1 GPS/GNSS implementation, wiring, NMEA and read-only UBX-MON-VER proof. The public Example 05 reference is `RTechAI/ForgeUI-P4-UART-GPS-GNSS`, release `v1.0.0` (baseline commit `2c6e6a6`).
 
 Current architecture save point:
 `FORGEUI_LVGL9_COMPLETE__44_OF_44_PRACTICAL_WIDGETS_PROVEN__ESP32P4_VALIDATED__DOCUMENTATION_COMPLETE__READY_FOR_NATIVE_FORGEUI_PLATFORM__2026-08-02`.

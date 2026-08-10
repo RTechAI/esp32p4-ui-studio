@@ -8,6 +8,10 @@ The authoritative Waveshare 7B networking architecture is [`12_FORGEUI_ESP32P4_W
 
 Weather 04 uses the existing Open-Meteo `weather_code` and `is_day` values to choose one of ten local background semantics. It swaps the image source on the existing LVGL background object, suppresses a duplicate assignment when the semantic background is unchanged, and does not rebuild the screen or issue another network request. Forecast/current setters and generated Fi presentation APIs remain the public boundary; application code must not manipulate private generated objects. The images are ForgeUI assets, not images downloaded from Open-Meteo.
 
+## Hardware Example 05 — GPS / GNSS semantic surface
+
+The physically proven u-blox NEO-8 example publishes developer-owned UART1/parser state through `FG_Set_GPS_UART_Text`, `FG_Set_GPS_NMEA_Text`, `FG_Set_GPS_Fix_Text`, `FG_Set_GPS_Satellites_Text`, `FG_Set_GPS_Latitude_Text`, `FG_Set_GPS_Longitude_Text`, `FG_Set_GPS_Altitude_Text`, `FG_Set_GPS_Speed_Text`, `FG_Set_GPS_HDOP_Text`, and `FG_Set_GPS_UTC_Text`. The generated UI is a presentation boundary; it does not own UART, NMEA, UBX, mapping, navigation, or routing behavior. The proof uses full-duplex UART1 on GPIO3 RX / GPIO4 TX, 9600 baud, 8N1, no flow control, and one read-only UBX-MON-VER request/response.
+
 ## Hardware Example 02 — FRAM semantic surface
 
 The physically proven MB85RC256V example updates generated UI only through

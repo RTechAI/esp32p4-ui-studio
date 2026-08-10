@@ -19,7 +19,19 @@ See [`12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md`](12_FORGEUI_ESP32P4_WIFI_H
 
 An `assets/...` source is always relative to `firmware/ForgeUI-One/main`; standalone export preserves the same subtree under its own `main`. Permanent PNGs and ten committed Weather RGB565 sources survive cleanup. Hash-named Fi icon C files are ephemeral conversion outputs: export preparation must materialize or verify them before strict validation. Missing generated C remains a refusal, never a placeholder.
 
-`HardwareExamplesPanel.tsx` owns the standardized four-card presentation and reuses one Guide modal. It preserves the exclusive project-reset actions while keeping detailed wiring/service explanations out of the narrow sidebar.
+`HardwareExamplesPanel.tsx` owns the standardized five-card presentation and reuses one Guide modal. It preserves the exclusive project-reset actions while keeping detailed wiring/service explanations out of the narrow sidebar.
+
+## Hardware Example 05 — GPS / GNSS ownership map (2026-08-10)
+
+| Layer | Authoritative source | Responsibility |
+|---|---|---|
+| Example model | `studio/src/forgeui/hardwareExamples/HardwareExample05.ts` | GPS/GNSS dashboard and generated semantic field identities |
+| Studio selection/UI | `studio/src/forgeui/hardwareExamples/HardwareExamplesPanel.tsx` | Fifth exclusive Load Example card and concise Guide presentation |
+| Selection/export | `studio/export-server.js` | Detects the GPS semantic contract and includes the selected developer-owned GPS source/header in Live and Standalone output |
+| Device application | `firmware/ForgeUI-One/main/99_Hardware_Example_05_GPS.c/.h` | Full-duplex UART1, NMEA/checksum parsing, fix data and read-only UBX-MON-VER proof |
+| Generated UI boundary | generated `90_Studio_Export.c/.h` | Silent live updates for UART, NMEA, fix, satellites, latitude, longitude, altitude, speed, HDOP and UTC |
+
+The physically proven interface is UART1 RX GPIO3 / TX GPIO4 at 9600 baud, 8N1, with no flow control. GPIO38/RXD and GPIO37/TXD are not the GPS pair because they share the unisolated CH343P TX and RX nets respectively. Public reference: `RTechAI/ForgeUI-P4-UART-GPS-GNSS`, release `v1.0.0`, baseline commit `2c6e6a6`.
 
 ## Hardware Examples 01–03 — exclusive selection baseline (2026-08-08)
 
