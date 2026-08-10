@@ -1,0 +1,18 @@
+{
+  "textures": {
+    "carbon_fiber": { "symbol": "fg_upload_carbon_fiber_be774fd2", "source": "assets/uploads/fg_upload_carbon_fiber_be774fd2.c", "input": "public/textures/carbon_fiber.png", "assetMode": "hero" },
+    "brushed_steel": { "symbol": "fg_upload_brushed_steel_bc48e90c", "source": "assets/uploads/fg_upload_brushed_steel_bc48e90c.c", "input": "public/textures/brushed_steel.png", "assetMode": "hero" },
+    "hex_mesh": { "symbol": "fg_upload_hex_mesh_e46ed0b5", "source": "assets/uploads/fg_upload_hex_mesh_e46ed0b5.c", "input": "public/textures/hex_mesh.png", "assetMode": "hero" },
+    "dark_noise": { "symbol": "fg_upload_dark_noise_08fcab09", "source": "assets/uploads/fg_upload_dark_noise_08fcab09.c", "input": "public/textures/dark_noise.png", "assetMode": "hero" },
+    "industrial_panel": { "symbol": "fg_upload_industrial_panel_8775311d", "source": "assets/uploads/fg_upload_industrial_panel_8775311d.c", "input": "public/textures/industrial_panel.png", "assetMode": "hero" },
+    "blueprint_grid": { "symbol": "fg_upload_blueprint_grid_71595117", "source": "assets/uploads/fg_upload_blueprint_grid_71595117.c", "input": "public/textures/blueprint_grid.png", "assetMode": "hero" },
+    "ai_mesh": { "symbol": "fg_upload_1024x600_ai_mesh_9f3f1b39", "source": "assets/uploads/fg_upload_1024x600_ai_mesh_9f3f1b39.c", "input": "public/textures/1024x600 AI Mesh.png", "assetMode": "hero" },
+    "ai_nexus": { "symbol": "fg_upload_1024x600_ai_nexus_88b196e9", "source": "assets/uploads/fg_upload_1024x600_ai_nexus_88b196e9.c", "input": "public/textures/1024x600 AI Nexus.png", "assetMode": "hero" },
+    "creation": { "symbol": "fg_upload_1024x600_creation_786cf05c", "source": "assets/uploads/fg_upload_1024x600_creation_786cf05c.c", "input": "public/textures/1024x600 Creation.png", "assetMode": "hero" },
+    "nebula_core": { "symbol": "fg_upload_1024x600_nebula_core_0ddf52d1", "source": "assets/uploads/fg_upload_1024x600_nebula_core_0ddf52d1.c", "input": "public/textures/1024x600 Nebula Core.png", "assetMode": "hero" },
+    "neon_horizon": { "symbol": "fg_upload_1024x600_neon_horizon_6dae04db", "source": "assets/uploads/fg_upload_1024x600_neon_horizon_6dae04db.c", "input": "public/textures/1024x600 Neon Horizon.png", "assetMode": "hero" },
+    "neural_core": { "symbol": "fg_upload_1024x600_neural_core_67dd4ba0", "source": "assets/uploads/fg_upload_1024x600_neural_core_67dd4ba0.c", "input": "public/textures/1024x600 Neural Core.png", "assetMode": "hero" },
+    "quantum_flow": { "symbol": "fg_upload_1024x600_quantum_flow_4ffa7dbc", "source": "assets/uploads/fg_upload_1024x600_quantum_flow_4ffa7dbc.c", "input": "public/textures/1024x600 Quantum Flow.png", "assetMode": "hero" },
+    "quantum_hex": { "symbol": "fg_upload_1024x600_quantum_hex_98c7da6c", "source": "assets/uploads/fg_upload_1024x600_quantum_hex_98c7da6c.c", "input": "public/textures/1024x600 Quantum_hex.png", "assetMode": "hero" }
+  }
+}

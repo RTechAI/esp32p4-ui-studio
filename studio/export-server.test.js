@@ -1388,6 +1388,8 @@ describe('canonical UserEvents project reconciliation', () => {
 describe('server export preflight', () => {
   const settingsSource = 'assets/icons/fg_icon_settings_fi_48px.c'
   const settingsSymbol = 'fg_icon_settings_fi_48px'
+  const carbonSource = 'assets/uploads/fg_upload_carbon_fiber_be774fd2.c'
+  const carbonSymbol = 'fg_upload_carbon_fiber_be774fd2'
   const validSpinboxGeometry = `
 static void fg_increment(lv_event_t * event)
 {
@@ -1520,6 +1522,38 @@ lv_obj_add_event_cb(fg_spinbox_decrement_button, fg_decrement, LV_EVENT_CLICKED,
       const copied = path.join(targetMain, settingsSource)
       expect(fs.existsSync(copied)).toBe(true)
       expect(fs.readFileSync(copied, 'utf8')).toContain(settingsSymbol)
+    } finally {
+      fs.rmSync(sourceMain, { recursive: true, force: true })
+      fs.rmSync(targetMain, { recursive: true, force: true })
+    }
+  })
+
+  it('materializes, validates, copies and registers a selected Studio background', () => {
+    const sourceMain = fs.mkdtempSync(path.join(os.tmpdir(), 'forgeui-background-source-'))
+    const targetMain = fs.mkdtempSync(path.join(os.tmpdir(), 'forgeui-background-export-'))
+    try {
+      const emitted = materializeCanonicalAssetSources([carbonSource], {
+        mainDir: sourceMain,
+        materializeImage: (asset, target) => {
+          expect(asset.symbol).toBe(carbonSymbol)
+          expect(asset.input.replace(/\\/g, '/')).toContain('/public/textures/carbon_fiber.png')
+          fs.writeFileSync(target,
+            `const lv_image_dsc_t ${carbonSymbol} = { 0 };\n`, 'utf8')
+        },
+      })
+      expect(emitted).toEqual([carbonSource])
+      const code = `LV_IMAGE_DECLARE(${carbonSymbol});\nlv_image_set_src(bg, &${carbonSymbol});`
+      expect(validateExportPayload({ code, assetSources: [carbonSource] }, {
+        mainDir: sourceMain,
+      })).toEqual({ code, assetSources: [carbonSource] })
+      copyAssetSourcesToProject([carbonSource], sourceMain, targetMain)
+      const copied = path.join(targetMain, carbonSource)
+      expect(fs.existsSync(copied)).toBe(true)
+      expect(fs.readFileSync(copied, 'utf8')).toContain(
+        `const lv_image_dsc_t ${carbonSymbol}`,
+      )
+      expect(appendAssetSourcesToCMake(['"90_Studio_Export.c"'], [carbonSource]))
+        .toContain(`"${carbonSource}"`)
     } finally {
       fs.rmSync(sourceMain, { recursive: true, force: true })
       fs.rmSync(targetMain, { recursive: true, force: true })

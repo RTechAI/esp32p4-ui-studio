@@ -1,7 +1,8 @@
 const express = require('express')
 const fs = require('fs')
 const path = require('path')
-const { spawn } = require('child_process')
+const { spawn, spawnSync } = require('child_process')
+const forgeUIStudioAssets = require('./forgeui-studio-assets.json')
 
 const defaultHeroFileName =
   'fg_upload_ai_hero_1784342478518_b95a7dc0'
@@ -1014,11 +1015,71 @@ function normalizePublicApiDeclarations(declarations) {
 }
 
 const CANONICAL_ASSET_MANIFEST = Object.freeze({
-  'assets/icons/fg_icon_settings_fi_48px.c': path.resolve(
-    __dirname,
-    './public/assets/icons/48x48 ForgeUI Reactor Set/fg_icon_settings_fi_48px.c',
+  'assets/icons/fg_icon_settings_fi_48px.c': {
+    kind: 'copy',
+    input: path.resolve(
+      __dirname,
+      './public/assets/icons/48x48 ForgeUI Reactor Set/fg_icon_settings_fi_48px.c',
+    ),
+  },
+  ...Object.fromEntries(
+    Object.values(forgeUIStudioAssets.textures).map(asset => [
+      asset.source,
+      {
+        kind: 'image',
+        input: path.resolve(__dirname, asset.input),
+        symbol: asset.symbol,
+        assetMode: asset.assetMode || 'image',
+      },
+    ]),
   ),
 })
+
+function generateCanonicalImageAsset(asset, target) {
+  const pythonPath =
+    'C:\\Espressif\\python_env\\idf5.5_py3.11_env\\Scripts\\python.exe'
+  const preprocessorPath = path.resolve(
+    __dirname,
+    '../tools/ForgeUIImagePreprocessor.py',
+  )
+  const converterPath = path.resolve(__dirname, '../tools/lvgl/LVGLImage.py')
+  const inputDir = path.join(path.dirname(target), '_input')
+  const input = path.join(inputDir, `${asset.symbol}.png`)
+
+  fs.mkdirSync(inputDir, { recursive: true })
+  fs.copyFileSync(asset.input, input)
+
+  const preprocess = spawnSync(
+    pythonPath,
+    [preprocessorPath, input, asset.assetMode || 'image', '0', '0'],
+    { cwd: path.resolve(__dirname, '../tools'), windowsHide: true, encoding: 'utf8' },
+  )
+  if (preprocess.error || preprocess.status !== 0) {
+    throw new Error(
+      `Studio asset preprocessing failed for ${asset.symbol}:\n` +
+      String(preprocess.error || preprocess.stderr || preprocess.stdout),
+    )
+  }
+
+  const conversion = spawnSync(
+    pythonPath,
+    [
+      converterPath,
+      '--ofmt', 'C',
+      '--cf', 'ARGB8888',
+      '--output', path.dirname(target),
+      '--name', asset.symbol,
+      input,
+    ],
+    { cwd: path.resolve(__dirname, '../tools/lvgl'), windowsHide: true, encoding: 'utf8' },
+  )
+  if (conversion.error || conversion.status !== 0 || !fs.existsSync(target)) {
+    throw new Error(
+      `Studio asset conversion failed for ${asset.symbol}:\n` +
+      String(conversion.error || conversion.stderr || conversion.stdout),
+    )
+  }
+}
 
 app.post('/forgeui-asset-source-exists', (req, res) => {
   try {
@@ -1051,11 +1112,11 @@ function materializeCanonicalAssetSources(assetSources, options = {}) {
 
   Array.from(new Set(assetSources || [])).forEach(rawSource => {
     const normalized = String(rawSource).replace(/\\/g, '/')
-    const canonicalSource = CANONICAL_ASSET_MANIFEST[normalized]
-    if (!canonicalSource) return
+    const canonicalAsset = CANONICAL_ASSET_MANIFEST[normalized]
+    if (!canonicalAsset) return
 
-    if (!fs.existsSync(canonicalSource) || !fs.statSync(canonicalSource).isFile()) {
-      throw new Error(`Canonical asset source missing:\n${canonicalSource}`)
+    if (!fs.existsSync(canonicalAsset.input) || !fs.statSync(canonicalAsset.input).isFile()) {
+      throw new Error(`Canonical asset source missing:\n${canonicalAsset.input}`)
     }
 
     const target = path.resolve(mainDir, normalized)
@@ -1063,8 +1124,15 @@ function materializeCanonicalAssetSources(assetSources, options = {}) {
       throw new Error(`Canonical asset target escapes firmware main:\n${normalized}`)
     }
 
+    if (fs.existsSync(target) && fs.statSync(target).isFile()) return
+
     fs.mkdirSync(path.dirname(target), { recursive: true })
-    fs.copyFileSync(canonicalSource, target)
+    if (canonicalAsset.kind === 'copy') {
+      fs.copyFileSync(canonicalAsset.input, target)
+    } else {
+      const materializeImage = options.materializeImage || generateCanonicalImageAsset
+      materializeImage(canonicalAsset, target)
+    }
     emitted.push(normalized)
   })
 

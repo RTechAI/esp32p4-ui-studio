@@ -97,6 +97,7 @@ import {
   type ForgeThemeId,
   resolveForgeSemanticPalette,
 } from './preview/forgeThemeMap'
+import forgeUIStudioAssets from '../../forgeui-studio-assets.json'
 
 const toLvHex = (
   value: string,
@@ -109,83 +110,8 @@ const toLvHex = (
     .toUpperCase()}`
 }
 
-const FG_TEXTURE_ASSETS: Record<
-  string,
-  {
-    symbol: string
-    source: string
-  }
-> = {
-  carbon_fiber: {
-    symbol: 'fg_upload_carbon_fiber_be774fd2',
-    source: 'assets/uploads/fg_upload_carbon_fiber_be774fd2.c',
-  },
-
-  brushed_steel: {
-    symbol: 'fg_upload_brushed_steel_bc48e90c',
-    source: 'assets/uploads/fg_upload_brushed_steel_bc48e90c.c',
-  },
-
-  hex_mesh: {
-    symbol: 'fg_upload_hex_mesh_e46ed0b5',
-    source: 'assets/uploads/fg_upload_hex_mesh_e46ed0b5.c',
-  },
-
-  dark_noise: {
-    symbol: 'fg_upload_dark_noise_08fcab09',
-    source: 'assets/uploads/fg_upload_dark_noise_08fcab09.c',
-  },
-
-  industrial_panel: {
-    symbol: 'fg_upload_industrial_panel_8775311d',
-    source: 'assets/uploads/fg_upload_industrial_panel_8775311d.c',
-  },
-
-  blueprint_grid: {
-    symbol: 'fg_upload_blueprint_grid_71595117',
-    source: 'assets/uploads/fg_upload_blueprint_grid_71595117.c',
-  },
-  ai_mesh: {
-    symbol: 'fg_upload_1024x600_ai_mesh_9f3f1b39',
-    source: 'assets/uploads/fg_upload_1024x600_ai_mesh_9f3f1b39.c',
-  },
-
-  ai_nexus: {
-    symbol: 'fg_upload_1024x600_ai_nexus_88b196e9',
-    source: 'assets/uploads/fg_upload_1024x600_ai_nexus_88b196e9.c',
-  },
-
-  creation: {
-    symbol: 'fg_upload_1024x600_creation_786cf05c',
-    source: 'assets/uploads/fg_upload_1024x600_creation_786cf05c.c',
-  },
-
-  nebula_core: {
-    symbol: 'fg_upload_1024x600_nebula_core_0ddf52d1',
-    source: 'assets/uploads/fg_upload_1024x600_nebula_core_0ddf52d1.c',
-  },
-
-  neon_horizon: {
-    symbol: 'fg_upload_1024x600_neon_horizon_6dae04db',
-    source: 'assets/uploads/fg_upload_1024x600_neon_horizon_6dae04db.c',
-  },
-
-  neural_core: {
-    symbol: 'fg_upload_1024x600_neural_core_67dd4ba0',
-    source: 'assets/uploads/fg_upload_1024x600_neural_core_67dd4ba0.c',
-  },
-
-  quantum_flow: {
-    symbol: 'fg_upload_1024x600_quantum_flow_4ffa7dbc',
-    source: 'assets/uploads/fg_upload_1024x600_quantum_flow_4ffa7dbc.c',
-  },
-
-  quantum_hex: {
-    symbol: 'fg_upload_1024x600_quantum_hex_98c7da6c',
-    source: 'assets/uploads/fg_upload_1024x600_quantum_hex_98c7da6c.c',
-  },
-
-}
+const FG_TEXTURE_ASSETS: Record<string, { symbol: string; source: string }> =
+  forgeUIStudioAssets.textures
 
 const FG_ICON_LVGL_SYMBOLS: Record<string, string> = {
   FiWifi: 'LV_SYMBOL_WIFI',

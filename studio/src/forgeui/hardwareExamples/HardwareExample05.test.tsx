@@ -137,7 +137,7 @@ describe('Hardware Example 05 Studio and export integration', () => {
     }
     const generated = generateForgeUILvglCode(
       HARDWARE_EXAMPLE_05_PROJECT, 'graphite', undefined,
-      { includeThemeTexture: false, firmwareFeatures },
+      { includeThemeTexture: true, firmwareFeatures },
     )
     const payload = JSON.stringify({
       ...generated,
@@ -165,11 +165,17 @@ describe('Hardware Example 05 Studio and export integration', () => {
     const main = fs.readFileSync(path.join(exportedMain, 'main.c'), 'utf8')
     const gps = fs.readFileSync(path.join(exportedMain,
       '99_Hardware_Example_05_GPS.c'), 'utf8')
+    const carbonSource = 'assets/uploads/fg_upload_carbon_fiber_be774fd2.c'
+    const carbon = fs.readFileSync(path.join(exportedMain, carbonSource), 'utf8')
     expect(fs.existsSync(path.join(exportedMain, '99_Hardware_Example_05_GPS.h'))).toBe(true)
     expect(selection).toContain('#define FG_HARDWARE_EXAMPLE_SELECTED 5')
     expect(selection).toContain('#define FG_HARDWARE_EXAMPLE_05_ENABLED 1')
     expect(selection).not.toContain('STARTUP_ENABLED')
     expect(cmake).toContain('"99_Hardware_Example_05_GPS.c"')
+    expect(cmake).toContain(`"${carbonSource}"`)
+    expect(carbon).toContain('const lv_image_dsc_t fg_upload_carbon_fiber_be774fd2')
+    expect(fs.readFileSync(path.join(exportedMain, '90_Studio_Export.c'), 'utf8'))
+      .toContain('LV_IMAGE_DECLARE(fg_upload_carbon_fiber_be774fd2)')
     expect(main).toContain('fg_hardware_example_05_init();')
     expect(main).toContain('fg_hardware_example_05_ui_binding_init();')
     expect(gps).toContain('ESP_LOGI(TAG, "startup begin")')
