@@ -24,6 +24,7 @@ const {
   appendHardwareExample02Source,
   appendHardwareExample03Source,
   appendHardwareExample04Source,
+  appendHardwareExample05Source,
   selectedHardwareExample,
   generateHardwareExampleHeader,
   validateExportPayload,
@@ -95,6 +96,30 @@ describe('Hardware Example 04 developer source ownership', () => {
     expect(sources).toEqual(['"99_Hardware_Example_04_Weather.c"'])
     expect(appendHardwareExample04Source([], mainDir, [])).toEqual([])
     fs.rmSync(mainDir, { recursive: true, force: true })
+  })
+})
+
+describe('Hardware Example 05 developer source ownership', () => {
+  const gpsApis = ['UART', 'NMEA', 'Fix', 'Satellites', 'Latitude', 'Longitude',
+    'Altitude', 'Speed', 'UTC', 'HDOP']
+    .map(name => `void FG_Set_GPS_${name}_Text(const char * text);`)
+
+  it('includes only the developer-owned GPS runtime for its complete semantic API', () => {
+    const mainDir = fs.mkdtempSync(path.join(os.tmpdir(), 'forgeui-gps-'))
+    fs.writeFileSync(path.join(mainDir, '99_Hardware_Example_05_GPS.c'), '')
+    const sources = []
+    appendHardwareExample05Source(sources, mainDir, gpsApis)
+    expect(sources).toEqual(['"99_Hardware_Example_05_GPS.c"'])
+    expect(appendHardwareExample05Source([], mainDir, gpsApis.slice(1))).toEqual([])
+    fs.rmSync(mainDir, { recursive: true, force: true })
+  })
+
+  it('selects Example 05 exclusively and emits its activation macro', () => {
+    expect(selectedHardwareExample(gpsApis, [])).toBe(5)
+    const header = generateHardwareExampleHeader(gpsApis, [])
+    expect(header).toContain('#define FG_HARDWARE_EXAMPLE_SELECTED 5')
+    expect(header).toContain('#define FG_HARDWARE_EXAMPLE_04_ENABLED 0')
+    expect(header).toContain('#define FG_HARDWARE_EXAMPLE_05_ENABLED 1')
   })
 })
 

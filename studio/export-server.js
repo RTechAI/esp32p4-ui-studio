@@ -1437,6 +1437,22 @@ function appendHardwareExample04Source(sources, mainDir, publicApiDeclarations =
   return sources
 }
 
+function appendHardwareExample05Source(sources, mainDir, publicApiDeclarations = []) {
+  const sourceName = '99_Hardware_Example_05_GPS.c'
+  const declarations = ['FG_Set_GPS_UART_Text', 'FG_Set_GPS_NMEA_Text',
+    'FG_Set_GPS_Fix_Text', 'FG_Set_GPS_Satellites_Text',
+    'FG_Set_GPS_Latitude_Text', 'FG_Set_GPS_Longitude_Text',
+    'FG_Set_GPS_Altitude_Text', 'FG_Set_GPS_Speed_Text',
+    'FG_Set_GPS_UTC_Text', 'FG_Set_GPS_HDOP_Text']
+  const enabled = declarations.every(name =>
+    publicApiDeclarations.some(value => value.includes(name)))
+  const entry = `"${sourceName}"`
+  if (enabled && fs.existsSync(path.join(mainDir, sourceName)) && !sources.includes(entry)) {
+    sources.push(entry)
+  }
+  return sources
+}
+
 function selectedHardwareExample(publicApiDeclarations = [], userEventHooks = []) {
   const has01 = ['void FG_Set_Indicator1(bool on);', 'void FG_Set_Indicator2(bool on);']
     .every(value => publicApiDeclarations.includes(value))
@@ -1453,10 +1469,16 @@ function selectedHardwareExample(publicApiDeclarations = [], userEventHooks = []
   const has04 = publicApiDeclarations.includes(
     'void FG_Set_Weather_Temperature_Text(const char * text);'
   )
-  if ([has01, has02, has03, has04].filter(Boolean).length > 1) {
+  const has05 = ['FG_Set_GPS_UART_Text', 'FG_Set_GPS_NMEA_Text',
+    'FG_Set_GPS_Fix_Text', 'FG_Set_GPS_Satellites_Text',
+    'FG_Set_GPS_Latitude_Text', 'FG_Set_GPS_Longitude_Text',
+    'FG_Set_GPS_Altitude_Text', 'FG_Set_GPS_Speed_Text',
+    'FG_Set_GPS_UTC_Text', 'FG_Set_GPS_HDOP_Text']
+    .every(name => publicApiDeclarations.some(value => value.includes(name)))
+  if ([has01, has02, has03, has04, has05].filter(Boolean).length > 1) {
     throw new Error('Hardware Examples are exclusive; project contains cumulative example contracts')
   }
-  return has01 ? 1 : has02 ? 2 : has03 ? 3 : has04 ? 4 : 0
+  return has01 ? 1 : has02 ? 2 : has03 ? 3 : has04 ? 4 : has05 ? 5 : 0
 }
 
 function generateHardwareExampleHeader(publicApiDeclarations = [], userEventHooks = []) {
@@ -1469,6 +1491,7 @@ function generateHardwareExampleHeader(publicApiDeclarations = [], userEventHook
 #define FG_HARDWARE_EXAMPLE_02_ENABLED ${selected === 2 ? 1 : 0}
 #define FG_HARDWARE_EXAMPLE_03_ENABLED ${selected === 3 ? 1 : 0}
 #define FG_HARDWARE_EXAMPLE_04_ENABLED ${selected === 4 ? 1 : 0}
+#define FG_HARDWARE_EXAMPLE_05_ENABLED ${selected === 5 ? 1 : 0}
 `
 }
 
@@ -2383,6 +2406,7 @@ appendHardwareExample01Source(
 appendHardwareExample02Source(cmakeSources, mainDir, publicApiDeclarations, userEventHooks)
 appendHardwareExample03Source(cmakeSources, mainDir, publicApiDeclarations)
 appendHardwareExample04Source(cmakeSources, mainDir, publicApiDeclarations)
+appendHardwareExample05Source(cmakeSources, mainDir, publicApiDeclarations)
 applyHardwareExampleBuildRequirements(
   firmwareBuild,
   selectedHardwareExample(publicApiDeclarations, userEventHooks),
@@ -2669,6 +2693,7 @@ appendHardwareExample01Source(
 appendHardwareExample02Source(cmakeSources, path.join(exportDir, 'main'), publicApiDeclarations, userEventHooks)
 appendHardwareExample03Source(cmakeSources, path.join(exportDir, 'main'), publicApiDeclarations)
 appendHardwareExample04Source(cmakeSources, path.join(exportDir, 'main'), publicApiDeclarations)
+appendHardwareExample05Source(cmakeSources, path.join(exportDir, 'main'), publicApiDeclarations)
 applyHardwareExampleBuildRequirements(
   firmwareBuild,
   selectedHardwareExample(publicApiDeclarations, userEventHooks),
@@ -2946,6 +2971,7 @@ module.exports = {
   appendHardwareExample02Source,
   appendHardwareExample03Source,
   appendHardwareExample04Source,
+  appendHardwareExample05Source,
   selectedHardwareExample,
   generateHardwareExampleHeader,
   applyHardwareExampleBuildRequirements,

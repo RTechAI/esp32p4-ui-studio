@@ -27,6 +27,8 @@
 #include "98_Hardware_Example_03_Probe.h"
 #elif FG_HARDWARE_EXAMPLE_04_ENABLED
 #include "99_Hardware_Example_04_Weather.h"
+#elif FG_HARDWARE_EXAMPLE_05_ENABLED
+#include "99_Hardware_Example_05_GPS.h"
 #endif
 
 void fg_sidebar_init(void);
@@ -93,6 +95,14 @@ void app_main(void)
     bsp_display_unlock();
 #elif FG_HARDWARE_EXAMPLE_03_ENABLED
     fg_hardware_example_03_init();
+#elif FG_HARDWARE_EXAMPLE_05_ENABLED
+    fg_hardware_example_05_init();
+    if (bsp_display_lock(0)) {
+        fg_hardware_example_05_ui_binding_init();
+        bsp_display_unlock();
+    } else {
+        ESP_LOGE(TAG, "FG_GPS_UI: display lock failed");
+    }
 #endif
     ESP_LOGI(TAG, "BOOT 20 UI init returned heap=%u min_heap=%u",
              (unsigned)esp_get_free_heap_size(),
@@ -101,7 +111,7 @@ void app_main(void)
     // ---- TIME INIT (external RTC or software/NVS fallback) ----
     fg_rtc_init();
 
-#if FORGEUI_ENABLE_WIFI
+#if FORGEUI_ENABLE_WIFI && !FG_HARDWARE_EXAMPLE_05_ENABLED
     bool wifi_ready = false;
 #endif
 
@@ -116,7 +126,7 @@ void app_main(void)
     ESP_LOGI(TAG, "RTC feature: %s", FORGEUI_ENABLE_RTC ? "ON" : "OFF");
     ESP_LOGI(TAG, "========================================");
 
-#if FORGEUI_ENABLE_WIFI
+#if FORGEUI_ENABLE_WIFI && !FG_HARDWARE_EXAMPLE_05_ENABLED
 
     // ========================================================
     // WiFi Init
@@ -170,7 +180,7 @@ void app_main(void)
     ESP_LOGI(TAG, "========================================");
     ESP_LOGI(TAG, "BOOT TEST RESULT");
 
-#if FORGEUI_ENABLE_WIFI
+#if FORGEUI_ENABLE_WIFI && !FG_HARDWARE_EXAMPLE_05_ENABLED
     ESP_LOGI(TAG, "WiFi ready: %s", wifi_ready ? "READY" : "FAIL");
     ESP_LOGI(TAG, "WiFi status: %s | IP: %s",
              fg_wifi_status_text(),
@@ -197,7 +207,7 @@ void app_main(void)
         fg_hardware_example_01_poll();
 #endif
 
-#if FORGEUI_ENABLE_WIFI
+#if FORGEUI_ENABLE_WIFI && !FG_HARDWARE_EXAMPLE_05_ENABLED
         // ---- WIFI SERVICE PUMP ----
         fg_wifi_pump();
 #endif
@@ -208,7 +218,7 @@ void app_main(void)
         {
             last_1hz = now;
 
- #if FORGEUI_ENABLE_WIFI
+ #if FORGEUI_ENABLE_WIFI && !FG_HARDWARE_EXAMPLE_05_ENABLED
             const char *wifi_status = fg_wifi_status_text();
             const char *wifi_ip = fg_wifi_ip_text();
 #else

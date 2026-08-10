@@ -93,7 +93,7 @@ describe('Hardware Example 04 Studio integration', () => {
     render(<ChakraProvider><HardwareExamplesPanel /></ChakraProvider>)
     expect(screen.getByText('Example 04')).toBeInTheDocument()
     expect(screen.getByText('Online Services — Live Weather')).toBeInTheDocument()
-    expect(screen.getAllByText('PHYSICALLY PROVEN')).toHaveLength(4)
+    expect(screen.getAllByText('PHYSICALLY PROVEN')).toHaveLength(5)
     fireEvent.click(within(screen.getByTestId('hardware-example-card-4'))
       .getByRole('button', { name: 'Load Example' }))
     await waitFor(() => expect(reset).toHaveBeenCalledTimes(1))
@@ -103,8 +103,8 @@ describe('Hardware Example 04 Studio integration', () => {
 
   it('standardises all cards while preserving every load action and identity', async () => {
     render(<ChakraProvider><HardwareExamplesPanel /></ChakraProvider>)
-    expect(screen.getAllByRole('button', { name: 'Load Example' })).toHaveLength(4)
-    expect(screen.getAllByRole('button', { name: 'Guide' })).toHaveLength(4)
+    expect(screen.getAllByRole('button', { name: 'Load Example' })).toHaveLength(5)
+    expect(screen.getAllByRole('button', { name: 'Guide' })).toHaveLength(5)
     for (const number of [1, 2, 3] as const) {
       fireEvent.click(within(screen.getByTestId(`hardware-example-card-${number}`))
         .getByRole('button', { name: 'Load Example' }))

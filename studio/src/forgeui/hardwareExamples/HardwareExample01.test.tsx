@@ -23,7 +23,7 @@ describe('Hardware Example 01 Studio UI', () => {
     render(<ChakraProvider><HardwareExamplesPanel /></ChakraProvider>)
     expect(screen.getByText('Hardware Examples')).toBeInTheDocument()
     expect(screen.getByText('Example 01')).toBeInTheDocument()
-    expect(screen.getAllByText('PHYSICALLY PROVEN')).toHaveLength(4)
+    expect(screen.getAllByText('PHYSICALLY PROVEN')).toHaveLength(5)
     fireEvent.click(screen.getAllByRole('button', { name: 'Load Example' })[0])
     expect(reset).toHaveBeenCalledWith(HARDWARE_EXAMPLE_01_PROJECT)
     fireEvent.click(screen.getAllByRole('button', { name: 'Guide' })[0])
