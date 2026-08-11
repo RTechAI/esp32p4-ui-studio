@@ -4,6 +4,7 @@ import {
   MdBuild,
   MdPreview,
   MdFlashOn,
+  MdCode,
 } from 'react-icons/md'
 
 import {
@@ -11,7 +12,7 @@ import {
   resolveForgeUIIconProject,
 } from '~forgeui/icons/ForgeUIIconResolver'
 import ForgeUIThemeManager from '~forgeui/theme/ForgeUIThemeManager'
-import React, { memo, useEffect, useRef, useState } from 'react'
+import React, { memo, useEffect, useState } from 'react'
 import DevicePreview from '~forgeui/preview/DevicePreview'
 import { ForgeUIAssetManager } from '~forgeui/assets/ForgeUIAssetManager'
 import { ForgeUIAssetSelectionRequest } from '~forgeui/assets/ForgeUIAssetSelection'
@@ -78,6 +79,7 @@ import {
 import {
   useExportValidationNotification,
 } from './ExportValidationNotification'
+import { useDeviceConsole } from '~contexts/device-console-context'
 
 const ExportProjectButton = ({
   exportEspIdfProject,
@@ -220,9 +222,7 @@ const selectedHeroAsset =
     })
   }
 
-  const [flashLog, setFlashLog] = useState('')
-  const [flashPanelOpen, setFlashPanelOpen] = useState(false)
-  const [flashRunning, setFlashRunning] = useState(false)
+  const deviceConsole = useDeviceConsole()
 
   const [previewOpen, setPreviewOpen] = useState(false)
   const {
@@ -281,35 +281,6 @@ const selectedHeroAsset =
 
 
 
-  const flashLogRef = useRef<
-    HTMLDivElement & HTMLPreElement
-  >(null)
-
-useEffect(() => {
-  if (!flashLogRef.current) return
-
-  flashLogRef.current.scrollTop =
-    flashLogRef.current.scrollHeight
-}, [flashLog])
-
-  useEffect(() => {
-    if (!flashPanelOpen) return
-
-    const timer = setInterval(async () => {
-  try {
-    const res = await fetch('http://localhost:3030/flash-log')
-    const data = await res.json()
-
-    setFlashLog(data.log || '')
-    setFlashRunning(Boolean(data.running))
-  } catch (err) {
-    console.error(err)
-  }
-}, 500)
-
-return () => clearInterval(timer)
-}, [flashPanelOpen])
-
 useEffect(() => {
   const handleClose = () => {
     try {
@@ -367,8 +338,7 @@ useEffect(() => {
 }, [])
 
 const exportToForgeUIOne = async () => {
-  setFlashPanelOpen(true)
-  setFlashLog('Starting Build & Flash...\n')
+  deviceConsole.openBuild('Starting Build & Flash...\n')
 
   if (!(await generateLiveFirmware())) return
 
@@ -498,13 +468,13 @@ const generateLiveFirmware = async (): Promise<boolean> => {
     return
   }
 
-  setFlashPanelOpen(false)
-  setFlashLog(
+  deviceConsole.openBuild(
     'Standalone ESP-IDF project exported successfully.\n' +
       'Export location: C:\\ForgeUI-Exports\n' +
       'Open the exported project in ESP-IDF.\n' +
       'Close this window when finished.\n',
   )
+  deviceConsole.collapse()
 
   toast({
     title: 'Standalone ESP-IDF Project Exported',
@@ -516,8 +486,7 @@ const generateLiveFirmware = async (): Promise<boolean> => {
 }
 
 const cleanBuildFlashForgeUIOne = async () => {
-  setFlashPanelOpen(true)
-  setFlashLog('Starting Clean Build & Flash...\n')
+  deviceConsole.openBuild('Starting Clean Build & Flash...\n')
 
   if (!(await generateLiveFirmware())) return
 
@@ -692,6 +661,21 @@ const cleanBuildFlashForgeUIOne = async () => {
   onClick={cleanBuildFlashForgeUIOne}
 >
   Clean Build & Flash
+</Button>
+<Button
+  size="sm"
+  h="32px"
+  px={3}
+  borderRadius="5px"
+  fontSize="12px"
+  leftIcon={<MdCode />}
+  variant="outline"
+  color="gray.200"
+  borderColor="#475569"
+  onClick={deviceConsole.toggle}
+  aria-expanded={deviceConsole.isOpen}
+>
+  Console
 </Button>
             </HStack>
 
@@ -988,74 +972,6 @@ if (data.defaultHero) {
 </Box>
         </Stack>
       </Flex>
-
-            {flashPanelOpen && (
-        <Box
-  position="fixed"
-  left="17rem"
-  right="18rem"
-  bottom="14px"
-  height="220px"
-  minHeight="118px"
-  maxHeight="70vh"
-  resize="vertical"
-  overflow="hidden"
-  bg="#05070a"
-  color="green.100"
-  border="1px solid #2dd4bf"
-  borderRadius="md"
-  zIndex={9999}
-  p={3}
-  boxShadow="0 0 20px rgba(0,0,0,0.6)"
->
-          <Flex justify="space-between" mb={2} align="center">
-            <Box fontWeight="bold">ForgeUI Flash Console</Box>
-
-            <HStack spacing={2}>
-              <Box fontSize="11px" color={flashRunning ? 'orange.300' : 'green.300'}>
-                {flashRunning ? 'RUNNING' : 'IDLE'}
-              </Box>
-
-              <Button size="xs" variant="outline" onClick={() => setFlashLog('')}>
-                Clear
-              </Button>
-
-              <Button
-                size="xs"
-                colorScheme="red"
-                onClick={async () => {
-                  await fetch('http://localhost:3030/flash-stop', { method: 'POST' })
-                  setFlashPanelOpen(false)
-                }}
-              >
-                Close / Stop
-              </Button>
-            </HStack>
-          </Flex>
-
-          <Box
-  ref={flashLogRef}
-  as="pre"
-  whiteSpace="pre-wrap"
-  overflowY="auto"
-  height="calc(100% - 42px)"
-  fontSize="11px"
-  fontFamily="Consolas, 'Courier New', monospace"
-  bg="#020304"
-  color="green.100"
-  p={2}
-  borderRadius="md"
-  cursor="text"
-  userSelect="text"
-  sx={{
-    userSelect: 'text',
-    WebkitUserSelect: 'text',
-  }}
->
-  {flashLog || 'Waiting for flash output...'}
-</Box>
-</Box>
-)}
 
             {previewOpen && (
   <Box

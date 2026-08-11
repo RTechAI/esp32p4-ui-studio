@@ -26,6 +26,10 @@ import {
   FORGEUI_OPEN_AI_PLAYGROUND_EVENT,
 } from '~forgeui/ForgeUINavigation'
 
+jest.mock('~forgeui/hardwareExamples/HardwareExamplesPanel', () => ({
+  HardwareExamplesPanel: () => <div>Hardware Examples</div>,
+}))
+
 const Dnd = DndProvider as React.ComponentType<
   React.PropsWithChildren<React.ComponentProps<typeof DndProvider>>
 >
@@ -74,6 +78,8 @@ describe('ForgeUI Widget Tray', () => {
     renderTray()
     expect(screen.getByTestId('widget-tray')).toHaveStyle({
       overflow: 'hidden',
+      height: '100%',
+      maxHeight: '100%',
     })
     const header = screen.getByTestId('widget-tray-header')
     const scroller = screen.getByTestId('widget-tray-scroll-region')

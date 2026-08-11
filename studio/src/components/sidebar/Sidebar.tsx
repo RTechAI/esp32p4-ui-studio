@@ -281,8 +281,8 @@ const Menu = () => {
   return (
     <DarkMode>
       <Box
-        height="calc(100vh - 3rem)"
-        maxH="calc(100vh - 3rem)"
+        height="100%"
+        maxH="100%"
         minHeight={0}
         overflow="hidden"
         boxShadow="xl"

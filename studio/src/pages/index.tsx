@@ -11,6 +11,8 @@ import EditorErrorBoundary from '~components/errorBoundaries/EditorErrorBoundary
 import Editor from '~components/editor/Editor'
 import { InspectorProvider } from '~contexts/inspector-context'
 import Inspector from '~components/inspector/Inspector'
+import DeviceConsoleDock from '~components/deviceConsole/DeviceConsoleDock'
+import { DeviceConsoleProvider } from '~contexts/device-console-context'
 
 const DndProviderWithChildren = DndProvider as React.ComponentType<
   React.PropsWithChildren<React.ComponentProps<typeof DndProvider>>
@@ -27,18 +29,47 @@ const App = () => {
         })}
       />
       <Metadata />
+      <DeviceConsoleProvider>
       <Header />
+      <Flex direction="column" h="calc(100vh - 3rem)" overflow="hidden">
       <DndProviderWithChildren backend={HTML5Backend}>
-        <Flex h="calc(100vh - 3rem)">
-          <Sidebar />
+        <Flex
+          data-testid="studio-workspace"
+          flex="1 1 auto"
+          minH={0}
+          height="100%"
+          overflow="hidden"
+          alignItems="stretch"
+        >
+          <Box
+            data-testid="studio-sidebar-column"
+            flex="0 0 15rem"
+            minH={0}
+            height="100%"
+            overflow="hidden"
+          >
+            <Sidebar />
+          </Box>
           <EditorErrorBoundary>
-            <Box bg="#020617" flex={1} position="relative">
+            <Box
+              data-testid="studio-canvas-column"
+              bg="#020617"
+              flex="1 1 auto"
+              minW={0}
+              minH={0}
+              height="100%"
+              position="relative"
+              overflow="hidden"
+            >
               <Editor />
             </Box>
           </EditorErrorBoundary>
 
           <Box
-           maxH="calc(100vh - 3rem)"
+           data-testid="studio-inspector-column"
+           height="100%"
+           minH={0}
+           maxH="100%"
            flex="0 0 15rem"
            bg="#111827"
            overflowY="auto"
@@ -51,6 +82,9 @@ const App = () => {
           </Box>
         </Flex>
       </DndProviderWithChildren>
+      <DeviceConsoleDock />
+      </Flex>
+      </DeviceConsoleProvider>
     </>
   )
 }
