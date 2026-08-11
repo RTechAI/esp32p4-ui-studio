@@ -41,11 +41,11 @@ Current architecture save point:
 Current ForgeUI Platform closure save point:
 `FORGEUI_V3_5_4__FOURTEEN_NATIVE_COMPONENTS__POWER_FLOW_HARDWARE_VALIDATED__NATIVE_PLATFORM_RUN_COMPLETE__READY_FOR_HARDWARE_IO_PROOF__2026-08-07`.
 
-**ForgeUI Studio is an open-source, AI-assisted visual HMI and embedded GUI designer for ESP32-P4.** It combines a drag-and-drop Canvas, reusable Interactive Assets, AI Layout tools, Browser Preview, native LVGL 9 generation, integrated ESP-IDF Build & Flash, and standalone ESP-IDF project export.
+**ForgeUI Studio is an open-source, AI-assisted visual embedded development platform for LVGL and ESP32-P4.** It retains its visual HMI and embedded GUI designer foundation while bringing more of the application loop into one workspace: native LVGL design, ESP-IDF build and flash, live serial monitoring, read-only hardware insight, and standalone ESP-IDF export.
 
 ForgeUI exists to shorten the path from an interface idea to editable embedded firmware without putting a web runtime on the device. The Studio is a development tool; exported interfaces compile as native LVGL C inside ESP-IDF.
 
-> Design visually. Generate native LVGL. Own the firmware.
+> Design visually. Build real firmware. Flash hardware. Debug it live.
 
 ## What makes ForgeUI different
 
@@ -112,6 +112,7 @@ standard chart. See [Trend Chart](docs/FORGEUI_TREND_CHART.md) and
 - Local conversion of artwork into LVGL-ready C assets
 - Client and server export validation
 - Integrated ESP-IDF Build & Flash
+- Studio-wide Device Console with BUILD, live raw MONITOR, and read-only I/O insight
 - Standalone ESP-IDF project export
 
 The active Registry contains only supported widgets. Legacy placeholder types
@@ -134,6 +135,8 @@ Browser Preview
 Generate native LVGL
         ↓
 Build and Flash with ESP-IDF
+        ↓
+Monitor raw serial output and inspect recognised hardware state
         ↓
 Develop the application or export a standalone project
 ```
@@ -315,6 +318,7 @@ The [ForgeUI Developer Portal](https://forgeui.co.nz/developers) is the public o
 | [07 — Runtime SDK Direction](07_FORGEUI_RUNTIME_SDK.md) | Long-term generated SDK concept and evolution rules |
 | [09 — Fi Runtime Guide](09_FORGEUI_FI_RUNTIME_GUIDE.md) | Canonical Fi pipeline, 90/95/96 ownership, generated presentation APIs and optional click hooks |
 | [10 — Native Component Runtime Guide](10_FORGEUI_NATIVE_COMPONENT_RUNTIME_GUIDE.md) | Living post-export reference for Native Component semantic APIs, UserEvents, ownership, task safety and hardware adapters |
+| [Device Console](docs/FORGEUI_DEVICE_CONSOLE.md) | BUILD output, ESP32 serial MONITOR, safe flash-port handoff, read-only I/O view, and troubleshooting |
 | [IO Monitor](docs/FORGEUI_IO_MONITOR.md) | Read-only IO Monitor configuration, Runtime SDK, interaction contract, and ESP32-P4 validation |
 | [Battery Card](docs/FORGEUI_BATTERY_CARD.md) | Read-only battery dashboard, semantic Runtime SDK, and ESP32-P4 proof |
 | [Tank Level Card](docs/FORGEUI_TANK_LEVEL_CARD.md) | Read-only tank telemetry, six semantic setters, duplicate isolation, and ESP32-P4 validation |

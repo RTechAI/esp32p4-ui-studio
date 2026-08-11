@@ -1,5 +1,18 @@
 # 04_FEATURE_STATUS.md
 
+## Device Console status — 2026-08-11
+
+| Capability | Status | Evidence boundary |
+|---|---|---|
+| Studio-wide Device Console shell/dock | **PROVEN** | Collapsible/resizable bottom dock physically reviewed in the ESP32-P4 workflow; Widgets, Canvas, and Inspector remain contained above it |
+| BUILD console integration | **PROVEN** | Existing ESP-IDF Build & Flash and Clean Build & Flash output, physical flash, and board reset confirmed |
+| Live Serial Monitor | **PROVEN** | Backend-owned COM5 connection at 115200 and live ESP32-P4 raw serial output displayed inside Studio |
+| Safe serial/flash COM handoff | **PROVEN** | Monitor release before flashing and previous-port reconnection after successful flash verified without changing the proven ESP-IDF commands |
+| Read-only I/O View | **IMPLEMENTED / TESTED** | Shared raw serial source, explicit-pattern parser, bounded/latest-state behavior, empty/error states, and regression tests; live I/O-view physical proof not yet recorded |
+| Structured ForgeUI telemetry protocol | **FUTURE / NOT IMPLEMENTED** | No firmware telemetry protocol exists; I/O currently interprets explicit existing log text only |
+
+See [ForgeUI Device Console](docs/FORGEUI_DEVICE_CONSOLE.md) for usage, ownership boundaries, troubleshooting, and exact proof wording.
+
 ## Hardware Examples physical proof — 2026-08-10
 
 - Hardware Example 01 — GPIO Digital I/O: **PHYSICALLY PROVEN**.

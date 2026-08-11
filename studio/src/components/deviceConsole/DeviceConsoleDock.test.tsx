@@ -18,14 +18,16 @@ const renderConsole = () => render(<ChakraProvider><DeviceConsoleProvider><Harne
 
 describe('DeviceConsoleDock', () => {
   let monitorConnected = false
+  let serialLog = ''
   beforeEach(() => {
     monitorConnected = false
+    serialLog = ''
     global.fetch = jest.fn(async (input: RequestInfo) => {
       const url = String(input)
       if (url.endsWith('/serial/ports')) return { ok: true, json: async () => ({ ok: true, ports: [{ path: 'COM5', manufacturer: 'Espressif' }] }) }
-      if (url.endsWith('/serial/start')) { monitorConnected = true; return { ok: true, json: async () => ({ ok: true, state: 'connected', connected: true, port: 'COM5', baud: 115200 }) } }
+      if (url.endsWith('/serial/start')) { monitorConnected = true; serialLog = 'ESP-ROM\nI APP_MAIN: WiFi: CONNECTED | IP: 192.168.1.194 | SD: READY\nGPIO 2: HIGH'; return { ok: true, json: async () => ({ ok: true, state: 'connected', connected: true, port: 'COM5', baud: 115200 }) } }
       if (url.endsWith('/serial/stop')) { monitorConnected = false; return { ok: true, json: async () => ({ ok: true, state: 'disconnected', connected: false, port: 'COM5', baud: 115200 }) } }
-      if (url.endsWith('/serial/log')) return { ok: true, json: async () => ({ ok: true, state: monitorConnected ? 'connected' : 'disconnected', connected: monitorConnected, port: monitorConnected ? 'COM5' : null, baud: 115200, log: monitorConnected ? 'ESP-ROM\nI (26) boot' : '' }) }
+      if (url.endsWith('/serial/log')) return { ok: true, json: async () => ({ ok: true, state: monitorConnected ? 'connected' : 'disconnected', connected: monitorConnected, port: monitorConnected ? 'COM5' : 'COM5', baud: 115200, log: serialLog }) }
       return { ok: true, json: async () => ({ ok: true, log: '', running: false }) }
     }) as jest.Mock
   })
@@ -42,7 +44,7 @@ describe('DeviceConsoleDock', () => {
     expect(screen.queryByTestId('device-console-dock')).not.toBeInTheDocument()
   })
 
-  it('auto-opens BUILD and renders real MONITOR controls plus the I/O placeholder', async () => {
+  it('shares raw MONITOR data with the read-only I/O view without stopping serial', async () => {
     renderConsole()
     fireEvent.click(screen.getByRole('button', { name: 'Build & Flash' }))
     expect(screen.getByTestId('build-console-output')).toHaveTextContent('Starting Build & Flash...')
@@ -53,14 +55,31 @@ describe('DeviceConsoleDock', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Connect' }))
     await waitFor(() => expect(global.fetch).toHaveBeenCalledWith('http://localhost:3030/serial/start', expect.objectContaining({ method: 'POST' })))
     await waitFor(() => expect(screen.getByTestId('monitor-console-output')).toHaveTextContent('ESP-ROM'))
-    fireEvent.click(screen.getByRole('button', { name: 'Disconnect' }))
-    await waitFor(() => expect(global.fetch).toHaveBeenCalledWith('http://localhost:3030/serial/stop', { method: 'POST' }))
+    fireEvent.click(screen.getByRole('button', { name: 'I/O' }))
+    expect(await screen.findByText('NETWORK')).toBeInTheDocument()
+    expect(screen.getByText('192.168.1.194')).toBeInTheDocument()
+    expect(screen.getByText('GPIO 2')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Connect' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Disconnect' })).not.toBeInTheDocument()
+    expect(global.fetch).not.toHaveBeenCalledWith('http://localhost:3030/serial/stop', expect.anything())
+    fireEvent.click(screen.getByRole('button', { name: 'MONITOR' }))
+    expect(screen.getByTestId('monitor-console-output')).toHaveTextContent('WiFi: CONNECTED')
     fireEvent.click(screen.getByRole('button', { name: 'Clear' }))
     await waitFor(() => expect(global.fetch).toHaveBeenCalledWith('http://localhost:3030/serial/clear', { method: 'POST' }))
-    fireEvent.click(screen.getByRole('button', { name: 'I/O' }))
-    expect(screen.getByText('Live ForgeUI hardware telemetry coming next')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Disconnect' }))
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledWith('http://localhost:3030/serial/stop', { method: 'POST' }))
     fireEvent.click(screen.getByRole('button', { name: 'BUILD' }))
     expect(screen.getByTestId('build-console-output')).toBeInTheDocument()
+  })
+
+  it('shows a clear disconnected empty state without duplicating MONITOR controls', async () => {
+    renderConsole()
+    fireEvent.click(screen.getByRole('button', { name: 'Console' }))
+    fireEvent.click(screen.getByRole('button', { name: 'I/O' }))
+    expect(await screen.findByText('No structured I/O telemetry detected yet.')).toBeInTheDocument()
+    expect(screen.getByText(/Connect MONITOR to receive live I\/O data/)).toBeInTheDocument()
+    expect(screen.queryByRole('combobox', { name: 'Serial port' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Connect' })).not.toBeInTheDocument()
   })
 
   it('keeps clear, stop, and collapse as distinct actions', async () => {

@@ -1,5 +1,9 @@
 # Project Spine: what ForgeUI is, what is proven, current priorities, and what must not regress..
 
+## Device Console authority — 2026-08-11
+
+ForgeUI Studio now combines its visual LVGL designer with a broader embedded loop: **DESIGN → BUILD → FLASH → MONITOR → INSPECT HARDWARE**. The Studio-wide Device Console provides proven BUILD integration and a physically proven backend-owned live serial MONITOR. Its I/O tab is a read-only projection of explicit patterns from the same raw serial source and is **IMPLEMENTED / TESTED**, not yet physically proven as a live structured view. I/O owns no port, sends no commands, changes no firmware, and must never interfere with Build/Flash. The authoritative user and troubleshooting guide is [`docs/FORGEUI_DEVICE_CONSOLE.md`](docs/FORGEUI_DEVICE_CONSOLE.md).
+
 ## Connected-services authority — 2026-08-09
 
 [`12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md`](12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md) is the authoritative networking reference. The Waveshare 7B connected runtime is physically proven with the stock C6, ESP-IDF 5.5.4, `esp_hosted` 1.4.7, `esp_wifi_remote` 0.14.5, four-bit 40 MHz streaming SDIO, certificate-verified HTTPS and SNTP. Hardware Example 04 — Online Services — Live Weather is **PHYSICALLY PROVEN**. This is reusable platform capability for future REST, MQTT, telemetry and time-service integrations; those protocols are not claimed implemented until separately delivered and proven.

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Box, Button, Flex, HStack, Select, Switch, Text } from '@chakra-ui/react'
 import { DeviceConsoleTab, useDeviceConsole } from '~contexts/device-console-context'
+import DeviceIOView from './DeviceIOView'
 
 const tabs: Array<{ id: DeviceConsoleTab; label: string }> = [
   { id: 'build', label: 'BUILD' }, { id: 'monitor', label: 'MONITOR' }, { id: 'io', label: 'I/O' },
@@ -62,7 +63,7 @@ const DeviceConsoleDock = () => {
         {state.monitorError && <Box px={3} py={1} fontSize="xs" bg="red.900" color="red.100">{state.monitorError}</Box>}
         <Box ref={monitorLogRef} as="pre" data-testid="monitor-console-output" whiteSpace="pre-wrap" overflowY="auto" flex="1 1 auto" minH={0} fontSize="11px" fontFamily="Consolas, 'Courier New', monospace" bg="#020304" color="green.100" p={2} cursor="text" userSelect="text">{state.monitorLog || 'Waiting for serial output...'}</Box>
       </Flex>}
-      {state.activeTab === 'io' && <Flex height="100%" align="center" justify="center" color="gray.400">Live ForgeUI hardware telemetry coming next</Flex>}
+      {state.activeTab === 'io' && <DeviceIOView />}
     </Box>
   </Box>
 }

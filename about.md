@@ -1,10 +1,12 @@
 # 🛠️ ForgeUI Studio 
 
-An open-source **AI-assisted embedded application generation platform** for **ESP32-P4**, combining visual design, semantic runtime APIs, native LVGL v9 generation and standalone ESP-IDF deployment in one engineering workflow.
+An open-source **AI-assisted visual embedded development platform for LVGL and ESP32-P4**, combining visual design, semantic runtime APIs, native LVGL v9 generation, ESP-IDF build and flash, live serial monitoring, read-only hardware insight, and standalone deployment in one engineering workflow.
 
 **Visual UI Designer, Low-Code HMI Layout Engine, Offline Asset Pipeline, and Automated Firmware Deployment Studio** engineered explicitly for the high-performance **Espressif ESP32-P4** SoC running native **LVGL v9** and **ESP-IDF**.
 
 ForgeUI Studio bridges the gap between high-level browser-based design and production-ready embedded applications. It can produce AI-generated interfaces, reusable runtime widgets, generated platform services, semantic LVGL APIs, Browser Preview, independent ESP-IDF projects and physically validated ESP32-P4 firmware.
+
+**Design visually. Build real firmware. Flash hardware. Debug it live.** ForgeUI brings more of that loop into the visual workspace without claiming to replace ESP-IDF, Visual Studio Code, or a full general-purpose IDE.
 
 ForgeUI is organized into five separate platform layers with clear ownership:
 
@@ -308,11 +310,17 @@ The physically proven Hosted Connectivity Runtime uses ESP-Hosted with the ESP32
 
 ### Toolchain Automation
 
-* **One-Click Build & Flash** — Build, flash and monitor firmware directly from ForgeUI Studio.
+* **One-Click Build & Flash** — Build and flash firmware through the proven ESP-IDF pipeline directly from ForgeUI Studio.
 
 * **Firmware Maintenance Tools** — Clean generated assets, regenerate project files, refresh CMake and perform clean ESP-IDF builds.
 
-* **Integrated Flash Console** — Stream live build output, compiler diagnostics and runtime logs directly inside the Studio.
+* **ForgeUI Device Console** — Use the Studio-wide BUILD, MONITOR, and I/O bottom dock below the complete design workspace.
+
+* **Live Serial Monitor** — Enumerate Windows COM ports, connect at 115200 by default, and view unchanged raw ESP32 output through one backend-owned serial connection.
+
+* **Safe Flash Handoff** — Release the connected monitor before flashing and reconnect it after a successful flash without competing for the COM port.
+
+* **Read-Only I/O View** — Present recognised explicit runtime values from the same serial log without opening another connection, controlling hardware, or changing firmware. This view is implemented and test-covered; physical live I/O-view proof is not yet claimed.
 
 ---
 

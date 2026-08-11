@@ -299,6 +299,18 @@ It mirrors the generated firmware as closely as possible while providing instant
 
 ---
 
+# Device Console
+
+Use the compact **Console** toolbar control to open the collapsible, resizable bottom dock below Widgets, Canvas, and Inspector. The console is a Studio tool and is never exported as part of the designed UI.
+
+- **BUILD** shows the existing ESP-IDF Build & Flash output and opens automatically when a build starts.
+- **MONITOR** connects through the local ForgeUI backend to a selected Windows COM port. The default baud is 115200; raw device output remains unchanged.
+- **I/O** is a read-only summary of explicit values recognised in that same serial output. It does not control hardware or own another serial connection.
+
+When MONITOR is connected, ForgeUI releases the port before Build & Flash, waits for closure, and attempts to reconnect after a successful flash. See the [Device Console guide](docs/FORGEUI_DEVICE_CONSOLE.md) for complete controls and troubleshooting.
+
+---
+
 # Exporting
 
 ForgeUI supports two workflows.

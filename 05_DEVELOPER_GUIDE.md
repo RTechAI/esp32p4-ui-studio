@@ -61,6 +61,28 @@ LVGL C, not a browser runtime. Live Build & Flash and Standalone Export consume
 the same project model and generator. A feature is not complete if those paths
 diverge.
 
+### Device Console architecture
+
+The Studio-wide Device Console extends the development workflow without changing generated firmware ownership:
+
+```text
+Studio UI
+   |
+Device Console Context
+   |
+Local ForgeUI Backend
+   |
+   +-- existing ESP-IDF Build / Flash process
+   |
+   +-- one Serial Monitor Service / COM owner
+             |
+             +-- authoritative raw MONITOR output
+             |
+             +-- read-only client-side I/O parser and latest-state view
+```
+
+MONITOR and I/O deliberately share one bounded serial source. I/O never opens, closes, or writes to a port and must remain unable to affect Build/Flash. Before either flash path starts, the backend waits for an active monitor port to close; after a successful flash it may reconnect the prior port and baud. A reconnect error is separate from the completed flash result. See [ForgeUI Device Console](docs/FORGEUI_DEVICE_CONSOLE.md).
+
 For asset-backed projects, the real lifecycle is: load, materialize required conversions, perform applicable cleanup, collect actual dependencies, verify existence, run strict validation, generate, build, then flash only on an explicit Build & Flash action. `assets/...` is canonical relative to `firmware/ForgeUI-One/main` and retains that structure in standalone export. Cleanup preserves permanent Studio sources and committed permanent derived assets. Ephemeral Fi conversions may be removed only when authoritative rematerialization is guaranteed before validation. Never weaken missing-generated-C refusal or substitute a placeholder.
 
 ### Ownership
@@ -74,6 +96,7 @@ For asset-backed projects, the real lifecycle is: load, materialize required con
 | Browser simulation | shared preview components | Visual/interaction parity, not hardware truth |
 | Native generation | `ForgeUILvglExport.ts` | One live/Standalone generator |
 | Export materialization | `studio/export-server.js` | Files, manifests, feature pruning and merge |
+| Device Console | Context plus local backend | BUILD owns process presentation; one backend service owns serial; I/O is read-only projection |
 | Generated UI | `90_Studio_Export.c/.h` | Replaceable |
 | Application hooks | `95_UserEvents.c/.h` | Preservation-merged live; developer-owned standalone |
 | Fi Icon presentation runtime | `96_FiRuntime.c/.h` | Generated and replaceable; call its APIs but keep permanent logic elsewhere |

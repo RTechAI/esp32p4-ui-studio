@@ -1,5 +1,18 @@
 # Developer Code Map: where features live, who owns each layer, and which files are authoritative
 
+## Device Console ownership map — 2026-08-11
+
+| Layer | Authoritative source | Responsibility |
+|---|---|---|
+| Shell placement | `studio/src/pages/index.tsx` | Places the dock below the complete Widgets/Canvas/Inspector workspace |
+| Shared UI state | `studio/src/contexts/device-console-context.tsx` | One active BUILD or serial polling path and tab state |
+| Dock presentation | `studio/src/components/deviceConsole/DeviceConsoleDock.tsx` | BUILD and MONITOR controls, tabs, collapse, and resize |
+| Read-only I/O | `DeviceIOView.tsx`, `ForgeUIIOLogParser.ts` | Latest-state projection from raw MONITOR text; no serial ownership |
+| Serial owner | `studio/serial-monitor-service.js` | One bounded backend-owned serial connection and raw log |
+| Build/flash handoff | `studio/export-server.js` | Releases MONITOR before the unchanged flash scripts and reconnects after success |
+
+MONITOR is authoritative raw output. I/O shares that source and cannot open, close, or write a COM port. See [`docs/FORGEUI_DEVICE_CONSOLE.md`](docs/FORGEUI_DEVICE_CONSOLE.md).
+
 ## Connected-services authority
 
 See [`12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md`](12_FORGEUI_ESP32P4_WIFI_HOSTED_ARCHITECTURE.md) for the authoritative Waveshare 7B Hosted Wi-Fi, startup, cached-state, DMA and TLS architecture. `30_WIFI.c` owns cached network state and the explicit startup connection; board profiles and `export-server.js` own the user-invisible component, SDIO and memory configuration. Hardware Example 04 consumes this reusable service without owning the transport.

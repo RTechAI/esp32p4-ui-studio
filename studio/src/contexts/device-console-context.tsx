@@ -48,12 +48,12 @@ export const DeviceConsoleProvider = ({ children }: React.PropsWithChildren<{}>)
 
   useEffect(() => {
     if (!isOpen) return
-    const endpoint = activeTab === 'monitor' ? '/serial/log' : '/flash-log'
+    const endpoint = activeTab === 'build' ? '/flash-log' : '/serial/log'
     const poll = async () => {
       try {
         const response = await fetch(`${backend}${endpoint}`)
         const data = await response.json()
-        if (activeTab === 'monitor') applyMonitor(data)
+        if (activeTab !== 'build') applyMonitor(data)
         else { setLog(data.log || ''); setRunning(Boolean(data.running)) }
       } catch (error) { console.error(error) }
     }
