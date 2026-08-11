@@ -17,8 +17,17 @@ const Harness = () => {
 const renderConsole = () => render(<ChakraProvider><DeviceConsoleProvider><Harness /></DeviceConsoleProvider></ChakraProvider>)
 
 describe('DeviceConsoleDock', () => {
+  let monitorConnected = false
   beforeEach(() => {
-    global.fetch = jest.fn().mockResolvedValue({ json: async () => ({ log: '', running: false }) }) as jest.Mock
+    monitorConnected = false
+    global.fetch = jest.fn(async (input: RequestInfo) => {
+      const url = String(input)
+      if (url.endsWith('/serial/ports')) return { ok: true, json: async () => ({ ok: true, ports: [{ path: 'COM5', manufacturer: 'Espressif' }] }) }
+      if (url.endsWith('/serial/start')) { monitorConnected = true; return { ok: true, json: async () => ({ ok: true, state: 'connected', connected: true, port: 'COM5', baud: 115200 }) } }
+      if (url.endsWith('/serial/stop')) { monitorConnected = false; return { ok: true, json: async () => ({ ok: true, state: 'disconnected', connected: false, port: 'COM5', baud: 115200 }) } }
+      if (url.endsWith('/serial/log')) return { ok: true, json: async () => ({ ok: true, state: monitorConnected ? 'connected' : 'disconnected', connected: monitorConnected, port: monitorConnected ? 'COM5' : null, baud: 115200, log: monitorConnected ? 'ESP-ROM\nI (26) boot' : '' }) }
+      return { ok: true, json: async () => ({ ok: true, log: '', running: false }) }
+    }) as jest.Mock
   })
 
   it('is hidden by default and the Console control toggles it without changing document dimensions', () => {
@@ -33,12 +42,21 @@ describe('DeviceConsoleDock', () => {
     expect(screen.queryByTestId('device-console-dock')).not.toBeInTheDocument()
   })
 
-  it('auto-opens BUILD with launch output and switches placeholder tabs', () => {
+  it('auto-opens BUILD and renders real MONITOR controls plus the I/O placeholder', async () => {
     renderConsole()
     fireEvent.click(screen.getByRole('button', { name: 'Build & Flash' }))
     expect(screen.getByTestId('build-console-output')).toHaveTextContent('Starting Build & Flash...')
     fireEvent.click(screen.getByRole('button', { name: 'MONITOR' }))
-    expect(screen.getByText('Serial monitor coming next')).toBeInTheDocument()
+    expect(await screen.findByRole('option', { name: 'COM5 — Espressif' })).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'Baud rate' })).toHaveValue('115200')
+    fireEvent.change(screen.getByRole('combobox', { name: 'Serial port' }), { target: { value: 'COM5' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Connect' }))
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledWith('http://localhost:3030/serial/start', expect.objectContaining({ method: 'POST' })))
+    await waitFor(() => expect(screen.getByTestId('monitor-console-output')).toHaveTextContent('ESP-ROM'))
+    fireEvent.click(screen.getByRole('button', { name: 'Disconnect' }))
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledWith('http://localhost:3030/serial/stop', { method: 'POST' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Clear' }))
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledWith('http://localhost:3030/serial/clear', { method: 'POST' }))
     fireEvent.click(screen.getByRole('button', { name: 'I/O' }))
     expect(screen.getByText('Live ForgeUI hardware telemetry coming next')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'BUILD' }))

@@ -2,6 +2,8 @@ const express = require('express')
 const fs = require('fs')
 const path = require('path')
 const { spawn, spawnSync } = require('child_process')
+const { SerialPort } = require('serialport')
+const { SerialMonitorService } = require('./serial-monitor-service')
 const forgeUIStudioAssets = require('./forgeui-studio-assets.json')
 
 const defaultHeroFileName =
@@ -17,6 +19,7 @@ const app = express()
 
 let currentProcess = null
 let flashLog = []
+const serialMonitor = new SerialMonitorService({ SerialPort })
 
 function addLog(line) {
   const text = String(line)
@@ -29,7 +32,7 @@ function addLog(line) {
   process.stdout.write(text)
 }
 
-function runScript(scriptPath, res) {
+async function runScript(scriptPath, res) {
   if (currentProcess) {
     return res.status(409).json({
       ok: false,
@@ -37,7 +40,16 @@ function runScript(scriptPath, res) {
     })
   }
 
+  const monitorBeforeFlash = serialMonitor.status()
   flashLog = []
+  if (monitorBeforeFlash.connected) {
+    try {
+      await serialMonitor.stop()
+    } catch (error) {
+      addLog(`Unable to release ${monitorBeforeFlash.port} before flash: ${String(error.message || error)}\n`)
+      return res.status(409).json({ ok: false, error: serialMonitor.status().error })
+    }
+  }
   addLog(`Starting: ${scriptPath}\n`)
 
   currentProcess = spawn('cmd.exe', ['/c', scriptPath], {
@@ -48,9 +60,17 @@ function runScript(scriptPath, res) {
   currentProcess.stdout.on('data', (data) => addLog(data))
   currentProcess.stderr.on('data', (data) => addLog(data))
 
-  currentProcess.on('close', (code) => {
+  currentProcess.on('close', async (code) => {
     addLog(`\nProcess exited with code ${code}\n`)
     currentProcess = null
+    if (code === 0 && monitorBeforeFlash.connected) {
+      try {
+        await serialMonitor.start(monitorBeforeFlash.port, monitorBeforeFlash.baud)
+      } catch (error) {
+        serialMonitor.error = `Flash succeeded; monitor reconnect failed: ${String(error.message || error)}`
+        serialMonitor.state = 'error'
+      }
+    }
   })
 
   currentProcess.on('error', (err) => {
@@ -2976,15 +2996,34 @@ app.post('/open-exports', (req, res) => {
   }
 })
 
-app.post('/flash', (req, res) => {
+app.post('/flash', async (req, res) => {
   const flashScript = path.resolve(__dirname, '../tools/flash-p4.bat')
-  runScript(flashScript, res)
+  await runScript(flashScript, res)
 })
 
-app.post('/clean-flash', (req, res) => {
+app.post('/clean-flash', async (req, res) => {
   const flashScript = path.resolve(__dirname, '../tools/clean-flash-p4.bat')
-  runScript(flashScript, res)
+  await runScript(flashScript, res)
 })
+
+app.get('/serial/ports', async (req, res) => {
+  try { res.json({ ok: true, ports: await serialMonitor.list() }) }
+  catch (error) { res.status(500).json({ ok: false, error: String(error.message || error), ports: [] }) }
+})
+
+app.post('/serial/start', async (req, res) => {
+  try { res.json({ ok: true, ...(await serialMonitor.start(req.body.port, req.body.baud)) }) }
+  catch (error) { res.status(409).json({ ok: false, ...serialMonitor.status(), error: String(error.message || error) }) }
+})
+
+app.post('/serial/stop', async (req, res) => {
+  try { res.json({ ok: true, ...(await serialMonitor.stop()) }) }
+  catch (error) { res.status(500).json({ ok: false, error: String(error.message || error) }) }
+})
+
+app.post('/serial/clear', (req, res) => { serialMonitor.clear(); res.json({ ok: true }) })
+app.get('/serial/status', (req, res) => res.json({ ok: true, ...serialMonitor.status() }))
+app.get('/serial/log', (req, res) => res.json({ ok: true, ...serialMonitor.snapshot() }))
 
 app.post('/flash-stop', (req, res) => {
   if (!currentProcess) {
@@ -3040,8 +3079,10 @@ app.post('/restart-forgeui', (req, res) => {
   }
 })
 
-app.post('/shutdown', (req, res) => {
+app.post('/shutdown', async (req, res) => {
   console.log('Shutdown requested from browser')
+
+  await serialMonitor.stop()
 
   res.json({ ok: true })
 
@@ -3082,4 +3123,6 @@ module.exports = {
   generateHardwareExampleHeader,
   applyHardwareExampleBuildRequirements,
   validateExportPayload,
+  runScript,
+  serialMonitor,
 }
