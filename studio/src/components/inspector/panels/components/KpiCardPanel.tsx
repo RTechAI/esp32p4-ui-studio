@@ -1,14 +1,14 @@
 import React from 'react'
 import { Checkbox, FormControl, FormLabel, Input, Select, Stack, Text } from '@chakra-ui/react'
 import { useForm } from '~hooks/useForm'
-import usePropsSelector from '~hooks/usePropsSelector'
+import { useSelectedComponentProps } from '~hooks/useSelectedComponentProps'
 import { normalizeForgeUIKpiCard } from '~forgeui/ForgeUIKpiCard'
 import { INSPECTOR_PROPERTY_TEXT_COLOR } from '~components/inspector/controls/FormControl'
 
 export const KpiCardPanel = () => {
   const { setValue } = useForm()
   const keys = ['title','value','unit','secondaryText','trendText','trendState','status','targetText','showSecondary','showTrend','showTarget','neutralColour','goodColour','warningColour','criticalColour','generateRuntimeApi']
-  const model = normalizeForgeUIKpiCard(Object.fromEntries(keys.map(key => [key, usePropsSelector(key)])))
+  const model = normalizeForgeUIKpiCard(useSelectedComponentProps(keys))
   const input = (label: string, key: string, value: string) => <FormControl><FormLabel fontSize="xs">{label}</FormLabel><Input size="sm" value={value} onChange={event => setValue(key, event.target.value)}/></FormControl>
   const toggle = (label: string, key: string, value: boolean) => <Checkbox isChecked={value} onChange={event => setValue(key, event.target.checked)}>{label}</Checkbox>
   return <Stack spacing={3} color={INSPECTOR_PROPERTY_TEXT_COLOR}><Text fontSize="sm" fontWeight="bold">ForgeUI Native KPI Card</Text>

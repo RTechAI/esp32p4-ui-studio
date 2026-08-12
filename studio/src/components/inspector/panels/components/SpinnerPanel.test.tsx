@@ -3,21 +3,21 @@ import { render, screen } from '@testing-library/react'
 import SpinnerPanel from './SpinnerPanel'
 
 jest.mock('~components/inspector/controls/NumberControl', () =>
-  ({ name, label }: { name: string; label: string }) => (
+  function MockNumberControl({ name, label }: { name: string; label: string }) { return (
     <label>
       {label}
       <input aria-label={label} name={name} />
     </label>
-  ),
+  ) },
 )
 
 jest.mock('~components/inspector/controls/ColorsControl', () =>
-  ({ name, label }: { name: string; label: string }) => (
+  function MockColorsControl({ name, label }: { name: string; label: string }) { return (
     <label>
       {label}
       <input aria-label={label} name={name} />
     </label>
-  ),
+  ) },
 )
 
 describe('Native Spinner Inspector', () => {

@@ -8,6 +8,7 @@ const values: Record<string, unknown> = { units: 'RPM', autoScale: true, showGri
   compactMode: false, generateRuntimeApi: true, enableUserEvents: true }
 jest.mock('~hooks/useForm', () => ({ useForm: () => ({ setValue: jest.fn() }) }))
 jest.mock('~hooks/usePropsSelector', () => (name: string) => values[name])
+jest.mock('~hooks/useSelectedComponentProps', () => ({ useSelectedComponentProps: (names: string[]) => Object.fromEntries(names.map(name => [name, values[name]])) }))
 
 test('Trend Chart Pro Inspector exposes semantic groups and properties', () => {
   render(<ChakraProvider><TrendChartProPanel /></ChakraProvider>)

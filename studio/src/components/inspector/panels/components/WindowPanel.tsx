@@ -1,13 +1,19 @@
 import React from 'react'
 import { Button, Checkbox, HStack, Input, NumberInput, NumberInputField, Select, Stack, Text } from '@chakra-ui/react'
 import { useForm } from '~hooks/useForm'
-import usePropsSelector from '~hooks/usePropsSelector'
+import { useSelectedComponentProps } from '~hooks/useSelectedComponentProps'
 import { normalizeWindowActions } from '~forgeui/ForgeUIWindow'
 
 export const WindowPanel = () => {
   const { setValue } = useForm()
-  const value = (name: string, fallback?: any) => usePropsSelector(name) ?? fallback
-  const actions = normalizeWindowActions(usePropsSelector('actionButtons'))
+  const props = useSelectedComponentProps([
+    'title', 'titleAlign', 'showIcon', 'titleIcon', 'headerHeight',
+    'headerBackground', 'headerTextColor', 'showCloseButton', 'actionButtons',
+    'contentBackground', 'contentPadding', 'scrollingEnabled', 'scrollbarMode',
+    'childClipping', 'borderWidth', 'borderColor', 'cornerRadius',
+  ])
+  const value = (name: string, fallback?: any) => props[name] ?? fallback
+  const actions = normalizeWindowActions(props.actionButtons)
   return <Stack spacing={3}>
     <Text fontSize="sm" fontWeight="bold">Header</Text>
     <Input size="sm" aria-label="Window title" value={value('title', 'Window')} onChange={e => setValue('title', e.target.value)} />

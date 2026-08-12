@@ -8,7 +8,10 @@ const archiver = require('archiver')
 process.env.FORGEUI_RUNTIME_MODE = 'hosted'
 const { materializeStandaloneProject, safeProjectName, shouldCopyFirmwareSource } = require('./export-server')
 
-const TEMPLATE_DIR = path.resolve(__dirname, '../firmware/ForgeUI-One')
+const STUDIO_ROOT = path.resolve(process.env.FORGEUI_STUDIO_ROOT || process.cwd())
+const REPOSITORY_ROOT = path.resolve(process.env.FORGEUI_REPOSITORY_ROOT || path.join(STUDIO_ROOT, '..'))
+const TEMPLATE_DIR = path.resolve(process.env.FORGEUI_TEMPLATE_DIR || path.join(REPOSITORY_ROOT, 'firmware/ForgeUI-One'))
+const TOOLS_ROOT = path.resolve(process.env.FORGEUI_TOOLS_ROOT || path.join(REPOSITORY_ROOT, 'tools'))
 const WORK_ROOT = path.resolve(process.env.FORGEUI_TEMP_ROOT || path.join(os.tmpdir(), 'forgeui'))
 const MAX_ASSETS = 32
 const MAX_ASSET_BYTES = 8 * 1024 * 1024
@@ -124,11 +127,11 @@ function convertHostedImage(body) {
     fs.mkdirSync(output)
     fs.writeFileSync(input, bytes)
     const python = process.env.FORGEUI_PYTHON || (process.platform === 'win32' ? 'python' : 'python3')
-    const preprocess = spawnSync(python, [path.resolve(__dirname, '../tools/ForgeUIImagePreprocessor.py'), input,
+    const preprocess = spawnSync(python, [path.join(TOOLS_ROOT, 'ForgeUIImagePreprocessor.py'), input,
       String(body.assetMode || 'image'), String(Number(body.width || 0)), String(Number(body.height || 0))],
       { timeout: 30000, windowsHide: true, encoding: 'utf8' })
     if (preprocess.error || preprocess.status !== 0) throw new Error('Image preprocessing failed')
-    const conversion = spawnSync(python, [path.resolve(__dirname, '../tools/lvgl/LVGLImage.py'), '--ofmt', 'C', '--cf',
+    const conversion = spawnSync(python, [path.join(TOOLS_ROOT, 'lvgl/LVGLImage.py'), '--ofmt', 'C', '--cf',
       'ARGB8888', '--output', output, '--name', symbol, input],
       { timeout: 30000, windowsHide: true, encoding: 'utf8' })
     const cFile = path.join(output, `${symbol}.c`)

@@ -1,7 +1,7 @@
 import React from 'react'
 import { Checkbox, FormControl, FormLabel, Input, NumberInput, NumberInputField, Select, SimpleGrid, Stack, Text, Textarea } from '@chakra-ui/react'
 import { useForm } from '~hooks/useForm'
-import usePropsSelector from '~hooks/usePropsSelector'
+import { useSelectedComponentProps } from '~hooks/useSelectedComponentProps'
 import { getForgeUIStandardChartModel } from '~forgeui/ForgeUIStandardChart'
 import { INSPECTOR_PROPERTY_TEXT_COLOR } from '~components/inspector/controls/FormControl'
 
@@ -15,7 +15,7 @@ export const TrendChartPanel = () => {
     'seriesColor','warningColor','alarmColor','showGrid','showAxisLabels','showThresholds',
     'warningThreshold','alarmThreshold','horizontalDivisions','updateRateMs','simulateValues',
     'simulatedMinimum','simulatedMaximum','updateMode','generateRuntimeApi']
-  const props = Object.fromEntries(names.map(name => [name, usePropsSelector(name)]))
+  const props = useSelectedComponentProps(names)
   const model = getForgeUIStandardChartModel(props)
   const input = (label: string, name: string, value: string) => <FormControl><FormLabel {...labelProps}>{label}</FormLabel><Input size="sm" value={value} onChange={e => setValue(name, e.target.value)} /></FormControl>
   const number = (label: string, name: string, value: number, min?: number) => <FormControl><FormLabel {...labelProps}>{label}</FormLabel><NumberInput size="sm" min={min} value={value} onChange={(_, n) => Number.isFinite(n) && setValue(name, n)}><NumberInputField /></NumberInput></FormControl>

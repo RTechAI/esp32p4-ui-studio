@@ -1,4 +1,4 @@
-import { buildGenerationPrompt } from './forgeui-ai-hero'
+import { buildGenerationPrompt } from '../../pages/api/forgeui-ai-hero'
 
 it('specifies the fixed Three-Position top, middle and bottom row order', () => {
   const prompt = buildGenerationPrompt(

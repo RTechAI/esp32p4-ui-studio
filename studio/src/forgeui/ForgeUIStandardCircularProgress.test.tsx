@@ -11,7 +11,7 @@ const BrowserPreview = ({
 }: {
   root: IComponent
   components: Record<string, IComponent>
-}) => renderForgePreview({ component: root, components })
+}) => <>{renderForgePreview({ component: root, components })}</>
 
 const circularProgress = (): IComponent => ({
   id: 'circular',

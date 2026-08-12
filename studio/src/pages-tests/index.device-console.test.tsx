@@ -2,17 +2,17 @@ import React from 'react'
 import { ChakraProvider, Button } from '@chakra-ui/react'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { useDeviceConsole } from '~contexts/device-console-context'
-import App from './index'
+import App from '../pages/index'
 
 jest.mock('~hooks/useShortcuts', () => () => undefined)
-jest.mock('~components/Metadata', () => () => null)
+jest.mock('~components/Metadata', () => function MockMetadata() { return null })
 jest.mock('react-dnd', () => ({ DndProvider: ({ children }: any) => children }))
 jest.mock('react-dnd-html5-backend', () => ({ HTML5Backend: {} }))
-jest.mock('~components/sidebar/Sidebar', () => () => <aside>Widgets</aside>)
-jest.mock('~components/editor/Editor', () => () => <div data-testid="design-canvas" data-width="1024" data-height="600">Canvas</div>)
-jest.mock('~components/inspector/Inspector', () => () => <aside>Inspector</aside>)
+jest.mock('~components/sidebar/Sidebar', () => function MockSidebar() { return <aside>Widgets</aside> })
+jest.mock('~components/editor/Editor', () => function MockEditor() { return <div data-testid="design-canvas" data-width="1024" data-height="600">Canvas</div> })
+jest.mock('~components/inspector/Inspector', () => function MockInspector() { return <aside>Inspector</aside> })
 jest.mock('~components/errorBoundaries/EditorErrorBoundary', () => ({ children }: any) => children)
-jest.mock('~components/Header', () => () => {
+jest.mock('~components/Header', () => function MockHeader() {
   const state = useDeviceConsole()
   return <Button onClick={() => state.openBuild('Build output')}>Build &amp; Flash</Button>
 })

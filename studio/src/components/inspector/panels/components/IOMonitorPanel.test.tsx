@@ -4,6 +4,7 @@ import { render, screen } from '@testing-library/react'
 import { IOMonitorPanel } from './IOMonitorPanel'
 
 jest.mock('~hooks/usePropsSelector', () => ({ __esModule: true, default: (key: string) => key === 'rows' ? [] : undefined }))
+jest.mock('~hooks/useSelectedComponentProps', () => ({ useSelectedComponentProps: () => ({ rows: [] }) }))
 jest.mock('~hooks/useForm', () => ({ useForm: () => ({ setValue: jest.fn() }) }))
 
 test('IO Monitor Inspector exposes semantic row controls', () => {

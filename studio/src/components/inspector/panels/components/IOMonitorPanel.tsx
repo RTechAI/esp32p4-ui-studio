@@ -1,7 +1,7 @@
 import React from 'react'
 import { Button, Checkbox, FormControl, FormLabel, HStack, Input, NumberInput, NumberInputField, Select, Stack, Text } from '@chakra-ui/react'
 import { useForm } from '~hooks/useForm'
-import usePropsSelector from '~hooks/usePropsSelector'
+import { useSelectedComponentProps } from '~hooks/useSelectedComponentProps'
 import { normalizeForgeUIIOMonitor } from '~forgeui/ForgeUIIOMonitor'
 import { INSPECTOR_PROPERTY_TEXT_COLOR } from '~components/inspector/controls/FormControl'
 
@@ -10,8 +10,8 @@ const checkProps = { color: INSPECTOR_PROPERTY_TEXT_COLOR, sx: { '.chakra-checkb
 
 export const IOMonitorPanel = () => {
   const { setValue } = useForm()
-  const raw = Object.fromEntries(['title','maximumRows','compactMode','generateRuntimeApi','enableUserEvents'].map(key => [key, usePropsSelector(key)]))
-  const model = normalizeForgeUIIOMonitor({ ...raw, rows: usePropsSelector('rows') })
+  const raw = useSelectedComponentProps(['title','maximumRows','compactMode','generateRuntimeApi','enableUserEvents','rows'])
+  const model = normalizeForgeUIIOMonitor(raw)
   const updateRow = (index: number, patch: Record<string, unknown>) => setValue('rows', model.rows.map((row, position) => position === index ? { ...row, ...patch } : row))
   const addRow = () => {
     if (model.rows.length >= model.maximumRows) return

@@ -1,3 +1,4 @@
 import React from 'react'; import { ChakraProvider } from '@chakra-ui/react'; import { render,screen } from '@testing-library/react'; import { BatteryCardPanel } from './BatteryCardPanel'
 jest.mock('~hooks/usePropsSelector',()=>({__esModule:true,default:()=>undefined})); jest.mock('~hooks/useForm',()=>({useForm:()=>({setValue:jest.fn()})}))
+jest.mock('~hooks/useSelectedComponentProps',()=>({useSelectedComponentProps:()=>({})}))
 test('Battery Card Inspector exposes implemented semantic controls only',()=>{render(<ChakraProvider><BatteryCardPanel/></ChakraProvider>); expect(screen.getByText('ForgeUI Native Battery Card')).toBeInTheDocument(); expect(screen.getByText('Remaining time (minutes)')).toBeInTheDocument(); expect(screen.getByText('Critical battery')).toBeInTheDocument(); expect(screen.getByText('Generate Runtime SDK')).toBeInTheDocument(); expect(screen.queryByText(/UserEvents/)).not.toBeInTheDocument()})

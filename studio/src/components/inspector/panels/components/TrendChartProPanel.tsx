@@ -1,7 +1,7 @@
 import React from 'react'
 import { Checkbox, FormControl, FormLabel, Input, NumberInput, NumberInputField, Select, SimpleGrid, Stack, Text } from '@chakra-ui/react'
 import { useForm } from '~hooks/useForm'
-import usePropsSelector from '~hooks/usePropsSelector'
+import { useSelectedComponentProps } from '~hooks/useSelectedComponentProps'
 import { normalizeForgeUITrendChartPro } from '~forgeui/ForgeUITrendChartPro'
 import { INSPECTOR_PROPERTY_TEXT_COLOR } from '~components/inspector/controls/FormControl'
 
@@ -11,7 +11,7 @@ const checkboxProps = { color: INSPECTOR_PROPERTY_TEXT_COLOR, sx: { '.chakra-che
 export const TrendChartProPanel = () => {
   const { setValue } = useForm()
   const names = ['title','value','units','customUnits','decimalPlaces','historyLength','updateRateMs','autoScale','fixedMin','fixedMax','warning','alarm','traceColour','warningColour','alarmColour','showGrid','showAreaFill','showGlow','showCurrentMarker','showThresholdBands','compactMode','generateRuntimeApi','enableUserEvents']
-  const raw = Object.fromEntries(names.map(name => [name, usePropsSelector(name)]))
+  const raw = useSelectedComponentProps(names)
   const model = normalizeForgeUITrendChartPro(raw)
   const input = (label: string, name: string, value: string, type = 'text') => <FormControl><FormLabel {...labelProps}>{label}</FormLabel><Input size="sm" type={type} value={value} onChange={e => setValue(name, e.target.value)} /></FormControl>
   const number = (label: string, name: string, value: number, min?: number) => <FormControl><FormLabel {...labelProps}>{label}</FormLabel><NumberInput size="sm" min={min} value={value} onChange={(_, n) => Number.isFinite(n) && setValue(name, n)}><NumberInputField /></NumberInput></FormControl>
