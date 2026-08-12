@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { forgeUIRuntime, forgeUIServiceUrl } from '~forgeui/runtime/ForgeUIRuntime'
 
 export type DeviceConsoleTab = 'build' | 'monitor' | 'io'
 export type SerialPortInfo = { path: string; manufacturer?: string; vendorId?: string; productId?: string }
@@ -15,7 +16,7 @@ type DeviceConsoleContextValue = {
 }
 
 const DeviceConsoleContext = createContext<DeviceConsoleContextValue | null>(null)
-const backend = 'http://localhost:3030'
+const backend = forgeUIRuntime.serviceBaseUrl
 
 export const DeviceConsoleProvider = ({ children }: React.PropsWithChildren<{}>) => {
   const [isOpen, setIsOpen] = useState(false)
@@ -38,6 +39,7 @@ export const DeviceConsoleProvider = ({ children }: React.PropsWithChildren<{}>)
   }, [])
 
   const loadPorts = useCallback(async () => {
+    if (!forgeUIRuntime.canUseSerial) return
     try {
       const response = await fetch(`${backend}/serial/ports`)
       const data = await response.json()
@@ -70,9 +72,10 @@ export const DeviceConsoleProvider = ({ children }: React.PropsWithChildren<{}>)
     openBuild: initialLog => { setActiveTab('build'); if (initialLog !== undefined) setLog(initialLog); setIsOpen(true) },
     toggle: () => setIsOpen(open => !open), collapse: () => setIsOpen(false),
     clear: () => setLog(''),
-    stop: async () => { await fetch(`${backend}/flash-stop`, { method: 'POST' }) },
+    stop: async () => { if (forgeUIRuntime.canBuildFlash) await fetch(forgeUIServiceUrl('/flash-stop'), { method: 'POST' }) },
     setActiveTab, loadPorts, setSelectedPort, setBaud,
     connectMonitor: async () => {
+      if (!forgeUIRuntime.canUseSerial) return
       if (!selectedPort) { setMonitorError('Select a serial port first'); return }
       setMonitorState('connecting'); setMonitorError(null)
       try {
@@ -83,11 +86,12 @@ export const DeviceConsoleProvider = ({ children }: React.PropsWithChildren<{}>)
       } catch (error) { setMonitorState('error'); setMonitorError(String(error instanceof Error ? error.message : error)) }
     },
     disconnectMonitor: async () => {
+      if (!forgeUIRuntime.canUseSerial) return
       const response = await fetch(`${backend}/serial/stop`, { method: 'POST' })
       const data = await response.json(); applyMonitor(data)
       if (!response.ok || !data.ok) setMonitorError(data.error || 'Unable to disconnect')
     },
-    clearMonitor: async () => { await fetch(`${backend}/serial/clear`, { method: 'POST' }); setMonitorLog('') },
+    clearMonitor: async () => { if (forgeUIRuntime.canUseSerial) await fetch(`${backend}/serial/clear`, { method: 'POST' }); setMonitorLog('') },
   }), [activeTab, applyMonitor, baud, isOpen, loadPorts, log, monitorError, monitorLog, monitorState, ports, running, selectedPort])
 
   return <DeviceConsoleContext.Provider value={value}>{children}</DeviceConsoleContext.Provider>

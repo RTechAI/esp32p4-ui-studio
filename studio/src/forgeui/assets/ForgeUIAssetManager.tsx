@@ -16,6 +16,7 @@ import {
   forgeUIGetUploadedAssets,
   forgeUIUpdateUploadedAsset,
 } from '../ForgeUIUploadedAssetRegistry'
+import { forgeUIRuntime, forgeUIServiceUrl } from '../runtime/ForgeUIRuntime'
 
 type ForgeUIAssetManagerProps = {
   onClose: () => void
@@ -94,7 +95,7 @@ export function ForgeUIAssetManager({
       const base64 = asset.browserSrc
 
       const res = await fetch(
-        'http://localhost:3030/convert-lvgl-image',
+        forgeUIServiceUrl(forgeUIRuntime.isHosted ? '/convert-image' : '/convert-lvgl-image'),
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -127,6 +128,7 @@ export function ForgeUIAssetManager({
     lvgl: data.symbolName || asset.lvgl,
     cFile: data.assetSource || asset.cFile,
     browserSrc: data.browserSrc || asset.browserSrc,
+    hostedContentBase64: data.contentBase64,
   }, { preserveDimensions: true }),
 )
     } catch (err) {

@@ -11,6 +11,7 @@ import {
   forgeUIUpdateUploadedAsset,
 } from '~forgeui/ForgeUIUploadedAssetRegistry'
 import { forgeUIIconNameToPngFile } from './ForgeUIIconAssetRenderer'
+import { forgeUIRuntime, forgeUIServiceUrl } from '~forgeui/runtime/ForgeUIRuntime'
 
 export type ForgeUIResolvedIcon = {
   iconName: string
@@ -47,7 +48,8 @@ const fileToBase64 = (
 
 const iconAssetSourceExists = async (assetSource: string): Promise<boolean> => {
   try {
-    const response = await fetch('http://localhost:3030/forgeui-asset-source-exists', {
+    if (forgeUIRuntime.isHosted) return false
+    const response = await fetch(forgeUIServiceUrl('/forgeui-asset-source-exists'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ assetSource }),
@@ -170,7 +172,7 @@ export const resolveForgeUIIcon = async (
   ])
 
   const response = await fetch(
-    'http://localhost:3030/convert-lvgl-image',
+    forgeUIServiceUrl(forgeUIRuntime.isHosted ? '/convert-image' : '/convert-lvgl-image'),
     {
       method: 'POST',
       headers: {
@@ -214,6 +216,7 @@ export const resolveForgeUIIcon = async (
         'lvgl_ready',
       cFile,
       lvgl,
+      hostedContentBase64: data.contentBase64,
     },
   )
 

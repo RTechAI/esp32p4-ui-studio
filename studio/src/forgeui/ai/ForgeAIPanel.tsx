@@ -5,6 +5,7 @@ import {
   forgeUIUpdateUploadedAsset,
 } from '~forgeui/ForgeUIUploadedAssetRegistry'
 import { useForgeTheme } from '~forgeui/theme/ForgeThemeContext'
+import { forgeUIRuntime, forgeUIServiceUrl } from '~forgeui/runtime/ForgeUIRuntime'
 import React, {
   useEffect,
   useRef,
@@ -2001,7 +2002,7 @@ const convertToggleCropAsset = async (
   }
 
   const conversionResponse = await fetch(
-    'http://localhost:3030/convert-lvgl-image',
+    forgeUIServiceUrl(forgeUIRuntime.isHosted ? '/convert-image' : '/convert-lvgl-image'),
     {
       method: 'POST',
       headers: {
@@ -2093,7 +2094,7 @@ const ensureToggleStateSheetSourceAsset =
     forgeUIAddUploadedAssets([asset])
 
     const conversionResponse = await fetch(
-      'http://localhost:3030/convert-lvgl-image',
+      forgeUIServiceUrl(forgeUIRuntime.isHosted ? '/convert-image' : '/convert-lvgl-image'),
       {
         method: 'POST',
         headers: {
@@ -2267,7 +2268,7 @@ const saveAssetArtwork = async () => {
     ) {
       const conversionResponse =
         await fetch(
-          'http://localhost:3030/convert-lvgl-image',
+          forgeUIServiceUrl(forgeUIRuntime.isHosted ? '/convert-image' : '/convert-lvgl-image'),
           {
             method: 'POST',
             headers: {
@@ -2745,7 +2746,7 @@ if (
   'pending_conversion'
 ) {
   const res = await fetch(
-    'http://localhost:3030/convert-lvgl-image',
+    forgeUIServiceUrl(forgeUIRuntime.isHosted ? '/convert-image' : '/convert-lvgl-image'),
     {
       method: 'POST',
       headers: {

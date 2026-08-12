@@ -1,0 +1,10 @@
+.git
+.agents
+.codex
+.vscode
+studio/node_modules
+studio/.next
+firmware/**/build
+*.zip
+*.log
+docs/hosted-studio/validation-artifacts

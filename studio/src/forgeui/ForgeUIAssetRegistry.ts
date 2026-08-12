@@ -4,6 +4,8 @@ import {
   FORGEUI_WEATHER_RUNTIME_BACKGROUND_KEYS,
 } from './weather/ForgeUIWeatherBackgrounds'
 
+import { forgeUIServiceUrl } from './runtime/ForgeUIRuntime'
+
 export const FORGEUI_IMAGE_ASSETS = [
   {
     name: 'Settings',
@@ -941,7 +943,7 @@ export const FORGEUI_WEATHER_BACKGROUND_PACK: ForgeUIBackgroundAsset[] =
       semanticKey,
       name,
       description: `${name} weather scene from the reusable ForgeUI Weather Background Pack.`,
-      src: `http://localhost:3030/forgeui-assets/uploads/${sourceSymbol}.png`,
+      src: forgeUIServiceUrl(`/forgeui-assets/uploads/${sourceSymbol}.png`),
       width: 1024,
       height: 600,
       kind: 'background' as const,

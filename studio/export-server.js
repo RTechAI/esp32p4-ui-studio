@@ -2,8 +2,8 @@ const express = require('express')
 const fs = require('fs')
 const path = require('path')
 const { spawn, spawnSync } = require('child_process')
-const { SerialPort } = require('serialport')
-const { SerialMonitorService } = require('./serial-monitor-service')
+const isHostedRuntime = process.env.FORGEUI_RUNTIME_MODE === 'hosted'
+const { SerialMonitorService } = isHostedRuntime ? { SerialMonitorService: null } : require('./serial-monitor-service')
 const forgeUIStudioAssets = require('./forgeui-studio-assets.json')
 
 const defaultHeroFileName =
@@ -16,10 +16,24 @@ const defaultHeroBrowserSrc =
   `http://localhost:3030/forgeui-defaults/${defaultHeroFileName}.png`
 
 const app = express()
+if (isHostedRuntime) {
+  // Importing the shared materializer in hosted mode must not register the
+  // local machine-control surface on this Express application.
+  app.get = () => app
+  app.post = () => app
+}
+
+const configuredPython = () => process.env.FORGEUI_PYTHON || (
+  process.platform === 'win32'
+    ? 'C:\\Espressif\\python_env\\idf5.5_py3.11_env\\Scripts\\python.exe'
+    : 'python3'
+)
 
 let currentProcess = null
 let flashLog = []
-const serialMonitor = new SerialMonitorService({ SerialPort })
+const serialMonitor = isHostedRuntime
+  ? { status: () => ({ connected: false }), stop: async () => {}, start: async () => {}, clear: () => {}, snapshot: () => ({ log: '' }) }
+  : new SerialMonitorService({ SerialPort: require('serialport').SerialPort })
 
 function addLog(line) {
   const text = String(line)
@@ -100,9 +114,7 @@ const persistentUploadsDir = path.resolve(
   '../firmware/ForgeUI-One/main/assets/uploads/_input'
 )
 
-fs.mkdirSync(persistentUploadsDir, {
-  recursive: true,
-})
+if (!isHostedRuntime) fs.mkdirSync(persistentUploadsDir, { recursive: true })
 
 app.use(
   '/forgeui-assets/uploads',
@@ -666,8 +678,7 @@ const height =
       })
     }
 
-    const pythonPath =
-      'C:\\Espressif\\python_env\\idf5.5_py3.11_env\\Scripts\\python.exe'
+    const pythonPath = configuredPython()
 
     const converterPath = path.resolve(
       __dirname,
@@ -1094,8 +1105,7 @@ const CANONICAL_ASSET_MANIFEST = Object.freeze({
 })
 
 function generateCanonicalImageAsset(asset, target) {
-  const pythonPath =
-    'C:\\Espressif\\python_env\\idf5.5_py3.11_env\\Scripts\\python.exe'
+  const pythonPath = configuredPython()
   const preprocessorPath = path.resolve(
     __dirname,
     '../tools/ForgeUIImagePreprocessor.py',
@@ -2657,32 +2667,6 @@ console.log(
   }
 })
 
-app.post('/export-idf-project', (req, res) => {
-  try {
-    const validated = validateExportPayload(req.body || {})
-const firmwareBuild = resolveFirmwareBuild(req.body.projectHardware)
-    const code = validated.code
-const assetSources = validated.assetSources.filter(source =>
-  firmwareBuild.firmwareFeatures.settingsLauncher ||
-  source !== 'assets/icons/fg_icon_settings_fi_48px.c'
-)
-
-const userEventHooks =
-  req.body.userEventHooks || []
-const userEventContracts = req.body.userEventContracts || []
-const publicApiDeclarations = normalizePublicApiDeclarations(
-  req.body.publicApiDeclarations
-)
-const fiRuntimeSource = typeof req.body.fiRuntimeSource === 'string' ? req.body.fiRuntimeSource : ''
-const fiRuntimeHeader = typeof req.body.fiRuntimeHeader === 'string' ? req.body.fiRuntimeHeader : ''
-const hasFiRuntime = fiRuntimeSource.trim().length > 0 && fiRuntimeHeader.trim().length > 0
-
-const userEvents =
-  generateUserEventFiles(userEventHooks, publicApiDeclarations, userEventContracts)
-
-const developerGuide =
-  generateDeveloperGuide(userEvents.hooks)
-
 function safeProjectName(name) {
   return String(name || 'ForgeUI_Export')
     .trim()
@@ -2691,44 +2675,52 @@ function safeProjectName(name) {
     .replace(/^_+|_+$/g, '') || 'ForgeUI_Export'
 }
 
-    function getUniqueExportDir(exportsRoot, baseName) {
-      let exportDir = path.join(exportsRoot, baseName)
+function getUniqueExportDir(exportsRoot, baseName) {
+  let exportDir = path.join(exportsRoot, baseName)
+  if (!fs.existsSync(exportDir)) return exportDir
+  let index = 1
+  while (true) {
+    exportDir = path.join(exportsRoot, `${baseName}_${String(index).padStart(3, '0')}`)
+    if (!fs.existsSync(exportDir)) return exportDir
+    index++
+  }
+}
 
-      if (!fs.existsSync(exportDir)) {
-        return exportDir
-      }
-
-      let index = 1
-
-      while (true) {
-        const nextName = `${baseName}_${String(index).padStart(3, '0')}`
-        exportDir = path.join(exportsRoot, nextName)
-
-        if (!fs.existsSync(exportDir)) {
-          return exportDir
-        }
-
-        index++
-      }
-    }
-
-    const projectName = safeProjectName(req.body.projectName)
-
-const sourceDir = path.resolve(
-  __dirname,
-  '../firmware/ForgeUI-One'
+function materializeStandaloneProject({
+  payload,
+  templateDir = path.resolve(__dirname, '../firmware/ForgeUI-One'),
+  destinationDir,
+  sourceMainDir = path.resolve(templateDir, 'main'),
+}) {
+    const validated = validateExportPayload(payload || {}, { mainDir: sourceMainDir })
+const firmwareBuild = resolveFirmwareBuild(payload.projectHardware)
+    const code = validated.code
+const assetSources = validated.assetSources.filter(source =>
+  firmwareBuild.firmwareFeatures.settingsLauncher ||
+  source !== 'assets/icons/fg_icon_settings_fi_48px.c'
 )
 
-const exportsRoot = 'C:\\ForgeUI-Exports'
-
-const exportDir = getUniqueExportDir(
-  exportsRoot,
-  projectName
+const userEventHooks =
+  payload.userEventHooks || []
+const userEventContracts = payload.userEventContracts || []
+const publicApiDeclarations = normalizePublicApiDeclarations(
+  payload.publicApiDeclarations
 )
+const fiRuntimeSource = typeof payload.fiRuntimeSource === 'string' ? payload.fiRuntimeSource : ''
+const fiRuntimeHeader = typeof payload.fiRuntimeHeader === 'string' ? payload.fiRuntimeHeader : ''
+const hasFiRuntime = fiRuntimeSource.trim().length > 0 && fiRuntimeHeader.trim().length > 0
 
-fs.mkdirSync(exportsRoot, {
-  recursive: true,
-})
+const userEvents =
+  generateUserEventFiles(userEventHooks, publicApiDeclarations, userEventContracts)
+
+const developerGuide =
+  generateDeveloperGuide(userEvents.hooks)
+
+    const projectName = safeProjectName(payload.projectName)
+const sourceDir = path.resolve(templateDir)
+if (!destinationDir) throw new Error('A server-controlled destinationDir is required')
+const exportDir = path.resolve(destinationDir)
+fs.mkdirSync(path.dirname(exportDir), { recursive: true })
 
 fs.cpSync(sourceDir, exportDir, {
   recursive: true,
@@ -2943,14 +2935,23 @@ console.log(
   developerGuideTarget
 )
 
-res.json({
+return {
   ok: true,
   exportDir,
   developerGuideTarget,
   userEventsCTarget,
   userEventsHTarget,
   userEventHooks: userEvents.hooks,
-})
+}
+}
+
+app.post('/export-idf-project', (req, res) => {
+  try {
+    const exportsRoot = process.env.FORGEUI_EXPORT_ROOT || 'C:\\ForgeUI-Exports'
+    const projectName = safeProjectName(req.body?.projectName)
+    const exportDir = getUniqueExportDir(exportsRoot, projectName)
+    const result = materializeStandaloneProject({ payload: req.body || {}, destinationDir: exportDir })
+    res.json({ ok: true, ...result })
   } catch (err) {
     console.error(err)
 
@@ -3123,6 +3124,9 @@ module.exports = {
   generateHardwareExampleHeader,
   applyHardwareExampleBuildRequirements,
   validateExportPayload,
+  safeProjectName,
+  getUniqueExportDir,
+  materializeStandaloneProject,
   runScript,
   serialMonitor,
 }

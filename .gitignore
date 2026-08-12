@@ -1,4 +1,5 @@
 *.zip
+studio/.hosted-test-tmp/
 .env
 .env.local
 .env.development.local
