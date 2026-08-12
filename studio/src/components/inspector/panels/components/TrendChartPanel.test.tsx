@@ -13,6 +13,7 @@ const values: Record<string, unknown> = {
 }
 jest.mock('~hooks/useForm', () => ({ useForm: () => ({ setValue }) }))
 jest.mock('~hooks/usePropsSelector', () => (name: string) => values[name])
+jest.mock('~hooks/useSelectedComponentProps', () => ({ useSelectedComponentProps: (names: string[]) => Object.fromEntries(names.map(name => [name, values[name]])) }))
 
 describe('Trend Chart Inspector', () => {
   it('exposes the complete semantic authoring contract', () => {

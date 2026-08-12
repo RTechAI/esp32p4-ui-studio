@@ -36,32 +36,28 @@ const StandardListPreview = ({
           {model.title}
         </Box>
       )}
-      {model.items.map((item, index) => (
-        <Box
-          as={mode === 'browser' ? 'button' : 'div'}
-          key={`${index}-${item}`}
-          type={mode === 'browser' ? 'button' : undefined}
-          minHeight={`${model.itemHeight}px`}
-          width="100%"
-          px="12px"
-          display="flex"
-          alignItems="center"
-          textAlign="left"
-          color={palette.textPrimary}
-          bg={palette.surfaceSecondary}
-          borderTop={`1px solid ${palette.surfaceBorder}`}
-          _active={{ bg: palette.selectedSurface, color: palette.accentText }}
-          _focusVisible={{
+      {model.items.map((item, index) => {
+        const cursor: 'pointer' | 'default' = mode === 'browser' ? 'pointer' : 'default'
+        const pointerEvents: 'auto' | 'none' = mode === 'browser' ? 'auto' : 'none'
+        const itemProps = {
+          minHeight: `${model.itemHeight}px`,
+          width: '100%', px: '12px', display: 'flex' as const, alignItems: 'center' as const,
+          textAlign: 'left' as const, color: palette.textPrimary,
+          bg: palette.surfaceSecondary,
+          borderTop: `1px solid ${palette.surfaceBorder}`,
+          _active: { bg: palette.selectedSurface, color: palette.accentText },
+          _focusVisible: {
             outline: `2px solid ${palette.accent}`,
             outlineOffset: '-2px',
-          }}
-          cursor={mode === 'browser' ? 'pointer' : 'default'}
-          pointerEvents={mode === 'browser' ? 'auto' : 'none'}
-          data-testid="standard-list-item"
-        >
-          {item}
-        </Box>
-      ))}
+          },
+          cursor,
+          pointerEvents,
+          'data-testid': 'standard-list-item',
+        }
+        return mode === 'browser'
+          ? <Box as="button" type="button" key={`${index}-${item}`} {...itemProps}>{item}</Box>
+          : <Box as="div" key={`${index}-${item}`} {...itemProps}>{item}</Box>
+      })}
     </Box>
   )
 }

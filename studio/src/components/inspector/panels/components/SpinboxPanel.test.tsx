@@ -8,19 +8,19 @@ jest.mock('~hooks/useForm', () => ({
 }))
 jest.mock('~hooks/usePropsSelector', () => () => 'right')
 jest.mock('~components/inspector/controls/NumberControl', () =>
-  ({ name, label }: { name: string; label: string }) => (
+  function MockNumberControl({ name, label }: { name: string; label: string }) { return (
     <label>{label}<input aria-label={label} name={name} /></label>
-  ),
+  ) },
 )
 jest.mock('~components/inspector/controls/SwitchControl', () =>
-  ({ name, label }: { name: string; label: string }) => (
+  function MockSwitchControl({ name, label }: { name: string; label: string }) { return (
     <label>{label}<input aria-label={label} name={name} type="checkbox" /></label>
-  ),
+  ) },
 )
 jest.mock('~components/inspector/controls/ColorsControl', () =>
-  ({ name, label }: { name: string; label: string }) => (
+  function MockColorsControl({ name, label }: { name: string; label: string }) { return (
     <label>{label}<input aria-label={label} name={name} /></label>
-  ),
+  ) },
 )
 
 describe('Native Spinbox Inspector', () => {

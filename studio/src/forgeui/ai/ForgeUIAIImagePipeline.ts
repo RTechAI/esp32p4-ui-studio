@@ -10,6 +10,7 @@ import type {
 import type {
   ForgeUIStateSheetProject,
 } from './StateSheetOverlay'
+import { forgeUIRuntime, forgeUIServiceUrl } from '~forgeui/runtime/ForgeUIRuntime'
 
 export type AIImageGenerationMode =
   | 'hero'
@@ -52,6 +53,7 @@ type LVGLConversionResponse = {
   detail?: string
   log?: string
   stage?: string
+  contentBase64?: string
 }
 
 const blobToDataUrl = (blob: Blob): Promise<string> =>
@@ -155,7 +157,7 @@ export const registerAndConvertImage = async ({
   }
 
   const conversionResponse = await fetch(
-    'http://localhost:3030/convert-lvgl-image',
+    forgeUIServiceUrl(forgeUIRuntime.isHosted ? '/convert-image' : '/convert-lvgl-image'),
     {
       method: 'POST',
       headers: {
@@ -198,6 +200,7 @@ export const registerAndConvertImage = async ({
       conversionPayload.browserSrc ||
       uploadedAsset.browserSrc,
     ...(recordDimensions ? { width, height } : {}),
+    hostedContentBase64: conversionPayload.contentBase64,
   }
 
   forgeUIUpdateUploadedAsset(uploadedAsset.id, {
@@ -206,6 +209,7 @@ export const registerAndConvertImage = async ({
     cFile: completedAsset.cFile,
     browserSrc: completedAsset.browserSrc,
     ...(recordDimensions ? { width, height } : {}),
+    hostedContentBase64: completedAsset.hostedContentBase64,
   })
 
   return completedAsset
@@ -258,7 +262,7 @@ const convertPreparedImage = async ({
   }
 
   const conversionUrl =
-    'http://localhost:3030/convert-lvgl-image'
+    forgeUIServiceUrl(forgeUIRuntime.isHosted ? '/convert-image' : '/convert-lvgl-image')
   let conversionResponse: Response
 
   try {

@@ -80,6 +80,7 @@ import {
   useExportValidationNotification,
 } from './ExportValidationNotification'
 import { useDeviceConsole } from '~contexts/device-console-context'
+import { forgeUIRuntime, forgeUIServiceUrl, forgeUIShouldRegisterShutdownBeacon } from '~forgeui/runtime/ForgeUIRuntime'
 
 const ExportProjectButton = ({
   exportEspIdfProject,
@@ -107,8 +108,10 @@ const ExportProjectButton = ({
               <PopoverHeader>Export Project</PopoverHeader>
 
               <PopoverBody fontSize="sm">
-                Creates an independent ESP-IDF project under
-                {' C:\\ForgeUI-Exports'}. After export, add GPIO, I/O and
+                {forgeUIRuntime.isHosted
+                  ? 'Downloads an independent ESP-IDF project ZIP.'
+                  : <>Creates an independent ESP-IDF project under{' C:\\ForgeUI-Exports'}.</>}
+                {' '}After export, add GPIO, I/O and
                 application logic in 95_UserEvents.c.
               </PopoverBody>
 
@@ -131,12 +134,12 @@ const ExportProjectButton = ({
                   ESP-IDF
                 </Button>
 
-                <Button
+                {forgeUIRuntime.canOpenLocalExplorer && <Button
                   size="sm"
                   variant="ghost"
                   colorScheme="teal"
                   onClick={async () => {
-                    await fetch('http://localhost:3030/open-exports', {
+                    await fetch(forgeUIServiceUrl('/open-exports'), {
                       method: 'POST',
                     })
 
@@ -144,7 +147,7 @@ const ExportProjectButton = ({
                   }}
                 >
                   Open Exports Folder
-                </Button>
+                </Button>}
               </PopoverFooter>
             </PopoverContent>
           </LightMode>
@@ -173,7 +176,7 @@ const defaultHeroAsset = {
   name: `${DEFAULT_HERO_FILE}.png`,
   type: 'image/png',
   browserSrc:
-    `http://localhost:3030/forgeui-defaults/${DEFAULT_HERO_FILE}.png`,
+    `${forgeUIRuntime.isHosted ? '' : forgeUIRuntime.serviceBaseUrl}/forgeui-defaults/${DEFAULT_HERO_FILE}.png`,
   lvgl: DEFAULT_HERO_FILE,
   cFile:
     `assets/defaults/${DEFAULT_HERO_FILE}.c`,
@@ -282,9 +285,10 @@ const selectedHeroAsset =
 
 
 useEffect(() => {
+  if (!forgeUIShouldRegisterShutdownBeacon()) return
   const handleClose = () => {
     try {
-      navigator.sendBeacon('http://localhost:3030/shutdown')
+      navigator.sendBeacon(forgeUIServiceUrl('/shutdown'))
     } catch (err) {
       console.error(err)
     }
@@ -338,11 +342,12 @@ useEffect(() => {
 }, [])
 
 const exportToForgeUIOne = async () => {
+  if (!forgeUIRuntime.canBuildFlash) return
   deviceConsole.openBuild('Starting Build & Flash...\n')
 
   if (!(await generateLiveFirmware())) return
 
- await fetch('http://localhost:3030/flash', {
+ await fetch(forgeUIServiceUrl('/flash'), {
   method: 'POST',
 })
 }
@@ -394,7 +399,7 @@ const generateLiveFirmware = async (): Promise<boolean> => {
   const payload = await buildFirmwareExportPayload()
   if (!payload) return false
 
-  const response = await fetch('http://localhost:3030/export', {
+  const response = await fetch(forgeUIServiceUrl('/export'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -444,13 +449,26 @@ const generateLiveFirmware = async (): Promise<boolean> => {
 
   const code = result.code
   const assetSources = result.assetSources
+  const hostedAssets = forgeUIRuntime.isHosted
+    ? forgeUIGetUploadedAssets()
+        .filter(asset => assetSources.includes(asset.cFile) && asset.hostedContentBase64)
+        .map(asset => ({ source: asset.cFile, contentBase64: asset.hostedContentBase64 }))
+    : undefined
 
-  const response = await fetch('http://localhost:3030/export-idf-project', {
+  const controller = new AbortController()
+  const timeout = window.setTimeout(() => controller.abort(), 120000)
+  let response: Response
+  try {
+    response = await fetch(forgeUIRuntime.isHosted
+      ? forgeUIServiceUrl('/export')
+      : forgeUIServiceUrl('/export-idf-project'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    signal: controller.signal,
     body: JSON.stringify({
   code,
   assetSources,
+  hostedAssets,
   userEventHooks: result.userEventHooks,
   userEventContracts: result.userEventContracts,
   publicApiDeclarations: result.publicApiDeclarations,
@@ -459,12 +477,39 @@ const generateLiveFirmware = async (): Promise<boolean> => {
   projectName: 'ForgeUI_Export',
   projectHardware,
 }),
-  })
+    })
+  } catch (error) {
+    toast({ title: 'Project Export Failed',
+      description: error instanceof DOMException && error.name === 'AbortError'
+        ? 'The export timed out. Please reduce large assets and try again.'
+        : 'The export service could not be reached. Please try again.',
+      status: 'error', duration: 12000, isClosable: true })
+    return
+  } finally {
+    window.clearTimeout(timeout)
+  }
   if (!response.ok) {
-    const failure = await response.json()
+    const failure = await response.json().catch(() => ({ error: '' }))
     toast({ title: 'Export Validation Failed',
       description: failure.error || 'Standalone export validation failed',
       status: 'error', duration: 12000, isClosable: true })
+    return
+  }
+
+  if (forgeUIRuntime.isHosted) {
+    const blob = await response.blob()
+    const disposition = response.headers.get('Content-Disposition') || ''
+    const fileName = disposition.match(/filename="?([^";]+)"?/i)?.[1] || 'ForgeUI_Export.zip'
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = fileName
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+    toast({ title: 'ESP-IDF Project Downloaded', description: fileName,
+      status: 'success', duration: 7000, isClosable: true })
     return
   }
 
@@ -486,12 +531,13 @@ const generateLiveFirmware = async (): Promise<boolean> => {
 }
 
 const cleanBuildFlashForgeUIOne = async () => {
+  if (!forgeUIRuntime.canBuildFlash) return
   deviceConsole.openBuild('Starting Clean Build & Flash...\n')
 
   if (!(await generateLiveFirmware())) return
 
   refreshProjectHardware()
-  await fetch('http://localhost:3030/clean-flash', {
+  await fetch(forgeUIServiceUrl('/clean-flash'), {
     method: 'POST',
   })
 }
@@ -629,6 +675,7 @@ const cleanBuildFlashForgeUIOne = async () => {
   fontWeight="600"
   letterSpacing="0.2px"
   leftIcon={<MdFlashOn />}
+  display={forgeUIRuntime.canBuildFlash ? undefined : 'none'}
   bg="#0f766e"
   color="white"
   border="1px solid"
@@ -650,6 +697,7 @@ const cleanBuildFlashForgeUIOne = async () => {
   fontWeight="600"
   letterSpacing="0.2px"
   leftIcon={<MdBuild />}
+  display={forgeUIRuntime.canBuildFlash ? undefined : 'none'}
   bg="#111827"
   color="#fbbf24"
   border="1px solid"
@@ -669,6 +717,7 @@ const cleanBuildFlashForgeUIOne = async () => {
   borderRadius="5px"
   fontSize="12px"
   leftIcon={<MdCode />}
+  display={forgeUIRuntime.canUseSerial ? undefined : 'none'}
   variant="outline"
   color="gray.200"
   borderColor="#475569"
@@ -728,6 +777,7 @@ const cleanBuildFlashForgeUIOne = async () => {
   variant="ghost"
   justifyContent="flex-start"
   leftIcon={<MdBuild size={20} />}
+  display={forgeUIRuntime.canUseLocalFirmwareMutation ? undefined : 'none'}
   size="md"
   width="100%"
   borderRadius="md"
@@ -736,7 +786,7 @@ const cleanBuildFlashForgeUIOne = async () => {
     try {
       await flushProjectPersistence('clean-firmware')
       const response = await fetch(
-        'http://localhost:3030/clean-firmware-uploads',
+        forgeUIServiceUrl('/clean-firmware-uploads'),
         {
           method: 'POST',
         },
@@ -787,6 +837,7 @@ const cleanBuildFlashForgeUIOne = async () => {
           variant="ghost"
           justifyContent="flex-start"
           leftIcon={<MdCleaningServices size={20} />}
+          display={forgeUIRuntime.canUseLocalFirmwareMutation ? undefined : 'none'}
           size="md"
           width="100%"
           borderRadius="md"
@@ -859,7 +910,7 @@ const cleanBuildFlashForgeUIOne = async () => {
                 try {
                   await flushProjectPersistence('firmware-maintenance')
                   const response = await fetch(
-                    'http://localhost:3030/clean-firmware-sweep',
+                    forgeUIServiceUrl('/clean-firmware-sweep'),
                     {
                       method: 'POST',
                     },
@@ -1053,7 +1104,7 @@ if (data.defaultHero) {
   />
 )}
 
-{aiPlaygroundOpen && (
+{forgeUIRuntime.canUseAI && aiPlaygroundOpen && (
   <ForgeAIPanel
     onClose={() => {
       setAiPlaygroundOpen(false)

@@ -1,0 +1,16 @@
+.git
+**/.env
+**/.env.*
+.agents
+.codex
+.vscode
+studio/node_modules
+studio/.next
+firmware/**/build
+firmware/**/.vscode
+firmware/**/.vs
+firmware/**/managed_components
+firmware/**/sdkconfig
+*.zip
+*.log
+docs/hosted-studio/validation-artifacts

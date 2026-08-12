@@ -5,6 +5,7 @@ import { TankLevelCardPanel } from './TankLevelCardPanel'
 
 jest.mock('~hooks/useForm',()=>({useForm:()=>({setValue:jest.fn()})}))
 jest.mock('~hooks/usePropsSelector',()=>({__esModule:true,default:()=>undefined}))
+jest.mock('~hooks/useSelectedComponentProps',()=>({useSelectedComponentProps:()=>({})}))
 
 test('Tank Level Card Inspector exposes implemented monitoring controls only', () => {
   render(<ChakraProvider><TankLevelCardPanel /></ChakraProvider>)

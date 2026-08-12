@@ -1,14 +1,14 @@
 import React from 'react'
 import { Checkbox, FormControl, FormLabel, Input, NumberInput, NumberInputField, Select, Stack, Text } from '@chakra-ui/react'
 import { useForm } from '~hooks/useForm'
-import usePropsSelector from '~hooks/usePropsSelector'
+import { useSelectedComponentProps } from '~hooks/useSelectedComponentProps'
 import { normalizeForgeUITankLevelCard } from '~forgeui/ForgeUITankLevelCard'
 import { INSPECTOR_PROPERTY_TEXT_COLOR } from '~components/inspector/controls/FormControl'
 
 export const TankLevelCardPanel = () => {
   const { setValue } = useForm()
   const keys = ['title','units','compactMode','level','capacity','currentVolume','showPercentage','showVolume','tankShape','lowLevel','highLevel','criticalLevel','fillColour','tankOutline','lowColour','highColour','criticalColour','overflowColour','animateFill','showLabels','generateRuntimeApi']
-  const model = normalizeForgeUITankLevelCard(Object.fromEntries(keys.map(key => [key, usePropsSelector(key)])))
+  const model = normalizeForgeUITankLevelCard(useSelectedComponentProps(keys))
   const number = (label: string, key: string, value: number) => <FormControl><FormLabel fontSize="xs">{label}</FormLabel><NumberInput size="sm" value={value} onChange={(_, next) => setValue(key, next)}><NumberInputField /></NumberInput></FormControl>
   const check = (label: string, key: string, value: boolean) => <Checkbox isChecked={value} onChange={event => setValue(key, event.target.checked)}>{label}</Checkbox>
   return <Stack spacing={3} color={INSPECTOR_PROPERTY_TEXT_COLOR}>

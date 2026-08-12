@@ -1,3 +1,5 @@
+import { forgeUIRuntime, forgeUIServiceUrl } from './runtime/ForgeUIRuntime'
+
 export type ForgeUIUploadedAssetExportStatus =
   | 'browser_only'
   | 'pending_conversion'
@@ -28,6 +30,7 @@ export type ForgeUIUploadedAsset = {
   contentY?: number
   contentWidth?: number
   contentHeight?: number
+  hostedContentBase64?: string
 }
 
 export type ForgeUIImageDimensions = {
@@ -199,7 +202,7 @@ const loadPersistedAssets = (): ForgeUIUploadedAsset[] => {
           typeof asset.lvgl === 'string',
       )
       .map((asset: ForgeUIUploadedAsset) => {
-        const persistentBrowserSrc = `http://localhost:3030/forgeui-assets/uploads/${asset.lvgl}.png`
+        const persistentBrowserSrc = forgeUIRuntime.isHosted ? asset.browserSrc : forgeUIServiceUrl(`/forgeui-assets/uploads/${asset.lvgl}.png`)
 
         return {
           ...asset,
@@ -225,7 +228,7 @@ const persistUploadedAssets = () => {
 
   try {
     const serialisableAssets = forgeUIUploadedAssets.map(
-      ({ file, ...asset }) => ({
+      ({ file, hostedContentBase64, ...asset }) => ({
         ...asset,
 
         browserSrc:
@@ -326,7 +329,8 @@ export async function forgeUIDeleteUploadedAsset(id: string) {
   }
 
   try {
-    await fetch('http://localhost:3030/delete-forgeui-asset', {
+    if (forgeUIRuntime.isHosted) throw new Error('Hosted assets are browser-session scoped')
+    await fetch(forgeUIServiceUrl('/delete-forgeui-asset'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -371,6 +375,7 @@ export function forgeUIUpdateUploadedAsset(
       | 'contentWidth'
       | 'contentHeight'
       | 'displayName'
+      | 'hostedContentBase64'
     >
   >,
   options: { preserveDimensions?: boolean } = {},

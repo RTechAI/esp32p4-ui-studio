@@ -17,6 +17,7 @@ import {
 import { ICON_COUNT, ICON_NAMES } from '~iconsList'
 import { forgeUIIconNameToPngFile } from './ForgeUIIconAssetRenderer'
 import { ForgeUIIconGlyph } from './ForgeUIIconGlyph'
+import { forgeUIRuntime, forgeUIServiceUrl } from '~forgeui/runtime/ForgeUIRuntime'
 
 import {
   forgeUICreateUploadedAsset,
@@ -97,7 +98,7 @@ const IconBrowserModal = ({
 
   try {
     const res = await fetch(
-      'http://localhost:3030/convert-lvgl-image',
+      forgeUIServiceUrl(forgeUIRuntime.isHosted ? '/convert-image' : '/convert-lvgl-image'),
       {
         method: 'POST',
         headers: {
@@ -128,6 +129,7 @@ const IconBrowserModal = ({
     forgeUIUpdateUploadedAsset(asset.id, {
       exportStatus: 'lvgl_ready',
       cFile,
+      hostedContentBase64: data.contentBase64,
     })
   } catch (err) {
     console.error(
@@ -193,7 +195,7 @@ const IconBrowserModal = ({
       const base64 = asset.browserSrc
 
       const res = await fetch(
-        'http://localhost:3030/convert-lvgl-image',
+        forgeUIServiceUrl(forgeUIRuntime.isHosted ? '/convert-image' : '/convert-lvgl-image'),
         {
           method: 'POST',
           headers: {
@@ -220,6 +222,7 @@ const IconBrowserModal = ({
 
       forgeUIUpdateUploadedAsset(asset.id, {
         exportStatus: 'lvgl_ready',
+        hostedContentBase64: data.contentBase64,
         cFile:
           data.assetSource ||
           asset.cFile,

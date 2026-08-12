@@ -27,7 +27,7 @@ const visibleProps = {
 describe('Dashboard Card duplicate property isolation', () => {
   it('copies visible content verbatim while isolating identity, edits, persistence, and generated names', () => {
     mockGenerateId.mockReturnValueOnce('dashboard-card-b')
-    const store = makeStore() as any
+    const store = makeStore({} as any) as any
 
     store.dispatch.components.addComponent({
       parentName: 'root',

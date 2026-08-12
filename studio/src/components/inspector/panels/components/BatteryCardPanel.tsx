@@ -1,14 +1,14 @@
 import React from 'react'
 import { Checkbox, FormControl, FormLabel, Input, NumberInput, NumberInputField, Select, Stack, Text } from '@chakra-ui/react'
 import { useForm } from '~hooks/useForm'
-import usePropsSelector from '~hooks/usePropsSelector'
+import { useSelectedComponentProps } from '~hooks/useSelectedComponentProps'
 import { normalizeForgeUIBatteryCard } from '~forgeui/ForgeUIBatteryCard'
 import { INSPECTOR_PROPERTY_TEXT_COLOR } from '~components/inspector/controls/FormControl'
 
 export const BatteryCardPanel = () => {
   const { setValue } = useForm()
   const keys = ['title','units','percentage','voltage','current','charging','health','remainingMinutes','temperature','lowThreshold','criticalThreshold','compactMode','showPercentage','showVoltage','showCurrent','showRuntime','showTemperature','showChargingIcon','showHealth','animateCharging','normalColour','lowColour','criticalColour','chargingColour','generateRuntimeApi']
-  const model = normalizeForgeUIBatteryCard(Object.fromEntries(keys.map(key => [key, usePropsSelector(key)])))
+  const model = normalizeForgeUIBatteryCard(useSelectedComponentProps(keys))
   const number = (label: string, key: string, value: number) => <FormControl><FormLabel fontSize="xs">{label}</FormLabel><NumberInput size="sm" value={value} onChange={(_, n) => setValue(key, n)}><NumberInputField /></NumberInput></FormControl>
   const check = (label: string, key: string, value: boolean) => <Checkbox isChecked={value} onChange={e => setValue(key, e.target.checked)}>{label}</Checkbox>
   return <Stack spacing={3} color={INSPECTOR_PROPERTY_TEXT_COLOR}>

@@ -6,6 +6,7 @@ import { AlarmPanelPanel } from './AlarmPanelPanel'
 const setValue = jest.fn()
 jest.mock('~hooks/useForm', () => ({ useForm: () => ({ setValue }) }))
 jest.mock('~hooks/usePropsSelector', () => () => undefined)
+jest.mock('~hooks/useSelectedComponentProps', () => ({ useSelectedComponentProps: () => ({}) }))
 
 test('Alarm Panel Inspector exposes semantic property groups', () => {
   render(<ChakraProvider><AlarmPanelPanel /></ChakraProvider>)

@@ -41,7 +41,7 @@ jest.mock('./StateSheetOverlay', () => ({
 
 jest.mock('~forgeui/interactive/ForgeUIInteractiveAssetPanel', () => ({
   __esModule: true,
-  default: ({
+  default: function MockInteractiveAssetPanel({
     onBuildToggleSet,
     toggleStateSheetResult,
     onToggleStateSheetResultConsumed,
@@ -58,7 +58,7 @@ jest.mock('~forgeui/interactive/ForgeUIInteractiveAssetPanel', () => ({
       sourceComponentId: string
       interactiveAssetId?: string
     } | null
-  }) => {
+  }) {
     const [draftName, setDraftName] = React.useState('Preserved Toggle Draft')
     const [offAssetId, setOffAssetId] = React.useState('')
     const [onAssetId, setOnAssetId] = React.useState('')

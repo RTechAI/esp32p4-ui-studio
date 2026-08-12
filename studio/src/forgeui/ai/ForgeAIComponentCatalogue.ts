@@ -31,11 +31,12 @@ const SUPPORTED_TYPES = [
   'InteractiveThreePositionToggleSwitch', 'IconButton', 'Icon', 'Input',
   'Textarea', 'Switch', 'Checkbox', 'Radio', 'NumberInput', 'Spinbox', 'Select', 'Image',
   'Slider', 'Progress', 'CircularProgress', 'Led', 'Bar', 'Arc', 'Roller',
-  'Canvas', 'Line', 'Tabview', 'Tileview', 'ButtonMatrix',
+  'Canvas', 'Line', 'Tabview', 'Tileview', 'ButtonMatrix', 'AnimImage',
   'Msgbox', 'Table', 'Scale', 'Keyboard', 'Divider', 'Calendar', 'Chart', 'Box',
   'DashboardCard',
   'SensorTile',
   'RelayPanel',
+  'PwmController',
 ] as const
 
 type SupportedType = typeof SUPPORTED_TYPES[number]
@@ -44,14 +45,14 @@ const CONTROL_TYPES = new Set<SupportedType>([
   'Button', 'InteractiveButton', 'InteractiveToggleSwitch',
   'InteractiveThreePositionToggleSwitch', 'IconButton', 'Input', 'Textarea',
   'Switch', 'Checkbox', 'Radio', 'NumberInput', 'Spinbox', 'Select', 'Slider', 'Roller',
-  'ButtonMatrix', 'Keyboard', 'RelayPanel',
+  'ButtonMatrix', 'Keyboard', 'RelayPanel', 'PwmController',
 ])
 
 const MEDIA_TYPES = new Set<SupportedType>(['Image', 'Icon'])
 const NAVIGATION_TYPES = new Set<SupportedType>(['Tabview', 'Tileview'])
 const LAYOUT_TYPES = new Set<SupportedType>(['Box', 'Divider', 'Line', 'Canvas'])
 const CONTENT_TYPES = new Set<SupportedType>(['Text', 'Heading'])
-const DASHBOARD_TYPES = new Set<SupportedType>(['DashboardCard', 'SensorTile', 'RelayPanel'])
+const DASHBOARD_TYPES = new Set<SupportedType>(['DashboardCard', 'SensorTile', 'RelayPanel', 'PwmController'])
 
 const descriptions: Partial<Record<SupportedType, string>> = {
   NumberInput: 'Editable numeric field with increment and decrement controls.',
@@ -69,6 +70,8 @@ const descriptions: Partial<Record<SupportedType, string>> = {
   DashboardCard: 'ForgeUI Native value, status and progress card.',
   SensorTile: 'ForgeUI Native live engineering measurement tile.',
   RelayPanel: 'ForgeUI Native logical relay bank control panel.',
+  PwmController: 'ForgeUI Native semantic PWM output control card.',
+  AnimImage: 'Frame-based image animation backed by uploaded image assets.',
 }
 
 const aliases: Partial<Record<SupportedType, string[]>> = {
@@ -90,6 +93,7 @@ const aliases: Partial<Record<SupportedType, string[]>> = {
   DashboardCard: ['dashboard card', 'kpi card', 'metric card'],
   SensorTile: ['sensor tile', 'engineering measurement', 'telemetry tile'],
   RelayPanel: ['relay panel', 'relay bank', 'digital outputs', 'contactors'],
+  PwmController: ['pwm controller', 'duty cycle', 'fan speed', 'motor speed'],
 }
 
 const sizes: Partial<Record<SupportedType, { w: number; h: number }>> = {
@@ -117,6 +121,7 @@ const sizes: Partial<Record<SupportedType, { w: number; h: number }>> = {
 const assetRequirement = (type: SupportedType): ForgeAIAssetRequirement => {
   if (type === 'Icon' || type === 'IconButton') return 'icon'
   if (type === 'Image') return 'uploaded-image'
+  if (type === 'AnimImage') return 'uploaded-image'
   if (type === 'InteractiveButton') return 'interactive-button'
   if (type === 'InteractiveLight') return 'interactive-light'
   if (type === 'InteractiveStatusIndicator') return 'interactive-status-indicator'

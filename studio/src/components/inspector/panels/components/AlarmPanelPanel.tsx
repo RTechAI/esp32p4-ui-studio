@@ -1,7 +1,7 @@
 import React from 'react'
 import { Button, Checkbox, FormControl, FormLabel, HStack, Input, NumberInput, NumberInputField, Select, Stack, Text } from '@chakra-ui/react'
 import { useForm } from '~hooks/useForm'
-import usePropsSelector from '~hooks/usePropsSelector'
+import { useSelectedComponentProps } from '~hooks/useSelectedComponentProps'
 import { normalizeForgeUIAlarmPanel } from '~forgeui/ForgeUIAlarmPanel'
 import { INSPECTOR_PROPERTY_TEXT_COLOR } from '~components/inspector/controls/FormControl'
 
@@ -11,8 +11,8 @@ const checkProps = { color: INSPECTOR_PROPERTY_TEXT_COLOR, sx: { '.chakra-checkb
 export const AlarmPanelPanel = () => {
   const { setValue } = useForm()
   const keys = ['title','maximumVisibleAlarms','showTimestamp','showAcknowledgement','showPriority','showHeader','showFooter','footerText','compactMode','alarmCapacity','sortOrder','autoScroll','autoClear','flashActiveAlarms','animateTransitions','rowSpacing','normalColour','warningColour','alarmColour','acknowledgedColour','clearedColour','generateRuntimeApi','enableUserEvents'] as const
-  const raw = Object.fromEntries(keys.map(key => [key, usePropsSelector(key)]))
-  const model = normalizeForgeUIAlarmPanel({ ...raw, alarms: usePropsSelector('alarms') })
+  const raw = useSelectedComponentProps([...keys, 'alarms'])
+  const model = normalizeForgeUIAlarmPanel(raw)
   const updateAlarm = (index: number, patch: Record<string, unknown>) =>
     setValue('alarms', model.alarms.map((alarm, position) => position === index ? { ...alarm, ...patch } : alarm))
   const addAlarm = () => {

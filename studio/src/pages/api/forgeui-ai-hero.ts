@@ -205,6 +205,9 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ApiResponse>,
 ) {
+  if (process.env.FORGEUI_RUNTIME_MODE === 'hosted') {
+    return res.status(404).json({ ok: false, error: 'Not found' })
+  }
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST')
 
